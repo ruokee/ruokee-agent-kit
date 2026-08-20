@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[oc]
+*.egg-info/
+build/
+dist/
+.venv/
+.python-version
+
+# Python tools
+.coverage
+coverage.json
+coverage.xml
+htmlcov/
+.mypy_cache/
+.pytest_cache/
+.pyright/
+.ruff_cache/
+
+# Node.js
+node_modules/
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local work
+.worktrees/
+tmp/
+.DS_Store
