@@ -33,7 +33,7 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 
 ## Validation
 
-- Install the Git hook with `uvx pre-commit install`.
+- Install the Git hooks with `uvx pre-commit install --install-hooks`.
 - Run `uvx pre-commit run --all-files` before requesting review.
 - Add component-specific checks beside a Skill or tool when its implementation requires more than the repository baseline.
 
@@ -42,6 +42,7 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 - Use trunk-based development. `main` is the only long-lived branch.
 - Develop each feature, fix, or documentation change on a short-lived branch created from current `main`. Do not modify `main` directly.
 - Commit each atomic task to its branch by default. Stage only files that belong to the current task.
+- Write commit messages in English and follow the Conventional Commits specification.
 - Let `git commit` run the quality hooks. If hooks modify task files, review and restage them before retrying the commit.
 - Use `git commit --amend` only to edit a commit message. Never use amend to add, remove, or replace committed file changes.
 - Before requesting review, commit the task changes and leave the related working tree clean.
