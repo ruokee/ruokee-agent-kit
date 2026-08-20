@@ -4,7 +4,7 @@ coverage.py measures which lines and branches of code execute while tests run. I
 
 ## Statement vs Branch Coverage
 
-Statement coverage records which lines ran. Branch coverage additionally records which edges of each conditional were taken, so an `if` whose `else` path is never exercised shows as a partial branch even when every line ran. Branch coverage catches untested decision paths that statement coverage hides, and is worth enabling for core logic and libraries.
+Statement coverage records which lines ran. Branch coverage also records which edges of each conditional were taken, so an `if` whose `else` path is never exercised shows as a partial branch even when every line ran. Branch coverage catches untested decision paths that statement coverage hides and is worth enabling for core logic and libraries.
 
 ```toml
 [tool.coverage.run]

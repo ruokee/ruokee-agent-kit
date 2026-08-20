@@ -24,7 +24,7 @@ repos:
 
 ## Local Commit Gate
 
-After `pre-commit install`, the hooks run automatically on `git commit` against staged files. The point is to fail trivial issues — formatting drift, leftover whitespace, broken YAML — at commit time rather than in review. Keep the hook set small and fast so the gate stays low-friction; a slow gate trains people to pass `--no-verify` and skip it entirely.
+After `pre-commit install`, the hooks run automatically on `git commit` against staged files. The point is to fail trivial issues, formatting drift, leftover whitespace, broken YAML, at commit time rather than in review. Keep the hook set small and fast so the gate stays low-friction; a slow gate trains people to pass `--no-verify` and skip it entirely.
 
 ## Common Hooks
 
@@ -32,7 +32,7 @@ A typical Python set: file-hygiene hooks (`trailing-whitespace`, `end-of-file-fi
 
 ## Autofixing Hooks and File Modification
 
-Some hooks modify files: `ruff-format`, `ruff --fix`, `end-of-file-fixer`, and `trailing-whitespace` rewrite content in place. When a hook changes a file, pre-commit reports failure and leaves the fix unstaged, so you review the change and re-stage before committing again. This is intentional — you see what was rewritten rather than committing machine edits blindly.
+Some hooks modify files: `ruff-format`, `ruff --fix`, `end-of-file-fixer`, and `trailing-whitespace` rewrite content in place. When a hook changes a file, pre-commit reports failure and leaves the fix unstaged, so you review the change and re-stage before committing again. This is intentional; you see what was rewritten rather than committing machine edits blindly.
 
 ## Speed Considerations
 

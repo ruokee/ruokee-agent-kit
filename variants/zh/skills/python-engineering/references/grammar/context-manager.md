@@ -4,7 +4,7 @@
 
 ## 它解决的问题
 
-资源有生命周期：文件必须关闭、锁必须释放、事务必须提交或回滚、连接必须归还到连接池。使用裸 `try`/`finally` 来做是正确的，但冗长且容易出错——清理代码与获取代码分离，嵌套资源会产生深度缩进的脆弱代码块。
+资源有生命周期：文件必须关闭、锁必须释放、事务必须提交或回滚、连接必须归还到连接池。使用裸 `try`/`finally` 来做是正确的，但冗长且容易出错：清理代码与获取代码分离，嵌套资源会产生深度缩进的脆弱代码块。
 
 ```python
 with open(path) as handle:
@@ -12,7 +12,7 @@ with open(path) as handle:
 # 即使 process() 抛出异常，handle 也会在此处关闭
 ```
 
-`with` 块使生命周期可见：顶部获取资源、主体中作用域、结束时保证释放。关于*谁拥有资源以及何时释放*的一般设计问题在[资源生命周期设计](skills/code-quality/references/programming-paradigms/resource-lifecycle.md)中讨论；本文档是关于语言机制本身的。
+`with` 块让生命周期清晰可见：顶部获取资源，主体限定作用域，结束时保证释放。本文档只讨论语言机制。
 
 ## 协议
 
@@ -42,7 +42,7 @@ class Transaction:
 
 `__exit__` 的返回值是一个控制流决策，也是协议中最容易被误解的部分。返回假值（包括 `None`）会让任何正在传播的异常正常传播。返回真值会*抑制*（suppress）异常，就像从未发生过一样。
 
-静默抑制异常几乎总是错误。上面的事务返回 `False`，因此失败的块仍然会抛出异常——它既回滚*又*传播。仅在吞掉异常是管理器的明确目的时才返回 `True`（即便如此，也优先使用 [`contextlib.suppress`](variants/zh/skills/python-engineering/references/stdlib/contextlib.md) 以获得清晰性）。执行清理的管理器不应隐藏触发清理的失败。
+静默抑制异常几乎总是错误。上面的事务返回 `False`，因此失败的块仍然会抛出异常；它既回滚*又*传播。仅在吞掉异常是管理器的明确目的时才返回 `True`（即便如此，也优先使用 [`contextlib.suppress`](variants/zh/skills/python-engineering/references/stdlib/contextlib.md) 以获得清晰性）。执行清理的管理器不应隐藏触发清理的失败。
 
 ## 基于生成器的上下文管理器
 
@@ -64,7 +64,7 @@ def timed(label: str):
 
 ## 异步资源
 
-异步资源——在设置或清理期间必须 `await` 的连接、会话、连接池——实现 `__aenter__` 和 `__aexit__`，并使用 `async with`：
+异步资源，在设置或清理期间必须 `await` 的连接、会话、连接池，实现 `__aenter__` 和 `__aexit__`，并使用 `async with`：
 
 ```python
 async with pool.acquire() as conn:
@@ -85,7 +85,7 @@ with (
     fout.write(transform(fin.read()))
 ```
 
-管理器从左到右进入，从右到左退出，因此依赖前面资源的资源会更早释放。当资源的*集合*在运行时才可知时——可变数量的文件、动态构建的管理器栈——使用 [`contextlib.ExitStack`](variants/zh/skills/python-engineering/references/stdlib/contextlib.md) 代替嵌套语句。
+管理器从左到右进入，从右到左退出，因此依赖前面资源的资源会更早释放。当资源的*集合*在运行时才可知时，可变数量的文件、动态构建的管理器栈，使用 [`contextlib.ExitStack`](variants/zh/skills/python-engineering/references/stdlib/contextlib.md) 代替嵌套语句。
 
 ## 何时编写自己的管理器
 

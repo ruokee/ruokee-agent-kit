@@ -42,14 +42,14 @@ Python rarely needs the full fluent-builder machinery. Several lighter forms usu
 
 - The object has many optional parameters or several valid construction shapes.
 - Construction proceeds in stages, with intermediate validation between them.
-- The same construction process must yield different representations (HTML, PDF, JSON) — the canonical Builder justification.
+- The same construction process must yield different representations (HTML, PDF, JSON): the canonical Builder justification.
 - The assembly logic itself is worth naming, testing, and reusing independently of the product.
 
 ## When NOT to use
 
 - A plain dataclass with keyword defaults already says it clearly. A fluent builder over a simple value object is pure ceremony.
 - A Pydantic / msgspec model already gives you validated construction from raw data.
-- The builder hides a pile of mutable state where call order matters but isn't enforced — that's harder to reason about than a single constructor.
+- The builder hides a pile of mutable state where call order matters but isn't enforced: that's harder to reason about than a single constructor.
 
 ## Failure modes
 

@@ -24,7 +24,7 @@ This decorator form is the right default for sequential setup/teardown logic. Re
 
 ## ExitStack and AsyncExitStack
 
-`ExitStack` manages a *dynamic* set of context managers — when the number of resources is not known at parse time, or resources are acquired in a loop:
+`ExitStack` manages a *dynamic* set of context managers: when the number of resources is not known at parse time, or resources are acquired in a loop:
 
 ```python
 from contextlib import ExitStack
@@ -39,7 +39,7 @@ with ExitStack() as stack:
 
 ## suppress
 
-`suppress(*exceptions)` ignores the named exceptions raised in its block — a clear replacement for `try/except SomeError: pass`:
+`suppress(*exceptions)` ignores the named exceptions raised in its block; a clear replacement for `try/except SomeError: pass`:
 
 ```python
 from contextlib import suppress
@@ -85,4 +85,4 @@ This keeps one `with` block instead of duplicating the body across an `if`/`else
 
 ## Common Mistake: Swallowing Exceptions
 
-The recurring contextlib error is silently discarding exceptions during cleanup. A generator-based manager returns control after `yield`; if its teardown raises or if `__exit__` returns a truthy value, the original error can be masked. `suppress` makes this explicit and intentional, which is fine — but an over-broad `suppress`, a `finally` that raises, or an `__exit__` that returns `True` by accident hides real failures. Suppress only the specific exception you understand, keep the suppressed region minimal, and never let cleanup code swallow the error that triggered it.
+The recurring contextlib error is silently discarding exceptions during cleanup. A generator-based manager returns control after `yield`; if its teardown raises or if `__exit__` returns a truthy value, the original error can be masked. `suppress` makes this explicit and intentional, which is fine, but an over-broad `suppress`, a `finally` that raises, or an `__exit__` that returns `True` by accident hides real failures. Suppress only the specific exception you understand, keep the suppressed region minimal, and never let cleanup code swallow the error that triggered it.

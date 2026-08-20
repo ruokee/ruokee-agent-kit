@@ -1,10 +1,10 @@
 # Docstrings And API Docs
 
-Once type annotations carry the static contract, a docstring's job changes. It is no longer the place to record parameter types and return types — the signature already does that, machine-checkably, and repeating it only creates a second copy that drifts out of sync. The docstring's job is everything the signature *cannot* express: what the function means in the domain, what it promises and assumes, what it touches in the outside world, and how to use it correctly. The core skill is placing each piece of information where it belongs and writing a docstring only when it adds something the reader could not already see.
+Once type annotations carry the static contract, a docstring's job changes. It is no longer the place to record parameter types and return types, the signature already does that, machine-checkably, and repeating it only creates a second copy that drifts out of sync. The docstring's job is everything the signature *cannot* express: what the function means in the domain, what it promises and assumes, what it touches in the outside world, and how to use it correctly. The core skill is placing each piece of information where it belongs and writing a docstring only when it adds something the reader could not already see.
 
 ## Where Information Belongs
 
-A modern Python API spreads its documentation across several surfaces, and most documentation problems are really placement problems — the right fact in the wrong place, or the same fact in three places. The first question for any piece of information is not "how do I phrase it" but "which surface owns it."
+A modern Python API spreads its documentation across several surfaces, and most documentation problems are really placement problems; the right fact in the wrong place, or the same fact in three places. The first question for any piece of information is not "how do I phrase it" but "which surface owns it."
 
 | Information | Owning surface | Why |
 |-|-|-|
@@ -18,16 +18,16 @@ A modern Python API spreads its documentation across several surfaces, and most 
 | Worked examples | Docstring, README, or tests | Best when also executed, so they cannot rot |
 | Version changes, deprecations | Release notes, `warnings.deprecated()` | Serves readers, checkers, and runtime together |
 
-The single most common mistake is duplicating a fact that a more authoritative surface already owns — writing `min_length=3` in prose when a `Field(min_length=3)` already declares it, or restating a type the annotation already gives.
+The single most common mistake is duplicating a fact that a more authoritative surface already owns: writing `min_length=3` in prose when a `Field(min_length=3)` already declares it, or restating a type the annotation already gives.
 
 ## When A Docstring Adds Value
 
 A docstring earns its place when it tells the reader something the signature cannot. The clearest signals:
 
 - **Semantics.** What does the returned value *mean*? `-> str` says it is a string; the docstring says it is "a normalized form suitable for case-insensitive lookup, not a display name."
-- **Constraints the type cannot hold.** A window that must be odd, a list that must be non-empty, a timestamp that must be UTC — the annotation says `int`, `list`, `datetime`, and the docstring carries the rest.
+- **Constraints the type cannot hold.** A window that must be odd, a list that must be non-empty, a timestamp that must be UTC; the annotation says `int`, `list`, `datetime`, and the docstring carries the rest.
 - **Side effects.** Anything observable beyond the return value: a database write, a network call, a mutated argument, a cache populated, a file created. Callers need this to use the function safely, and no annotation reveals it.
-- **Exception semantics.** Which exceptions a caller is expected to handle, and what they mean — not an exhaustive list of everything that could propagate, but the ones that are part of the contract.
+- **Exception semantics.** Which exceptions a caller is expected to handle, and what they mean, not an exhaustive list of everything that could propagate, but the ones that are part of the contract.
 
 ```python
 def normalize_username(raw: str) -> str:
@@ -44,7 +44,7 @@ Here `raw: str -> str` is already in the signature; the docstring adds the looku
 
 ## When A Docstring Is Noise
 
-A docstring that repeats the signature is worse than none — it adds maintenance cost and a second source of truth that will eventually contradict the first. Skip or trim the docstring when:
+A docstring that repeats the signature is worse than none; it adds maintenance cost and a second source of truth that will eventually contradict the first. Skip or trim the docstring when:
 
 - It would only restate types already in the annotations (`user_id (str): the user id`).
 - It would only echo the function name (`def save_user(...): """Save a user."""`).
@@ -55,7 +55,7 @@ Coverage-driven docstring mandates ("every function must have a docstring") tend
 
 ## Docstring Styles
 
-Three formats are in wide use, and the skill does not force one — the choice follows the project's documentation needs, not fashion.
+Three formats are in wide use, and the skill does not force one; the choice follows the project's documentation needs, not fashion.
 
 - **Google style** uses `Args:`, `Returns:`, `Raises:` sections. It is light, readable, and well-suited to general engineering APIs and backend services. With full type annotations, omit the types from the sections (`host: the bind target`, not `host (str): the bind target`).
 - **NumPy / numpydoc style** uses underlined sections (`Parameters`, `Returns`, `Notes`, `Examples`). It is more structured and the right fit for scientific and data APIs, where shape, dtype, units, mathematical definitions, and examples carry real weight. It is overkill for short business helpers.
@@ -65,7 +65,7 @@ Whatever the style, with annotations present the rule is constant: do not write 
 
 ## Schema-Driven Documentation
 
-For web APIs and data models built on tools like Pydantic and FastAPI, the type annotations and field metadata become the single source of truth for validation, serialization, *and* generated documentation. A field's type, its constraints (`Field(gt=0, le=100)`), and its description (`Field(description=...)`) flow into the generated OpenAPI/JSON schema. In this world the docstring's territory shrinks to the part schema cannot express — the higher-level business semantics, transaction behavior, and cross-field relationships:
+For web APIs and data models built on tools like Pydantic and FastAPI, the type annotations and field metadata become the single source of truth for validation, serialization, *and* generated documentation. A field's type, its constraints (`Field(gt=0, le=100)`), and its description (`Field(description=...)`) flow into the generated OpenAPI/JSON schema. In this world the docstring's territory shrinks to the part schema cannot express: the higher-level business semantics, transaction behavior, and cross-field relationships:
 
 ```python
 class CreateOrderRequest(BaseModel):
@@ -73,8 +73,8 @@ class CreateOrderRequest(BaseModel):
     quantity: Annotated[int, Field(gt=0, le=100, description="Units requested.")]
 ```
 
-The constraints and per-field descriptions live in `Field(...)`, which feeds the schema directly. A docstring on the endpoint then explains what the operation *does* — "reserves inventory before writing the order; on reservation failure no order is created" — which no field metadata can capture. The failure mode to guard against is maintaining the same sentence in `Field(description=...)`, the model docstring, and a hand-written OpenAPI description at once. Pick the source of truth and let the others reference it.
+The constraints and per-field descriptions live in `Field(...)`, which feeds the schema directly. A docstring on the endpoint then explains what the operation *does*, "reserves inventory before writing the order; on reservation failure no order is created", which no field metadata can capture. The failure mode to guard against is maintaining the same sentence in `Field(description=...)`, the model docstring, and a hand-written OpenAPI description at once. Pick the source of truth and let the others reference it.
 
 ## Documentation Sites Versus Docstrings
 
-A docstring documents one object; it cannot replace a documentation site. Tutorials, how-to guides, design rationale, and migration notes are narrative documents that no amount of per-function docstring adds up to. A tool like Sphinx with `autodoc` can pull docstrings into an API reference, but an auto-generated reference is not the same as good documentation — the narrative still has to be written by hand. One practical caution: `autodoc` imports the module to read it, so any import-time side effect will run during the doc build; keep module import clean (the same discipline [structure](skills/python-engineering/references/project/structure.md) asks for) and the doc build stays predictable.
+A docstring documents one object; it cannot replace a documentation site. Tutorials, how-to guides, design rationale, and migration notes are narrative documents that no amount of per-function docstring adds up to. A tool like Sphinx with `autodoc` can pull docstrings into an API reference, but an auto-generated reference is not the same as good documentation; the narrative still has to be written by hand. One practical caution: `autodoc` imports the module to read it, so any import-time side effect will run during the doc build; keep module import clean (the same discipline [structure](skills/python-engineering/references/project/structure.md) asks for) and the doc build stays predictable.

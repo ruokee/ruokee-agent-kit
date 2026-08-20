@@ -2,7 +2,7 @@
 
 ## Intent
 
-Define a family of interchangeable algorithms behind a stable interface, so the algorithm can be selected and swapped — at configuration time or at runtime — without changing the code that uses it.
+Define a family of interchangeable algorithms behind a stable interface, so the algorithm can be selected and swapped, at configuration time or at runtime, without changing the code that uses it.
 
 ## Problem it solves
 
@@ -28,7 +28,7 @@ rank_by_priority = partial(rank_items, score=priority_score)
 
 Forms in rough order of weight:
 
-- **A plain function or `lambda`** passed as an argument — the lightest strategy.
+- **A plain function or `lambda`** passed as an argument: the lightest strategy.
 - **A closure** to capture a little stable configuration, or `functools.partial` to pre-bind arguments into a narrower callable.
 - **A `Protocol` or callable object** when the strategy needs state, multiple related methods, or a name that documents intent.
 - **`functools.singledispatch`** when the strategy is chosen by the *type* of the input rather than a config value.
@@ -43,8 +43,8 @@ Forms in rough order of weight:
 ## When NOT to use
 
 - There is one algorithm, or a single `if` covers the two cases. Pre-emptive "strategy-fication" adds an interface for no benefit.
-- The strategy interface is so wide that callers must assemble a complex object just to vary one decision — the abstraction is mis-cut.
-- The "strategies" actually differ in *what* data they need, not just *how* they compute — they may not share a coherent interface.
+- The strategy interface is so wide that callers must assemble a complex object just to vary one decision; the abstraction is mis-cut.
+- The "strategies" actually differ in *what* data they need, not just *how* they compute; they may not share a coherent interface.
 
 ## Failure modes
 

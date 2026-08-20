@@ -4,7 +4,7 @@ A context manager pairs a setup action with a teardown action and guarantees the
 
 ## What Problem It Solves
 
-Resources have a lifetime: a file must be closed, a lock released, a transaction committed or rolled back, a connection returned to a pool. Doing this with bare `try`/`finally` is correct but verbose and easy to get wrong — the cleanup drifts away from the acquisition, and nested resources produce deeply indented, fragile blocks.
+Resources have a lifetime: a file must be closed, a lock released, a transaction committed or rolled back, a connection returned to a pool. Doing this with bare `try`/`finally` is correct but verbose and easy to get wrong; the cleanup drifts away from the acquisition, and nested resources produce deeply indented, fragile blocks.
 
 ```python
 with open(path) as handle:
@@ -12,7 +12,7 @@ with open(path) as handle:
 # handle is closed here, even if process() raised
 ```
 
-The `with` block makes the lifetime visible: acquisition at the top, scope in the body, release guaranteed at the end. The general design question of *who owns a resource and when it is released* is covered in [resource lifecycle design](skills/code-quality/references/programming-paradigms/resource-lifecycle.md); this document is about the language mechanism.
+The `with` block makes the lifetime visible: acquisition at the top, scope in the body, and guaranteed release at the end. This document focuses on the language mechanism.
 
 ## The Protocol
 
@@ -42,7 +42,7 @@ class Transaction:
 
 The return value of `__exit__` is a control-flow decision, and it is the single most misunderstood part of the protocol. Returning a falsy value (including `None`) lets any in-flight exception propagate normally. Returning a truthy value *suppresses* the exception, as if it never happened.
 
-Suppressing exceptions silently is almost always a bug. The transaction above returns `False` so a failed block still raises — it rolls back *and* propagates. Only return `True` when swallowing the exception is the manager's explicit purpose (and even then, prefer [`contextlib.suppress`](skills/python-engineering/references/stdlib/contextlib.md) for clarity). A manager that cleans up should not also hide the failure that triggered the cleanup.
+Suppressing exceptions silently is almost always a bug. The transaction above returns `False` so a failed block still raises; it rolls back *and* propagates. Only return `True` when swallowing the exception is the manager's explicit purpose (and even then, prefer [`contextlib.suppress`](skills/python-engineering/references/stdlib/contextlib.md) for clarity). A manager that cleans up should not also hide the failure that triggered the cleanup.
 
 ## Generator-Based Context Managers
 
@@ -64,7 +64,7 @@ The `try`/`finally` is essential: without it, an exception in the body skips the
 
 ## Async Resources
 
-Asynchronous resources — connections, sessions, pools that must `await` during setup or teardown — implement `__aenter__` and `__aexit__` and are used with `async with`:
+Asynchronous resources, connections, sessions, pools that must `await` during setup or teardown, implement `__aenter__` and `__aexit__` and are used with `async with`:
 
 ```python
 async with pool.acquire() as conn:
@@ -85,7 +85,7 @@ with (
     fout.write(transform(fin.read()))
 ```
 
-Managers enter left to right and exit right to left, so a resource that depends on an earlier one is released first. When the *set* of resources is not known until runtime — a variable number of files, a dynamically built stack of managers — use [`contextlib.ExitStack`](skills/python-engineering/references/stdlib/contextlib.md) instead of nesting statements.
+Managers enter left to right and exit right to left, so a resource that depends on an earlier one is released first. When the *set* of resources is not known until runtime, such as a variable number of files or a dynamically built stack of managers, use [`contextlib.ExitStack`](skills/python-engineering/references/stdlib/contextlib.md) instead of nesting statements.
 
 ## When To Write Your Own
 

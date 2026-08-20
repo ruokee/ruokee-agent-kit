@@ -1,4 +1,4 @@
-# Full Review — Python Engineering
+# Full Review: Python Engineering
 
 A systematic, evidence-driven Python engineering review. Heavier than fast review: it reads in stages, verifies high-severity findings, and stops for confirmation before risky suggestions. Run only when the user asks for it.
 
@@ -14,24 +14,23 @@ User explicitly says "full review", "complete review", "systematic review", or "
 ## Steps
 
 1. Context intake. Sort the work into four buckets before reading code:
-   - Must read — files the review cannot be correct without.
-   - Should read — adjacent code, tests, and config that inform judgment.
-   - Already known — facts established earlier in the conversation; do not re-derive.
-   - Uncertain — open questions to resolve by reading or by asking the user.
+   - Must read, files the review cannot be correct without.
+   - Should read, adjacent code, tests, and config that inform judgment.
+   - Already known, facts established earlier in the conversation; do not re-derive.
+   - Uncertain, open questions to resolve by reading or by asking the user.
 2. Read in stages, not all at once.
    - Project facts: `pyproject.toml` (`requires-python`, dependencies, groups, tool config), `.pre-commit-config.yaml`, CI, test config, Makefile.
-   - Preferences: `.agents/preferences/python-engineering.md`, else `.agents/preferences/python-engineering/index.md`. Continue without them if absent.
-   - Relevant code and tests, pulled in by the review matrix below — load each category as you reach it.
+   - Relevant code and tests, pulled in by the review matrix below, load each category as you reach it.
 3. Work the review matrix. For each, gather evidence before judging:
-   - Version & dependencies — syntax/stdlib vs `requires-python`; declared deps, correct groups, no undeclared imports.
-   - Layout, entry points, workspace — project shape, package boundaries, script/console entry points, workspace member coherence.
-   - Type coverage — public signatures typed, `Any`/`cast` justified, Protocol/generics used where they earn their cost.
-   - Docstrings & API docs — public surface documented, information placed where readers look.
-   - Testing — behavior coverage over line coverage, fixture and parametrize structure, meaningful assertions.
-   - Custom lint — project-specific mechanical rules respected; candidates for a new rule noted.
-   - Grammar choices — `match`/`case`, context managers, exception groups, decorators used where they fit, not as ornament.
-   - Stdlib usage — `functools`, `itertools`, `contextlib`, `pathlib`, `enum`, `dataclasses`, `logging` used instead of hand-rolled equivalents.
-   - Tooling config — uv, Ruff, ty/mypy/basedpyright, pytest, coverage, pre-commit configured coherently and not contradicting each other.
+   - Version & dependencies, syntax/stdlib vs `requires-python`; declared deps, correct groups, no undeclared imports.
+   - Layout, entry points, workspace, project shape, package boundaries, script/console entry points, workspace member coherence.
+   - Type coverage, public signatures typed, `Any`/`cast` justified, Protocol/generics used where they earn their cost.
+   - Docstrings & API docs, public surface documented, information placed where readers look.
+   - Testing, behavior coverage over line coverage, fixture and parametrize structure, meaningful assertions.
+   - Custom lint, project-specific mechanical rules respected; candidates for a new rule noted.
+   - Grammar choices, `match`/`case`, context managers, exception groups, decorators used where they fit, not as ornament.
+   - Stdlib usage, `functools`, `itertools`, `contextlib`, `pathlib`, `enum`, `dataclasses`, `logging` used instead of hand-rolled equivalents.
+   - Tooling config, uv, Ruff, ty/mypy/basedpyright, pytest, coverage, pre-commit configured coherently and not contradicting each other.
 4. Self-verify every high-severity finding. Re-read the evidence, consider a plausible false-positive reading, and state confidence. Downgrade or drop anything you cannot support.
 5. Confirmation stop. Before suggesting any of these, stop and ask:
    - Unsafe fixes or commands that write files, create `.venv`/cache, or alter the lockfile.
@@ -48,7 +47,6 @@ Structured findings grouped by matrix category. One block per finding:
   Fact: observable code/config evidence.
   Impact: correctness, maintainability, readability, testability, runtime, or delivery cost.
   Judgment: Python engineering category.
-  Preference: preference source path, if used.
   Evidence: support, counter-evidence, and remaining uncertainty.
   Recommendation: smallest sufficient change.
   Verification: command to run, or why none is needed.
@@ -68,6 +66,5 @@ Notes
 
 - Do not modify code without an explicit request for fixes.
 - Confirmation stop on unsafe, bulk, cross-file, dependency, or behavior-changing suggestions.
-- Do not present preferences as Python language facts or universal engineering conclusions.
-- Do not report what Ruff, ty, mypy, or pre-commit catch mechanically — note once if it affects the review, then move on.
-- Keep facts, inferences, judgments, preferences, and recommendations separate.
+- Do not report what Ruff, ty, mypy, or pre-commit catch mechanically, note once if it affects the review, then move on.
+- Keep facts, inferences, judgments, and recommendations separate.

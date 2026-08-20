@@ -22,7 +22,7 @@ def _(value: list) -> str:
     return "[" + ", ".join(render(v) for v in value) + "]"
 ```
 
-自 Python 3.11 起，注册的注解可以是联合类型（`int | float`），一次注册覆盖一个类型家族。`singledispatch` 适用于开放扩展，即新类型无需编辑中央函数即可添加处理程序——这是一种轻量级的访问者模式。它不根据第二个参数、字段值或组合进行分发；这些需要显式分支、`match` 或分发映射。对于方法，使用 `singledispatchmethod`。保持基本实现有意义（一个合理的默认值或清晰的错误），因为当没有已注册的类型匹配时它就会运行。
+自 Python 3.11 起，注册的注解可以是联合类型（`int | float`），一次注册覆盖一个类型家族。`singledispatch` 适用于开放扩展，即新类型无需编辑中央函数即可添加处理程序；这是一种轻量级的访问者模式。它不根据第二个参数、字段值或组合进行分发；这些需要显式分支、`match` 或分发映射。对于方法，使用 `singledispatchmethod`。保持基本实现有意义（一个合理的默认值或清晰的错误），因为当没有已注册的类型匹配时它就会运行。
 
 ## partial
 
@@ -37,11 +37,11 @@ connect_local = partial(connect, "localhost", timeout=5.0)
 conn = connect_local(8080)
 ```
 
-当你只是固定参数时，优先使用 `partial` 而非 `lambda`——它是可 pickle 的、可内省的（`.func`、`.args`、`.keywords`），并且读起来就是意图。对于复杂签名，类型检查器推断 `partial` 结果不完美，因此在推断类型不明确时注解绑定点。将其用于回调、依赖注入和为特定调用点配置泛型函数；避免将许多 `partial` 堆叠成不透明的链条。
+当你只是固定参数时，优先使用 `partial` 而非 `lambda`；它是可 pickle 的、可内省的（`.func`、`.args`、`.keywords`），并且读起来就是意图。对于复杂签名，类型检查器推断 `partial` 结果不完美，因此在推断类型不明确时注解绑定点。将其用于回调、依赖注入和为特定调用点配置泛型函数；避免将许多 `partial` 堆叠成不透明的链条。
 
 ## lru_cache / cache
 
-`@lru_cache(maxsize=...)` 以参数为键记忆化结果；`@cache`（3.9+）是 `lru_cache(maxsize=None)`——一个无界记忆化。它们加速具有可哈希参数的纯函数，且这些函数被重复调用：
+`@lru_cache(maxsize=...)` 以参数为键记忆化结果；`@cache`（3.9+）是 `lru_cache(maxsize=None)`：一个无界记忆化。它们加速具有可哈希参数的纯函数，且这些函数被重复调用：
 
 ```python
 from functools import cache
@@ -64,7 +64,7 @@ from operator import or_
 merged = reduce(or_, dict_list, {})  # 多个字典的并集
 ```
 
-当存在普通的 `for` 循环或内置函数（`sum`、`math.prod`、`any`、`all`、`"".join`）时，优先使用它们——对大多数读者来说更清晰。`reduce` 仅适用于结合性组合，其中在循环中命名运行中的累加器并不会增加清晰度。`reduce` 内嵌套的 `lambda` 通常是一个信号，表明应切换回显式循环。
+当存在普通的 `for` 循环或内置函数（`sum`、`math.prod`、`any`、`all`、`"".join`）时，优先使用它们：对大多数读者来说更清晰。`reduce` 仅适用于结合性组合，其中在循环中命名运行中的累加器并不会增加清晰度。`reduce` 内嵌套的 `lambda` 通常是一个信号，表明应切换回显式循环。
 
 ## wraps
 

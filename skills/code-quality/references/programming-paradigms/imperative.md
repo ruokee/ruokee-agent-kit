@@ -4,7 +4,7 @@
 
 Imperative programming describes a computation as a sequence of statements that change state: read input, mutate a variable, call an external system, handle an error, write output. Procedural programming is the same model organized into procedures (functions) that are called in order. This is the oldest and most direct way to express a program, and it maps closely to how the machine actually executes.
 
-It is easy to dismiss imperative code as low-level or unsophisticated. That is a mistake. The real world is full of ordered side effects — open a file, read it, transform the contents, write it back, commit the transaction — and imperative style is the honest, readable way to express that sequence. The goal is not to eliminate imperative code but to keep it where it belongs and to stop business rules from getting tangled up in it.
+It is easy to dismiss imperative code as low-level or unsophisticated. That is a mistake. The real world is full of ordered side effects, open a file, read it, transform the contents, write it back, commit the transaction, and imperative style is the honest, readable way to express that sequence. The goal is not to eliminate imperative code but to keep it where it belongs and to stop business rules from getting tangled up in it.
 
 ## The assumption underneath
 
@@ -17,9 +17,9 @@ It is easy to dismiss imperative code as low-level or unsophisticated. That is a
 - CLI entry points, one-off scripts, migrations, operational tooling.
 - Application startup: dependency wiring, config loading, logger initialization.
 - I/O orchestration: coordinating a transaction, calling several external systems in a required order, sequencing reads and writes.
-- The outer layer of almost any program — the part that has to actually *do* things in the world.
+- The outer layer of almost any program; the part that has to actually *do* things in the world.
 
-A healthy imperative entry point reads like a recipe — each step names a phase, and the side effects are visible in order:
+A healthy imperative entry point reads like a recipe; each step names a phase, and the side effects are visible in order:
 
 ```python
 def main(argv: Sequence[str] | None = None) -> int:
@@ -44,9 +44,9 @@ Notice what the entry point does *not* do: it does not compute the result itself
 - Complex state changes have no boundary and leak through every layer via globals or a mutable dict passed everywhere.
 - Error handling is scattered through the flow, impossible to reuse or reason about as a unit.
 - The function has grown past what a reader can hold in their head, and the only structure is top-to-bottom order.
-- "Just one more flag" parameters accumulate until the procedure has a dozen booleans steering hidden branches — a sign distinct operations have been merged into one sequence.
+- "Just one more flag" parameters accumulate until the procedure has a dozen booleans steering hidden branches; a sign distinct operations have been merged into one sequence.
 
-When you see these signs, the issue is usually not "too imperative" but "imperative in the wrong place" — decision logic that should have been pulled out into something testable. The fix is rarely to make the code less imperative overall; it is to separate the part that *decides* from the part that *acts*.
+When you see these signs, the issue is usually not "too imperative" but "imperative in the wrong place": decision logic that should have been pulled out into something testable. The fix is rarely to make the code less imperative overall; it is to separate the part that *decides* from the part that *acts*.
 
 Consider a function that interleaves the two:
 
@@ -83,7 +83,7 @@ Keep each procedure at one level of abstraction. Mixing high-level orchestration
 
 ## Relationship to functional core / imperative shell
 
-The cleanest resolution is to keep imperative style but confine it to a thin outer layer. This is the imperative shell of [functional-core.md](./functional-core.md): the shell sequences I/O, transactions, retries, and logging; the core takes plain data, applies the rules, and returns plain data. The shell stays imperative on purpose — that is where ordered side effects live. What you move out is the decision-making, not the orchestration.
+The cleanest resolution is to keep imperative style but confine it to a thin outer layer. This is the imperative shell of [functional-core.md](./functional-core.md): the shell sequences I/O, transactions, retries, and logging; the core takes plain data, applies the rules, and returns plain data. The shell stays imperative on purpose; that is where ordered side effects live. What you move out is the decision-making, not the orchestration.
 
 This also connects to [data-oriented.md](./data-oriented.md) (the data the shell passes to the core) and [resource-lifecycle.md](./resource-lifecycle.md) (how the shell acquires and releases the resources it sequences).
 
@@ -91,6 +91,6 @@ This also connects to [data-oriented.md](./data-oriented.md) (the data the shell
 
 - Carry imperative wiring in an explicit entry point, for example `main(argv: Sequence[str] | None = None) -> int`, and isolate it behind `if __name__ == "__main__":`.
 - Let the entry layer parse arguments, load config, configure logging, build dependencies, and translate exceptions into exit codes. Core logic receives explicit parameters and stays importable and testable.
-- Use `with` / `async with` for external resources rather than relying on garbage collection to release them — see [resource-lifecycle.md](./resource-lifecycle.md).
+- Use `with` / `async with` for external resources rather than relying on garbage collection to release them; see [resource-lifecycle.md](./resource-lifecycle.md).
 - When a procedure grows past readability, split it by phase into named steps (`load_config()`, `build_client()`, `run_job()`) before reaching for a framework. Linear, well-named steps are a feature, not a smell.
 - Resist the urge to wrap a simple three-line sequence in a class or a pipeline abstraction; straightforward imperative code is often the KISS-correct answer.

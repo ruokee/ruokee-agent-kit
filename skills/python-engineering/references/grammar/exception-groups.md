@@ -4,7 +4,7 @@
 
 ## The Problem It Solves
 
-Sequential code fails one cause at a time, so a single exception is enough. Concurrent and batch code is different. If five downloads run together and three fail with different errors, there is no single "the" exception — discarding four of them hides real information. `ExceptionGroup` wraps them so the full set travels up the stack together, each retaining its own traceback.
+Sequential code fails one cause at a time, so a single exception is enough. Concurrent and batch code is different. If five downloads run together and three fail with different errors, there is no single "the" exception: discarding four of them hides real information. `ExceptionGroup` wraps them so the full set travels up the stack together, each retaining its own traceback.
 
 ## Syntax
 
@@ -33,14 +33,14 @@ The natural source is `asyncio.TaskGroup` (3.11+): when multiple child tasks fai
 
 ## When Not To Use It
 
-Do not wrap a single sequential error in a group. Linear flow that fails one cause at a time should raise and catch plain exceptions — a group there adds a layer of unwrapping for no benefit. `except*` is also not a stylistic upgrade of `except`; mixing the two on the same `try` is a syntax error, so introducing `except*` is a deliberate commitment that this block handles aggregated failures.
+Do not wrap a single sequential error in a group. Linear flow that fails one cause at a time should raise and catch plain exceptions; a group there adds a layer of unwrapping for no benefit. `except*` is also not a stylistic upgrade of `except`; mixing the two on the same `try` is a syntax error, so introducing `except*` is a deliberate commitment that this block handles aggregated failures.
 
 ## Interaction With Existing Handlers
 
-A plain `except SomeError` does **not** catch a `SomeError` hiding inside an `ExceptionGroup` — the group's type is `ExceptionGroup`, not `SomeError`. Code that adopts `TaskGroup` must convert its `except` clauses to `except*` or explicitly catch `ExceptionGroup`, or failures will pass through uncaught. Conversely, `except*` can catch `ExceptionGroup` itself but the construct is built around matching member types.
+A plain `except SomeError` does **not** catch a `SomeError` hiding inside an `ExceptionGroup`; the group's type is `ExceptionGroup`, not `SomeError`. Code that adopts `TaskGroup` must convert its `except` clauses to `except*` or explicitly catch `ExceptionGroup`, or failures will pass through uncaught. Conversely, `except*` can catch `ExceptionGroup` itself but the construct is built around matching member types.
 
 ## Nesting Behavior
 
-Groups nest. Splitting a group with `except*` preserves structure: matching members come out in a group that mirrors the original nesting, and the unmatched remainder propagates as another group with its own structure and tracebacks intact. You rarely build nested groups by hand — they arise when groups propagate through several `TaskGroup` layers. `BaseExceptionGroup` is the variant that can hold `BaseException` subclasses such as `KeyboardInterrupt`; `ExceptionGroup` is restricted to `Exception` and is what application code normally uses.
+Groups nest. Splitting a group with `except*` preserves structure: matching members come out in a group that mirrors the original nesting, and the unmatched remainder propagates as another group with its own structure and tracebacks intact. You rarely build nested groups by hand; they arise when groups propagate through several `TaskGroup` layers. `BaseExceptionGroup` is the variant that can hold `BaseException` subclasses such as `KeyboardInterrupt`; `ExceptionGroup` is restricted to `Exception` and is what application code normally uses.
 
 For richer per-error context within a group, attach notes to individual members with `add_note()` before raising, so each retains its own explanation alongside its traceback.

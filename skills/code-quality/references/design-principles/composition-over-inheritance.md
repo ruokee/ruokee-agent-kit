@@ -1,6 +1,6 @@
 # Composition over Inheritance
 
-Favor assembling behavior from smaller parts — objects, functions, delegation — over inheriting
+Favor assembling behavior from smaller parts, objects, functions, delegation, over inheriting
 implementation from a base class. The guidance is "favor", not "forbid": inheritance has real
 uses, but it is overused as a default reuse mechanism, and composition is usually the more
 flexible and lower-coupling choice.
@@ -9,13 +9,13 @@ flexible and lower-coupling choice.
 
 Class inheritance bundles two things that are logically separate: *implementation reuse* (the
 subclass gets the base class's code) and *subtype substitutability* (instances of the subclass
-are expected to work wherever the base type is expected — see
+are expected to work wherever the base type is expected; see
 [Liskov substitution](./solid.md)). When you inherit only to reuse code, you also inherit the
 obligation to honor the base contract, plus exposure to every change in the base class.
 
 This produces the *fragile base class* problem: a change to a base class can break subclasses
 in ways that are hard to see, because subclasses depend on the base class's internal behavior,
-not just its public interface. Deep hierarchies amplify this — behavior is smeared across
+not just its public interface. Deep hierarchies amplify this: behavior is smeared across
 several levels, and understanding one class means reading all its ancestors.
 
 Composition couples more loosely. An object that holds a collaborator depends only on that
@@ -41,8 +41,8 @@ you merely want to reuse a few methods.
 ## Python's mixin culture and its risks
 
 Python supports multiple inheritance, and mixins are a common idiom: small classes that add a
-slice of behavior to a host class. Used well — small, stateless, clearly named, depending only
-on a documented interface of the host — they are reasonable. Used poorly they cause real
+slice of behavior to a host class. Used well, small, stateless, clearly named, depending only
+on a documented interface of the host, they are reasonable. Used poorly they cause real
 trouble:
 
 - **Implicit state and initialization order.** A mixin that sets attributes or expects

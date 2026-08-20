@@ -24,15 +24,15 @@ The pattern is most valuable when the set of types is stable but the set of oper
 - Node types change frequently. Every new type forces updates to all Visitors.
 - The structure is simple enough that a single recursive function or `match`/`case` suffices.
 - Only one or two operations exist. The ceremony of accept/visit adds no clarity.
-- The language supports [pattern matching](skills/python-engineering/references/grammar/match-case.md) or [`singledispatch`](skills/python-engineering/references/stdlib/functools.md), making double dispatch unnecessary.
-- Operations do not need the full concrete type — a common interface method is enough.
+- The language supports pattern matching or `singledispatch`, making double dispatch unnecessary.
+- Operations do not need the full concrete type; a common interface method is enough.
 
 ## Python Alternatives
 
 Python offers lighter alternatives to the classic Visitor:
 
-- **`match`/`case` with structural patterns**: works for tagged unions, dataclass hierarchies, or typed dicts. No accept method needed. See the [pattern matching reference](skills/python-engineering/references/grammar/match-case.md).
-- **`functools.singledispatch`**: dispatch on the first argument's type. Good for single-argument operations over a closed type set. See [functools](skills/python-engineering/references/stdlib/functools.md).
+- **`match`/`case` with structural patterns**: works for tagged unions, dataclass hierarchies, or typed dicts. No accept method needed.
+- **`functools.singledispatch`**: dispatches on the first argument's type. It fits single-argument operations over a closed type set.
 - **Dictionary dispatch**: map type to handler function. Simplest form; no infrastructure.
 - **Method on node**: if operations are few and stable, put behavior directly on nodes. No pattern needed.
 
@@ -40,7 +40,7 @@ The classic accept/visit double-dispatch Visitor is most justified when you want
 
 ## Common Implementation Issues
 
-**Traversal responsibility.** Who walks the tree — the visitor, the node's accept method, or an external iterator? Keep it consistent within a structure. Mixing strategies leads to nodes being visited twice or skipped.
+**Traversal responsibility.** Who walks the tree; the visitor, the node's accept method, or an external iterator? Keep it consistent within a structure. Mixing strategies leads to nodes being visited twice or skipped.
 
 **Return values.** Classic Visitor uses void visits with accumulated state. For functional traversals where each visit produces a value, consider returning values from visit methods rather than mutating the visitor.
 
@@ -50,4 +50,4 @@ The classic accept/visit double-dispatch Visitor is most justified when you want
 
 ## Relationship To Strategy
 
-[Strategy](./strategy.md) varies the algorithm behind a stable call site. Visitor varies the operations over a stable type hierarchy. Strategy is per-call-site; Visitor is per-node-type-family. If you have one operation over many types, Visitor might be overkill — [Strategy](./strategy.md) or a plain function suffices.
+[Strategy](./strategy.md) varies the algorithm behind a stable call site. Visitor varies the operations over a stable type hierarchy. Strategy is per-call-site; Visitor is per-node-type-family. If you have one operation over many types, Visitor might be overkill; [Strategy](./strategy.md) or a plain function suffices.

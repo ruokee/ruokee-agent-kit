@@ -39,7 +39,7 @@ and the object can never be driven into an inconsistent state through this path.
 
 Tell, Don't Ask is encapsulation viewed from the caller's side. Encapsulation says an object
 should hide its internal state; Tell, Don't Ask says callers should not need that state in the
-first place — they should hand the object a command and trust it to maintain its own
+first place; they should hand the object a command and trust it to maintain its own
 invariants. The two reinforce each other: an object that exposes behavior instead of raw state
 keeps its data private and meaningful.
 
@@ -86,7 +86,7 @@ second is normal and healthy.
 - Give domain objects semantic command methods: `invoice.mark_paid()`, `order.cancel()`,
   `account.debit(amount)`. These maintain state transitions and invariants internally.
 - Let data carriers, API schemas, ORM rows, and config objects expose attributes plainly.
-- Use `property` to unify stored and derived values, but keep it cheap and side-effect free —
+- Use `property` to unify stored and derived values, but keep it cheap and side-effect free:
   do not hide I/O behind it.
 - In a functional core, behavior need not be a method: a named function that takes the data and
   returns a decision (`def can_debit(account, amount) -> bool`) keeps logic and data together

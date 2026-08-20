@@ -4,7 +4,7 @@
 
 ## 它是什么
 
-`match` 语句将一个主体值（subject）与一系列模式（pattern）进行比较。第一个匹配的模式执行其代码块；模式中的名称绑定到主体值的对应部分。与许多语言中的 `switch` 不同，case 不是常量标签——它们是可以同时检查类型、结构和内容的模式。
+`match` 语句将一个主体值（subject）与一系列模式（pattern）进行比较。第一个匹配的模式执行其代码块；模式中的名称绑定到主体值的对应部分。与许多语言中的 `switch` 不同，case 不是常量标签；它们是可以同时检查类型、结构和内容的模式。
 
 ```python
 match command:
@@ -22,7 +22,7 @@ match command:
 
 字面量模式（Literal pattern）通过相等性匹配常量（`case 0:`、`case "quit":`、`case None:`）。`True`、`False` 和 `None` 通过身份（identity）匹配。
 
-捕获模式（Capture pattern）是一个裸名称；它始终匹配并绑定主体（`case x:`）。裸的 `case _:` 是通配符（wildcard）——它匹配任何内容但不绑定任何内容，充当默认分支。
+捕获模式（Capture pattern）是一个裸名称；它始终匹配并绑定主体（`case x:`）。裸的 `case _:` 是通配符（wildcard）；它匹配任何内容但不绑定任何内容，充当默认分支。
 
 值模式（Value pattern）使用点号名称，使得命名常量被读取而非重新绑定：`case Color.RED:`。普通名称会捕获；点号使其成为比较。
 
@@ -54,18 +54,18 @@ OR 模式从左到右尝试替代项：`case "y" | "yes":`。每个替代项必�
 
 - 分发基于单一值且结果集已知。使用将键映射到处理函数的字典（`handlers[key]()`）更清晰、可在运行时扩展且可独立测试。用它代替一长串字面量 case 的 `match`。
 - 逻辑是一个简单的布尔决策。两三个普通条件用 `if`/`elif` 表达更易读；`match` 增加了仪式感却没有结构可挖掘。
-- 你在建模一个状态机。转换表（transition table）——`(state, event) -> next_state`——将状态和转换作为数据保存，你可以枚举、验证和绘制图表。`match` 将这些转换埋藏在控制流中，使你无法看到完整的图。参见[状态机建模](skills/code-quality/references/programming-paradigms/state-machine.md)了解显式转换的重要性。
+- 你在建模状态机。`(state, event) -> next_state` 这类转换表将状态和转换保存为可枚举、验证和绘图的数据。`match` 会把转换埋在控制流中，让人无法一次看到完整的图。
 
 经验法则：如果没有结构需要解构，`match` 很可能是错误的选择。
 
 ## 穷尽性
 
-Python 在运行时并不强制穷尽性（exhaustiveness）——未匹配的主体只是穿透而不报错，这可能会隐藏错误。两种习惯用法可以解决这个问题：
+Python 在运行时并不强制穷尽性（exhaustiveness）：未匹配的主体只是穿透而不报错，这可能会隐藏错误。两种习惯用法可以解决这个问题：
 
 - 添加显式的 `case _:`，当意外值到达时抛出异常，将静默穿透转变为显式失败。
 - 让类型检查器推断穷尽性。当对封闭集合（如 `Enum` 或数据类的联合体）进行匹配时，检查器可以标记遗漏的 case。在默认分支中配合使用 `assert_never(unreachable)`，使预期的穷尽性显式化，并让检查器验证它。
 
-这种配对——封闭类型加 `assert_never`——将 `match` 从便利工具转变为可检查的契约。
+这种配对，封闭类型加 `assert_never`，将 `match` 从便利工具转变为可检查的契约。
 
 ## 典型用途
 

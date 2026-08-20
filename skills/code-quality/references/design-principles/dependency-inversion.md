@@ -19,9 +19,9 @@ the system clock, or `random` are welded to those details. The policy can no lon
 tested, or reused without dragging the infrastructure along, and a change in the low-level
 detail ripples up into the high-level rules.
 
-Inverting the dependency means the high-level code states its need as an abstraction — "I need
-something I can ask for the current time", "I need somewhere to save an order" — and the
-concrete implementation conforms to that need. Crucially, the abstraction belongs to the
+Inverting the dependency means the high-level code states its need as an abstraction, "I need
+something I can ask for the current time", "I need somewhere to save an order", and the
+concrete implementation conforms to that need. The abstraction belongs to the
 high-level side. It is shaped by what the policy requires, not by the full surface of the
 low-level library. This is the same instinct as [Interface Segregation](./solid.md): keep the
 seam narrow.
@@ -36,13 +36,13 @@ tools are usually enough:
 - **`typing.Protocol`.** Define the narrow capability the policy needs structurally; any object
   with the right methods qualifies, without inheriting anything. See
   [composition-over-inheritance](./composition-over-inheritance.md).
-- **Plain callables.** When the dependency is "a thing I call to get a value" — a clock, an ID
-  generator, a notifier — a function or `Callable` is a lighter abstraction than an interface
+- **Plain callables.** When the dependency is "a thing I call to get a value", a clock, an ID
+  generator, a notifier, a function or `Callable` is a lighter abstraction than an interface
   object.
 - **Default arguments for the common case.** `def fetch(url, client=httpx.get):` keeps the
   real default convenient while leaving a seam for tests to pass a fake.
 
-Assemble the concrete wiring in one place — `main()`, a web app's startup, a framework entry
+Assemble the concrete wiring in one place: `main()`, a web app's startup, a framework entry
 point. This *composition root* is where high-level policy meets concrete detail; everywhere
 else depends on abstractions.
 
@@ -51,7 +51,7 @@ else depends on abstractions.
 A DI container (a framework that builds and wires your object graph from configuration or
 annotations) solves a problem most Python projects do not have. Constructor injection and a
 small composition root scale a long way. Containers earn their cost only when the object graph
-is genuinely large and dynamic — many interchangeable implementations, complex lifecycle and
+is genuinely large and dynamic: many interchangeable implementations, complex lifecycle and
 scoping requirements, configuration-driven wiring across many modules.
 
 For typical applications, an explicit composition root is easier to read, debug, and trace than
@@ -62,7 +62,7 @@ explicitness back into implicit global coupling. Prefer passing dependencies in.
 ## The testing benefit
 
 DI is the cleanest path to testable code. When a function takes its clock, its repository, and
-its HTTP client as parameters, a test passes in fakes or stubs directly — no monkeypatching of
+its HTTP client as parameters, a test passes in fakes or stubs directly: no monkeypatching of
 module internals, no patching deep into implementation. This keeps tests coupled to the
 boundary (the abstraction) rather than to the implementation, so refactoring the internals does
 not break the tests. Over-mocking and deep `patch` targets are usually a symptom of dependencies
@@ -79,7 +79,7 @@ Inverting every dependency is its own kind of over-engineering. Do not invert:
 - **Things that never vary and never need a test double.** An abstraction with exactly one
   implementation and no test seam is speculative ([YAGNI](./yagni.md)).
 
-Invert the unstable, impure, or substitutable boundaries — external systems, time, randomness,
+Invert the unstable, impure, or substitutable boundaries: external systems, time, randomness,
 filesystem, network. Leave the stable core direct.
 
 ## In Python

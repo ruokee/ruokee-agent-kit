@@ -28,7 +28,7 @@ The caller holds an abstract factory and calls its creation methods; it never na
 ## When NOT to use
 
 - There is only one product, or one family. Then you only need a [factory.md](./factory.md), or a plain constructor.
-- The "family" constraint isn't real — the products don't actually have to match. Grouping them adds ceremony without preventing any mistake.
+- The "family" constraint isn't real; the products don't actually have to match. Grouping them adds ceremony without preventing any mistake.
 - It quietly grows into a general service locator that builds anything on request, losing the family guarantee that justified it.
 
 ## Python-idiomatic implementation
@@ -57,7 +57,7 @@ Avoid copying Java's abstract-base-class layering. Duck typing and `Protocol` gi
 
 ## Failure modes
 
-- A factory object, abstract product, and concrete product tree built for a single family — pure overhead.
+- A factory object, abstract product, and concrete product tree built for a single family: pure overhead.
 - Blurred family boundaries, so the factory accumulates unrelated creation methods and becomes a god object.
 - Products that secretly reach for global state instead of the factory's shared config, breaking the consistency guarantee the pattern exists to enforce.
 

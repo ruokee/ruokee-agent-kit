@@ -1,26 +1,26 @@
 # Testing
 
-This is the Python testing spec: how to organize and write tests for a Python project with pytest. It builds on two neighbors rather than repeating them. The language-agnostic *why* — behavior over implementation, the test desiderata, coverage strategy, DAMP over DRY, isolation, the test-smell catalog — lives in the `code-quality` skill ([testing principles](skills/code-quality/references/testing/principles.md), [test-smells](skills/code-quality/references/testing/test-smells.md)). The pytest *runner* — discovery, import mode, markers, strict mode, config, plugins — lives in [pytest](skills/python-engineering/references/tooling/pytest.md). This document is the Python-and-pytest practice in between: where tests live, how to name them, and the idioms that make a suite maintainable.
+This is the Python testing spec for organizing and writing pytest suites. It covers test placement, naming, fixtures, parametrization, mocking, async tests, and maintainable pytest idioms. Runner configuration such as discovery, import mode, markers, strict mode, config, and plugins lives in [pytest](skills/python-engineering/references/tooling/pytest.md).
 
-The one sentence everything rests on: a test should be coupled to the *behavior* of the code and decoupled from its *structure*. Test what a unit does as seen from outside — return values, raised exceptions, recorded side effects — not how it does it internally.
+A test should couple to the code's *behavior* and stay independent of its *structure*. Test what a unit does from outside: return values, raised exceptions, and recorded side effects. Do not test how it does the work internally.
 
 ## Test Organization
 
-Keep tests in a top-level `tests/` directory, separate from the production package, so they import and exercise the package the way a real consumer would and so discovery stays predictable (see [structure](skills/python-engineering/references/project/structure.md) for why the src layout reinforces this). The layout keeps tests out of the *importable* package, but it does not by itself decide what ships in an sdist or wheel — that is governed by the build backend's package discovery and include/exclude config, so verify the built artifact if excluding tests from distribution matters. Name test files and functions after the *behavior* under test, not the implementation file they happen to touch — `test_expired_token_is_rejected` tells a reader what the system guarantees; `test_validate` tells them only which function ran. For a large library or framework, loosely mirroring the package tree helps locate tests, but the mirror is a navigation aid, not a rule that every module gets a parallel test file. Tests deserve the same care as production code: clear names, no copy-paste sprawl, and obvious intent.
+Keep tests in a top-level `tests/` directory, separate from the production package, so they import and exercise the package the way a real consumer would and so discovery stays predictable (see [structure](skills/python-engineering/references/project/structure.md) for why the src layout reinforces this). The layout keeps tests out of the *importable* package, but it does not by itself decide what ships in an sdist or wheel; that is governed by the build backend's package discovery and include/exclude config, so verify the built artifact if excluding tests from distribution matters. Name test files and functions after the *behavior* under test, not the implementation file they happen to touch; `test_expired_token_is_rejected` tells a reader what the system guarantees; `test_validate` tells them only which function ran. For a large library or framework, loosely mirroring the package tree helps locate tests, but the mirror is a navigation aid, not a rule that every module gets a parallel test file. Tests deserve the same care as production code: clear names, no copy-paste sprawl, and obvious intent.
 
 ## Fixtures That Kill Duplication Instead of Creating It
 
-A fixture is requested by name: a test declares the fixture as a parameter, pytest finds it and injects it. The mechanic that matters for maintainability is that **fixtures can request other fixtures**, so shared setup composes into a dependency graph rather than being copied. The two recurring failures in agent-written suites are opposite ends of the same misunderstanding — either fixtures are ignored and setup is pasted into every test, or one giant fixture builds an entire world that every test drags in.
+A fixture is requested by name: a test declares the fixture as a parameter, pytest finds it and injects it. The mechanic that matters for maintainability is that **fixtures can request other fixtures**, so shared setup composes into a dependency graph rather than being copied. The two recurring failures in agent-written suites are opposite ends of the same misunderstanding: either fixtures are ignored and setup is pasted into every test, or one giant fixture builds an entire world that every test drags in.
 
 Both are fixed by the same discipline:
 
-- **Put shared fixtures at the right level.** [pytest](skills/python-engineering/references/tooling/pytest.md) covers how `conftest.py` loading and visibility work; the judgment is *where* to put a fixture. A fixture used across the suite goes in the root `conftest.py`; one used only by a subtree goes in that subtree's `conftest.py`. This is the direct cure for "the same fixture defined in several places, subtly different" — define it once at the right level rather than scattering near-copies. Deliberately overriding a fixture in a nested `conftest.py` to customize it for that subtree is a supported pattern, not a duplicate — the smell is *accidental* near-copies, not intentional per-subtree specialization.
+- **Put shared fixtures at the right level.** [pytest](skills/python-engineering/references/tooling/pytest.md) covers how `conftest.py` loading and visibility work; the judgment is *where* to put a fixture. A fixture used across the suite goes in the root `conftest.py`; one used only by a subtree goes in that subtree's `conftest.py`. This is the direct cure for "the same fixture defined in several places, subtly different"; define it once at the right level rather than scattering near-copies. Deliberately overriding a fixture in a nested `conftest.py` to customize it for that subtree is a supported pattern, not a duplicate; the smell is *accidental* near-copies, not intentional per-subtree specialization.
 - **Discover before you define.** `pytest --fixtures` lists every available fixture and where it comes from. Run it before writing a new fixture so you reuse the existing one instead of adding a sixth near-duplicate.
-- **Keep fixtures small and named for what they provide** (`temp_db`, `authenticated_client`), and compose them. A test's parameter list should read as its dependency list. Resist the "God fixture" that constructs everything — it is Meszaros' General Fixture smell and makes every test obscure.
+- **Keep fixtures small and named for what they provide** (`temp_db`, `authenticated_client`), and compose them. A test's parameter list should read as its dependency list. Resist the "God fixture" that constructs everything; it is Meszaros' General Fixture smell and makes every test obscure.
 - **Scope for isolation, widen only for cost.** [pytest](skills/python-engineering/references/tooling/pytest.md) documents the scope levels and `yield` teardown; the judgment is to stay at the default (fresh state per test, the isolation baseline) and widen only for setup that is genuinely expensive *and* safe to share, since a wider scope buys speed by spending isolation. When a fixture needs cleanup, pair one setup with its own teardown rather than stacking several fragile setups in one fixture.
 
 ```python
-# conftest.py — one definition, composed, function-scoped by default
+# conftest.py: one definition, composed, function-scoped by default
 import pytest
 
 
@@ -59,7 +59,7 @@ An `autouse=True` fixture applies to every test in its scope without being reque
 
 ## Parametrization: Cases as Data
 
-[pytest](skills/python-engineering/references/tooling/pytest.md) covers the `@pytest.mark.parametrize` mechanics. What matters for test *quality* is when to reach for it and when not to: parametrize is how you get *fewer, stronger* tests — the same check over different data as a visible table — instead of copy-pasted bodies.
+[pytest](skills/python-engineering/references/tooling/pytest.md) covers the `@pytest.mark.parametrize` mechanics. For test quality, use parametrization to express the same check over different data as a visible table instead of copying test bodies. This produces fewer, stronger tests.
 
 ```python
 @pytest.mark.parametrize(
@@ -77,7 +77,7 @@ def test_normalize_username(raw: str, expected: str) -> None:
 Two idioms bridge parametrization and fixtures, beyond the basics:
 
 - **`indirect=True`** routes a parameter through a same-named fixture first, for cases that need setup before they reach the test body.
-- **Parametrizing a fixture** (`@pytest.fixture(params=[...])`) runs *every* test that uses it against each variant — use it when the variation belongs to the dependency, not to one test.
+- **Parametrizing a fixture** (`@pytest.fixture(params=[...])`) runs *every* test that uses it against each variant; use it when the variation belongs to the dependency, not to one test.
 
 The limit: parametrize only when the cases are the *same check over different data*. When cases need genuinely different setup or different assertions, forcing them through one body produces branching logic that is harder to read than separate tests. Different behaviors want different tests.
 
@@ -90,8 +90,8 @@ def test_zero_timeout_is_rejected() -> None:
     assert excinfo.value.field == "timeout"
 ```
 
-- **`pytest.raises` matches subclasses.** `pytest.raises(RuntimeError)` also passes for subclasses of `RuntimeError`. When the *exact* type is the contract, add `assert excinfo.type is RuntimeError` — otherwise the test silently accepts a broader failure.
-- **`match=` is `re.search` against the message**, so it is a substring/regex check, not a full match. Use it to pin the *meaningful* part of the message, not the whole string (which would be a fragile over-specification).
+- **`pytest.raises` matches subclasses.** `pytest.raises(RuntimeError)` also passes for subclasses of `RuntimeError`. When the *exact* type is the contract, add `assert excinfo.type is RuntimeError`: otherwise the test silently accepts a broader failure.
+- **`match=` is `re.search` against the message**: it is a substring or regex check, not a full match. Use it to pin the *meaningful* part of the message, not the whole string, which would be a fragile over-specification.
 - **`pytest.warns(SomeWarning, match=...)`** for warnings; `pytest.deprecated_call()` specifically for deprecation warnings; the `recwarn` fixture records warnings for inspection.
 - Assert on the raised exception's *observable* attributes, not on internal state built while raising it.
 
@@ -109,7 +109,7 @@ def test_warns_on_retry(caplog: pytest.LogCaptureFixture) -> None:
     assert any(r.levelno == logging.WARNING for r in caplog.records)
 ```
 
-A caveat worth knowing: logging is easy to over-test. A log line is often incidental, not a contract — assert on it only when emitting it is the behavior someone depends on (an audit trail, an operator alert), not merely because the code happens to log.
+A caveat worth knowing: logging is easy to over-test. A log line is often incidental, not a contract; assert on it only when emitting it is the behavior someone depends on (an audit trail, an operator alert), not merely because the code happens to log.
 
 ## monkeypatch and tmp_path: State You Don't Clean Up by Hand
 
@@ -117,7 +117,7 @@ Prefer pytest's built-in state manipulators over hand-rolled setup/cleanup. `mon
 
 - **`monkeypatch`** patches and auto-undoes: `setattr` / `delattr`, `setenv` / `delenv`, `setitem` / `delitem`, `syspath_prepend`, `chdir`. The `raising` argument controls whether patching a missing target errors. Timing matters: the patch must be applied *before* the code under test reads the target.
 - **Patch where the name is looked up, not where it is defined.** If the module under test does `from services import Client`, patch `module_under_test.Client`; if it does `import services` and calls `services.Client`, patch `services.Client`. This "where to patch" rule (from the `unittest.mock` docs) is the single most common cause of a mock that silently does nothing.
-- **`tmp_path`** gives each test a unique `pathlib.Path` temp directory (function scope); **`tmp_path_factory`** is the session-scoped version for temp resources shared across tests. pytest manages their creation and retention — by default it keeps the directories from the last few runs (configurable via `tmp_path_retention_count` / `tmp_path_retention_policy`), so a test never needs hand-rolled deletion. Use these instead of `tempfile` plus manual cleanup.
+- **`tmp_path`** gives each test a unique `pathlib.Path` temp directory (function scope); **`tmp_path_factory`** is the session-scoped version for temp resources shared across tests. pytest manages their creation and retention: by default it keeps the directories from the last few runs (configurable via `tmp_path_retention_count` / `tmp_path_retention_policy`), so a test never needs hand-rolled deletion. Use these instead of `tempfile` plus manual cleanup.
 
 ```python
 def test_reads_token_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -127,18 +127,18 @@ def test_reads_token_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 ## Mocking at the Boundary
 
-pytest does not replace `unittest.mock`; it hosts it. The design rule is the one from the `code-quality` [testing principles](skills/code-quality/references/testing/principles.md): mock at the *system boundary* (network, clock, filesystem, external service) where the real thing is slow or nondeterministic, and use real objects for cheap, deterministic collaborators. A test that mocks the code under test and its close collaborators becomes a [Change-Detector Test](skills/code-quality/references/testing/test-smells.md) — it asserts your code called your mocks the way the test said, which is circular and tends to break on any behavior-preserving refactor.
+pytest does not replace `unittest.mock`; it hosts it. Mock at *system boundaries* such as the network, clock, filesystem, or external services, where the real dependency is slow or nondeterministic. Use real objects for cheap, deterministic collaborators. A test that mocks the code under test and its close collaborators becomes a Change-Detector Test. It asserts that the code called mocks exactly as prescribed, which is circular and breaks on behavior-preserving refactors.
 
 Two mechanics keep mocks honest:
 
-- **`monkeypatch.setattr` or `patch` at the looked-up namespace** (see above) — a mock at the wrong path patches nothing and the test passes against real code by accident.
+- **`monkeypatch.setattr` or `patch` at the looked-up namespace** (see above); a mock at the wrong path patches nothing and the test passes against real code by accident.
 - **Prefer a real in-memory fake to a mock with scripted call expectations.** A fake (an in-memory repository, a fixed clock) verifies *state* and survives refactoring; a mock that verifies *call order and arguments* pins structure. Reach for interaction verification only when the interaction itself is the observable behavior (a charge happened exactly once).
 
 When a unit is hard to test without mocking everything around it, that is a design signal: its dependencies want to be injected as arguments rather than reached for internally.
 
 ## Async Tests
 
-With `pytest-asyncio` in its default **strict** mode, mark coroutine tests with `@pytest.mark.asyncio` and async fixtures with `@pytest_asyncio.fixture`, so the plugin coexists cleanly with others. Each test gets a function-scoped event loop by default, which maximizes isolation; widen with `loop_scope` only when tests must share a loop. Async tests run sequentially, not concurrently, precisely to preserve isolation — do not rely on them racing.
+With `pytest-asyncio` in its default **strict** mode, mark coroutine tests with `@pytest.mark.asyncio` and async fixtures with `@pytest_asyncio.fixture`, so the plugin coexists cleanly with others. Each test gets a function-scoped event loop by default, which maximizes isolation; widen with `loop_scope` only when tests must share a loop. Async tests run sequentially, not concurrently, precisely to preserve isolation; do not rely on them racing.
 
 ```python
 @pytest.mark.asyncio
@@ -151,7 +151,7 @@ Pin behavior, not the plugin's dev-version API surface: the concepts (marker, as
 
 ## Anti-Patterns, in pytest Terms
 
-The full catalog is in the `code-quality` skill's [test-smells](skills/code-quality/references/testing/test-smells.md) reference; these are the shapes they take in pytest specifically:
+These are common test-smell shapes in pytest:
 
 - **Duplicated `conftest`/fixture definitions** across files → consolidate into the nearest common `conftest.py`; find them with `pytest --fixtures`.
 - **A God fixture** every test depends on → split into small composable fixtures; General Fixture is an Obscure Test smell.

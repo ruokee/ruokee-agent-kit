@@ -22,7 +22,7 @@ def _(value: list) -> str:
     return "[" + ", ".join(render(v) for v in value) + "]"
 ```
 
-Since Python 3.11 the registered annotation may be a union (`int | float`), covering a type family in one registration. `singledispatch` fits open extension where new types add handlers without editing a central function — a lightweight visitor. It does *not* dispatch on the second argument, on field values, or on combinations; those need explicit branching, `match`, or a dispatch map. Use `singledispatchmethod` for methods. Keep the base implementation meaningful (a sensible default or a clear error), because it runs whenever no registered type matches.
+Since Python 3.11 the registered annotation may be a union (`int | float`), covering a type family in one registration. `singledispatch` fits open extension where new types add handlers without editing a central function; a lightweight visitor. It does *not* dispatch on the second argument, on field values, or on combinations; those need explicit branching, `match`, or a dispatch map. Use `singledispatchmethod` for methods. Keep the base implementation meaningful (a sensible default or a clear error), because it runs whenever no registered type matches.
 
 ## partial
 
@@ -37,11 +37,11 @@ connect_local = partial(connect, "localhost", timeout=5.0)
 conn = connect_local(8080)
 ```
 
-Prefer `partial` over `lambda` when you are only fixing arguments — it is picklable, introspectable (`.func`, `.args`, `.keywords`), and reads as intent. Type checkers infer `partial` results imperfectly for complex signatures, so annotate the binding site when the inferred type is unclear. Use it for callbacks, dependency wiring, and configuring generic functions for a specific call site; avoid stacking many partials into an opaque chain.
+Prefer `partial` over `lambda` when you are only fixing arguments; it is picklable, introspectable (`.func`, `.args`, `.keywords`), and reads as intent. Type checkers infer `partial` results imperfectly for complex signatures, so annotate the binding site when the inferred type is unclear. Use it for callbacks, dependency wiring, and configuring generic functions for a specific call site; avoid stacking many partials into an opaque chain.
 
 ## lru_cache / cache
 
-`@lru_cache(maxsize=...)` memoizes results keyed by arguments; `@cache` (3.9+) is `lru_cache(maxsize=None)` — an unbounded memo. They speed up pure, repeatedly called functions with hashable arguments:
+`@lru_cache(maxsize=...)` memoizes results keyed by arguments; `@cache` (3.9+) is `lru_cache(maxsize=None)`: an unbounded memo. They speed up pure, repeatedly called functions with hashable arguments:
 
 ```python
 from functools import cache
@@ -64,7 +64,7 @@ from operator import or_
 merged = reduce(or_, dict_list, {})  # union of many dicts
 ```
 
-Prefer a plain `for` loop or a built-in (`sum`, `math.prod`, `any`, `all`, `"".join`) when one exists — they are clearer to most readers. `reduce` earns its place only for associative combinations where naming the running accumulator in a loop adds no clarity. A nested `lambda` inside `reduce` is usually a signal to switch back to an explicit loop.
+Prefer a plain `for` loop or a built-in (`sum`, `math.prod`, `any`, `all`, `"".join`) when one exists; they are clearer to most readers. `reduce` earns its place only for associative combinations where naming the running accumulator in a loop adds no clarity. A nested `lambda` inside `reduce` is usually a signal to switch back to an explicit loop.
 
 ## wraps
 

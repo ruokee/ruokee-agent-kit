@@ -33,11 +33,11 @@ def traced(func: Callable[P, R]) -> Callable[P, R]:
 
 Without help, the wrapper closure replaces the original's identity: `__name__`, `__doc__`, `__module__`, `__qualname__`, `__annotations__`, and `__wrapped__` all describe `wrapper`, not `func`. This breaks introspection, documentation generation, logging that prints function names, and some frameworks that read metadata.
 
-`functools.wraps` (itself a decorator applied to the inner wrapper) copies that metadata across. Always apply it. It also sets `__wrapped__`, which lets tools unwrap to the original. Note that `wraps` copies `__annotations__` but cannot make a type checker understand a wrapper whose call signature differs from the original — that is what `ParamSpec` is for.
+`functools.wraps` (itself a decorator applied to the inner wrapper) copies that metadata across. Always apply it. It also sets `__wrapped__`, which lets tools unwrap to the original. Note that `wraps` copies `__annotations__` but cannot make a type checker understand a wrapper whose call signature differs from the original; that is what `ParamSpec` is for.
 
 ## Decorators With Arguments
 
-A decorator that takes configuration is a factory: a function that returns a decorator. This adds one level of nesting — the outer call captures the arguments, the middle function is the actual decorator, and the inner closure is the wrapper:
+A decorator that takes configuration is a factory: a function that returns a decorator. This adds one level of nesting; the outer call captures the arguments, the middle function is the actual decorator, and the inner closure is the wrapper:
 
 ```python
 def retry(*, attempts: int) -> Callable[[Callable[P, R]], Callable[P, R]]:
@@ -97,7 +97,7 @@ Here `retry` wraps `fetch` first, then `cache` wraps that. At call time `cache` 
 
 ## Type Preservation Challenges
 
-A wrapper erases type information unless you preserve it deliberately. Use `ParamSpec` plus a return `TypeVar` for signature-preserving wrappers. Decorators that *change* the signature — adding an injected argument, changing the return type — cannot be expressed by simple `ParamSpec` passthrough and need a hand-written return type or `typing.overload`. A decorator that turns a function into a different kind of object (a descriptor, a registered handler) should annotate that new type so callers are not misled.
+A wrapper erases type information unless you preserve it deliberately. Use `ParamSpec` plus a return `TypeVar` for signature-preserving wrappers. Decorators that *change* the signature, adding an injected argument, changing the return type, cannot be expressed by simple `ParamSpec` passthrough and need a hand-written return type or `typing.overload`. A decorator that turns a function into a different kind of object (a descriptor, a registered handler) should annotate that new type so callers are not misled.
 
 ## When Decorators Help And When They Hurt
 

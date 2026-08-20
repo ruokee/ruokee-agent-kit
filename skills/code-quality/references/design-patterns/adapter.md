@@ -6,7 +6,7 @@ Convert the interface of an existing object into the interface a caller expects,
 
 ## Problem it solves
 
-You depend on a class — a third-party SDK, a legacy module, an external service client, a raw database row — whose interface does not match what your code needs. You could rewrite your callers to speak the foreign interface, but that spreads the dependency everywhere and couples your domain to a shape you do not control. Adapter confines the mismatch to one wrapping object. Callers see a stable interface you own; the adapter does the translation.
+You depend on a class, a third-party SDK, a legacy module, an external service client, a raw database row, whose interface does not match what your code needs. You could rewrite your callers to speak the foreign interface, but that spreads the dependency everywhere and couples your domain to a shape you do not control. Adapter confines the mismatch to one wrapping object. Callers see a stable interface you own; the adapter does the translation.
 
 This is the runtime expression of the Dependency Inversion Principle: high-level code depends on an abstraction it defines, and the adapter makes a concrete external thing satisfy it.
 
@@ -46,18 +46,18 @@ Adapters need not be classes. A thin function that maps a foreign dict into a do
 
 - Isolating a third-party SDK, legacy API, or external service so the rest of the code depends on your interface, not theirs.
 - Normalizing several different backends (payment providers, storage drivers, notification channels) behind one contract.
-- Converting data representations at a system boundary — wire formats, ORM rows, protocol messages — into domain types.
+- Converting data representations at a system boundary, wire formats, ORM rows, protocol messages, into domain types.
 
 ## When NOT to use
 
 - The interfaces already match, or duck typing makes the object usable as-is. A wrapper that only renames methods is pure overhead.
-- You actually want a *new* interface designed around your needs, not a translation of an existing one — then write that interface directly rather than dressing up the old one.
+- You actually want a *new* interface designed around your needs, not a translation of an existing one; then write that interface directly rather than dressing up the old one.
 - The adaptee is yours and you can change it. Fix the source instead of permanently wrapping it.
 
 ## Failure modes
 
 - **Leaky or pass-through adapters** that forward calls one-to-one with no translation, adding a hop and a file to navigate for nothing.
-- **Over-hiding**: swallowing the adaptee's errors, retries, timeouts, and performance characteristics so callers cannot react correctly. An adapter should translate failure semantics, not erase them — map `StripeError` to a domain `PaymentDeclined`, do not return `None`.
+- **Over-hiding**: swallowing the adaptee's errors, retries, timeouts, and performance characteristics so callers cannot react correctly. An adapter should translate failure semantics, not erase them. Map `StripeError` to a domain `PaymentDeclined`; do not return `None`.
 - **Fat adapters** that accumulate business logic. An adapter translates; once it makes decisions, it has become something else and should be named accordingly.
 
 ## Relationship to other patterns

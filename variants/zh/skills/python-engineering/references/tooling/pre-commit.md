@@ -24,7 +24,7 @@ repos:
 
 ## 本地提交门禁（Local Commit Gate）
 
-执行 `pre-commit install` 后，钩子在 `git commit` 时自动对暂存文件运行。其目的是在提交时而不是在审查中捕获琐碎的问题——格式漂移、残留空白、损坏的 YAML。保持钩子集合小而快，使门禁保持低摩擦；缓慢的门禁会训练人们使用 `--no-verify` 跳过它。
+执行 `pre-commit install` 后，钩子在 `git commit` 时自动对暂存文件运行。其目的是在提交时而不是在审查中捕获琐碎的问题：格式漂移、残留空白、损坏的 YAML。保持钩子集合小而快，使门禁保持低摩擦；缓慢的门禁会训练人们使用 `--no-verify` 跳过它。
 
 ## 常见钩子（Common Hooks）
 
@@ -32,7 +32,7 @@ repos:
 
 ## 自动修复钩子与文件修改
 
-一些钩子会修改文件：`ruff-format`、`ruff --fix`、`end-of-file-fixer` 和 `trailing-whitespace` 会就地重写内容。当钩子更改文件时，pre-commit 报告失败并将修复保留为未暂存状态，因此你可以查看更改并在再次提交之前重新暂存。这是有意为之——你能够看到被重写的内容，而不是盲目地提交机器编辑。
+一些钩子会修改文件：`ruff-format`、`ruff --fix`、`end-of-file-fixer` 和 `trailing-whitespace` 会就地重写内容。当钩子更改文件时，pre-commit 报告失败并将修复保留为未暂存状态，因此你可以查看更改并在再次提交之前重新暂存。这是有意为之；你能够看到被重写的内容，而不是盲目地提交机器编辑。
 
 ## 速度考虑（Speed Considerations）
 

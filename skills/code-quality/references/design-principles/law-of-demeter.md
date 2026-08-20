@@ -15,7 +15,7 @@ structure ripples outward to every caller that walked the same path.
 
 Structural coupling. When code reaches through objects, it depends not just on its immediate
 collaborator but on the shape of everything that collaborator exposes. A change deep in the
-graph — renaming a field, inserting an intermediate object, changing a type — propagates to
+graph, renaming a field, inserting an intermediate object, changing a type, propagates to
 distant, seemingly unrelated call sites. This is the classic symptom of shotgun surgery: a
 small structural change forces edits in many places.
 
@@ -52,7 +52,7 @@ question.
   (`order.customer.address.zip_code` deciding tax behavior).
 - Callers that reach through a repository, client, or response object into its internal
   structure, coupling themselves to that internal layout.
-- Tests that monkeypatch deep into an object graph — deep mocks are a smell that the code
+- Tests that monkeypatch deep into an object graph: deep mocks are a smell that the code
   under test knows too much about distant structure.
 
 In these cases, a structural change has a wide blast radius, and LoD is a useful lens for
@@ -79,7 +79,7 @@ behavior and invariants, that is where LoD earns its keep.
 
 The cure can be worse than the disease. Wrapping every chain in a forwarding method produces
 a pile of trivial pass-through methods (`def zip_code(self): return self._address.zip_code`)
-that add no semantics and just relocate the coupling one layer in. That is a shallow wrapper —
+that add no semantics and just relocate the coupling one layer in. That is a shallow wrapper:
 see [the deep modules discussion](./deep-modules.md). Only introduce a method when it expresses
 a meaningful domain question, not merely to remove a dot.
 
@@ -97,5 +97,5 @@ a meaningful domain question, not merely to remove a dot.
 LoD pairs naturally with [information hiding](./deep-modules.md): both reduce how much the
 outside world depends on internal structure, and both limit how far a change can travel. It
 also overlaps with [Tell, Don't Ask](./tell-dont-ask.md) and the GRASP
-[Information Expert](./grasp.md) heuristic — all three push behavior toward the object that
+[Information Expert](./grasp.md) heuristic: all three push behavior toward the object that
 holds the data it needs.

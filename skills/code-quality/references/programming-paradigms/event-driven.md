@@ -4,7 +4,7 @@
 
 Event-driven architecture treats events as first-class facts: something happened, and that fact is recorded and published rather than directly triggering a known piece of code. A producer emits an event (`OrderPaid`, `FileUploaded`, `user.signup`) without knowing or caring who consumes it. Consumers subscribe to the events they care about. The coupling between them is the event schema, not a direct function call.
 
-This shows up at many scales: in-process signals and hooks (Django signals, pytest hooks, Qt signals), pub/sub within an application, and message queues or event buses across services (Kafka, RabbitMQ, SQS, Redis streams). The unifying idea is the same — invert the dependency so the thing that *causes* a state change does not hold a reference to everything that must *react* to it.
+This shows up at many scales: in-process signals and hooks (Django signals, pytest hooks, Qt signals), pub/sub within an application, and message queues or event buses across services (Kafka, RabbitMQ, SQS, Redis streams). The unifying idea is the same: invert the dependency so the thing that *causes* a state change does not hold a reference to everything that must *react* to it.
 
 ## The assumption underneath
 
@@ -16,15 +16,15 @@ This shows up at many scales: in-process signals and hooks (Django signals, pyte
 
 - **Decoupling producers from consumers.** One action needs to trigger several unrelated reactions (send email, update analytics, invalidate cache) and you do not want the originating code to know about all of them.
 - **Audit trails and event sourcing.** The sequence of events *is* the source of truth; current state is a projection. This gives replay, temporal queries, and a built-in audit history.
-- **Asynchronous workflows.** Work that should not block the request path — notifications, indexing, downstream processing — is naturally expressed as "emit event, let a worker handle it."
+- **Asynchronous workflows.** Work that should not block the request path, notifications, indexing, downstream processing, is naturally expressed as "emit event, let a worker handle it."
 - **Extension points.** Plugins and hooks let third parties react to lifecycle events without modifying core code.
 
 ## Risks
 
 Event-driven systems trade explicit control flow for decoupling, and that trade has real costs:
 
-- **Hidden control flow.** You cannot read a producer and know what happens next; the reactions are elsewhere. This is the same debugging difficulty noted in [declarative.md](./declarative.md), amplified — the call graph is assembled at runtime through subscriptions.
-- **Ordering and delivery.** Events may arrive out of order, be delivered more than once, or be lost. Consumers usually must be idempotent (processing the same event twice causes no extra effect) — the same property a [state-machine.md](./state-machine.md) needs for repeated events.
+- **Hidden control flow.** You cannot read a producer and know what happens next; the reactions are elsewhere. This is the same debugging difficulty noted in [declarative.md](./declarative.md), amplified; the call graph is assembled at runtime through subscriptions.
+- **Ordering and delivery.** Events may arrive out of order, be delivered more than once, or be lost. Consumers usually must be idempotent (processing the same event twice causes no extra effect); the same property a [state-machine.md](./state-machine.md) needs for repeated events.
 - **Error context.** When a consumer fails, the failure is far from the producer in both code and time. Reconstructing "what led to this" requires correlation IDs and good event metadata.
 - **Event storms / cascades.** One event triggers handlers that emit more events, which trigger more handlers. Without care this fans out unboundedly or forms cycles.
 
@@ -40,15 +40,15 @@ The throughline: with direct calls the failure contract is implicit and obvious;
 
 ## Relationship to the Observer pattern
 
-The Observer pattern is the smallest, in-process instance of event-driven design: a subject keeps a list of observers and notifies them on change. Event-driven architecture generalizes this — the "subject" becomes an event bus or broker, notification becomes publish, and observers become subscribers that may live in other processes or services. The same inversion of dependency applies; the difference is the transport, durability, and whether delivery is synchronous. When the decoupling is local and synchronous, plain Observer (or a simple callback list) is enough; reach for a broker only when you need cross-process delivery, durability, or async processing.
+The Observer pattern is the smallest, in-process instance of event-driven design: a subject keeps a list of observers and notifies them on change. Event-driven architecture generalizes this; the "subject" becomes an event bus or broker, notification becomes publish, and observers become subscribers that may live in other processes or services. The same inversion of dependency applies; the difference is the transport, durability, and whether delivery is synchronous. When the decoupling is local and synchronous, plain Observer (or a simple callback list) is enough; reach for a broker only when you need cross-process delivery, durability, or async processing.
 
 ## Events vs commands
 
-A distinction worth keeping clear: a *command* tells a specific handler to do something (`SendEmail`, `ChargeCard`) and expects it to happen; an *event* announces that something already happened (`OrderPaid`, `EmailSent`) and makes no demand about who reacts. Commands are directed and usually have exactly one handler; events are broadcast and may have zero, one, or many. Confusing the two — naming an event like a command, or treating a published event as if a particular consumer must handle it — quietly reintroduces the coupling event-driven design was meant to remove. Name events in the past tense as facts; if you find yourself caring *which* consumer runs, you probably wanted a direct call or a command, not an event.
+A distinction worth keeping clear: a *command* tells a specific handler to do something (`SendEmail`, `ChargeCard`) and expects it to happen; an *event* announces that something already happened (`OrderPaid`, `EmailSent`) and makes no demand about who reacts. Commands are directed and usually have exactly one handler; events are broadcast and may have zero, one, or many. Confusing the two, naming an event like a command, or treating a published event as if a particular consumer must handle it, quietly reintroduces the coupling event-driven design was meant to remove. Name events in the past tense as facts; if you find yourself caring *which* consumer runs, you probably wanted a direct call or a command, not an event.
 
 ## Synchronous vs asynchronous delivery
 
-A choice that changes the whole character of an event system is whether `publish` blocks until handlers finish (synchronous) or hands off and returns immediately (asynchronous). Synchronous in-process delivery is simple to reason about — the producer's call stack still includes the handlers, exceptions propagate back, and ordering is deterministic — but it couples the producer's latency and failure to its consumers, which partly defeats the decoupling. Asynchronous delivery (a queue, a broker, a background task) restores the decoupling but introduces every distributed-systems concern: at-least-once delivery, ordering, partial failure, and the need for idempotent consumers. Pick synchronous when the reactions are cheap, local, and must complete before the producer continues; pick asynchronous when reactions are slow, remote, or genuinely independent of the producer's success.
+A choice that changes the whole character of an event system is whether `publish` blocks until handlers finish (synchronous) or hands off and returns immediately (asynchronous). Synchronous in-process delivery is simple to reason about, the producer's call stack still includes the handlers, exceptions propagate back, and ordering is deterministic, but it couples the producer's latency and failure to its consumers, which partly defeats the decoupling. Asynchronous delivery (a queue, a broker, a background task) restores the decoupling but introduces every distributed-systems concern: at-least-once delivery, ordering, partial failure, and the need for idempotent consumers. Pick synchronous when the reactions are cheap, local, and must complete before the producer continues; pick asynchronous when reactions are slow, remote, or genuinely independent of the producer's success.
 
 ## In Python
 
@@ -70,11 +70,11 @@ class EventBus:
             handler(payload)   # producer never names a consumer
 ```
 
-This is the whole pattern at the smallest scale: the publisher knows the event name and the payload, never the handlers. Everything bigger — a broker, durability, async delivery — is the same shape with more infrastructure.
+This is the whole pattern at the smallest scale: the publisher knows the event name and the payload, never the handlers. Everything bigger, a broker, durability, async delivery, is the same shape with more infrastructure.
 
-- Frameworks provide signals/hooks (Django signals, Flask signals, pytest hooks) — prefer the framework's mechanism over a homegrown one when working inside it.
+- Frameworks provide signals/hooks (Django signals, Flask signals, pytest hooks); prefer the framework's mechanism over a homegrown one when working inside it.
 - Make event payloads plain data (`dataclass` / `TypedDict`) with a stable, versioned schema; this is the contract between producer and consumer.
 - Design consumers to be idempotent and to log enough context (event ID, correlation ID) to trace failures.
-- For async workflows, an emitted event usually becomes a task — see [async-concurrency.md](./async-concurrency.md) for owning the lifetime of that work rather than firing it and forgetting it.
+- For async workflows, an emitted event usually becomes a task; see [async-concurrency.md](./async-concurrency.md) for owning the lifetime of that work rather than firing it and forgetting it.
 - Keep the audit value honest: if events are your source of truth, treat the event schema with the same care as a database schema.
 - Resist using events for flow that is really a direct request-response. If the producer needs the result, blocks on it, or only ever has one consumer, a plain function call is clearer than an event round-trip.

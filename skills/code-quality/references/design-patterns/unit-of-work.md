@@ -1,6 +1,6 @@
 # Unit of Work
 
-The Unit of Work pattern maintains a list of objects affected by a business transaction and coordinates writing changes to the database in a single atomic operation. It tracks which objects are new, modified, or removed, and commits all changes together — or rolls everything back if any step fails.
+The Unit of Work pattern maintains a list of objects affected by a business transaction and coordinates writing changes to the database in a single atomic operation. It tracks which objects are new, modified, or removed, and commits all changes together, or rolls everything back if any step fails.
 
 The primary value is transactional consistency: multiple repository operations that must succeed or fail together are coordinated by the Unit of Work, rather than each repository independently committing.
 
@@ -24,18 +24,18 @@ The primary value is transactional consistency: multiple repository operations t
 - Each operation is a single-entity CRUD with no cross-aggregate consistency needs. The ORM session or a simple `with db.transaction():` block suffices.
 - The framework already manages transactions declaratively (e.g., Django's `@transaction.atomic` for simple cases).
 - The application is read-heavy with minimal write coordination.
-- Distributed transactions across multiple services — Unit of Work applies within a single database boundary; cross-service consistency needs saga patterns or eventual consistency.
+- Distributed transactions across multiple services: Unit of Work applies within a single database boundary; cross-service consistency needs saga patterns or eventual consistency.
 - The overhead of tracking changes explicitly exceeds the benefit for simple applications.
 
 ## Common Implementation Issues
 
 **Scope.** A Unit of Work should live for exactly one business operation. Creating one at application startup and sharing it across requests causes stale data and concurrency bugs. In web applications, scope to the request; in workers, scope to the job.
 
-**ORM integration.** ORMs like SQLAlchemy already implement Unit of Work internally — the Session tracks dirty objects and flushes on commit. Wrapping the ORM session in an explicit Unit of Work class is about making the boundary visible and testable at the application layer, not reimplementing change tracking. If the ORM's built-in session management is already explicit enough for your needs, an additional wrapper may add ceremony without value.
+**ORM integration.** ORMs like SQLAlchemy already implement Unit of Work internally; the Session tracks dirty objects and flushes on commit. Wrapping the ORM session in an explicit Unit of Work class is about making the boundary visible and testable at the application layer, not reimplementing change tracking. If the ORM's built-in session management is already explicit enough for your needs, an additional wrapper may add ceremony without value.
 
 **Nested transactions.** Avoid deeply nested Units of Work. If sub-operations need independent commit/rollback, use savepoints explicitly rather than nesting Units of Work.
 
-**Error handling.** Rollback must happen on any exception path. [Context managers](skills/python-engineering/references/grammar/context-manager.md) (`with uow:`) are the natural fit — `__exit__` calls rollback if an exception is active. This is also how [resource lifecycle](skills/code-quality/references/programming-paradigms/resource-lifecycle.md) patterns work: pair acquire with release.
+**Error handling.** Rollback must happen on any exception path. Context managers (`with uow:`) are the natural fit because `__exit__` calls rollback if an exception is active. This is also how [resource lifecycle](skills/code-quality/references/programming-paradigms/resource-lifecycle.md) patterns work: pair acquire with release.
 
 **Testing.** The Unit of Work boundary is a natural seam for testing. Mock or in-memory implementations let service-layer tests verify orchestration behavior without a database.
 
@@ -51,7 +51,7 @@ with unit_of_work() as uow:
     uow.commit()
 ```
 
-If an exception occurs before `commit()`, the context manager's `__exit__` calls `rollback()`. This makes the transaction boundary explicit and exception-safe. The [context manager mechanism](skills/python-engineering/references/grammar/context-manager.md) guarantees teardown even on unexpected exceptions.
+If an exception occurs before `commit()`, the context manager's `__exit__` calls `rollback()`. This makes the transaction boundary explicit and guarantees teardown after unexpected exceptions.
 
 ## Relationship To Repository
 

@@ -2,7 +2,7 @@
 
 ## What it is
 
-A thin wrapper is a function whose entire body forwards to another function, renames a call, or wraps a single expression — without adding any semantic value. It does not hide complexity, establish a boundary, or enforce an invariant. It just adds a name and a layer.
+A thin wrapper is a function whose entire body forwards to another function, renames a call, or wraps a single expression, without adding any semantic value. It does not hide complexity, establish a boundary, or enforce an invariant. It just adds a name and a layer.
 
 ```python
 def get_user_name(user):
@@ -12,7 +12,7 @@ def fetch_data(url):
     return requests.get(url)  # renames one call, hides nothing
 ```
 
-The smell is not "this function is short." Plenty of short functions are excellent — a well-named one-liner that captures a domain concept (`is_eligible_for_refund`) earns its keep. The smell is the *absence of added meaning*: the wrapper costs a name, a jump, and a stack frame, and returns nothing in exchange.
+The smell is not "this function is short." Plenty of short functions are excellent; a well-named one-liner that captures a domain concept (`is_eligible_for_refund`) earns its keep. The smell is the *absence of added meaning*: the wrapper costs a name, a jump, and a stack frame, and returns nothing in exchange.
 
 This smell shows up heavily in agent-generated code, where the reflex to "remove duplication" or "improve readability" produces a sprawl of one-line helpers that each forward a single call. The result is code you have to chase across many definitions to understand, where reading the original inline expression would have been clearer. It is closely tied to the wrong-DRY failure mode described in `duplicated-code.md` and `skills/code-quality/references/design-principles/dry.md`.
 
@@ -20,14 +20,14 @@ This smell shows up heavily in agent-generated code, where the reflex to "remove
 
 A wrapper earns its place when it does real work beyond forwarding:
 
-- **A stable interface over an unstable implementation.** If the wrapped library, API, or internal module is likely to change, the wrapper localizes that change to one place. This is the Adapter idea — see `skills/code-quality/references/design-patterns` — and a thin-looking wrapper here is actually a deep module with a small surface.
+- **A stable interface over an unstable implementation.** If the wrapped library, API, or internal module is likely to change, the wrapper localizes that change. This is the Adapter idea; see `skills/code-quality/references/design-patterns`. A thin-looking wrapper here is a deep module with a small interface.
 - **A test seam.** A function that exists so callers can be tested against a fake, or so a dependency can be injected, provides a substitution boundary even if its body is trivial. See `skills/code-quality/references/design-principles/dependency-inversion.md`.
 - **A cross-cutting concern.** Wrappers that add logging, retry, caching, metrics, or a transaction boundary do add behavior. These are decorators, not thin wrappers.
 - **A named domain concept.** `requires_tax_review(order)` wrapping a boolean expression makes the rule searchable and gives it one home. The name *is* the value.
 
 ## When they're noise
 
-- A single caller and no abstraction boundary — inline it.
+- A single caller and no abstraction boundary: inline it.
 - The wrapper name is a synonym of the wrapped call (`fetch_data` for `requests.get`), adding no domain meaning.
 - It forwards arguments unchanged to a function with an equally clear name.
 - It exists only because a style rule said "extract functions," not because a reader benefits.
@@ -36,8 +36,8 @@ The cure is [inline-function.md](./inline-function.md): fold the body back into 
 
 ## Python-specific note
 
-Function calls in Python are not free. Each call builds a frame, and the interpreter does real work for it. For most code this is irrelevant — clarity wins. But in hot paths and tight loops, a layer of thin wrappers around a per-element operation can show up in a profile. This is a secondary reason to avoid them, never the primary one: the main cost is always the cognitive overhead of indirection that buys nothing.
+Function calls in Python are not free. Each call builds a frame, and the interpreter does real work for it. For most code this is irrelevant: clarity wins. But in hot paths and tight loops, a layer of thin wrappers around a per-element operation can show up in a profile. This is a secondary reason to avoid them, never the primary one: the main cost is always the cognitive overhead of indirection that buys nothing.
 
 ## How to judge
 
-Ask: if I deleted this function and inlined its body at every call site, would the code be harder to understand or harder to change? If the answer is no, it is a thin wrapper. If removing it would expose callers to an unstable dependency, scatter a domain rule, or break a test seam, it is doing real work — keep it. The test is the boundary it protects, not its line count.
+Ask: if I deleted this function and inlined its body at every call site, would the code be harder to understand or harder to change? If the answer is no, it is a thin wrapper. If removing it would expose callers to an unstable dependency, scatter a domain rule, or break a test seam, it is doing real work; keep it. The test is the boundary it protects, not its line count.

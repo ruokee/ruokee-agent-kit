@@ -3,8 +3,8 @@
 Test-Driven Development (TDD) is a workflow in which tests drive the development feedback loop.
 You sketch a list of behaviors, pick one, write a small runnable test that fails, write just
 enough code to make it pass, then refactor. Martin Fowler summarizes the loop as
-**Red-Green-Refactor**, and stresses that the refactor step is not optional decoration — it is
-where design actually improves.
+**Red-Green-Refactor** and stresses that the refactor step is not optional decoration. It is
+where design improves.
 
 TDD is not primarily a testing technique. It is a design technique that happens to leave tests
 behind. The act of writing the test first forces you to use the interface before it exists,
@@ -14,13 +14,13 @@ which surfaces awkward signatures and unclear responsibilities early.
 
 1. **Red.** Write a test for one small behavior and watch it fail. The failure confirms the test
    actually exercises something and is not silently passing.
-2. **Green.** Write the simplest code that makes the test pass. Not the elegant version — the
+2. **Green.** Write the simplest code that makes the test pass. Not the elegant version: the
    sufficient one. Cutting corners here is allowed; the next step cleans up.
 3. **Refactor.** With the test green and protecting behavior, improve the structure: rename,
    extract, remove duplication. The test stays green throughout.
 
 The discipline is to keep steps small and to run the tests between each. A common failure is
-collapsing the cycle — writing a large batch of code under one test, or smuggling a big
+collapsing the cycle: writing a large batch of code under one test, or smuggling a big
 structural change into the green step where behavior is not yet stable.
 
 ## What TDD gives you
@@ -33,15 +33,15 @@ structural change into the green step where behavior is not yet stable.
 - **A behavior specification.** The test suite documents what the code is supposed to do, in
   executable form that cannot drift out of date silently.
 - **Regression protection.** Once a behavior is pinned by a test, future changes that break it
-  fail loudly. This protection is what makes aggressive [refactoring](skills/code-quality/references/refactoring/index.md)
-  and [YAGNI](./yagni.md) safe — you can defer abstraction and reshape later without fear.
+  fail loudly. This protection is what makes aggressive [refactoring](skills/code-quality/references/refactoring/safe-refactoring.md)
+  and [YAGNI](./yagni.md) safe. You can defer abstraction and reshape later without fear.
 
 ## When TDD is valuable
 
 TDD pays off most where behavior is enumerable and the cost of a wrong answer is real:
 
 - Pure functions, parsers, transformation and serialization logic.
-- Domain rules with clear inputs and expected outputs — pricing, validation, state transitions.
+- Domain rules with clear inputs and expected outputs: pricing, validation, state transitions.
 - Bug fixes: write the failing test that reproduces the bug first, then fix it. The test becomes
   a permanent regression guard.
 - API design, where using the interface first reveals whether it is pleasant to call.
@@ -60,7 +60,7 @@ test-first becomes friction:
   test that just re-asserts the library's behavior.
 
 Treat TDD as a high-value feedback strategy, not a moral obligation for every line. The goal is
-working, well-designed software with adequate behavior coverage — not a test-first ritual or a
+working, well-designed software with adequate behavior coverage, not a test-first ritual or a
 coverage-percentage trophy. A test with no meaningful assertion adds coverage and nothing else.
 
 ## Relationship to "test after" and behavior coverage

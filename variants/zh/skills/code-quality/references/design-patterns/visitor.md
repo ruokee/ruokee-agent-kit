@@ -24,15 +24,15 @@
 - 节点类型频繁变化。每种新类型都强制更新所有访问者。
 - 结构足够简单，单个递归函数或 `match`/`case` 就足够了。
 - 只有一两个操作存在。accept/visit 的仪式感没有增加清晰性。
-- 语言支持[模式匹配](skills/python-engineering/references/grammar/match-case.md)或 [`singledispatch`](skills/python-engineering/references/stdlib/functools.md)，使双重分发变得不必要。
-- 操作不需要完整的具体类型——公共接口方法就足够了。
+- 语言支持模式匹配或 `singledispatch`，不需要双重分发。
+- 操作不需要完整的具体类型；公共接口方法就足够了。
 
 ## Python 替代方案
 
 Python 提供了比经典访问者更轻量的替代方案：
 
-- **`match`/`case` 与结构模式**：适用于标记联合、dataclass 层次结构或类型化字典。无需 accept 方法。请参阅[模式匹配参考](skills/python-engineering/references/grammar/match-case.md)。
-- **`functools.singledispatch`**：根据第一个参数的类型进行分发。适用于一个封闭类型集合上的单参数操作。请参阅 [functools](skills/python-engineering/references/stdlib/functools.md)。
+- **`match`/`case` 与结构模式**：适用于标记联合、dataclass 层次结构或类型化字典，不需要 accept 方法。
+- **`functools.singledispatch`**：根据第一个参数的类型分发，适合封闭类型集合上的单参数操作。
 - **字典分发**：将类型映射到处理器函数。最简单的形式；无需基础设施。
 - **节点上的方法**：如果操作少且稳定，直接将行为放在节点上。无需模式。
 
@@ -40,7 +40,7 @@ Python 提供了比经典访问者更轻量的替代方案：
 
 ## 常见实现问题
 
-**遍历责任。** 谁来遍历树——访问者、节点的 accept 方法，还是外部迭代器？在结构内保持一致。混合策略会导致节点被访问两次或跳过。
+**遍历责任。** 谁来遍历树：访问者、节点的 accept 方法，还是外部迭代器？在结构内保持一致。混合策略会导致节点被访问两次或跳过。
 
 **返回值。** 经典访问者使用 void 访问并积累状态。对于每次访问产生值的函数式遍历，考虑从访问方法返回值，而不是修改访问者。
 
@@ -50,4 +50,4 @@ Python 提供了比经典访问者更轻量的替代方案：
 
 ## 与策略模式的关系
 
-[策略模式](./strategy.md)在稳定的调用点后变化算法。访问者在稳定的类型层次结构上变化操作。策略是按调用点的；访问者是按节点类型族的。如果你有一个操作作用在许多类型上，访问者可能是大材小用——[策略模式](./strategy.md)或普通函数就足够了。
+[策略模式](./strategy.md)在稳定的调用点后变化算法。访问者在稳定的类型层次结构上变化操作。策略是按调用点的；访问者是按节点类型族的。如果你有一个操作作用在许多类型上，访问者可能是大材小用：[策略模式](./strategy.md)或普通函数就足够了。

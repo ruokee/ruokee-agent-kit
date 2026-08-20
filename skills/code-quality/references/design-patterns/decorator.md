@@ -1,6 +1,6 @@
 # Decorator Pattern
 
-This document covers the Gang of Four *structural* Decorator pattern — wrapping an object to add behavior. It is not about Python's `@decorator` syntax, though the two are related and that relationship is discussed below.
+This document covers the Gang of Four *structural* Decorator pattern: wrapping an object to add behavior. It is not about Python's `@decorator` syntax, though the two are related and that relationship is discussed below.
 
 ## Intent
 
@@ -8,7 +8,7 @@ Attach additional responsibilities to an object dynamically by wrapping it in an
 
 ## Problem it solves
 
-You have a component and several optional, independent behaviors you might add to it: buffering, compression, encryption, metrics, retries. Subclassing every combination explodes — `BufferedCompressedStream`, `BufferedEncryptedStream`, and so on. Decorator lets each behavior be its own wrapper that conforms to the component's interface and delegates to the wrapped object. You compose the behaviors you want at runtime by nesting wrappers, in whatever order and combination the situation needs.
+You have a component and several optional, independent behaviors you might add to it: buffering, compression, encryption, metrics, retries. Subclassing every combination explodes: `BufferedCompressedStream`, `BufferedEncryptedStream`, and so on. Decorator lets each behavior be its own wrapper that conforms to the component's interface and delegates to the wrapped object. You compose the behaviors you want at runtime by nesting wrappers, in whatever order and combination the situation needs.
 
 ## Structure and participants
 
@@ -32,7 +32,7 @@ def with_metrics(handler: Handler) -> Handler:
     return wrapped
 ```
 
-`functools.wraps` preserves the wrapped callable's name, docstring, and signature metadata — omitting it breaks introspection and tooling.
+`functools.wraps` preserves the wrapped callable's name, docstring, and signature metadata: omitting it breaks introspection and tooling.
 
 The full *object* form is worth writing when you wrap a stateful object with many methods and want to compose behaviors at runtime:
 
@@ -53,7 +53,7 @@ class CompressingStream:
         return self._inner.write(compress(data))
 ```
 
-For wrapping objects with large interfaces where you only modify a few methods, `__getattr__` can forward the rest to the inner object — powerful but magical, so use it sparingly and document it.
+For wrapping objects with large interfaces where you only modify a few methods, `__getattr__` can forward the rest to the inner object: powerful but magical, so use it sparingly and document it.
 
 ## When to use
 
@@ -63,7 +63,7 @@ For wrapping objects with large interfaces where you only modify a few methods, 
 
 ## When NOT to use
 
-- There is one fixed behavior to add and no runtime composition — a plain `@decorator` function, or just inlining the behavior, is simpler than an object-decorator hierarchy.
+- There is one fixed behavior to add and no runtime composition; a plain `@decorator` function, or just inlining the behavior, is simpler than an object-decorator hierarchy.
 - The added behavior needs resource lifecycle (acquire/release). A context manager expresses setup and teardown far more clearly than a decorator.
 - You are reaching for decorators to add real business logic. Decorators should stay thin; business rules belong in the component.
 
@@ -76,4 +76,4 @@ For wrapping objects with large interfaces where you only modify a few methods, 
 
 ## Relationship to other patterns
 
-[adapter.md](./adapter.md) changes an interface; Decorator keeps the same interface and adds behavior. [proxy](./index.md) also wraps with the same interface but controls *access* (lazy loading, permissions) rather than enriching behavior — the structures are nearly identical and differ in intent. Chained decorators resemble a pipeline; for sequential request handling see Chain of Responsibility. When the behavior is resource lifecycle, prefer a context manager over a decorator.
+[adapter.md](./adapter.md) changes an interface. Decorator keeps the same interface and adds behavior. Proxy also wraps with the same interface but controls *access* such as lazy loading or permissions rather than enriching behavior. The structures are nearly identical and differ in intent. Chained decorators resemble a pipeline; for sequential request handling, see Chain of Responsibility. When the behavior is resource lifecycle, prefer a context manager over a decorator.

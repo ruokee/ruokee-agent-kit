@@ -54,7 +54,7 @@ def make_parser(kind: str) -> Parser:
 
 ## When NOT to use
 
-- There is a single implementation and construction is trivial — just call the constructor.
+- There is a single implementation and construction is trivial: just call the constructor.
 - A one-line `if` or direct instantiation would do. Wrapping it in an abstract-creator hierarchy adds indirection for no variation.
 - Everything that builds an object gets named `Factory`, diluting the concept until it means nothing.
 

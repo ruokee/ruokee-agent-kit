@@ -13,7 +13,7 @@ A subsystem accumulates many classes and steps that must be coordinated in the r
 - **Facade**: exposes a small set of high-level operations and delegates to subsystem objects, sequencing their interactions.
 - **Subsystem classes**: the real work; they don't know about the facade and remain usable directly.
 
-The facade adds no new functionality of its own — it composes existing pieces into a convenient surface. Callers depend on the facade; the facade depends on the subsystem.
+The facade adds no new functionality of its own; it composes existing pieces into a convenient surface. Callers depend on the facade; the facade depends on the subsystem.
 
 ## Python-idiomatic implementation
 
@@ -35,7 +35,7 @@ class BillingClient:
         return invoice
 ```
 
-A good facade is a *deep module*: a small interface in front of substantial internal complexity. That depth is what makes it worth having — it hides real work, not just a few lines.
+A good facade is a *deep module*: a small interface in front of substantial internal complexity. That depth is what makes it worth having; it hides real work, not just a few lines.
 
 ## When to use
 
@@ -57,4 +57,4 @@ A good facade is a *deep module*: a small interface in front of substantial inte
 
 ## Relationship to other patterns
 
-[adapter.md](./adapter.md) changes an interface to match what a caller expects; Facade defines a *new, simpler* interface over many objects — Adapter wraps one thing to fit, Facade wraps many to simplify. A facade often fronts a [abstract-factory.md](./abstract-factory.md) or coordinates objects built by factories. The "deep module" idea behind a good facade connects to information-hiding principles in the design-principles references. Compare Mediator, which also centralizes interaction but lets the coordinated objects talk back through it, whereas a facade is a one-directional simplifying entry point.
+[adapter.md](./adapter.md) changes an interface to match what a caller expects; Facade defines a *new, simpler* interface over many objects; Adapter wraps one thing to fit, Facade wraps many to simplify. A facade often fronts a [abstract-factory.md](./abstract-factory.md) or coordinates objects built by factories. The "deep module" idea behind a good facade connects to information-hiding principles in the design-principles references. Compare Mediator, which also centralizes interaction but lets the coordinated objects talk back through it, whereas a facade is a one-directional simplifying entry point.

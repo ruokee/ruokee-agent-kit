@@ -26,7 +26,7 @@ The dependency direction flows inward: domain code depends on the repository *in
 - The application is a thin CRUD layer with minimal domain logic. Adding a Repository over an ORM adds indirection without reducing complexity.
 - The ORM already provides a clean enough abstraction (e.g., Django's Manager/QuerySet for simple apps).
 - Only one storage technology will ever be used, and the domain logic is trivial.
-- Queries are highly dynamic or analytical. The Repository interface becomes a leaky abstraction over complex SQL — in such cases, a dedicated query service or CQRS separation serves better.
+- Queries are highly dynamic or analytical. The Repository interface becomes a leaky abstraction over complex SQL: in such cases, a dedicated query service or CQRS separation serves better.
 - The project is a script or small tool with a single data source.
 
 ## Common Implementation Issues

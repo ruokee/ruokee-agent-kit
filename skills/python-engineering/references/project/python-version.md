@@ -4,7 +4,7 @@ A project does not run on "Python" in the abstract; it runs on a range of versio
 
 ## Minimum Versus Target
 
-The minimum version is the floor — the oldest interpreter on which the code is guaranteed to import and run. It is declared with `requires-python` and it constrains which syntax and standard-library APIs are available everywhere. If the floor is 3.10, you cannot use `type X = ...` aliases or PEP 695 generic parameters anywhere in the shipped code, because a 3.10 interpreter will raise a `SyntaxError` before any logic runs.
+The minimum version is the floor; the oldest interpreter on which the code is guaranteed to import and run. It is declared with `requires-python` and it constrains which syntax and standard-library APIs are available everywhere. If the floor is 3.10, you cannot use `type X = ...` aliases or PEP 695 generic parameters anywhere in the shipped code, because a 3.10 interpreter will raise a `SyntaxError` before any logic runs.
 
 The target version is the one you develop against, pin locally (often via `.python-version`), and run first in CI. It is usually the newest version the dependency chain supports. Code must still stay within the minimum's syntax, but the target is where you get the fastest interpreter, the best error messages, and early warning of upcoming deprecations.
 
@@ -27,9 +27,9 @@ Each recent release adds capabilities that become usable only once the floor rea
 
 - **3.10** brings structural pattern matching (`match`/`case`), the `X | Y` union operator in annotations, and parenthesized context managers. See [match-case](skills/python-engineering/references/grammar/match-case.md) for when pattern matching earns its place.
 - **3.11** brings `ExceptionGroup` and `except*` for concurrent and batched failures, exception notes via `add_note()`, and `Self` in typing. See [exception-groups](skills/python-engineering/references/grammar/exception-groups.md).
-- **3.12** brings PEP 695: the `type X = ...` alias statement and inline generic parameters (`def f[T](x: T) -> T`), plus `typing.override`. These remove most `TypeVar`/`Generic` boilerplate but are a hard syntax gate — covered in [type-hint](skills/python-engineering/references/spec/type-hint.md).
+- **3.12** brings PEP 695: the `type X = ...` alias statement and inline generic parameters (`def f[T](x: T) -> T`), plus `typing.override`. These remove most `TypeVar`/`Generic` boilerplate but are a hard syntax gate; covered in [type-hint](skills/python-engineering/references/spec/type-hint.md).
 - **3.13** brings `warnings.deprecated()` as a runtime-and-static deprecation marker, type parameter defaults, and an experimental free-threaded build.
-- **3.14** brings deferred annotation evaluation by default (PEP 649/749), `annotationlib` for reading annotations, and template strings. Code that *reads* annotations at runtime — frameworks, ORMs, serializers, DI containers — needs verification against this behavior; see [type-hint](skills/python-engineering/references/spec/type-hint.md).
+- **3.14** brings deferred annotation evaluation by default (PEP 649/749), `annotationlib` for reading annotations, and template strings. Code that *reads* annotations at runtime, including frameworks, ORMs, serializers, and DI containers, needs verification against this behavior; see [type-hint](skills/python-engineering/references/spec/type-hint.md).
 
 A feature being available is not a reason to use it. Pattern matching, exception groups, and generics each have a narrow zone where they help; the gate only decides whether the option exists.
 
@@ -37,7 +37,7 @@ A feature being available is not a reason to use it. Pattern matching, exception
 
 `requires-python` in `[project]` is a constraint on the *installing* interpreter, not a version the build pins. A specifier like `">=3.12"` tells installers and resolvers that the package refuses to install on anything older, and it lets dependency resolvers pick compatible versions of *your* package for *their* environment. It does not download or switch interpreters; it only declares the contract.
 
-Keep `requires-python`, the local `.python-version`, and the CI matrix consistent. When they drift — `requires-python = ">=3.10"` but every developer runs 3.12 and CI never tests 3.10 — the floor becomes fiction, and 3.10-incompatible syntax can slip in undetected.
+Keep `requires-python`, the local `.python-version`, and the CI matrix consistent. When they drift, `requires-python = ">=3.10"` but every developer runs 3.12 and CI never tests 3.10, the floor becomes fiction, and 3.10-incompatible syntax can slip in undetected.
 
 ## Docker And Base Images
 

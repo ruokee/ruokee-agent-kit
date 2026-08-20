@@ -8,7 +8,7 @@ In its origin (game engines, high-performance systems) the term carries strong c
 
 ## The assumption underneath
 
-- The data has a shape, and that shape is the most stable thing about the program — endpoints, rules, and UIs change more often than the core record.
+- The data has a shape, and that shape is the most stable thing about the program: endpoints, rules, and UIs change more often than the core record.
 - Separating data (inert structures) from behavior (functions over them) makes both easier to inspect, serialize, version, and test.
 - For pipeline-shaped problems, "what transformations does this data pass through" is a more honest decomposition than "what objects collaborate."
 
@@ -21,11 +21,11 @@ In its origin (game engines, high-performance systems) the term carries strong c
 
 ## Relationship to functional style
 
-Data-oriented design and functional programming are close allies. Functional style says "prefer pure functions over data"; data-oriented design says "make the data explicit and let it lead." Together they produce the same architecture: immutable-ish records flowing through pure transformations, with side effects pushed to the edge. The difference is emphasis — one starts from functions, the other from the shape of the records — and in practice they converge.
+Data-oriented design and functional programming are close allies. Functional style says "prefer pure functions over data"; data-oriented design says "make the data explicit and let it lead." Together they produce the same architecture: immutable-ish records flowing through pure transformations, with side effects pushed to the edge. The difference is emphasis, one starts from functions, the other from the shape of the records, and in practice they converge.
 
 ## When objects with behavior are better
 
-The data-oriented stance weakens precisely when the data has invariants that must hold at all times. Plain records are inert: nothing stops a caller from putting them into an illegal combination. When a concept has rules about which field combinations are valid, a lifecycle, or behavior that must stay consistent with its state, an object that encapsulates that state and guards its invariants is the better model — see [object-oriented.md](./object-oriented.md).
+The data-oriented stance weakens precisely when the data has invariants that must hold at all times. Plain records are inert: nothing stops a caller from putting them into an illegal combination. When a concept has rules about which field combinations are valid, a lifecycle, or behavior that must stay consistent with its state, an object that encapsulates that state and guards its invariants is the better model; see [object-oriented.md](./object-oriented.md).
 
 Signs you have pushed plain data too far:
 
@@ -67,7 +67,7 @@ The records carry no behavior; the functions carry no state. Reading, writing, a
 
 ## Make illegal data hard to represent
 
-A quieter benefit of taking the data seriously is that a well-chosen shape removes whole classes of bugs before any logic runs. If a field can only be one of three values, model it as an enum, not a free string. If two fields must appear together or not at all, put them in a nested record rather than two independent optionals. If a list must be non-empty, that is worth encoding or checking once at the boundary. The discipline is to push validity into the shape of the data so that downstream functions can trust their inputs instead of re-checking them. This is the same instinct as a [state-machine.md](./state-machine.md) refusing to let boolean flags encode states — the type is the first line of defense.
+A quieter benefit of taking the data seriously is that a well-chosen shape removes whole classes of bugs before any logic runs. If a field can only be one of three values, model it as an enum, not a free string. If two fields must appear together or not at all, put them in a nested record rather than two independent optionals. If a list must be non-empty, that is worth encoding or checking once at the boundary. The discipline is to push validity into the shape of the data so that downstream functions can trust their inputs instead of re-checking them. This is the same instinct as a [state-machine.md](./state-machine.md) refusing to let boolean flags encode states; the type is the first line of defense.
 
 The boundary is where this work happens. Parse untrusted input (JSON, config, request bodies) into a typed structure once, validating as you go, and let everything inward operate on the trusted shape. This is "parse, don't validate": convert raw data into a structure whose existence guarantees its validity, rather than passing raw data around with validation checks sprinkled everywhere.
 
@@ -75,6 +75,6 @@ The boundary is where this work happens. Parse untrusted input (JSON, config, re
 
 - Prefer `dataclass` for plain data records; reach for `frozen=True` when the record is a value object with no identity (see the dataclass guidance in the stdlib references).
 - Use `TypedDict` when data arrives as dicts (JSON, config) and you want shape-checking without converting to objects.
-- Keep these structures as data: avoid attaching heavy business workflows to a dataclass — that is the "anemic by accident, then overloaded" antipattern. If real invariants appear, graduate to a class with methods.
+- Keep these structures as data: avoid attaching heavy business workflows to a dataclass; that is the "anemic by accident, then overloaded" antipattern. If real invariants appear, graduate to a class with methods.
 - Establish a single source of truth for each schema rather than redeclaring the same shape in types, runtime validation, and docs.
 - Transformations belong in module-level functions over the data, composable into pipelines, not in methods unless the behavior is intrinsic to the type.

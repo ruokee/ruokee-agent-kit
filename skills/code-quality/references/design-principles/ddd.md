@@ -6,7 +6,7 @@ folders. This document covers the concepts that most improve code organization a
 is not a substitute for the full body of DDD literature, and most projects only need a subset.
 
 The central premise: in genuinely complex business software, the hard part is not the
-technology but the domain — its vocabulary, its rules, its invariants, and the boundaries
+technology but the domain: its vocabulary, its rules, its invariants, and the boundaries
 between subdomains. Code that mirrors those concepts is easier to discuss, change, and keep
 correct.
 
@@ -15,7 +15,7 @@ correct.
 A single, shared vocabulary used consistently by domain experts, code, tests, and conversation.
 If the business says "settlement", the class is `Settlement`, not `PaymentRecord`. The payoff is
 reduced translation cost: when the word in the meeting matches the word in the code, fewer
-misunderstandings survive into production. This is the most portable piece of DDD — even a small
+misunderstandings survive into production. This is the most portable piece of DDD: even a small
 project benefits from naming things the way the domain names them.
 
 ## Bounded contexts
@@ -36,13 +36,13 @@ Two ways to model domain data, distinguished by identity:
   is the same user even after changing name and email; identity (not field values) defines
   equality. Entities have a lifecycle.
 - **Value object.** Defined entirely by its attributes, with no identity of its own. A `Money`
-  amount, a `DateRange`, an `Address` — two value objects with equal fields are
+  amount, a `DateRange`, an `Address`: two value objects with equal fields are
   interchangeable. Value objects are naturally immutable, which removes a large class of
   aliasing bugs.
 
-Modeling something as a value object instead of bare primitives is one of the highest-leverage
-DDD moves. Replacing `dict[str, Any]` or a loose `(amount, currency)` tuple with a `Money` value
-object fixes [primitive obsession](skills/code-quality/references/refactoring/index.md) and gives the invariants a home.
+Modeling something as a value object instead of bare primitives is one of the most useful DDD
+moves. Replacing `dict[str, Any]` or a loose `(amount, currency)` tuple with a `Money` value
+object fixes [primitive obsession](skills/code-quality/references/refactoring/primitive-obsession.md) and gives the invariants a home.
 
 ## Aggregates
 
@@ -52,11 +52,11 @@ enforces the invariants that span the cluster and is the transactional boundary.
 `Order` aggregate owns its `LineItem`s; you do not modify a line item directly, you go through
 the order, which can enforce rules like "total must not exceed the credit limit". Aggregates are
 where [Tell, Don't Ask](./tell-dont-ask.md) and the [Information Expert](./grasp.md) heuristic
-become concrete — the rule lives with the data it governs.
+become concrete; the rule lives with the data it governs.
 
 ## Domain events
 
-A domain event records that something meaningful happened in the domain — `OrderPlaced`,
+A domain event records that something meaningful happened in the domain: `OrderPlaced`,
 `PaymentReceived`. Events make side effects and cross-context reactions explicit and decoupled:
 the order context announces `OrderPlaced` without knowing that shipping and analytics both
 listen. Use them when reactions genuinely span boundaries; do not turn every state change into
@@ -73,7 +73,7 @@ and structure.
 
 ## When NOT to apply DDD
 
-DDD's full machinery — aggregates, repositories, domain services, unit of work — is expensive
+DDD's full machinery, aggregates, repositories, domain services, unit of work, is expensive
 and justified only by real domain complexity. Applying it to simple CRUD, scripts, or small
 tools is over-engineering ([YAGNI](./yagni.md)). Two common failure modes:
 
@@ -91,4 +91,4 @@ tools is over-engineering ([YAGNI](./yagni.md)). Two common failure modes:
 - An entity is not necessarily an ORM class. When persistence concerns distort the model,
   separate the domain model from the persistence model.
 - Introduce repositories and unit of work only when you actually need a transaction boundary,
-  a test double for storage, or isolation from the ORM — not by default.
+  a test double for storage, or isolation from the ORM, not by default.

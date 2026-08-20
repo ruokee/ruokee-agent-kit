@@ -1,17 +1,15 @@
 ---
 name: code-quality
-description: General code quality review and design guidance covering design principles, design patterns, refactoring, programming paradigms, code and test smells, test quality, state machines, resource lifecycle, abstraction quality, and Agent/Skill configuration smells. Use when asked to evaluate code or test quality, design tradeoffs, refactoring opportunities, test-suite maintainability, paradigm fit, abstraction boundaries, or AGENTS.md/SKILL.md/configuration quality.
+description: Use when evaluating or improving code quality, including maintainability, abstractions, design principles and patterns, refactoring, code smells, test design, and architecture.
 ---
 
 # Code Quality
 
-Use this Skill to judge whether code, tests, architecture, refactoring plans, abstractions, design principles, design patterns, programming paradigms, and Agent configuration have reasonable structure, change boundaries, and maintenance cost.
-
-For Python code review or daily Python self-check, also use `python-engineering` unless the user explicitly narrows the scope.
+Use this Skill to judge whether code, tests, architecture, refactoring plans, and abstractions have reasonable structure, change boundaries, and maintenance cost.
 
 ## Entry Conditions
 
-Activate this Skill for maintainability, design quality, test quality or test smells, abstraction boundaries, refactoring, code smells, programming-paradigm choice, design-pattern use, design principles, or Agent/Skill configuration quality. The reference leaves cover design principles, design patterns, refactoring, testing, programming paradigms, and agentic-coding; load them by signal, not by reading everything.
+Activate this Skill for maintainability, design quality, test quality or test smells, abstraction boundaries, refactoring, code smells, programming-paradigm choice, design-pattern use, or design principles. Load reference leaves by signal, not all at once.
 
 ## Mode Selection
 
@@ -26,7 +24,7 @@ Three modes are available. Default to fast review.
 ## Judgment Order
 
 1. Identify the primary concern: correctness, readability, change cost, testability, performance, or delivery cost.
-2. Decide whether the issue belongs to principles, patterns, refactoring, paradigms, or Agent configuration.
+2. Decide whether the issue belongs to principles, patterns, refactoring, or paradigms.
 3. Route to the relevant leaf document below.
 4. Report only issues with sufficient evidence.
 
@@ -82,28 +80,14 @@ Three modes are available. Default to fast review.
 | State/status/event/transition workflow | [State Machine](./references/programming-paradigms/state-machine.md) | state, resource lifecycle |
 | Resource acquisition, ownership, cleanup | [Resource Lifecycle](./references/programming-paradigms/resource-lifecycle.md) | state machine, unit of work |
 | Async tasks, cancellation, timeouts, backpressure | [Async/Concurrency](./references/programming-paradigms/async-concurrency.md) | event-driven, resource lifecycle |
-| AGENTS.md, SKILL.md, prompt/rules/workflow config | [Config Smells](./references/agentic-coding/config-smells.md) | DRY, KISS |
 
-Directory `index.md` files serve human navigation. Read an `index.md` only when the directory boundary itself is unclear.
-
-## Preferences
-
-After identifying relevant leaves, read project facts and optional preferences:
-
-1. Read the nearest applicable `AGENTS.md` or project rules.
-2. Read project code, tests, config, and diff relevant to the review.
-3. Look for preferences heuristically:
-   - First try project-level: `.agents/preferences/code-quality.md`, then `.agents/preferences/code-quality/index.md`.
-   - If not found, try user-level directories: `~/.codex/preferences/code-quality.md`, `~/.claude/preferences/code-quality.md`, or equivalent user config directory.
-4. If no preferences are found at any level, continue silently.
-
-Preferences may specify: review priorities, architecture constraints, project-specific smells, or extra rules. Never present preferences as universal engineering truth.
+When terminology is unclear or inconsistent, read the [glossary](./glossary.md).
 
 ## Output Contract
 
-Lead with findings. Principles are not mechanical rules — write tradeoffs. Patterns are not default templates — prove the variation point exists first. Separate facts, inferences, judgments, preferences, and recommendations; never conflate them. Do not repeat issues a formatter or linter catches mechanically.
+Lead with findings. Principles are not mechanical rules; explain tradeoffs. Patterns are not default templates; prove the variation point exists first. Separate facts, inferences, judgments, and recommendations. Do not repeat issues a formatter or linter catches mechanically.
 
-Output format is mode-specific — follow the matching workflow document (`./workflow/fast-review.md`, `./workflow/full-review.md`, or `./workflow/analysis.md`). Analysis mode gives tradeoffs and options, not a findings list.
+Output format is mode-specific. Follow the matching workflow document (`./workflow/fast-review.md`, `./workflow/full-review.md`, or `./workflow/analysis.md`). Analysis mode gives tradeoffs and options, not a findings list.
 
 Write output in the language required by global, project, or user instructions; when none is specified, use the current conversation's language.
 
@@ -113,6 +97,5 @@ Write output in the language required by global, project, or user instructions; 
 - Do not abstract merely because code looks similar.
 - Do not treat similar code as duplicate knowledge without proving shared intent.
 - Do not automatically apply refactors, patches, unsafe fixes, or bulk suppressions.
-- Do not turn preferences into universal engineering rules.
 - Do not write file modifications during read-only or analysis tasks.
-- Do not report issues that formatter or linter can catch mechanically — note them once if relevant, then move on.
+- Do not report issues that a formatter or linter can catch mechanically. Note them once if relevant, then move on.

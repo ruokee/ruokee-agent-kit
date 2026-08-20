@@ -1,10 +1,10 @@
 # Python 版本策略
 
-一个项目并非在抽象的"Python"上运行；它运行在一个版本范围内，而这个范围是一个设计决策，对语法、依赖和部署都有影响。有两个数字至关重要，但它们并不相同：代码必须支持的*最低*版本，以及开发和 CI 所假设的*目标*版本。
+项目并非在抽象的"Python"上运行，而是在一个版本范围内运行。这个范围会限制语法、依赖和部署。需要区分两个数字：代码必须支持的*最低*版本，以及开发和 CI 采用的*目标*版本。
 
 ## 最低版本与目标版本
 
-最低版本是下限——代码保证能够导入和运行的最旧解释器。它通过 `requires-python` 声明，并限制了所有环境中可用的语法和标准库 API。如果下限是 3.10，你就不能在交付的代码中使用 `type X = ...` 别名或 PEP 695 泛型参数，因为 3.10 解释器会在任何逻辑运行之前抛出 `SyntaxError`。
+最低版本是下限：代码保证能够导入和运行的最旧解释器。它通过 `requires-python` 声明，并限制了所有环境中可用的语法和标准库 API。如果下限是 3.10，你就不能在交付的代码中使用 `type X = ...` 别名或 PEP 695 泛型参数，因为 3.10 解释器会在任何逻辑运行之前抛出 `SyntaxError`。
 
 目标版本是你开发所针对的版本，在本地锁定（通常通过 `.python-version`），并在 CI 中首先运行的版本。它通常是依赖链支持的最新版本。代码仍然必须遵守最低版本的语法，但目标版本是你获得最快解释器、最佳错误消息以及即将弃用特性早期警告的地方。
 
@@ -27,9 +27,9 @@
 
 - **3.10** 带来了结构模式匹配（`match`/`case`）、注解中的 `X | Y` 联合运算符以及带括号的上下文管理器。参见 [match-case](variants/zh/skills/python-engineering/references/grammar/match-case.md) 了解模式匹配何时值得使用。
 - **3.11** 带来了用于并发和批量失败的 `ExceptionGroup` 和 `except*`、通过 `add_note()` 实现的异常注释，以及 `Self` 类型。参见 [exception-groups](variants/zh/skills/python-engineering/references/grammar/exception-groups.md)。
-- **3.12** 带来了 PEP 695：`type X = ...` 别名语句和内联泛型参数（`def f[T](x: T) -> T`），以及 `typing.override`。这些消除了大部分 `TypeVar`/`Generic` 样板代码，但是一个严格的语法门控——在 [type-hint](variants/zh/skills/python-engineering/references/spec/type-hint.md) 中详细介绍。
+- **3.12** 带来了 PEP 695：`type X = ...` 别名语句和内联泛型参数（`def f[T](x: T) -> T`），以及 `typing.override`。这些消除了大部分 `TypeVar`/`Generic` 样板代码，但是一个严格的语法门控：在 [type-hint](variants/zh/skills/python-engineering/references/spec/type-hint.md) 中详细介绍。
 - **3.13** 带来了 `warnings.deprecated()` 作为运行时和静态的弃用标记、类型参数默认值，以及实验性的自由线程构建。
-- **3.14** 带来了默认启用的延迟注解求值（PEP 649/749）、用于读取注解的 `annotationlib` 以及模板字符串。在运行时*读取*注解的代码——框架、ORM、序列化器、DI 容器——需要验证与此行为的兼容性；参见 [type-hint](variants/zh/skills/python-engineering/references/spec/type-hint.md)。
+- **3.14** 带来了默认启用的延迟注解求值（PEP 649/749）、用于读取注解的 `annotationlib` 以及模板字符串。在运行时*读取*注解的代码，框架、ORM、序列化器、DI 容器，需要验证与此行为的兼容性；参见 [type-hint](variants/zh/skills/python-engineering/references/spec/type-hint.md)。
 
 特性可用并不意味着就应该使用它。模式匹配、异常组和泛型各自都有狭窄的适用区域；门控只决定选项是否存在。
 
@@ -37,7 +37,7 @@
 
 `[project]` 中的 `requires-python` 是对*安装*解释器的约束，而不是构建锁定的版本。像 `">=3.12"` 这样的说明符告诉安装器和解析器该包拒绝安装在更旧的版本上，并让依赖解析器为*它们*的环境选择*你*的包的兼容版本。它不会下载或切换解释器；它只声明契约。
 
-保持 `requires-python`、本地的 `.python-version` 和 CI 矩阵一致。当它们出现偏差——`requires-python = ">=3.10"` 但每个开发者都运行 3.12 且 CI 从不测试 3.10——下限就变成了虚构，3.10 不兼容的语法可能悄然潜入而未被发现。
+保持 `requires-python`、本地的 `.python-version` 和 CI 矩阵一致。当它们出现偏差，`requires-python = ">=3.10"` 但每个开发者都运行 3.12 且 CI 从不测试 3.10，下限就变成了虚构，3.10 不兼容的语法可能悄然潜入而未被发现。
 
 ## Docker 和基础镜像
 

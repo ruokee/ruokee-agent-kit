@@ -24,7 +24,7 @@ def acquired(resource):
 
 ## ExitStack 和 AsyncExitStack
 
-`ExitStack` 管理*动态*的上下文管理器集合——当资源的数量在解析时未知，或资源在循环中获取时：
+`ExitStack` 管理*动态*的上下文管理器集合，当资源的数量在解析时未知，或资源在循环中获取时：
 
 ```python
 from contextlib import ExitStack
@@ -39,7 +39,7 @@ with ExitStack() as stack:
 
 ## suppress
 
-`suppress(*exceptions)` 忽略其块中抛出的指定异常——这是 `try/except SomeError: pass` 的清晰替代品：
+`suppress(*exceptions)` 忽略其块中抛出的指定异常；这是 `try/except SomeError: pass` 的清晰替代品：
 
 ```python
 from contextlib import suppress
@@ -85,4 +85,4 @@ with cm as out:
 
 ## 常见错误：吞掉异常
 
-重复出现的 contextlib 错误是在清理期间静默丢弃异常。基于生成器的管理器在 `yield` 之后返回控制权；如果其清理抛出了异常，或者如果 `__exit__` 返回真值，原始错误可能被掩盖。`suppress` 使这一点显式且有意，这没问题——但过宽的 `suppress`、抛出异常的 `finally`，或意外返回 `True` 的 `__exit__` 会隐藏真正的失败。仅抑制你理解的具体异常，保持抑制区域最小化，绝不让清理代码吞掉触发它的错误。
+重复出现的 contextlib 错误是在清理期间静默丢弃异常。基于生成器的管理器在 `yield` 之后返回控制权；如果其清理抛出了异常，或者如果 `__exit__` 返回真值，原始错误可能被掩盖。`suppress` 使这一点显式且有意，这没问题，但过宽的 `suppress`、抛出异常的 `finally`，或意外返回 `True` 的 `__exit__` 会隐藏真正的失败。仅抑制你理解的具体异常，保持抑制区域最小化，绝不让清理代码吞掉触发它的错误。

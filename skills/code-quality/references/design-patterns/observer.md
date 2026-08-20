@@ -6,7 +6,7 @@ Let one object (the subject) notify many dependents (observers) when its state c
 
 ## Problem it solves
 
-When several parts of a system must react to something happening — a cache must invalidate, a UI must refresh, an audit log must record — wiring direct calls from the source to each reactor couples the source to all of them. Adding a new reactor means editing the source. Observer inverts this: reactors subscribe, and the source only publishes.
+When several parts of a system must react to something happening, a cache must invalidate, a UI must refresh, an audit log must record, wiring direct calls from the source to each reactor couples the source to all of them. Adding a new reactor means editing the source. Observer inverts this: reactors subscribe, and the source only publishes.
 
 ## Structure and participants
 
@@ -34,7 +34,7 @@ class EventBus:
 These are where Observer implementations go wrong. None has a single right answer, but each must be a deliberate choice, not an accident.
 
 - **Subscriber lifecycle**: who unsubscribes, and when? Subscriptions that outlive their subscriber leak memory and keep dead objects alive. Consider `weakref` for handlers, or hand back an explicit unsubscribe handle / use a context manager.
-- **Error propagation**: if one handler raises, do later handlers still run? Swallowing errors hides bugs; letting them propagate lets one bad subscriber break the publish. Decide and document — often: isolate per-handler errors, log them, continue.
+- **Error propagation**: if one handler raises, do later handlers still run? Swallowing errors hides bugs; letting them propagate lets one bad subscriber break the publish. Decide and document the policy. One common choice is to isolate per-handler errors, log them, and continue.
 - **Ordering**: do subscribers run in registration order, or is order undefined? Don't let callers depend on order unless you guarantee it.
 - **Reentrancy**: can a handler publish, subscribe, or unsubscribe during dispatch? Iterating over a copy of the subscriber list (as above) avoids mutation-during-iteration bugs.
 - **Sync vs async**: synchronous in-process notification is simplest. For `async` handlers you must choose sequential `await` vs `asyncio.gather`, and how to handle a handler that blocks or never completes.
@@ -47,8 +47,8 @@ These are where Observer implementations go wrong. None has a single right answe
 
 ## When NOT to use
 
-- There is exactly one, fixed reactor — call it directly. An event bus adds indirection and hides control flow for no decoupling benefit.
-- Strict ordering and a clear sequential workflow matter more than decoupling — an explicit pipeline reads better.
+- There is exactly one, fixed reactor; call it directly. An event bus adds indirection and hides control flow for no decoupling benefit.
+- Strict ordering and a clear sequential workflow matter more than decoupling; an explicit pipeline reads better.
 - Cross-process delivery is needed: in-process Observer gives no delivery, retry, or durability guarantees. Use a real message system (queue, broker) with defined semantics.
 
 ## Failure modes

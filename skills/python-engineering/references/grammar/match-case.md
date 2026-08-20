@@ -4,7 +4,7 @@
 
 ## What It Is
 
-A `match` statement compares a subject value against a series of patterns. The first pattern that matches runs its block; names inside the pattern are bound to the corresponding pieces of the subject. Unlike `switch` in many languages, the cases are not constant labels — they are patterns that can inspect type, structure, and contents at once.
+A `match` statement compares a subject value against a series of patterns. The first pattern that matches runs its block; names inside the pattern are bound to the corresponding pieces of the subject. Unlike `switch` in many languages, the cases are not constant labels; they are patterns that can inspect type, structure, and contents at once.
 
 ```python
 match command:
@@ -22,7 +22,7 @@ Patterns do not fall through. Exactly one block runs, or none if nothing matches
 
 Literal pattern matches a constant by equality (`case 0:`, `case "quit":`, `case None:`). `True`, `False`, and `None` match by identity.
 
-Capture pattern is a bare name; it always matches and binds the subject (`case x:`). A bare `case _:` is the wildcard — it matches anything and binds nothing, serving as the default.
+Capture pattern is a bare name; it always matches and binds the subject (`case x:`). A bare `case _:` is the wildcard; it matches anything and binds nothing, serving as the default.
 
 Value pattern uses a dotted name so a named constant is read rather than rebound: `case Color.RED:`. A plain name would capture; the dot is what makes it a comparison.
 
@@ -54,18 +54,18 @@ In these cases the alternative is a stack of `isinstance` checks plus manual ind
 
 - Dispatch is on a single value with a known set of outcomes. A dict mapping keys to handlers (`handlers[key]()`) is clearer, extensible at runtime, and testable in isolation. Use that instead of a long `match` of literal cases.
 - The logic is a small boolean decision. Two or three ordinary conditions read better as `if`/`elif`; `match` adds ceremony without structure to exploit.
-- You are modeling a state machine. A transition table — `(state, event) -> next_state` — keeps states and transitions as data you can enumerate, validate, and diagram. A `match` buries those transitions in control flow where you cannot see the whole graph at once. See [state machine modeling](skills/code-quality/references/programming-paradigms/state-machine.md) for why explicit transitions matter.
+- You are modeling a state machine. A transition table such as `(state, event) -> next_state` keeps states and transitions as data you can enumerate, validate, and diagram. A `match` buries those transitions in control flow, where you cannot see the whole graph at once.
 
 The rule of thumb: if there is no structure to destructure, `match` is probably the wrong reach.
 
 ## Exhaustiveness
 
-Python does not enforce exhaustiveness at runtime — an unmatched subject simply falls through with no error, which can hide bugs. Two habits address this:
+Python does not enforce exhaustiveness at runtime; an unmatched subject simply falls through with no error, which can hide bugs. Two habits address this:
 
 - Add an explicit `case _:` that raises when an unexpected value reaches it, turning a silent fall-through into a loud failure.
 - Let a type checker reason about exhaustiveness. When matching over a closed set such as an `Enum` or a union of dataclasses, checkers can flag a missing case. Pairing the match subject with an `assert_never(unreachable)` in the default branch makes the intended exhaustiveness explicit and lets the checker prove it.
 
-This pairing — closed type plus `assert_never` — is what turns `match` from a convenience into a checkable contract.
+This pairing, closed type plus `assert_never`, is what turns `match` from a convenience into a checkable contract.
 
 ## Typical Uses
 

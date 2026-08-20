@@ -2,9 +2,9 @@
 
 ## Behavioral equivalence is the contract
 
-The single promise of refactoring, as [fowler-refactoring.md](./fowler-refactoring.md) defines it, is that **external observable behavior does not change**. Same inputs produce same outputs; the side effects callers depend on still happen; errors that were raised are still raised. Internal structure is free to change however you like, as long as no one outside can tell the difference. Everything in this document exists to let you make structural changes while keeping that promise — and, crucially, to *prove* you kept it rather than hope.
+The single promise of refactoring, as [fowler-refactoring.md](./fowler-refactoring.md) defines it, is that **external observable behavior does not change**. Same inputs produce same outputs; the side effects callers depend on still happen; errors that were raised are still raised. Internal structure is free to change however you like, as long as no one outside can tell the difference. Everything in this document exists to let you make structural changes while keeping that promise, and to *prove* you kept it rather than hope.
 
-"Observable" is doing real work in that definition. The exact sequence of private method calls is not observable. A return value, a written file, an emitted event, a raised exception, the contents of a log a consumer parses — those are. Before refactoring something near a boundary, get clear on what is actually observable, because that is the line you must not cross. For a public API, a serialization schema, or CLI arguments, the observable surface is wide and the constraint is tight.
+"Observable" is doing real work in that definition. The exact sequence of private method calls is not observable. A return value, a written file, an emitted event, a raised exception, the contents of a log a consumer parses; those are. Before refactoring something near a boundary, get clear on what is actually observable, because that is the line you must not cross. For a public API, a serialization schema, or CLI arguments, the observable surface is wide and the constraint is tight.
 
 ## Tests before you touch structure
 
@@ -14,9 +14,9 @@ This is not optional rigor. Restructuring code whose behavior is unverified is e
 
 ## Characterization tests
 
-When you need to refactor code that has no tests — typically legacy code or something an agent generated quickly — you write **characterization tests** first. A characterization test does not assert what the code *should* do; it pins down what it *currently* does, including any quirks. You run the code, observe the output, and write a test asserting exactly that output. The test now characterizes the existing behavior.
+When you need to refactor code that has no tests, typically legacy code or something an agent generated quickly, you write **characterization tests** first. A characterization test does not assert what the code *should* do; it pins down what it *currently* does, including any quirks. You run the code, observe the output, and write a test asserting exactly that output. The test now characterizes the existing behavior.
 
-The point is not correctness — the existing behavior might even be slightly wrong — the point is a tripwire. Once the current behavior is pinned, you can refactor freely, and any test that goes red tells you the restructuring changed something. If you later decide the old behavior was a bug, fixing it is a separate, deliberate behavior change with its own test update, not something that slips in under cover of refactoring. In Python, snapshot/approval testing and capturing representative outputs are practical ways to characterize transformation-heavy code quickly.
+The point is not correctness, the existing behavior might even be slightly wrong, the point is a tripwire. Once the current behavior is pinned, you can refactor freely, and any test that goes red tells you the restructuring changed something. If you later decide the old behavior was a bug, fixing it is a separate, deliberate behavior change with its own test update, not something that slips in under cover of refactoring. In Python, snapshot/approval testing and capturing representative outputs are practical ways to characterize transformation-heavy code quickly.
 
 ## Small reversible steps
 
@@ -26,7 +26,7 @@ Each step should be small enough to be obviously correct and easy to undo. Renam
 - You are continuously in a shippable state and can stop anytime.
 - Reverting a single small step is cheap; reverting a tangled hour of changes is not.
 
-Commit frequently. A clean commit per refactoring step — or per small group of related steps — means `git` itself is part of your rollback strategy.
+Commit frequently. A clean commit per refactoring step, or per small group of related steps, means `git` itself is part of your rollback strategy.
 
 ## IDE and tool support
 
@@ -45,4 +45,4 @@ Some situations defeat the usual safety mechanisms and call for extra care:
 
 ## Rollback strategy
 
-Refactoring should always have a clean exit. Before starting, ensure your working tree is committed so you have a known-good point to return to. Take small steps with frequent commits so the rollback unit is small. If a step fails and the cause is not immediately obvious, revert that step rather than trying to patch forward — the discipline is to return to green, not to accumulate fixes on top of a broken state. And if you discover mid-way that the abstraction you were moving toward is wrong, the right move is often to [inline](./inline-function.md) back to the previous structure and re-find the real seam, rather than pressing on. A refactoring you can cleanly abandon is a safe one.
+Refactoring should always have a clean exit. Before starting, ensure your working tree is committed so you have a known-good point to return to. Take small steps with frequent commits so the rollback unit is small. If a step fails and the cause is not immediately obvious, revert that step rather than trying to patch forward; the discipline is to return to green, not to accumulate fixes on top of a broken state. And if you discover mid-way that the abstraction you were moving toward is wrong, the right move is often to [inline](./inline-function.md) back to the previous structure and re-find the real seam, rather than pressing on. A refactoring you can cleanly abandon is a safe one.

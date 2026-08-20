@@ -16,7 +16,7 @@ addopts = "-ra"
 
 ## conftest.py
 
-`conftest.py` 包含跨目录子树共享的 fixture、钩子和插件配置，而无需显式导入。pytest 会自动加载它。根级别的 `conftest.py` 项目范围共享 fixture；嵌套的 `conftest.py` 将辅助函数限定到子树。将其用于共享 fixture 和钩子实现，而不是作为测试辅助函数的垃圾场——后者作为普通导入的模块会更清晰。
+`conftest.py` 包含跨目录子树共享的 fixture、钩子和插件配置，而无需显式导入。pytest 会自动加载它。根级别的 `conftest.py` 项目范围共享 fixture；嵌套的 `conftest.py` 将辅助函数限定到子树。将其用于共享 fixture 和钩子实现，而不是作为测试辅助函数的垃圾场：后者作为普通导入的模块会更清晰。
 
 ## Fixture 作用域（Fixture Scoping）
 

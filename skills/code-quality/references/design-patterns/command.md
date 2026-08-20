@@ -6,11 +6,11 @@ Encapsulate a request as an object, so that requests can be passed around, store
 
 ## Problem it solves
 
-A direct call — `service.send_email(to, template, context)` — executes immediately and leaves no trace. You cannot put it on a queue, persist it for later, record it in an audit log, replay it after a crash, or reverse it. When a request needs a life beyond the instant of its invocation, it has to become data. Command turns "do this" into a value you can hold and inspect.
+A direct call, `service.send_email(to, template, context)`, executes immediately and leaves no trace. You cannot put it on a queue, persist it for later, record it in an audit log, replay it after a crash, or reverse it. When a request needs a life beyond the instant of its invocation, it has to become data. Command turns "do this" into a value you can hold and inspect.
 
 ## Structure and participants
 
-- **Command**: an object carrying everything needed to perform a request — the operation and its parameters.
+- **Command**: an object carrying everything needed to perform a request: the operation and its parameters.
 - **Receiver**: the object that knows how to carry out the work.
 - **Invoker**: holds and triggers commands (a queue, a scheduler, a menu, a key binding).
 - **Client**: creates commands and configures them with a receiver.
@@ -29,7 +29,7 @@ class SendEmail:
     context: dict[str, object]
 ```
 
-A separate handler (or a `dispatch` map keyed by command type) performs the work, keeping the command itself a plain, serializable record. When a command needs no persistence and only carries behavior, a plain function or `functools.partial` already *is* a command — Python's first-class functions absorb the simplest cases.
+A separate handler (or a `dispatch` map keyed by command type) performs the work, keeping the command itself a plain, serializable record. When a command needs no persistence and only carries behavior, a plain function or `functools.partial` already *is* a command: Python's first-class functions absorb the simplest cases.
 
 For undo, the command must capture enough prior state to reverse itself, or pair with a [unit-of-work.md](./unit-of-work.md) or memento that snapshots state.
 
@@ -44,7 +44,7 @@ For undo, the command must capture enough prior state to reverse itself, or pair
 ## When NOT to use (overkill)
 
 - A simple, immediate function call suffices and the request needs no storage, replay, or reversal. Wrapping it in a command class is pure ceremony.
-- The command has no stable schema, so it cannot actually be persisted or replayed — then it gives none of the benefits it costs you to build.
+- The command has no stable schema, so it cannot actually be persisted or replayed; then it gives none of the benefits it costs you to build.
 - You reach for command objects to "decouple" code that has only one caller and one receiver.
 
 ## Failure modes
@@ -56,4 +56,4 @@ For undo, the command must capture enough prior state to reverse itself, or pair
 
 ## Relationship to other patterns
 
-Command and [strategy.md](./strategy.md) both wrap behavior in an object, but Strategy parameterizes *how* something is done (interchangeable algorithms) while Command parameterizes *what* to do and *when*. A queue of commands is a common partner to [observer.md](./observer.md) event handling, where events become commands to process. Undo often combines Command with a memento or [unit-of-work.md](./unit-of-work.md). In Python, weigh every command class against a plain callable — only the need for state, serialization, queuing, audit, or undo justifies the object.
+Command and [strategy.md](./strategy.md) both wrap behavior in an object, but Strategy parameterizes *how* something is done (interchangeable algorithms) while Command parameterizes *what* to do and *when*. A queue of commands is a common partner to [observer.md](./observer.md) event handling, where events become commands to process. Undo often combines Command with a memento or [unit-of-work.md](./unit-of-work.md). In Python, weigh every command class against a plain callable; only the need for state, serialization, queuing, audit, or undo justifies the object.

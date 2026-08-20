@@ -30,7 +30,7 @@ project/
     └── test_app.py
 ```
 
-It is intuitive, has low startup cost, and is common in small libraries, historical projects, and simple internal tools. Its structural weakness is that the project root naturally enters `sys.path`, so local tests and scripts tend to import the *source directory* rather than the *installed artifact* — masking packaging mistakes such as a missing file in the built wheel.
+It is intuitive, has low startup cost, and is common in small libraries, historical projects, and simple internal tools. Its structural weakness is that the project root naturally enters `sys.path`, so local tests and scripts tend to import the *source directory* rather than the *installed artifact*: masking packaging mistakes such as a missing file in the built wheel.
 
 The real degradation risk is not flat layout itself but its collapse into a "big script directory": `run.py`, `utils.py`, `db.py`, `api.py` all scattered at the root, importing each other through the current directory, with entry points and library logic tangled together and import-time side effects no one can trace. If you choose flat layout, still keep a clear package directory, separate entry scripts from importable logic, and forbid heavy import-time side effects (reading the environment, opening connections, starting threads).
 
@@ -50,13 +50,13 @@ project/
     └── test_app.py
 ```
 
-The point of the separation is *import safety*: because `src/` is not on `sys.path` by default, you cannot accidentally import the package from the source tree. Tests run against the *installed* package (via an editable install), so they exercise the same import paths and packaging boundaries that real users will. This catches a class of bugs — a module missing from the build, a data file not packaged — that flat layout hides until release.
+The point of the separation is *import safety*: because `src/` is not on `sys.path` by default, you cannot accidentally import the package from the source tree. Tests run against the *installed* package (via an editable install), so they exercise the same import paths and packaging boundaries that real users will. This catches a class of bugs, a module missing from the build, a data file not packaged, that flat layout hides until release.
 
 Choose src layout for any project that will be published, deployed, or maintained over time: libraries, SDKs, frameworks, CLIs, web services, and workspace members. The cost is a slightly higher initial mental model (you must install the package, even if editable, to run it) in exchange for tests that mean what they claim. Local development uses an editable install or an equivalent uv-managed environment; never depend on hand-edited `PYTHONPATH`.
 
 ## Packaged Application
 
-A packaged application is installable, runnable, and deployable — a CLI, web/API service, background worker, or internal platform tool — described by `[project]` metadata rather than left as loose scripts:
+A packaged application is installable, runnable, and deployable, a CLI, web/API service, background worker, or internal platform tool, described by `[project]` metadata rather than left as loose scripts:
 
 ```text
 project/
@@ -72,9 +72,9 @@ project/
     └── test_cli.py
 ```
 
-The `[project]` table declares `name`, `version` (or `dynamic`), `requires-python`, and `dependencies`. Entry points belong in `[project.scripts]` so the tool is invoked by its name, not by `python src/app_name/main.py`. Non-runtime dependencies — dev, test, lint, docs — go in dependency groups, kept out of the runtime set (see [dependency-management](./dependency-management.md)). A lockfile pins the deployment environment.
+The `[project]` table declares `name`, `version` (or `dynamic`), `requires-python`, and `dependencies`. Entry points belong in `[project.scripts]` so the tool is invoked by its name, not by `python src/app_name/main.py`. Non-runtime dependencies such as dev, test, lint, and docs go in dependency groups and stay out of the runtime set; see [dependency-management](./dependency-management.md). A lockfile pins the deployment environment.
 
-The common misreading is that "installable" means "must be published publicly." It does not. A private application is built into a wheel for internal deployment; the safeguard is to keep it from being published by accident — no public PyPI token in CI, no publish step by default, and a name that does not impersonate a public package.
+The common misreading is that "installable" means "must be published publicly." It does not. A private application is built into a wheel for internal deployment; the safeguard is to keep it from being published by accident: no public PyPI token in CI, no publish step by default, and a name that does not impersonate a public package.
 
 ## Workspace
 
@@ -94,7 +94,7 @@ repo/
 └── tests/
 ```
 
-Introduce a workspace only when there are genuinely at least two packages with distinct, describable responsibilities, a clear dependency *direction* between them, and shared packages that expose a stable API rather than internal directories temporarily carved out of an application. The workspace root owns shared tool configuration and whole-repo commands; each member owns its own metadata and runtime dependencies. Application members must not reach into a shared package's internals — they depend on its public API and on the declared direction only.
+Introduce a workspace only when there are genuinely at least two packages with distinct, describable responsibilities, a clear dependency *direction* between them, and shared packages that expose a stable API rather than internal directories temporarily carved out of an application. The workspace root owns shared tool configuration and whole-repo commands; each member owns its own metadata and runtime dependencies. Application members must not reach into a shared package's internals; they depend on its public API and on the declared direction only.
 
 Do not reach for a workspace just because there are many directories, or to split one large application by folder, or when packages import each other's internals with no stable boundary. Without whole-repo tests, type checking, and a dependency-upgrade strategy, a workspace amplifies coupling instead of containing it.
 

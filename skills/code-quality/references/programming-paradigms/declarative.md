@@ -2,7 +2,7 @@
 
 ## What it is
 
-Declarative programming describes *what* you want — the goal, the constraint, the shape of the data — and leaves the *how* to a framework, library, or engine. Instead of writing the steps, you write a description and let something else execute it. SQL is the canonical example: you state the result set you want and the query planner decides how to produce it. Configuration files, schemas, routing tables, CLI argument definitions, validation rules, and rule engines are all declarative.
+Declarative programming describes *what* you want, the goal, the constraint, the shape of the data, and leaves the *how* to a framework, library, or engine. Instead of writing the steps, you write a description and let something else execute it. SQL is the canonical example: you state the result set you want and the query planner decides how to produce it. Configuration files, schemas, routing tables, CLI argument definitions, validation rules, and rule engines are all declarative.
 
 In a Python project, declarative style shows up far more than people notice: `pyproject.toml`, a `dataclass` field list, a `TypedDict`, an `argparse` parser, a web framework's route decorators, a permission table, a state machine's transition table. Each of these is data that some engine interprets, not code you step through.
 
@@ -35,7 +35,7 @@ def handle(event: str) -> None:
         raise ValueError(event)
 ```
 
-Declarative dispatch — the mapping *is* the logic, and a tiny engine applies it:
+Declarative dispatch; the mapping *is* the logic, and a tiny engine applies it:
 
 ```python
 HANDLERS: dict[str, Callable[[], None]] = {
@@ -51,12 +51,12 @@ def handle(event: str) -> None:
         raise ValueError(event) from None
 ```
 
-The declarative form makes the full set of cases visible in one place, is trivial to extend, and can be inspected, counted, and tested as data. The cost is that "what runs when" is now one indirection away — which is exactly the tradeoff the next section is about.
+The declarative form makes the full set of cases visible in one place, is trivial to extend, and can be inspected, counted, and tested as data. The cost is that "what runs when" is now one indirection away: which is exactly the tradeoff the next section is about.
 
 ## When it becomes a problem
 
 - There is real control flow hidden behind the declaration, but the order of execution and the location of an error are invisible. When a declarative pipeline fails, the stack trace points into framework internals, not your intent.
-- Configuration grows until it is effectively a programming language — conditionals, loops, and templating expressed in YAML or TOML, with none of a language's tooling.
+- Configuration grows until it is effectively a programming language: conditionals, loops, and templating expressed in YAML or TOML, with none of a language's tooling.
 - A DSL or extension point is built "for flexibility" but has exactly one call site. That is speculative structure; see [yagni](skills/code-quality/references/design-principles/yagni.md).
 - Debugging requires understanding the engine's evaluation model, and that model is poorly documented or surprising.
 
@@ -66,15 +66,15 @@ A practical test: if a newcomer asks "what happens when this runs?" and the hone
 
 ## In Python
 
-- Give each declarative structure a single source of truth. Do not write the schema once for the type checker, again for runtime validation, and a third time in the docs — derive or generate where possible.
+- Give each declarative structure a single source of truth. Do not write the schema once for the type checker, again for runtime validation, and a third time in the docs; derive or generate where possible.
 - Parse external config into a typed object (`dataclass`, Pydantic model) at the boundary, then let the rest of the code work with concrete types instead of raw dicts. See [data-oriented.md](./data-oriented.md).
 - Complex rule tables still need tests. Declarative does not mean test-free; a transition table or permission matrix deserves coverage of its rows and its rejected cases.
-- For declarative mechanisms that hide control flow — decorators, route registration, signal handlers — make sure the real execution path can still be traced. See [event-driven.md](./event-driven.md) for the related risk of invisible wiring.
+- For declarative mechanisms that hide control flow, decorators, route registration, signal handlers, make sure the real execution path can still be traced. See [event-driven.md](./event-driven.md) for the related risk of invisible wiring.
 - Keep an imperative escape hatch. The best declarative designs let the rare irregular case drop back to plain code instead of forcing every exception into the declaration's vocabulary. A routing table that maps paths to handlers stays declarative; a routing table that grows a `condition` mini-language to express "only on Tuesdays for premium users" has started reinventing a programming language badly. Declare the regular cases, and let an ordinary function handle the irregular one.
 
 ## Relationship to other paradigms
 
 - A [state-machine.md](./state-machine.md) transition table is declarative: the legal moves are data, and a small engine applies them.
 - Declarative config feeds the imperative shell ([imperative.md](./imperative.md)), which reads it and acts.
-- Declarative and data-oriented design overlap heavily: both treat structure as inspectable data rather than behavior. The difference is emphasis — declarative is about handing execution to an engine, data-oriented is about modeling the data itself well.
+- Declarative and data-oriented design overlap heavily: both treat structure as inspectable data rather than behavior. The difference is emphasis: declarative is about handing execution to an engine, data-oriented is about modeling the data itself well.
 - "More declarative" is never the goal in itself. The goal is to make rules and data shapes central, inspectable, and documentable. When a declaration stops being readable as a fact and starts hiding a decision, that is the signal to step back toward explicit code.
