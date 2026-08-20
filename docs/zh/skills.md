@@ -9,3 +9,7 @@
 ## python-engineering
 
 [`python-engineering`](variants/zh/skills/python-engineering/SKILL.md) 涵盖 Python 项目结构、版本与依赖策略、类型注解、测试、标准库选择、工具链和 Python 专项代码审查。
+
+## msgspec
+
+[`msgspec`](variants/zh/skills/msgspec/SKILL.md) 涵盖 Struct 定义、类型验证、约束、序列化协议、转换钩子和标签联合。

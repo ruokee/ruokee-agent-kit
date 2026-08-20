@@ -9,3 +9,7 @@
 ## python-engineering
 
 [`python-engineering`](skills/python-engineering/SKILL.md) covers Python project structure, version and dependency policy, typing, testing, standard-library choices, tooling, and Python-specific code review.
+
+## msgspec
+
+[`msgspec`](skills/msgspec/SKILL.md) covers Struct definitions, type validation, constraints, serialization protocols, conversion hooks, and tagged unions.
