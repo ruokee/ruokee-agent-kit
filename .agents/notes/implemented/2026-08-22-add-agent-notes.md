@@ -1,6 +1,6 @@
 # Agent Note: Add the Agent Note mechanism
 
-Status: proposed
+Status: implemented
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
 
@@ -14,17 +14,17 @@ This makes later review depend on reconstructing intent from code and Git histor
 
 A Chinese version is required for direct maintainer audit. The repository is public and uses English as its default documentation language, so a Chinese-only record would hide decision rationale from much of its audience.
 
-## Proposal
+## Decision
 
-Add a minimal evolving decision-record system under `.agents/notes/`. Call each record an **Agent Note** everywhere in the repository. The generic term `ADR` remains explanatory prose, not a second document type.
+The repository uses a minimal evolving decision-record system under `.agents/notes/`. Each record is called an **Agent Note** everywhere in the repository. The generic term `ADR` remains explanatory prose, not a second document type.
 
 ### Location
 
-Store every Agent Note under `.agents/notes/`. Use `yyyy-mm-dd-topic-title` as the stable identity. The date records the first proposal and does not change when the pair moves. Start without classification subdirectories or a central index; repository search and the active lifecycle tree are enough at the current scale.
+Every Agent Note lives under `.agents/notes/`. `yyyy-mm-dd-topic-title` is its stable identity. The date records the first proposal and does not change when the pair moves. The first version has no classification subdirectories or central index; repository search and the active lifecycle tree are enough at the current scale.
 
 ### Lifecycle
 
-Encode lifecycle state in the path:
+The path encodes lifecycle state:
 
 ```text
 .agents/notes/proposed/
@@ -37,7 +37,7 @@ Encode lifecycle state in the path:
 
 ### Format
 
-Require a title, lifecycle status, decision owner, original draft writer, language switcher, and lifecycle-specific body:
+Each note includes a title, lifecycle status, decision owner, original draft writer, language switcher, and lifecycle-specific body:
 
 - every note starts with `## Problem`;
 - proposed notes require `## Proposal`, `## Alternatives considered`, `## Acceptance criteria`, and `## Risks`;
@@ -45,11 +45,11 @@ Require a title, lifecycle status, decision owner, original draft writer, langua
 - rejected notes preserve the proposal and add `## Rejection reason`;
 - archived notes come only from implemented notes and record the archive date.
 
-When a required section such as `## Proposal` contains substantial content, organize it with descriptive level-three headings. These headings remain inside the required section; they must not replace required level-two headings or become progress history and copied implementation inventories.
+When a required section such as `## Proposal` or `## Decision` contains substantial content, descriptive level-three headings organize it. These headings remain inside the required section; they do not replace required level-two headings or become progress history and copied implementation inventories.
 
 ### Bilingual maintenance
 
-Represent each logical note as one same-directory English and Chinese file pair. The unsuffixed `.md` file is English and is the default public link; `.zh.md` is the Chinese audit copy. Both are semantically authoritative and move through lifecycle directories together.
+Each logical note is one same-directory English and Chinese file pair. The unsuffixed `.md` file is English and is the default public link; `.zh.md` is the Chinese audit copy. Both are semantically authoritative and move through lifecycle directories together.
 
 Authors may begin in either language. Both files must be complete in the same change, and a semantic conflict blocks merge until the maintainer resolves it. Status values, paths, commands, API names, and code identifiers remain in English in both files.
 
@@ -57,9 +57,9 @@ Authors may begin in either language. Both files must be complete in the same ch
 
 The maintainer owns lifecycle decisions. Agents may research, draft, implement, and review notes within an authorized change, but may not accept, reject, or archive a note without explicit approval.
 
-Keep the complete policy in `.agents/notes/README.md` with a Chinese counterpart. Put short subtree instructions in `.agents/notes/AGENTS.md`, and add only a trigger and ownership summary to the root `AGENTS.md`.
+The complete policy lives in `.agents/notes/README.md` with a Chinese counterpart. Short subtree instructions live in `.agents/notes/AGENTS.md`; the root `AGENTS.md` contains only a trigger and ownership summary.
 
-Do not add a dedicated Skill, classification system, translation sidecar, archive manifest, or custom checker in the first version. Add a mechanical check only after repeated maintenance or a real failure identifies an invariant worth automating.
+The first version has no dedicated Skill, classification system, translation sidecar, archive manifest, or custom checker. A mechanical check is added only after repeated maintenance or a real failure identifies an invariant worth automating.
 
 ## Alternatives considered
 
@@ -73,16 +73,9 @@ Do not add a dedicated Skill, classification system, translation sidecar, archiv
 
 **Keep decisions in ordinary documentation and Git history.** This avoids a new mechanism but does not give proposals, current decisions, rejected alternatives, and frozen history distinct identities or maintenance rules.
 
-## Acceptance criteria
+## Consequences
 
-1. The repository uses `Agent Note` as the only document-type name for these records.
-2. `.agents/notes/README.md` and its Chinese counterpart define location, lifecycle, format, additional headings, bilingual authority, and supersession.
-3. `.agents/notes/AGENTS.md` provides concise instructions for Agents editing the subtree.
-4. The root `AGENTS.md` tells Agents when to read the Note rules and preserves maintainer lifecycle ownership.
-5. This proposal exists as a complete English and Chinese file pair in `proposed/`.
-6. The first version adds no classification tree, central index, dedicated Skill, sidecar, archive manifest, or custom validation script.
-
-## Risks
+The repository now has one searchable place for proposed, implemented, rejected, and archived decisions, with rationale and alternatives available in both languages.
 
 Two authoritative language files can drift. Same-change review and reciprocal links are sufficient at the initial scale but depend on discipline.
 

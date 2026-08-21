@@ -1,6 +1,6 @@
 # Agent Note: 添加 Agent Note 机制
 
-Status: proposed
+Status: implemented
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
 
@@ -14,17 +14,17 @@ Draft writer: OMP GPT-5.6 Sol
 
 仓库需要中文版本供维护者直接审计。仓库是公开项目，默认使用英文文档；如果只写中文，大量读者将无法了解决定理由。
 
-## 提议
+## 决定
 
-在 `.agents/notes/` 下增加一套最小的演进式决策记录机制。仓库统一把每份记录称为 **Agent Note**。通用术语 `ADR` 只用于概念解释，不成为第二种文档类型。
+仓库在 `.agents/notes/` 下使用一套最小的演进式决策记录机制，并统一把每份记录称为 **Agent Note**。通用术语 `ADR` 只用于概念解释，不成为第二种文档类型。
 
 ### 位置
 
-所有 Agent Note 都存放在 `.agents/notes/` 下。使用 `yyyy-mm-dd-topic-title` 作为稳定身份。日期记录首次提出时间，文件对移动时不改变。第一版不增加分类子目录和中央索引；当前规模下，活跃生命周期目录和仓库搜索已经足够。
+所有 Agent Note 都存放在 `.agents/notes/` 下，并以 `yyyy-mm-dd-topic-title` 作为稳定身份。日期记录首次提出时间，文件对移动时不改变。第一版没有分类子目录和中央索引；当前规模下，活跃生命周期目录和仓库搜索已经足够。
 
 ### 生命周期
 
-通过路径编码生命周期状态：
+路径编码生命周期状态：
 
 ```text
 .agents/notes/proposed/
@@ -37,7 +37,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 ### 格式
 
-每份 Note 必须包含标题、生命周期状态、决策负责人（Decision owner）、最初起草者、语言切换链接和对应生命周期的正文：
+每份 Note 包含标题、生命周期状态、决策负责人（Decision owner）、最初起草者、语言切换链接和对应生命周期的正文：
 
 - 所有 Note 都以 `## 问题` 开始；
 - proposed Note 必须包含 `## 提议`、`## 考虑过的替代方案`、`## 验收标准` 和 `## 风险`；
@@ -45,7 +45,7 @@ Draft writer: OMP GPT-5.6 Sol
 - rejected Note 保留提议结构，并增加 `## 拒绝原因`；
 - archived Note 只能来自 implemented Note，并记录归档日期。
 
-`## 提议` 等必需章节内容较多时，可以使用描述性的三级标题整理。三级标题仍属于对应的必需章节，不能替换必需的二级标题，也不能用于记录进度历史或复制实现清单。
+`## 提议` 或 `## 决定` 等必需章节内容较多时，使用描述性的三级标题整理。三级标题仍属于对应的必需章节，不能替换必需的二级标题，也不能用于记录进度历史或复制实现清单。
 
 ### 双语维护
 
@@ -57,9 +57,9 @@ Draft writer: OMP GPT-5.6 Sol
 
 维护者拥有生命周期决策权。Agent 可以在授权范围内研究、起草、实施和复审 Note，但未经明确同意，不能接受、拒绝或归档一份 Note。
 
-完整政策放在 `.agents/notes/README.md` 及其中文版本中。`.agents/notes/AGENTS.md` 保存简短的子树编辑说明；根目录 `AGENTS.md` 只增加触发条件和职责归属摘要。
+完整政策位于 `.agents/notes/README.md` 及其中文版本。`.agents/notes/AGENTS.md` 保存简短的子树编辑说明；根目录 `AGENTS.md` 只保留触发条件和职责归属摘要。
 
-第一版不增加专用 Skill、分类体系、翻译 sidecar、归档 manifest 或自定义检查器。重复出现维护动作或发生真实错误后，再增加针对该约束的最小机械检查。
+第一版没有专用 Skill、分类体系、翻译 sidecar、归档 manifest 或自定义检查器。只有重复出现维护动作或发生真实错误后，才增加针对该约束的最小机械检查。
 
 ## 考虑过的替代方案
 
@@ -73,16 +73,9 @@ Draft writer: OMP GPT-5.6 Sol
 
 **继续把决定写在普通文档和 Git 历史里。** 这不需要新机制，但无法为提议、当前决定、落选方案和冻结历史提供独立身份与维护规则。
 
-## 验收标准
+## 后果
 
-1. 仓库只使用 `Agent Note` 指称这类文档。
-2. `.agents/notes/README.md` 及其中文版本明确位置、生命周期、格式、额外标题、双语权威和取代规则。
-3. `.agents/notes/AGENTS.md` 为编辑该子树的 Agent 提供简明的编辑说明。
-4. 根目录 `AGENTS.md` 说明何时读取 Note 规则，并保留维护者的生命周期决策权。
-5. 本提议以完整的英文、中文文件对存放在 `proposed/`。
-6. 第一版不增加分类树、中央索引、专用 Skill、sidecar、归档 manifest 或自定义校验脚本。
-
-## 风险
+仓库现在有一个可检索的位置，分别保存 proposed、implemented、rejected 和 archived 决定，并以两种语言提供理由和替代方案。
 
 中英文版本具有同等语义权威，但内容可能发生漂移。当前规模下，在同一变更中审查两份文件并保留互链已经足够，但这依赖维护纪律。
 
