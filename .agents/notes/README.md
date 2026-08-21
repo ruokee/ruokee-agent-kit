@@ -125,7 +125,25 @@ Chinese body:
 ## 问题
 ## 决定
 ## 考虑过的替代方案
-## 后果
+## 结果
+```
+
+When an implemented decision receives a later material refinement, add `## Changes` to the English file and `## 变更` to the Chinese file as the final section, after `## Consequences` or `## 结果`. Record each refinement under a dated level-three heading:
+
+English changes:
+
+```markdown
+## Changes
+
+### YYYY-MM-DD: <summary>
+```
+
+Chinese changes:
+
+```markdown
+## 变更
+
+### YYYY-MM-DD：<摘要>
 ```
 
 ### Rejected

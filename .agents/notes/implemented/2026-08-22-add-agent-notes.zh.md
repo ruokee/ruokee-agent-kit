@@ -41,7 +41,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 - 所有 Note 都以 `## 问题` 开始；
 - proposed Note 必须包含 `## 提议`、`## 考虑过的替代方案`、`## 验收标准` 和 `## 风险`；
-- implemented Note 以 `## 决定` 和 `## 后果` 取代提议章节，不再包含 `## 提议`；
+- implemented Note 以 `## 决定` 和 `## 结果` 取代提议章节，不再包含 `## 提议`；
 - rejected Note 保留提议结构，并增加 `## 拒绝原因`；
 - archived Note 只能来自 implemented Note，并记录归档日期。
 
@@ -73,7 +73,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 **继续把决定写在普通文档和 Git 历史里。** 这不需要新机制，但无法为提议、当前决定、落选方案和冻结历史提供独立身份与维护规则。
 
-## 后果
+## 结果
 
 仓库现在有一个可检索的位置，分别保存 proposed、implemented、rejected 和 archived 决定，并以两种语言提供理由和替代方案。
 
@@ -84,3 +84,9 @@ Draft writer: OMP GPT-5.6 Sol
 持续维护的 implemented Note 可能复制源码和用户文档。Note 只保留稳定理由与边界，并链接 schema、代码、测试和使用文档，不复制它们的清单。
 
 没有分类和索引时，可发现性依赖清楚的 slug 和仓库搜索。只有活跃目录已经明显难以检索时才增加结构。
+
+## 变更
+
+### 2026-08-22：将 Consequences 译为中性的结果
+
+`## Consequences` 在中文格式中译为 `## 结果`，不译为 `## 后果`。`后果` 在中文语境下强调不良影响或负面结果，通常与错误或不当行为有关；`结果` 是更普遍、常用且中性的词汇。

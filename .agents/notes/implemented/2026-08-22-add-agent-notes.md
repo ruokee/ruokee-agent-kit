@@ -84,3 +84,9 @@ Requiring Chinese before merge adds work for external contributors. The contribu
 Living implemented notes can duplicate source and user documentation. Notes should retain stable rationale and boundaries, then link to schemas, code, tests, and usage docs rather than copying their inventories.
 
 Without classifications or an index, discovery depends on good slugs and repository search. Add structure only when the active tree becomes measurably difficult to search.
+
+## Changes
+
+### 2026-08-22: Use a neutral Chinese translation for Consequences
+
+The Chinese format translates `## Consequences` as `## 结果`, not `## 后果`. In Chinese, `后果` usually emphasizes harmful effects or negative outcomes associated with errors or improper conduct. `结果` is the broader, more common, and neutral term.
