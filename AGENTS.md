@@ -24,6 +24,13 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 - Maintain user-facing Chinese documentation under `docs/zh/` alongside the English documentation when behavior or usage changes.
 - Keep language links between corresponding English and Chinese documents.
 
+## Agent Notes
+
+- Use `Agent Note` as the repository term for an architecture decision record.
+- Read [the Agent Note rules](./.agents/notes/README.md) before proposing or changing a durable architecture, contract, format, or repository-process decision.
+- Keep each English Agent Note and its Chinese counterpart semantically aligned in the same change.
+- The maintainer owns lifecycle decisions. Agents may draft a `proposed` note within an authorized change, but must not accept, reject, or archive it without explicit approval.
+
 ## File paths
 
 - Prefix paths to files in the current directory or a descendant directory with `./`.
