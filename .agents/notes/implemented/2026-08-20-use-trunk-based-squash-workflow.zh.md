@@ -6,7 +6,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 [English](./2026-08-20-use-trunk-based-squash-workflow.md) | 中文
 
-## 问题
+## 动机
 
 仓库初始化、Skill 导入、文档修改和后续能力开发会产生数量不同的中间提交。如果所有工作提交都进入公开历史，审查上下文和本地试验就会变成永久维护成本。
 

@@ -6,7 +6,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 [English](./2026-08-22-add-manual-architect-skill.md) | 中文
 
-## 问题
+## 动机
 
 Ruokee 希望添加一项第一方 `architect` Skill。这是新增能力的需求，不是对现有实现缺陷的修复。
 

@@ -1,29 +1,29 @@
 # Agent Note: 使用动机作为起始章节
 
-Status: proposed
+Status: implemented
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
 
 [English](./2026-08-22-use-motivation-heading-in-agent-notes.md) | 中文
 
-## 问题
+## 动机
 
 固定使用 `## 问题` 作为开头，隐含了每项待决定事项都在处理缺陷或不理想的现状。有些 Agent Note 提议的是希望获得的能力或其他新增内容。这类决定有明确理由，但不一定始于问题。
 
 作者可以虚构一个问题场景，把这类提议强行套入现有结构，但这种写法不自然，也可能歪曲提议的真实理由。起始章节需要一个中性名称，同时容纳问题、需求和希望增加的内容。
 
-## 提议
+## 决定
 
-替换所有 Agent Note 模板的第一个必需正文标题：
+所有 Agent Note 模板的第一个必需正文标题是英文 `## Motivation`、中文 `## 动机`：
 
 - 英文：将 `## Problem` 改为 `## Motivation`。
 - 中文：将 `## 问题` 改为 `## 动机`。
 
 `Motivation` 记录为什么要考虑这项决定。内容可以说明已经观察到的问题、需求、希望获得的能力或其他具体变更理由。名称变得中性，不代表可以含糊地说明理由。
 
-提议被接受后，更新 `.agents/notes/README.md` 和 `.agents/notes/README.zh.md` 中的固定格式示例及编写规则，并在拥有 Agent Note 机制决定的 implemented Note 中记录这项格式调整。
+`.agents/notes/README.md` 和 `.agents/notes/README.zh.md` 的固定格式示例与编写规则使用新标题，相邻规则明确说明动机可以包含问题、需求和希望增加的内容。拥有 Agent Note 机制决定的 implemented Note 在其 `## 变更` 章节记录了本次格式调整。
 
-不应只为更换标题而改写现有 Note 正文。这些 Note 仍是按旧格式编写的有效记录。提议被接受后，新 Note 使用 `Motivation`。现有 Note 后续发生实质修改、本来就需要编辑正文时，也可以改用新标题。
+所有现有 Note 在同一变更中一并迁移：除本 Note 与机制 Note 的政策修改外，其他现有 Note 的迁移只改动起始标题。迁移之后，不再有任何 Note 正文以旧标题开始。本 Note 与机制 Note 的 Changes 记录中对旧标题的历史引用保持原样。
 
 ## 考虑过的替代方案
 
@@ -33,16 +33,10 @@ Draft writer: OMP GPT-5.6 Sol
 
 **同时要求两个章节。** 独立章节可以区分当前缺陷与采取行动的理由，但许多 Note 会重复相同内容，或不得不虚构其中一节。
 
-## 验收标准
-
-- Proposed、implemented 和 rejected 模板分别使用英文 `## Motivation` 和中文 `## 动机` 作为第一个必需正文标题。
-- 相邻规则明确说明动机可以包含问题、需求和希望增加的内容。
-- 拥有 Agent Note 机制决定的 implemented Note 记录已经接受的格式调整。
-- 现有 Note 无需机械修改标题，仍然有效。
-- 中英文文档表达同一规则。
-
-## 风险
+## 结果
 
 `Motivation` 比 `Problem` 宽泛，作者可能用它记录模糊的愿望。审查仍须要求提议给出考虑这项决定的具体理由。
 
-仓库历史会同时存在两种起始标题。这会增加一个很小的搜索差异，但可以避免在决定没有变化时修改现有记录。
+仓库历史会同时存在两种起始标题，因为本 Note 和更早的提交按旧格式编写。除本 Note 与机制 Note 的政策修改外，迁移只改动每份 Note 的标题，由此产生的一次性搜索差异可以接受。
+
+中英文文档表达同一规则。

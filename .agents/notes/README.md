@@ -58,6 +58,8 @@ Use reciprocal language links immediately below the metadata block. Keep status 
 
 Every note starts with the matching language block.
 
+`## Motivation` (Chinese `## 动机`) opens the body of new notes written under the current format. It records why the decision is being considered and may describe an observed problem, a requirement, a desired capability, or another concrete reason for change. The neutral name does not weaken the expectation that the section state the reason precisely.
+
 English file:
 
 ```markdown
@@ -91,7 +93,7 @@ The Chinese counterpart translates the title and language link text, but keeps `
 English body:
 
 ```markdown
-## Problem
+## Motivation
 ## Proposal
 ## Alternatives considered
 ## Acceptance criteria
@@ -101,7 +103,7 @@ English body:
 Chinese body:
 
 ```markdown
-## 问题
+## 动机
 ## 提议
 ## 考虑过的替代方案
 ## 验收标准
@@ -113,7 +115,7 @@ Chinese body:
 English body:
 
 ```markdown
-## Problem
+## Motivation
 ## Decision
 ## Alternatives considered
 ## Consequences
@@ -122,7 +124,7 @@ English body:
 Chinese body:
 
 ```markdown
-## 问题
+## 动机
 ## 决定
 ## 考虑过的替代方案
 ## 结果
@@ -172,7 +174,7 @@ Only an implemented note may be archived. Change its status to `archived`, add `
 
 When a required section contains substantial content, use descriptive level-three headings to organize it. For example, a long `## Proposal` may contain `### Location`, `### Lifecycle`, and `### Format`.
 
-Level-three headings remain inside their parent section. Do not insert headings before `## Problem`, replace required level-two headings, or use subsections for progress history and copied implementation inventories.
+Level-three headings remain inside their parent section. Do not insert headings before `## Motivation`, replace required level-two headings, or use subsections for progress history and copied implementation inventories.
 
 ## Maintenance
 

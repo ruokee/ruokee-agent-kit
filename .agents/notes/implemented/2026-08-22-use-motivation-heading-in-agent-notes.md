@@ -1,29 +1,29 @@
 # Agent Note: Use Motivation as the opening section
 
-Status: proposed
+Status: implemented
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
 
 English | [中文](./2026-08-22-use-motivation-heading-in-agent-notes.zh.md)
 
-## Problem
+## Motivation
 
 The fixed `## Problem` opening assumes that every proposed decision responds to a defect or an undesirable situation. Some Agent Notes instead propose a wanted capability or other new addition. Those decisions have a reason, but do not necessarily begin with a problem.
 
 Writers can force such a proposal into the current structure by inventing a problem scenario. That framing is unnatural and can distort the actual reason for the proposal. The opening section needs a neutral name that covers problems, requirements, and desired additions.
 
-## Proposal
+## Decision
 
-Replace the first required body heading in every Agent Note template:
+The first required body heading in every Agent Note template is `## Motivation` in English and `## 动机` in Chinese:
 
 - English: `## Problem` becomes `## Motivation`.
 - Chinese: `## 问题` becomes `## 动机`.
 
 `Motivation` records why the decision is being considered. Its content may describe an observed problem, a requirement, a desired capability, or another concrete reason for change. It does not weaken the expectation that the section state the reason precisely.
 
-If accepted, update the fixed-format examples and authoring rules in `.agents/notes/README.md` and `.agents/notes/README.zh.md`. Record the format refinement in the implemented Note that owns the Agent Note mechanism.
+The fixed-format examples and authoring rules in `.agents/notes/README.md` and `.agents/notes/README.zh.md` use the new heading, and the surrounding rules define motivation broadly enough to include problems, requirements, and desired additions. The Agent Note mechanism's implemented Note records the format refinement in its `## Changes` section.
 
-Do not rewrite existing Note bodies solely to rename this heading. They remain valid records written under the earlier format. New Notes use `Motivation` after the proposal is accepted, and an existing Note may adopt it when a later substantive edit already requires changing that Note.
+Every existing Note was migrated in the same change: apart from the policy edits to this note and the mechanism Note, migrating the other existing Notes changed only their opening headings. After that migration no Note body opens with the earlier heading. Historical references to the earlier heading inside this note and the mechanism Note's changes record remain as written.
 
 ## Alternatives considered
 
@@ -33,16 +33,10 @@ Do not rewrite existing Note bodies solely to rename this heading. They remain v
 
 **Require both sections.** Separate sections can distinguish a current deficiency from the reason for acting, but many Notes would repeat the same material or leave one section artificial.
 
-## Acceptance criteria
-
-- Proposed, implemented, and rejected templates use `## Motivation` in English and `## 动机` in Chinese as their first required body heading.
-- The surrounding rules define motivation broadly enough to include problems, requirements, and desired additions.
-- The Agent Note mechanism's implemented Note records the accepted format refinement.
-- Existing Notes remain valid without a mechanical heading-only rewrite.
-- The English and Chinese documentation describe the same rule.
-
-## Risks
+## Consequences
 
 `Motivation` is broader than `Problem`, so writers may use it for vague aspirations. Review must still require a concrete reason for considering the decision.
 
-Repository history will contain both opening headings. This adds one small search distinction, but avoids changing existing records without changing their decisions.
+Repository history contains both opening headings, because this note and earlier commits were written under the earlier format. Apart from the policy edits to this note and the mechanism Note, the migration changed only each note's heading, and the resulting one-time search distinction is accepted.
+
+The English and Chinese documentation describe the same rule.

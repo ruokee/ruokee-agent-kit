@@ -6,7 +6,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 English | [中文](./2026-08-20-maintain-bilingual-public-documentation.zh.md)
 
-## Problem
+## Motivation
 
 The repository is public and uses English for code and its default documentation, while Ruokee reviews technical decisions and usage details in Chinese. English-only documentation would remove that audit path. Mixing both languages in every file would double routine reading and make navigation noisy.
 

@@ -6,7 +6,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 English | [中文](./2026-08-22-add-manual-architect-skill.zh.md)
 
-## Problem
+## Motivation
 
 Ruokee wants to add a first-party `architect` Skill. This is a request for a new capability, not a defect in the current implementation.
 

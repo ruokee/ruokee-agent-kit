@@ -6,7 +6,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 [English](./2026-08-20-maintain-bilingual-public-documentation.md) | 中文
 
-## 问题
+## 动机
 
 仓库对外公开，代码和默认文档使用英文，但 Ruokee 使用中文审查技术决定和使用细节。只有英文会失去这条审计入口。每个文件都混写两种语言，则会让日常读取量翻倍，也会让导航变乱。
 

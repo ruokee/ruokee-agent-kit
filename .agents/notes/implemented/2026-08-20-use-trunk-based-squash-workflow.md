@@ -6,7 +6,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 English | [中文](./2026-08-20-use-trunk-based-squash-workflow.zh.md)
 
-## Problem
+## Motivation
 
 Repository initialization, Skill imports, documentation changes, and later capability work produce different numbers of intermediate commits. If every working commit becomes public history, review context and local experimentation become permanent maintenance cost.
 

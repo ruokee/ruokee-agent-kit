@@ -6,7 +6,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 English | [中文](./2026-08-20-establish-first-party-capability-kit.zh.md)
 
-## Problem
+## Motivation
 
 The earlier `ruokee-skills` name described only Skills, while the work already included Plugins, packages, extensions, executables, installers, host adapters, and validation support. Renaming that repository in place would also carry forward a mixed structure and content that did not belong to the new public project.
 

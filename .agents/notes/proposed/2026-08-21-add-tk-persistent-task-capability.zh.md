@@ -6,7 +6,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 [English](./2026-08-21-add-tk-persistent-task-capability.md) | 中文
 
-## 问题
+## 动机
 
 `ruokee-agent-kit` 还没有一项能力，可以跨 Agent 会话和 Harness 保存项目工作的权威状态。对话会结束，上下文会压缩，模型也会切换。长期项目不能依赖某一段聊天始终可用。
 

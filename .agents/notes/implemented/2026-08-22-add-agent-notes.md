@@ -6,7 +6,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 English | [中文](./2026-08-22-add-agent-notes.zh.md)
 
-## Problem
+## Motivation
 
 The repository has durable decisions about Skill ownership, host integration, package layout, persisted formats, and release policy, but no repository-owned place to preserve their rationale. The reasons currently live in conversations, task materials, branch context, or prose written for a specific implementation.
 
@@ -39,7 +39,7 @@ The path encodes lifecycle state:
 
 Each note includes a title, lifecycle status, decision owner, original draft writer, language switcher, and lifecycle-specific body:
 
-- every note starts with `## Problem`;
+- new notes start with `## Motivation`;
 - proposed notes require `## Proposal`, `## Alternatives considered`, `## Acceptance criteria`, and `## Risks`;
 - implemented notes replace proposal language with `## Decision` and `## Consequences`;
 - rejected notes preserve the proposal and add `## Rejection reason`;
@@ -90,3 +90,7 @@ Without classifications or an index, discovery depends on good slugs and reposit
 ### 2026-08-22: Use a neutral Chinese translation for Consequences
 
 The Chinese format translates `## Consequences` as `## 结果`, not `## 后果`. In Chinese, `后果` usually emphasizes harmful effects or negative outcomes associated with errors or improper conduct. `结果` is the broader, more common, and neutral term.
+
+### 2026-08-22: Use Motivation as the opening section
+
+The first required body heading changed from `## Problem` to `## Motivation` in English and from `## 问题` to `## 动机` in Chinese. `Motivation` covers observed problems, requirements, desired capabilities, and other concrete reasons for change. Every existing note was migrated in the same change, so the repository no longer contains a note body that opens with the earlier heading.

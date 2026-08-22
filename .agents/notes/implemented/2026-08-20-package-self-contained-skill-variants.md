@@ -6,7 +6,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 English | [中文](./2026-08-20-package-self-contained-skill-variants.zh.md)
 
-## Problem
+## Motivation
 
 The source repositories stored a Skill beside Plugin manifests, marketplace metadata, package documentation, and language overlays. Copying that layout would make a host-discoverable Skill depend on repository packaging details.
 

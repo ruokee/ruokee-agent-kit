@@ -6,7 +6,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 English | [中文](./2026-08-21-add-tk-persistent-task-capability.zh.md)
 
-## Problem
+## Motivation
 
 `ruokee-agent-kit` has no capability for preserving the authoritative state of project work across Agent sessions and Harnesses. Conversations end, context is compacted, and models change. A long-running project cannot depend on one chat remaining available.
 

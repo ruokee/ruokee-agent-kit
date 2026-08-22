@@ -58,6 +58,8 @@ yyyy-mm-dd-topic-title.zh.md
 
 每份 Note 根据文档语言使用对应的元数据块。
 
+新 Note 的正文以 `## Motivation`（中文 `## 动机`）开始。它记录为什么考虑这项决定，内容可以说明已经观察到的问题、需求、希望获得的能力或其他具体变更理由。名称变得中性，不代表可以含糊地说明理由。
+
 英文文件：
 
 ```markdown
@@ -91,7 +93,7 @@ Draft writer: <writer>
 英文正文：
 
 ```markdown
-## Problem
+## Motivation
 ## Proposal
 ## Alternatives considered
 ## Acceptance criteria
@@ -101,7 +103,7 @@ Draft writer: <writer>
 中文正文：
 
 ```markdown
-## 问题
+## 动机
 ## 提议
 ## 考虑过的替代方案
 ## 验收标准
@@ -113,7 +115,7 @@ Draft writer: <writer>
 英文正文：
 
 ```markdown
-## Problem
+## Motivation
 ## Decision
 ## Alternatives considered
 ## Consequences
@@ -122,7 +124,7 @@ Draft writer: <writer>
 中文正文：
 
 ```markdown
-## 问题
+## 动机
 ## 决定
 ## 考虑过的替代方案
 ## 结果
@@ -172,7 +174,7 @@ implemented 决定后续发生实质调整时，在英文文件的 `## Consequen
 
 必需章节内容较多时，使用描述性的三级标题整理。例如，较长的 `## 提议` 可以包含 `### 位置`、`### 生命周期` 和 `### 格式`。
 
-三级标题仍属于对应的上级章节。不能在 `## 问题` 前插入标题，不能替换必需的二级标题，也不能用子章节记录进度历史或复制实现清单。
+三级标题仍属于对应的上级章节。不能在 `## 动机` 前插入标题，不能替换必需的二级标题，也不能用子章节记录进度历史或复制实现清单。
 
 ## 维护规则
 

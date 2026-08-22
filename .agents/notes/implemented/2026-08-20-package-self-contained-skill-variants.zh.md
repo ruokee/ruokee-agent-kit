@@ -6,7 +6,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 [English](./2026-08-20-package-self-contained-skill-variants.md) | 中文
 
-## 问题
+## 动机
 
 来源仓库把 Skill、Plugin manifest、marketplace 元数据、Package 文档和语言覆盖层放在一起。照搬这种布局会让宿主可发现的 Skill 依赖仓库打包细节。
 
