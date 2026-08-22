@@ -2,9 +2,9 @@
 
 [中文](./docs/zh/README.md)
 
-I write Agent Skills because I keep running into the same problems. A useful instruction becomes a prompt, the prompt grows teeth, and eventually I want it available in every Agent Harness I use. This repository is where those Skills get a proper home.
+I keep running into the same problems across Agent Harnesses. Sometimes the answer is a Skill. Other problems need an extension, Plugin, executable, or host package. This repository is where I maintain those capabilities in public.
 
-Ruokee Agent Kit contains the Skills I wrote for my own work and am willing to maintain in public. I want each one to have a clear job, readable instructions, and a way to prove it still works. I do not want this to become a warehouse for everything I happened to install once.
+Ruokee Agent Kit contains capabilities I wrote for my own work and am willing to maintain. Each one should have a clear job, readable documentation, and a real validation path. This is not a warehouse for everything I happened to install once.
 
 ## What Harness I use
 
@@ -18,17 +18,27 @@ I also use Pi, Claude Code, and Codex.
 
 ## What belongs here
 
-- **Skills.** Agent Skills I develop for my own work and maintain in public.
+- **Skills.** Self-contained Agent Skills I develop for my own work and maintain in public.
+- **Plugins and executables.** Capabilities that need deterministic code or their own runtime.
 - **Extensions.** Standalone extensions that add or adjust Agent Harness functionality.
+- **Host packages and adapters.** First-party installation and transport support for repository capabilities.
 - **Optional variants.** Alternative versions of repository content or configuration for different languages, environments, or preferences.
-- **Documentation.** Skill indexes, installation instructions, development conventions, and validation guidance.
+- **Documentation.** Capability indexes, installation instructions, development conventions, and validation guidance.
+
+## Repository layout
+
+English Skills live under `./skills/<name>/`. Chinese variants live under `./variants/zh/skills/<name>/`, but install at the normal `skills/<name>/` host path. A pure Skill contains only the material needed to discover, understand, and use it.
+
+Plugins, extensions, executables, and host packages keep the layout their host or build system expects. The repository adds a top-level area only when a real component needs it.
+
+Durable repository decisions are recorded as bilingual [Agent Notes](./.agents/notes/README.md).
 
 ## Development
 
 Install the Git hook:
 
 ```bash
-uvx pre-commit install
+uvx pre-commit install --install-hooks
 ```
 
 Run all configured checks:
@@ -36,6 +46,8 @@ Run all configured checks:
 ```bash
 uvx pre-commit run --all-files
 ```
+
+`main` is the only long-lived branch. Work happens on a short-lived branch created from current `main`, uses English Conventional Commit messages, and enters `main` through an authorized squash merge.
 
 ## License
 

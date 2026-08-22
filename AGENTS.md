@@ -1,19 +1,26 @@
 # Project Agent guidelines
 
-Ruokee Agent Kit is Ruokee's public repository for original Agent Skills and their first-party development, validation, packaging, and distribution support.
+Ruokee Agent Kit is Ruokee's public repository for original Agent capabilities and their first-party development, validation, packaging, and distribution support.
 
 Keep this file focused on repository knowledge that cannot be inferred from the files and tool configuration.
 
 ## Repository boundary
 
-- Keep only Skills authored and maintained by Ruokee in this repository.
-- Do not add third-party Skills, forks, upstream mirrors, or vendored third-party Skill content.
+- Keep only capabilities authored and maintained by Ruokee in this repository.
+- Do not add third-party capabilities, forks, upstream mirrors, or vendored third-party content.
 - Do not add machine inventories, profiles, host selections, Fleet configuration, credentials, private hostnames, or internal service URLs.
-- First-party manifests, adapters, installers, and validation tools may live here when they support a repository Skill.
+- First-party manifests, adapters, installers, and validation tools may live here when they support a repository capability.
+
+## Content layout
+
+- Keep each capability in its host-native or build-native format. Do not force Plugins, extensions, executables, or host packages into `./skills/`.
+- Store English Skills under `./skills/<name>/` and Chinese variants under `./variants/zh/skills/<name>/`.
+- Keep pure Skill trees limited to host-discoverable Skill material such as `SKILL.md`, workflows, references, examples, and glossaries. Do not copy Plugin manifests, marketplace metadata, package changelogs, or host-specific Agent definitions into them.
+- Write links inside variants for the installed `skills/<name>/` path, without the source-only `variants/zh/` prefix.
+- Add a top-level area only when a real component requires it. Do not prebuild empty capability categories.
 
 ## Development
 
-- Prefer host-native formats and existing repository conventions over custom abstractions.
 - Keep changes limited to the requested capability. Do not prebuild structure for hypothetical Skills or hosts.
 
 ## Documentation
