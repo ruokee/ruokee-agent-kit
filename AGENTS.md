@@ -16,6 +16,7 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 - Keep each capability in its host-native or build-native format. Do not force Plugins, extensions, executables, or host packages into `./skills/`.
 - Store English Skills under `./skills/<name>/` and Chinese variants under `./variants/zh/skills/<name>/`.
 - Keep pure Skill trees limited to host-discoverable Skill material such as `SKILL.md`, workflows, references, examples, and glossaries. Do not copy Plugin manifests, marketplace metadata, package changelogs, or host-specific Agent definitions into them.
+- Treat each Skill, Extension, Plugin, and Package, including each language variant, as a self-contained distributable component. Its files may reference only files within that component directory and must not link to, depend on, or instruct use of another repository component.
 - Write links inside variants for the installed `skills/<name>/` path, without the source-only `variants/zh/` prefix.
 - Add a top-level area only when a real component requires it. Do not prebuild empty capability categories.
 

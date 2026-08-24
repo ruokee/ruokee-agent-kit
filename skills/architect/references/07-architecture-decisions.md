@@ -29,7 +29,7 @@ Three disciplines:
 - **Append, never rewrite.** When a decision changes, write a new record and mark the old one superseded. How the team used to think and why it changed is itself valuable information—preserve history, do not erase it.
 - **Keep it with the code.** Versioned with the code, searchable, reviewable—not rotting in a wiki corner.
 
-**Follow the project's existing recording convention.** Different projects already have their own decision-record mechanisms; this Skill covers the recording method, not a new format. In this repository, decision records use Agent Notes (see [`.agents/notes/README.zh.md`](../../../.agents/notes/README.zh.md)): the proposed status records decisions not yet accepted by the maintainer; implemented records decisions currently in effect; the Decision owner and Draft writer fields already cover who decided.
+**Follow the project's existing recording convention.** Different projects already have their own decision-record mechanisms; this Skill covers the recording method, not a new format. Map the six fields above to the project's existing record type, status vocabulary, and ownership fields rather than introducing a parallel format.
 
 ## Bookkeeping technical debt
 
