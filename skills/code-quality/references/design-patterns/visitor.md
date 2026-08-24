@@ -27,17 +27,6 @@ The pattern is most valuable when the set of types is stable but the set of oper
 - The language supports pattern matching or `singledispatch`, making double dispatch unnecessary.
 - Operations do not need the full concrete type; a common interface method is enough.
 
-## Python Alternatives
-
-Python offers lighter alternatives to the classic Visitor:
-
-- **`match`/`case` with structural patterns**: works for tagged unions, dataclass hierarchies, or typed dicts. No accept method needed.
-- **`functools.singledispatch`**: dispatches on the first argument's type. It fits single-argument operations over a closed type set.
-- **Dictionary dispatch**: map type to handler function. Simplest form; no infrastructure.
-- **Method on node**: if operations are few and stable, put behavior directly on nodes. No pattern needed.
-
-The classic accept/visit double-dispatch Visitor is most justified when you want a protocol enforcing that every visitor handles every type, you need to accumulate state across the traversal in the visitor object, or the type hierarchy is in a library you don't control.
-
 ## Common Implementation Issues
 
 **Traversal responsibility.** Who walks the tree; the visitor, the node's accept method, or an external iterator? Keep it consistent within a structure. Mixing strategies leads to nodes being visited twice or skipped.
@@ -47,6 +36,41 @@ The classic accept/visit double-dispatch Visitor is most justified when you want
 **Default handling.** Provide a `visit_default` or `generic_visit` for unknown node types. Without it, adding a new node type silently skips its visit rather than raising. This is especially important in evolving trees.
 
 **Composite children.** For tree structures, decide whether `accept` recurses into children automatically or requires explicit visitor logic. Auto-recursion is convenient but may hide traversal order; explicit traversal gives the visitor control over depth-first vs breadth-first and allows pruning.
+
+## Python example
+
+Python's `ast.NodeVisitor` is a practical Visitor variant rather than the classic `accept()`-based double-dispatch form. AST nodes do not implement `accept()`; `NodeVisitor.visit()` dispatches to `visit_<NodeType>`, while `generic_visit()` walks the child nodes:
+
+```python
+import ast
+
+
+class DefinitionCollector(ast.NodeVisitor):
+    def __init__(self) -> None:
+        self.names: list[str] = []
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        self.names.append(node.name)
+        self.generic_visit(node)
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self.names.append(node.name)
+        self.generic_visit(node)
+
+
+tree = ast.parse("""
+class User:
+    def display_name(self):
+        return "Ada"
+""")
+
+collector = DefinitionCollector()
+collector.visit(tree)
+
+assert collector.names == ["User", "display_name"]
+```
+
+The AST nodes stay unchanged while the visitor adds a new operation over them. Calling `generic_visit()` from a specialized method continues traversal into that node's children; omitting it prunes that subtree.
 
 ## Relationship To Strategy
 

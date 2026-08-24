@@ -27,17 +27,6 @@
 - 语言支持模式匹配或 `singledispatch`，不需要双重分发。
 - 操作不需要完整的具体类型；公共接口方法就足够了。
 
-## Python 替代方案
-
-Python 提供了比经典访问者更轻量的替代方案：
-
-- **`match`/`case` 与结构模式**：适用于标记联合、dataclass 层次结构或类型化字典，不需要 accept 方法。
-- **`functools.singledispatch`**：根据第一个参数的类型分发，适合封闭类型集合上的单参数操作。
-- **字典分发**：将类型映射到处理器函数。最简单的形式；无需基础设施。
-- **节点上的方法**：如果操作少且稳定，直接将行为放在节点上。无需模式。
-
-经典的 accept/visit 双重分发访问者在以下情况下最合理：你想要一个协议强制每个访问者处理所有类型，你需要在遍历过程中在访问者对象中积累状态，或者类型层次结构位于你无法控制的库中。
-
 ## 常见实现问题
 
 **遍历责任。** 谁来遍历树：访问者、节点的 accept 方法，还是外部迭代器？在结构内保持一致。混合策略会导致节点被访问两次或跳过。
@@ -47,6 +36,41 @@ Python 提供了比经典访问者更轻量的替代方案：
 **默认处理。** 为未知节点类型提供 `visit_default` 或 `generic_visit`。没有它，添加新节点类型会静默跳过其访问而不是抛出异常。这在演进的树中尤其重要。
 
 **组合子节点。** 对于树形结构，决定 `accept` 是否自动递归到子节点，还是需要显式的访问者逻辑。自动递归方便但可能隐藏遍历顺序；显式遍历让访问者控制深度优先与广度优先，并允许剪枝。
+
+## Python 示例
+
+Python 的 `ast.NodeVisitor` 是访问者模式的一种实用变体，并非基于 `accept()` 的经典双重分发形式。AST 节点不实现 `accept()`；`NodeVisitor.visit()` 分发到 `visit_<节点类型>`，`generic_visit()` 则遍历子节点：
+
+```python
+import ast
+
+
+class DefinitionCollector(ast.NodeVisitor):
+    def __init__(self) -> None:
+        self.names: list[str] = []
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        self.names.append(node.name)
+        self.generic_visit(node)
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self.names.append(node.name)
+        self.generic_visit(node)
+
+
+tree = ast.parse("""
+class User:
+    def display_name(self):
+        return "Ada"
+""")
+
+collector = DefinitionCollector()
+collector.visit(tree)
+
+assert collector.names == ["User", "display_name"]
+```
+
+AST 节点保持不变，访问者在其上添加新操作。在专用方法中调用 `generic_visit()` 会继续遍历该节点的子节点；省略它会剪枝整个子树。
 
 ## 与策略模式的关系
 
