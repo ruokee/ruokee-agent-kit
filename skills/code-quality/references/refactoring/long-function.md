@@ -31,13 +31,6 @@ Not every long function is a smell, and forced splitting can make code worse by 
 - **Test setup and test bodies.** Tests often read better as explicit, linear setup-act-assert even when long; over-extracting test helpers hides what the test actually exercises.
 - **A `match` or dispatch over many cases** where each case is short and the structure is flat.
 
-## In Python
-
-- Extract phases into module-level functions or methods; the local variables they shared become parameters and return values, which often clarifies the data flow.
-- Guard clauses (`if not valid: raise`) flatten nesting effectively and read well.
-- Be mindful that each extracted function adds a call frame; in genuinely hot loops this is measurable, though for ordinary code clarity wins. The relevant tradeoff is described in [thin-wrapper-function.md](./thin-wrapper-function.md).
-- A comprehension or generator can replace an accumulate-in-a-loop block, shortening the function without hiding anything.
-
 ## Relationship to other smells and refactorings
 
 Long Function is the primary trigger for [extract-function.md](./extract-function.md). It frequently travels with Long Parameter List and Data Clumps: when extraction produces functions that need the same five arguments, those arguments are asking to become a parameter object. It can also be a symptom of a missing abstraction: in agent-assisted code, functions grow long because each new requirement gets appended as another branch, turning the function into a change dumping ground; that is closer to [divergent-change.md](./divergent-change.md), and the fix is to find the variation axis rather than to keep extracting.

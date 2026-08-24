@@ -73,13 +73,3 @@ internal implementation detail, so the tests survive refactoring. See
 [law-of-demeter](./law-of-demeter.md) and [dependency-inversion](./dependency-inversion.md) for
 why tests that reach deep into internals (deep mocks, patched privates) are a smell about the
 design, not just the test.
-
-## In Python
-
-- `pytest` suits small-step TDD well; keep fixtures direct and avoid building an invisible
-  framework around them.
-- For prototypes, UI, and complex external integrations, spike first, then backfill
-  characterization or contract tests.
-- `monkeypatch` is convenient but easy to overuse. Prefer passing fakes or stubs at the
-  boundary over patching deep internals; the need to patch deep is a sign a dependency should
-  have been injected.

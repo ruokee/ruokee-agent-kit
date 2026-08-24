@@ -70,11 +70,3 @@ The records carry no behavior; the functions carry no state. Reading, writing, a
 A quieter benefit of taking the data seriously is that a well-chosen shape removes whole classes of bugs before any logic runs. If a field can only be one of three values, model it as an enum, not a free string. If two fields must appear together or not at all, put them in a nested record rather than two independent optionals. If a list must be non-empty, that is worth encoding or checking once at the boundary. The discipline is to push validity into the shape of the data so that downstream functions can trust their inputs instead of re-checking them. This is the same instinct as a [state-machine.md](./state-machine.md) refusing to let boolean flags encode states; the type is the first line of defense.
 
 The boundary is where this work happens. Parse untrusted input (JSON, config, request bodies) into a typed structure once, validating as you go, and let everything inward operate on the trusted shape. This is "parse, don't validate": convert raw data into a structure whose existence guarantees its validity, rather than passing raw data around with validation checks sprinkled everywhere.
-
-## In Python
-
-- Prefer `dataclass` for plain data records; reach for `frozen=True` when the record is a value object with no identity (see the dataclass guidance in the stdlib references).
-- Use `TypedDict` when data arrives as dicts (JSON, config) and you want shape-checking without converting to objects.
-- Keep these structures as data: avoid attaching heavy business workflows to a dataclass; that is the "anemic by accident, then overloaded" antipattern. If real invariants appear, graduate to a class with methods.
-- Establish a single source of truth for each schema rather than redeclaring the same shape in types, runtime validation, and docs.
-- Transformations belong in module-level functions over the data, composable into pipelines, not in methods unless the behavior is intrinsic to the type.

@@ -30,13 +30,3 @@ Domain types are not free, they add a definition, a construction step, and a lay
 - **The concept has no rules and no behavior.** If a string is just an opaque label that is never validated, compared against a fixed set, or operated on, a `NewType` alias may be all the clarity it needs, or nothing at all.
 
 The judgment is whether the concept *earns* a type: does wrapping it prevent a class of error, centralize a rule, or give behavior a home? If yes, introduce the type. If it only adds ceremony, leave the primitive.
-
-## In Python
-
-- `dataclass(frozen=True)` is the default value object: immutable, comparable, cheap to define.
-- `StrEnum` / `IntEnum` for fixed sets that also need a primitive representation at the boundary (serialization, storage).
-- `TypedDict` when you must keep a dict shape (e.g. JSON at an API edge) but want the keys checked.
-- `NewType` for a zero-overhead distinct alias when you want the type checker to stop `UserId` and `OrderId` from being interchangeable, without a runtime wrapper.
-- Construct domain types at the system boundary (parsing input, reading the database) so the typed core never deals in raw primitives, mirroring the functional-core / imperative-shell split.
-
-Primitive Obsession often co-occurs with [feature-envy.md](./feature-envy.md) (behavior that envies a primitive it cannot attach to) and Data Clumps; introducing the missing type frequently resolves several smells at once.

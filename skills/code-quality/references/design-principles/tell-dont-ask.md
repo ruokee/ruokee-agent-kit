@@ -80,15 +80,3 @@ second is normal and healthy.
 - **Hiding expensive work behind innocent-looking properties.** A `property` that triggers I/O
   or heavy computation surprises callers who expect cheap attribute access. Tell, Don't Ask
   argues for behavior near data, not for disguising side effects as attribute reads.
-
-## In Python
-
-- Give domain objects semantic command methods: `invoice.mark_paid()`, `order.cancel()`,
-  `account.debit(amount)`. These maintain state transitions and invariants internally.
-- Let data carriers, API schemas, ORM rows, and config objects expose attributes plainly.
-- Use `property` to unify stored and derived values, but keep it cheap and side-effect free:
-  do not hide I/O behind it.
-- In a functional core, behavior need not be a method: a named function that takes the data and
-  returns a decision (`def can_debit(account, amount) -> bool`) keeps logic and data together
-  without forcing object-orientation. Tell, Don't Ask is about co-locating rules and data, not
-  about insisting on methods.

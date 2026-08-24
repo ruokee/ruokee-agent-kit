@@ -33,6 +33,7 @@ description: 当需要评估或改善 Python 工程实践时使用，涵盖项�
 | 项目形态：脚本式、平面式、src 式、打包应用、工作空间 | [structure](./references/project/structure.md) | dependency-management, uv |
 | 运行时/开发/可选依赖、锁文件、分组 | [dependency-management](./references/project/dependency-management.md) | uv, structure |
 | 代码风格、PEP 8 与格式化工具/审查边界 | [style](./references/spec/style.md) | ruff, custom-lint |
+| 设计原则、编程范式和重构的 Python 专项应用 | [Python 设计指导](./references/spec/code-quality.md) | style, type-hint |
 | 类型注解、`Any`、`cast`、Protocol、泛型、类型别名、类型参数 | [type-hint](./references/spec/type-hint.md) | python-version, ty |
 | 测试组织、fixture、参数化、异常/警告、日志/输出捕获、mock 边界、异步测试 | [testing](./references/spec/testing.md) | pytest |
 | 文档字符串、API 文档、模式元数据、信息放置 | [docstrings-api-docs](./references/spec/docstrings-api-docs.md) | type-hint |

@@ -81,14 +81,3 @@ tools is over-engineering ([YAGNI](./yagni.md)). Two common failure modes:
   make a design domain-driven; it just relocates the same logic.
 - **Anemic models.** Entities that are bare field bags with all the rules living in service
   classes. This is the opposite of DDD's intent and forfeits the main benefit.
-
-## In Python
-
-- Small projects can borrow just the ubiquitous language, value objects, and invariant thinking
-  without the full layered architecture.
-- Value objects map well to `dataclass(frozen=True)`, `attrs`, Pydantic models, or plain
-  classes.
-- An entity is not necessarily an ORM class. When persistence concerns distort the model,
-  separate the domain model from the persistence model.
-- Introduce repositories and unit of work only when you actually need a transaction boundary,
-  a test double for storage, or isolation from the ORM, not by default.

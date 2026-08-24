@@ -47,14 +47,6 @@ Two failure modes dominate, and both are common in agent-generated code:
 
 Before extracting a helper, ask whether it provides a stable semantic boundary, hides genuine complexity, or carries a reusable policy. "It is used twice" is not enough. That is what the Rule of Three is for.
 
-## In Python
-
-- Deduplicate domain concepts, schemas, and protocols first, not local code shapes.
-- For repeated schema/API/model definitions, use a single source of truth: `dataclass`, `TypedDict`, Pydantic, an OpenAPI spec, or code generation.
-- For two functions with identical implementations but different business reasons, allow the duplication until the variation direction is clear.
-- Prefer module-level functions, table-driven mappings, `Protocol`, and strategy functions over building a class hierarchy just to share code.
-- Tables and dispatch maps are an excellent way to collapse genuinely repeated knowledge (one row per case) without inventing an inheritance tree.
-
 ## Interaction with other principles
 
 - [rule-of-three.md](./rule-of-three.md) is the brake on DRY: it delays abstraction of shape-similar code until the third instance, while still allowing immediate deduplication of confirmed knowledge.

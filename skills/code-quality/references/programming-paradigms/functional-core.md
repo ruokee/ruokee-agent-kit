@@ -84,13 +84,6 @@ Now even the *choice* of which effects to perform is testable without performing
 
 The clock, `datetime.now(tz=UTC)`, is read in the shell and passed *into* the core as `now`. That single move is what keeps time-dependent rules pure and deterministic to test.
 
-## In Python
-
-- Entry layers may use argparse, Click, Typer, FastAPI, or Django, but core business functions should not depend on framework objects; pass plain data across the boundary.
-- Carry boundary data in `dataclass`, `TypedDict`, a Pydantic model, or a plain dict, chosen by the project's complexity (see [data-oriented.md](./data-oriented.md)).
-- Inject unstable dependencies, clock, randomness, filesystem, HTTP client, database session, as function arguments, constructor arguments, a small `Protocol`, or via the composition root, rather than reaching for them inside the core.
-- The core should accept plain data and return plain data; the shell owns `with` / `async with` resource lifecycles (see [resource-lifecycle.md](./resource-lifecycle.md)).
-
 ## Interaction with other paradigms
 
 - Builds directly on [imperative.md](./imperative.md): the shell *is* the imperative orchestration layer, kept thin on purpose.

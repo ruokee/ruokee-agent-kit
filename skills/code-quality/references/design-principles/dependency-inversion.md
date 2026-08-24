@@ -26,26 +26,6 @@ high-level side. It is shaped by what the policy requires, not by the full surfa
 low-level library. This is the same instinct as [Interface Segregation](./solid.md): keep the
 seam narrow.
 
-## Python's approach
-
-Python rarely needs the heavy apparatus that DIP acquired in other ecosystems. The lightweight
-tools are usually enough:
-
-- **Constructor and function parameters.** Pass the collaborator in. `def process(orders,
-  repository, clock):` inverts three dependencies with no ceremony.
-- **`typing.Protocol`.** Define the narrow capability the policy needs structurally; any object
-  with the right methods qualifies, without inheriting anything. See
-  [composition-over-inheritance](./composition-over-inheritance.md).
-- **Plain callables.** When the dependency is "a thing I call to get a value", a clock, an ID
-  generator, a notifier, a function or `Callable` is a lighter abstraction than an interface
-  object.
-- **Default arguments for the common case.** `def fetch(url, client=httpx.get):` keeps the
-  real default convenient while leaving a seam for tests to pass a fake.
-
-Assemble the concrete wiring in one place: `main()`, a web app's startup, a framework entry
-point. This *composition root* is where high-level policy meets concrete detail; everywhere
-else depends on abstractions.
-
 ## When DI containers are justified vs overkill
 
 A DI container (a framework that builds and wires your object graph from configuration or
@@ -81,12 +61,3 @@ Inverting every dependency is its own kind of over-engineering. Do not invert:
 
 Invert the unstable, impure, or substitutable boundaries: external systems, time, randomness,
 filesystem, network. Leave the stable core direct.
-
-## In Python
-
-- Prefer constructor parameters, function parameters, default arguments, small Protocols, and
-  factory functions.
-- Wire concrete dependencies in a single composition root.
-- Wrap external clients in an adapter; let the core depend on a Protocol or callable.
-- Manage dependency lifecycles (connections, files, locks) with context managers, kept out of
-  the domain logic itself.

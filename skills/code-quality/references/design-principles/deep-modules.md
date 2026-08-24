@@ -73,15 +73,3 @@ must assemble many of them to get anything done.
   real performance costs. Hiding a cost does not remove it; it surprises the caller later.
 - Splitting a coherent deep module into shallow fragments to satisfy a file-size or
   function-length preference.
-
-## In Python
-
-- Python has no hard `private`. Express boundaries with naming conventions (`_internal`), module
-  structure, `__all__`, a deliberate public API, `property`, and `Protocol` rather than access
-  modifiers.
-- Prefer letting a module's internals be somewhat longer but locally clear over scattering logic
-  across a dozen shallow helpers the reader must chase.
-- An adapter layer is a natural deep module: it hides a third-party library's details behind a
-  small interface, while still surfacing the errors and performance characteristics callers must
-  account for. This is the structural basis of the [anti-corruption layer](./ddd.md) and the
-  [Adapter](../design-patterns/adapter.md) pattern.

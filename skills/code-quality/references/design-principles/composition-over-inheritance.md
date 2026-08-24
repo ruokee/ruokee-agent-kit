@@ -38,23 +38,6 @@ change radius of a composed design is smaller and more local.
 The common thread: inherit when you want substitutability and the contract is stable, not when
 you merely want to reuse a few methods.
 
-## Python's mixin culture and its risks
-
-Python supports multiple inheritance, and mixins are a common idiom: small classes that add a
-slice of behavior to a host class. Used well, small, stateless, clearly named, depending only
-on a documented interface of the host, they are reasonable. Used poorly they cause real
-trouble:
-
-- **Implicit state and initialization order.** A mixin that sets attributes or expects
-  `super().__init__()` to be called in a particular order couples invisibly to the host and to
-  other mixins. The method resolution order (MRO) determines what runs when, and a multi-mixin
-  class can be hard to reason about.
-- **Name collisions.** Several mixins defining or expecting the same attribute or method name
-  interact in subtle ways through the MRO.
-
-Keep mixins small, stateless, and named for what they add. If a mixin needs significant state
-or a specific init sequence, that is a signal to use composition instead.
-
 ## Protocol as an alternative to ABC inheritance
 
 When the goal is "this object must support these methods", Python's `typing.Protocol` lets you
@@ -77,12 +60,3 @@ implementation. See also [dependency-inversion](./dependency-inversion.md).
 - **Faking subtypes for reuse.** Inheriting to grab a couple of helper methods, then overriding
   others to no-ops or `NotImplementedError`, violates Liskov and is the classic sign that
   composition (or a plain helper function) was the right tool.
-
-## In Python
-
-- Default to functions, constructor parameters, Protocols, strategy objects, and delegation for
-  reuse and variation.
-- Reserve inheritance for exception hierarchies, framework hooks, genuinely stable abstractions,
-  and a few small, clear mixins.
-- For shared code, prefer a module-level helper function or a composed collaborator over a base
-  class whose only purpose is to hold the shared method.

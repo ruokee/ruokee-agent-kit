@@ -86,11 +86,3 @@ Keep each procedure at one level of abstraction. Mixing high-level orchestration
 The cleanest resolution is to keep imperative style but confine it to a thin outer layer. This is the imperative shell of [functional-core.md](./functional-core.md): the shell sequences I/O, transactions, retries, and logging; the core takes plain data, applies the rules, and returns plain data. The shell stays imperative on purpose; that is where ordered side effects live. What you move out is the decision-making, not the orchestration.
 
 This also connects to [data-oriented.md](./data-oriented.md) (the data the shell passes to the core) and [resource-lifecycle.md](./resource-lifecycle.md) (how the shell acquires and releases the resources it sequences).
-
-## In Python
-
-- Carry imperative wiring in an explicit entry point, for example `main(argv: Sequence[str] | None = None) -> int`, and isolate it behind `if __name__ == "__main__":`.
-- Let the entry layer parse arguments, load config, configure logging, build dependencies, and translate exceptions into exit codes. Core logic receives explicit parameters and stays importable and testable.
-- Use `with` / `async with` for external resources rather than relying on garbage collection to release them; see [resource-lifecycle.md](./resource-lifecycle.md).
-- When a procedure grows past readability, split it by phase into named steps (`load_config()`, `build_client()`, `run_job()`) before reaching for a framework. Linear, well-named steps are a feature, not a smell.
-- Resist the urge to wrap a simple three-line sequence in a class or a pipeline abstraction; straightforward imperative code is often the KISS-correct answer.

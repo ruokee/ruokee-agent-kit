@@ -41,13 +41,6 @@ The discriminator: is the work serving a *known, present* need (correctness, saf
 
 YAGNI is only safe when changing your mind later is cheap. If the code has no tests and resists refactoring, deferring a decision turns into a permanent gap; you'll be too afraid to add the capability when it's actually needed. So YAGNI, [tdd.md](./tdd.md) (or test-after), and refactoring form a package: tests and refactoring keep code malleable, and malleable code makes "decide later" a rational strategy rather than an excuse for debt.
 
-## In Python
-
-- Satisfy the real call sites first with plain functions, explicit parameters, a `dataclass`, or a simple mapping.
-- Wait for the second real point of variation before abstracting; before extracting, picture how cheap the future refactor would be: usually cheap enough to wait.
-- For public APIs, persisted schemas, and external protocols, it is fine to stabilize the boundary early; that is not a speculative feature.
-- Removing an unused extension point is *more* aligned with YAGNI than keeping a "might be useful" abstraction.
-
 ## Interaction with other principles
 
 - [kiss.md](./kiss.md): YAGNI removes speculative features; KISS removes unnecessary complexity in the ones you keep.

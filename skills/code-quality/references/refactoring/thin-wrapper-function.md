@@ -34,10 +34,6 @@ A wrapper earns its place when it does real work beyond forwarding:
 
 The cure is [inline-function.md](./inline-function.md): fold the body back into the caller and delete the wrapper.
 
-## Python-specific note
-
-Function calls in Python are not free. Each call builds a frame, and the interpreter does real work for it. For most code this is irrelevant: clarity wins. But in hot paths and tight loops, a layer of thin wrappers around a per-element operation can show up in a profile. This is a secondary reason to avoid them, never the primary one: the main cost is always the cognitive overhead of indirection that buys nothing.
-
 ## How to judge
 
 Ask: if I deleted this function and inlined its body at every call site, would the code be harder to understand or harder to change? If the answer is no, it is a thin wrapper. If removing it would expose callers to an unstable dependency, scatter a domain rule, or break a test seam, it is doing real work; keep it. The test is the boundary it protects, not its line count.

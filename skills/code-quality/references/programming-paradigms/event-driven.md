@@ -49,32 +49,3 @@ A distinction worth keeping clear: a *command* tells a specific handler to do so
 ## Synchronous vs asynchronous delivery
 
 A choice that changes the whole character of an event system is whether `publish` blocks until handlers finish (synchronous) or hands off and returns immediately (asynchronous). Synchronous in-process delivery is simple to reason about, the producer's call stack still includes the handlers, exceptions propagate back, and ordering is deterministic, but it couples the producer's latency and failure to its consumers, which partly defeats the decoupling. Asynchronous delivery (a queue, a broker, a background task) restores the decoupling but introduces every distributed-systems concern: at-least-once delivery, ordering, partial failure, and the need for idempotent consumers. Pick synchronous when the reactions are cheap, local, and must complete before the producer continues; pick asynchronous when reactions are slow, remote, or genuinely independent of the producer's success.
-
-## In Python
-
-- In-process: a simple dict of `event_name -> list[callable]` is often all you need; do not pull in a message broker for local decoupling.
-
-```python
-from collections import defaultdict
-from collections.abc import Callable
-
-class EventBus:
-    def __init__(self) -> None:
-        self._subscribers: dict[str, list[Callable]] = defaultdict(list)
-
-    def subscribe(self, event: str, handler: Callable) -> None:
-        self._subscribers[event].append(handler)
-
-    def publish(self, event: str, payload: object) -> None:
-        for handler in self._subscribers[event]:
-            handler(payload)   # producer never names a consumer
-```
-
-This is the whole pattern at the smallest scale: the publisher knows the event name and the payload, never the handlers. Everything bigger, a broker, durability, async delivery, is the same shape with more infrastructure.
-
-- Frameworks provide signals/hooks (Django signals, Flask signals, pytest hooks); prefer the framework's mechanism over a homegrown one when working inside it.
-- Make event payloads plain data (`dataclass` / `TypedDict`) with a stable, versioned schema; this is the contract between producer and consumer.
-- Design consumers to be idempotent and to log enough context (event ID, correlation ID) to trace failures.
-- For async workflows, an emitted event usually becomes a task; see [async-concurrency.md](./async-concurrency.md) for owning the lifetime of that work rather than firing it and forgetting it.
-- Keep the audit value honest: if events are your source of truth, treat the event schema with the same care as a database schema.
-- Resist using events for flow that is really a direct request-response. If the producer needs the result, blocks on it, or only ever has one consumer, a plain function call is clearer than an event round-trip.

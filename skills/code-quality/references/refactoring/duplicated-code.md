@@ -31,12 +31,3 @@ Before extracting, the shape of the abstraction must be reasonably stable. If yo
 ## Wrong deduplication
 
 The common failure, especially in agent-assisted code, is the **parametric wrapper that is harder to read than the duplication**. You extract two similar fragments into one function, but they were not identical, so the function grows a boolean flag to switch behavior, then a mode parameter, then a callback for the part that really differs, then a special branch for an edge case. The result is a function nobody can read, configured by call sites nobody can follow: strictly worse than the two honest copies. When you find one of these, the fix is to inline it, duplicate the code back, and re-find the real variation axis. A flag parameter that selects between two behaviors is often a sign the function should have stayed two functions.
-
-## In Python
-
-- For repeated schemas, API contracts, or models, establish a single source of truth: `dataclass`, `TypedDict`, Pydantic, an OpenAPI spec, or code generation, not three hand-maintained copies.
-- Table-driven mappings and dispatch dicts collapse genuinely repeated knowledge (one row per case) without inventing a class hierarchy.
-- Prefer extracting to a module-level function or a small strategy function over a base class whose only purpose is sharing code.
-- Watch for the same domain rule appearing in a schema, a service, and a test fixture: a frequent agentic-coding pattern where three "copies" drift apart silently.
-
-The transformation itself is usually [extract-function.md](./extract-function.md); the reverse, when you discover a wrong deduplication, is [inline-function.md](./inline-function.md).

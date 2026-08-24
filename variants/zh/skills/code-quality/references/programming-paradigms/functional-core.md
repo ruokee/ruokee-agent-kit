@@ -84,13 +84,6 @@ def process(order_id: str) -> None:
 
 时钟 `datetime.now(tz=UTC)` 在外壳中读取，并作为 `now` *传入*核心。这一举措就是保持时间相关规则纯且确定性可测试的原因。
 
-## 在 Python 中
-
-- 入口层可以使用 argparse、Click、Typer、FastAPI 或 Django，但核心业务函数不应依赖框架对象：跨边界传递纯数据。
-- 在边界处使用 `dataclass`、`TypedDict`、Pydantic 模型或普通字典承载数据，根据项目的复杂性选择（参见 [data-oriented.md](./data-oriented.md)）。
-- 将不稳定的依赖项，时钟、随机性、文件系统、HTTP 客户端、数据库会话，作为函数参数、构造函数参数、小型 `Protocol` 或通过组合根注入，而不是在核心内部获取它们。
-- 核心应接受纯数据并返回纯数据；外壳拥有 `with`/`async with` 资源生命周期（参见 [resource-lifecycle.md](./resource-lifecycle.md)）。
-
 ## 与其他范式的交互
 
 - 直接建立在 [imperative.md](./imperative.md) 之上：外壳*就是*命令式编排层，有意保持薄薄的一层。

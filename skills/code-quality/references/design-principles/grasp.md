@@ -25,7 +25,3 @@ The main misuse is treating GRASP as a UML-driven process, or reading "Controlle
 **Indirection.** Assign a responsibility to an intermediate object or function to decouple two units that would otherwise be directly coupled (an adapter between your core and a third-party client, for example). Indirection is a tool for Low Coupling, but each layer adds a hop to trace; add it for a real coupling problem, not reflexively.
 
 **Protected Variations.** Wrap a predicted point of instability behind a stable interface so that variation on one side does not ripple to the other. This is the unifying idea behind OCP, DIP, Indirection, and Polymorphism. The critical word is *predicted*; protect variations that are real and identified, not every point that *might* someday change, or you drift into the speculative generality that [yagni.md](./yagni.md) warns against.
-
-## In Python
-
-Behavior goes near the data that owns it (Information Expert). CLI and API handlers stay as thin Controllers, with rules in the core. Services, adapters, mappers, and policy functions are all reasonable Pure Fabrications. Once a variation point is genuinely identified, Protected Variations is realized with a `Protocol`, an adapter, or a deep module (see [deep-modules.md](./deep-modules.md)). Throughout, balance Low Coupling against High Cohesion rather than maximizing either alone.

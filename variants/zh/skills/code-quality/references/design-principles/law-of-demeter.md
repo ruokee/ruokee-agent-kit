@@ -67,14 +67,6 @@ needs_review = order.requires_tax_review()
 耦合移近一层。这是一个浅包装器：参见[深模块讨论](./deep-modules.md)。只有当方法表达有意义的
 领域问题时才引入它，而不仅仅是为了去掉一个点。
 
-## 在 Python 中
-
-- 根据结构知识和变更传播来判断，而不是点的数量。
-- 给领域对象语义查询：`order.shipping_postal_code()`、`invoice.is_overdue()`，
-  而不是暴露嵌套字段供调用者遍历。
-- 让 DTO、dataclass 和 JSON 类似的数据被透明地遍历。
-- 将测试中的深层 mock 视为信号：如果测试必须 patch `a.b.c.d`，生产代码可能对该路径知道得太多。
-
 ## 相关原则
 
 LoD 与[信息隐藏](./deep-modules.md)自然搭配：两者都减少外部世界对内部结构的依赖程度，

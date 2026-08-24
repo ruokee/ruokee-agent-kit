@@ -40,13 +40,6 @@ KISS is not an excuse to under-build. Added complexity earns its place when it s
 
 Stripping these out in the name of "simplicity" is not KISS; it is producing fragile code. The skill is distinguishing complexity that buys correctness, performance, or safety from complexity that buys only the appearance of sophistication.
 
-## In Python
-
-- Default to clear data structures, direct control flow, the standard library, and a small number of well-named functions.
-- When complexity is unavoidable, isolate it inside a module, adapter, or deep module so callers stay simple.
-- Don't create an abstraction for a single call site, and don't cram everything into one giant function either: both are failures of simplicity in opposite directions.
-- Let formatters and linters handle style so human attention goes to boundaries and behavior.
-
 ## Interaction with other principles
 
 - [yagni.md](./yagni.md): YAGNI removes speculative features; KISS removes unnecessary complexity in the features you do build. Together they resist over-engineering.

@@ -33,6 +33,7 @@ Route to leaf documents by signal. Read only what the task requires.
 | Project shape: script, flat, src, packaged app, workspace | [structure](./references/project/structure.md) | dependency-management, uv |
 | Runtime/dev/optional dependencies, lock, groups | [dependency-management](./references/project/dependency-management.md) | uv, structure |
 | Code style, PEP 8 vs formatter/review boundary | [style](./references/spec/style.md) | ruff, custom-lint |
+| Python-specific application of design principles, paradigms, and refactoring | [Python design guidance](./references/spec/code-quality.md) | style, type-hint |
 | Type hints, annotations, `Any`, `cast`, Protocol, generics, type alias, type parameters | [type-hint](./references/spec/type-hint.md) | python-version, ty |
 | Test organization, fixtures, parametrize, exceptions/warnings, log/output capture, mocking boundary, async | [testing](./references/spec/testing.md) | pytest |
 | Docstring, API docs, schema metadata, information placement | [docstrings-api-docs](./references/spec/docstrings-api-docs.md) | type-hint |

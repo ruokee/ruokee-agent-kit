@@ -64,14 +64,6 @@ Declarative style trades explicit control flow for conciseness. That trade is wo
 
 A practical test: if a newcomer asks "what happens when this runs?" and the honest answer requires explaining the engine's evaluation model before you can answer, the declaration may have absorbed too much logic. Declarations should describe *facts and structure*; the moment they start describing *sequence and decisions*, the imperative form is usually clearer.
 
-## In Python
-
-- Give each declarative structure a single source of truth. Do not write the schema once for the type checker, again for runtime validation, and a third time in the docs; derive or generate where possible.
-- Parse external config into a typed object (`dataclass`, Pydantic model) at the boundary, then let the rest of the code work with concrete types instead of raw dicts. See [data-oriented.md](./data-oriented.md).
-- Complex rule tables still need tests. Declarative does not mean test-free; a transition table or permission matrix deserves coverage of its rows and its rejected cases.
-- For declarative mechanisms that hide control flow, decorators, route registration, signal handlers, make sure the real execution path can still be traced. See [event-driven.md](./event-driven.md) for the related risk of invisible wiring.
-- Keep an imperative escape hatch. The best declarative designs let the rare irregular case drop back to plain code instead of forcing every exception into the declaration's vocabulary. A routing table that maps paths to handlers stays declarative; a routing table that grows a `condition` mini-language to express "only on Tuesdays for premium users" has started reinventing a programming language badly. Declare the regular cases, and let an ordinary function handle the irregular one.
-
 ## Relationship to other paradigms
 
 - A [state-machine.md](./state-machine.md) transition table is declarative: the legal moves are data, and a small engine applies them.

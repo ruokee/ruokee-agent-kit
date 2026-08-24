@@ -86,11 +86,3 @@ def process(order_id: int) -> None:              # 薄命令式外壳
 最清晰的解决方案是保持命令式风格，但将其限制在一个薄的外层。这就是 [functional-core.md](./functional-core.md) 中的命令式外壳：外壳编排 I/O、事务、重试和日志记录；核心接收纯数据，应用规则，返回纯数据。外壳特意保持命令式；那是有序副作用所在的地方。你移出的是决策制定，而不是编排。
 
 这也与 [data-oriented.md](./data-oriented.md)（外壳传递给核心的数据）和 [resource-lifecycle.md](./resource-lifecycle.md)（外壳如何获取和释放它编排的资源）相关联。
-
-## 在 Python 中
-
-- 在显式的入口点中承载命令式胶水代码，例如 `main(argv: Sequence[str] | None = None) -> int`，并通过 `if __name__ == "__main__":` 将其隔离。
-- 让入口层解析参数、加载配置、配置日志、构建依赖，并将异常转换为退出码。核心逻辑接收显式参数，并保持可导入和可测试。
-- 对外部资源使用 `with`/`async with`，而不是依赖垃圾回收来释放它们：参见 [resource-lifecycle.md](./resource-lifecycle.md)。
-- 当一个过程增长到难以阅读时，按阶段将其拆分为命名步骤（`load_config()`、`build_client()`、`run_job()`），而不是直接引入框架。线性的、命名良好的步骤是一种特性，而不是坏味道。
-- 抵制将简单的三行序列包装到类或管道抽象中的冲动；直截了当的命令式代码通常就是 KISS 正确的答案。

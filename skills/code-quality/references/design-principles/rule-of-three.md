@@ -30,13 +30,6 @@ Do not mechanically wait for three when the knowledge is both clearly identical 
 
 In short: wait when the commonality is uncertain; act when it is certain and the cost of drift is high.
 
-## In Python
-
-- First occurrence: write it inline and direct.
-- Second occurrence: a little copy-paste is acceptable; resist the urge to extract.
-- Third occurrence, or clear variation direction: extract. The result is often a module-level function with explicit parameters, a table-driven mapping, or a small `Protocol`, not necessarily a class.
-- When you later realize you abstracted too early, prefer to inline / flatten / duplicate again, then look for the real axis of change. This is a normal refactoring move, not a failure.
-
 ## Interaction with other principles
 
 - [dry.md](./dry.md): the Rule of Three is the safety valve that keeps DRY from producing premature, over-parameterized abstractions.

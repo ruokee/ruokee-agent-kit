@@ -62,10 +62,3 @@ TDD 假设你对期望的行为有足够的了解来编写测试。当你没有�
 这样测试才能在重构中存活。参见 [law-of-demeter](./law-of-demeter.md) 和
 [dependency-inversion](./dependency-inversion.md) 了解为什么深入到内部（深层 mock、
 patch 私有成员）的测试是关于设计的坏味道，而不仅仅是测试本身。
-
-## 在 Python 中
-
-- `pytest` 非常适合小步 TDD；保持 fixture 直接，避免在其周围构建不可见的框架。
-- 对于原型、UI 和复杂的外部集成，先做试验性项目，然后补充特征描述测试或合约测试。
-- `monkeypatch` 很方便但容易过度使用。优先在边界传入 fake 或 stub，而不是修补深层内部；
-  需要深层修补是一个依赖本应被注入的信号。

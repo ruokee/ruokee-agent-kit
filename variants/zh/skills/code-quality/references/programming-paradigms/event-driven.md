@@ -49,32 +49,3 @@
 ## 同步 vs 异步投递
 
 一个改变整个事件系统特性的选择是 `publish` 是否阻塞直到处理器完成（同步）还是移交并立即返回（异步）。进程内同步投递易于推理，生产者的调用栈仍然包含处理器，异常会传播回来，顺序是确定的，但它将生产者的延迟和失败与消费者耦合在一起，这在一定程度上破坏了去耦。异步投递（队列、代理、后台任务）恢复了去耦，但引入了所有的分布式系统问题：至少一次投递、顺序、部分失败以及幂等消费者的需求。当响应是轻量级、本地且必须在生产者继续之前完成时，选择同步；当响应是缓慢、远程或真正独立于生产者的成功时，选择异步。
-
-## 在 Python 中
-
-- 进程内：一个简单的 `event_name -> list[callable]` 字典通常就足够了；不要为本地解耦引入消息代理。
-
-```python
-from collections import defaultdict
-from collections.abc import Callable
-
-class EventBus:
-    def __init__(self) -> None:
-        self._subscribers: dict[str, list[Callable]] = defaultdict(list)
-
-    def subscribe(self, event: str, handler: Callable) -> None:
-        self._subscribers[event].append(handler)
-
-    def publish(self, event: str, payload: object) -> None:
-        for handler in self._subscribers[event]:
-            handler(payload)   # 生产者从不命名消费者
-```
-
-这就是最小尺度上的整个模式：发布者知道事件名称和负载，从不了解处理器。任何更大的东西，代理、持久性、异步投递，都是具有更多基础设施的相同形状。
-
-- 框架提供信号/钩子（Django 信号、Flask 信号、pytest 钩子）：在其中工作时优先使用框架的机制而不是自制的。
-- 使事件负载成为纯数据（`dataclass`/`TypedDict`），具有稳定、版本化的模式；这是生产者和消费者之间的契约。
-- 设计消费者为幂等的，并记录足够的上下文（事件 ID、关联 ID）以追踪失败。
-- 对于异步工作流，发出的事件通常变成一个任务：参见 [async-concurrency.md](./async-concurrency.md) 以了解如何拥有该工作的生命周期，而不是触发后遗忘。
-- 保持审计价值诚实：如果事件是你的事实来源，像对待数据库模式一样对待事件模式。
-- 抵制将事件用于实际上是直接请求-响应的流程。如果生产者需要结果、阻塞等待它或只有唯一一个消费者，普通函数调用比事件往返更清晰。

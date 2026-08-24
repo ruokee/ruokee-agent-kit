@@ -83,15 +83,6 @@ that add no semantics and just relocate the coupling one layer in. That is a sha
 see [the deep modules discussion](./deep-modules.md). Only introduce a method when it expresses
 a meaningful domain question, not merely to remove a dot.
 
-## In Python
-
-- Judge by structural knowledge and change propagation, not dot count.
-- Give domain objects semantic queries: `order.shipping_postal_code()`,
-  `invoice.is_overdue()`, rather than exposing nested fields for callers to walk.
-- Let DTOs, dataclasses, and JSON-like data be traversed transparently.
-- Treat deep mocks in tests as a signal: if a test must patch `a.b.c.d`, the production code
-  probably knows too much about that path.
-
 ## Related principles
 
 LoD pairs naturally with [information hiding](./deep-modules.md): both reduce how much the

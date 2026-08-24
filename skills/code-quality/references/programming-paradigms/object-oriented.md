@@ -73,15 +73,6 @@ class Account:
 
 The difference is not style. In the first form, a new caller that forgets the check corrupts the balance; in the second, the invariant cannot be bypassed. This is the [tell-dont-ask](../design-principles/tell-dont-ask.md) principle in practice.
 
-## Python specifics
-
-- Use `@dataclass` for simple data carriers; reach for a plain class when there are real invariants or a lifecycle to manage. See [data-oriented.md](./data-oriented.md).
-- For substitutability across a boundary, prefer a small `typing.Protocol` (structural typing) over a nominal base class. The collaborator just needs to provide the right methods.
-- The **data model** (dunder methods) is how objects plug into the language: `__repr__`, `__eq__`, `__hash__` for value objects; `__iter__`, `__len__`, `__contains__` for containers; `__enter__`/`__exit__` for resources; `__call__` for callable strategies. Implement these only when the object genuinely has that semantic; do not invent undocumented dunders.
-- `property` is for hiding storage differences or exposing a light derived value, not for hiding expensive side effects like I/O, a network call, or a database query.
-- **Descriptors** (the protocol behind `property`, methods, ORM fields, validators) centralize attribute-access behavior. They are powerful and easy to overuse; keep them in framework/boundary code, not scattered through business logic. For plain field validation, prefer `__post_init__`, Pydantic, or a normal constructor.
-- Keep mixins small, stateless, and clearly named. Multiple inheritance turns MRO into implicit complexity fast.
-
 ## Relationship to other paradigms
 
 A long-lived object with invariants is often best paired with a [state-machine.md](./state-machine.md) for its lifecycle. The decision *logic* inside its methods can still be pure and pushed toward a [functional-core.md](./functional-core.md). "More OO" is never the goal; the goal is to put state, invariants, and behavior at the boundary where they belong.
