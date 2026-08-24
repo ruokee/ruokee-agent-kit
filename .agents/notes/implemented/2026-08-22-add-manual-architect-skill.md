@@ -1,6 +1,6 @@
 # Agent Note: Add a manually invoked architect Skill
 
-Status: proposed
+Status: implemented
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
 
@@ -14,11 +14,11 @@ The Skill covers system-level architecture analysis, design, review, technology 
 
 Ruokee wants to choose when to use this capability, usually during planning or design. Ordinary coding and general discussion must not load it automatically.
 
-## Proposal
+## Decision
 
 ### Capability
 
-Add a first-party Skill named `architect`. Its final English content belongs under `skills/architect/`, with a Chinese variant under `variants/zh/skills/architect/`.
+The repository includes a first-party Skill named `architect`. Its English content lives under `skills/architect/`, with a Chinese variant under `variants/zh/skills/architect/`.
 
 The Skill handles system-level analysis, design, review, selection, and evolution. It does not perform implementation or replace project facts, current product documentation, or user decisions.
 
@@ -26,9 +26,9 @@ The model supplies the main reasoning ability. References provide architecture k
 
 ### Activation condition
 
-The Skill activates only when the user explicitly invokes `architect`. The model must not load it automatically. A natural-language request such as "do an architecture analysis" does not invoke it.
+Manual invocation is enforced by configuration rather than repeated prose. Both language variants set `disable-model-invocation: true` in `SKILL.md` frontmatter and `policy.allow_implicit_invocation: false` in `agents/openai.yaml`. A natural-language request such as "do an architecture analysis" does not invoke the Skill.
 
-Its trigger statement answers when to use it: when the user explicitly invokes `architect` for system-level architecture analysis, design, review, technology selection, or evolution. It is not a catalogue of the Skill's contents.
+The `description` combines the applicability trigger and coverage: use `architect` when architecture work or system design is needed; it covers system-level analysis, design, review, technology selection, and evolution. It does not restate invocation policy.
 
 Manual invocation defines this Skill's role. It is not a concession to discoverability and should not be listed as a risk. Most tasks do not need architecture design, and a false activation can steer the work away from its actual goal. That downside outweighs the occasional benefit of the model identifying an applicable case.
 
@@ -38,15 +38,17 @@ Matt Pocock's [Model-invoked vs user-invoked](https://github.com/mattpocock/skil
 
 ### Knowledge structure
 
-Keep `SKILL.md` short. It contains only the activation condition, scope, reference navigation, evidence requirements, and output contract. The Skill has no `workflow/` directory.
+Keep `SKILL.md` short. Invocation policy lives in frontmatter and `agents/openai.yaml`; the body contains only scope, reference navigation, evidence requirements, and the output contract. The Skill has no `workflow/` directory.
 
 Put architecture knowledge under `references/`, with the glossary at the Skill root to match existing Skills. References serve both Agents and developers. Documents within one directory use two-digit prefixes to keep listings in a stable reading order. Directories are not numbered, and the numbers do not require sequential reading by the Agent. This numbering convention applies only to `architect`.
 
-The tree below defines every document planned for the first release, 29 in each language directory. The release does not ship a subset. If review of the Chinese draft requires merging or splitting documents, update the trees and responsibility tables in both Note files first, then reassign the numbers. The first release still ships every document in the updated tree.
+The tree below defines every first-release file in each language directory: 29 Markdown documents plus the invocation policy at `agents/openai.yaml`. The release does not ship a document subset. If review of the Chinese draft requires merging or splitting documents, update the trees and responsibility tables in both Note files first, then reassign the numbers. The first release still ships every document in the updated tree.
 
 ```text
 skills/architect/
   SKILL.md
+  agents/
+    openai.yaml
   glossary.md
   references/
     01-thinking-and-tradeoffs.md
@@ -84,7 +86,7 @@ The first-release focus of each document is below. These short statements define
 
 | Document | Scope | Source cues |
 |-|-|-|
-| `SKILL.md` | State the explicit invocation condition, scope, navigation, evidence requirements, and output contract. | This Note |
+| `SKILL.md` | State scope, navigation, evidence requirements, and the output contract. | This Note |
 | `glossary.md` | Define the architecture terms and Chinese-English equivalents used by the Skill. | Glossary |
 | `references/01-thinking-and-tradeoffs.md` | Form architecture judgments from requirements, constraints, and quality attributes. | Chapters 02, 06, and 09 |
 | `references/02-system-analysis.md` | Analyze an unfamiliar system from code, configuration, and runtime evidence. | Chapter 18 |
@@ -95,7 +97,7 @@ The first-release focus of each document is below. These short statements define
 | `references/07-architecture-decisions.md` | Record candidates, tradeoffs, consequences, and review conditions. | Chapter 08 |
 | `references/08-distributed-systems.md` | Explain constraints caused by networks, time, concurrency, and partial failure. | Chapter 10 |
 | `references/09-consistency.md` | Compare consistency models, transaction boundaries, and conflict handling. | Chapter 11 |
-| `references/10-resilience.md` | Explain timeout, retry, idempotency, isolation, and degradation design. | Chapter 12 |
+| `references/10-resilience.md` | Explain timeout, retry, idempotency, isolation, and degradation design, plus RPO/RTO and recovery design. | Chapter 12 |
 | `references/11-scaling.md` | Use load evidence to find bottlenecks and choose scaling methods. | Chapter 13 |
 | `references/12-evolution-and-migration.md` | Use evolution trigger signals and technical-debt evidence to plan decomposition, migration, rollback, and retirement. | Chapters 08, 14, 20, and 21, plus the evolution-signals appendix |
 | `references/13-organization-and-ownership.md` | Explain how team ownership and communication structure relate to system boundaries. | Chapters 08 and 15 |
@@ -126,11 +128,11 @@ Teaching material does not need blanket removal. Keep explanations, derivations,
 
 Decision-related references teach only decision methods and defer to each project's existing record conventions. In this repository, for example, the Skill uses Agent Notes rather than inventing another decision-record format. This is an ordinary local-rule requirement.
 
-### Development order
+### Development sequence
 
-Write the Chinese variant first. Review its topic coverage, document boundaries, technical judgments, examples, and usefulness on real architecture tasks. Write the formal English Skill after the Chinese version passes review.
+The Chinese variant was written and reviewed first for topic coverage, document boundaries, technical judgments, examples, and usefulness on real architecture tasks. The formal English Skill followed after the Chinese version passed review.
 
-Express the approved Chinese meaning naturally in English rather than translating line by line. Both languages must be complete and semantically aligned before merge. This order takes advantage of the Chinese source material while keeping the repository's English path as the default published entry.
+The English version expresses the approved Chinese meaning naturally rather than translating line by line. Both languages are complete and semantically aligned. This sequence used the Chinese source material while keeping the repository's English path as the default published entry.
 
 ## Alternatives considered
 
@@ -142,26 +144,18 @@ Express the approved Chinese meaning naturally in English rather than translatin
 
 **Allow automatic activation.** Automatic activation occasionally identifies an applicable case, but a false activation can derail a task that does not need architecture design. The model also cannot determine from the current task alone whether the real requirements call for architecture design, so the cost of a false activation is higher.
 
-## Acceptance criteria
+## Consequences
 
-1. `architect` activates only when the user explicitly invokes it. A natural-language request such as "do an architecture analysis" does not invoke it.
-2. The trigger statement describes the usage condition rather than cataloguing the Skill's contents.
-3. The Skill supports system-level analysis, design, review, technology selection, and evolution while remaining separate from implementation work.
-4. `SKILL.md` is a concise entry point. Knowledge is organized through the root glossary and `references/`, with no `workflow/` directory. Within `architect`, reference documents in one directory use two-digit prefixes and directories remain unnumbered; a boundary change may renumber the whole directory.
-5. The first release delivers all 29 documents shown in the tree in each language directory. It does not ship a subset.
-6. Every planned document has a one-sentence scope and source cue. `awesome-architecture` is the first-release topic map; the Skill does not adopt the compressed structure of `architecture-copilot`.
-7. Both language versions of `SKILL.md` link the reviewed `awesome-architecture` revision, identify JingWen Fan as the author, and name the MIT license. Published content does not copy upstream prose, tables, or diagrams verbatim.
-8. References retain explanations, derivations, and examples that help judgment while changing the emphasis of course-oriented material.
-9. Architecture-decision guidance follows existing project conventions rather than imposing one record format.
-10. The Chinese variant is completed and reviewed before the English Skill is written. Both are complete and semantically aligned before merge.
-11. Real architecture tasks test topic coverage and document boundaries in the Chinese draft. If boundaries change, update this Note before assigning final numbers.
-12. Capability indexes and English and Chinese user documentation explain the manual activation condition and scope.
-13. Repository checks pass after implementation.
+- `architect` is available in English under `skills/architect/` and in Chinese under `variants/zh/skills/architect/` for system-level analysis, design, review, technology selection, and evolution. Concrete implementation remains out of scope.
+- Both variants enforce manual invocation with `disable-model-invocation: true` in `SKILL.md` and `policy.allow_implicit_invocation: false` in `agents/openai.yaml`. The `description` states when architecture or system design work needs the Skill and summarizes its coverage.
+- Each variant contains 29 Markdown documents: a concise `SKILL.md`, a root glossary, 14 core references, 5 AI references, and 8 technology-selection references. There is no `workflow/` directory. Reference files use two-digit prefixes only within their directory.
+- `awesome-architecture` at revision `7f43e49b95ad9c255418733738fddab4eb0f6a68` remains the topic map. Both `SKILL.md` files identify JingWen Fan and the MIT license, while the published material is rewritten rather than copied verbatim.
+- References retain explanations, derivations, counterexamples, and cases that support judgment. Architecture-decision guidance follows the current project's recording convention instead of imposing a separate format.
+- The Chinese variant was completed and reviewed before the English version. Both variants were then reviewed for semantic alignment, technical accuracy, sources, and links.
+- The English and Chinese capability indexes document the manual invocation condition and scope. Repository checks pass for the implemented files.
 
-## Risks
+The topic split trades some navigation and assembly cost for selective reading. If related knowledge becomes hard to find together, revise the document boundaries rather than adding another navigation system prematurely.
 
-If references are split too finely, knowledge that should be read together will be scattered across files, increasing lookup and assembly cost. If they are too broad, each file will include substantial material unrelated to the current problem. Test the Chinese draft with real tasks to learn which topics belong together before merging or splitting files.
+The references preserve reasons and tradeoffs instead of collapsing into conclusions and checklists. They also avoid carrying over course pacing or reader exercises that do not help architecture tasks.
 
-References that contain only conclusions and checklists leave the model without reasons for its judgments. Keeping too much course structure would instead organize them around lesson progression rather than architecture tasks. Adapt the emphasis and preserve the material that explains tradeoffs.
-
-The capability relies mainly on model reasoning, so references cannot guarantee a correct analysis. The Skill must distinguish project facts, assumptions, recommendations, and user-owned decisions, and it must state uncertainty when evidence is missing.
+The capability still relies on model reasoning and cannot guarantee a correct analysis. It therefore distinguishes project facts, assumptions, recommendations, and user-owned decisions, and states uncertainty when evidence is missing.
