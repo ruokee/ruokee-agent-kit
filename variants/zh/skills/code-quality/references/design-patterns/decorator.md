@@ -1,6 +1,6 @@
 # 装饰器模式（Decorator Pattern）
 
-本文档涵盖 GoF *结构型*装饰器模式：包装对象以添加行为。这不是关于 Python 的 `@decorator` 语法，尽管两者相关，并且将在下面讨论其关系。
+本文档涵盖 GoF *结构型*装饰器模式：包装对象以添加行为。
 
 ## 意图（Intent）
 
@@ -18,42 +18,6 @@
 - **具体装饰器（Concrete decorators）**：每个添加一个职责。
 
 因为每个装饰器都实现相同的 Component 接口并持有一个 Component，装饰器和基础对象可互换并且可以任意嵌套。`Compress(Encrypt(FileStream(path)))` 本身就是一个 `Component`。
-
-## Python 惯用实现
-
-当"组件"是函数或可调用对象时，Python 的 `@decorator` 语法直接表达了该模式，是惯用的选择：
-
-```python
-def with_metrics(handler: Handler) -> Handler:
-    @functools.wraps(handler)
-    async def wrapped(request: Request) -> Response:
-        with timer("handler.duration"):
-            return await handler(request)
-    return wrapped
-```
-
-`functools.wraps` 保留了被包装的可调用对象的名称、文档字符串和签名元数据；省略它会破坏内省和工具支持。
-
-当你包装一个有多个方法的状态对象并希望在运行时组合行为时，完整的*对象*形式是值得编写的：
-
-```python
-class Stream(Protocol):
-    def read(self, n: int) -> bytes: ...
-    def write(self, data: bytes) -> int: ...
-
-
-class CompressingStream:
-    def __init__(self, inner: Stream) -> None:
-        self._inner = inner
-
-    def read(self, n: int) -> bytes:
-        return decompress(self._inner.read(n))
-
-    def write(self, data: bytes) -> int:
-        return self._inner.write(compress(data))
-```
-
-对于包装具有大型接口的对象而只需修改少数方法时，`__getattr__` 可以将其余方法转发给内部对象：功能强大但有魔法性，因此应谨慎使用并做好文档记录。
 
 ## 何时使用
 
@@ -73,6 +37,23 @@ class CompressingStream:
 - **元数据丢失**：忘记 `functools.wraps` 会破坏 `__name__`、文档字符串和签名。
 - **行为漂移**：装饰器微妙地改变组件的契约（返回类型、抛出的错误），使得包装和未包装的对象不再可互换。
 - **性能意外**：每一层增加一个调用帧，可能还有 I/O；一个指标加重试加缓存的栈可能比操作本身代价更高。
+
+## Python 示例
+
+Python 将函数视为一等对象，并提供专门的 `@decorator` 语法，因此函数装饰器可以直接表达同一种包装思路：
+
+```python
+def with_metrics(handler: Handler) -> Handler:
+    @functools.wraps(handler)
+    async def wrapped(request: Request) -> Response:
+        with timer("handler.duration"):
+            return await handler(request)
+    return wrapped
+
+@with_metrics
+async def handle_request(request: Request) -> Response:
+    return await process(request)
+```
 
 ## 与其他模式的关系
 
