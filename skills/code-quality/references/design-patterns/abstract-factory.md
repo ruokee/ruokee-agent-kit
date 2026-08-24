@@ -31,7 +31,13 @@ The caller holds an abstract factory and calls its creation methods; it never na
 - The "family" constraint isn't real; the products don't actually have to match. Grouping them adds ceremony without preventing any mistake.
 - It quietly grows into a general service locator that builds anything on request, losing the family guarantee that justified it.
 
-## Python-idiomatic implementation
+## Failure modes
+
+- A factory object, abstract product, and concrete product tree built for a single family: pure overhead.
+- Blurred family boundaries, so the factory accumulates unrelated creation methods and becomes a god object.
+- Products that secretly reach for global state instead of the factory's shared config, breaking the consistency guarantee the pattern exists to enforce.
+
+## Python example
 
 A `Protocol` plus a selector function usually expresses the whole pattern without an interface forest:
 
@@ -53,13 +59,7 @@ Other idiomatic shapes:
 - **Dataclass profile**: bundle the family's shared config in one frozen object and pass it to each product.
 - **Composition root**: assemble the matching set once at startup and inject it, rather than scattering factory calls.
 
-Avoid copying Java's abstract-base-class layering. Duck typing and `Protocol` give the same guarantee structurally, without nominal inheritance.
-
-## Failure modes
-
-- A factory object, abstract product, and concrete product tree built for a single family: pure overhead.
-- Blurred family boundaries, so the factory accumulates unrelated creation methods and becomes a god object.
-- Products that secretly reach for global state instead of the factory's shared config, breaking the consistency guarantee the pattern exists to enforce.
+Use duck typing or `Protocol` when the factory contract needs static checking; neither requires nominal inheritance.
 
 ## Relationship to other patterns
 
