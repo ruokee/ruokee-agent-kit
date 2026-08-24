@@ -12,9 +12,27 @@ When a single operation has several variant algorithms (ways to sort, score, pri
 
 The classic form has a **context** that holds a reference to a **strategy** interface, with **concrete strategies** implementing it. The context delegates the variable part of its work to the injected strategy. The context owns the stable workflow; the strategy owns the part that varies.
 
-## Python forms
+## When to use
 
-Python functions are first-class, so Strategy is frequently *just a function parameter*. There is usually no need for a strategy class:
+- There are multiple real algorithms today and the caller should not know which one runs.
+- The algorithm must be selectable at runtime (user choice, config, A/B) or replaced in tests.
+- The variation is along one clear axis ("how to score") with a small, stable interface.
+
+## When NOT to use
+
+- There is one algorithm, or a single `if` covers the two cases. Pre-emptive "strategy-fication" adds an interface for no benefit.
+- The strategy interface is so wide that callers must assemble a complex object just to vary one decision; the abstraction is mis-cut.
+- The "strategies" actually differ in *what* data they need, not just *how* they compute; they may not share a coherent interface.
+
+## Failure modes
+
+- A `Strategy` class with one method and one implementation, where a function would say the same thing with less ceremony.
+- An over-broad interface that forces every concrete strategy to implement methods only one of them uses.
+- Strategy selection scattered across the codebase instead of resolved in one place (a factory or dispatch map), so adding a variant means hunting for every selection site.
+
+## Python example
+
+Python functions are first-class, so the simplest way to implement Strategy is to accept a function parameter. There is usually no need for a strategy class:
 
 ```python
 def rank_items(items: list[Item], score: Callable[[Item], float]) -> list[Item]:
@@ -33,24 +51,6 @@ Forms in rough order of weight:
 - **A `Protocol` or callable object** when the strategy needs state, multiple related methods, or a name that documents intent.
 - **`functools.singledispatch`** when the strategy is chosen by the *type* of the input rather than a config value.
 - **A dispatch map / `match`** when selection depends on a config value or several conditions.
-
-## When to use
-
-- There are multiple real algorithms today and the caller should not know which one runs.
-- The algorithm must be selectable at runtime (user choice, config, A/B) or replaced in tests.
-- The variation is along one clear axis ("how to score") with a small, stable interface.
-
-## When NOT to use
-
-- There is one algorithm, or a single `if` covers the two cases. Pre-emptive "strategy-fication" adds an interface for no benefit.
-- The strategy interface is so wide that callers must assemble a complex object just to vary one decision; the abstraction is mis-cut.
-- The "strategies" actually differ in *what* data they need, not just *how* they compute; they may not share a coherent interface.
-
-## Failure modes
-
-- A `Strategy` class with one method and one implementation, where a function would say the same thing with less ceremony.
-- An over-broad interface that forces every concrete strategy to implement methods only one of them uses.
-- Strategy selection scattered across the codebase instead of resolved in one place (a factory or dispatch map), so adding a variant means hunting for every selection site.
 
 ## Relationship to other patterns
 
