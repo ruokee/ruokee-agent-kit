@@ -39,7 +39,7 @@ The primary value is transactional consistency: multiple repository operations t
 
 **Testing.** The Unit of Work boundary is a natural seam for testing. Mock or in-memory implementations let service-layer tests verify orchestration behavior without a database.
 
-## Python Implementation Shape
+## Python example
 
 In Python, Unit of Work naturally takes the form of a context manager:
 

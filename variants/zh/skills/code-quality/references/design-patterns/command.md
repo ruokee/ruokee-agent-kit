@@ -17,22 +17,6 @@
 
 在经典形式中，命令暴露 `execute()` 有时还有 `undo()`。关键在于调用者统一对待所有命令，而不知道每个命令具体做什么。
 
-## Python 惯用实现
-
-当命令是需要排队、序列化或审计的数据时，冻结的数据类是自然的载体：
-
-```python
-@dataclass(frozen=True)
-class SendEmail:
-    to: EmailAddress
-    template: str
-    context: dict[str, object]
-```
-
-一个单独的处理函数（或按键值命令类型索引的 `dispatch` 映射）执行工作，使命令本身成为一个普通的、可序列化的记录。当命令不需要持久化且仅承载行为时，普通函数或 `functools.partial` 本身就*是*一个命令；Python 的一等函数吸收了最简单的场景。
-
-对于撤销，命令必须捕获足够的前置状态来反转自身，或者与 [unit-of-work.md](./unit-of-work.md) 或快照状态的备忘录（memento）配对。
-
 ## 何时使用
 
 - **排队和调度**：任务放入作业队列、重试或稍后运行。
@@ -53,6 +37,22 @@ class SendEmail:
 - **不稳定的序列化**：持久化的命令在重构后无法反序列化，因为模式没有版本化。如果你持久化命令，请将其形态视为契约。
 - **撤销漂移**：`undo()` 不能完美反转 `execute()`，会静默地破坏状态。撤销的正确性需要明确的测试。
 - **构造中的隐藏副作用**：构建命令不应执行工作；只有调用者应触发它。
+
+## Python 示例
+
+当命令是需要排队、序列化或审计的数据时，冻结的数据类是自然的载体：
+
+```python
+@dataclass(frozen=True)
+class SendEmail:
+    to: EmailAddress
+    template: str
+    context: dict[str, object]
+```
+
+一个单独的处理函数（或按键值命令类型索引的 `dispatch` 映射）执行工作，使命令本身成为一个普通的、可序列化的记录。当命令不需要持久化且仅承载行为时，普通函数或 `functools.partial` 本身就*是*一个命令；Python 的一等函数吸收了最简单的场景。
+
+对于撤销，命令必须捕获足够的前置状态来反转自身，或者与 [unit-of-work.md](./unit-of-work.md) 或快照状态的备忘录（memento）配对。
 
 ## 与其他模式的关系
 

@@ -14,6 +14,8 @@ When several parts of a system must react to something happening, a cache must i
 - **Observer / subscriber**: registers interest and handles notifications.
 - **Event**: the payload describing what happened.
 
+## Python example
+
 In Python the subject is often an event bus keyed by event type:
 
 ```python

@@ -14,7 +14,25 @@ In the classic Gang of Four form, a `Creator` declares a factory method that ret
 
 In Python this full hierarchy is rarely the right shape. The "creator" is usually a plain function, a `classmethod`, or a registry lookup. The subclass-overrides-a-method form only earns its place when a framework defines the creation step as an extension point and your subclass genuinely needs to override it.
 
-## Python-idiomatic implementation
+## When to use
+
+- Concrete type depends on a runtime value: file format, protocol name, config entry, plugin name.
+- Construction involves validation, dependency wiring, or default-strategy selection you don't want duplicated at call sites.
+- There are multiple real implementations today, or a confirmed extension point (plugins, entry points).
+
+## When NOT to use
+
+- There is a single implementation and construction is trivial: just call the constructor.
+- A one-line `if` or direct instantiation would do. Wrapping it in an abstract-creator hierarchy adds indirection for no variation.
+- Everything that builds an object gets named `Factory`, diluting the concept until it means nothing.
+
+## Failure modes
+
+- A Java-style abstract creator / concrete creator tree where a function would do, forcing readers through layers of subclasses to find one `return`.
+- Factory functions that quietly swallow unknown kinds and return a default, hiding configuration errors. Raise a clear domain error instead.
+- Factories that grow side effects (logging, I/O, registration) so construction is no longer pure or predictable.
+
+## Python example
 
 Prefer a plain factory function:
 
@@ -45,24 +63,6 @@ def make_parser(kind: str) -> Parser:
 ```
 
 `classmethod` alternative constructors (`Model.from_dict`, `datetime.fromtimestamp`) are Python's most common factory form: the class owns named ways to build itself.
-
-## When to use
-
-- Concrete type depends on a runtime value: file format, protocol name, config entry, plugin name.
-- Construction involves validation, dependency wiring, or default-strategy selection you don't want duplicated at call sites.
-- There are multiple real implementations today, or a confirmed extension point (plugins, entry points).
-
-## When NOT to use
-
-- There is a single implementation and construction is trivial: just call the constructor.
-- A one-line `if` or direct instantiation would do. Wrapping it in an abstract-creator hierarchy adds indirection for no variation.
-- Everything that builds an object gets named `Factory`, diluting the concept until it means nothing.
-
-## Failure modes
-
-- A Java-style abstract creator / concrete creator tree where a function would do, forcing readers through layers of subclasses to find one `return`.
-- Factory functions that quietly swallow unknown kinds and return a default, hiding configuration errors. Raise a clear domain error instead.
-- Factories that grow side effects (logging, I/O, registration) so construction is no longer pure or predictable.
 
 ## Relationship to other patterns
 

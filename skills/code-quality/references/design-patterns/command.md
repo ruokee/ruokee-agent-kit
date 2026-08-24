@@ -17,22 +17,6 @@ A direct call, `service.send_email(to, template, context)`, executes immediately
 
 In the classic form a command exposes `execute()` and sometimes `undo()`. The point is that the invoker treats all commands uniformly without knowing what each one does.
 
-## Python-idiomatic implementation
-
-A frozen dataclass is the natural carrier when the command is data to be queued, serialized, or audited:
-
-```python
-@dataclass(frozen=True)
-class SendEmail:
-    to: EmailAddress
-    template: str
-    context: dict[str, object]
-```
-
-A separate handler (or a `dispatch` map keyed by command type) performs the work, keeping the command itself a plain, serializable record. When a command needs no persistence and only carries behavior, a plain function or `functools.partial` already *is* a command: Python's first-class functions absorb the simplest cases.
-
-For undo, the command must capture enough prior state to reverse itself, or pair with a [unit-of-work.md](./unit-of-work.md) or memento that snapshots state.
-
 ## When to use
 
 - **Queuing and scheduling**: tasks placed on a job queue, retried, or run later.
@@ -53,6 +37,22 @@ For undo, the command must capture enough prior state to reverse itself, or pair
 - **Unstable serialization**: persisted commands can't be deserialized after a refactor because the schema wasn't versioned. If you persist commands, treat their shape as a contract.
 - **Undo that drifts**: an `undo()` that doesn't perfectly reverse `execute()` corrupts state silently. Undo correctness needs explicit tests.
 - **Hidden side effects in construction**: building a command shouldn't perform the work; only the invoker should trigger it.
+
+## Python example
+
+A frozen dataclass is the natural carrier when the command is data to be queued, serialized, or audited:
+
+```python
+@dataclass(frozen=True)
+class SendEmail:
+    to: EmailAddress
+    template: str
+    context: dict[str, object]
+```
+
+A separate handler (or a `dispatch` map keyed by command type) performs the work, keeping the command itself a plain, serializable record. When a command needs no persistence and only carries behavior, a plain function or `functools.partial` already *is* a command: Python's first-class functions absorb the simplest cases.
+
+For undo, the command must capture enough prior state to reverse itself, or pair with a [unit-of-work.md](./unit-of-work.md) or memento that snapshots state.
 
 ## Relationship to other patterns
 

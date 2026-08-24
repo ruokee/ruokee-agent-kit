@@ -19,7 +19,25 @@ This is the runtime expression of the Dependency Inversion Principle: high-level
 
 The classic distinction is **object adapter** versus **class adapter**. An object adapter *holds* the adaptee as an attribute and delegates to it; a class adapter *inherits* from both the target and the adaptee. Object adapters are favored almost everywhere because they compose rather than entangle inheritance, work with adaptee instances you did not create, and can adapt several adaptees. Class adapters need multiple inheritance and bind you to the adaptee's class at definition time. In Python, prefer the object adapter; reach for inheritance only when you genuinely need to be a subtype of the adaptee.
 
-## Python-idiomatic implementation
+## When to use
+
+- Isolating a third-party SDK, legacy API, or external service so the rest of the code depends on your interface, not theirs.
+- Normalizing several different backends (payment providers, storage drivers, notification channels) behind one contract.
+- Converting data representations at a system boundary, wire formats, ORM rows, protocol messages, into domain types.
+
+## When NOT to use
+
+- The interfaces already match, or duck typing makes the object usable as-is. A wrapper that only renames methods is pure overhead.
+- You actually want a *new* interface designed around your needs, not a translation of an existing one; then write that interface directly rather than dressing up the old one.
+- The adaptee is yours and you can change it. Fix the source instead of permanently wrapping it.
+
+## Failure modes
+
+- **Leaky or pass-through adapters** that forward calls one-to-one with no translation, adding a hop and a file to navigate for nothing.
+- **Over-hiding**: swallowing the adaptee's errors, retries, timeouts, and performance characteristics so callers cannot react correctly. An adapter should translate failure semantics, not erase them. Map `StripeError` to a domain `PaymentDeclined`; do not return `None`.
+- **Fat adapters** that accumulate business logic. An adapter translates; once it makes decisions, it has become something else and should be named accordingly.
+
+## Python example
 
 Hold the adaptee and translate at the boundary:
 
@@ -41,24 +59,6 @@ class StripeGateway:
 ```
 
 Adapters need not be classes. A thin function that maps a foreign dict into a domain `dataclass` is an adapter. Duck typing also removes the need for many adapters: if an object already has the methods you call, you do not need a wrapper just to satisfy a nominal interface.
-
-## When to use
-
-- Isolating a third-party SDK, legacy API, or external service so the rest of the code depends on your interface, not theirs.
-- Normalizing several different backends (payment providers, storage drivers, notification channels) behind one contract.
-- Converting data representations at a system boundary, wire formats, ORM rows, protocol messages, into domain types.
-
-## When NOT to use
-
-- The interfaces already match, or duck typing makes the object usable as-is. A wrapper that only renames methods is pure overhead.
-- You actually want a *new* interface designed around your needs, not a translation of an existing one; then write that interface directly rather than dressing up the old one.
-- The adaptee is yours and you can change it. Fix the source instead of permanently wrapping it.
-
-## Failure modes
-
-- **Leaky or pass-through adapters** that forward calls one-to-one with no translation, adding a hop and a file to navigate for nothing.
-- **Over-hiding**: swallowing the adaptee's errors, retries, timeouts, and performance characteristics so callers cannot react correctly. An adapter should translate failure semantics, not erase them. Map `StripeError` to a domain `PaymentDeclined`; do not return `None`.
-- **Fat adapters** that accumulate business logic. An adapter translates; once it makes decisions, it has become something else and should be named accordingly.
 
 ## Relationship to other patterns
 

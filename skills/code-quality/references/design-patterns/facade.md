@@ -15,7 +15,25 @@ A subsystem accumulates many classes and steps that must be coordinated in the r
 
 The facade adds no new functionality of its own; it composes existing pieces into a convenient surface. Callers depend on the facade; the facade depends on the subsystem.
 
-## Python-idiomatic implementation
+## When to use
+
+- A multi-step workflow or third-party SDK is used the same way in several places, and you want one named entry point.
+- You want to decouple callers from the subsystem's internal structure so it can evolve behind a stable surface.
+- You are layering a system and want each layer to present a minimal interface to the one above.
+
+## When harmful
+
+- **Hiding complexity callers genuinely need.** If callers must control retries, pagination, partial failure, or transaction boundaries, a facade that smooths these away forces them to bypass it or work around it. Expose what callers must reason about.
+- **Shallow facade.** If it only forwards one call to one subsystem method, it adds a layer and a name without hiding anything. The cost (an extra hop, a place to look) exceeds the benefit.
+- **God object.** A facade that grows to cover every operation in the system becomes a dumping ground, coupling unrelated use cases and accumulating dependencies on everything.
+
+## Failure modes
+
+- The facade leaks subsystem types in its signatures, so callers end up coupled to internals anyway and the abstraction is illusory.
+- Error handling collapses distinct subsystem failures into one opaque exception, so callers can't respond appropriately.
+- The facade becomes the only allowed path and blocks legitimate advanced use, instead of being the convenient default while direct access remains possible.
+
+## Python example
 
 A module is itself a natural facade: a package's `__init__.py` with a curated `__all__` exposes a few entry-point functions while the implementation lives in private submodules.
 
@@ -36,24 +54,6 @@ class BillingClient:
 ```
 
 A good facade is a *deep module*: a small interface in front of substantial internal complexity. That depth is what makes it worth having; it hides real work, not just a few lines.
-
-## When to use
-
-- A multi-step workflow or third-party SDK is used the same way in several places, and you want one named entry point.
-- You want to decouple callers from the subsystem's internal structure so it can evolve behind a stable surface.
-- You are layering a system and want each layer to present a minimal interface to the one above.
-
-## When harmful
-
-- **Hiding complexity callers genuinely need.** If callers must control retries, pagination, partial failure, or transaction boundaries, a facade that smooths these away forces them to bypass it or work around it. Expose what callers must reason about.
-- **Shallow facade.** If it only forwards one call to one subsystem method, it adds a layer and a name without hiding anything. The cost (an extra hop, a place to look) exceeds the benefit.
-- **God object.** A facade that grows to cover every operation in the system becomes a dumping ground, coupling unrelated use cases and accumulating dependencies on everything.
-
-## Failure modes
-
-- The facade leaks subsystem types in its signatures, so callers end up coupled to internals anyway and the abstraction is illusory.
-- Error handling collapses distinct subsystem failures into one opaque exception, so callers can't respond appropriately.
-- The facade becomes the only allowed path and blocks legitimate advanced use, instead of being the convenient default while direct access remains possible.
 
 ## Relationship to other patterns
 
