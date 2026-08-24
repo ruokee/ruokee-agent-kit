@@ -12,13 +12,13 @@ This is the critical distinction, and getting it wrong in either direction cause
 
 **Coincidental similarity** is code that looks alike today for unrelated reasons and is driven by different forces. Two validators with the same structure that check different concepts; two handlers with parallel boilerplate but unrelated logic; test setup that resembles other test setup while pinning distinct scenarios. If the requirement behind one changed, the others would not move. These fragments are not duplication in the meaningful sense, they merely rhyme, and unifying them couples things that should evolve independently.
 
-The mistake of deduplicating coincidental similarity is more insidious than leaving real duplication, because it actively introduces coupling and a wrong abstraction that future changes have to fight. See [duplicated-code.md](./duplicated-code.md)'s sibling [dry](skills/code-quality/references/design-principles/dry.md) for the principle this rests on: DRY is about knowledge, not text.
+The mistake of deduplicating coincidental similarity is more insidious than leaving real duplication, because it actively introduces coupling and a wrong abstraction that future changes have to fight. See [duplicated-code.md](./duplicated-code.md)'s sibling [dry](../design-principles/dry.md) for the principle this rests on: DRY is about knowledge, not text.
 
 ## When to extract
 
 Extract when you have confirmed the fragments encode one piece of knowledge. For **high-risk knowledge**, security, permissions, money, protocol contracts, data consistency, a schema's single source of truth, extract on sight, even at the second occurrence. The cost of divergence in these areas is too high to wait.
 
-For ordinary code where you are fairly sure but the variation direction is not yet clear, the **Rule of Three** is the brake: write it once, tolerate it twice, and extract on the third occurrence or when the variation direction becomes clear. By the third instance you can usually see what genuinely varies and what stays fixed, which means you pick the right seam instead of guessing. See [rule-of-three](skills/code-quality/references/design-principles/rule-of-three.md).
+For ordinary code where you are fairly sure but the variation direction is not yet clear, the **Rule of Three** is the brake: write it once, tolerate it twice, and extract on the third occurrence or when the variation direction becomes clear. By the third instance you can usually see what genuinely varies and what stays fixed, which means you pick the right seam instead of guessing. See [rule-of-three](../design-principles/rule-of-three.md).
 
 ## When to leave it
 

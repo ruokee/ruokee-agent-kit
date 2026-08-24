@@ -42,7 +42,7 @@ Two ways to model domain data, distinguished by identity:
 
 Modeling something as a value object instead of bare primitives is one of the most useful DDD
 moves. Replacing `dict[str, Any]` or a loose `(amount, currency)` tuple with a `Money` value
-object fixes [primitive obsession](skills/code-quality/references/refactoring/primitive-obsession.md) and gives the invariants a home.
+object fixes [primitive obsession](../refactoring/primitive-obsession.md) and gives the invariants a home.
 
 ## Aggregates
 
@@ -66,7 +66,7 @@ an event for its own sake.
 
 When integrating with an external system or a legacy model whose concepts do not match yours, an
 anti-corruption layer (ACL) translates between the two so the foreign model does not leak into
-your clean domain. It is a domain-focused application of the [Adapter](skills/code-quality/references/design-patterns/adapter.md)
+your clean domain. It is a domain-focused application of the [Adapter](../design-patterns/adapter.md)
 pattern: the ACL speaks your ubiquitous language on the inside and the external system's
 language on the outside. This protects the core model from being corrupted by external naming
 and structure.

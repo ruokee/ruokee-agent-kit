@@ -1,6 +1,6 @@
 # Agent Note: Use document-relative links for file paths
 
-Status: proposed
+Status: implemented
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
 
@@ -12,19 +12,17 @@ The `File paths` rules currently replace a path that returns two or more directo
 
 File references need one form that supports GitHub's branch-aware relative-link navigation and click-through in local editors.
 
-## Proposal
+## Decision
 
-Update the `File paths` section in `AGENTS.md` to require Markdown links for repository file references that readers should follow. The link destination must be relative to the Markdown document containing the reference. Use `./` for the current directory or a descendant and repeat `../` as many times as needed. Do not replace multi-level traversal with a repository-root-relative destination, and do not start the destination with `/`.
+The `File paths` section in `AGENTS.md` requires Markdown links for repository file references that readers should follow. Each link destination is relative to the Markdown document containing the reference. Destinations in the current directory or a descendant use `./`; paths outside that tree use as many `../` segments as needed. A destination does not start with `/`, use a repository-root-relative path, or use an absolute GitHub URL for a file in this repository.
 
-When the link text names the file, keep that text repository-root-relative so the repository location remains clear. For example, a document under `docs/zh/` links to the architect Skill as:
+When the link text names the file, it remains repository-root-relative so the repository location stays clear. For example, a document under `docs/zh/` links to the architect Skill as:
 
 ```markdown
 [skills/architect/SKILL.md](../../skills/architect/SKILL.md)
 ```
 
 The visible path identifies the file from the repository root. The document-relative destination lets the same link navigate on GitHub and in a local editor.
-
-Update existing repository file references to follow the new rule.
 
 ## Alternatives considered
 
@@ -34,14 +32,8 @@ Update existing repository file references to follow the new rule.
 
 **Use absolute GitHub URLs.** They make navigation depend on a repository URL and branch instead of the checked-out document, so local editing no longer uses the same target.
 
-## Acceptance criteria
+## Consequences
 
-1. `AGENTS.md` requires document-relative Markdown destinations for navigable repository file references.
-2. The `File paths` rules use `./` and the required number of `../` segments without a multi-level exception.
-3. Link destinations do not begin with `/` and do not use absolute GitHub URLs for files in the same repository.
-4. A nested-document example uses one link that reaches the same file through GitHub and a local editor.
-5. Existing navigable repository file references are updated to follow the rule.
+Existing navigable repository file references now use document-relative destinations. GitHub resolves them against the current branch, and local editors can follow the same destinations.
 
-## Risks
-
-Moving a Markdown document changes the base for its relative destinations. A document move must update its affected links in the same change.
+Moving a Markdown document changes the base for its relative destinations. A document move must update affected links in the same change.

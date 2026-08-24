@@ -57,7 +57,7 @@ The declarative form makes the full set of cases visible in one place, is trivia
 
 - There is real control flow hidden behind the declaration, but the order of execution and the location of an error are invisible. When a declarative pipeline fails, the stack trace points into framework internals, not your intent.
 - Configuration grows until it is effectively a programming language: conditionals, loops, and templating expressed in YAML or TOML, with none of a language's tooling.
-- A DSL or extension point is built "for flexibility" but has exactly one call site. That is speculative structure; see [yagni](skills/code-quality/references/design-principles/yagni.md).
+- A DSL or extension point is built "for flexibility" but has exactly one call site. That is speculative structure; see [yagni](../design-principles/yagni.md).
 - Debugging requires understanding the engine's evaluation model, and that model is poorly documented or surprising.
 
 Declarative style trades explicit control flow for conciseness. That trade is worth it when the engine is trustworthy and the structure is stable, and harmful when you need to see and step through what actually happens.

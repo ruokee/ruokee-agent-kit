@@ -28,7 +28,7 @@
 
 **Flake8 插件**是交付自定义检查的既定方式：它是一个注册了 AST 访问器并在你的前缀下发出错误码的小型 Python 包。它成熟、文档完善，并且正是为此而构建的：定制的、项目本地的规则，完全控制逻辑。代价是仅为了托管这些自定义检查而让 Flake8 与 Ruff 一起运行。
 
-**Ruff** 拥有通用 linting 功能且速度很快，但在其中编写真正的自定义项目特定规则比编写 Flake8 插件更受限。大多数项目最终采用的实际分离方案是：让 Ruff 处理所有标准规则家族，并使用一个小的 Flake8 插件来承载 Ruff 无法表达的那几个项目特定规则。不要运行 Flake8 来重新检查 Ruff 已覆盖的规则；那是重复工作和冲突的配置。如果自定义规则的逻辑后来可以在 Ruff 中表达（或者 Ruff 增加了原生支持），将其迁移回来是合理的；选择服务于规则的可维护性，而不是工具的纯洁性。每个工具的具体细节在工具参考中（`variants/zh/skills/python-engineering/references/tooling/ruff.md`、`variants/zh/skills/python-engineering/references/tooling/flake8-plugin.md`）。
+**Ruff** 拥有通用 linting 功能且速度很快，但在其中编写真正的自定义项目特定规则比编写 Flake8 插件更受限。大多数项目最终采用的实际分离方案是：让 Ruff 处理所有标准规则家族，并使用一个小的 Flake8 插件来承载 Ruff 无法表达的那几个项目特定规则。不要运行 Flake8 来重新检查 Ruff 已覆盖的规则；那是重复工作和冲突的配置。如果自定义规则的逻辑后来可以在 Ruff 中表达（或者 Ruff 增加了原生支持），将其迁移回来是合理的；选择服务于规则的可维护性，而不是工具的纯洁性。每个工具的具体细节在工具参考中（[`variants/zh/skills/python-engineering/references/tooling/ruff.md`](../tooling/ruff.md)、[`variants/zh/skills/python-engineering/references/tooling/flake8-plugin.md`](../tooling/flake8-plugin.md)）。
 
 ## 规则运行的位置
 
@@ -37,4 +37,4 @@
 - **pre-commit** 在每个提交之前运行规则，在最早的廉价时刻捕获违规。这是快速、确定性的自定义检查发挥作用的地方：作者在审查之前立即看到失败。
 - **CI** 作为权威门控再次运行相同的规则，因为 pre-commit 可以被跳过、卸载或因机器而异。重要的规则必须不管本地设置如何在 CI 中运行。
 
-保持规则足够快速以用于 pre-commit；缓慢或需要网络访问的自定义检查只应放在 CI 中。两个门控之间的关系在 [pre-commit 参考](variants/zh/skills/python-engineering/references/tooling/pre-commit.md) 中有介绍：pre-commit 是早期、快速、可跳过的层，而 CI 是最终、完整、权威的层。
+保持规则足够快速以用于 pre-commit；缓慢或需要网络访问的自定义检查只应放在 CI 中。两个门控之间的关系在 [pre-commit 参考](../tooling/pre-commit.md) 中有介绍：pre-commit 是早期、快速、可跳过的层，而 CI 是最终、完整、权威的层。

@@ -11,7 +11,7 @@
 - **领域对象（Domain objects）**：由仓库返回的纯领域实体或聚合。
 - **应用/服务层（Application/service layer）**：使用仓库接口，而非具体实现。
 
-依赖方向向内流动：领域代码依赖仓库*接口*，具体实现依赖它持久化的领域对象。这是[依赖反转](variants/zh/skills/code-quality/references/design-principles/dependency-inversion.md)在持久化中的应用。
+依赖方向向内流动：领域代码依赖仓库*接口*，具体实现依赖它持久化的领域对象。这是[依赖反转](../design-principles/dependency-inversion.md)在持久化中的应用。
 
 ## 模式适用时
 
@@ -31,7 +31,7 @@
 
 ## 常见实现问题
 
-**接口膨胀。** 仓库增长出数十个查询方法后失去了其抽象价值。保持接口聚焦于[领域](variants/zh/skills/code-quality/references/design-principles/ddd.md)操作，而非通用查询构建器。
+**接口膨胀。** 仓库增长出数十个查询方法后失去了其抽象价值。保持接口聚焦于[领域](../design-principles/ddd.md)操作，而非通用查询构建器。
 
 **泄漏的抽象。** 暴露 ORM 特定概念（session、flush、懒加载、查询构建器）的方法破坏了目的。返回完全加载的领域对象。如果调用方需要分页、过滤或排序，将这些设计为仓库参数，而不是泄露 ORM 查询链。
 

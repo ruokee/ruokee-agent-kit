@@ -47,7 +47,7 @@ class Box(Generic[T]):
 
 当类型并非真正任意时，边界和约束可以强化泛型。绑定到 `Comparable` 协议的 `T`（`def maximum[T: Comparable](items: Iterable[T]) -> T`）表示"任何可排序的类型"而不是"字面上任何东西"，这允许函数体使用 `<` 并且检查器会拒绝不支持它的类型。当泛型体实际依赖于某个能力时才使用边界；当它确实不关心时保持参数无界。
 
-注意硬性的版本门控：PEP 695 语法在 3.12 以下版本是 `SyntaxError`。下限为 3.11 的项目仍必须使用 `TypeVar`/`Generic`。参见 [python-version](variants/zh/skills/python-engineering/references/project/python-version.md) 了解下限如何约束可用语法。
+注意硬性的版本门控：PEP 695 语法在 3.12 以下版本是 `SyntaxError`。下限为 3.11 的项目仍必须使用 `TypeVar`/`Generic`。参见 [python-version](../project/python-version.md) 了解下限如何约束可用语法。
 
 ## 类型别名
 
@@ -135,7 +135,7 @@ if TYPE_CHECKING:
 def load(user_id: int) -> "User": ...
 ```
 
-检查器能看到导入并验证注解；解释器从不运行它。这是打破仅注解的导入循环和延迟昂贵导入的首选工具，并且是对大多数人们使用 `from __future__ import annotations` 场景的正确答案；它在本地解决了前向引用和循环问题，而无需将整个模块提交给字符串化注解的语义。唯一要注意的是：在 `TYPE_CHECKING` 下导入的名称在运行时不存在，因此在运行时*读取*注解的代码（框架、ORM、序列化器、DI 容器）无法以简单方式解析它。当运行时自省很重要时，[python-version](variants/zh/skills/python-engineering/references/project/python-version.md) 中的版本特定行为规定了应如何读取注解。
+检查器能看到导入并验证注解；解释器从不运行它。这是打破仅注解的导入循环和延迟昂贵导入的首选工具，并且是对大多数人们使用 `from __future__ import annotations` 场景的正确答案；它在本地解决了前向引用和循环问题，而无需将整个模块提交给字符串化注解的语义。唯一要注意的是：在 `TYPE_CHECKING` 下导入的名称在运行时不存在，因此在运行时*读取*注解的代码（框架、ORM、序列化器、DI 容器）无法以简单方式解析它。当运行时自省很重要时，[python-version](../project/python-version.md) 中的版本特定行为规定了应如何读取注解。
 
 ## collections.abc 用于接口边界
 
@@ -162,7 +162,7 @@ def total(values: Iterable[int]) -> int:
 - **basedpyright**：一个更严格、有主见的 pyright 分支，可用作严格的交叉检查。它和 **ty** 都可以在 Zed 等编辑器中用作 LSP。
 - **ty**：一个快速的、集成 LSP 的检查器，专为紧密的编辑反馈循环和 CI 而设计。它较新，因此在成熟过程中可能会有行为变化；将其采用视为一个有意的、需持续观察的选择。
 
-一个项目选择一个作为门控；第二个可能临时启用用于迁移、发布或协调棘手的推断差异。详细的选择和配置权衡在工具参考中（[mypy](variants/zh/skills/python-engineering/references/tooling/mypy.md)、[basedpyright](variants/zh/skills/python-engineering/references/tooling/basedpyright.md)、[ty](variants/zh/skills/python-engineering/references/tooling/ty.md)）。在规范层面重要的是，*注解*被编写为单一、连贯的契约：检查器的选择是一个独立的、项目级别的决策，附加于其上。编写良好的类型化代码并不绑定于某一个检查器；它表达一个任何符合性检查器都能验证的清晰契约。
+一个项目选择一个作为门控；第二个可能临时启用用于迁移、发布或协调棘手的推断差异。详细的选择和配置权衡在工具参考中（[mypy](../tooling/mypy.md)、[basedpyright](../tooling/basedpyright.md)、[ty](../tooling/ty.md)）。在规范层面重要的是，*注解*被编写为单一、连贯的契约：检查器的选择是一个独立的、项目级别的决策，附加于其上。编写良好的类型化代码并不绑定于某一个检查器；它表达一个任何符合性检查器都能验证的清晰契约。
 
 ## 运行时类型检查
 

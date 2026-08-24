@@ -4,11 +4,11 @@
 
 依恋情结是一个方法似乎对另一个对象比对自己所属的对象更感兴趣。它深入到另一个对象中，取出其若干数据，并做本应由该对象自己完成的计算。该方法"嫉妒"它正在操作的类的特性。经典的形态是 `A` 上的一个方法调用 `b.x`、`b.y`、`b.z` 并组合它们，而几乎不碰 `A` 自己的状态。
 
-这个坏味之所以重要，是因为它将行为放在了错误的位置。逻辑依赖于另一个对象的内部，因此当那些内部变化时，这个远方的方法也会被破坏：本不应存在的耦合。而拥有数据的对象则变得贫血，成为一个装字段的袋子，而属于它的操作却在别处。这是行为应与其所需数据共存这一原则的逆反（参见 [tell-dont-ask](variants/zh/skills/code-quality/references/design-principles/tell-dont-ask.md) 和 GRASP 的信息专家，[grasp](variants/zh/skills/code-quality/references/design-principles/grasp.md)）。
+这个坏味之所以重要，是因为它将行为放在了错误的位置。逻辑依赖于另一个对象的内部，因此当那些内部变化时，这个远方的方法也会被破坏：本不应存在的耦合。而拥有数据的对象则变得贫血，成为一个装字段的袋子，而属于它的操作却在别处。这是行为应与其所需数据共存这一原则的逆反（参见 [tell-dont-ask](../design-principles/tell-dont-ask.md) 和 GRASP 的信息专家，[grasp](../design-principles/grasp.md)）。
 
 ## 信号
 
-审视一个方法，数一数它触碰了谁的数据。如果它访问另一个对象的字段和方法比自己对象的多，那就是依恋。一个可靠的具体信号是一系列 `other.a`、`other.b`、`other.c` 馈入一个计算，尤其是当这些访问是[得墨忒耳定律](variants/zh/skills/code-quality/references/design-principles/law-of-demeter.md)的火车残骸链时，调用方穿过它不应知道的结构进行访问。
+审视一个方法，数一数它触碰了谁的数据。如果它访问另一个对象的字段和方法比自己对象的多，那就是依恋。一个可靠的具体信号是一系列 `other.a`、`other.b`、`other.c` 馈入一个计算，尤其是当这些访问是[得墨忒耳定律](../design-principles/law-of-demeter.md)的火车残骸链时，调用方穿过它不应知道的结构进行访问。
 
 ```python
 # Envious: the method lives on Order but is all about customer.address

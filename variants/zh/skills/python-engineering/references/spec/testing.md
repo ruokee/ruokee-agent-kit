@@ -1,12 +1,12 @@
 # 测试规范
 
-本文档说明如何组织和编写 pytest 测试套件，涵盖测试位置、命名、fixture、参数化、mock、异步测试和可维护的 pytest 惯用法。发现、导入模式、标记、严格模式、配置和插件等运行器配置见 [pytest](variants/zh/skills/python-engineering/references/tooling/pytest.md)。
+本文档说明如何组织和编写 pytest 测试套件，涵盖测试位置、命名、fixture、参数化、mock、异步测试和可维护的 pytest 惯用法。发现、导入模式、标记、严格模式、配置和插件等运行器配置见 [pytest](../tooling/pytest.md)。
 
 测试应该与代码的*行为*耦合，并与其*结构*解耦。测试一个单元从外部做了什么，例如返回值、抛出的异常和记录的副作用。不要测试它内部如何完成工作。
 
 ## 测试组织
 
-测试放在顶层 `tests/` 目录中，与生产包分开，这样测试可以像真实使用者一样导入并使用包，且发现行为保持可预测（关于 src 布局为什么强化这一点，参见[项目结构](variants/zh/skills/python-engineering/references/project/structure.md)）。这种布局使测试保持在*可导入的*包之外，但本身并不决定 sdist 或 wheel 最终包含什么；那由构建后端的包发现和 include/exclude 配置决定，因此如果确实需要从分发产物中排除测试，应检查构建产物。以*被测行为*命名测试文件和函数，而不是它们碰巧触及的实现文件：`test_expired_token_is_rejected` 告诉读者系统保证了什么；`test_validate` 只告诉读者哪个函数跑了。对于大型库或框架，松散地镜像包树有助于定位测试，但镜像只是导航辅助，不是每个模块都要有对应测试文件的规则。测试应得到与生产代码同等的关注：清晰的名字、没有复制粘贴的蔓延、以及显而易见的意图。
+测试放在顶层 `tests/` 目录中，与生产包分开，这样测试可以像真实使用者一样导入并使用包，且发现行为保持可预测（关于 src 布局为什么强化这一点，参见[项目结构](../project/structure.md)）。这种布局使测试保持在*可导入的*包之外，但本身并不决定 sdist 或 wheel 最终包含什么；那由构建后端的包发现和 include/exclude 配置决定，因此如果确实需要从分发产物中排除测试，应检查构建产物。以*被测行为*命名测试文件和函数，而不是它们碰巧触及的实现文件：`test_expired_token_is_rejected` 告诉读者系统保证了什么；`test_validate` 只告诉读者哪个函数跑了。对于大型库或框架，松散地镜像包树有助于定位测试，但镜像只是导航辅助，不是每个模块都要有对应测试文件的规则。测试应得到与生产代码同等的关注：清晰的名字、没有复制粘贴的蔓延、以及显而易见的意图。
 
 ## 消除重复而非制造重复的 Fixture
 
@@ -14,10 +14,10 @@ Fixture 按名字请求：测试把 fixture 声明为参数，pytest 找到它�
 
 两者都通过同一条纪律解决：
 
-- **把共享 fixture 放在正确的层级。** [pytest](variants/zh/skills/python-engineering/references/tooling/pytest.md) 覆盖了 `conftest.py` 的加载和可见性机制；这里只讲放在哪里的判断。跨套件共用的 fixture 放在根 `conftest.py`；只由某子树使用的放在该子树的 `conftest.py`。这是"同一个 fixture 在几个地方定义、微妙不同"的直接解法：在正确层级*定义一次*，而不是散落近似副本。在嵌套 `conftest.py` 里*有意*覆盖某个 fixture 为子树定制是受支持的模式，不算重复：坏味道说的是*意外*的近似副本，不是有意的子树特化。
+- **把共享 fixture 放在正确的层级。** [pytest](../tooling/pytest.md) 覆盖了 `conftest.py` 的加载和可见性机制；这里只讲放在哪里的判断。跨套件共用的 fixture 放在根 `conftest.py`；只由某子树使用的放在该子树的 `conftest.py`。这是"同一个 fixture 在几个地方定义、微妙不同"的直接解法：在正确层级*定义一次*，而不是散落近似副本。在嵌套 `conftest.py` 里*有意*覆盖某个 fixture 为子树定制是受支持的模式，不算重复：坏味道说的是*意外*的近似副本，不是有意的子树特化。
 - **先发现再定义。** `pytest --fixtures` 列出每个可用 fixture 和来源。写新 fixture 前跑一下，复用已有的而不是加第六个近似副本。
 - **Fixture 保持小巧、以提供的内容命名**（`temp_db`、`authenticated_client`），组合使用。测试的参数列表应该就是它的依赖列表。抵制构建一切的"上帝 fixture"；这是 Meszaros 的 General Fixture 坏味道，让每个测试都变晦涩。
-- **作用域为隔离服务，只为成本才拓宽。** [pytest](variants/zh/skills/python-engineering/references/tooling/pytest.md) 文档了作用域级别和 `yield` teardown；判断准则是停留在默认值（每个测试全新状态，隔离基线），只有真正昂贵*且*安全可共享的 setup 才拓宽：拓宽是用隔离换速度。Fixture 需要清理时，一个 setup 配一个 teardown，而不是把几个脆弱的 setup 堆进一个 fixture。
+- **作用域为隔离服务，只为成本才拓宽。** [pytest](../tooling/pytest.md) 文档了作用域级别和 `yield` teardown；判断准则是停留在默认值（每个测试全新状态，隔离基线），只有真正昂贵*且*安全可共享的 setup 才拓宽：拓宽是用隔离换速度。Fixture 需要清理时，一个 setup 配一个 teardown，而不是把几个脆弱的 setup 堆进一个 fixture。
 
 ```python
 # conftest.py: 一个定义，可组合，默认函数作用域
@@ -59,7 +59,7 @@ def test_admins_can_publish(make_user: Callable[..., User]) -> None:
 
 ## 参数化：把案例变成数据
 
-[pytest](variants/zh/skills/python-engineering/references/tooling/pytest.md) 覆盖 `@pytest.mark.parametrize` 的机制。对测试*质量*而言重要的是什么时候该用、什么时候不该用：参数化是用*更少更强*的测试代替复制粘贴的测试代码的方式：把对不同数据的同一检查做成一张可见的表格。
+[pytest](../tooling/pytest.md) 覆盖 `@pytest.mark.parametrize` 的机制。对测试*质量*而言重要的是什么时候该用、什么时候不该用：参数化是用*更少更强*的测试代替复制粘贴的测试代码的方式：把对不同数据的同一检查做成一张可见的表格。
 
 ```python
 @pytest.mark.parametrize(

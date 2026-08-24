@@ -48,7 +48,7 @@ Ruff implements many Flake8 plugin rule sets natively. Before writing a custom p
 
 Custom project-specific plugins remain valuable because Ruff does not support arbitrary user-defined AST visitors. Projects that need truly custom structural checks still need Flake8 plugins (or alternative approaches: custom Ruff rules via the unstable plugin API, or standalone AST scripts run in [pre-commit](./pre-commit.md)).
 
-The relationship to [custom lint specification](skills/python-engineering/references/spec/custom-lint.md) is: the spec document defines *what* project-specific rules to create and *how to think about* rule design; this document covers the Flake8 plugin *mechanism* for implementing and running those rules.
+The relationship to [custom lint specification](../spec/custom-lint.md) is: the spec document defines *what* project-specific rules to create and *how to think about* rule design; this document covers the Flake8 plugin *mechanism* for implementing and running those rules.
 
 ## Error Message Design
 

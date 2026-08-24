@@ -21,7 +21,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 `Motivation` 记录为什么要考虑这项决定。内容可以说明已经观察到的问题、需求、希望获得的能力或其他具体变更理由。名称变得中性，不代表可以含糊地说明理由。
 
-`.agents/notes/README.md` 和 `.agents/notes/README.zh.md` 的固定格式示例与编写规则使用新标题，相邻规则明确说明动机可以包含问题、需求和希望增加的内容。拥有 Agent Note 机制决定的 implemented Note 在其 `## 变更` 章节记录了本次格式调整。
+[`.agents/notes/README.md`](../README.md) 和 [`.agents/notes/README.zh.md`](../README.zh.md) 的固定格式示例与编写规则使用新标题，相邻规则明确说明动机可以包含问题、需求和希望增加的内容。拥有 Agent Note 机制决定的 implemented Note 在其 `## 变更` 章节记录了本次格式调整。
 
 所有现有 Note 在同一变更中一并迁移：除本 Note 与机制 Note 的政策修改外，其他现有 Note 的迁移只改动起始标题。迁移之后，不再有任何 Note 正文以旧标题开始。本 Note 与机制 Note 的 Changes 记录中对旧标题的历史引用保持原样。
 

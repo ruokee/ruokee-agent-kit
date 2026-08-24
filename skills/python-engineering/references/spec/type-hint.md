@@ -47,7 +47,7 @@ Generics earn their place when a real type relationship needs preserving: a cont
 
 Bounds and constraints sharpen a generic when the type is not truly arbitrary. A `T` bound to a `Comparable` protocol (`def maximum[T: Comparable](items: Iterable[T]) -> T`) says "any orderable type" rather than "literally anything," which lets the body use `<` and the checker reject a type that does not support it. Reach for a bound when the generic body actually depends on a capability; leave the parameter unbounded when it genuinely does not care.
 
-Note the hard version gate: PEP 695 syntax is a `SyntaxError` below 3.12. A project with a 3.11 floor must still use `TypeVar`/`Generic`. See [python-version](skills/python-engineering/references/project/python-version.md) for how the floor constrains available syntax.
+Note the hard version gate: PEP 695 syntax is a `SyntaxError` below 3.12. A project with a 3.11 floor must still use `TypeVar`/`Generic`. See [python-version](../project/python-version.md) for how the floor constrains available syntax.
 
 ## Type Aliases
 
@@ -135,7 +135,7 @@ if TYPE_CHECKING:
 def load(user_id: int) -> "User": ...
 ```
 
-The checker sees the import and validates the annotation; the interpreter never runs it. This is the preferred tool for breaking annotation-only import cycles and deferring expensive imports, and it is the right answer to most situations where `from __future__ import annotations` is reached for; it solves the forward-reference and cycle problem locally, without committing the whole module to stringized-annotation semantics. The one caveat: a name imported under `TYPE_CHECKING` does not exist at runtime, so any code that *reads* annotations at runtime (frameworks, ORMs, serializers, DI containers) cannot resolve it the naive way. When runtime introspection matters, the version-specific behavior in [python-version](skills/python-engineering/references/project/python-version.md) governs how annotations should be read.
+The checker sees the import and validates the annotation; the interpreter never runs it. This is the preferred tool for breaking annotation-only import cycles and deferring expensive imports, and it is the right answer to most situations where `from __future__ import annotations` is reached for; it solves the forward-reference and cycle problem locally, without committing the whole module to stringized-annotation semantics. The one caveat: a name imported under `TYPE_CHECKING` does not exist at runtime, so any code that *reads* annotations at runtime (frameworks, ORMs, serializers, DI containers) cannot resolve it the naive way. When runtime introspection matters, the version-specific behavior in [python-version](../project/python-version.md) governs how annotations should be read.
 
 ## collections.abc For Interface Boundaries
 
@@ -162,7 +162,7 @@ Static type checkers read the annotations without running the code, catching con
 - **basedpyright**: a stricter, opinionated fork of pyright, useful as a strict cross-check. It and **ty** can both serve as the LSP in editors like Zed.
 - **ty**: a fast, LSP-integrated checker built for a tight edit-feedback loop and CI. It is newer, so expect occasional behavior changes as it matures; treat adoption as a deliberate, watched choice.
 
-A project picks one as its gate; a second may be enabled temporarily for a migration, a release, or to reconcile a tricky inference difference. The detailed selection and configuration tradeoffs live in the tooling references ([mypy](skills/python-engineering/references/tooling/mypy.md), [basedpyright](skills/python-engineering/references/tooling/basedpyright.md), [ty](skills/python-engineering/references/tooling/ty.md)). What matters at the spec level is that the *annotations* are written to a single, coherent contract; the checker choice is a separate, project-level decision layered on top. Well-typed code does not bind itself to one checker; it expresses one clear contract that any conformant checker can verify.
+A project picks one as its gate; a second may be enabled temporarily for a migration, a release, or to reconcile a tricky inference difference. The detailed selection and configuration tradeoffs live in the tooling references ([mypy](../tooling/mypy.md), [basedpyright](../tooling/basedpyright.md), [ty](../tooling/ty.md)). What matters at the spec level is that the *annotations* are written to a single, coherent contract; the checker choice is a separate, project-level decision layered on top. Well-typed code does not bind itself to one checker; it expresses one clear contract that any conformant checker can verify.
 
 ## Runtime Type Checking
 

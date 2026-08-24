@@ -40,8 +40,8 @@ class DateRange:
 ## 常见错误
 
 - **万物皆类。** 将简单的纯计算和数据转换强行塞入不持有任何状态的类。一个函数模块更清晰。
-- **贫血模型。** `Manager`、`Service` 和 `Helper` 类吸收了所有行为，而"领域对象"被简化为一个公共字段的袋子。数据及其治理规则被分割开来：与 OO 的目的背道而驰。参见 [tell-dont-ask](variants/zh/skills/code-quality/references/design-principles/tell-dont-ask.md)。
-- **深层继承。** 使用子类化来共享实现而不是替代行为。每一层增加了 MRO 复杂性和隐藏的耦合。优先使用组合；参见 [composition-over-inheritance](variants/zh/skills/code-quality/references/design-principles/composition-over-inheritance.md)。
+- **贫血模型。** `Manager`、`Service` 和 `Helper` 类吸收了所有行为，而"领域对象"被简化为一个公共字段的袋子。数据及其治理规则被分割开来：与 OO 的目的背道而驰。参见 [tell-dont-ask](../design-principles/tell-dont-ask.md)。
+- **深层继承。** 使用子类化来共享实现而不是替代行为。每一层增加了 MRO 复杂性和隐藏的耦合。优先使用组合；参见 [composition-over-inheritance](../design-principles/composition-over-inheritance.md)。
 - **套用 Java/C++ 的仪式。** 为每次协作引入接口、抽象基类和工厂层，而 Python 会使用函数、小型 `Protocol` 或 `dataclass`。
 
 贫血模型陷阱值得具体看看。贫血版本将规则分散到每个调用者：
@@ -71,7 +71,7 @@ class Account:
         self._balance -= amount
 ```
 
-区别不在于风格。在第一种形式中，忘记检查的新调用者会破坏余额；在第二种形式中，不变量无法被绕过。这就是 [tell-dont-ask](variants/zh/skills/code-quality/references/design-principles/tell-dont-ask.md) 原则的实践。
+区别不在于风格。在第一种形式中，忘记检查的新调用者会破坏余额；在第二种形式中，不变量无法被绕过。这就是 [tell-dont-ask](../design-principles/tell-dont-ask.md) 原则的实践。
 
 ## Python 特定
 

@@ -24,7 +24,7 @@ After the split, each resulting module has a single axis of change: you edit the
 
 ## Relationship to SRP and Shotgun Surgery
 
-Divergent Change is the **Single Responsibility Principle** stated as a smell. Uncle Martin framed SRP as "a module should have one reason to change." Divergent Change violates that property because the module has many reasons to change. The cure is to find the distinct actors or forces that drive change and give each its own module. See [solid](skills/code-quality/references/design-principles/solid.md).
+Divergent Change is the **Single Responsibility Principle** stated as a smell. Uncle Martin framed SRP as "a module should have one reason to change." Divergent Change violates that property because the module has many reasons to change. The cure is to find the distinct actors or forces that drive change and give each its own module. See [solid](../design-principles/solid.md).
 
 It is also the **inverse of Shotgun Surgery**, and the two must be balanced against each other:
 

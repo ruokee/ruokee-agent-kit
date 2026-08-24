@@ -40,10 +40,10 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 
 ## File paths
 
-- Prefix paths to files in the current directory or a descendant directory with `./`.
-- Use one `../` when a path only needs to return to the parent directory.
-- When a target requires returning two or more directory levels, write the path from the repository root without a leading `/`.
-- For example, a document under `docs/zh/` must refer to the `<skill>` Skill as `skills/<skill>/SKILL.md`, not `../../skills/<skill>/SKILL.md`.
+- Use Markdown links for repository file references that readers should follow, with each destination relative to the Markdown document containing it.
+- Prefix destinations in the current directory or a descendant directory with `./`. Use as many `../` segments as needed to reach files outside that tree.
+- Do not use a leading `/`, a repository-root-relative destination, or an absolute GitHub URL for a file in this repository.
+- When the link text names a file, write it from the repository root without a leading `/`. For example, a document under `docs/zh/` links to the `<skill>` Skill as `[skills/<skill>/SKILL.md](../../skills/<skill>/SKILL.md)`.
 
 ## Validation
 

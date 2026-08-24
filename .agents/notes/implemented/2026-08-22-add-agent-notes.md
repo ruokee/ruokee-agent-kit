@@ -57,7 +57,7 @@ Authors may begin in either language. Both files must be complete in the same ch
 
 The maintainer owns lifecycle decisions. Agents may research, draft, implement, and review notes within an authorized change, but may not accept, reject, or archive a note without explicit approval.
 
-The complete policy lives in `.agents/notes/README.md` with a Chinese counterpart. Short subtree instructions live in `.agents/notes/AGENTS.md`; the root `AGENTS.md` contains only a trigger and ownership summary.
+The complete policy lives in [`.agents/notes/README.md`](../README.md) with a Chinese counterpart. Short subtree instructions live in [`.agents/notes/AGENTS.md`](../AGENTS.md); the root `AGENTS.md` contains only a trigger and ownership summary.
 
 The first version has no dedicated Skill, classification system, translation sidecar, archive manifest, or custom checker. A mechanical check is added only after repeated maintenance or a real failure identifies an invariant worth automating.
 

@@ -51,4 +51,4 @@ uvx pre-commit run --all-files
 
 ## 许可证
 
-Ruokee Agent Kit 使用 [MIT License](LICENSE)。
+Ruokee Agent Kit 使用 [MIT License](../../LICENSE)。

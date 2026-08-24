@@ -80,4 +80,4 @@ def logged(func):
     return wrapper
 ```
 
-Without `wraps`, introspection, documentation tooling, `help()`, and test reporting all see the wrapper's identity instead of the original. `__wrapped__` also lets tools unwrap to the underlying function. See [`decorator`](skills/python-engineering/references/grammar/decorator.md) for the broader decorator mechanics this supports.
+Without `wraps`, introspection, documentation tooling, `help()`, and test reporting all see the wrapper's identity instead of the original. `__wrapped__` also lets tools unwrap to the underlying function. See [`decorator`](../grammar/decorator.md) for the broader decorator mechanics this supports.

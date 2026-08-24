@@ -24,7 +24,7 @@
 
 ## 与 SRP 和霰弹式修改的关系
 
-发散式修改本质上是**单一职责原则**作为坏味的表达。Uncle Martin 对 SRP 的阐述，"一个模块应该只有一个变更原因"，正是发散式修改所违反的：该模块有许多变更原因。因此疗法是 SRP 疗法：找到驱动变更的不同角色或力量，给每个自己的模块。参见 [solid](variants/zh/skills/code-quality/references/design-principles/solid.md)。
+发散式修改本质上是**单一职责原则**作为坏味的表达。Uncle Martin 对 SRP 的阐述，"一个模块应该只有一个变更原因"，正是发散式修改所违反的：该模块有许多变更原因。因此疗法是 SRP 疗法：找到驱动变更的不同角色或力量，给每个自己的模块。参见 [solid](../design-principles/solid.md)。
 
 它也是**霰弹式修改的逆反**，两者必须相互平衡：
 

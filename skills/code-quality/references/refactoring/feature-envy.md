@@ -4,11 +4,11 @@
 
 Feature Envy is a method that seems more interested in another object than the one it belongs to. It reaches into a second object, pulls out several pieces of its data, and does the calculation that the other object should have done itself. The method "envies" the features of the class it is operating on. The classic shape is a method on `A` that calls `b.x`, `b.y`, `b.z` and combines them, while barely touching `A`'s own state.
 
-The smell matters because it puts behavior in the wrong place. The logic depends on another object's internals, so when those internals change, this distant method breaks; coupling that should not exist. And the object that owns the data is left anemic, a bag of fields with the operations that belong to it living elsewhere. This is the inverse of the principle that behavior should live with the data it needs (see [tell-dont-ask](skills/code-quality/references/design-principles/tell-dont-ask.md) and GRASP's Information Expert in [grasp](skills/code-quality/references/design-principles/grasp.md)).
+The smell matters because it puts behavior in the wrong place. The logic depends on another object's internals, so when those internals change, this distant method breaks; coupling that should not exist. And the object that owns the data is left anemic, a bag of fields with the operations that belong to it living elsewhere. This is the inverse of the principle that behavior should live with the data it needs (see [tell-dont-ask](../design-principles/tell-dont-ask.md) and GRASP's Information Expert in [grasp](../design-principles/grasp.md)).
 
 ## The signal
 
-Look at a method and count whose data it touches. If it accesses another object's fields and methods more than its own, that is the envy. A reliable concrete signal is a sequence of `other.a`, `other.b`, `other.c` feeding a computation; especially when those accesses are the train-wreck chains of [law-of-demeter](skills/code-quality/references/design-principles/law-of-demeter.md), where the caller is reaching through structure it should not know about.
+Look at a method and count whose data it touches. If it accesses another object's fields and methods more than its own, that is the envy. A reliable concrete signal is a sequence of `other.a`, `other.b`, `other.c` feeding a computation; especially when those accesses are the train-wreck chains of [law-of-demeter](../design-principles/law-of-demeter.md), where the caller is reaching through structure it should not know about.
 
 ```python
 # Envious: the method lives on Order but is all about customer.address

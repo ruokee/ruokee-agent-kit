@@ -2,7 +2,7 @@
 
 The GoF State Pattern eliminates conditional logic for state-dependent behavior by delegating to polymorphic state objects. A Context holds a reference to a current State object. Each concrete State class implements the same interface, providing behavior specific to that state. State transitions replace the Context's current state reference.
 
-This is one specific OO implementation of state-machine behavior. It is not synonymous with state machines in general; many state machines are better served by simpler representations: enum + transition table, reducer functions, `match`/`case`, or dispatch maps. Always start with [state-machine modeling](skills/code-quality/references/programming-paradigms/state-machine.md) to define states, events, transitions, guards, and invalid-transition policy before deciding whether the State Pattern adds value over simpler implementations.
+This is one specific OO implementation of state-machine behavior. It is not synonymous with state machines in general; many state machines are better served by simpler representations: enum + transition table, reducer functions, `match`/`case`, or dispatch maps. Always start with [state-machine modeling](../programming-paradigms/state-machine.md) to define states, events, transitions, guards, and invalid-transition policy before deciding whether the State Pattern adds value over simpler implementations.
 
 ## Structure
 
@@ -44,6 +44,6 @@ This is one specific OO implementation of state-machine behavior. It is not syno
 
 The State Pattern is an implementation technique. State-machine modeling is a design technique. A state machine can be implemented as an enum + transition table, a reducer, a `match` block, a dispatch map, a dedicated library, *or* the GoF State Pattern. The State Pattern earns its keep only when each state carries substantial behavior that benefits from polymorphic dispatch.
 
-If you only need to track legal transitions and run side effects during a transition, without giving each state a rich behavioral interface, a [transition table](skills/code-quality/references/programming-paradigms/state-machine.md) is simpler and easier to audit.
+If you only need to track legal transitions and run side effects during a transition, without giving each state a rich behavioral interface, a [transition table](../programming-paradigms/state-machine.md) is simpler and easier to audit.
 
 [Command Pattern](./command.md) encapsulates requests rather than states; it complements State when transitions queue commands for later execution.

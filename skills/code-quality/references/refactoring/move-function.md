@@ -23,7 +23,7 @@ class AccountType:
 
 ## Signals it's time to move
 
-- **Feature Envy.** The clearest signal: a function uses another object's data more than its own. The fix for the smell in [feature-envy.md](./feature-envy.md) is usually Move Function; relocate the behavior to the object whose data it craves. This follows the GRASP Information Expert idea: put behavior where the information lives (`skills/code-quality/references/design-principles/grasp.md`).
+- **Feature Envy.** The clearest signal: a function uses another object's data more than its own. The fix for the smell in [feature-envy.md](./feature-envy.md) is usually Move Function; relocate the behavior to the object whose data it craves. This follows the GRASP Information Expert idea: put behavior where the information lives ([`skills/code-quality/references/design-principles/grasp.md`](../design-principles/grasp.md)).
 - **Coupling direction.** When a function in module A depends heavily on module B but barely on its own module, the dependency arrow is fighting the code's location. Moving the function to B can straighten the dependency graph and reduce coupling.
 - **Co-change.** When a function consistently changes together with code in another module, you always edit them in the same commit, they probably belong together. This is the [shotgun-surgery.md](./shotgun-surgery.md) signal pointing toward consolidation.
 

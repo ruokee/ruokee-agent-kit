@@ -32,7 +32,7 @@ The complement is **information leakage**: when a design decision shows up in mu
 so a change forces edits in all of them. A storage format known to both the reader and the
 writer, a wire protocol detail visible to every caller, an error-mapping convention duplicated
 across layers; these are leaks. Leakage is the deeper cause behind smells like
-[shotgun surgery](skills/code-quality/references/refactoring/shotgun-surgery.md), and information hiding is how
+[shotgun surgery](../refactoring/shotgun-surgery.md), and information hiding is how
 [DRY](./dry.md) applies to design decisions, not just code: the knowledge lives in one module.
 
 ## What makes a good abstraction
@@ -84,4 +84,4 @@ must assemble many of them to get anything done.
 - An adapter layer is a natural deep module: it hides a third-party library's details behind a
   small interface, while still surfacing the errors and performance characteristics callers must
   account for. This is the structural basis of the [anti-corruption layer](./ddd.md) and the
-  [Adapter](skills/code-quality/references/design-patterns/adapter.md) pattern.
+  [Adapter](../design-patterns/adapter.md) pattern.

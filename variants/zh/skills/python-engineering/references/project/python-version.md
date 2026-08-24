@@ -25,11 +25,11 @@
 
 每个近期版本都增加了能力，只有当下限达到该版本时才能使用。因此选择下限也就是选择哪些特性可用：
 
-- **3.10** 带来了结构模式匹配（`match`/`case`）、注解中的 `X | Y` 联合运算符以及带括号的上下文管理器。参见 [match-case](variants/zh/skills/python-engineering/references/grammar/match-case.md) 了解模式匹配何时值得使用。
-- **3.11** 带来了用于并发和批量失败的 `ExceptionGroup` 和 `except*`、通过 `add_note()` 实现的异常注释，以及 `Self` 类型。参见 [exception-groups](variants/zh/skills/python-engineering/references/grammar/exception-groups.md)。
-- **3.12** 带来了 PEP 695：`type X = ...` 别名语句和内联泛型参数（`def f[T](x: T) -> T`），以及 `typing.override`。这些消除了大部分 `TypeVar`/`Generic` 样板代码，但是一个严格的语法门控：在 [type-hint](variants/zh/skills/python-engineering/references/spec/type-hint.md) 中详细介绍。
+- **3.10** 带来了结构模式匹配（`match`/`case`）、注解中的 `X | Y` 联合运算符以及带括号的上下文管理器。参见 [match-case](../grammar/match-case.md) 了解模式匹配何时值得使用。
+- **3.11** 带来了用于并发和批量失败的 `ExceptionGroup` 和 `except*`、通过 `add_note()` 实现的异常注释，以及 `Self` 类型。参见 [exception-groups](../grammar/exception-groups.md)。
+- **3.12** 带来了 PEP 695：`type X = ...` 别名语句和内联泛型参数（`def f[T](x: T) -> T`），以及 `typing.override`。这些消除了大部分 `TypeVar`/`Generic` 样板代码，但是一个严格的语法门控：在 [type-hint](../spec/type-hint.md) 中详细介绍。
 - **3.13** 带来了 `warnings.deprecated()` 作为运行时和静态的弃用标记、类型参数默认值，以及实验性的自由线程构建。
-- **3.14** 带来了默认启用的延迟注解求值（PEP 649/749）、用于读取注解的 `annotationlib` 以及模板字符串。在运行时*读取*注解的代码，框架、ORM、序列化器、DI 容器，需要验证与此行为的兼容性；参见 [type-hint](variants/zh/skills/python-engineering/references/spec/type-hint.md)。
+- **3.14** 带来了默认启用的延迟注解求值（PEP 649/749）、用于读取注解的 `annotationlib` 以及模板字符串。在运行时*读取*注解的代码，框架、ORM、序列化器、DI 容器，需要验证与此行为的兼容性；参见 [type-hint](../spec/type-hint.md)。
 
 特性可用并不意味着就应该使用它。模式匹配、异常组和泛型各自都有狭窄的适用区域；门控只决定选项是否存在。
 

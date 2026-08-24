@@ -25,11 +25,11 @@ The floor is the highest of these lower bounds. Lower than that and something br
 
 Each recent release adds capabilities that become usable only once the floor reaches that version. Choosing a floor is therefore also choosing which of these are on the table:
 
-- **3.10** brings structural pattern matching (`match`/`case`), the `X | Y` union operator in annotations, and parenthesized context managers. See [match-case](skills/python-engineering/references/grammar/match-case.md) for when pattern matching earns its place.
-- **3.11** brings `ExceptionGroup` and `except*` for concurrent and batched failures, exception notes via `add_note()`, and `Self` in typing. See [exception-groups](skills/python-engineering/references/grammar/exception-groups.md).
-- **3.12** brings PEP 695: the `type X = ...` alias statement and inline generic parameters (`def f[T](x: T) -> T`), plus `typing.override`. These remove most `TypeVar`/`Generic` boilerplate but are a hard syntax gate; covered in [type-hint](skills/python-engineering/references/spec/type-hint.md).
+- **3.10** brings structural pattern matching (`match`/`case`), the `X | Y` union operator in annotations, and parenthesized context managers. See [match-case](../grammar/match-case.md) for when pattern matching earns its place.
+- **3.11** brings `ExceptionGroup` and `except*` for concurrent and batched failures, exception notes via `add_note()`, and `Self` in typing. See [exception-groups](../grammar/exception-groups.md).
+- **3.12** brings PEP 695: the `type X = ...` alias statement and inline generic parameters (`def f[T](x: T) -> T`), plus `typing.override`. These remove most `TypeVar`/`Generic` boilerplate but are a hard syntax gate; covered in [type-hint](../spec/type-hint.md).
 - **3.13** brings `warnings.deprecated()` as a runtime-and-static deprecation marker, type parameter defaults, and an experimental free-threaded build.
-- **3.14** brings deferred annotation evaluation by default (PEP 649/749), `annotationlib` for reading annotations, and template strings. Code that *reads* annotations at runtime, including frameworks, ORMs, serializers, and DI containers, needs verification against this behavior; see [type-hint](skills/python-engineering/references/spec/type-hint.md).
+- **3.14** brings deferred annotation evaluation by default (PEP 649/749), `annotationlib` for reading annotations, and template strings. Code that *reads* annotations at runtime, including frameworks, ORMs, serializers, and DI containers, needs verification against this behavior; see [type-hint](../spec/type-hint.md).
 
 A feature being available is not a reason to use it. Pattern matching, exception groups, and generics each have a narrow zone where they help; the gate only decides whether the option exists.
 

@@ -55,7 +55,7 @@ class Endpoint:
 
 对于可变默认值使用 `default_factory`：裸的 `[]` 或 `{}` 在实例之间共享，是一个经典错误。`frozen=True` 使实例可哈希且不可变；`kw_only=True` 避免随着字段增多而出现位置参数脆弱性；`slots=True` 减少内存并阻止意外的属性拼写错误。
 
-对于行为很少的纯数据选择 dataclass。当需要更丰富的验证钩子或转换器而不引入完整框架时，使用 `attrs`；当需要对外部/不可信输入（请求体、配置文件）进行运行时解析和验证时，使用 pydantic。dataclass 在运行时验证任何内容；其注解是提示，而非守卫。参见 [`match-case`](variants/zh/skills/python-engineering/references/grammar/match-case.md) 了解如何匹配 dataclass 字段。
+对于行为很少的纯数据选择 dataclass。当需要更丰富的验证钩子或转换器而不引入完整框架时，使用 `attrs`；当需要对外部/不可信输入（请求体、配置文件）进行运行时解析和验证时，使用 pydantic。dataclass 在运行时验证任何内容；其注解是提示，而非守卫。参见 [`match-case`](../grammar/match-case.md) 了解如何匹配 dataclass 字段。
 
 ## logging
 

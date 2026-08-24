@@ -4,16 +4,16 @@
 
 ## code-quality
 
-[`code-quality`](skills/code-quality/SKILL.md) reviews code and test quality, design tradeoffs, refactoring opportunities, and Agent configuration. It supports fast reviews, full reviews, and exploratory analysis.
+[`code-quality`](../../skills/code-quality/SKILL.md) reviews code and test quality, design tradeoffs, refactoring opportunities, and Agent configuration. It supports fast reviews, full reviews, and exploratory analysis.
 
 ## python-engineering
 
-[`python-engineering`](skills/python-engineering/SKILL.md) covers Python project structure, version and dependency policy, typing, testing, standard-library choices, tooling, and Python-specific code review.
+[`python-engineering`](../../skills/python-engineering/SKILL.md) covers Python project structure, version and dependency policy, typing, testing, standard-library choices, tooling, and Python-specific code review.
 
 ## msgspec
 
-[`msgspec`](skills/msgspec/SKILL.md) covers Struct definitions, type validation, constraints, serialization protocols, conversion hooks, and tagged unions.
+[`msgspec`](../../skills/msgspec/SKILL.md) covers Struct definitions, type validation, constraints, serialization protocols, conversion hooks, and tagged unions.
 
 ## architect
 
-[`architect`](skills/architect/SKILL.md) covers system-level architecture analysis, design, review, technology selection, and evolution. Invoke it manually when a decision crosses module or service boundaries and needs explicit tradeoffs. It provides judgment rationale, common tradeoffs, and examples; it does not handle concrete implementation or replace project facts, product documentation, or user decisions.
+[`architect`](../../skills/architect/SKILL.md) covers system-level architecture analysis, design, review, technology selection, and evolution. Invoke it manually when a decision crosses module or service boundaries and needs explicit tradeoffs. It provides judgment rationale, common tradeoffs, and examples; it does not handle concrete implementation or replace project facts, product documentation, or user decisions.

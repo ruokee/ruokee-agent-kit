@@ -26,7 +26,7 @@ TDD 主要不是一种测试技术。它是一种碰巧留下测试的设计技�
   相联系：难以测试的代码往往是其依赖未被注入的代码。
 - **行为规约。** 测试套件以可执行的形式记录了代码应该做什么，不会静默地过时。
 - **回归保护。** 一旦行为被测试固定，未来破坏它的变更会响亮地失败。这种保护正是使激进
-  的[重构](variants/zh/skills/code-quality/references/refactoring/safe-refactoring.md)和 [YAGNI](./yagni.md) 安全的原因；你可以推迟抽象，
+  的[重构](../refactoring/safe-refactoring.md)和 [YAGNI](./yagni.md) 安全的原因；你可以推迟抽象，
   并在以后重塑而无需恐惧。
 
 ## 何时 TDD 有价值

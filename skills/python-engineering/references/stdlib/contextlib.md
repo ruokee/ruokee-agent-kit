@@ -1,6 +1,6 @@
 # contextlib
 
-`contextlib` provides helpers for building and combining context managers without writing a full `__enter__`/`__exit__` class. It complements the [`with` protocol](skills/python-engineering/references/grammar/context-manager.md): the grammar document covers what the protocol is and when to use it; this document covers the standard tools for producing context managers cheaply.
+`contextlib` provides helpers for building and combining context managers without writing a full `__enter__`/`__exit__` class. It complements the [`with` protocol](../grammar/context-manager.md): the grammar document covers what the protocol is and when to use it; this document covers the standard tools for producing context managers cheaply.
 
 ## @contextmanager and @asynccontextmanager
 

@@ -35,7 +35,7 @@
 
 **嵌套事务。** 避免深度嵌套的工作单元。如果子操作需要独立的提交/回滚，请显式使用保存点（savepoint），而不是嵌套工作单元。
 
-**错误处理。** 任何异常路径都必须执行回滚。上下文管理器（`with uow:`）很合适，因为 `__exit__` 会在异常激活时调用回滚。这也是[资源生命周期](variants/zh/skills/code-quality/references/programming-paradigms/resource-lifecycle.md)模式的工作方式：将获取与释放配对。
+**错误处理。** 任何异常路径都必须执行回滚。上下文管理器（`with uow:`）很合适，因为 `__exit__` 会在异常激活时调用回滚。这也是[资源生命周期](../programming-paradigms/resource-lifecycle.md)模式的工作方式：将获取与释放配对。
 
 **测试。** 工作单元边界是测试的自然接缝。模拟或内存实现使服务层测试无需数据库即可验证编排行为。
 
@@ -55,4 +55,4 @@ with unit_of_work() as uow:
 
 ## 与仓库的关系
 
-[仓库](./repository.md)提供单个聚合的类似集合的 API。工作单元协调这些变更*何时*被持久化。它们自然组合：工作单元拥有或提供对仓库的访问，且工作单元内的所有仓库操作共享其事务作用域。另请参阅 [DDD 聚合边界](variants/zh/skills/code-quality/references/design-principles/ddd.md)以决定什么构成一个聚合。
+[仓库](./repository.md)提供单个聚合的类似集合的 API。工作单元协调这些变更*何时*被持久化。它们自然组合：工作单元拥有或提供对仓库的访问，且工作单元内的所有仓库操作共享其事务作用域。另请参阅 [DDD 聚合边界](../design-principles/ddd.md)以决定什么构成一个聚合。

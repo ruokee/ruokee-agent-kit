@@ -42,7 +42,7 @@ class Transaction:
 
 The return value of `__exit__` is a control-flow decision, and it is the single most misunderstood part of the protocol. Returning a falsy value (including `None`) lets any in-flight exception propagate normally. Returning a truthy value *suppresses* the exception, as if it never happened.
 
-Suppressing exceptions silently is almost always a bug. The transaction above returns `False` so a failed block still raises; it rolls back *and* propagates. Only return `True` when swallowing the exception is the manager's explicit purpose (and even then, prefer [`contextlib.suppress`](skills/python-engineering/references/stdlib/contextlib.md) for clarity). A manager that cleans up should not also hide the failure that triggered the cleanup.
+Suppressing exceptions silently is almost always a bug. The transaction above returns `False` so a failed block still raises; it rolls back *and* propagates. Only return `True` when swallowing the exception is the manager's explicit purpose (and even then, prefer [`contextlib.suppress`](../stdlib/contextlib.md) for clarity). A manager that cleans up should not also hide the failure that triggered the cleanup.
 
 ## Generator-Based Context Managers
 
@@ -60,7 +60,7 @@ def timed(label: str):
         log.info("%s took %.3fs", label, time.perf_counter() - start)
 ```
 
-The `try`/`finally` is essential: without it, an exception in the body skips the teardown, because the exception is re-raised *at* the `yield`. This and the other `contextlib` helpers are detailed in [the contextlib reference](skills/python-engineering/references/stdlib/contextlib.md).
+The `try`/`finally` is essential: without it, an exception in the body skips the teardown, because the exception is re-raised *at* the `yield`. This and the other `contextlib` helpers are detailed in [the contextlib reference](../stdlib/contextlib.md).
 
 ## Async Resources
 
@@ -85,7 +85,7 @@ with (
     fout.write(transform(fin.read()))
 ```
 
-Managers enter left to right and exit right to left, so a resource that depends on an earlier one is released first. When the *set* of resources is not known until runtime, such as a variable number of files or a dynamically built stack of managers, use [`contextlib.ExitStack`](skills/python-engineering/references/stdlib/contextlib.md) instead of nesting statements.
+Managers enter left to right and exit right to left, so a resource that depends on an earlier one is released first. When the *set* of resources is not known until runtime, such as a variable number of files or a dynamically built stack of managers, use [`contextlib.ExitStack`](../stdlib/contextlib.md) instead of nesting statements.
 
 ## When To Write Your Own
 

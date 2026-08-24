@@ -40,8 +40,8 @@ Every `DateRange` in the system is valid by construction, and the overlap rule l
 ## Common mistakes
 
 - **Everything is a class.** Simple pure calculations and data transforms forced into classes that hold no state. A module of functions is clearer.
-- **Anemic models.** `Manager`, `Service`, and `Helper` classes absorb all the behavior while the "domain object" is reduced to a bag of public fields. The data and the rules that govern it have been split apart; the opposite of what OO is for. See [tell-dont-ask](skills/code-quality/references/design-principles/tell-dont-ask.md).
-- **Deep inheritance.** Subclassing used to share implementation rather than to substitute behavior. Each level adds MRO complexity and hidden coupling. Prefer composition; see [composition-over-inheritance](skills/code-quality/references/design-principles/composition-over-inheritance.md).
+- **Anemic models.** `Manager`, `Service`, and `Helper` classes absorb all the behavior while the "domain object" is reduced to a bag of public fields. The data and the rules that govern it have been split apart; the opposite of what OO is for. See [tell-dont-ask](../design-principles/tell-dont-ask.md).
+- **Deep inheritance.** Subclassing used to share implementation rather than to substitute behavior. Each level adds MRO complexity and hidden coupling. Prefer composition; see [composition-over-inheritance](../design-principles/composition-over-inheritance.md).
 - **Java/C++ ceremony transplanted.** Interfaces, abstract base classes, and factory layers introduced for every collaboration, where Python would use a function, a small `Protocol`, or a `dataclass`.
 
 The anemic-model trap is worth seeing concretely. The anemic version scatters a rule across every caller:
@@ -71,7 +71,7 @@ class Account:
         self._balance -= amount
 ```
 
-The difference is not style. In the first form, a new caller that forgets the check corrupts the balance; in the second, the invariant cannot be bypassed. This is the [tell-dont-ask](skills/code-quality/references/design-principles/tell-dont-ask.md) principle in practice.
+The difference is not style. In the first form, a new caller that forgets the check corrupts the balance; in the second, the invariant cannot be bypassed. This is the [tell-dont-ask](../design-principles/tell-dont-ask.md) principle in practice.
 
 ## Python specifics
 

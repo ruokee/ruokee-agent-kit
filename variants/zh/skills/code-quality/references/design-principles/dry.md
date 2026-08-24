@@ -43,7 +43,7 @@ DRY 所警告的危险是：同一知识分散在多处，可能逐渐不同步�
 
 1. **过早抽象（Premature abstraction）**。在了解变化方向之前将两个巧合相似的片段统一。结果是一个参数化怪物。当你发现这种情况时，修复方法是内联该抽象，再次复制代码，等待真正的分割点显现。
 
-2. **参数化/薄包装泛滥（Parametric / thin-wrapper proliferation）**。以"消除重复"为名将一两行代码提取为许多小型包装函数。这很少隐藏真正的复杂度。它增加了命名负担、跳转成本、更深的调用栈，以及，在 Python 中，真实的每次调用的开销（因为每次调用都会构建一个帧）。将一个单一表达式重命名为同义词的包装器是浅辅助函数，而非去重。参见 `variants/zh/skills/code-quality/references/refactoring/thin-wrapper-function.md` 了解如何识别和展开这些包装器。
+2. **参数化/薄包装泛滥（Parametric / thin-wrapper proliferation）**。以"消除重复"为名将一两行代码提取为许多小型包装函数。这很少隐藏真正的复杂度。它增加了命名负担、跳转成本、更深的调用栈，以及，在 Python 中，真实的每次调用的开销（因为每次调用都会构建一个帧）。将一个单一表达式重命名为同义词的包装器是浅辅助函数，而非去重。参见 [`variants/zh/skills/code-quality/references/refactoring/thin-wrapper-function.md`](../refactoring/thin-wrapper-function.md) 了解如何识别和展开这些包装器。
 
 在提取辅助函数之前，问：它是否提供了一个稳定的语义边界、隐藏了真正的复杂度、或携带了可复用的策略？如果唯一的答案是"它被用了两次"，那还不是理由；这正是三的原则（Rule of Three）的作用。
 

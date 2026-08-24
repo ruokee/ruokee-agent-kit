@@ -57,7 +57,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 维护者拥有生命周期决策权。Agent 可以在授权范围内研究、起草、实施和复审 Note，但未经明确同意，不能接受、拒绝或归档一份 Note。
 
-完整政策位于 `.agents/notes/README.md` 及其中文版本。`.agents/notes/AGENTS.md` 保存简短的子树编辑说明；根目录 `AGENTS.md` 只保留触发条件和职责归属摘要。
+完整政策位于 [`.agents/notes/README.md`](../README.md) 及其中文版本。[`.agents/notes/AGENTS.md`](../AGENTS.md) 保存简短的子树编辑说明；根目录 `AGENTS.md` 只保留触发条件和职责归属摘要。
 
 第一版没有专用 Skill、分类体系、翻译 sidecar、归档 manifest 或自定义检查器。只有重复出现维护动作或发生真实错误后，才增加针对该约束的最小机械检查。
 

@@ -1,12 +1,12 @@
 # Testing
 
-This is the Python testing spec for organizing and writing pytest suites. It covers test placement, naming, fixtures, parametrization, mocking, async tests, and maintainable pytest idioms. Runner configuration such as discovery, import mode, markers, strict mode, config, and plugins lives in [pytest](skills/python-engineering/references/tooling/pytest.md).
+This is the Python testing spec for organizing and writing pytest suites. It covers test placement, naming, fixtures, parametrization, mocking, async tests, and maintainable pytest idioms. Runner configuration such as discovery, import mode, markers, strict mode, config, and plugins lives in [pytest](../tooling/pytest.md).
 
 A test should couple to the code's *behavior* and stay independent of its *structure*. Test what a unit does from outside: return values, raised exceptions, and recorded side effects. Do not test how it does the work internally.
 
 ## Test Organization
 
-Keep tests in a top-level `tests/` directory, separate from the production package, so they import and exercise the package the way a real consumer would and so discovery stays predictable (see [structure](skills/python-engineering/references/project/structure.md) for why the src layout reinforces this). The layout keeps tests out of the *importable* package, but it does not by itself decide what ships in an sdist or wheel; that is governed by the build backend's package discovery and include/exclude config, so verify the built artifact if excluding tests from distribution matters. Name test files and functions after the *behavior* under test, not the implementation file they happen to touch; `test_expired_token_is_rejected` tells a reader what the system guarantees; `test_validate` tells them only which function ran. For a large library or framework, loosely mirroring the package tree helps locate tests, but the mirror is a navigation aid, not a rule that every module gets a parallel test file. Tests deserve the same care as production code: clear names, no copy-paste sprawl, and obvious intent.
+Keep tests in a top-level `tests/` directory, separate from the production package, so they import and exercise the package the way a real consumer would and so discovery stays predictable (see [structure](../project/structure.md) for why the src layout reinforces this). The layout keeps tests out of the *importable* package, but it does not by itself decide what ships in an sdist or wheel; that is governed by the build backend's package discovery and include/exclude config, so verify the built artifact if excluding tests from distribution matters. Name test files and functions after the *behavior* under test, not the implementation file they happen to touch; `test_expired_token_is_rejected` tells a reader what the system guarantees; `test_validate` tells them only which function ran. For a large library or framework, loosely mirroring the package tree helps locate tests, but the mirror is a navigation aid, not a rule that every module gets a parallel test file. Tests deserve the same care as production code: clear names, no copy-paste sprawl, and obvious intent.
 
 ## Fixtures That Kill Duplication Instead of Creating It
 
@@ -14,10 +14,10 @@ A fixture is requested by name: a test declares the fixture as a parameter, pyte
 
 Both are fixed by the same discipline:
 
-- **Put shared fixtures at the right level.** [pytest](skills/python-engineering/references/tooling/pytest.md) covers how `conftest.py` loading and visibility work; the judgment is *where* to put a fixture. A fixture used across the suite goes in the root `conftest.py`; one used only by a subtree goes in that subtree's `conftest.py`. This is the direct cure for "the same fixture defined in several places, subtly different"; define it once at the right level rather than scattering near-copies. Deliberately overriding a fixture in a nested `conftest.py` to customize it for that subtree is a supported pattern, not a duplicate; the smell is *accidental* near-copies, not intentional per-subtree specialization.
+- **Put shared fixtures at the right level.** [pytest](../tooling/pytest.md) covers how `conftest.py` loading and visibility work; the judgment is *where* to put a fixture. A fixture used across the suite goes in the root `conftest.py`; one used only by a subtree goes in that subtree's `conftest.py`. This is the direct cure for "the same fixture defined in several places, subtly different"; define it once at the right level rather than scattering near-copies. Deliberately overriding a fixture in a nested `conftest.py` to customize it for that subtree is a supported pattern, not a duplicate; the smell is *accidental* near-copies, not intentional per-subtree specialization.
 - **Discover before you define.** `pytest --fixtures` lists every available fixture and where it comes from. Run it before writing a new fixture so you reuse the existing one instead of adding a sixth near-duplicate.
 - **Keep fixtures small and named for what they provide** (`temp_db`, `authenticated_client`), and compose them. A test's parameter list should read as its dependency list. Resist the "God fixture" that constructs everything; it is Meszaros' General Fixture smell and makes every test obscure.
-- **Scope for isolation, widen only for cost.** [pytest](skills/python-engineering/references/tooling/pytest.md) documents the scope levels and `yield` teardown; the judgment is to stay at the default (fresh state per test, the isolation baseline) and widen only for setup that is genuinely expensive *and* safe to share, since a wider scope buys speed by spending isolation. When a fixture needs cleanup, pair one setup with its own teardown rather than stacking several fragile setups in one fixture.
+- **Scope for isolation, widen only for cost.** [pytest](../tooling/pytest.md) documents the scope levels and `yield` teardown; the judgment is to stay at the default (fresh state per test, the isolation baseline) and widen only for setup that is genuinely expensive *and* safe to share, since a wider scope buys speed by spending isolation. When a fixture needs cleanup, pair one setup with its own teardown rather than stacking several fragile setups in one fixture.
 
 ```python
 # conftest.py: one definition, composed, function-scoped by default
@@ -59,7 +59,7 @@ An `autouse=True` fixture applies to every test in its scope without being reque
 
 ## Parametrization: Cases as Data
 
-[pytest](skills/python-engineering/references/tooling/pytest.md) covers the `@pytest.mark.parametrize` mechanics. For test quality, use parametrization to express the same check over different data as a visible table instead of copying test bodies. This produces fewer, stronger tests.
+[pytest](../tooling/pytest.md) covers the `@pytest.mark.parametrize` mechanics. For test quality, use parametrization to express the same check over different data as a visible table instead of copying test bodies. This produces fewer, stronger tests.
 
 ```python
 @pytest.mark.parametrize(

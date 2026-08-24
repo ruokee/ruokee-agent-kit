@@ -55,7 +55,7 @@ class Endpoint:
 
 Use `default_factory` for mutable defaults; a bare `[]` or `{}` is shared across instances and is a classic bug. `frozen=True` makes instances hashable and immutable; `kw_only=True` avoids positional-argument fragility as fields grow; `slots=True` reduces memory and blocks accidental attribute typos.
 
-Choose dataclasses for plain data with little behavior. Reach for `attrs` when you need richer validation hooks or converters without a full framework, and for `pydantic` when you need runtime parsing and validation of external/untrusted input (request bodies, config files). A dataclass validates nothing at runtime; its annotations are hints, not guards. See [`match-case`](skills/python-engineering/references/grammar/match-case.md) for matching against dataclass fields.
+Choose dataclasses for plain data with little behavior. Reach for `attrs` when you need richer validation hooks or converters without a full framework, and for `pydantic` when you need runtime parsing and validation of external/untrusted input (request bodies, config files). A dataclass validates nothing at runtime; its annotations are hints, not guards. See [`match-case`](../grammar/match-case.md) for matching against dataclass fields.
 
 ## logging
 

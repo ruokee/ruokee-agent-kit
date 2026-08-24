@@ -20,7 +20,7 @@ Read before reasoning. The amount of context scales with the decision:
 
 - Project facts: `pyproject.toml` for `requires-python`, dependencies, and project shape. The version floor decides which language features are even on the table.
 - The actual code under discussion, plus its callers and tests, so options are grounded in the real structure rather than an imagined one.
-- Relevant leaf documents for the mechanism in question (e.g. [match-case](skills/python-engineering/references/grammar/match-case.md), [type-hint](skills/python-engineering/references/spec/type-hint.md)) so the tradeoffs you present are the established ones, not improvised.
+- Relevant leaf documents for the mechanism in question (e.g. [match-case](../references/grammar/match-case.md), [type-hint](../references/spec/type-hint.md)) so the tradeoffs you present are the established ones, not improvised.
 
 ## Structuring The Analysis
 

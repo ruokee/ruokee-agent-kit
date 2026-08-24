@@ -23,7 +23,7 @@
 
 其反面是**信息泄露（Information leakage）**：当一个设计决策出现在多个模块中时，一个变更迫使
 所有模块都进行编辑。一个对读取方和写入方都已知的存储格式、每个调用者都可见的线协议细节、
-跨层复制的错误映射约定；这些都是泄露。泄露是[霰弹式修改](variants/zh/skills/code-quality/references/refactoring/shotgun-surgery.md)
+跨层复制的错误映射约定；这些都是泄露。泄露是[霰弹式修改](../refactoring/shotgun-surgery.md)
 等坏味道背后的深层原因，而信息隐藏是 [DRY](./dry.md) 如何应用于设计决策（而不仅仅是代码）的体现：
 知识存在于一个模块中。
 
@@ -62,5 +62,5 @@
   公共 API、`property` 和 `Protocol` 而非访问修饰符来表达边界。
 - 优先让模块的内部稍微长一些但局部清晰，而不是将逻辑分散到读者需要追踪的十几个浅辅助函数中。
 - 适配器层是天然的深模块：它通过一个小的接口隐藏第三方库的细节，同时仍然暴露调用者必须考虑的
-  错误和性能特征。这是[防腐层](./ddd.md)和[适配器](variants/zh/skills/code-quality/references/design-patterns/adapter.md)模式
+  错误和性能特征。这是[防腐层](./ddd.md)和[适配器](../design-patterns/adapter.md)模式
   的结构基础。

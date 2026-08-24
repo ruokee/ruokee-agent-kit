@@ -42,7 +42,7 @@ class Transaction:
 
 `__exit__` 的返回值是一个控制流决策，也是协议中最容易被误解的部分。返回假值（包括 `None`）会让任何正在传播的异常正常传播。返回真值会*抑制*（suppress）异常，就像从未发生过一样。
 
-静默抑制异常几乎总是错误。上面的事务返回 `False`，因此失败的块仍然会抛出异常；它既回滚*又*传播。仅在吞掉异常是管理器的明确目的时才返回 `True`（即便如此，也优先使用 [`contextlib.suppress`](variants/zh/skills/python-engineering/references/stdlib/contextlib.md) 以获得清晰性）。执行清理的管理器不应隐藏触发清理的失败。
+静默抑制异常几乎总是错误。上面的事务返回 `False`，因此失败的块仍然会抛出异常；它既回滚*又*传播。仅在吞掉异常是管理器的明确目的时才返回 `True`（即便如此，也优先使用 [`contextlib.suppress`](../stdlib/contextlib.md) 以获得清晰性）。执行清理的管理器不应隐藏触发清理的失败。
 
 ## 基于生成器的上下文管理器
 
@@ -60,7 +60,7 @@ def timed(label: str):
         log.info("%s took %.3fs", label, time.perf_counter() - start)
 ```
 
-`try`/`finally` 是必不可少的：没有它，主体中的异常会跳过清理，因为异常是在 `yield` *处*重新抛出的。此功能和其他 `contextlib` 辅助工具的详细信息在 [contextlib 参考](variants/zh/skills/python-engineering/references/stdlib/contextlib.md)中介绍。
+`try`/`finally` 是必不可少的：没有它，主体中的异常会跳过清理，因为异常是在 `yield` *处*重新抛出的。此功能和其他 `contextlib` 辅助工具的详细信息在 [contextlib 参考](../stdlib/contextlib.md)中介绍。
 
 ## 异步资源
 
@@ -85,7 +85,7 @@ with (
     fout.write(transform(fin.read()))
 ```
 
-管理器从左到右进入，从右到左退出，因此依赖前面资源的资源会更早释放。当资源的*集合*在运行时才可知时，可变数量的文件、动态构建的管理器栈，使用 [`contextlib.ExitStack`](variants/zh/skills/python-engineering/references/stdlib/contextlib.md) 代替嵌套语句。
+管理器从左到右进入，从右到左退出，因此依赖前面资源的资源会更早释放。当资源的*集合*在运行时才可知时，可变数量的文件、动态构建的管理器栈，使用 [`contextlib.ExitStack`](../stdlib/contextlib.md) 代替嵌套语句。
 
 ## 何时编写自己的管理器
 

@@ -33,7 +33,7 @@
 
 将某物建模为值对象，而不是原始基本类型（primitives），是 DDD 中非常实用的操作。将
 `dict[str, Any]` 或松散的 `(amount, currency)` 元组替换为 `Money` 值对象可以修复
-[基本类型痴迷](variants/zh/skills/code-quality/references/refactoring/primitive-obsession.md)并为不变量提供了一个家。
+[基本类型痴迷](../refactoring/primitive-obsession.md)并为不变量提供了一个家。
 
 ## 聚合（Aggregates）
 
@@ -52,7 +52,7 @@
 ## 防腐层（Anti-corruption Layer）
 
 当与外部系统或其概念与你不同的遗留模型集成时，防腐层（ACL）在两者之间进行翻译，使外部模型不会
-泄露到你的干净领域中。它是[适配器](variants/zh/skills/code-quality/references/design-patterns/adapter.md)模式的领域聚焦应用：
+泄露到你的干净领域中。它是[适配器](../design-patterns/adapter.md)模式的领域聚焦应用：
 ACL 在内部使用你的通用语言，在外部使用外部系统的语言。这保护了核心模型免受外部命名和结构的污染。
 
 ## 何时不应用 DDD

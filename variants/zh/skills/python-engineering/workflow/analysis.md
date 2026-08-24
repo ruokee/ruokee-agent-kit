@@ -20,7 +20,7 @@
 
 - 项目事实：`pyproject.toml` 中的 `requires-python`、依赖和项目形态。版本下限决定了哪些语言特性可以被考虑。
 - 讨论中的实际代码，及其调用者和测试，以便选项基于真实结构而非想象的结构。
-- 相关机制对应的叶子文档（例如 [match-case](variants/zh/skills/python-engineering/references/grammar/match-case.md)、[type-hint](variants/zh/skills/python-engineering/references/spec/type-hint.md)），以便你呈现的权衡是已建立的，而非即兴发挥的。
+- 相关机制对应的叶子文档（例如 [match-case](../references/grammar/match-case.md)、[type-hint](../references/spec/type-hint.md)），以便你呈现的权衡是已建立的，而非即兴发挥的。
 
 ## 组织分析（Structuring The Analysis）
 

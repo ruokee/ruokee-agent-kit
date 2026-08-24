@@ -1,6 +1,6 @@
 # contextlib
 
-`contextlib` 提供构建和组合上下文管理器的辅助工具，无需编写完整的 `__enter__`/`__exit__` 类。它是对 [`with` 协议](variants/zh/skills/python-engineering/references/grammar/context-manager.md)的补充：语法文档涵盖协议是什么以及何时使用它；本文档涵盖廉价生成上下文管理器的标准工具。
+`contextlib` 提供构建和组合上下文管理器的辅助工具，无需编写完整的 `__enter__`/`__exit__` 类。它是对 [`with` 协议](../grammar/context-manager.md)的补充：语法文档涵盖协议是什么以及何时使用它；本文档涵盖廉价生成上下文管理器的标准工具。
 
 ## @contextmanager 和 @asynccontextmanager
 

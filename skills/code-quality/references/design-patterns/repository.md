@@ -11,7 +11,7 @@ The core value is that domain code works with domain objects through a clean int
 - **Domain objects**: pure domain entities or aggregates returned by the repository.
 - **Application/service layer**: uses the repository interface, not the concrete implementation.
 
-The dependency direction flows inward: domain code depends on the repository *interface*, and the concrete implementation depends on the domain objects it persists. This is [dependency inversion](skills/code-quality/references/design-principles/dependency-inversion.md) applied to persistence.
+The dependency direction flows inward: domain code depends on the repository *interface*, and the concrete implementation depends on the domain objects it persists. This is [dependency inversion](../design-principles/dependency-inversion.md) applied to persistence.
 
 ## When The Pattern Fits
 
@@ -31,7 +31,7 @@ The dependency direction flows inward: domain code depends on the repository *in
 
 ## Common Implementation Issues
 
-**Interface bloat.** Repositories that grow dozens of query methods lose their abstraction value. Keep the interface focused on [domain](skills/code-quality/references/design-principles/ddd.md) operations, not a generic query builder.
+**Interface bloat.** Repositories that grow dozens of query methods lose their abstraction value. Keep the interface focused on [domain](../design-principles/ddd.md) operations, not a generic query builder.
 
 **Leaky abstraction.** Methods that expose ORM-specific concepts (sessions, flush, lazy loading, query builders) defeat the purpose. Return fully-loaded domain objects. If callers need to page, filter, or sort, design those as repository parameters, not as ORM query chains leaking out.
 

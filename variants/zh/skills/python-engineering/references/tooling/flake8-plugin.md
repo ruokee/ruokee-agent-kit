@@ -48,7 +48,7 @@ Ruff 原生实现了许多 Flake8 插件规则集。在编写自定义插件之�
 
 自定义项目特定插件仍然有价值，因为 Ruff 不支持任意的用户定义 AST 访问器。需要真正自定义结构检查的项目仍然需要 Flake8 插件（或替代方法：通过不稳定的插件 API 实现自定义 Ruff 规则，或作为独立 AST 脚本在 [pre-commit](./pre-commit.md) 中运行）。
 
-与[自定义 lint 规范](variants/zh/skills/python-engineering/references/spec/custom-lint.md)的关系是：规范文档定义了*创建什么*项目特定规则以及*如何思考*规则设计；本文档涵盖了用于实现和运行这些规则的 Flake8 插件*机制*。
+与[自定义 lint 规范](../spec/custom-lint.md)的关系是：规范文档定义了*创建什么*项目特定规则以及*如何思考*规则设计；本文档涵盖了用于实现和运行这些规则的 Flake8 插件*机制*。
 
 ## 错误消息设计（Error Message Design）
 

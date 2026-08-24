@@ -80,4 +80,4 @@ def logged(func):
     return wrapper
 ```
 
-没有 `wraps`，内省、文档工具、`help()` 和测试报告都会看到包装器的身份而不是原始对象的身份。`__wrapped__` 还允许工具解包到底层函数。参见 [`decorator`](variants/zh/skills/python-engineering/references/grammar/decorator.md) 了解其支持的更广泛的装饰器机制。
+没有 `wraps`，内省、文档工具、`help()` 和测试报告都会看到包装器的身份而不是原始对象的身份。`__wrapped__` 还允许工具解包到底层函数。参见 [`decorator`](../grammar/decorator.md) 了解其支持的更广泛的装饰器机制。

@@ -21,7 +21,7 @@ The first required body heading in every Agent Note template is `## Motivation` 
 
 `Motivation` records why the decision is being considered. Its content may describe an observed problem, a requirement, a desired capability, or another concrete reason for change. It does not weaken the expectation that the section state the reason precisely.
 
-The fixed-format examples and authoring rules in `.agents/notes/README.md` and `.agents/notes/README.zh.md` use the new heading, and the surrounding rules define motivation broadly enough to include problems, requirements, and desired additions. The Agent Note mechanism's implemented Note records the format refinement in its `## Changes` section.
+The fixed-format examples and authoring rules in [`.agents/notes/README.md`](../README.md) and [`.agents/notes/README.zh.md`](../README.zh.md) use the new heading, and the surrounding rules define motivation broadly enough to include problems, requirements, and desired additions. The Agent Note mechanism's implemented Note records the format refinement in its `## Changes` section.
 
 Every existing Note was migrated in the same change: apart from the policy edits to this note and the mechanism Note, migrating the other existing Notes changed only their opening headings. After that migration no Note body opens with the earlier heading. Historical references to the earlier heading inside this note and the mechanism Note's changes record remain as written.
 
