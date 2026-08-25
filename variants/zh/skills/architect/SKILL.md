@@ -68,4 +68,4 @@ disable-model-invocation: true
 
 ## 来源与许可（Sources）
 
-参考文档的主题地图来自 [awesome-architecture](https://github.com/study8677/awesome-architecture/tree/7f43e49b95ad9c255418733738fddab4eb0f6a68)（作者 JingWen Fan，[MIT 许可证](https://github.com/study8677/awesome-architecture/blob/7f43e49b95ad9c255418733738fddab4eb0f6a68/LICENSE)）。内容围绕架构任务需要的判断重新撰写，不逐字复制上游文本，也不追踪上游更新。
+参考文档的主题地图来自 [awesome-architecture](https://github.com/study8677/awesome-architecture/tree/7f43e49b95ad9c255418733738fddab4eb0f6a68)（作者 JingWen Fan，[MIT 许可证](https://github.com/study8677/awesome-architecture/blob/7f43e49b95ad9c255418733738fddab4eb0f6a68/LICENSE)）。

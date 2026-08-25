@@ -68,4 +68,4 @@ When terminology is unclear, read the [glossary](./glossary.md).
 
 ## Sources
 
-The topic map of the reference documents comes from [awesome-architecture](https://github.com/study8677/awesome-architecture/tree/7f43e49b95ad9c255418733738fddab4eb0f6a68) (by JingWen Fan, [MIT license](https://github.com/study8677/awesome-architecture/blob/7f43e49b95ad9c255418733738fddab4eb0f6a68/LICENSE)). The content was rewritten around the judgments architecture work requires. It does not copy upstream text verbatim and does not track upstream updates.
+The topic map of the reference documents comes from [awesome-architecture](https://github.com/study8677/awesome-architecture/tree/7f43e49b95ad9c255418733738fddab4eb0f6a68) (by JingWen Fan, [MIT license](https://github.com/study8677/awesome-architecture/blob/7f43e49b95ad9c255418733738fddab4eb0f6a68/LICENSE)).
