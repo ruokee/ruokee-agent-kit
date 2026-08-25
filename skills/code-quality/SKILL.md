@@ -11,6 +11,8 @@ Use this Skill to judge whether code, tests, architecture, refactoring plans, an
 
 Activate this Skill for maintainability, design quality, test quality or test smells, abstraction boundaries, refactoring, code smells, programming-paradigm choice, design-pattern use, or design principles. Load reference leaves by signal, not all at once.
 
+If the task does not explicitly require code-quality analysis, do not load any document under `references/`, even if this `SKILL.md` was loaded.
+
 ## Mode Selection
 
 Three modes are available. Default to fast review.
