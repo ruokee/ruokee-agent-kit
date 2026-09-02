@@ -1,0 +1,13 @@
+{
+  "name": "tk-local",
+  "owner": {
+    "name": "Ruokee"
+  },
+  "description": "Local marketplace for the bundled tk Claude Code plugin",
+  "plugins": [
+    {
+      "name": "tk",
+      "source": "./"
+    }
+  ]
+}

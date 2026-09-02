@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "tk": {
+      "command": "${HOME}/.local/bin/tk",
+      "args": [
+        "mcp"
+      ]
+    }
+  }
+}
