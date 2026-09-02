@@ -21,7 +21,7 @@ I also use Pi, Claude Code, and Codex.
 - **Skills.** Self-contained Agent Skills I develop for my own work and maintain in public.
 - **Plugins and executables.** Capabilities that need deterministic code or their own runtime.
 - **Extensions.** Standalone extensions that add or adjust Agent Harness functionality.
-- **Host packages and adapters.** First-party installation and transport support for repository capabilities.
+- **Harness packages and adapters.** First-party installation and transport support for repository capabilities.
 - **Optional variants.** Alternative versions of repository content or configuration for different languages, environments, or preferences.
 - **Documentation.** Capability indexes, installation instructions, development conventions, and validation guidance.
 
@@ -29,9 +29,15 @@ I also use Pi, Claude Code, and Codex.
 
 English Skills live under `./skills/<name>/`. Chinese variants live under `./variants/zh/skills/<name>/`, but install at the normal `skills/<name>/` host path. A pure Skill contains only the material needed to discover, understand, and use it.
 
-Plugins, extensions, executables, and host packages keep the layout their host or build system expects. The repository adds a top-level area only when a real component needs it.
+Plugins, extensions, executables, and Harness packages keep the layout their Harness or build system expects. The repository adds a top-level area only when a real component needs it.
 
 Durable repository decisions are recorded as bilingual [Agent Notes](./.agents/notes/README.md).
+
+tk provides persistent project Tasks through one Rust runtime and self-contained components for Codex, Claude Code, Pi, and OMP. A Task is a temporary project effort worth preserving, not an execution commitment.
+
+[tk user guide](./projects/tk/docs/guide.md)
+
+[tk design index](./projects/tk/docs/design/README.md)
 
 ## Development
 

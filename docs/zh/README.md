@@ -21,7 +21,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 - **Skills。** 我为自己的工作开发并公开维护的自包含 Agent Skills。
 - **Plugin 和可执行程序。** 需要确定性代码或独立 runtime 的能力。
 - **扩展。** 为 Agent Harness 增加或调整功能的独立扩展。
-- **宿主 Package 和 adapter。** 为仓库能力提供的第一方安装与传输支持。
+- **Harness Package 和适配器。** 为仓库能力提供的第一方安装与传输支持。
 - **可选变体。** 仓库内容或配置面向不同语言、环境和使用偏好的可选版本。
 - **相关文档。** 能力索引、安装方式、开发约定和验证说明。
 
@@ -29,9 +29,15 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 
 英文 Skill 位于 `skills/<name>/`，中文 variant 位于 `variants/zh/skills/<name>/`，但安装后仍使用宿主的正常路径 `skills/<name>/`。纯 Skill 只包含发现、理解和使用该 Skill 所需的材料。
 
-Plugin、Extension、可执行程序和宿主 Package 使用对应宿主或构建系统预期的布局。只有真实组件需要时，仓库才增加新的顶层区域。
+Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或构建系统预期的布局。只有真实组件需要时，仓库才增加新的顶层区域。
 
 长期仓库决定通过双语 [Agent Notes](../../.agents/notes/README.zh.md) 记录。
+
+tk 通过一个 Rust 运行时和面向 Codex、Claude Code、Pi、OMP 的自包含组件保存项目持久 Task。Task 是值得持久保存的项目内临时性努力，创建不代表已经承诺执行。
+
+[tk 用户指南](../../projects/tk/docs/guide.zh.md)
+
+[tk 设计索引](../../projects/tk/docs/design/README.zh.md)
 
 ## 开发
 
