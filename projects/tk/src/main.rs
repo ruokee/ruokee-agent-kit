@@ -1,5 +1,7 @@
+mod app;
 mod cancel;
 mod cli;
+mod contract;
 mod domain;
 mod error;
 mod gc;
@@ -9,6 +11,7 @@ mod process;
 mod project;
 mod task_store;
 mod version;
+mod wal;
 
 use std::process::ExitCode;
 
