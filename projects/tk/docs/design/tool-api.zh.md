@@ -159,6 +159,8 @@ metadata 返回元数据和规范路径。summary 增加正文摘要、关系摘
 
 create 使用 `oneOf` 区分顶层 Task 和子 Task 批次。
 
+与其他工具输入 schema 一样，create union 在根节点声明 `type: "object"`。每个 `oneOf` 分支仍分别定义允许字段和必填判别字段。
+
 顶层分支：
 
 | 字段 | 默认值 | 合同 |

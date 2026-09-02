@@ -361,6 +361,7 @@ fn read_schema() -> Value {
 fn create_schema() -> Value {
     let task = task_payload_schema();
     json!({
+        "type": "object",
         "oneOf": [
             object_schema(
                 json!({

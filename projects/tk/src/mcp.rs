@@ -719,7 +719,7 @@ mod tests {
     }
 
     #[test]
-    fn create_schema_keeps_discriminated_union() {
+    fn create_schema_has_object_root_and_keeps_discriminated_union() {
         let contract =
             contract::tool_contract(SchemaType::Native, Some(crate::contract::NativeHarness::Pi));
         let create = contract
@@ -727,6 +727,7 @@ mod tests {
             .iter()
             .find(|tool| tool.name == "tk_create")
             .unwrap();
+        assert_eq!(create.input_schema["type"], "object");
         assert_eq!(create.input_schema["oneOf"].as_array().unwrap().len(), 2);
         assert!(create.input_schema["oneOf"][0]["additionalProperties"] == false);
         assert_eq!(

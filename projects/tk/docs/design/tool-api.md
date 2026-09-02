@@ -159,6 +159,8 @@ metadata returns metadata and canonical paths. summary adds a body summary, rela
 
 create uses `oneOf` to distinguish a top-level Task from a batch of child Tasks.
 
+Like every tool input schema, the create union declares `type: "object"` at its root. Each `oneOf` branch keeps its own allowed fields and required discriminator.
+
 Top-level branch:
 
 | Field | Default | Contract |

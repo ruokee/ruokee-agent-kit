@@ -266,7 +266,7 @@ tk <command> <subcommand> --help
 
 ```json
 {
-  "runtime_version": "0.1.0",
+  "runtime_version": "0.1.1",
   "cli_contract_version": 1,
   "task_schema_version": 1,
   "component_format_version": 1

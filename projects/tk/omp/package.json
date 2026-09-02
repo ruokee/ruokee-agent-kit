@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/tk-omp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "First-party tk tools and Skill for Oh My Pi",
   "license": "MIT",
   "type": "module",

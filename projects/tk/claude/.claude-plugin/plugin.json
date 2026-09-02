@@ -1,6 +1,6 @@
 {
   "name": "tk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Persistent project-local Tasks backed by the tk runtime",
   "author": {"name": "Ruokee"},
   "license": "MIT",
