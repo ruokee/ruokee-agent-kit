@@ -7,6 +7,7 @@ mod error;
 mod gc;
 mod git;
 mod maintenance;
+mod mcp;
 mod metadata;
 mod migrate;
 mod path;

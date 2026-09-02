@@ -9,11 +9,12 @@ use crate::app::{
     self, CreateRequest, CreateTaskInput, LifecycleAction, ReadView, SearchRequest, SubtaskInput,
     UpdateRequest,
 };
-use crate::contract::parse_json_object;
+use crate::contract::{SchemaType, parse_json_object};
 use crate::domain::Status;
 use crate::error::{ErrorCategory, Result, TkError};
 use crate::gc;
 use crate::maintenance;
+use crate::mcp;
 use crate::metadata;
 use crate::migrate;
 use crate::project::{self, CreationPolicy, GitPolicy, InitOptions, MetadataMode};
@@ -70,6 +71,13 @@ enum Commands {
         #[command(subcommand)]
         command: MetadataCommands,
     },
+    /// Generate tool schema documents.
+    Schema {
+        #[command(subcommand)]
+        command: SchemaCommands,
+    },
+    /// Serve the six tk tools over stdio MCP.
+    Mcp,
     /// Initialize project-local Task storage.
     Init(InitArgs),
 }
@@ -114,6 +122,12 @@ enum MetadataCommands {
     Migrate(MetadataMigrateArgs),
     /// Switch the whole project between split and embed.
     Switch(MetadataSwitchArgs),
+}
+
+#[derive(Debug, Subcommand)]
+enum SchemaCommands {
+    /// Generate the six-tool contract for one schema type.
+    Generate(SchemaGenerateArgs),
 }
 
 #[derive(Debug, Args)]
@@ -213,6 +227,14 @@ struct MetadataSwitchArgs {
 }
 
 #[derive(Debug, Args)]
+struct SchemaGenerateArgs {
+    #[arg(long, value_enum)]
+    r#type: CliSchemaType,
+    #[arg(long, value_enum)]
+    harness: Option<CliHarness>,
+}
+
+#[derive(Debug, Args)]
 struct GcArgs {
     #[arg(long)]
     dry_run: bool,
@@ -273,6 +295,20 @@ enum CliMetadataMode {
     Embed,
 }
 
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum CliSchemaType {
+    Mcp,
+    Native,
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum CliHarness {
+    Codex,
+    Claude,
+    Pi,
+    Omp,
+}
+
 struct CommandOutput {
     data: Value,
     text: String,
@@ -314,6 +350,27 @@ pub fn run() -> ExitCode {
         Cli::command().print_help().expect("writing help to stdout");
         println!();
         return ExitCode::SUCCESS;
+    };
+    let command = match command {
+        Commands::Mcp => return mcp::serve(),
+        Commands::Schema {
+            command: SchemaCommands::Generate(args),
+        } => {
+            let harness = match validate_schema_harness(args.r#type, args.harness) {
+                Ok(harness) => harness,
+                Err(error) => {
+                    print_error(Output::Text, &error);
+                    return ExitCode::from(2);
+                }
+            };
+            let contract = crate::contract::tool_contract(args.r#type.into(), harness);
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&contract).expect("serializing tool contract")
+            );
+            return ExitCode::SUCCESS;
+        }
+        command => command,
     };
 
     let cwd = match cli.cwd {
@@ -370,8 +427,38 @@ fn invalid_explicit_option(cli: &Cli) -> Option<&'static str> {
         return cwd.then_some("--cwd");
     }
     match cli.command.as_ref() {
+        Some(Commands::Mcp) | Some(Commands::Schema { .. }) => {
+            output.then_some("--output").or(cwd.then_some("--cwd"))
+        }
         None => cwd.then_some("--cwd").or(output.then_some("--output")),
         Some(_) => None,
+    }
+}
+
+fn validate_schema_harness(
+    schema_type: CliSchemaType,
+    harness: Option<CliHarness>,
+) -> Result<Option<crate::contract::NativeHarness>> {
+    match (schema_type, harness) {
+        (CliSchemaType::Mcp, None) => Ok(None),
+        (CliSchemaType::Mcp, Some(_)) => Err(TkError::request(
+            "invalid_schema_harness",
+            "--harness is not accepted with --type mcp",
+        )),
+        (CliSchemaType::Native, Some(CliHarness::Pi)) => {
+            Ok(Some(crate::contract::NativeHarness::Pi))
+        }
+        (CliSchemaType::Native, Some(CliHarness::Omp)) => {
+            Ok(Some(crate::contract::NativeHarness::Omp))
+        }
+        (CliSchemaType::Native, Some(_)) => Err(TkError::request(
+            "invalid_schema_harness",
+            "Native schema generation supports only pi and omp",
+        )),
+        (CliSchemaType::Native, None) => Err(TkError::request(
+            "missing_schema_harness",
+            "--harness is required with --type native",
+        )),
     }
 }
 
@@ -701,6 +788,9 @@ fn execute(command: Commands, cwd: PathBuf) -> Result<CommandOutput> {
                 warnings: vec![],
             })
         }
+        Commands::Schema { .. } | Commands::Mcp => {
+            unreachable!("long-running or raw-output commands are handled before execution")
+        }
         Commands::Init(args) => {
             let result = project::init(
                 &cwd,
@@ -818,6 +908,15 @@ impl From<CliMetadataMode> for MetadataMode {
         match value {
             CliMetadataMode::Split => Self::Split,
             CliMetadataMode::Embed => Self::Embed,
+        }
+    }
+}
+
+impl From<CliSchemaType> for SchemaType {
+    fn from(value: CliSchemaType) -> Self {
+        match value {
+            CliSchemaType::Mcp => Self::Mcp,
+            CliSchemaType::Native => Self::Native,
         }
     }
 }
