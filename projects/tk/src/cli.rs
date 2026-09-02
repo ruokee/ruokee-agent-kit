@@ -13,6 +13,9 @@ use crate::contract::parse_json_object;
 use crate::domain::Status;
 use crate::error::{ErrorCategory, Result, TkError};
 use crate::gc;
+use crate::maintenance;
+use crate::metadata;
+use crate::migrate;
 use crate::project::{self, CreationPolicy, GitPolicy, InitOptions, MetadataMode};
 use crate::version::{CLI_CONTRACT_VERSION, COMPONENT_FORMAT_VERSION, TASK_SCHEMA_VERSION};
 
@@ -56,8 +59,17 @@ enum Commands {
     Update(UpdateArgs),
     /// Append one durable Task event.
     Log(LogArgs),
+    /// Diagnose project and managed Task integrity without writing.
+    Check,
+    /// Rename one Task and its directory.
+    Rename(RenameArgs),
     /// Classify and conservatively remove tk temporary operations.
     Gc(GcArgs),
+    /// Maintain Task metadata versions and representations.
+    Metadata {
+        #[command(subcommand)]
+        command: MetadataCommands,
+    },
     /// Initialize project-local Task storage.
     Init(InitArgs),
 }
@@ -94,6 +106,14 @@ enum CreateCommands {
     Task(CreateTaskArgs),
     /// Create one atomic domain batch under a parent Task.
     Subtask(CreateSubtaskArgs),
+}
+
+#[derive(Debug, Subcommand)]
+enum MetadataCommands {
+    /// Migrate selected metadata carriers forward.
+    Migrate(MetadataMigrateArgs),
+    /// Switch the whole project between split and embed.
+    Switch(MetadataSwitchArgs),
 }
 
 #[derive(Debug, Args)]
@@ -162,6 +182,34 @@ struct LogArgs {
     body: Option<String>,
     #[arg(long)]
     actor: Option<String>,
+}
+
+#[derive(Debug, Args)]
+struct RenameArgs {
+    task_ref: String,
+    name: String,
+    #[arg(long)]
+    dry_run: bool,
+    #[arg(long)]
+    actor: Option<String>,
+}
+
+#[derive(Debug, Args)]
+struct MetadataMigrateArgs {
+    #[arg(long, default_value = "1")]
+    to: String,
+    #[arg(long = "file")]
+    files: Vec<PathBuf>,
+    #[arg(long)]
+    dry_run: bool,
+}
+
+#[derive(Debug, Args)]
+struct MetadataSwitchArgs {
+    #[arg(long, value_enum)]
+    to: CliMetadataMode,
+    #[arg(long)]
+    dry_run: bool,
 }
 
 #[derive(Debug, Args)]
@@ -537,6 +585,112 @@ fn execute(command: Commands, cwd: PathBuf) -> Result<CommandOutput> {
                 data: serde_json::to_value(result).expect("serializing log result"),
                 text,
                 warnings,
+            })
+        }
+        Commands::Check => {
+            let result = maintenance::check(&cwd);
+            if !result.complete {
+                return Err(TkError::new(
+                    "check_incomplete",
+                    ErrorCategory::Storage,
+                    "Project check could not complete its scan",
+                )
+                .with_details(serde_json::to_value(result).expect("serializing check result")));
+            }
+            if !result.ok {
+                return Err(TkError::new(
+                    "check_failed",
+                    ErrorCategory::ManagedFile,
+                    "Project check found blocking diagnostics",
+                )
+                .with_details(serde_json::to_value(result).expect("serializing check result")));
+            }
+            let text = if result.ok {
+                "No integrity problems found".into()
+            } else {
+                result
+                    .diagnostics
+                    .iter()
+                    .map(|diagnostic| {
+                        format!(
+                            "{:?}\t{}\t{}",
+                            diagnostic.severity, diagnostic.code, diagnostic.message
+                        )
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            };
+            Ok(CommandOutput {
+                data: serde_json::to_value(result).expect("serializing check result"),
+                text,
+                warnings: vec![],
+            })
+        }
+        Commands::Rename(args) => {
+            let project = discover_for_task_ref(&cwd, &args.task_ref)?;
+            let mut result = maintenance::rename(
+                &project,
+                &args.task_ref,
+                &args.name,
+                args.dry_run,
+                args.actor.as_deref().unwrap_or("cli"),
+            )?;
+            let warnings = convert_warnings(std::mem::take(&mut result.warnings));
+            let text = if args.dry_run {
+                format!(
+                    "{} -> {}",
+                    result.plan.old_path.display(),
+                    result.plan.target_path.display()
+                )
+            } else if result.changed {
+                format!("Renamed to {}", result.task.task_dir.display())
+            } else {
+                "No changes".into()
+            };
+            Ok(CommandOutput {
+                data: serde_json::to_value(result).expect("serializing rename result"),
+                text,
+                warnings,
+            })
+        }
+        Commands::Metadata { command } => {
+            let project = project::discover_unchecked(&cwd)?;
+            let (data, text) = match command {
+                MetadataCommands::Migrate(args) => {
+                    let result = migrate::schema(&project, &args.to, &args.files, args.dry_run)?;
+                    let text = if result.changed {
+                        format!(
+                            "schema migration: {} -> {} ({} Tasks)",
+                            result.source, result.target, result.affected_tasks
+                        )
+                    } else {
+                        "No migration needed".into()
+                    };
+                    (
+                        serde_json::to_value(result).expect("serializing schema migration result"),
+                        text,
+                    )
+                }
+                MetadataCommands::Switch(args) => {
+                    let result = metadata::switch(&project, args.to.into(), args.dry_run)?;
+                    let text = if result.changed {
+                        format!(
+                            "{}: {} -> {} ({} Tasks)",
+                            result.kind, result.source, result.target, result.affected_tasks
+                        )
+                    } else {
+                        "No migration needed".into()
+                    };
+                    (
+                        serde_json::to_value(result).expect("serializing metadata switch result"),
+                        text,
+                    )
+                }
+            };
+            Ok(CommandOutput {
+                data,
+                text,
+                warnings: vec![],
             })
         }
         Commands::Gc(args) => {
