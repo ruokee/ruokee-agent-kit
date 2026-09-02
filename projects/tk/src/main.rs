@@ -1,6 +1,7 @@
 mod app;
 mod cancel;
 mod cli;
+mod component;
 mod contract;
 mod domain;
 mod error;

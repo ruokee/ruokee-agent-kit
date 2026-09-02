@@ -9,6 +9,7 @@ use crate::app::{
     self, CreateRequest, CreateTaskInput, LifecycleAction, ReadView, SearchRequest, SubtaskInput,
     UpdateRequest,
 };
+use crate::component;
 use crate::contract::{SchemaType, parse_json_object};
 use crate::domain::Status;
 use crate::error::{ErrorCategory, Result, TkError};
@@ -78,6 +79,10 @@ enum Commands {
     },
     /// Serve the six tk tools over stdio MCP.
     Mcp,
+    /// Install or update one Harness component.
+    Install(ComponentArgs),
+    /// Remove one Harness component.
+    Uninstall(UninstallArgs),
     /// Initialize project-local Task storage.
     Init(InitArgs),
 }
@@ -236,6 +241,22 @@ struct SchemaGenerateArgs {
 
 #[derive(Debug, Args)]
 struct GcArgs {
+    #[arg(long)]
+    dry_run: bool,
+}
+
+#[derive(Debug, Args)]
+struct ComponentArgs {
+    #[arg(long, value_enum)]
+    harness: CliHarness,
+    #[arg(long)]
+    dry_run: bool,
+}
+
+#[derive(Debug, Args)]
+struct UninstallArgs {
+    #[arg(long, value_enum)]
+    harness: CliHarness,
     #[arg(long)]
     dry_run: bool,
 }
@@ -430,6 +451,7 @@ fn invalid_explicit_option(cli: &Cli) -> Option<&'static str> {
         Some(Commands::Mcp) | Some(Commands::Schema { .. }) => {
             output.then_some("--output").or(cwd.then_some("--cwd"))
         }
+        Some(Commands::Install(_) | Commands::Uninstall(_)) => cwd.then_some("--cwd"),
         None => cwd.then_some("--cwd").or(output.then_some("--output")),
         Some(_) => None,
     }
@@ -788,6 +810,22 @@ fn execute(command: Commands, cwd: PathBuf) -> Result<CommandOutput> {
                 warnings: vec![],
             })
         }
+        Commands::Install(args) => {
+            let result = component::install(args.harness.into(), args.dry_run)?;
+            Ok(CommandOutput {
+                text: serde_json::to_string_pretty(&result).expect("serializing install result"),
+                data: serde_json::to_value(result).expect("serializing install result"),
+                warnings: vec![],
+            })
+        }
+        Commands::Uninstall(args) => {
+            let result = component::uninstall(args.harness.into(), args.dry_run)?;
+            Ok(CommandOutput {
+                text: serde_json::to_string_pretty(&result).expect("serializing uninstall result"),
+                data: serde_json::to_value(result).expect("serializing uninstall result"),
+                warnings: vec![],
+            })
+        }
         Commands::Schema { .. } | Commands::Mcp => {
             unreachable!("long-running or raw-output commands are handled before execution")
         }
@@ -917,6 +955,17 @@ impl From<CliSchemaType> for SchemaType {
         match value {
             CliSchemaType::Mcp => Self::Mcp,
             CliSchemaType::Native => Self::Native,
+        }
+    }
+}
+
+impl From<CliHarness> for component::Harness {
+    fn from(value: CliHarness) -> Self {
+        match value {
+            CliHarness::Codex => Self::Codex,
+            CliHarness::Claude => Self::Claude,
+            CliHarness::Pi => Self::Pi,
+            CliHarness::Omp => Self::Omp,
         }
     }
 }
