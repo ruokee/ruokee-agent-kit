@@ -39,6 +39,8 @@ The filename date is when the topic was first proposed and does not change durin
 
 The maintainer owns lifecycle decisions. An Agent may draft a `proposed` note within an authorized change. Moving a note to `implemented`, `rejected`, or `archived` requires the maintainer's explicit approval.
 
+When a lifecycle directory contains no documents, keep it present with `.gitkeep`.
+
 ## Bilingual files
 
 Each logical Agent Note is one same-directory pair:

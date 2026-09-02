@@ -39,6 +39,8 @@ Agent Note 保存一项长期决定为何存在、哪些替代方案落选，以
 
 维护者拥有生命周期决策权。Agent 可以在已授权的变更中起草 `proposed` Note。移动到 `implemented`、`rejected` 或 `archived` 必须取得维护者的明确同意。
 
+当目录下不存在文档时，使用 `.gitkeep` 令目录保持存在。
+
 ## 双语文件
 
 每项 Agent Note 由同目录文件对组成：
