@@ -11,9 +11,9 @@
 - 一个 Cargo package 生成 `tk` 可执行文件；
 - Rust 是唯一组件组装器；
 - 组件组装只有一条 Rust 产物路径；
-- 四个 Harness 组件自包含，不引用其他组件目录；
-- 英文 Skill 是内嵌组件唯一 Skill 来源；
-- 中文 Skill 保持完整语义对应，但不进入内嵌载荷；
+- 十六份 Harness、模式与语言载荷都自包含，不引用其他组件目录；
+- 四个 Skill 身份与 tools 或 CLI 模式、英文或中文准确对应；
+- CLI 载荷不包含 tk 操作注册，tools 载荷包含所选 Harness 集成；
 - 评审记录和 Task 材料不进入产品产物。
 
 ## 数据模型测试
@@ -108,6 +108,7 @@ CLI 测试覆盖：
 - actor 只出现在 update、log 和 rename；
 - search 全部默认状态；
 - init force 不读取 Task 数据；
+- install 默认 tools 模式和英文，接受全部模式与语言值，并报告最终 Skill；
 - install 没有本地 source；
 - 拒绝未知命令和不属于当前合同的选项。
 
@@ -129,20 +130,22 @@ Pi 和 OMP 的单元与进程测试覆盖：
 
 ## 组件组装
 
-重复构建必须产生相同组件树、文件字节、`tar.zst` 字节和清单。验证所有路径、权限、摘要、缺失项、多余项和 `runtime_compat`。
+重复构建必须产生相同的十六份组件载荷、文件字节、`tar.zst` 字节和清单。验证 Harness、模式、语言、Skill 身份、路径、权限、摘要、缺失项、多余项和 `runtime_compat`。
 
 `TK_SOURCE_REVISION` 有值和无值两种构建均验证。构建脚本不能调用 Git，也不能写出 Cargo 管理目录以外的生成物。
 
 ## 安装和卸载
 
-隔离测试覆盖四个 Harness：
+隔离测试覆盖十六种 Harness、模式和语言选择：
 
-- install、update、no_change 和 uninstall；
+- install、update、选择切换、no_change 和 uninstall；
 - 内嵌归档，无网络和本地来源；
+- text 和 JSON 结果中的最终 `mode`、`language` 和 `skill`；
 - 官方 Harness API 优先；
+- tools 模式注册，以及 CLI 模式不存在 tk 操作注册；
 - 共享配置解析失败时原文件不变；
 - 共享配置只删除 tk 项；
-- tk 专用目录卸载时完整删除，包括修改和额外内容；
+- 卸载完整删除当前及已知残留 tk 专用目录，包括修改和额外内容；
 - 无关 Harness 内容和后续修改保留；
 - 中途 I/O 失败报告完成和未完成项；
 - GC 只清理组件临时内容，不继续生命周期操作。
@@ -156,10 +159,12 @@ Pi 和 OMP 的单元与进程测试覆盖：
 | Pi | 隔离环境真实安装、加载和卸载 |
 | OMP | 隔离环境真实安装、加载、一次真实工具调用和卸载 |
 
+每个 Harness 都验证四种模式与语言选择。OMP tools 模式还执行上表所列的真实操作调用。
+
 真实测试必须观察 Harness 的实际加载结果和卸载后状态，不能只检查组装文件。
 
 ## Skill 和文档
 
-Skill 场景覆盖 strict/permissive 创建、planning/open 选择、Task 解析、catchup、WAL、人工修复授权、close/reopen 和五类材料模式。
+Skill 场景覆盖 strict/permissive 创建、planning/open 选择、Task 解析、catchup、WAL、人工修复授权、close/reopen、五类材料模式、tools 路由不通过直接 CLI 重试，以及 CLI-only 命令使用。
 
 公开文档检查英文和中文页面的语言链接、语义对应、术语和自然度。使用仓库现有检查和人工审查，不增加自定义文档结构检查器。

@@ -44,3 +44,9 @@ Draft writer: OMP GPT-5.6 Sol
 每个 variant 都保持完整，并能与对应版本核对。翻译需要时可以采用语言专用解释，但任何一侧都不能悄悄省略可观察能力或必需指令。
 
 导入时保留正文含义，并区分路径适配与编辑修改。每个 Skill 都能独立说明自己的领域，无需加载另一个 Skill 才能使用。
+
+## 变更
+
+### 2026-09-02：记录使用独立名称的 tk 语言 Skill
+
+tk 使用可独立发现的 `tk`、`tk-zh`、`tk-cli` 和 `tk-cli-zh`。它们是不同的 Skill 身份，不属于同名语言 variant，因此四者都位于 `projects/tk/skills/<name>/`。其他 Skill 的同名 variant 规则保持不变。

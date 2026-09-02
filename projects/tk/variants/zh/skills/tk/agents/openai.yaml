@@ -1,4 +1,0 @@
-interface:
-  display_name: "tk"
-  short_description: "使用 tk 管理项目中的持久 Task"
-  default_prompt: "使用 $tk 恢复并继续当前项目中的持久 Task。"

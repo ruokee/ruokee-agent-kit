@@ -27,7 +27,7 @@ tk 是一种面向 Linux 本地项目的持久 Task 能力。Task 是一项值�
 
 Harness 负责模型循环、提示、上下文、权限、hooks、Skill 加载和工具展示。Harness 组件负责注册工具和配置，但不重复实现 Task 验证或存储规则。
 
-英文 Skill 定义 Agent 使用 tk 的行为。中文 Skill 是语义覆盖范围相同的完整替代版本。公开文档记录当前产品合同。ADR 保存长期决定及其理由。
+四个自包含 Skill 分别定义 tools 或 CLI 模式下使用英文或中文时的 Agent 行为。公开文档记录当前产品合同。ADR 保存长期决定及其理由。
 
 ### Task 与 Harness 边界
 
@@ -43,8 +43,10 @@ Harness 是围绕模型、使其能够作为 Agent 运行的软件环境。当�
 
 - [Task 数据模型](./2026-08-28-define-tk-task-data-model.zh.md)；
 - [运行时与 CLI](./2026-08-28-define-tk-runtime-and-cli.zh.md)；
-- [Harness 集成](./2026-08-28-integrate-tk-with-harnesses.zh.md)；
-- [运行时与组件分发](./2026-08-28-distribute-tk-runtime-components.zh.md)；
+- [纯 CLI 模式](./2026-09-02-add-tk-cli-only-mode.zh.md)；
+- [Skill 语言选择](./2026-09-02-select-tk-skill-language.zh.md)；
+- [Harness 工具集成](./2026-09-02-integrate-tk-tools-with-harnesses.zh.md)；
+- [可选择 Harness 组件分发](./2026-09-02-distribute-selectable-tk-harness-components.zh.md)；
 - [文档维护](./2026-08-29-maintain-tk-documentation.zh.md)。
 
 ## 考虑过的替代方案
@@ -64,3 +66,9 @@ Task 不依赖创建它的 Harness 也能读取和维护。CLI、MCP、Pi 和 OM
 文件模型使用按需发现和有界扫描，不维护永久索引。工作流、优先级、Agent 调度和远程协作继续由其他系统负责。
 
 运行时是所有接口共同的故障边界。可执行文件中的缺陷可能影响全部接口，而 Harness 适配器缺陷只影响对应集成。新增集成必须保持这一职责划分，不能把 Task 语义移入 Harness 专用代码。
+
+## 变更
+
+### 2026-09-02：增加可选择的 Skill 模式与语言
+
+产品现在包含四个可独立发现的 Skill 和十六种 Harness 组件选择。上文的决定归属列表用四项聚焦的现行决定，替换了已经归档的单语言 Harness 集成与组件分发决定。

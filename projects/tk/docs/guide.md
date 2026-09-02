@@ -24,24 +24,26 @@ $HOME/.local/bin/tk --output json --version
 
 ## Install a Harness component
 
-Install the component for one supported Harness:
+Install one selection for a supported Harness:
 
 ```sh
 tk install --harness codex
-tk install --harness claude
-tk install --harness pi
-tk install --harness omp
+tk install --harness claude --mode tools --language zh
+tk install --harness pi --mode cli --language en
+tk install --harness omp --mode cli --language zh
 ```
 
-`tk install` uses only the component embedded in the current executable. It does not download a component or accept a local archive. Run it again to update an older or changed tk component. A matching installation returns `no_change`.
+`--mode` accepts `tools` or `cli` and defaults to `tools`. `--language` accepts `en` or `zh` and defaults to `en`. The resolved Skill is `tk`, `tk-zh`, `tk-cli`, or `tk-cli-zh`.
 
-Use `--dry-run` to validate the runtime, embedded component, Harness command, fixed targets, and shared configuration without writing.
+Tools mode installs the Harness integration and its selected Skill. CLI mode installs only the selected CLI Skill within the Harness component. Running install again with another selection updates the component directly and removes known superseded Skill targets.
+
+`tk install` uses only the component embedded in the current executable. It does not download a component or accept a local archive. A matching installation returns `no_change`.
+
+Use `--dry-run` to validate the runtime, embedded selection, Harness command, fixed targets, and shared configuration without writing.
 
 ```sh
-tk install --harness omp --dry-run --output json
+tk install --harness omp --mode cli --language zh --dry-run --output json
 ```
-
-The installed English Skill and tools are self-contained. Users may install the complete Chinese Skill separately through the Harness's official Skill mechanism. tk does not manage that external copy.
 
 See [Installation](./design/installation.md) for lifecycle and clean-uninstall behavior. See [Harness integration](./design/harnesses.md) for each component's contents.
 
@@ -165,10 +167,10 @@ tk uninstall --harness pi
 tk uninstall --harness omp
 ```
 
-Uninstall removes the entire fixed tk-dedicated target, including modified or extra content inside it, and removes only tk's entry from shared configuration. Unrelated Harness content remains unchanged.
+Uninstall removes the entire fixed tk-dedicated target, including modified or extra content inside it, and removes only tk's entry from shared configuration. For Codex it also removes all known tk Skill variant targets. Unrelated Harness content remains unchanged.
 
 ## Agent use
 
-The authoritative [English tk Skill](../skills/tk/SKILL.md) defines when persistent Task handling applies, how strict and permissive creation differ, how catchup restores context, and what belongs in `TASK.md`, WAL, or ordinary materials. The [complete Chinese Skill](../variants/zh/skills/tk/SKILL.md) is a semantically maintained alternative for review and optional manual installation.
+tk ships four independently discoverable Skills: [tk](../skills/tk/SKILL.md), [tk-zh](../skills/tk-zh/SKILL.md), [tk-cli](../skills/tk-cli/SKILL.md), and [tk-cli-zh](../skills/tk-cli-zh/SKILL.md). Each is self-contained. The selected installation mode and language determine which one the Harness loads.
 
 The [design index](./design/README.md) links every current runtime, data, tool, Harness, installation, Skill, and validation contract.

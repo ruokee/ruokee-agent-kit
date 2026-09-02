@@ -451,9 +451,7 @@ function validateToolSet(tools: ToolSchema[]): void {
     throw new Error(`tk native schema must expose exactly: ${TOOL_NAMES.join(", ")}`);
   }
   for (const tool of tools) {
-    const expected = tool.name === "tk_search" || tool.name === "tk_exec"
-      ? "discoverable"
-      : "essential";
+    const expected = tool.name === "tk_exec" ? "discoverable" : "essential";
     if (tool.loadMode !== expected) {
       throw new Error(`tk returned an invalid OMP load mode for ${tool.name}`);
     }

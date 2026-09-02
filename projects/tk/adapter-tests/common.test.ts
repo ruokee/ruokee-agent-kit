@@ -57,10 +57,7 @@ function contract(harness: "pi" | "omp") {
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
       ...(harness === "omp"
         ? {
-            loadMode:
-              name === "tk_search" || name === "tk_exec"
-                ? "discoverable"
-                : "essential",
+            loadMode: name === "tk_exec" ? "discoverable" : "essential",
           }
         : {}),
     })),
@@ -240,6 +237,9 @@ describe("OMP native adapter", () => {
     });
 
     expect(registered.find((tool) => tool.name === "tk_search")?.loadMode).toBe(
+      "essential",
+    );
+    expect(registered.find((tool) => tool.name === "tk_exec")?.loadMode).toBe(
       "discoverable",
     );
     expect(registered.find((tool) => tool.name === "tk_update")?.loadMode).toBe(

@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/tk-pi",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "First-party tk tools and Skill for Pi",
   "license": "MIT",
   "type": "module",

@@ -27,7 +27,7 @@ One Cargo package under `projects/tk/` builds one executable named `tk`. The Rus
 
 Harnesses own their model loop, prompts, context, permissions, hooks, Skill loading, and tool presentation. Harness components register tools and configuration but do not duplicate Task validation or storage rules.
 
-The English Skill defines Agent behavior for tk. The Chinese Skill is a complete alternative with the same semantic coverage. Public documentation records the current product contract. ADRs preserve long-lived decisions and their rationale.
+Four self-contained Skills define Agent behavior for tools or CLI mode in English or Chinese. Public documentation records the current product contract. ADRs preserve long-lived decisions and their rationale.
 
 ### Task and Harness boundary
 
@@ -43,8 +43,10 @@ The following ADRs own the detailed contracts within this architecture:
 
 - [Task data model](./2026-08-28-define-tk-task-data-model.md);
 - [runtime and CLI](./2026-08-28-define-tk-runtime-and-cli.md);
-- [Harness integration](./2026-08-28-integrate-tk-with-harnesses.md);
-- [runtime and component distribution](./2026-08-28-distribute-tk-runtime-components.md);
+- [CLI-only mode](./2026-09-02-add-tk-cli-only-mode.md);
+- [Skill language selection](./2026-09-02-select-tk-skill-language.md);
+- [Harness tools integration](./2026-09-02-integrate-tk-tools-with-harnesses.md);
+- [selectable Harness component distribution](./2026-09-02-distribute-selectable-tk-harness-components.md);
 - [documentation maintenance](./2026-08-29-maintain-tk-documentation.md).
 
 ## Alternatives considered
@@ -64,3 +66,9 @@ A Task can be read and maintained without the Harness that created it. CLI, MCP,
 The file-based design accepts on-demand discovery and bounded scans instead of a permanent index. Workflow, prioritization, Agent scheduling, and remote collaboration remain the responsibility of other systems.
 
 The runtime is a shared failure boundary. A defect in the executable can affect every interface, while a Harness adapter defect remains limited to that integration. New integrations must preserve this ownership split instead of moving Task semantics into host-specific code.
+
+## Changes
+
+### 2026-09-02: Add selectable Skill modes and languages
+
+The product now has four independently discoverable Skills and sixteen Harness component selections. The ownership list above replaces the archived single-language Harness integration and distribution decisions with four focused current decisions.

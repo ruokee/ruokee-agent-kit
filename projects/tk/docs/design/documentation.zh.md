@@ -26,7 +26,7 @@
 | runtime | 分层、进程、上下文、失败边界、适配器和版本维度 |
 | tool-api | 六个工具、请求、结果和稳定错误 |
 | cli-reference | 完整命令树、参数、默认值、退出码和示例 |
-| harnesses | 四个当前 Harness 组件、schema、适配器和组装 |
+| harnesses | 四个当前 Harness 形式、模式与语言选择、schema、适配器和组装 |
 | installation | 内嵌组件、安装、更新、干净卸载和兼容性 |
 | skill | Agent 触发、授权、Task 导航、WAL 和材料行为 |
 | validation | 可观察验收合同 |

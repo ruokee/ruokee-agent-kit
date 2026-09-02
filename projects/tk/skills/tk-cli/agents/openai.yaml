@@ -1,0 +1,4 @@
+interface:
+  display_name: "tk-cli"
+  short_description: "Manage durable project Tasks through the tk CLI"
+  default_prompt: "Use $tk-cli to resume and continue a persistent Task in the current project."

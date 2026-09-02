@@ -49,7 +49,7 @@ The glossary contains only terms with tk-specific meaning, fixed capitalization,
 
 ### Skills and ADRs
 
-`projects/tk/skills/tk/` is the authoritative English Skill. `projects/tk/variants/zh/skills/tk/` is a complete Chinese alternative with the same semantic coverage. Each Skill tree is self-contained and links only within its own component directory.
+The four authoritative Skill trees are `projects/tk/skills/tk/`, `projects/tk/skills/tk-zh/`, `projects/tk/skills/tk-cli/`, and `projects/tk/skills/tk-cli-zh/`. Each is self-contained. English and Chinese Skills in the same mode have equivalent semantic coverage.
 
 ADR proposals and decisions use separate repository formats and directories. English and Chinese pairs remain semantically aligned, and the maintainer controls proposal approval, rejection, and decision archival.
 
@@ -86,3 +86,7 @@ Final-state wording keeps public documentation compact, but review history and i
 ### 2026-09-02: Adopt the proposal and decision model
 
 tk documentation now refers to current ADRs under `decision/` rather than modeling current records through an `implemented` status. Proposals and decisions use separate formats without a `Status` field, while the maintainer retains lifecycle authority.
+
+### 2026-09-02: Document selectable Skills and components
+
+Documentation covers tools and CLI modes, English and Chinese selection through `tk install`, four Skill identities, sixteen component payloads, and the split routing contract. The four Skill paths above replace the earlier English Skill and the Chinese Skill that required manual installation.

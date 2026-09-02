@@ -40,6 +40,51 @@ impl Harness {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Mode {
+    Tools,
+    Cli,
+}
+
+impl Mode {
+    fn name(self) -> &'static str {
+        match self {
+            Self::Tools => "tools",
+            Self::Cli => "cli",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Language {
+    En,
+    Zh,
+}
+
+impl Language {
+    fn name(self) -> &'static str {
+        match self {
+            Self::En => "en",
+            Self::Zh => "zh",
+        }
+    }
+}
+
+fn component_id(harness: Harness, mode: Mode, language: Language) -> String {
+    format!("{}/{}/{}", harness.name(), mode.name(), language.name())
+}
+
+fn skill_name(mode: Mode, language: Language) -> &'static str {
+    match (mode, language) {
+        (Mode::Tools, Language::En) => "tk",
+        (Mode::Tools, Language::Zh) => "tk-zh",
+        (Mode::Cli, Language::En) => "tk-cli",
+        (Mode::Cli, Language::Zh) => "tk-cli-zh",
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct BundleManifest {
@@ -54,6 +99,10 @@ struct BundleManifest {
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ComponentManifest {
+    harness: Harness,
+    mode: Mode,
+    language: Language,
+    skill: String,
     runtime_compat: String,
     payload: String,
     files: BTreeMap<String, FileManifest>,
@@ -79,6 +128,12 @@ struct Bundle {
 #[derive(Debug, Serialize)]
 pub struct ComponentResult {
     pub harness: Harness,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mode: Option<Mode>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub language: Option<Language>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub skill: Option<&'static str>,
     pub action: &'static str,
     pub version: String,
     pub runtime_compat: String,
@@ -93,7 +148,12 @@ pub struct ComponentResult {
     pub removed_paths: Vec<PathBuf>,
 }
 
-pub fn install(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
+pub fn install(
+    harness: Harness,
+    mode: Mode,
+    language: Language,
+    dry_run: bool,
+) -> Result<ComponentResult> {
     let home = home()?;
     let runtime = home.join(".local/bin/tk");
     require_runtime(&runtime)?;
@@ -102,26 +162,68 @@ pub fn install(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
     let component = bundle
         .manifest
         .components
-        .get(harness.name())
+        .get(&component_id(harness, mode, language))
         .expect("validated component exists");
     require_compatible(&component.runtime_compat)?;
-    let target = component_target(harness, &home);
+
+    let skill = skill_name(mode, language);
+    let target = component_target(harness, &home, skill);
+    let targets = component_targets(harness, &home);
+    let residual_targets: Vec<_> = targets
+        .iter()
+        .filter(|candidate| **candidate != target)
+        .cloned()
+        .collect();
+    let target_before = target_fingerprints(&targets)?;
     let target_existed = entry_exists(&target)?;
-    let target_before = target_fingerprint(&target)?;
-    let registration =
-        registration_state(harness, &target, &runtime, &bundle.manifest.runtime_version)?;
-    let changed = component_differs(&target, component, &bundle.files)? || !registration.matches;
+    let residual_existing = residual_targets
+        .into_iter()
+        .map(|path| entry_exists(&path).map(|exists| (path, exists)))
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .filter_map(|(path, exists)| exists.then_some(path))
+        .collect::<Vec<_>>();
+    let registration = registration_state(
+        harness,
+        mode,
+        &target,
+        &runtime,
+        &bundle.manifest.runtime_version,
+    )?;
+    let target_changed = component_differs(&target, component, &bundle.files)?;
+    let registration_changed = !registration.matches;
+    let configure_needed = match harness {
+        Harness::Codex => registration_changed,
+        _ => target_changed || registration_changed,
+    };
+    let changed = target_changed || configure_needed || !residual_existing.is_empty();
     let action = if !changed {
         "no_change"
     } else if dry_run {
         "would_install"
-    } else if target_existed {
+    } else if target_existed || registration.present || !residual_existing.is_empty() {
         "updated"
     } else {
         "installed"
     };
+
+    let mut planned = Vec::new();
+    if target_changed {
+        planned.push(target.display().to_string());
+    }
+    if configure_needed {
+        planned.push("Harness registration".into());
+    }
+    planned.extend(
+        residual_existing
+            .iter()
+            .map(|path| path.display().to_string()),
+    );
     let mut result = ComponentResult {
         harness,
+        mode: Some(mode),
+        language: Some(language),
+        skill: Some(skill),
         action,
         version: bundle.manifest.runtime_version.clone(),
         runtime_compat: component.runtime_compat.clone(),
@@ -131,17 +233,9 @@ pub fn install(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
         partial: false,
         dry_run,
         completed: Vec::new(),
-        uncompleted: if changed {
-            vec![target.display().to_string(), "Harness registration".into()]
-        } else {
-            Vec::new()
-        },
-        installed_paths: if changed {
-            vec![target.clone()]
-        } else {
-            Vec::new()
-        },
-        removed_paths: Vec::new(),
+        uncompleted: planned.clone(),
+        installed_paths: target_changed.then(|| target.clone()).into_iter().collect(),
+        removed_paths: residual_existing.clone(),
     };
     if !changed || dry_run {
         return Ok(result);
@@ -150,12 +244,23 @@ pub fn install(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
     let operation = crate::gc::begin_user_operation(&target)?;
     let completed = operation.execute(
         |operation| {
-            let staging = operation.temporary_path("component")?;
-            materialize_component(&staging, component, &bundle.files)?;
+            let staging = if target_changed {
+                let path = operation.temporary_path("component")?;
+                materialize_component(&path, component, &bundle.files)?;
+                Some(path)
+            } else {
+                None
+            };
             crate::cancel::checkpoint()?;
-            let current_registration =
-                registration_state(harness, &target, &runtime, &bundle.manifest.runtime_version)?;
-            if target_fingerprint(&target)? != target_before || current_registration != registration
+            let current_registration = registration_state(
+                harness,
+                mode,
+                &target,
+                &runtime,
+                &bundle.manifest.runtime_version,
+            )?;
+            if target_fingerprints(&targets)? != target_before
+                || current_registration != registration
             {
                 return Err(TkError::new(
                     "changed_since_plan",
@@ -165,13 +270,32 @@ pub fn install(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
             }
 
             let mut completed = Vec::new();
-            replace_target(&staging, &target)?;
-            completed.push(target.display().to_string());
-            if let Err(error) = crate::cancel::checkpoint() {
-                return Err(partial_error(error, &completed, &["Harness registration"]));
+            let mut remaining = planned.clone();
+            if let Some(staging) = staging {
+                replace_target(&staging, &target)?;
+                let item = target.display().to_string();
+                completed.push(item.clone());
+                remaining.retain(|candidate| candidate != &item);
             }
-            if let Err(error) = configure(harness, &target, &runtime, &mut completed) {
-                return Err(partial_error(error, &completed, &["Harness registration"]));
+            if let Err(error) = crate::cancel::checkpoint() {
+                return Err(partial_error(error, &completed, &remaining));
+            }
+            if configure_needed {
+                if let Err(error) = configure(harness, mode, &target, &runtime, &mut completed) {
+                    return Err(partial_error(error, &completed, &remaining));
+                }
+                remaining.retain(|candidate| candidate != "Harness registration");
+            }
+            for residual in &residual_existing {
+                if let Err(error) = crate::cancel::checkpoint() {
+                    return Err(partial_error(error, &completed, &remaining));
+                }
+                if let Err(error) = remove_entry(residual) {
+                    return Err(partial_error(error, &completed, &remaining));
+                }
+                let item = residual.display().to_string();
+                completed.push(item.clone());
+                remaining.retain(|candidate| candidate != &item);
             }
             Ok(completed)
         },
@@ -198,15 +322,29 @@ pub fn uninstall(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
     let component = bundle
         .manifest
         .components
-        .get(harness.name())
+        .get(&component_id(harness, Mode::Tools, Language::En))
         .expect("validated component exists");
     require_compatible(&component.runtime_compat)?;
-    let target = component_target(harness, &home);
-    let registration =
-        registration_state(harness, &target, &runtime, &bundle.manifest.runtime_version)?;
-    let target_exists = entry_exists(&target)?;
-    let target_before = target_fingerprint(&target)?;
-    let changed = target_exists || registration.present;
+
+    let targets = component_targets(harness, &home);
+    let target_before = target_fingerprints(&targets)?;
+    let existing_targets = targets
+        .iter()
+        .map(|path| entry_exists(path).map(|exists| (path, exists)))
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .filter_map(|(path, exists)| exists.then_some(path.clone()))
+        .collect::<Vec<_>>();
+    let registration_target =
+        component_target(harness, &home, skill_name(Mode::Tools, Language::En));
+    let registration = registration_state(
+        harness,
+        Mode::Tools,
+        &registration_target,
+        &runtime,
+        &bundle.manifest.runtime_version,
+    )?;
+    let changed = !existing_targets.is_empty() || registration.present;
     let action = if !changed {
         "no_change"
     } else if dry_run {
@@ -214,8 +352,21 @@ pub fn uninstall(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
     } else {
         "uninstalled"
     };
+
+    let mut planned = Vec::new();
+    if registration.present {
+        planned.push("Harness registration".into());
+    }
+    planned.extend(
+        existing_targets
+            .iter()
+            .map(|path| path.display().to_string()),
+    );
     let mut result = ComponentResult {
         harness,
+        mode: None,
+        language: None,
+        skill: None,
         action,
         version: bundle.manifest.runtime_version.clone(),
         runtime_compat: component.runtime_compat.clone(),
@@ -225,30 +376,27 @@ pub fn uninstall(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
         partial: false,
         dry_run,
         completed: Vec::new(),
-        uncompleted: registration
-            .present
-            .then(|| "Harness registration".into())
-            .into_iter()
-            .chain(target_exists.then(|| target.display().to_string()))
-            .collect(),
+        uncompleted: planned.clone(),
         installed_paths: Vec::new(),
-        removed_paths: if target_exists {
-            vec![target.clone()]
-        } else {
-            Vec::new()
-        },
+        removed_paths: existing_targets.clone(),
     };
     if !changed || dry_run {
         return Ok(result);
     }
 
-    let operation = crate::gc::begin_user_operation(&target)?;
+    let operation = crate::gc::begin_user_operation(&registration_target)?;
     let completed = operation.execute(
         |_operation| {
             crate::cancel::checkpoint()?;
-            let current_registration =
-                registration_state(harness, &target, &runtime, &bundle.manifest.runtime_version)?;
-            if target_fingerprint(&target)? != target_before || current_registration != registration
+            let current_registration = registration_state(
+                harness,
+                Mode::Tools,
+                &registration_target,
+                &runtime,
+                &bundle.manifest.runtime_version,
+            )?;
+            if target_fingerprints(&targets)? != target_before
+                || current_registration != registration
             {
                 return Err(TkError::new(
                     "changed_since_plan",
@@ -258,23 +406,23 @@ pub fn uninstall(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
             }
 
             let mut completed = Vec::new();
-            if registration.present
-                && let Err(error) = deconfigure(harness, &target, &mut completed)
-            {
-                return Err(partial_error(
-                    error,
-                    &completed,
-                    &["Harness registration", "Component target"],
-                ));
-            }
-            if let Err(error) = crate::cancel::checkpoint() {
-                return Err(partial_error(error, &completed, &["Component target"]));
-            }
-            if target_exists {
-                if let Err(error) = remove_entry(&target) {
-                    return Err(partial_error(error, &completed, &["Component target"]));
+            let mut remaining = planned.clone();
+            if registration.present {
+                if let Err(error) = deconfigure(harness, &registration_target, &mut completed) {
+                    return Err(partial_error(error, &completed, &remaining));
                 }
-                completed.push(target.display().to_string());
+                remaining.retain(|candidate| candidate != "Harness registration");
+            }
+            for target in &existing_targets {
+                if let Err(error) = crate::cancel::checkpoint() {
+                    return Err(partial_error(error, &completed, &remaining));
+                }
+                if let Err(error) = remove_entry(target) {
+                    return Err(partial_error(error, &completed, &remaining));
+                }
+                let item = target.display().to_string();
+                completed.push(item.clone());
+                remaining.retain(|candidate| candidate != &item);
             }
             Ok(completed)
         },
@@ -318,22 +466,39 @@ fn embedded_bundle() -> Result<Bundle> {
             "Embedded component archive digest does not match its manifest",
         ));
     }
+    if manifest.components.len() != 16 {
+        return Err(TkError::new(
+            "component_manifest_incomplete",
+            ErrorCategory::ManagedFile,
+            "Embedded component manifest must contain sixteen selections",
+        ));
+    }
     for harness in [Harness::Codex, Harness::Claude, Harness::Pi, Harness::Omp] {
-        let component = manifest.components.get(harness.name()).ok_or_else(|| {
-            TkError::new(
-                "component_manifest_incomplete",
-                ErrorCategory::ManagedFile,
-                format!("Missing {} component", harness.name()),
-            )
-        })?;
-        if component.payload != format!("payloads/{}", harness.name()) {
-            return Err(TkError::new(
-                "component_manifest_invalid",
-                ErrorCategory::ManagedFile,
-                format!("Invalid payload root for {}", harness.name()),
-            ));
+        for mode in [Mode::Tools, Mode::Cli] {
+            for language in [Language::En, Language::Zh] {
+                let id = component_id(harness, mode, language);
+                let component = manifest.components.get(&id).ok_or_else(|| {
+                    TkError::new(
+                        "component_manifest_incomplete",
+                        ErrorCategory::ManagedFile,
+                        format!("Missing {id} component"),
+                    )
+                })?;
+                if component.harness != harness
+                    || component.mode != mode
+                    || component.language != language
+                    || component.skill != skill_name(mode, language)
+                    || component.payload != format!("payloads/{id}")
+                {
+                    return Err(TkError::new(
+                        "component_manifest_invalid",
+                        ErrorCategory::ManagedFile,
+                        format!("Invalid component selection metadata for {id}"),
+                    ));
+                }
+                require_compatible(&component.runtime_compat)?;
+            }
         }
-        require_compatible(&component.runtime_compat)?;
     }
 
     let decoder = zstd::Decoder::new(EMBEDDED_ARCHIVE).map_err(archive_error)?;
@@ -618,6 +783,13 @@ fn target_fingerprint(path: &Path) -> Result<String> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
+fn target_fingerprints(paths: &[PathBuf]) -> Result<BTreeMap<PathBuf, String>> {
+    paths
+        .iter()
+        .map(|path| target_fingerprint(path).map(|fingerprint| (path.clone(), fingerprint)))
+        .collect()
+}
+
 fn fingerprint_entry(
     root: &Path,
     path: &Path,
@@ -712,6 +884,7 @@ struct RegistrationState {
 
 fn registration_state(
     harness: Harness,
+    mode: Mode,
     root: &Path,
     runtime: &Path,
     version: &str,
@@ -724,12 +897,15 @@ fn registration_state(
             let item = value
                 .as_array()
                 .and_then(|items| items.iter().find(|item| item["name"] == "tk"));
-            let matches = item.is_some_and(|item| {
-                item["enabled"] == true
-                    && item["transport"]["type"] == "stdio"
-                    && item["transport"]["command"] == runtime.as_ref()
-                    && item["transport"]["args"] == serde_json::json!(["mcp"])
-            });
+            let matches = match mode {
+                Mode::Tools => item.is_some_and(|item| {
+                    item["enabled"] == true
+                        && item["transport"]["type"] == "stdio"
+                        && item["transport"]["command"] == runtime.as_ref()
+                        && item["transport"]["args"] == serde_json::json!(["mcp"])
+                }),
+                Mode::Cli => item.is_none(),
+            };
             Ok(RegistrationState {
                 present: item.is_some(),
                 matches,
@@ -779,6 +955,7 @@ fn registration_state(
 
 fn configure(
     harness: Harness,
+    mode: Mode,
     root: &Path,
     runtime: &Path,
     completed: &mut Vec<String>,
@@ -786,10 +963,16 @@ fn configure(
     let root = root.to_string_lossy().into_owned();
     let runtime = runtime.to_string_lossy().into_owned();
     match harness {
-        Harness::Codex => {
-            run_driver("codex", &["mcp", "add", "tk", "--", &runtime, "mcp"])?;
-            completed.push("Codex MCP registration".into());
-        }
+        Harness::Codex => match mode {
+            Mode::Tools => {
+                run_driver("codex", &["mcp", "add", "tk", "--", &runtime, "mcp"])?;
+                completed.push("Codex MCP registration".into());
+            }
+            Mode::Cli => {
+                run_driver_allow_absent("codex", &["mcp", "remove", "tk"])?;
+                completed.push("Codex MCP registration removed".into());
+            }
+        },
         Harness::Claude => {
             run_driver(
                 "claude",
@@ -923,7 +1106,7 @@ fn driver_error(executable: &str, output: Output) -> TkError {
     )
 }
 
-fn partial_error(error: TkError, completed: &[String], uncompleted: &[&str]) -> TkError {
+fn partial_error(error: TkError, completed: &[String], uncompleted: &[String]) -> TkError {
     if completed.is_empty() {
         return error;
     }
@@ -985,17 +1168,28 @@ fn require_harness(harness: Harness) -> Result<()> {
     ))
 }
 
-fn component_target(harness: Harness, home: &Path) -> PathBuf {
+fn component_target(harness: Harness, home: &Path, skill: &str) -> PathBuf {
     match harness {
         Harness::Codex => env::var_os("CODEX_HOME")
             .map(PathBuf::from)
             .unwrap_or_else(|| home.join(".codex"))
-            .join("skills/tk"),
+            .join("skills")
+            .join(skill),
         _ => env::var_os("XDG_DATA_HOME")
             .map(PathBuf::from)
             .unwrap_or_else(|| home.join(".local/share"))
             .join("tk/components")
             .join(harness.name()),
+    }
+}
+
+fn component_targets(harness: Harness, home: &Path) -> Vec<PathBuf> {
+    match harness {
+        Harness::Codex => ["tk", "tk-zh", "tk-cli", "tk-cli-zh"]
+            .into_iter()
+            .map(|skill| component_target(harness, home, skill))
+            .collect(),
+        _ => vec![component_target(harness, home, "tk")],
     }
 }
 
@@ -1042,9 +1236,66 @@ mod tests {
     use super::*;
 
     #[test]
-    fn embedded_components_are_self_consistent() {
+    fn embedded_components_cover_every_selection() {
         let bundle = embedded_bundle().unwrap();
-        assert_eq!(bundle.manifest.components.len(), 4);
+        assert_eq!(bundle.manifest.components.len(), 16);
+        for harness in [Harness::Codex, Harness::Claude, Harness::Pi, Harness::Omp] {
+            for mode in [Mode::Tools, Mode::Cli] {
+                for language in [Language::En, Language::Zh] {
+                    let component = bundle
+                        .manifest
+                        .components
+                        .get(&component_id(harness, mode, language))
+                        .unwrap();
+                    let skill = skill_name(mode, language);
+                    let skill_path = if harness == Harness::Codex {
+                        "SKILL.md".into()
+                    } else {
+                        format!("skills/{skill}/SKILL.md")
+                    };
+                    assert!(component.files.contains_key(&skill_path));
+
+                    match (harness, mode) {
+                        (Harness::Claude, Mode::Tools) => {
+                            assert!(component.files.contains_key(".mcp.json"));
+                        }
+                        (Harness::Claude, Mode::Cli) => {
+                            assert!(!component.files.contains_key(".mcp.json"));
+                        }
+                        (Harness::Pi | Harness::Omp, Mode::Tools) => {
+                            assert!(component.files.contains_key("extension.ts"));
+                        }
+                        (Harness::Pi | Harness::Omp, Mode::Cli) => {
+                            assert!(!component.files.contains_key("extension.ts"));
+                            assert!(!component.files.contains_key("common.ts"));
+                        }
+                        (Harness::Codex, _) => {}
+                    }
+
+                    if mode == Mode::Cli {
+                        for file_path in component.files.keys() {
+                            let path = format!("{}/{file_path}", component.payload);
+                            let Ok(text) = std::str::from_utf8(&bundle.files[&path].bytes) else {
+                                continue;
+                            };
+                            for name in [
+                                "tk_search",
+                                "tk_read",
+                                "tk_create",
+                                "tk_update",
+                                "tk_log",
+                                "tk_exec",
+                            ] {
+                                assert!(
+                                    !text.contains(name),
+                                    "CLI component {harness:?}/{language:?} contains {name} in {file_path}"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     #[test]
@@ -1081,7 +1332,7 @@ mod tests {
     fn component_diff_detects_extra_directories_and_symlinks() {
         let root = std::env::temp_dir().join(format!("tk-component-test-{}", uuid::Uuid::now_v7()));
         let bundle = embedded_bundle().unwrap();
-        let component = bundle.manifest.components.get("pi").unwrap();
+        let component = bundle.manifest.components.get("pi/tools/en").unwrap();
         materialize_component(&root, component, &bundle.files).unwrap();
         assert!(!component_differs(&root, component, &bundle.files).unwrap());
 
@@ -1100,7 +1351,7 @@ mod tests {
         let error = partial_error(
             TkError::new("injected", ErrorCategory::Cancelled, "cancelled"),
             &["Claude plugin registration removed".into()],
-            &["Harness registration", "Component target"],
+            &["Harness registration".into(), "Component target".into()],
         );
         let details = error.details.unwrap();
         assert_eq!(

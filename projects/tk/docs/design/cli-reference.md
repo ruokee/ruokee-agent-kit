@@ -236,12 +236,15 @@ The command starts a single-connection stdio MCP server. It does not accept cwd,
 
 ```text
 tk install --harness <codex|claude|pi|omp>
+  [--mode <tools|cli>] [--language <en|zh>]
   [--dry-run] [--output <text|json>]
 ```
 
-install uses only components embedded in the current executable. It performs an update when an existing tk component has a different version or its content must be replaced.
+`--mode` defaults to `tools`. `--language` defaults to `en`. The four resolved Skills are `tk`, `tk-zh`, `tk-cli`, and `tk-cli-zh`.
 
-The result action is `would_install`, `installed`, `updated`, or `no_change`, and the result lists planned or actual changes. On failure, it follows the completed and incomplete item contract for cross-file operations.
+install uses only components embedded in the current executable. It performs an update when the fixed target, registration, mode, language, or selected Skill differs. Switching selection replaces the current component directly and removes known superseded Skill targets.
+
+The result action is `would_install`, `installed`, `updated`, or `no_change`. Text and JSON results include the resolved `mode`, `language`, and `skill`, plus planned or actual path and registration changes. On failure, install follows the completed and incomplete item contract for cross-file operations.
 
 ## `tk uninstall`
 
@@ -250,7 +253,7 @@ tk uninstall --harness <codex|claude|pi|omp>
   [--dry-run] [--output <text|json>]
 ```
 
-uninstall removes all tk-specific writes and registrations, restoring the Harness to the state it would have had if tk had never been installed while preserving unrelated content.
+uninstall takes no mode or language selector. It removes the active component, all known residual tk Skill variants for that Harness, and tk registrations. Unrelated content remains intact.
 
 The result action is `would_uninstall`, `uninstalled`, or `no_change`, and the result lists planned or actual changes.
 
@@ -267,10 +270,10 @@ Version JSON is:
 
 ```json
 {
-  "runtime_version": "0.1.1",
+  "runtime_version": "0.1.2",
   "cli_contract_version": 1,
   "task_schema_version": 1,
-  "component_format_version": 1
+  "component_format_version": 2
 }
 ```
 

@@ -16,8 +16,7 @@ The system consists of the following parts:
 | --- | --- | --- |
 | Rust runtime | Task domain rules, persistence, migration, project discovery, CLI, MCP, generated tool contracts, and component lifecycle | Harness session loops and model calls |
 | Harness components | Skill, tool registration, configuration or adapters, and their installation targets | Task domain validation and storage rules |
-| English Skill | Guidance for Agent activation, authorization, Task usage, and material maintenance | Enforcing runtime invariants |
-| Chinese Skill | A complete Chinese alternative to the English Skill, primarily for review and also available for manual installation | Installing and updating tk components |
+| Skill variants | Four self-contained mode and language variants for Agent activation, authorization, Task usage, and material maintenance | Enforcing runtime invariants or installing components |
 | Public documentation | Current product contracts and user guidance | Review history and local Task materials |
 | ADR | Long-term architectural decisions and their rationale | Implementation progress and test logs |
 
@@ -46,11 +45,11 @@ A Harness must not duplicate the Task domain rules. Pi and OMP adapters do not i
 
 ## Source and distribution boundary
 
-`projects/tk/` contains one Rust runtime, the English and Chinese Skills, native component source for the current Harnesses, and public documentation. The specific directory layout is an implementation detail, not a public contract.
+`projects/tk/` contains one Rust runtime, four self-contained Skills, native component source for the current Harnesses, and public documentation. The specific directory layout is an implementation detail, not a public contract.
 
-Each Harness component is a self-contained distribution unit. A component must not reference other component directories in the repository. Components installed by tk contain only the English Skill. The Chinese Skill remains complete but is not included in embedded component payloads.
+Each Harness selection is a self-contained distribution unit. A component must not reference other component directories in the repository. The selected tools or CLI Skill, in English or Chinese, is included in the embedded payload.
 
-Only the Rust build logic assembles components. The Cargo build generates deterministic component trees, archives, and manifests in `OUT_DIR`, then embeds the archives and manifests in the executable. Component installation reads only artifacts embedded in the current executable.
+Only the Rust build logic assembles components. Cargo builds sixteen deterministic payloads, one archive, and one manifest in `OUT_DIR`, then embeds the archive and manifest in the executable. Component installation reads only artifacts embedded in the current executable.
 
 ## Task operation flow
 

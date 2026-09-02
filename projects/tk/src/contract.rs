@@ -319,9 +319,7 @@ pub fn tool_contract(schema_type: SchemaType, harness: Option<NativeHarness>) ->
                 description,
                 input_schema,
                 load_mode: match harness {
-                    Some(NativeHarness::Omp) if matches!(name, "tk_search" | "tk_exec") => {
-                        Some("discoverable")
-                    }
+                    Some(NativeHarness::Omp) if name == "tk_exec" => Some("discoverable"),
                     Some(NativeHarness::Omp) => Some("essential"),
                     _ => None,
                 },
@@ -535,6 +533,14 @@ mod tests {
             omp.tools
                 .iter()
                 .find(|tool| tool.name == "tk_search")
+                .unwrap()
+                .load_mode,
+            Some("essential")
+        );
+        assert_eq!(
+            omp.tools
+                .iter()
+                .find(|tool| tool.name == "tk_exec")
                 .unwrap()
                 .load_mode,
             Some("discoverable")

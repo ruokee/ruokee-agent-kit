@@ -44,3 +44,9 @@ Installed-path links omit the variant source prefix. Source paths and installed 
 Each variant remains complete and reviewable against its counterpart. Language-specific explanations may differ where translation requires it, but neither variant may silently omit an observable capability or required instruction.
 
 Imports preserve body meaning and distinguish path adaptations from editorial changes. Each Skill explains its own domain and remains usable without loading another Skill.
+
+## Changes
+
+### 2026-09-02: Record independently named tk language Skills
+
+tk uses the independently discoverable Skills `tk`, `tk-zh`, `tk-cli`, and `tk-cli-zh`. They are separate Skill identities rather than same-name language variants, so all four live under `projects/tk/skills/<name>/`. This does not change the same-name variant rule for other Skills.

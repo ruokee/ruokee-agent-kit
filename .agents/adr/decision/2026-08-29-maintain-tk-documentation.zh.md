@@ -49,7 +49,7 @@ ADR 保存长期决定、替代方案和结果。它们链接当前公开合同�
 
 ### Skill 与 ADR
 
-`projects/tk/skills/tk/` 是权威英文 Skill。`projects/tk/variants/zh/skills/tk/` 是语义覆盖范围相同的完整中文替代版本。每个 Skill 目录树都保持自包含，只链接自身组件目录内的文件。
+四个权威 Skill 目录分别是 `projects/tk/skills/tk/`、`projects/tk/skills/tk-zh/`、`projects/tk/skills/tk-cli/` 和 `projects/tk/skills/tk-cli-zh/`。每个目录都自包含。同一模式的英文和中文 Skill 具有对应的语义覆盖。
 
 ADR 提案和决定使用独立的仓库格式与目录。英文和中文文件对保持语义一致，维护者负责批准或拒绝提案，以及归档决定。
 
@@ -86,3 +86,7 @@ ADR 提案和决定使用独立的仓库格式与目录。英文和中文文件�
 ### 2026-09-02：采用提案和决定模型
 
 tk 文档现在引用 `decision/` 下的当前 ADR，不再用 `implemented` 状态表示当前记录。提案和决定分别使用不含 `Status` 字段的独立格式，生命周期权限仍归维护者。
+
+### 2026-09-02：记录可选择的 Skill 与组件
+
+文档覆盖 tools 与 CLI 模式、通过 `tk install` 选择英文或中文、四个 Skill 身份、十六份组件载荷和分离的路由合同。上方四个 Skill 路径取代此前的英文 Skill，以及需要手动安装的中文 Skill。

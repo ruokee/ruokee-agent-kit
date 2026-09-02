@@ -18,21 +18,19 @@ tk 组件生命周期不安装、更新或删除运行时本身。
 
 ## 内嵌组件
 
-Cargo 构建在 `OUT_DIR` 为 Codex、Claude Code、Pi 和 OMP 生成：
+Cargo 构建根据四个 Harness、两种模式和两种语言生成十六份载荷，并在 `OUT_DIR` 写入一个确定性 `tar.zst` 和一份对应清单。
 
-- 自包含组件树；
-- 确定性 `tar.zst`；
-- 与归档对应的清单。
+每个选择由 Harness、模式、语言和 Skill 名称共同标识。运行时通过 `include_bytes!` 嵌入清单和归档。安装只读取这些内嵌产物，不访问网络。
 
-运行时通过 `include_bytes!` 嵌入清单和归档。组件安装只读取这些内嵌产物，不访问网络。
+模式为 `tools` 和 `cli`，语言为 `en` 和 `zh`，对应 Skill 名称为 `tk`、`tk-zh`、`tk-cli` 和 `tk-cli-zh`。install 默认使用 tools 模式和英文。
 
 ## 清单
 
 组件清单记录安装所需的静态事实：
 
 - component format version；
-- Harness；
-- component version；
+- Harness、模式、语言和 Skill 名称；
+- runtime version；
 - `runtime_compat`；
 - `source_revision`；
 - 归档内允许的相对路径、文件类型、权限和内容摘要。
@@ -48,7 +46,7 @@ Cargo 构建在 `OUT_DIR` 为 Codex、Claude Code、Pi 和 OMP 生成：
 1. 清单与归档可以解码；
 2. component format 受支持；
 3. Rust 判断运行时版本满足 `runtime_compat`；
-4. Harness 与请求一致；
+4. Harness、模式、语言、Skill 名称和载荷根目录与请求一致；
 5. 每个归档路径是规范相对路径，不绝对、不含 `..`、不逃逸；
 6. 文件类型、权限、重复项、缺失项、多余项和摘要符合清单；
 7. 目标 Harness 可用，官方接口或记录的直接配置方式可执行。
@@ -59,13 +57,13 @@ Cargo 构建在 `OUT_DIR` 为 Codex、Claude Code、Pi 和 OMP 生成：
 
 Harness 组件只具有三种基础生命周期动作：
 
-- install：当前没有 tk 组件时写入和注册；
-- update：当前 tk 专用目标或 tk 配置项与内嵌组件不同时更新；
-- uninstall：移除全部 tk 专用内容和注册。
+- install：当前没有 tk 组件时写入并注册所选组件；
+- update：当前载荷、注册、模式、语言或 Skill 与请求不同时直接替换；
+- uninstall：移除全部 tk 专用内容和注册，包括已知的残留 Skill variant。
 
-CLI 的 `tk install` 根据当前状态执行 install、update 或 no_change。`tk uninstall` 执行 uninstall 或 no_change。
+`tk install` 根据当前状态执行 install、update 或 no_change。模式默认 `tools`，语言默认 `en`。`tk uninstall` 执行 uninstall 或 no_change，不接受模式或语言选择。
 
-生命周期操作只根据固定的 tk 专用目标、tk 配置项和当前内嵌组件规划，不依赖额外的历史状态。
+生命周期只根据固定 tk 专用目标、已知 tk Skill variant 目标、tk 配置项和所选内嵌组件规划，不依赖安装历史或另一份所有权数据库。
 
 ## Harness 官方接口
 
@@ -80,9 +78,9 @@ Harness 提供官方安装或卸载 API 时优先使用该 API。tk 接受官方
 install、update 和 uninstall 的 dry-run 与执行共享预检：
 
 - 运行时前提；
-- 内嵌清单、归档和兼容范围；
+- 所选内嵌清单项、归档和兼容范围；
 - Harness 可用性和官方接口；
-- 所有专用目标和共享配置可以读取；
+- 当前专用目标和全部已知残留目标可以读取；
 - 共享配置可以完整解析；
 - 计划中的新增、替换、整目录删除和结构化配置删除；
 - 多目标活动操作标记不存在。
@@ -94,11 +92,11 @@ install、update 和 uninstall 的 dry-run 与执行共享预检：
 安装或更新按确定顺序提交：
 
 1. 创建最小清理清单和活动操作标记；
-2. 在 tk 临时位置准备全部组件内容；
-3. 再次验证固定目标和共享配置；
-4. 通过官方 API 安装，或提交 tk 专用文件和目录；
-5. 添加或替换共享配置中的 tk 项；
-6. 删除已经被新组件取代的 tk 专用目标；
+2. 在 tk 临时位置准备所选组件内容；
+3. 再次验证固定目标、已知残留目标和共享配置；
+4. 提交所选 tk 专用文件和目录；
+5. 按所选模式添加、替换或删除 tk 注册；
+6. 删除新选择所取代的 tk Skill 目标；
 7. 删除临时内容、清单和活动操作标记。
 
 配置不能指向临时路径。
@@ -113,7 +111,7 @@ install、update 和 uninstall 的 dry-run 与执行共享预检：
 
 ### tk 专用目标
 
-固定路径明确专用于 tk 时，卸载删除整个文件或目录。目录中的用户修改文件和额外内容也一并删除。卸载后不保留无法使用的 tk 残片。
+固定路径明确专用于 tk 时，卸载删除整个文件或目录。目录中的用户修改文件和额外内容也一并删除。Codex 的四个已知 Skill 目标都属于 tk 专用路径，卸载时一并删除。卸载后不保留无法使用的 tk 残片。
 
 该规则不适用于共享目录。
 
@@ -132,7 +130,7 @@ install、update 和 uninstall 的 dry-run 与执行共享预检：
 
 ### 卸载提交
 
-卸载先完成全部读取和解析，再按确定顺序撤销官方注册、删除专用目标、删除共享配置中的 tk 项。普通 I/O 错误时停止并报告完成和未完成项。
+卸载先完成全部读取和解析，再按确定顺序撤销 tk 注册、删除当前组件目标、删除已知残留 Skill variant 目标，并移除共享配置中的 tk 项。普通 I/O 错误时停止并报告完成和未完成项。
 
 这里的部分完成只是失败事实，不是可选择的部分卸载功能。tk 不根据内容摘要保留被修改的 tk 专用文件。
 
@@ -144,9 +142,7 @@ install、update 和 uninstall 的 dry-run 与执行共享预检：
 
 ## 与外部内容共存
 
-tk 只操作其固定 tk 专用目标和共享配置中的 tk 项。其他 Skill、Plugin、Package、MCP 注册和用户配置不在计划中，也不因路径邻近被删除。
-
-用户手动安装的中文 tk Skill 不受组件生命周期管理。用户需要自行避免同时加载重复 tk Skill。
+tk 只操作固定 tk 专用目标、四个已知 tk Skill 目标名称和共享配置中的 tk 项。其他 Skill、Plugin、Package、MCP 注册和用户配置不在计划中，也不因路径邻近被删除。
 
 ## 兼容性
 

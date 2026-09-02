@@ -12,6 +12,21 @@ In permissive projects, an Agent may also create a Task for work that clearly de
 
 A Task is a temporary effort worth preserving. Creating one does not mean that the user or Agent has committed to executing or completing it.
 
+## Installed Skill identities
+
+tk provides four independent, self-contained Skills:
+
+| Mode | English | Chinese |
+| --- | --- | --- |
+| tools | `tk` | `tk-zh` |
+| CLI | `tk-cli` | `tk-cli-zh` |
+
+The tools Skills use the Harness's logical operation for search, read, create, update, and log. Their exec operation accepts only version, init, check, and rename. Public CLI use is reserved for supported commands without a logical operation. A missing, refused, or failed logical operation is reported as an integration or transport failure and is not retried through the direct CLI.
+
+The CLI Skills use the public `tk` CLI for every Task operation and contain the complete current command reference they need. They do not compare entry routes or depend on integration discovery.
+
+English and Chinese Skills in the same mode have equivalent semantic coverage. Each of the four directories can be installed and understood without another repository component.
+
 ## Lifecycle semantics
 
 - `planning` preserves ideas, investigations, or plans that are still taking shape.

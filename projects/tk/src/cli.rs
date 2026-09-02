@@ -249,6 +249,10 @@ struct GcArgs {
 struct ComponentArgs {
     #[arg(long, value_enum)]
     harness: CliHarness,
+    #[arg(long, value_enum, default_value_t = CliMode::Tools)]
+    mode: CliMode,
+    #[arg(long, value_enum, default_value_t = CliLanguage::En)]
+    language: CliLanguage,
     #[arg(long)]
     dry_run: bool,
 }
@@ -328,6 +332,18 @@ enum CliHarness {
     Claude,
     Pi,
     Omp,
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum CliMode {
+    Tools,
+    Cli,
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum CliLanguage {
+    En,
+    Zh,
 }
 
 struct CommandOutput {
@@ -811,7 +827,12 @@ fn execute(command: Commands, cwd: PathBuf) -> Result<CommandOutput> {
             })
         }
         Commands::Install(args) => {
-            let result = component::install(args.harness.into(), args.dry_run)?;
+            let result = component::install(
+                args.harness.into(),
+                args.mode.into(),
+                args.language.into(),
+                args.dry_run,
+            )?;
             Ok(CommandOutput {
                 text: serde_json::to_string_pretty(&result).expect("serializing install result"),
                 data: serde_json::to_value(result).expect("serializing install result"),
@@ -970,6 +991,24 @@ impl From<CliHarness> for component::Harness {
     }
 }
 
+impl From<CliMode> for component::Mode {
+    fn from(value: CliMode) -> Self {
+        match value {
+            CliMode::Tools => Self::Tools,
+            CliMode::Cli => Self::Cli,
+        }
+    }
+}
+
+impl From<CliLanguage> for component::Language {
+    fn from(value: CliLanguage) -> Self {
+        match value {
+            CliLanguage::En => Self::En,
+            CliLanguage::Zh => Self::Zh,
+        }
+    }
+}
+
 impl From<CliStatus> for Status {
     fn from(value: CliStatus) -> Self {
         match value {
@@ -1078,5 +1117,35 @@ mod tests {
             panic!("expected create subtask command");
         };
         assert_eq!(args.user_confirmed, Some(false));
+    }
+
+    #[test]
+    fn install_defaults_to_english_tools() {
+        let cli = Cli::try_parse_from(["tk", "install", "--harness", "codex"]).unwrap();
+        let Some(Commands::Install(args)) = cli.command else {
+            panic!("expected install command");
+        };
+        assert!(matches!(args.mode, CliMode::Tools));
+        assert!(matches!(args.language, CliLanguage::En));
+    }
+
+    #[test]
+    fn parses_explicit_install_selection() {
+        let cli = Cli::try_parse_from([
+            "tk",
+            "install",
+            "--harness",
+            "omp",
+            "--mode",
+            "cli",
+            "--language",
+            "zh",
+        ])
+        .unwrap();
+        let Some(Commands::Install(args)) = cli.command else {
+            panic!("expected install command");
+        };
+        assert!(matches!(args.mode, CliMode::Cli));
+        assert!(matches!(args.language, CliLanguage::Zh));
     }
 }

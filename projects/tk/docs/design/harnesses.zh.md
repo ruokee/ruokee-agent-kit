@@ -10,35 +10,34 @@ Harness 是围绕模型、使模型能够作为 Agent 运行的软件环境，�
 
 ## 组件
 
-Harness 组件是按一个 Harness 组装和安装的 tk 自包含单元。每个组件可以包含：
+Harness 组件是针对一个 Harness、模式和语言选择组装并安装的 tk 自包含单元。Skill 映射为：
 
-- 权威英文 tk Skill；
-- MCP、Plugin、扩展或 Package 所需的原生清单；
-- Pi 或 OMP 原生适配器；
-- Harness 要求的静态配置。
+| 模式 | 语言 | Skill |
+| --- | --- | --- |
+| `tools` | `en` | `tk` |
+| `tools` | `zh` | `tk-zh` |
+| `cli` | `en` | `tk-cli` |
+| `cli` | `zh` | `tk-cli-zh` |
 
-组件不包含运行时可执行文件、中文 Skill、其他 Harness 的内容、评审材料或产品源码。
+tools 模式组件包含所选 Skill 和该 Harness 的 tk 集成。cli 模式组件包含所选 CLI Skill。Claude Code、Pi 和 OMP 还会保留加载该 Skill 所需的原生 manifest；Codex 不需要 manifest。cli 模式组件不包含 MCP 配置或原生工具 extension。组件不包含运行时可执行文件、其他 Harness 内容、评审材料或产品源码。
 
 组件目录内部的文件只能互相引用。它不能在安装后依赖仓库目录布局。
 
 ## Codex
 
-Codex 组件安装：
+tools 模式安装所选 `tk` 或 `tk-zh` Skill，并注册指向固定用户级 `tk mcp` 的 MCP。cli 模式安装 `tk-cli` 或 `tk-cli-zh`，并确保 tk MCP 注册不存在。
 
-- 一份英文 tk Skill；
-- 指向固定用户级 `tk mcp` 的 MCP 注册。
-
-Skill 和 MCP 注册可以位于不同的 Harness 官方目标，但共同构成 Codex 组件。
+Skill 和可选 MCP 注册可以位于不同的 Harness 官方目标中，两者共同组成所选 Codex 组件。
 
 ## Claude Code
 
-Claude Code 组件是符合 Claude Code 原生规则的自包含 Plugin，包含英文 Skill 和指向固定运行时的 MCP 配置。组件通过官方 Plugin 生命周期安装和卸载。
+Claude Code 使用符合原生规则的自包含 Plugin。tools 模式包含所选 tools Skill 和指向固定运行时的 MCP 配置。cli 模式包含所选 CLI Skill，并省略 MCP 配置。两种模式都使用官方 Plugin 生命周期。
 
 ## Pi
 
-Pi 组件是自包含 Package，包含英文 Skill 和原生扩展。
+Pi 使用自包含 Package。tools 模式包含所选 tools Skill 和原生扩展。cli 模式包含所选 CLI Skill，不注册扩展。
 
-扩展注册六个工具：
+tools 扩展注册：
 
 - `tk_search`
 - `tk_read`
@@ -47,18 +46,15 @@ Pi 组件是自包含 Package，包含英文 Skill 和原生扩展。
 - `tk_log`
 - `tk_exec`
 
-每次调用直接启动固定 `tk` 可执行文件，不使用 shell。请求没有 cwd 时使用 Pi 会话目录。actor 仅在 update、log 或 exec rename 中注入。
+每次调用都直接启动固定 `tk` 可执行文件，不经过 shell。请求没有 cwd 时使用 Pi 会话目录。actor 只为 update、log 或 exec rename 注入。
 
 Pi 不设置 `loadMode`。
 
 ## OMP
 
-OMP 组件是自包含 Package，包含英文 Skill 和原生扩展。六个工具与 Pi 相同。
+OMP 使用独立的自包含 Package，模式与语言选择和 Pi 相同。tools 扩展提供同样六项操作。
 
-OMP 按公开 API 设置：
-
-- read、create、update、log 为 essential；
-- search 和 exec 为 discoverable。
+OMP 通过公开 API 把 search、read、create、update 和 log 设为 essential，只有 exec 为 discoverable。
 
 只有 OMP 使用 `loadMode`。适配器把 OMP 取消信号传给运行时。
 
@@ -108,20 +104,20 @@ Pi 和 OMP 使用 `tk schema generate --type native --harness <pi|omp>` 的生�
 
 适配器不实现 Task 验证、名称规范化、授权、路径解析、迁移、GC、兼容范围解析或安装逻辑。
 
-## 构建期组装
+## 构建时组装
 
-Cargo 构建使用 Rust 组装逻辑为四个 Harness 生成组件树、确定性 `tar.zst` 和清单。相同输入必须产生相同路径、文件字节、归档字节和清单。
+Cargo 构建使用 Rust 组装逻辑生成十六份组件载荷、一个确定性 `tar.zst` 归档和一份清单。十六种选择来自四个 Harness、两种模式和两种语言。相同输入必须产生相同路径、文件字节、归档字节和清单。
 
-组装只读取当前组件自身源码和权威英文 Skill。发布、安装和验证使用同一套 Rust 产物。
+组装只读取所选 Harness 源码和四个自包含 Skill 目录之一。发布、安装和验证使用同一套 Rust 产物。
 
 Rust 组装产物是发布、安装和验证的唯一组件输入。
 
-## Skill 语言
+## Skill 选择
 
-内嵌组件只安装英文 Skill。中文 Skill 是完整、语义对应的替代版本，用户可以按 Harness 官方方式手动安装。tk 不选择、更新或卸载这份外部中文 Skill。
+安装生命周期负责选择、更新和卸载四个 Skill 身份。语言选择属于 `tk install`，不是独立的手动安装流程。
 
 ## 验证要求
 
-四个 Harness 都必须在隔离环境中完成真实安装、加载和卸载。当前只要求 OMP 再完成一次真实工具调用。
+十六种选择都必须在隔离环境中完成安装、加载和卸载。tools 模式验证注册或原生扩展加载，cli 模式验证没有 tk 操作注册。OMP tools 模式还必须完成一次真实 tk 调用。
 
 Codex、Claude Code 和 Pi 的真实验证到加载成功为止，不要求通过真实模型会话调用 tk。

@@ -12,6 +12,21 @@
 
 Task 是值得持久保存的临时性努力。创建不代表用户或 Agent 已经承诺执行或完成。
 
+## 安装后的 Skill 身份
+
+tk 提供四个相互独立的自包含 Skill：
+
+| 模式 | 英文 | 中文 |
+| --- | --- | --- |
+| tools | `tk` | `tk-zh` |
+| CLI | `tk-cli` | `tk-cli-zh` |
+
+tools Skill 的 search、read、create、update 和 log 使用 Harness 逻辑操作，exec 只接受 version、init、check 和 rename。公开 CLI 只用于没有逻辑操作的支持命令。逻辑操作缺失、拒绝请求或执行失败时，按集成或传输故障报告，不通过直接 CLI 重试。
+
+CLI Skill 的所有 Task 操作都使用公开 `tk` CLI，并在自身目录中包含所需的完整现行命令参考。它不比较入口，也不依赖集成发现。
+
+同一模式的英文和中文 Skill 具有对应的语义覆盖。四个目录均可独立安装和理解，不依赖其他仓库组件。
+
 ## 生命周期含义
 
 - `planning` 保存仍在形成的想法、调查或计划。

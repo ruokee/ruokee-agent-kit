@@ -1,8 +1,8 @@
-# 工具和 CLI 使用
+# 工具和 CLI 路由
 
 ## 六个逻辑工具
 
-优先使用 Harness 原生形式或 MCP 形式：
+使用 Harness 原生形式或 MCP 形式：
 
 | 操作 | MCP | Pi 和 OMP |
 | --- | --- | --- |
@@ -13,7 +13,7 @@
 | 记录 | `log` | `tk_log` |
 | 管理性 exec | `exec` | `tk_exec` |
 
-`tk_exec` 仅接受 `--version`、`init`、`check` 和 `rename`。它不通过 shell，直接调用公共解析器。对于迁移、表示切换、GC、schema 生成、组件生命周期、帮助、MCP 启动以及白名单之外的其他命令，请直接使用 CLI。
+`tk_exec` 仅接受 `--version`、`init`、`check` 和 `rename`。它不通过 shell，直接调用公开解析器。迁移、表示切换、GC、schema 生成、组件生命周期、帮助、MCP 启动以及白名单之外的其他命令，应直接使用 CLI。
 
 ## 上下文
 
@@ -33,8 +33,8 @@ actor 仅可用于 update、log 和 exec rename。CLI 仅在 update、log 和 re
 
 在首次持久化写入之前取消，不会产生任何领域变更。多目标命令会在各提交点之间响应取消。如果已有工作完成提交，结果会使用与 I/O 失败相同的 completed 和 uncompleted 边界。
 
-## CLI 后备方案
+## 路由边界
 
-如果 Harness 工具不可用，请使用公共 `tk` CLI；自动化需要结构化输出时，应加上 `--output json`。遵守 stdout 与 stderr 分离规则以及文档规定的退出码。
+逻辑工具不可用、拒绝请求或执行失败时，不得通过直接 CLI 重试该操作。应报告集成或传输故障。直接 CLI 仅用于没有逻辑工具的公开命令，或超出 `exec` 白名单的命令。
 
 公共操作失败后，不得改用隐藏命令，也不得直接编辑受管元数据、清理清单或 Harness 配置。

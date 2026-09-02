@@ -1,8 +1,8 @@
-# Tool and CLI use
+# Tool and CLI routing
 
 ## Six logical tools
 
-Prefer the Harness-native or MCP forms of:
+Use the Harness-native or MCP forms of:
 
 | Operation | MCP | Pi and OMP |
 | --- | --- | --- |
@@ -33,8 +33,8 @@ Keep transport failures separate from domain failures. A killed process, malform
 
 Cancellation before the first persistent write leaves no domain change. A multi-target command observes cancellation between commit points. If work has already committed, the result uses the same completed and uncompleted boundary as an I/O failure.
 
-## CLI fallback
+## Routing boundary
 
-If Harness tools are unavailable, use the public `tk` CLI with `--output json` when automation needs structured output. Respect stdout and stderr separation and the documented exit codes.
+Do not retry a covered logical operation through the direct CLI when the tool is unavailable, refuses the request, or fails. Report the integration or transport failure. Direct CLI use is reserved for public commands that have no logical tool or fall outside the `exec` whitelist.
 
 Do not replace a failed public operation with a hidden command or direct edits to managed metadata, cleanup manifests, or Harness configuration.

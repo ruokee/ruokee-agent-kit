@@ -26,7 +26,7 @@ Review records, revision numbers, Task paths, and local materials do not appear 
 | runtime | Layers, processes, context, failure boundaries, adapters, and version dimensions |
 | tool-api | The six tools, requests, results, and stable errors |
 | cli-reference | The complete command tree, arguments, defaults, exit codes, and examples |
-| harnesses | The four current Harness components, schema, adapters, and assembly |
+| harnesses | The four current Harness forms, mode and language selections, schemas, adapters, and assembly |
 | installation | Embedded components, installation, updates, clean uninstall, and compatibility |
 | skill | Agent triggers, authorization, Task navigation, WAL, and material handling |
 | validation | Observable acceptance contracts |

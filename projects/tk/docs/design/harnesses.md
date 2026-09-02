@@ -10,35 +10,34 @@ tk currently supports Codex, Claude Code, Pi, and OMP. Adding a Harness requires
 
 ## Components
 
-A Harness component is a self-contained tk unit assembled and installed for one Harness. Each component may contain:
+A Harness component is a self-contained tk unit assembled and installed for one Harness, mode, and language selection. The Skill mapping is:
 
-- The authoritative English tk Skill;
-- Native manifests required by an MCP, Plugin, extension, or Package;
-- Native adapters for Pi or OMP;
-- Static configuration required by the Harness.
+| Mode | Language | Skill |
+| --- | --- | --- |
+| `tools` | `en` | `tk` |
+| `tools` | `zh` | `tk-zh` |
+| `cli` | `en` | `tk-cli` |
+| `cli` | `zh` | `tk-cli-zh` |
 
-A component must not contain runtime executables, a Chinese Skill, content for another Harness, review materials, or product source code.
+Tools-mode components contain the selected Skill and the Harness's tk integration. CLI-mode components contain the selected CLI Skill. Claude Code, Pi, and OMP also retain the native manifest needed to load it; Codex needs no manifest. CLI-mode components contain no MCP configuration or native tool extension. A component does not contain the runtime executable, another Harness's content, review materials, or product source code.
 
 Files within a component directory may reference only one another. The component must not depend on the repository directory layout after installation.
 
 ## Codex
 
-The Codex component installs:
+Tools mode installs the selected `tk` or `tk-zh` Skill and an MCP registration that points to the fixed user-level `tk mcp`. CLI mode installs `tk-cli` or `tk-cli-zh` and keeps the tk MCP registration absent.
 
-- One English tk Skill;
-- An MCP registration that points to the fixed user-level `tk mcp`.
-
-The Skill and MCP registration may reside in different official Harness targets, but together they form the Codex component.
+The Skill and optional MCP registration may reside in different official Harness targets, but together they form the selected Codex component.
 
 ## Claude Code
 
-The Claude Code component is a self-contained Plugin that follows Claude Code's native rules. It contains an English Skill and MCP configuration that points to the fixed runtime. The component is installed and uninstalled through the official Plugin lifecycle.
+Claude Code uses a self-contained Plugin that follows its native rules. Tools mode contains the selected tools Skill and MCP configuration for the fixed runtime. CLI mode contains the selected CLI Skill and omits MCP configuration. Both modes use the official Plugin lifecycle.
 
 ## Pi
 
-The Pi component is a self-contained Package containing an English Skill and a native extension.
+Pi uses a self-contained Package. Tools mode contains the selected tools Skill and a native extension. CLI mode contains the selected CLI Skill and no extension registration.
 
-The extension registers six tools:
+The tools extension registers:
 
 - `tk_search`
 - `tk_read`
@@ -53,12 +52,9 @@ Pi does not set `loadMode`.
 
 ## OMP
 
-The OMP component is a self-contained Package containing an English Skill and a native extension. It provides the same six tools as Pi.
+OMP uses a separate self-contained Package with the same mode and language choices as Pi. Its tools extension provides the same six operations.
 
-OMP uses the public API to set:
-
-- read, create, update, and log as essential;
-- search and exec as discoverable.
+OMP uses the public API to set search, read, create, update, and log as essential. Only exec is discoverable.
 
 Only OMP uses `loadMode`. The adapter passes the OMP cancellation signal to the runtime.
 
@@ -110,18 +106,18 @@ The adapter does not implement Task validation, name normalization, authorizatio
 
 ## Build-time assembly
 
-Cargo builds use Rust assembly logic to generate component trees, deterministic `tar.zst` archives, and manifests for all four Harnesses. Identical inputs must produce identical paths, file bytes, archive bytes, and manifests.
+Cargo builds use Rust assembly logic to generate sixteen component payloads, one deterministic `tar.zst` archive, and one manifest. The sixteen selections are four Harnesses multiplied by two modes and two languages. Identical inputs must produce identical paths, file bytes, archive bytes, and manifests.
 
-Assembly reads only the current component's own source files and the authoritative English Skill. Publishing, installation, and validation use the same Rust artifacts.
+Assembly reads only the selected Harness source and one of the four self-contained Skill trees. Publishing, installation, and validation use the same Rust artifacts.
 
 Rust assembly artifacts are the only component inputs used for publishing, installation, and validation.
 
-## Skill languages
+## Skill selection
 
-Embedded components install only the English Skill. The Chinese Skill is a complete, semantically equivalent alternative that users may install manually through the official Harness mechanism. tk does not select, update, or uninstall this external Chinese Skill.
+The installation lifecycle selects, updates, and uninstalls all four Skill identities. Language selection is part of `tk install`; it is not a separate manual installation path.
 
 ## Validation requirements
 
-All four Harnesses must complete real installation, loading, and uninstallation in isolated environments. Only OMP must additionally complete one real tool call.
+All sixteen selections must complete installation, loading, and uninstallation in isolated environments. Tools-mode validation confirms registration or native extension loading. CLI-mode validation confirms that no tk operation registration is present. OMP tools mode additionally completes one real tk call.
 
 Real validation for Codex, Claude Code, and Pi ends after successful loading. It does not require calling tk through a real model session.

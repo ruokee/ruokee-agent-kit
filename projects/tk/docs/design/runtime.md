@@ -110,11 +110,11 @@ The extension entry point catches a missing or non-executable runtime, invalid o
 
 Validation failure before the first registration guarantees that zero tools are registered. If a `registerTool` call fails partway through registration, tools in the prefix already accepted by the Harness API may remain registered. The adapter does not claim rollback.
 
-OMP marks search and exec as discoverable and all other tools as essential. Pi does not set a `loadMode` that is absent from its public API.
+OMP marks search, read, create, update, and log as essential. Exec is discoverable. Pi does not set a `loadMode` that is absent from its public API.
 
 ## Component builds and runtime sources
 
-Cargo builds use a single Rust assembly implementation to generate four self-contained components from the English Skill and the source code for each Harness. Generation writes only to Cargo `OUT_DIR` and Cargo's own target directory.
+Cargo builds use a single Rust assembly implementation to generate sixteen self-contained payloads from four Skill trees and the source code for each Harness. Generation writes only to Cargo `OUT_DIR` and Cargo's own target directory.
 
 The runtime uses embedded archives and manifests through `include_bytes!`. Installation does not access the network, start `curl`, or accept a local archive path.
 

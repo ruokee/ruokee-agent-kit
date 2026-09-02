@@ -1,11 +1,11 @@
 ---
-name: tk
+name: tk-cli
 description: Use when the user names tk or an existing Task, supplies a Task ID, path, branch, or material path, asks for catchup or a Task operation, or when a permissive project has work that clearly merits durable cross-step or cross-session state.
 ---
 
-# tk
+# tk-cli
 
-Use tk for persistent, project-local Tasks. A Task is a temporary project effort worth preserving. Creating one does not imply a commitment to execute or complete it.
+Use the public `tk` CLI for persistent, project-local Tasks. A Task is a temporary project effort worth preserving. Creating one does not imply a commitment to execute or complete it.
 
 The runtime owns Task identity, metadata, relationships, lifecycle, paths, Git policy, persistence, migration, and cleanup rules. You decide whether tk applies, report authorization truthfully, maintain useful Task material, and close work only with current user confirmation.
 
@@ -21,36 +21,43 @@ In a permissive project, you may also create a Task for work that clearly benefi
 
 Loading this Skill does not bind the session to a Task. Resolve the Task for each operation. You may retain a resolved reference during one continuous conversation, but do not persist session binding in Task state.
 
-## Read focused references
+## Invoke tk
 
-Load only the reference needed for the current operation:
+Run `tk` directly. Use `--output json` when structured output helps. Pass `--cwd <path>` when the intended project is ambiguous. A full absolute Task or material path can locate its own project.
 
-- [Task concepts](./references/concepts.md) for Task scope, identity, metadata, and `TASK.md`;
-- [Project setup](./references/project-setup.md) for discovery, `init`, configuration, metadata modes, and Git policy;
-- [Create Tasks and subtasks](./references/create-and-subtasks.md) for authorization, status choice, names, and batches;
-- [Catch up on a Task](./references/catchup.md) for read-only context reconstruction;
-- [Relations and lifecycle](./references/relations-and-lifecycle.md) for relationship changes, close, force close, and reopen;
-- [Work activity log](./references/wal.md) for durable event boundaries and WAL failures;
-- [Maintenance](./references/maintenance.md) for `check`, rename, migration, representation switching, and GC;
-- [Tool and CLI routing](./references/tool-use.md) for request context, results, cancellation, and interface boundaries;
-- [Material patterns](./references/patterns.md) for optional ordinary-file organization;
-- [Glossary](./GLOSSARY.md) for product terms.
+`--actor` is accepted only by update, log, and rename. Use the most specific available model or Harness value when attribution matters. actor is not identity or authorization.
 
-## Choose the interface
+Public command forms:
 
-Use the Harness's logical tk tool for search, read, create, update, and log. Pi and OMP expose `tk_search`, `tk_read`, `tk_create`, `tk_update`, and `tk_log`; MCP Harnesses may show the server-prefixed equivalents.
+```text
+tk search <query> [--regex] [--search-body] [--status <planning|open|closed>]... [--extra <json>] [--limit <n>]
+tk read <task_ref> [--view <metadata|summary|detailed>] [--wal-max-entries <n>] [--wal-max-length <bytes>]
+tk create task <name> [--body <markdown>] [--status <planning|open>] [--created-at <rfc3339>] [--depends-on <uuid>]... [--related-to <uuid>]... [--extra <json>] [--user-confirmed <true|false>]
+tk create subtask <parent_ref> --item <json> [--item <json>]... [--user-confirmed <true|false>]
+tk update <task_ref> [--depends-on-add <uuid>]... [--depends-on-remove <uuid>]... [--related-to-add <uuid>]... [--related-to-remove <uuid>]... [--extra-set <json>] [--extra-remove <key>]... [--start | --close <reason> | --reopen <reason>] [--force] [--user-confirmed <true|false>] [--actor <text>]
+tk log <task_ref> --message <text> [--body <markdown>] [--actor <text>]
+tk init [--task-root <path>] [--subtasks-dir <path>] [--git-policy <track|ignore|none>] [--creation-policy <strict|permissive>] [--metadata-mode <split|embed>] [--force]
+tk check
+tk rename <task_ref> <name> [--dry-run] [--actor <text>]
+tk gc [--dry-run]
+tk metadata migrate [--file <carrier>]... [--to <schema-version>] [--dry-run]
+tk metadata switch --to <split|embed> [--dry-run]
+tk schema generate --type <mcp|native> [--harness <pi|omp>]
+tk mcp
+tk install --harness <codex|claude|pi|omp> [--mode <tools|cli>] [--language <en|zh>] [--dry-run]
+tk uninstall --harness <codex|claude|pi|omp> [--dry-run]
+tk [--output <text|json>] --version
+tk --help
+tk <command> --help
+```
 
-Use `tk_exec` or its MCP equivalent only for `--version`, `init`, `check`, and `rename`. Use the public CLI for `metadata migrate`, `metadata switch`, `gc`, component lifecycle commands, and any other supported command that has no logical tool.
-
-Do not retry an operation through the public CLI when its logical tool is unavailable, refuses the request, or fails. Report the integration or transport failure instead. Do not invoke hidden commands or edit managed metadata, cleanup manifests, or Harness configuration to bypass a runtime refusal.
-
-Pass `cwd` when the intended project is ambiguous. A full absolute Task or material path can locate its own project. actor is accepted only by update, log, and exec rename. On the CLI, `--actor` is accepted only by update, log, and rename. Omit actor when the Harness can supply the most specific available model or Harness value.
+Global `--cwd` and `--output` may be placed with ordinary commands. `schema generate`, `mcp`, and version write their own payloads.
 
 ## Resolve a Task
 
 Exact operations accept a full UUIDv7, an absolute Task directory, an absolute canonical `tk.toml` or `TASK.md`, or a project-relative Task path.
 
-Names, directory basenames, UUID prefixes, text, regexes, and material paths are search inputs. Search first, then use the returned canonical reference. If several candidates remain plausible, show the relevant candidates and ask the user to choose.
+Names, directory basenames, UUID prefixes, text, regexes, branches, and material paths are search inputs. Run search first, then use the returned canonical reference. If several candidates remain plausible, show the relevant candidates and ask the user to choose.
 
 Search includes planning, open, and closed Tasks unless a non-empty status filter narrows it.
 
@@ -64,7 +71,7 @@ In a permissive project, you may create a Task for work worth preserving without
 - use `open` when the work is being handled;
 - report the created Task's name, status, and path in the same response.
 
-Tool calls must report `user_confirmed` truthfully. A schema field is not authorization.
+The CLI defaults `--user-confirmed` to true. When an Agent issues the command, pass the current authorization state explicitly instead of relying on that default.
 
 Create child Tasks only for real work units under an open parent. Do not create under a closed parent or reopen it implicitly. A batch contains 1 to 50 independent children under one parent and is not a backlog import. Supply historical `created_at` only when the original timezone-aware timestamp is known.
 
@@ -93,15 +100,13 @@ Keep `TASK.md` compact and current. It should contain:
 
 Put command transcripts, individual test runs, chat history, full research, detailed designs, and volatile next steps in ordinary material. Replace superseded facts with current facts. Preserve managed frontmatter in embed projects.
 
-You may edit the body of `TASK.md` and ordinary material. Change managed metadata through tk operations.
+You may edit the body of `TASK.md` and ordinary material. Change managed metadata through tk commands.
 
 ## Record durable events
 
-Call log immediately after a fact becomes a durable decision, correction, verified finding, recoverable milestone, validation result, verified collaboration result, or blocker, before starting another work branch.
+Run `tk log` immediately after a fact becomes a durable decision, correction, verified finding, recoverable milestone, validation result, verified collaboration result, or blocker, before starting another work branch.
 
-Use a non-empty single-line message. Put details in the Markdown body. actor is attribution, not identity or authorization.
-
-Do not log routine reads, tool transcripts, temporary plans, progress percentages, unverified guesses, or lifecycle events already recorded by the runtime.
+Use a non-empty single-line message. Put details in the Markdown body. Do not log routine reads, command transcripts, temporary plans, progress percentages, unverified guesses, or lifecycle events already recorded by the runtime.
 
 If metadata committed but automatic WAL append failed, read the Task first and append only the missing event. A closed Task rejects new WAL entries.
 
@@ -119,7 +124,7 @@ A closed Task is read-only. New work normally belongs in a related open Task. Re
 
 Read the stable error code, category, details, and any completed and uncompleted items. For a failed multi-target operation, read or check the current canonical state before issuing a new complete command. Do not assume rollback or a continuation token exists.
 
-Routine changes must use public tk operations. Manually repair `tk.toml` only when it is damaged and tk cannot express the repair:
+Routine changes must use public tk commands. Manually repair `tk.toml` only when it is damaged and tk cannot express the repair:
 
 1. state the exact field and final content;
 2. obtain current explicit authorization;
@@ -127,8 +132,10 @@ Routine changes must use public tk operations. Manually repair `tk.toml` only wh
 4. run `tk check`;
 5. log the repair after the Task becomes readable again.
 
+Do not invoke hidden commands or edit cleanup manifests or Harness configuration to bypass a runtime refusal.
+
 ## Organize ordinary material
 
-Read [Material patterns](./references/patterns.md) only when a real Task needs durable file organization. The patterns are suggestions, not runtime state. Project rules take precedence.
+Use ordinary files only when a real Task needs durable organization. Project rules take precedence.
 
 Use a scratchpad for short-lived notes that are not a final deliverable. Use a research package, design revisions, review records, or validation evidence only when the content actually needs that structure. Do not prebuild directories for one-off work.

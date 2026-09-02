@@ -2,12 +2,14 @@
 
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
+Archived: 2026-09-02
+Reversed by: [分发可选择的 tk Harness 组件](../decision/2026-09-02-distribute-selectable-tk-harness-components.zh.md)
 
 [English](./2026-08-28-distribute-tk-runtime-components.md) | 中文
 
 ## 动机
 
-[tk 产品架构](./2026-08-21-define-tk-product-architecture.zh.md)包含一个用户级运行时，以及面向 Codex、Claude Code、Pi 和 OMP 的自包含组件。运行时安装和 Harness 集成属于不同职责。组件使用运行时前，必须先安装可执行文件。组件安装必须保持确定性、离线、可检查和可撤销，同时不维护第二个安装数据库。
+[tk 产品架构](../decision/2026-08-21-define-tk-product-architecture.zh.md)包含一个用户级运行时，以及面向 Codex、Claude Code、Pi 和 OMP 的自包含组件。运行时安装和 Harness 集成属于不同职责。组件使用运行时前，必须先安装可执行文件。组件安装必须保持确定性、离线、可检查和可撤销，同时不维护第二个安装数据库。
 
 各 Harness 的目标位置和官方生命周期 API 不同。分发仍需要为安装、更新、无变化、干净卸载和部分失败定义一套统一结果边界。
 

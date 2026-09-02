@@ -11,9 +11,9 @@ Validate the following static facts:
 - One Cargo package produces the `tk` executable;
 - Rust is the only component assembler;
 - Components have exactly one Rust-based assembly path;
-- The four Harness components are self-contained and do not reference other component directories;
-- The English Skill is the only Skill source for embedded components;
-- The Chinese Skill preserves complete semantic correspondence but is not included in the embedded payload;
+- All sixteen Harness, mode, and language payloads are self-contained and do not reference other component directories;
+- The four Skill identities map exactly to tools or CLI mode and English or Chinese;
+- CLI payloads contain no tk operation registration, while tools payloads contain the selected Harness integration;
 - Review records and Task materials are not included in product artifacts.
 
 ## Data model tests
@@ -108,6 +108,7 @@ CLI tests cover:
 - actor appears only in update, log, and rename;
 - All default statuses for search;
 - init force does not read Task data;
+- install defaults to tools mode and English, accepts all mode and language values, and reports the resolved Skill;
 - install has no local source;
 - Unknown commands and options outside the current contract are rejected.
 
@@ -129,20 +130,22 @@ Unit and process tests for Pi and OMP cover:
 
 ## Component assembly
 
-Repeated builds must produce identical component trees, file bytes, `tar.zst` bytes, and manifests. Validate all paths, permissions, digests, missing items, extra items, and `runtime_compat`.
+Repeated builds must produce the same sixteen component payloads, file bytes, `tar.zst` bytes, and manifest. Validate Harness, mode, language, Skill identity, paths, permissions, digests, missing items, extra items, and `runtime_compat`.
 
 Validate builds both with and without `TK_SOURCE_REVISION`. Build scripts must not invoke Git or write generated artifacts outside Cargo-managed directories.
 
 ## Installation and uninstallation
 
-Isolated tests cover all four Harnesses:
+Isolated tests cover all sixteen Harness, mode, and language selections:
 
-- install, update, no_change, and uninstall;
+- install, update, selection switching, no_change, and uninstall;
 - Embedded archives with no network or local sources;
+- The resolved `mode`, `language`, and `skill` in text and JSON results;
 - Official Harness APIs take precedence;
+- Tools-mode registration and CLI-mode absence of tk operation registration;
 - The original file remains unchanged if shared configuration parsing fails;
 - Only tk entries are removed from shared configuration;
-- Uninstall completely removes tk-specific directories, including modified and extra content;
+- Uninstall completely removes active and known residual tk-specific directories, including modified and extra content;
 - Unrelated Harness content and later modifications are preserved;
 - Intermediate I/O failures report completed and incomplete items;
 - GC cleans up only temporary component content and does not continue lifecycle operations.
@@ -156,10 +159,12 @@ Isolated tests cover all four Harnesses:
 | Pi | Real installation, loading, and uninstallation in an isolated environment |
 | OMP | Real installation, loading, one real tool call, and uninstallation in an isolated environment |
 
+Each Harness validates all four mode and language selections. OMP tools mode additionally performs the real operation call shown above.
+
 Real tests must observe the Harness's actual loading result and post-uninstallation state. Checking assembled files alone is insufficient.
 
 ## Skill and documentation
 
-Skill scenarios cover strict/permissive creation, planning/open selection, Task parsing, catchup, WAL, authorization for manual repair, close/reopen, and five material modes.
+Skill scenarios cover strict/permissive creation, planning/open selection, Task parsing, catchup, WAL, authorization for manual repair, close/reopen, five material modes, tools routing without direct CLI retry, and CLI-only command use.
 
 Public documentation checks cover language links, semantic correspondence, terminology, and naturalness across the English and Chinese pages. Use existing repository checks and manual review without adding a custom documentation structure checker.

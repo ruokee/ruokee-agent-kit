@@ -235,12 +235,15 @@ tk mcp
 
 ```text
 tk install --harness <codex|claude|pi|omp>
+  [--mode <tools|cli>] [--language <en|zh>]
   [--dry-run] [--output <text|json>]
 ```
 
-install 只使用当前可执行文件内嵌组件。现有 tk 组件版本不同或内容需要替换时执行更新。
+`--mode` 默认 `tools`，`--language` 默认 `en`。四个最终 Skill 分别为 `tk`、`tk-zh`、`tk-cli` 和 `tk-cli-zh`。
 
-结果 action 为 `would_install`、`installed`、`updated` 或 `no_change`，并列出计划或实际变更。失败时遵循跨文件操作的完成和未完成项合同。
+install 只使用当前可执行文件内嵌组件。固定目标、注册、模式、语言或所选 Skill 不一致时执行更新。切换选择时直接替换当前组件，并删除新选择所取代的已知 Skill 目标。
+
+结果 action 为 `would_install`、`installed`、`updated` 或 `no_change`。text 和 JSON 结果包含最终 `mode`、`language`、`skill`，以及计划或实际路径与注册变更。失败时遵循跨文件操作的完成和未完成项合同。
 
 ## `tk uninstall`
 
@@ -249,7 +252,7 @@ tk uninstall --harness <codex|claude|pi|omp>
   [--dry-run] [--output <text|json>]
 ```
 
-uninstall 移除所有 tk 专用写入和注册，使 Harness 恢复为从未安装过 tk，同时保留无关内容。
+uninstall 不接受模式或语言选择。它移除当前组件、该 Harness 已知的全部残留 tk Skill variant 和 tk 注册，并保留无关内容。
 
 结果 action 为 `would_uninstall`、`uninstalled` 或 `no_change`，并列出计划或实际变更。
 
@@ -266,10 +269,10 @@ tk <command> <subcommand> --help
 
 ```json
 {
-  "runtime_version": "0.1.1",
+  "runtime_version": "0.1.2",
   "cli_contract_version": 1,
   "task_schema_version": 1,
-  "component_format_version": 1
+  "component_format_version": 2
 }
 ```
 

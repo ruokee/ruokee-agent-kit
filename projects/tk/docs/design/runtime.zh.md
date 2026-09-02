@@ -110,11 +110,11 @@ Pi 和 OMP 适配器在首次注册工具前完成：
 
 首次注册前的验证失败保证注册数为零。某次 `registerTool` 中途失败时，Harness API 已经接受的前缀工具允许保留，不伪造回滚保证。
 
-OMP 为 search 和 exec 设置 discoverable，其余工具为 essential。Pi 不设置不存在于其公开 API 的 `loadMode`。
+OMP 把 search、read、create、update 和 log 设置为 essential，exec 为 discoverable。Pi 不设置不存在于其公开 API 的 `loadMode`。
 
 ## 组件构建和运行时来源
 
-Cargo 构建使用唯一的 Rust 组装逻辑，从英文 Skill 和各 Harness 源码生成四个自包含组件。生成过程只写 Cargo `OUT_DIR` 和 Cargo 自身目标目录。
+Cargo 构建使用唯一的 Rust 组装逻辑，从四个 Skill 目录和各 Harness 源码生成十六份自包含载荷。生成过程只写 Cargo `OUT_DIR` 和 Cargo 自身目标目录。
 
 运行时通过 `include_bytes!` 使用内嵌归档和清单。安装不访问网络，不启动 `curl`，不接受本地归档路径。
 

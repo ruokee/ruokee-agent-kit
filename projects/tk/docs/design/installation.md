@@ -18,21 +18,19 @@ The tk component lifecycle does not install, update, or remove the runtime itsel
 
 ## Embedded components
 
-The Cargo build generates the following in `OUT_DIR` for Codex, Claude Code, Pi, and OMP:
+Cargo builds sixteen payloads from four Harnesses, two modes, and two languages. It writes one deterministic `tar.zst` and one matching manifest in `OUT_DIR`.
 
-- a self-contained component tree;
-- a deterministic `tar.zst`;
-- a manifest corresponding to the archive.
+Each selection is identified by Harness, mode, language, and Skill name. The runtime embeds the manifest and archive through `include_bytes!`. Installation reads only these embedded artifacts and does not access the network.
 
-The runtime embeds the manifest and archive through `include_bytes!`. Component installation reads only these embedded artifacts and does not access the network.
+The modes are `tools` and `cli`. The languages are `en` and `zh`. Their Skill names are `tk`, `tk-zh`, `tk-cli`, and `tk-cli-zh`. Install defaults to tools mode and English.
 
 ## Manifest
 
 The component manifest records the static facts required for installation:
 
 - component format version;
-- Harness;
-- component version;
+- Harness, mode, language, and Skill name;
+- runtime version;
 - `runtime_compat`;
 - `source_revision`;
 - allowed relative paths, file types, permissions, and content digests within the archive.
@@ -48,7 +46,7 @@ Complete all of the following before any persistent write:
 1. The manifest and archive can be decoded.
 2. The component format is supported.
 3. Rust determines that the runtime version satisfies `runtime_compat`.
-4. The Harness matches the request.
+4. The Harness, mode, language, Skill name, and payload root match the request.
 5. Every archive path is a canonical relative path, is not absolute, contains no `..`, and does not escape.
 6. File types, permissions, duplicate entries, missing entries, extra entries, and digests match the manifest.
 7. The target Harness is available, and its official interface or recorded direct configuration method can be executed.
@@ -59,13 +57,13 @@ Archive validation does not establish source identity, signatures, installation 
 
 Harness components have only three basic lifecycle actions:
 
-- install: write and register the component when no current tk component exists;
-- update: update the component when current tk-specific targets or tk configuration entries differ from the embedded component;
-- uninstall: remove all tk-specific content and registrations.
+- install: write and register the selected component when no current tk component exists;
+- update: replace the current component when its payload, registration, mode, language, or Skill differs from the requested selection;
+- uninstall: remove all tk-specific content and registrations, including known residual Skill variants.
 
-The `tk install` CLI command performs install, update, or no_change according to the current state. `tk uninstall` performs uninstall or no_change.
+`tk install` performs install, update, or no_change according to the current state. Mode defaults to `tools` and language defaults to `en`. `tk uninstall` performs uninstall or no_change and takes no mode or language selector.
 
-Lifecycle operations plan only from fixed tk-specific targets, tk configuration entries, and the current embedded component. They do not depend on additional historical state.
+Lifecycle planning uses fixed tk-specific targets, known tk Skill variant targets, tk configuration entries, and the selected embedded component. It does not depend on installation history or another ownership database.
 
 ## Official Harness interfaces
 
@@ -80,9 +78,9 @@ Specific target paths, configuration keys, and official commands are implementat
 The dry-run and execution paths for install, update, and uninstall share the following preflight checks:
 
 - runtime prerequisites;
-- the embedded manifest, archive, and compatibility range;
+- the selected embedded manifest entry, archive, and compatibility range;
 - Harness availability and official interfaces;
-- all dedicated targets and shared configuration can be read;
+- all current and known residual dedicated targets can be read;
 - shared configuration can be parsed completely;
 - planned additions, replacements, whole-directory deletions, and structured configuration deletions;
 - no activity marker exists for a multi-target operation.
@@ -94,11 +92,11 @@ Preflight checks do not read Task projects, project configuration, WAL, or Git s
 Commit an installation or update in this deterministic order:
 
 1. Create the minimal cleanup manifest and activity marker.
-2. Prepare all component content in a tk temporary location.
-3. Revalidate the fixed targets and shared configuration.
-4. Install through the official API, or commit the tk-specific files and directories.
-5. Add or replace the tk entries in shared configuration.
-6. Delete tk-specific targets superseded by the new component.
+2. Prepare the selected component content in a tk temporary location.
+3. Revalidate all fixed targets, known residual targets, and shared configuration.
+4. Commit the selected tk-specific files and directories.
+5. Add, replace, or remove tk registration as required by the selected mode.
+6. Delete tk-specific Skill targets superseded by the selection.
 7. Delete the temporary content, manifest, and activity marker.
 
 Configuration must not point to temporary paths.
@@ -113,7 +111,7 @@ After uninstall completes, the Harness must be equivalent to one where tk was ne
 
 ### tk-specific targets
 
-When a fixed path is explicitly dedicated to tk, uninstall deletes the entire file or directory. This also deletes user-modified files and extra content within the directory. Do not retain unusable tk fragments after uninstall.
+When a fixed path is explicitly dedicated to tk, uninstall deletes the entire file or directory. This also deletes user-modified files and extra content within the directory. For Codex, all four known Skill targets are dedicated tk paths and are removed together. Do not retain unusable tk fragments after uninstall.
 
 This rule does not apply to shared directories.
 
@@ -132,7 +130,7 @@ Each fixed Harness driver must explicitly identify which configuration files are
 
 ### Uninstall commit
 
-Complete all reads and parsing before uninstall modifies anything. Then, in deterministic order, revoke official registrations, delete dedicated targets, and delete tk entries from shared configuration. On an ordinary I/O error, stop and report completed and incomplete items.
+Complete all reads and parsing before uninstall modifies anything. Then, in deterministic order, revoke tk registrations, delete the active component target, delete known residual Skill variant targets, and remove tk entries from shared configuration. On an ordinary I/O error, stop and report completed and incomplete items.
 
 Partial completion here is a failure state, not an optional partial-uninstall feature. tk does not preserve modified tk-specific files based on content digests.
 
@@ -144,9 +142,7 @@ After an abnormal exit, GC may delete component temporary files, directories, ma
 
 ## Coexistence with external content
 
-tk operates only on its fixed tk-specific targets and tk entries in shared configuration. Other Skill, Plugin, Package, MCP registrations, and user configuration are not included in the plan and are not deleted because of path proximity.
-
-Manually installed Chinese tk Skill content is not managed by the component lifecycle. Users must avoid loading duplicate tk Skill content at the same time.
+tk operates only on its fixed tk-specific targets, the four known tk Skill target names, and tk entries in shared configuration. Other Skills, Plugins, Packages, MCP registrations, and user configuration are not included in the plan and are not deleted because of path proximity.
 
 ## Compatibility
 

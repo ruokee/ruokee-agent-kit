@@ -2,12 +2,14 @@
 
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
+Archived: 2026-09-02
+Reversed by: [Integrate tk tools with Harnesses](../decision/2026-09-02-integrate-tk-tools-with-harnesses.md)
 
 English | [中文](./2026-08-28-integrate-tk-with-harnesses.zh.md)
 
 ## Motivation
 
-The [tk product architecture](./2026-08-21-define-tk-product-architecture.md) supports Codex, Claude Code, Pi, and OMP without moving Task semantics into Harness-specific code. These Harnesses expose different component, MCP, extension, Package, tool registration, and loading interfaces. They still need one logical tool set and one request and result contract.
+The [tk product architecture](../decision/2026-08-21-define-tk-product-architecture.md) supports Codex, Claude Code, Pi, and OMP without moving Task semantics into Harness-specific code. These Harnesses expose different component, MCP, extension, Package, tool registration, and loading interfaces. They still need one logical tool set and one request and result contract.
 
 A failed integration must not terminate the surrounding Agent session. At the same time, an adapter must reject an incompatible runtime or incomplete schema before it exposes tools that cannot honor the public contract.
 
@@ -55,7 +57,7 @@ Each native tool call selects cwd from the explicit request, Harness session dir
 
 Adapters do not implement Task parsing, name normalization, authorization, path resolution, search ranking, migration, GC, installation, or semantic version range parsing. Rust owns those rules.
 
-The authoritative integration details live in [Harness integration](../../../projects/tk/docs/design/harnesses.md) and the [tool API](../../../projects/tk/docs/design/tool-api.md). Agent behavior lives in the [English Skill](../../../projects/tk/skills/tk/SKILL.md), with a complete [Chinese alternative](../../../projects/tk/variants/zh/skills/tk/SKILL.md).
+The authoritative integration details live in [Harness integration](../../../projects/tk/docs/design/harnesses.md) and the [tool API](../../../projects/tk/docs/design/tool-api.md). Agent behavior lives in the [English Skill](../../../projects/tk/skills/tk/SKILL.md), with a complete [Chinese alternative](../../../projects/tk/skills/tk-zh/SKILL.md).
 
 ## Alternatives considered
 

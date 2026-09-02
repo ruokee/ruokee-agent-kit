@@ -24,24 +24,26 @@ $HOME/.local/bin/tk --output json --version
 
 ## 安装 Harness 组件
 
-为一个支持的 Harness 安装组件：
+为支持的 Harness 安装一个选择：
 
 ```sh
 tk install --harness codex
-tk install --harness claude
-tk install --harness pi
-tk install --harness omp
+tk install --harness claude --mode tools --language zh
+tk install --harness pi --mode cli --language en
+tk install --harness omp --mode cli --language zh
 ```
 
-`tk install` 只使用当前可执行文件内嵌的组件，不下载组件，也不接受本地归档。再次运行时，它会更新较旧或内容发生变化的 tk 组件。现有安装完全匹配时返回 `no_change`。
+`--mode` 接受 `tools` 或 `cli`，默认 `tools`。`--language` 接受 `en` 或 `zh`，默认 `en`。最终安装的 Skill 是 `tk`、`tk-zh`、`tk-cli` 或 `tk-cli-zh`。
 
-使用 `--dry-run` 可以检查运行时、内嵌组件、Harness 命令、固定目标和共享配置，不执行写入：
+tools 模式安装 Harness 集成和所选 Skill。cli 模式只在 Harness 组件中安装所选 CLI Skill。再次使用其他选择运行 install 时，tk 直接更新组件，并删除新选择所取代的已知 Skill 目标。
+
+`tk install` 只使用当前可执行文件内嵌组件，不下载组件，也不接受本地归档。现有安装完全匹配时返回 `no_change`。
+
+使用 `--dry-run` 可以检查运行时、内嵌选择、Harness 命令、固定目标和共享配置，不执行写入：
 
 ```sh
-tk install --harness omp --dry-run --output json
+tk install --harness omp --mode cli --language zh --dry-run --output json
 ```
-
-安装后的英文 Skill 和工具是自包含的。用户可以通过 Harness 官方 Skill 机制另行安装完整中文 Skill，tk 不管理这份外部副本。
 
 生命周期和干净卸载规则见[安装](./design/installation.zh.md)。各组件内容见[Harness 集成](./design/harnesses.zh.md)。
 
@@ -165,10 +167,10 @@ tk uninstall --harness pi
 tk uninstall --harness omp
 ```
 
-卸载会删除整个固定 tk 专用目标，包括其中的用户修改和额外内容。对于共享配置，它只删除 tk 对应的结构化配置项。其他 Harness 内容保持不变。
+卸载会删除整个固定 tk 专用目标，包括其中的用户修改和额外内容。对于共享配置，它只删除 tk 对应的结构化配置项。Codex 卸载还会删除全部已知 tk Skill variant 目标。其他 Harness 内容保持不变。
 
 ## Agent 使用
 
-权威[英文 tk Skill](../skills/tk/SKILL.md)定义何时使用持久 Task、strict 和 permissive 创建的差别、catchup 如何恢复上下文，以及哪些内容应写入 `TASK.md`、WAL 或普通材料。[完整中文 Skill](../variants/zh/skills/tk/SKILL.md)与英文版保持语义对应，主要用于评审，也可以手动安装。
+tk 提供四个可独立发现的 Skill：[tk](../skills/tk/SKILL.md)、[tk-zh](../skills/tk-zh/SKILL.md)、[tk-cli](../skills/tk-cli/SKILL.md)和 [tk-cli-zh](../skills/tk-cli-zh/SKILL.md)。四者均为自包含目录。安装时选择的模式和语言决定 Harness 加载哪一个。
 
 [设计索引](./design/README.zh.md)列出当前运行时、数据、工具、Harness、安装、Skill 和验证合同。
