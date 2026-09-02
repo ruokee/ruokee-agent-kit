@@ -174,9 +174,9 @@ Observable evidence in load, organization, or failure modes that the architectur
 
 **Architecture Decision Record (ADR)**
 
-A document recording the candidates, tradeoffs, consequences, and re-review conditions of one architecture decision. In this repository, an Agent Note serves this role.
+A document recording the candidates, tradeoffs, consequences, and re-review conditions of one architecture decision. In this repository, an ADR serves this role.
 
-_Avoid: ADR files or ADR templates as separate artifacts._
+_Avoid: inventing a second project-specific decision-record format._
 
 **Technical debt**
 

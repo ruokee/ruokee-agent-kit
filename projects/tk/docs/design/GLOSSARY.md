@@ -65,7 +65,6 @@ This glossary includes only terms that have a special meaning in tk, require fix
 
 | Term | Chinese form | Meaning |
 | --- | --- | --- |
-| Agent Note | Agent Note | A repository architecture decision record with a maintainer-defined lifecycle. |
 | scratchpad | 临时记事区 | Short-lived ordinary material that is not part of the final deliverable. |
 | research package | 研究材料包 | A material pattern that preserves sources, evidence, the boundaries of conclusions, and unresolved questions. |
 | design revisions | 设计修订 | A material pattern that preserves multiple superseding design iterations and the current entry point. |

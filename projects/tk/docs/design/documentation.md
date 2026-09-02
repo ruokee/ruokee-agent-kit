@@ -12,7 +12,7 @@ Public documentation includes:
 - English and Chinese design indexes;
 - Paired English and Chinese pages for system, data-model, runtime, tool-api, cli-reference, harnesses, installation, skill, validation, documentation, and GLOSSARY;
 - tk entry points in the repository root README and Chinese README;
-- Current English and Chinese tk Agent Notes.
+- Current English and Chinese tk ADRs.
 
 Review records, revision numbers, Task paths, and local materials do not appear on public pages.
 
@@ -53,13 +53,13 @@ The Chinese repository index and the root README provide language entry points i
 
 See the [glossary](./GLOSSARY.md) for fixed translations.
 
-## Agent Note
+## ADRs
 
-Agent Notes use Harness terminology. For installation-related Notes, English and Chinese filenames, titles, and links use Harness. Do not retain host naming aliases.
+ADRs use Harness terminology. Installation-related ADR filenames, titles, and links use Harness rather than host naming aliases.
 
-Maintainers determine the Agent Note lifecycle. Completing design, implementation, or validation does not automatically change `proposed` to `implemented`, `rejected`, or `archived`.
+ADR proposals live under `proposal/` or `rejected/`; decisions live under `decision/` or `archived/`. ADR files do not contain a `Status` field. Maintainers control proposal approval, rejection, and decision archival; completing design, implementation, or validation does not change lifecycle state automatically.
 
-English and Chinese Agent Notes must remain semantically consistent within the same change.
+English and Chinese ADR pairs remain semantically consistent within the same change.
 
 ## Links
 
@@ -88,7 +88,7 @@ When updating public behavior, the same change must update:
 1. The design page that owns the behavior;
 2. Affected guide, Skill, and CLI examples;
 3. The corresponding Chinese pages;
-4. Every current Agent Note that describes the contract;
+4. Every current ADR that describes the contract;
 5. The corresponding acceptance items in the validation documentation.
 
 Review materials may explain the rationale, but they cannot be the sole source of the public contract.

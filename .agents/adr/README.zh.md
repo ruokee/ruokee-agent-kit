@@ -1,0 +1,168 @@
+# 架构决策记录
+
+[English](./README.md) | 中文 | [术语表](./glossary.zh.md)
+
+**ADR** 记录一项长期仓库决定的理由和合同。ADR 不是进度日志、发布记录、临时计划或日常变更总结。
+
+## 什么时候使用 ADR
+
+规划需求前，先搜索现有提案和当前决定。判断需求是增加无关能力、无冲突地扩展当前决定，还是与当前决定冲突。
+
+一项选择存在真实替代方案，并改变架构、职责归属、公开或宿主合同、持久化格式、兼容规则或仓库级开发与发布流程等长期边界时，创建或更新 ADR。
+
+局部缺陷修复、机械重构、普通文档更新、状态报告和临时计划不需要 ADR，除非它们改变了上述边界。
+
+## 位置与文档类型
+
+本仓库使用 `.agents/adr` 作为 ADR 根目录：
+
+```text
+.agents/adr/proposal/yyyy-mm-dd-topic-title.md
+.agents/adr/decision/yyyy-mm-dd-topic-title.md
+.agents/adr/rejected/yyyy-mm-dd-topic-title.md
+.agents/adr/archived/yyyy-mm-dd-topic-title.md
+```
+
+`proposal` 和 `decision` 是两类文档。`proposal/` 保存活跃提案，`rejected/` 保存被拒绝的提案；`decision/` 保存当前决定，`archived/` 保存已归档的决定。目录同时表达类型和状态，因此 ADR 文件不包含 `Status` 字段。
+
+英文使用 `Create decision`、`Update decision` 和 `Reverse decision` 作为动作短语。`Reverse decision` 是动词短语，不是名词标签。新决定使用 `Reverses` 链接归档决定，归档决定使用 `Reversed by` 链回新决定。
+
+文件名日期记录首次提出时间，文件对移动时不改变。slug 使用简短英文。包括日期、语言后缀和扩展名在内的完整文件名不得超过 60 个字符。
+
+四个生命周期目录始终使用 `.gitkeep` 保存在 Git 中，即使目录内已有 ADR 文件。
+
+术语表的每项简明定义都注明另一种语言中的对应术语。
+
+## 双语文件
+
+每项 ADR 由同目录文件对表示：
+
+```text
+yyyy-mm-dd-topic-title.md
+yyyy-mm-dd-topic-title.zh.md
+```
+
+无后缀文件使用英文，是默认公开链接；`.zh.md` 是中文审计副本。两种语言在语义上具有同等权威，并且必须一起移动。
+
+作者可以从任一语言开始，但两份文件必须在同一变更中补齐。语义冲突会阻止合入，直到维护者解决该冲突。路径、命令、API 名称、元数据字段名和代码标识符保留仓库原有拼写。
+
+在完整元数据块后紧接着放置双向语言链接。文件对中的 `Decision owner` 和 `Draft writer` 必须一致。`Decision owner` 记录负责维护者，`Draft writer` 记录最初起草者，后续维护时不改变。`Reverses`、`Archived` 和 `Reversed by` 等关系与生命周期字段位于 `Draft writer` 之后、语言链接之前。
+
+## 提案格式
+
+先说明活跃格式，再说明被拒绝格式。
+
+### 活跃提案
+
+英文文件头：
+
+```markdown
+# ADR proposal: <title>
+
+Decision owner: <name>
+Draft writer: <writer>
+
+English | [中文](./<filename>.zh.md)
+```
+
+中文文件头：
+
+```markdown
+# ADR 提案：<标题>
+
+Decision owner: <name>
+Draft writer: <writer>
+
+[English](./<filename>.md) | 中文
+```
+
+正文包含以下必需章节：
+
+```markdown
+## Motivation
+## Proposal
+## Alternatives considered
+## Acceptance criteria
+## Risks
+```
+
+中文正文使用 `## 动机`、`## 提议`、`## 考虑过的替代方案`、`## 验收标准` 和 `## 风险`。
+
+实现开始前，将获准的提案作为独立变更合入 `main`。实现从包含该提案的新 `main` 创建短期分支。一个提案可以创建多项决定、反转多项决定，或同时执行两种操作。
+
+实现完成后，在实现变更中创建新决定、更新没有冲突的决定、反转冲突决定，并删除已落实的提案。Git 历史保留独立合入的提案及其理由。
+
+### 被拒绝的提案
+
+将双语提案文件移动到 `rejected/`，增加 `## Rejection reason` 或 `## 拒绝原因`，修复事实链接后冻结。只有当拒绝理由仍能防止现实中重犯同类错误时，才保留该提案。
+
+## 决定格式
+
+先说明当前格式，再说明归档格式。
+
+### 当前决定
+
+英文文件头：
+
+```markdown
+# ADR decision: <title>
+
+Decision owner: <name>
+Draft writer: <writer>
+
+English | [中文](./<filename>.zh.md)
+```
+
+中文文件头：
+
+```markdown
+# ADR 决定：<标题>
+
+Decision owner: <name>
+Draft writer: <writer>
+
+[English](./<filename>.md) | 中文
+```
+
+正文包含以下必需章节：
+
+```markdown
+## Motivation
+## Decision
+## Alternatives considered
+## Consequences
+```
+
+中文正文使用 `## 动机`、`## 决定`、`## 考虑过的替代方案` 和 `## 结果`。
+
+### 更新决定
+
+新增内容与当前决定没有冲突时，将它追加到最后的 `## Changes` 或 `## 变更` 章节。每次更新使用带日期的三级标题。新增内容值得单独成为 ADR 时，链接新的决定。
+
+### 反转决定
+
+不得通过重写当前决定表达冲突的新选择。先创建提案，并列出需要反转的每项决定。实现完成后，将旧决定仍然有效的规则和获得接受的提案整合成一项完整的新决定。
+
+在新决定的文件头元数据块中增加 `Reverses`，在每项归档决定的文件头元数据块中增加 `Reversed by`。同一变更将旧决定的双语文件移动到 `archived/`。
+
+### 归档决定
+
+归档决定保留决定格式，在文件头元数据块中增加 `Archived: YYYY-MM-DD`，并将它放在可选的 `Reversed by` 之前。修复关系链接和事实链接后冻结。当前文档不得将它引用为当前权威。
+
+## 编写规则
+
+两类文档都以 `## Motivation` 或 `## 动机` 开头，并准确说明考虑或采用这项选择的具体理由。
+
+只记录 ADR 编写前真实存在，或讨论中实际考虑过的替代方案。没有时写 `None` 或 `无`。
+
+`## Risks` 或 `## 风险` 只记录可能造成的不良结果。事实、要求和不变量不是风险。没有风险时写 `None` 或 `无`。
+
+必需章节需要内部结构时，使用描述性的三级标题。不能替换必需的二级标题，也不能用子章节记录进度历史或复制实现清单。
+
+## 维护规则
+
+维护者负责批准或拒绝提案，以及归档决定。Agent 可以在授权变更中起草和实现 ADR，但未经明确授权不能作出这些生命周期决定。
+
+两种语言文件必须一起移动，并在同一变更中修复入站链接。事实路径、名称或验证入口变化时，更新当前决定。不得借事实维护反转决定。
+
+第一版依靠评审、仓库搜索和 Git 历史，不增加专用 Skill、分类体系、归档 manifest 或自定义检查器。只有重复维护或实际错误证明某项机械约束确有必要时，才增加最小检查。

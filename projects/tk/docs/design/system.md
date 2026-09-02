@@ -19,7 +19,7 @@ The system consists of the following parts:
 | English Skill | Guidance for Agent activation, authorization, Task usage, and material maintenance | Enforcing runtime invariants |
 | Chinese Skill | A complete Chinese alternative to the English Skill, primarily for review and also available for manual installation | Installing and updating tk components |
 | Public documentation | Current product contracts and user guidance | Review history and local Task materials |
-| Agent Note | Long-term architectural decisions and their rationale | Implementation progress and test logs |
+| ADR | Long-term architectural decisions and their rationale | Implementation progress and test logs |
 
 One Cargo package builds one `tk` executable. Short-lived commands exit after execution. The MCP server exists only for the duration of one stdio connection and does not cache project state.
 

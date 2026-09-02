@@ -31,7 +31,7 @@ English Skills live under `./skills/<name>/`. Chinese variants live under `./var
 
 Plugins, extensions, executables, and Harness packages keep the layout their Harness or build system expects. The repository adds a top-level area only when a real component needs it.
 
-Durable repository decisions are recorded as bilingual [Agent Notes](./.agents/notes/README.md).
+Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/README.md).
 
 tk provides persistent project Tasks through one Rust runtime and self-contained components for Codex, Claude Code, Pi, and OMP. A Task is a temporary project effort worth preserving, not an execution commitment.
 

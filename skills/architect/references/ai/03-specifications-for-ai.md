@@ -14,7 +14,7 @@ Constraints layer by enforceability, harder and more unavoidable further down:
 
 | Layer | Vehicle | What it constrains | Who reads it |
 |-|-|-|-|
-| Decision records | One-page documents (Agent Notes in this repository) | Why it was decided, the tradeoffs | Humans + AI (understanding intent) |
+| Decision records | One-page documents (ADRs in this repository) | Why it was decided, the tradeoffs | Humans + AI (understanding intent) |
 | AGENTS.md-style rule files | Standing rules at the project root | Do / do not | AI (auto-loaded when the runtime supports and is configured) |
 | Fitness functions / lint / CI | Automated tests | Red lines (violations block) | Machines |
 
@@ -81,6 +81,6 @@ In the AI era, writing constraints clearly, where the AI can read them, is not d
 
 ## Relationship to other documents
 
-- How to write decision records (Agent Notes) is in [Architecture decisions](../07-architecture-decisions.md).
+- How to write decision records (ADRs) is in [Architecture decisions](../07-architecture-decisions.md).
 - The full practice of fitness functions against architecture rot is in [Evolution and migration](../12-evolution-and-migration.md).
 - Specifications govern before the fact; reviewing AI output after the fact is in [Reviewing AI output](./04-reviewing-ai-output.md).

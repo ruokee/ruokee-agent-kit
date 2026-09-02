@@ -12,7 +12,7 @@
 - 英文和中文设计索引；
 - system、data-model、runtime、tool-api、cli-reference、harnesses、installation、skill、validation、documentation 和 GLOSSARY 的英文中文对应页面；
 - 仓库根 README 和中文 README 中的 tk 入口；
-- 当前英文和中文 tk Agent Note。
+- 当前英文和中文 tk ADR。
 
 评审记录、修订号、Task 路径和本地材料不进入公开页面。
 
@@ -53,13 +53,13 @@
 
 固定译法见[术语表](./GLOSSARY.zh.md)。
 
-## Agent Note
+## ADR
 
-Agent Note 使用 Harness 术语。安装相关 Note 的英文和中文文件名、标题和链接都采用 Harness，不保留 host 命名别名。
+ADR 使用 Harness 术语。安装相关 ADR 的英文和中文文件名、标题和链接都采用 Harness，不保留 host 命名别名。
 
-Agent Note 生命周期由维护者决定。设计、实现或验证完成不会自动把 `proposed` 改为 `implemented`、`rejected` 或 `archived`。
+ADR 提案位于 `proposal/` 或 `rejected/`，决定位于 `decision/` 或 `archived/`。ADR 文件不包含 `Status` 字段。维护者负责批准或拒绝提案，以及归档决定；设计、实现或验证完成不会自动改变生命周期状态。
 
-英文和中文 Agent Note 在同一变更中保持语义一致。
+英文和中文 ADR 文件对在同一变更中保持语义一致。
 
 ## 链接
 
@@ -88,7 +88,7 @@ Agent Note 生命周期由维护者决定。设计、实现或验证完成不会
 1. 负责该行为的设计页面；
 2. 受影响的 guide、Skill 和 CLI 示例；
 3. 对应中文页面；
-4. 描述该合同的全部当前 Agent Note；
+4. 描述该合同的全部当前 ADR；
 5. 验证文档中的对应验收项。
 
 评审材料可以解释理由，但不能成为公开合同的唯一来源。

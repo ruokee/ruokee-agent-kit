@@ -32,12 +32,14 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 - Maintain user-facing Chinese documentation under `docs/zh/` alongside the English documentation when behavior or usage changes.
 - Keep language links between corresponding English and Chinese documents.
 
-## Agent Notes
+## ADRs
 
-- Use `Agent Note` as the repository term for an architecture decision record.
-- Read [the Agent Note rules](./.agents/notes/README.md) before proposing or changing a durable architecture, contract, format, or repository-process decision.
-- Keep each English Agent Note and its Chinese counterpart semantically aligned in the same change.
-- The maintainer owns lifecycle decisions. Agents may draft a `proposed` note within an authorized change, but must not accept, reject, or archive it without explicit approval.
+- Use `ADR` as the repository term for an architecture decision record. This repository uses `.agents/adr` as its ADR root.
+- Search existing proposals and current decisions before planning a requirement.
+- Read [the ADR rules](./.agents/adr/README.md) and [glossary](./.agents/adr/glossary.md) before proposing or changing a durable architecture, contract, format, or repository-process decision.
+- Keep each English ADR and its Chinese counterpart semantically aligned in the same change.
+- Update non-conflicting content under `Changes`. For a conflicting choice, merge a proposal first and create a complete decision that reverses the old one.
+- The maintainer owns proposal approval, rejection, and decision archival. Agents may draft a proposal within authorized work but must not make those lifecycle decisions without explicit approval.
 
 ## File paths
 

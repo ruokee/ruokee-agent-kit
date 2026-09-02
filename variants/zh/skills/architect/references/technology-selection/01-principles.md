@@ -76,6 +76,6 @@
 
 ## 与其他文档的关系
 
-- 决策记录的通用写法（Agent Note）见[架构决策](../07-architecture-decisions.md)。
+- 决策记录的通用写法（ADR）见[架构决策](../07-architecture-decisions.md)。
 - 阶段判断的信号见[演进与迁移](../12-evolution-and-migration.md)。
 - 本目录其余七篇是各领域的具体展开：[语言与框架](./02-languages-and-frameworks.md)、[数据存储](./03-data-stores.md)、[缓存消息与事件](./04-cache-messaging-and-events.md)、[API 与通信](./05-api-and-communication.md)、[云与部署](./06-cloud-and-deployment.md)、[可观测性与可靠性](./07-observability-and-reliability.md)、[AI 基础设施](./08-ai-infrastructure.md)。

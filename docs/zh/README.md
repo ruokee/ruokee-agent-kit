@@ -31,7 +31,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 
 Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或构建系统预期的布局。只有真实组件需要时，仓库才增加新的顶层区域。
 
-长期仓库决定通过双语 [Agent Notes](../../.agents/notes/README.zh.md) 记录。
+长期仓库决定通过双语 [ADRs](../../.agents/adr/README.zh.md) 记录。
 
 tk 通过一个 Rust 运行时和面向 Codex、Claude Code、Pi、OMP 的自包含组件保存项目持久 Task。Task 是值得持久保存的项目内临时性努力，创建不代表已经承诺执行。
 

@@ -77,6 +77,6 @@ The record's point is not format but writing "why chosen" and "how to retreat if
 
 ## Relationship to other documents
 
-- The general writing of decision records (Agent Notes) is in [Architecture decisions](../07-architecture-decisions.md).
+- The general writing of decision records (ADRs) is in [Architecture decisions](../07-architecture-decisions.md).
 - Stage-judgment signals are in [Evolution and migration](../12-evolution-and-migration.md).
 - The other seven documents in this directory expand each domain: [Languages and frameworks](./02-languages-and-frameworks.md), [Data stores](./03-data-stores.md), [Caching, messaging, and events](./04-cache-messaging-and-events.md), [API and communication](./05-api-and-communication.md), [Cloud and deployment](./06-cloud-and-deployment.md), [Observability and reliability](./07-observability-and-reliability.md), [AI infrastructure](./08-ai-infrastructure.md).
