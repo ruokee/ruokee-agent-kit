@@ -20,6 +20,9 @@ htmlcov/
 # Node.js
 node_modules/
 
+# Rust
+target/
+
 # Editors
 .idea/
 .vscode/
