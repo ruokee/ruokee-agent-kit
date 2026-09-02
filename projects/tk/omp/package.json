@@ -1,0 +1,29 @@
+{
+  "name": "@ruokee/tk-omp",
+  "version": "0.1.0",
+  "description": "First-party tk tools and Skill for Oh My Pi",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "omp-package",
+    "task-management"
+  ],
+  "dependencies": {
+    "typebox": "1.3.7"
+  },
+  "peerDependencies": {
+    "@oh-my-pi/pi-coding-agent": "*"
+  },
+  "omp": {
+    "extensions": [
+      "./extension.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "tk": {
+    "runtime_compat": ">=0.1,<0.2",
+    "driver_contract_version": 1
+  }
+}
