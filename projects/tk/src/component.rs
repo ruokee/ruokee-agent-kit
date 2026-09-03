@@ -281,7 +281,14 @@ pub fn install(
                 return Err(partial_error(error, &completed, &remaining));
             }
             if configure_needed {
-                if let Err(error) = configure(harness, mode, &target, &runtime, &mut completed) {
+                if let Err(error) = configure(
+                    harness,
+                    mode,
+                    &target,
+                    &runtime,
+                    registration.installed,
+                    &mut completed,
+                ) {
                     return Err(partial_error(error, &completed, &remaining));
                 }
                 remaining.retain(|candidate| candidate != "Harness registration");
@@ -879,6 +886,7 @@ fn remove_entry(path: &Path) -> Result<()> {
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct RegistrationState {
     present: bool,
+    installed: bool,
     matches: bool,
 }
 
@@ -908,26 +916,29 @@ fn registration_state(
             };
             Ok(RegistrationState {
                 present: item.is_some(),
+                installed: item.is_some(),
                 matches,
             })
         }
         Harness::Claude => {
             let plugins = run_driver_json("claude", &["plugin", "list", "--json"])?;
-            let plugin = plugins
-                .as_array()
-                .and_then(|items| items.iter().find(|item| item["id"] == "tk@tk-local"));
+            let plugin = plugins.as_array().and_then(|items| {
+                items
+                    .iter()
+                    .find(|item| item["id"] == "tk@tk-local" && item["scope"] == "user")
+            });
             let marketplaces =
                 run_driver_json("claude", &["plugin", "marketplace", "list", "--json"])?;
             let marketplace = marketplaces
                 .as_array()
                 .and_then(|items| items.iter().find(|item| item["name"] == "tk-local"));
-            let matches_plugin = plugin.is_some_and(|item| {
-                item["version"] == version && item["scope"] == "user" && item["enabled"] == true
-            });
+            let matches_plugin =
+                plugin.is_some_and(|item| item["version"] == version && item["enabled"] == true);
             let matches_marketplace = marketplace
                 .is_some_and(|item| item["source"] == "directory" && item["path"] == root.as_ref());
             Ok(RegistrationState {
                 present: plugin.is_some() || marketplace.is_some(),
+                installed: plugin.is_some(),
                 matches: matches_plugin && matches_marketplace,
             })
         }
@@ -936,6 +947,7 @@ fn registration_state(
             let present = output.lines().any(|line| line.trim() == root.as_ref());
             Ok(RegistrationState {
                 present,
+                installed: present,
                 matches: present,
             })
         }
@@ -946,6 +958,7 @@ fn registration_state(
                 .and_then(|items| items.iter().find(|item| item["name"] == "@ruokee/tk-omp"));
             Ok(RegistrationState {
                 present: item.is_some(),
+                installed: item.is_some(),
                 matches: item
                     .is_some_and(|item| item["version"] == version && item["enabled"] == true),
             })
@@ -958,6 +971,7 @@ fn configure(
     mode: Mode,
     root: &Path,
     runtime: &Path,
+    plugin_installed: bool,
     completed: &mut Vec<String>,
 ) -> Result<()> {
     let root = root.to_string_lossy().into_owned();
@@ -980,9 +994,14 @@ fn configure(
             )?;
             completed.push("Claude marketplace registration".into());
             crate::cancel::checkpoint()?;
+            let action = if plugin_installed {
+                "update"
+            } else {
+                "install"
+            };
             run_driver(
                 "claude",
-                &["plugin", "install", "tk@tk-local", "--scope", "user"],
+                &["plugin", action, "tk@tk-local", "--scope", "user"],
             )?;
             completed.push("Claude plugin registration".into());
         }
