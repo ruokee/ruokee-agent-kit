@@ -174,7 +174,7 @@ Observable evidence in load, organization, or failure modes that the architectur
 
 **Architecture Decision Record (ADR)**
 
-A document recording the candidates, tradeoffs, consequences, and re-review conditions of one architecture decision. In this repository, an ADR serves this role.
+A document recording the candidates, tradeoffs, consequences, and re-review conditions of one architecture decision.
 
 _Avoid: inventing a second project-specific decision-record format._
 

@@ -14,7 +14,7 @@ Constraints layer by enforceability, harder and more unavoidable further down:
 
 | Layer | Vehicle | What it constrains | Who reads it |
 |-|-|-|-|
-| Decision records | One-page documents (ADRs in this repository) | Why it was decided, the tradeoffs | Humans + AI (understanding intent) |
+| Decision records | Documents in the project's existing format | Why it was decided, the tradeoffs | Humans + AI (understanding intent) |
 | AGENTS.md-style rule files | Standing rules at the project root | Do / do not | AI (auto-loaded when the runtime supports and is configured) |
 | Fitness functions / lint / CI | Automated tests | Red lines (violations block) | Machines |
 

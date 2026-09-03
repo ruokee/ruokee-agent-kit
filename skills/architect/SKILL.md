@@ -12,7 +12,7 @@ Use this Skill for system-level architecture analysis, design, review, technolog
 
 This Skill handles system-level judgment: system boundaries, data and state, quality attributes, failure, scale, and long-term change. It covers five kinds of work: analysis, design, review, selection, and evolution. Boundaries: single-module internal design, coding implementation, and code-level quality review are out of scope; defining product behavior and ranking priorities are out of scope. Both follow their own ordinary processes.
 
-This Skill does not do concrete implementation. Project facts come from the current code and configuration; product behavior comes from product documentation; priority calls belong to the user. The Skill replaces none of these. When recording architecture decisions, follow the current project's recording convention; in this repository, use ADRs.
+This Skill does not do concrete implementation. Project facts come from the current code and configuration; product behavior comes from product documentation; priority calls belong to the user. The Skill replaces none of these. When recording architecture decisions, follow the current project's recording convention.
 
 ## Reference Navigation
 
