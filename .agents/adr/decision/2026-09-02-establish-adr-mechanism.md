@@ -97,3 +97,9 @@ Reversing a decision requires reconstructing a complete current contract. Review
 Discovery depends on concise filenames and repository search rather than a central index. Additional structure is deferred until the active tree becomes measurably difficult to search.
 
 The glossary stays deliberately small. Ordinary wording and unconfirmed synonyms do not become contractual terminology.
+
+## Changes
+
+### 2026-09-03: Refine the authoring rules for alternatives and risks
+
+Agents must not invent alternatives or risks to fill required sections. Alternatives must have entered the actual choice and must describe another course of action rather than a fact, requirement, constraint, acceptance criterion, implementation detail, or restatement. Risks must name a plausible harmful outcome caused by the proposal or by an omission, rather than relabeling facts, requirements, constraints, invariants, acceptance criteria, or tasks. A section containing only `None` or `无` is complete when no entry qualifies.

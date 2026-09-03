@@ -37,6 +37,7 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 - Use `ADR` as the repository term for an architecture decision record. This repository uses `.agents/adr` as its ADR root.
 - Search existing proposals and current decisions before planning a requirement.
 - Read [the ADR rules](./.agents/adr/README.md) and [glossary](./.agents/adr/glossary.md) before proposing or changing a durable architecture, contract, format, or repository-process decision.
+- Do not invent alternatives or risks to fill required sections; write `None` or `无` when nothing qualifies.
 - Keep each English ADR and its Chinese counterpart semantically aligned in the same change.
 - Update non-conflicting content under `Changes`. For a conflicting choice, merge a proposal first and create a complete decision that reverses the old one.
 - The maintainer owns proposal approval, rejection, and decision archival. Agents may draft a proposal within authorized work but must not make those lifecycle decisions without explicit approval.

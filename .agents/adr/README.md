@@ -153,11 +153,29 @@ An archived decision keeps the decision format, adds `Archived: YYYY-MM-DD` to i
 
 `## Motivation` opens both document types and states the concrete reason for considering or adopting the choice.
 
-Record only alternatives that existed before writing or were genuinely considered during discussion. Write `None` or `无` when there were none.
-
-Record only possible harmful outcomes in `## Risks`. Facts, requirements, and invariants are not risks. Write `None` or `无` when there were none.
+When reviewing `## Alternatives considered` and `## Risks`, require the ADR to identify the requirement discussion or analysis in which each alternative became a real option and to name the harmful outcome of each risk. Delete unsupported or misclassified entries instead of rewriting them to sound plausible.
 
 Use descriptive level-three headings inside a required section when its content needs structure. Do not replace required level-two headings or use subsections for progress history and copied implementation inventories.
+
+### Alternatives considered
+
+The required `## Alternatives considered` section records the result of checking for real alternatives. It does not require the author to produce alternatives when none existed.
+
+Do not invent alternatives to make an ADR look complete. Record only options that already existed when the ADR was drafted or were genuinely considered while discussing or analyzing the requirement. An option that is merely imaginable, but never entered the choice, is not a considered alternative.
+
+Each entry must be a different course of action for the same decision. A fact about the current repository, a requirement or constraint, an acceptance criterion, an implementation detail, or a restatement of the proposal is not an alternative.
+
+If no entry meets these rules, write only `None` in the English section and only `无` in the Chinese section. That is a complete section, not missing content.
+
+### Risks
+
+The required `## Risks` section records credible ways the proposal could cause harm. It does not require the author to produce risks when none are known.
+
+Do not invent risks to make an ADR look complete. A risk must describe a plausible harmful outcome caused by adopting the proposal or by failing to address or consider something relevant. Name the harmful outcome. A fact, requirement, constraint, invariant, acceptance criterion, or task is not a risk by itself.
+
+For example, `Behavior must remain consistent` states a constraint, not a risk. A risk needs a credible failure path, such as separate implementations drifting and producing inconsistent behavior. The relevant failure path depends on the ADR.
+
+If no entry meets these rules, write only `None` in the English section and only `无` in the Chinese section.
 
 ## Maintenance
 
