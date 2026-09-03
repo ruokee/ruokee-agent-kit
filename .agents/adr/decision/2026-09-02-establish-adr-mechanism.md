@@ -74,14 +74,6 @@ The full authoring policy lives in [the ADR guide](../README.md), with its [Chin
 
 **Keep Agent Note as the primary term.** This would retain the old paths and much existing prose, but it would preserve the single-document status model that obscured the distinction between proposals and decisions.
 
-**Write records only in English or only in Chinese.** Either choice removes an audit path for part of the repository's audience. The public repository needs English, while the maintainer needs complete Chinese material.
-
-**Put both languages in one file.** A combined file prevents a missing counterpart but forces every reader to load both languages and remains vulnerable to semantic drift between sections.
-
-**Keep decisions only in ordinary documentation and Git history.** This avoids a dedicated mechanism but does not distinguish proposals, current decisions, rejected proposals, and archived decisions or preserve their rationale consistently.
-
-**Adopt a classification system, sidecars, manifests, and custom validation now.** Those mechanisms may help at a much larger scale, but this repository has not shown failures that justify their maintenance cost.
-
 **Package ADR maintenance as a Skill now.** The mechanism is still changing through use. A distributed Skill would freeze rules before the repository has enough evidence that they are stable.
 
 ## Consequences

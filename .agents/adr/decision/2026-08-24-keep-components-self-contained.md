@@ -27,11 +27,7 @@ Record the rule in [`AGENTS.md`](../../../AGENTS.md) and remove existing cross-b
 
 ## Alternatives considered
 
-**Allow declared dependencies between components.** This would require dependency metadata, compatible-version rules, installation ordering, and validation across hosts. No current component needs that machinery.
-
-**Allow cross-component documentation links but prohibit runtime dependencies.** A broken documentation link still makes an installed component incomplete and creates revision coupling. The distinction does not fix the observed problem.
-
-**Keep shared guidance in a repository-level reference tree.** Components would still depend on material that is not guaranteed to ship with them. Shared ideas should be stated in the scope and language needed by each component rather than imported through repository links.
+None
 
 ## Consequences
 

@@ -23,15 +23,7 @@ Skill、Plugin、Extension、可执行项目、可选 variant 和宿主包是相
 
 ## 考虑过的替代方案
 
-**继续使用 `ruokee-skills`。**这个名称会继续让所有非 Skill 内容显得像附属品。
-
-**重命名或复制旧仓库。**这样会继承旧有分类和混合所有权，无法明确新公开仓库的边界。
-
-**把所有能力建模成 Skill。**可执行项目、宿主包和 Extension 有不同的安装与验证要求。包装成 Skill 只会隐藏这些合同。
-
-**用某一个现有 Plugin 代表仓库。**`code-quality` 或任何单一 Plugin 都只能代表一种能力。项目名称和布局必须适用于彼此无关的内容类型。
-
-**使用 `harness`、`stack`、`manager`、`depot` 或改写 Ruokee 的拼写。**这些名称会夸大运行职责、只表达被动存储，或者削弱直接的所有权信号。因此排除 `rookery`、`ruukit` 和 `rookit` 等候选。
+无
 
 ## 结果
 

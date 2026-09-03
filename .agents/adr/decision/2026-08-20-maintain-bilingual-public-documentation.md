@@ -23,15 +23,7 @@ Do not require translations for every internal implementation note, comment, gen
 
 ## Alternatives considered
 
-**Publish only English.** This follows common open-source practice but removes Ruokee's Chinese audit entry point.
-
-**Publish only Chinese.** This makes public package, host, and installation decisions harder for non-Chinese contributors to review.
-
-**Interleave both languages in one file.** Every reader would load both copies, search results would repeat, and section structure would become harder to maintain.
-
-**Translate every tracked text file.** Comments, internal notes, generated files, and configuration do not all benefit from a second copy. Mandatory translation would add work without improving public use.
-
-**Allow one language to lag.** That creates two conflicting descriptions of the same behavior. A behavior or usage change must update both public copies together.
+None
 
 ## Consequences
 

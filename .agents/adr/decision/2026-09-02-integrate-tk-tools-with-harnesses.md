@@ -28,13 +28,7 @@ The current contract lives in [Harness integration](../../../projects/tk/docs/de
 
 ## Alternatives considered
 
-**Use MCP for every Harness.** Pi and OMP provide native APIs with session context, cancellation, and loading metadata.
-
-**Write schemas and Task rules in each adapter.** Copies would drift and create Harness-specific domain behavior.
-
 **Retry failed logical operations through the CLI.** This could hide integration failures and repeat requests across transports.
-
-**Terminate the Harness on load failure.** tk is one optional capability and must not take down unrelated Agent work.
 
 ## Consequences
 

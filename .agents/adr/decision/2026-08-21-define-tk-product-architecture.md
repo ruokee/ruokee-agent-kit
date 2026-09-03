@@ -51,8 +51,6 @@ The following ADRs own the detailed contracts within this architecture:
 
 ## Alternatives considered
 
-**Use Issues or a board as the Task system.** These systems add remote-service and workflow semantics. They do not provide one portable local representation across Harnesses.
-
 **Bind Tasks to Harness sessions.** Session state disappears or becomes inaccessible when the Harness, model, or context changes. It cannot be the authoritative project record.
 
 **Run tk as a daemon or hosted service.** A service would require process lifecycle, synchronization, availability, and remote-state contracts that ordinary project files do not need.

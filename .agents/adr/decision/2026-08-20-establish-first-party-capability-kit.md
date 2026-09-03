@@ -23,15 +23,7 @@ Treat Skill, Plugin, extension, executable project, optional variant, and host p
 
 ## Alternatives considered
 
-**Keep the `ruokee-skills` name.** The name would continue to make every non-Skill component look incidental.
-
-**Rename or copy the old repository.** This would preserve its existing classifications and mixed ownership rather than make the new public boundary explicit.
-
-**Model every capability as a Skill.** Executable projects, host packages, and extensions have different installation and validation needs. Wrapping them as Skills would hide those contracts.
-
-**Use one existing Plugin as the repository model.** `code-quality` and any other single Plugin represent only one capability. The project name and layout must work for unrelated content kinds.
-
-**Use `harness`, `stack`, `manager`, `depot`, or an altered spelling of Ruokee.** These names either claim a wider runtime role, describe passive storage, or weaken the direct ownership signal. Candidates such as `rookery`, `ruukit`, and `rookit` were therefore rejected.
+None
 
 ## Consequences
 

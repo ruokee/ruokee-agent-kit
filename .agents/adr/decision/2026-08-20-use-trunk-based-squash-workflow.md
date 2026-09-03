@@ -25,15 +25,7 @@ Temporary initialization facts are not workflow policy. The repository once had 
 
 ## Alternatives considered
 
-**Commit directly to `main`.** This removes branch management but also removes the review boundary between work in progress and accepted repository history.
-
-**Preserve every task-branch commit with a plain merge.** Intermediate import and editing commits are useful while working but add little value after review.
-
-**Fast-forward or rebase the task branch into `main`.** This keeps intermediate commits and makes the integration result depend on task-branch history shape.
-
-**Maintain several long-lived integration branches.** The project does not need release trains or parallel maintained lines. Extra permanent branches would add synchronization work.
-
-**Encode initialization exceptions as permanent rules.** Current repository state changes. Durable workflow documentation should describe steady-state behavior.
+None
 
 ## Consequences
 

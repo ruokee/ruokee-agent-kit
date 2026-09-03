@@ -28,13 +28,7 @@ Codex 和 Claude Code 使用 MCP。Pi 和 OMP 使用原生 extension。Pi 不设
 
 ## 考虑过的替代方案
 
-**所有 Harness 都使用 MCP。** Pi 和 OMP 提供带会话上下文、取消和加载元数据的原生 API。
-
-**在每个适配器中手写 schema 和 Task 规则。** 副本会发生偏差，并产生 Harness 专用领域行为。
-
 **逻辑操作失败后通过 CLI 重试。** 这可能隐藏集成故障，并跨传输重复请求。
-
-**加载失败时终止 Harness。** tk 只是可选能力，不能中断无关 Agent 工作。
 
 ## 结果
 

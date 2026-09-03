@@ -63,8 +63,6 @@ The authoritative maintenance details live in the [documentation design](../../.
 
 ## Alternatives considered
 
-**Put English and Chinese in one file.** A combined file makes every reader load both languages and remains vulnerable to semantic drift between sections.
-
 **Repeat complete contracts on every related page.** Duplication would make routine changes require many synchronized edits and leave readers unsure which copy is authoritative.
 
 **Keep implementation history in public design pages.** Development chronology would obscure the current contract and turn unreleased experiments into accidental compatibility promises.

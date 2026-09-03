@@ -38,15 +38,7 @@ The current lifecycle contract lives in [Installation](../../../projects/tk/docs
 
 ## Alternatives considered
 
-**Install the runtime through each component.** This would create multiple owners and executable versions.
-
-**Use one four-value Skill option.** Separate mode and language options express the independent dimensions and preserve the existing default command.
-
-**Require uninstall before switching.** Direct update can plan from current fixed targets and avoids an unnecessary unavailable interval.
-
-**Maintain installation history or ownership manifests.** Historical state can conflict with current targets after manual changes. Fixed targets and current registration state are sufficient.
-
-**Download or accept component sources.** Embedded bytes avoid network identity, trust, and availability contracts.
+None
 
 ## Consequences
 

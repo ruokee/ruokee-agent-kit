@@ -25,15 +25,7 @@ When importing an existing Skill, preserve its body meaning. Change paths requir
 
 ## Alternatives considered
 
-**Copy the complete Plugin directory into `skills/`.** This mixes host packaging and repository metadata with the Skill contract.
-
-**Install variants with their source prefix.** Agent Harnesses discover Skills at their normal Skill root, so source-only prefixes would leak into links and installation behavior.
-
-**Keep language variants in the base Skill directory.** This makes host selection and file correspondence unclear and encourages mixed-language files.
-
-**Remove unresolved cross-Skill links during import.** Turning a link into plain text changes the source meaning. Keeping the canonical installed path preserves intent while the target is added separately.
-
-**Refactor content while moving it.** This makes it difficult to distinguish layout adaptation from editorial change and weakens review evidence.
+None
 
 ## Consequences
 

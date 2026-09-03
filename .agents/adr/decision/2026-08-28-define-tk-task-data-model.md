@@ -65,11 +65,7 @@ The complete format and operation details live in the [data model](../../../proj
 
 ## Alternatives considered
 
-**Use a database or permanent index.** This would add another authoritative state store, migration path, and synchronization boundary. Canonical files and bounded scans are sufficient for local Task projects.
-
 **Support only split or only embed.** split is convenient for direct metadata inspection, while embed keeps a Task in one file. Both can preserve the same schema without making either representation secondary.
-
-**Treat similar or malformed files as damaged Tasks.** Heuristic recovery would make discovery depend on guesses and could claim ordinary project content. Strict candidates keep the boundary deterministic.
 
 **Use locks, transactions, or persistent recovery plans.** These mechanisms would add coordination and a second operation state machine. Atomic replacement, complete preflight, explicit partial results, activity markers, and retry from canonical state cover the intended local workflow.
 
