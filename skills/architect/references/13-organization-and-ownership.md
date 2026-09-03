@@ -20,18 +20,18 @@ The most common death: teams split by technical function (frontend team / backen
 
 ## Cognitive load: the real basis for splitting
 
-The system complexity one team can hold in its head has a hard ceiling (the core contribution of Skelton & Pais, *Team Topologies*, 2019, https://teamtopologies.com/key-concepts). Past the ceiling, the team degrades from proactive design to firefighting: nobody can explain the whole, and every one-line change is made trembling.
+The system complexity one team can hold in its head has a hard ceiling (the core contribution of Skelton & Pais, _Team Topologies_, 2019, https://teamtopologies.com/key-concepts). Past the ceiling, the team degrades from proactive design to firefighting: nobody can explain the whole, and every one-line change is made trembling.
 
 Cognitive load is not lines of code; it is the total of things that must be understood simultaneously and might need changing at any moment, in three kinds: intrinsic load (business-domain complexity—cannot be reduced), extraneous load (accidental complexity: homegrown CI, wrestling Kubernetes, assembling environments—what a platform should carry away for you), and switching load (writing payments in one hour, fixing search the next, context bouncing repeatedly—the price of badly cut boundaries). When the bucket is full, anything more spills over—that is the signal to split teams or services.
 
 Team Topologies' four team types are, in essence, four organizational roles cut by cognitive load:
 
-| Type | What it carries | In one sentence |
+|Type|What it carries|In one sentence|
 |-|-|-|
-| Stream-aligned | One end-to-end business value stream | The absolute main force: requirement to production, accountable to users directly |
-| Platform | General accidental complexity | Self-service platforms so stream teams need not each chew through K8s/CI |
-| Enabling | Temporary capability gaps | A touring coach: short-term embed to transfer skills then withdraw; not resident, not taking over |
-| Complicated-subsystem | Hard problems needing deep specialization | Search ranking, video encoding, risk models—encapsulating that load for others |
+|Stream-aligned|One end-to-end business value stream|The absolute main force: requirement to production, accountable to users directly|
+|Platform|General accidental complexity|Self-service platforms so stream teams need not each chew through K8s/CI|
+|Enabling|Temporary capability gaps|A touring coach: short-term embed to transfer skills then withdraw; not resident, not taking over|
+|Complicated-subsystem|Hard problems needing deep specialization|Search ranking, video encoding, risk models—encapsulating that load for others|
 
 The soul is the stream-aligned team as protagonist, the other three existing to unburden it. Ask first which team's cognitive load is about to overflow, then decide what to split—not eyeballing the technical map. The three interaction modes between teams (collaboration, X-as-a-Service, facilitating) are chosen by the nature of the work, not fixed defaults: exploring an unsettled new capability fits collaboration (side by side, fast convergence, but prone to adhesion—keep it short); mature capabilities fit X-as-a-Service (self-service, lowest communication cost—and not limited to network services: it can be a platform product, documented API, or library); missing skills fit facilitating (coach embeds then withdraws). Governing team interaction modes is designing the future's system interfaces.
 

@@ -14,7 +14,7 @@
 
 ## 接口
 
-- [工具 API](./tool-api.zh.md)定义六个逻辑工具、请求、统一结果和稳定错误。
+- [工具 API](./tool-api.zh.md) 定义六个逻辑工具、请求、统一结果和稳定错误。
 - [CLI 参考](./cli-reference.zh.md)定义完整命令树和公开拼写。
 - [Harness 集成](./harnesses.zh.md)定义 Codex、Claude Code、Pi 和 OMP 组件、原生适配器和构建期组装。
 

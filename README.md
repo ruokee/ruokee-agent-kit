@@ -41,6 +41,28 @@ tk provides persistent project Tasks through one Rust runtime and self-contained
 
 ## Development
 
+Markdown formatting requires Node.js 18 or newer. Install the locked dependencies:
+
+```bash
+pnpm install --frozen-lockfile
+```
+
+Format or check all Markdown files:
+
+```bash
+pnpm docs:format
+pnpm docs:lint
+```
+
+Pass selected files directly to Prettier:
+
+```bash
+pnpm exec prettier --write README.md docs/zh/README.md
+pnpm exec prettier --check README.md docs/zh/README.md
+```
+
+Run `pnpm install --frozen-lockfile` again if Prettier cannot load a plugin.
+
 Install the Git hook:
 
 ```bash

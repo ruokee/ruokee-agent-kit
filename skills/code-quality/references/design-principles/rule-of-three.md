@@ -2,7 +2,7 @@
 
 ## What it is
 
-The Rule of Three is a heuristic for *when* to abstract: write the thing directly the first time, tolerate a limited duplication the second time, and only on the third occurrence, or once the direction of variation is clearly understood, extract a shared abstraction. It is the practical brake on [dry.md](./dry.md).
+The Rule of Three is a heuristic for _when_ to abstract: write the thing directly the first time, tolerate a limited duplication the second time, and only on the third occurrence, or once the direction of variation is clearly understood, extract a shared abstraction. It is the practical brake on [dry.md](./dry.md).
 
 The number three is not magic. The real signal is "I now understand how these cases vary." Two instances rarely tell you that. Three usually do, because the third point reveals which parts are stable and which parts differ, and therefore where the seam belongs.
 
@@ -16,8 +16,8 @@ Three concrete instances let you extract a parameter set that reflects actual va
 
 On the surface DRY and the Rule of Three look opposed: DRY says remove duplication, the Rule of Three says wait. They are reconciled by remembering what each one targets.
 
-- DRY targets *knowledge* duplication: the same rule expressed in several places.
-- The Rule of Three delays abstraction of *shape* similarity; code that looks alike but may not share knowledge.
+- DRY targets _knowledge_ duplication: the same rule expressed in several places.
+- The Rule of Three delays abstraction of _shape_ similarity; code that looks alike but may not share knowledge.
 
 So they do not actually conflict. DRY still demands you collapse a genuinely duplicated domain rule immediately. The Rule of Three only governs the harder case: fragments that resemble each other but whose common essence is not yet proven. In that case, waiting for the third instance protects you from a wrong abstraction.
 

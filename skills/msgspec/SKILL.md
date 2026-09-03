@@ -15,16 +15,16 @@ Activate this Skill when a task involves defining `msgspec.Struct` models, valid
 
 Route to the smallest relevant document. Read only what the task requires.
 
-| Signal | Read first | Often pair with |
+|Signal|Read first|Often pair with|
 |-|-|-|
-| Struct fields, defaults, renaming, inheritance, options | [struct](./references/struct.md) | supported-types, validation |
-| `Meta`, constraints, `ValidationError`, `__post_init__` | [validation](./references/validation.md) | struct |
-| Supported annotations, `UNSET`, native and custom types | [supported-types](./references/supported-types.md) | struct, converters |
-| `enc_hook`, `dec_hook`, `convert`, `from_attributes` | [converters](./references/converters.md) | supported-types, serialization |
-| JSON, MessagePack, YAML, TOML, JSONL, reusable encoders or decoders | [serialization](./references/serialization.md) | supported-types, converters |
-| Choice between msgspec, Pydantic, and dataclasses | [comparison](./references/comparison.md) | best-practices |
-| Usage guidance and common mistakes | [best-practices](./references/best-practices.md) | the relevant API document |
-| Runnable end-to-end examples | [basic usage](./examples/basic_usage.py), [tagged unions](./examples/tagged_union.py), [custom conversion](./examples/custom_conversion.py) | the matching reference document |
+|Struct fields, defaults, renaming, inheritance, options|[struct](./references/struct.md)|supported-types, validation|
+|`Meta`, constraints, `ValidationError`, `__post_init__`|[validation](./references/validation.md)|struct|
+|Supported annotations, `UNSET`, native and custom types|[supported-types](./references/supported-types.md)|struct, converters|
+|`enc_hook`, `dec_hook`, `convert`, `from_attributes`|[converters](./references/converters.md)|supported-types, serialization|
+|JSON, MessagePack, YAML, TOML, JSONL, reusable encoders or decoders|[serialization](./references/serialization.md)|supported-types, converters|
+|Choice between msgspec, Pydantic, and dataclasses|[comparison](./references/comparison.md)|best-practices|
+|Usage guidance and common mistakes|[best-practices](./references/best-practices.md)|the relevant API document|
+|Runnable end-to-end examples|[basic usage](./examples/basic_usage.py), [tagged unions](./examples/tagged_union.py), [custom conversion](./examples/custom_conversion.py)|the matching reference document|
 
 When terminology is unclear or inconsistent, read the [glossary](./glossary.md).
 

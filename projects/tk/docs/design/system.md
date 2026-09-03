@@ -12,13 +12,13 @@ tk stores state in project files. It does not create a database, global Task reg
 
 The system consists of the following parts:
 
-| Part | Responsible for | Not responsible for |
-| --- | --- | --- |
-| Rust runtime | Task domain rules, persistence, migration, project discovery, CLI, MCP, generated tool contracts, and component lifecycle | Harness session loops and model calls |
-| Harness components | Skill, tool registration, configuration or adapters, and their installation targets | Task domain validation and storage rules |
-| Skill variants | Four self-contained mode and language variants for Agent activation, authorization, Task usage, and material maintenance | Enforcing runtime invariants or installing components |
-| Public documentation | Current product contracts and user guidance | Review history and local Task materials |
-| ADR | Long-term architectural decisions and their rationale | Implementation progress and test logs |
+|Part|Responsible for|Not responsible for|
+|-|-|-|
+|Rust runtime|Task domain rules, persistence, migration, project discovery, CLI, MCP, generated tool contracts, and component lifecycle|Harness session loops and model calls|
+|Harness components|Skill, tool registration, configuration or adapters, and their installation targets|Task domain validation and storage rules|
+|Skill variants|Four self-contained mode and language variants for Agent activation, authorization, Task usage, and material maintenance|Enforcing runtime invariants or installing components|
+|Public documentation|Current product contracts and user guidance|Review history and local Task materials|
+|ADR|Long-term architectural decisions and their rationale|Implementation progress and test logs|
 
 One Cargo package builds one `tk` executable. Short-lived commands exit after execution. The MCP server exists only for the duration of one stdio connection and does not cache project state.
 

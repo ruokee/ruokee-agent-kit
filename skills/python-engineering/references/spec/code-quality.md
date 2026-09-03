@@ -57,7 +57,7 @@ Python rarely needs the heavy apparatus that DIP acquired in other ecosystems. T
 tools are usually enough:
 
 - **Constructor and function parameters.** Pass the collaborator in. `def process(orders,
-  repository, clock):` inverts three dependencies with no ceremony.
+repository, clock):` inverts three dependencies with no ceremony.
 - **`typing.Protocol`.** Define the narrow capability the policy needs structurally; any object
   with the right methods qualifies, without inheriting anything. This keeps interface conformance separate from
   inheritance.
@@ -68,7 +68,7 @@ tools are usually enough:
   real default convenient while leaving a seam for tests to pass a fake.
 
 Assemble the concrete wiring in one place: `main()`, a web app's startup, a framework entry
-point. This *composition root* is where high-level policy meets concrete detail; everywhere
+point. This _composition root_ is where high-level policy meets concrete detail; everywhere
 else depends on abstractions.
 
 - Prefer constructor parameters, function parameters, default arguments, small Protocols, and
@@ -140,7 +140,7 @@ Behavior goes near the data that owns it (Information Expert). CLI and API handl
 - Satisfy the real call sites first with plain functions, explicit parameters, a `dataclass`, or a simple mapping.
 - Wait for the second real point of variation before abstracting; before extracting, picture how cheap the future refactor would be: usually cheap enough to wait.
 - For public APIs, persisted schemas, and external protocols, it is fine to stabilize the boundary early; that is not a speculative feature.
-- Removing an unused extension point is *more* aligned with YAGNI than keeping a "might be useful" abstraction.
+- Removing an unused extension point is _more_ aligned with YAGNI than keeping a "might be useful" abstraction.
 
 ## Programming paradigms
 

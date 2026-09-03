@@ -4,7 +4,7 @@ Tell, Don't Ask says: instead of pulling data out of an object and making decisi
 from the outside, push the decision into the object that owns the data. Tell the object what
 you want done; do not ask it for its internals and then act on its behalf.
 
-The principle is about *where behavior lives relative to the data it depends on*. When the
+The principle is about _where behavior lives relative to the data it depends on_. When the
 data and the rules that govern it sit together, the rules can rely on invariants the object
 maintains, and changes to those rules have one home. When callers repeatedly read fields and
 assemble rules externally, the logic scatters, and the object cannot protect its own
@@ -63,8 +63,8 @@ not a ban on reading data. Asking is correct when there is no invariant to prote
 - **Read models.** In systems that separate reads from writes, the read side is deliberately
   data-oriented and transparent.
 
-The discriminator: is the caller *deciding something the object should own* (a business rule,
-a state transition, an invariant), or is it *reporting / transforming / displaying* state that
+The discriminator: is the caller _deciding something the object should own_ (a business rule,
+a state transition, an invariant), or is it _reporting / transforming / displaying_ state that
 genuinely belongs to the caller's concern? The first is a Tell, Don't Ask violation; the
 second is normal and healthy.
 

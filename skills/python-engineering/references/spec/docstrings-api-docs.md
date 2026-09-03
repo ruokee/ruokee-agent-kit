@@ -1,22 +1,22 @@
 # Docstrings And API Docs
 
-Once type annotations carry the static contract, a docstring's job changes. It is no longer the place to record parameter types and return types, the signature already does that, machine-checkably, and repeating it only creates a second copy that drifts out of sync. The docstring's job is everything the signature *cannot* express: what the function means in the domain, what it promises and assumes, what it touches in the outside world, and how to use it correctly. The core skill is placing each piece of information where it belongs and writing a docstring only when it adds something the reader could not already see.
+Once type annotations carry the static contract, a docstring's job changes. It is no longer the place to record parameter types and return types, the signature already does that, machine-checkably, and repeating it only creates a second copy that drifts out of sync. The docstring's job is everything the signature _cannot_ express: what the function means in the domain, what it promises and assumes, what it touches in the outside world, and how to use it correctly. The core skill is placing each piece of information where it belongs and writing a docstring only when it adds something the reader could not already see.
 
 ## Where Information Belongs
 
 A modern Python API spreads its documentation across several surfaces, and most documentation problems are really placement problems; the right fact in the wrong place, or the same fact in three places. The first question for any piece of information is not "how do I phrase it" but "which surface owns it."
 
-| Information | Owning surface | Why |
+|Information|Owning surface|Why|
 |-|-|-|
-| Parameter and return *types* | Signature / annotations | Machine-checked, IDE-read; a copy in the docstring drifts |
-| Domain meaning, business rules | Docstring | The type system cannot express what a value *means* |
-| Value ranges, units, shape, dtype | Docstring or `Annotated`/`Field` | Depends on whether a machine needs to read it |
-| Cross-parameter constraints | Docstring or a validator | A single annotation cannot relate two parameters |
-| Side effects, resource lifecycle | Docstring | Callers must know about IO, network, DB, global state |
-| Exception semantics | Docstring | Python types do not express "raises" |
-| Machine-readable field constraints | Schema metadata (`Field(...)`) | Feeds validation and generated API docs |
-| Worked examples | Docstring, README, or tests | Best when also executed, so they cannot rot |
-| Version changes, deprecations | Release notes, `warnings.deprecated()` | Serves readers, checkers, and runtime together |
+|Parameter and return _types_|Signature / annotations|Machine-checked, IDE-read; a copy in the docstring drifts|
+|Domain meaning, business rules|Docstring|The type system cannot express what a value _means_|
+|Value ranges, units, shape, dtype|Docstring or `Annotated`/`Field`|Depends on whether a machine needs to read it|
+|Cross-parameter constraints|Docstring or a validator|A single annotation cannot relate two parameters|
+|Side effects, resource lifecycle|Docstring|Callers must know about IO, network, DB, global state|
+|Exception semantics|Docstring|Python types do not express "raises"|
+|Machine-readable field constraints|Schema metadata (`Field(...)`)|Feeds validation and generated API docs|
+|Worked examples|Docstring, README, or tests|Best when also executed, so they cannot rot|
+|Version changes, deprecations|Release notes, `warnings.deprecated()`|Serves readers, checkers, and runtime together|
 
 The single most common mistake is duplicating a fact that a more authoritative surface already owns: writing `min_length=3` in prose when a `Field(min_length=3)` already declares it, or restating a type the annotation already gives.
 
@@ -24,7 +24,7 @@ The single most common mistake is duplicating a fact that a more authoritative s
 
 A docstring earns its place when it tells the reader something the signature cannot. The clearest signals:
 
-- **Semantics.** What does the returned value *mean*? `-> str` says it is a string; the docstring says it is "a normalized form suitable for case-insensitive lookup, not a display name."
+- **Semantics.** What does the returned value _mean_? `-> str` says it is a string; the docstring says it is "a normalized form suitable for case-insensitive lookup, not a display name."
 - **Constraints the type cannot hold.** A window that must be odd, a list that must be non-empty, a timestamp that must be UTC; the annotation says `int`, `list`, `datetime`, and the docstring carries the rest.
 - **Side effects.** Anything observable beyond the return value: a database write, a network call, a mutated argument, a cache populated, a file created. Callers need this to use the function safely, and no annotation reveals it.
 - **Exception semantics.** Which exceptions a caller is expected to handle, and what they mean, not an exhaustive list of everything that could propagate, but the ones that are part of the contract.
@@ -51,7 +51,7 @@ A docstring that repeats the signature is worse than none; it adds maintenance c
 - The function is a small, private helper whose name and signature already say everything.
 - It would repeat a constraint already declared in schema metadata.
 
-Coverage-driven docstring mandates ("every function must have a docstring") tend to manufacture exactly this noise. A linter can check that a docstring *exists* and that its sections are well-formed; it cannot check that it says anything useful. Treat docstring linting as a low-level hygiene gate, never as evidence that the documentation is good.
+Coverage-driven docstring mandates ("every function must have a docstring") tend to manufacture exactly this noise. A linter can check that a docstring _exists_ and that its sections are well-formed; it cannot check that it says anything useful. Treat docstring linting as a low-level hygiene gate, never as evidence that the documentation is good.
 
 ## Docstring Styles
 
@@ -65,7 +65,7 @@ Whatever the style, with annotations present the rule is constant: do not write 
 
 ## Schema-Driven Documentation
 
-For web APIs and data models built on tools like Pydantic and FastAPI, the type annotations and field metadata become the single source of truth for validation, serialization, *and* generated documentation. A field's type, its constraints (`Field(gt=0, le=100)`), and its description (`Field(description=...)`) flow into the generated OpenAPI/JSON schema. In this world the docstring's territory shrinks to the part schema cannot express: the higher-level business semantics, transaction behavior, and cross-field relationships:
+For web APIs and data models built on tools like Pydantic and FastAPI, the type annotations and field metadata become the single source of truth for validation, serialization, _and_ generated documentation. A field's type, its constraints (`Field(gt=0, le=100)`), and its description (`Field(description=...)`) flow into the generated OpenAPI/JSON schema. In this world the docstring's territory shrinks to the part schema cannot express: the higher-level business semantics, transaction behavior, and cross-field relationships:
 
 ```python
 class CreateOrderRequest(BaseModel):
@@ -73,7 +73,7 @@ class CreateOrderRequest(BaseModel):
     quantity: Annotated[int, Field(gt=0, le=100, description="Units requested.")]
 ```
 
-The constraints and per-field descriptions live in `Field(...)`, which feeds the schema directly. A docstring on the endpoint then explains what the operation *does*, "reserves inventory before writing the order; on reservation failure no order is created", which no field metadata can capture. The failure mode to guard against is maintaining the same sentence in `Field(description=...)`, the model docstring, and a hand-written OpenAPI description at once. Pick the source of truth and let the others reference it.
+The constraints and per-field descriptions live in `Field(...)`, which feeds the schema directly. A docstring on the endpoint then explains what the operation _does_, "reserves inventory before writing the order; on reservation failure no order is created", which no field metadata can capture. The failure mode to guard against is maintaining the same sentence in `Field(description=...)`, the model docstring, and a hand-written OpenAPI description at once. Pick the source of truth and let the others reference it.
 
 ## Documentation Sites Versus Docstrings
 

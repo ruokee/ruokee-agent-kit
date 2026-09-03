@@ -14,29 +14,29 @@ User explicitly says "full review", "complete review", "systematic review", or "
 ## Steps
 
 1. Context intake. Sort the work into four buckets before reading code:
-   - Must read, files the review cannot be correct without.
-   - Should read, adjacent code, tests, and config that inform judgment.
-   - Already known, facts established earlier in the conversation; do not re-derive.
-   - Uncertain, open questions to resolve by reading or by asking the user.
+    - Must read, files the review cannot be correct without.
+    - Should read, adjacent code, tests, and config that inform judgment.
+    - Already known, facts established earlier in the conversation; do not re-derive.
+    - Uncertain, open questions to resolve by reading or by asking the user.
 2. Read in stages, not all at once.
-   - Project facts: `pyproject.toml` (`requires-python`, dependencies, groups, tool config), `.pre-commit-config.yaml`, CI, test config, Makefile.
-   - Relevant code and tests, pulled in by the review matrix below, load each category as you reach it.
+    - Project facts: `pyproject.toml` (`requires-python`, dependencies, groups, tool config), `.pre-commit-config.yaml`, CI, test config, Makefile.
+    - Relevant code and tests, pulled in by the review matrix below, load each category as you reach it.
 3. Work the review matrix. For each, gather evidence before judging:
-   - Version & dependencies, syntax/stdlib vs `requires-python`; declared deps, correct groups, no undeclared imports.
-   - Layout, entry points, workspace, project shape, package boundaries, script/console entry points, workspace member coherence.
-   - Type coverage, public signatures typed, `Any`/`cast` justified, Protocol/generics used where they earn their cost.
-   - Docstrings & API docs, public surface documented, information placed where readers look.
-   - Testing, behavior coverage over line coverage, fixture and parametrize structure, meaningful assertions.
-   - Custom lint, project-specific mechanical rules respected; candidates for a new rule noted.
-   - Grammar choices, `match`/`case`, context managers, exception groups, decorators used where they fit, not as ornament.
-   - Stdlib usage, `functools`, `itertools`, `contextlib`, `pathlib`, `enum`, `dataclasses`, `logging` used instead of hand-rolled equivalents.
-   - Tooling config, uv, Ruff, ty/mypy/basedpyright, pytest, coverage, pre-commit configured coherently and not contradicting each other.
+    - Version & dependencies, syntax/stdlib vs `requires-python`; declared deps, correct groups, no undeclared imports.
+    - Layout, entry points, workspace, project shape, package boundaries, script/console entry points, workspace member coherence.
+    - Type coverage, public signatures typed, `Any`/`cast` justified, Protocol/generics used where they earn their cost.
+    - Docstrings & API docs, public surface documented, information placed where readers look.
+    - Testing, behavior coverage over line coverage, fixture and parametrize structure, meaningful assertions.
+    - Custom lint, project-specific mechanical rules respected; candidates for a new rule noted.
+    - Grammar choices, `match`/`case`, context managers, exception groups, decorators used where they fit, not as ornament.
+    - Stdlib usage, `functools`, `itertools`, `contextlib`, `pathlib`, `enum`, `dataclasses`, `logging` used instead of hand-rolled equivalents.
+    - Tooling config, uv, Ruff, ty/mypy/basedpyright, pytest, coverage, pre-commit configured coherently and not contradicting each other.
 4. Self-verify every high-severity finding. Re-read the evidence, consider a plausible false-positive reading, and state confidence. Downgrade or drop anything you cannot support.
 5. Confirmation stop. Before suggesting any of these, stop and ask:
-   - Unsafe fixes or commands that write files, create `.venv`/cache, or alter the lockfile.
-   - Bulk suppressions or sweeping config changes.
-   - Cross-file refactoring or dependency changes.
-   - Behavior-changing recommendations.
+    - Unsafe fixes or commands that write files, create `.venv`/cache, or alter the lockfile.
+    - Bulk suppressions or sweeping config changes.
+    - Cross-file refactoring or dependency changes.
+    - Behavior-changing recommendations.
 
 ## Output Format
 

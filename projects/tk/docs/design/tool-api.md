@@ -6,14 +6,14 @@ This document defines the six logical tools, their MCP and native names, request
 
 ## Tool names
 
-| Logical operation | MCP name | Pi and OMP native name |
-| --- | --- | --- |
-| Search | `search` | `tk_search` |
-| Read | `read` | `tk_read` |
-| Create | `create` | `tk_create` |
-| Update | `update` | `tk_update` |
-| Log | `log` | `tk_log` |
-| Run an administrative command | `exec` | `tk_exec` |
+|Logical operation|MCP name|Pi and OMP native name|
+|-|-|-|
+|Search|`search`|`tk_search`|
+|Read|`read`|`tk_read`|
+|Create|`create`|`tk_create`|
+|Update|`update`|`tk_update`|
+|Log|`log`|`tk_log`|
+|Run an administrative command|`exec`|`tk_exec`|
 
 The MCP server uses the `tk` namespace. Protocol tool names do not repeat the namespace.
 
@@ -23,11 +23,11 @@ Rust generates the MCP and native schema from the same request types. A Harness 
 
 The following fields appear as required by each tool:
 
-| Field | Type | Contract |
-| --- | --- | --- |
-| `cwd` | Optional path | Starting point for project discovery; relative values resolve against the runtime process directory |
-| `harness` | Optional enum | Diagnostic context; not persisted |
-| Cancellation | Transport signal | Honored before the first write and between multi-target commit points |
+|Field|Type|Contract|
+|-|-|-|
+|`cwd`|Optional path|Starting point for project discovery; relative values resolve against the runtime process directory|
+|`harness`|Optional enum|Diagnostic context; not persisted|
+|Cancellation|Transport signal|Honored before the first write and between multi-target commit points|
 
 actor is not a common context field. It appears only in update, log, and exec rename requests that append to the WAL.
 
@@ -97,20 +97,20 @@ The runtime does not fabricate domain error results for panics, transport interr
 
 ## Error categories and stable codes
 
-| Category | Typical error codes |
-| --- | --- |
-| `request` | `invalid_request`, `invalid_regex` |
-| `context` | `project_not_found`, `path_outside_project` |
-| `environment` | `runtime_not_installed`, `runtime_not_executable`, `process_start_failed` |
-| `configuration` | `invalid_configuration`, `project_not_initialized` |
-| `policy` | `authorization_required`, `git_policy_refused` |
-| `resolution` | `task_not_found`, `task_ref_ambiguous`, `duplicate_task_id` |
-| `managed_file` | `invalid_managed_file`, `unsupported_schema`, `representation_mismatch` |
-| `invariant` | `dependency_cycle`, `closed_task_read_only`, `active_descendant`, `active_dependency`, `closed_ancestor` |
-| `conflict` | `target_exists`, `operation_in_progress` |
-| `storage` | `check_incomplete`, `wal_append_failed`, `partial_commit` |
-| `compatibility` | `runtime_incompatible`, `component_incompatible` |
-| `internal` | `internal_error` |
+|Category|Typical error codes|
+|-|-|
+|`request`|`invalid_request`, `invalid_regex`|
+|`context`|`project_not_found`, `path_outside_project`|
+|`environment`|`runtime_not_installed`, `runtime_not_executable`, `process_start_failed`|
+|`configuration`|`invalid_configuration`, `project_not_initialized`|
+|`policy`|`authorization_required`, `git_policy_refused`|
+|`resolution`|`task_not_found`, `task_ref_ambiguous`, `duplicate_task_id`|
+|`managed_file`|`invalid_managed_file`, `unsupported_schema`, `representation_mismatch`|
+|`invariant`|`dependency_cycle`, `closed_task_read_only`, `active_descendant`, `active_dependency`, `closed_ancestor`|
+|`conflict`|`target_exists`, `operation_in_progress`|
+|`storage`|`check_incomplete`, `wal_append_failed`, `partial_commit`|
+|`compatibility`|`runtime_incompatible`, `component_incompatible`|
+|`internal`|`internal_error`|
 
 The `details` for `partial_commit` must include `completed`, `uncompleted`, and the original I/O error. It does not provide a rollback or resume token.
 
@@ -118,15 +118,15 @@ The `details` for `partial_commit` must include `completed`, `uncompleted`, and 
 
 Request:
 
-| Field | Type | Default | Contract |
-| --- | --- | --- | --- |
-| `query` | Non-empty string | Required | UUID, Task path, material path, name, or text |
-| `regex` | Boolean | `false` | Explicitly interpret plain text as a Rust regular expression |
-| `search_body` | Boolean | `false` | Include the Task body in string or regular expression matching |
-| `status` | Status array | All statuses | A non-empty array narrows results to the specified statuses |
-| `extra` | Object | Empty | Top-level values are combined with AND and compared by full value |
-| `limit` | Integer | 20 | 1 to 100 |
-| `cwd` | Path | Common default | Starting point for project discovery |
+|Field|Type|Default|Contract|
+|-|-|-|-|
+|`query`|Non-empty string|Required|UUID, Task path, material path, name, or text|
+|`regex`|Boolean|`false`|Explicitly interpret plain text as a Rust regular expression|
+|`search_body`|Boolean|`false`|Include the Task body in string or regular expression matching|
+|`status`|Status array|All statuses|A non-empty array narrows results to the specified statuses|
+|`extra`|Object|Empty|Top-level values are combined with AND and compared by full value|
+|`limit`|Integer|20|1 to 100|
+|`cwd`|Path|Common default|Starting point for project discovery|
 
 The query type is determined once in this order:
 
@@ -145,13 +145,13 @@ The runtime retains only the bounded candidate set needed to produce the first 1
 
 Request:
 
-| Field | Default | Contract |
-| --- | --- | --- |
-| `task_ref` | Required | Exact reference |
-| `view` | `summary` | `metadata`, `summary`, or `detailed` |
-| `wal_max_entries` | 20 | 0 to 1000; used only for detailed |
-| `wal_max_length` | 16384 | 0 to 1048576 bytes; used only for detailed |
-| `cwd` | Common default | Project resolution |
+|Field|Default|Contract|
+|-|-|-|
+|`task_ref`|Required|Exact reference|
+|`view`|`summary`|`metadata`, `summary`, or `detailed`|
+|`wal_max_entries`|20|0 to 1000; used only for detailed|
+|`wal_max_length`|16384|0 to 1048576 bytes; used only for detailed|
+|`cwd`|Common default|Project resolution|
 
 metadata returns metadata and canonical paths. summary adds a body summary, relationship summary, and recent WAL summary. detailed returns the full body and a budget-limited WAL.
 
@@ -163,30 +163,30 @@ Like every tool input schema, the create union declares `type: "object"` at its 
 
 Top-level branch:
 
-| Field | Default | Contract |
-| --- | --- | --- |
-| `type` | Required | `task` |
-| `name` | Required | Canonicalizable name |
-| `body` | Generated heading | UTF-8 Markdown |
-| `status` | `open` | `planning` or `open` |
-| `created_at` | Current time | Provide explicitly only when the original time is known |
-| `depends_on` | Empty | Set of same-root UUIDs |
-| `related_to` | Empty | Set of same-root UUIDs |
-| `extra` | Empty | Structured additional values |
-| `user_confirmed` | `false` | Whether the current conversation explicitly authorizes top-level creation |
-| `cwd` | Common default | Project resolution |
+|Field|Default|Contract|
+|-|-|-|
+|`type`|Required|`task`|
+|`name`|Required|Canonicalizable name|
+|`body`|Generated heading|UTF-8 Markdown|
+|`status`|`open`|`planning` or `open`|
+|`created_at`|Current time|Provide explicitly only when the original time is known|
+|`depends_on`|Empty|Set of same-root UUIDs|
+|`related_to`|Empty|Set of same-root UUIDs|
+|`extra`|Empty|Structured additional values|
+|`user_confirmed`|`false`|Whether the current conversation explicitly authorizes top-level creation|
+|`cwd`|Common default|Project resolution|
 
 strict projects require `user_confirmed=true`. permissive projects allow work worth persisting to be created when it is `false`. The calling Agent selects planning or open based on context and reports the creation result.
 
 Child Task branch:
 
-| Field | Contract |
-| --- | --- |
-| `type` | `subtasks` |
-| `parent_ref` | Exact, non-closed parent Task |
-| `subtasks` | 1 to 50 items, each using the Task content fields from the top-level branch |
-| `user_confirmed` | Current conversation authorization for planning child Tasks; defaults to `false` |
-| `cwd` | Project resolution |
+|Field|Contract|
+|-|-|
+|`type`|`subtasks`|
+|`parent_ref`|Exact, non-closed parent Task|
+|`subtasks`|1 to 50 items, each using the Task content fields from the top-level branch|
+|`user_confirmed`|Current conversation authorization for planning child Tasks; defaults to `false`|
+|`cwd`|Project resolution|
 
 Open child Tasks do not require new top-level authorization. A batch containing a planning child requires `user_confirmed=true`. All validation completes before the first write in the batch. If creation partially fails, the result returns the created and uncreated items. A retry skips child Tasks that already exist with matching content.
 
@@ -194,14 +194,14 @@ Open child Tasks do not require new top-level authorization. A batch containing 
 
 update modifies relationships, `extra`, and at most one lifecycle action:
 
-| Field group | Contract |
-| --- | --- |
-| Target | `task_ref`, `cwd` |
-| Relationships | `depends_on_add/remove`, `related_to_add/remove` |
-| extra | `extra_set`, `extra_remove`, processing top-level keys only |
-| Lifecycle | At most one of `start`, `close`, or `reopen` |
-| Lifecycle parameters | close/reopen require a non-empty `reason` and `user_confirmed=true`; close may use `force` |
-| WAL | Optional `actor`, defaulting to the actor of the calling channel |
+|Field group|Contract|
+|-|-|
+|Target|`task_ref`, `cwd`|
+|Relationships|`depends_on_add/remove`, `related_to_add/remove`|
+|extra|`extra_set`, `extra_remove`, processing top-level keys only|
+|Lifecycle|At most one of `start`, `close`, or `reopen`|
+|Lifecycle parameters|close/reopen require a non-empty `reason` and `user_confirmed=true`; close may use `force`|
+|WAL|Optional `actor`, defaulting to the actor of the calling channel|
 
 An empty request or a request with no net result change returns `changed:false`. The runtime automatically appends to the WAL after committing metadata. An append failure is returned as a warning.
 
@@ -213,11 +213,11 @@ A log request contains `task_ref`, a non-empty single-line `message`, an optiona
 
 exec is a low-frequency administrative entry point:
 
-| Field | Contract |
-| --- | --- |
-| `argv` | Non-empty string array whose first item may only be `--version`, `init`, `check`, or `rename` |
-| `cwd` | Command context |
-| `actor` | Allowed only when the first item is `rename` |
+|Field|Contract|
+|-|-|
+|`argv`|Non-empty string array whose first item may only be `--version`, `init`, `check`, or `rename`|
+|`cwd`|Command context|
+|`actor`|Allowed only when the first item is `rename`|
 
 exec invokes the public command parser directly from argv without using a shell. It rejects search, read, create, update, log, mcp, schema, metadata, gc, install, uninstall, and any other first item.
 

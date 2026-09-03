@@ -7,6 +7,7 @@ This document provides detailed guidance on msgspec's serialization capabilities
 [msgspec Serialization Documentation](https://jcristharif.com/msgspec/usage.html)
 
 msgspec supports multiple serialization protocols:
+
 - **JSON.** Human-readable, widely compatible
 - **MessagePack.** Binary format, compact, fast
 - **YAML.** Configuration files (requires `msgspec[yaml]`)
@@ -224,9 +225,9 @@ msgspec.toml.encode(data)
 
 1. **Reuse encoder/decoder instances** for better performance
 2. **Use appropriate protocol** for your use case:
-   - APIs → JSON or MessagePack
-   - Config files → YAML or TOML
-   - Logs → JSONL
+    - APIs → JSON or MessagePack
+    - Config files → YAML or TOML
+    - Logs → JSONL
 3. **Use typed decoders** (`Decoder(type=User)`) for automatic validation
 4. **Use JSONL for large datasets** instead of JSON arrays
 5. **Only write hooks for non-native types** (Path, ORM objects, etc.)

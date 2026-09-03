@@ -57,7 +57,7 @@ Pi 和 OMP 可以由用户另行配置 MCP，但它们的 tk Package 只安装�
 
 适配器不实现 Task 解析、名称规范化、授权、路径解析、搜索排序、迁移、GC、安装或语义版本范围解析。这些规则由 Rust 负责。
 
-权威集成细节见 [Harness 集成](../../../projects/tk/docs/design/harnesses.zh.md)和[工具 API](../../../projects/tk/docs/design/tool-api.zh.md)。Agent 行为由[英文 Skill](../../../projects/tk/skills/tk/SKILL.md)定义，并提供完整的[中文替代版本](../../../projects/tk/skills/tk-zh/SKILL.md)。
+权威集成细节见 [Harness 集成](../../../projects/tk/docs/design/harnesses.zh.md)和[工具 API](../../../projects/tk/docs/design/tool-api.zh.md)。Agent 行为由[英文 Skill](../../../projects/tk/skills/tk/SKILL.md) 定义，并提供完整的[中文替代版本](../../../projects/tk/skills/tk-zh/SKILL.md)。
 
 ## 考虑过的替代方案
 

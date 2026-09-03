@@ -25,8 +25,8 @@ The payoff is concentration: validation happens once at the boundary where the t
 Domain types are not free, they add a definition, a construction step, and a layer of indirection, and over-applying them is its own smell. Primitives are the right choice when:
 
 - **Internal plumbing.** A loop index, a temporary count, a local accumulator; these are genuinely just numbers, and wrapping them adds noise without safety.
-- **Truly generic code.** A serializer, a cache, a generic container, or a logging helper that should work for *any* value has no business knowing about your domain types; primitives and generics are correct there.
+- **Truly generic code.** A serializer, a cache, a generic container, or a logging helper that should work for _any_ value has no business knowing about your domain types; primitives and generics are correct there.
 - **Performance-critical paths.** Wrapping every element of a large numeric array in a value object can be a real cost. In hot numeric code, arrays of primitives (or NumPy dtypes) are appropriate, and the domain meaning is documented elsewhere.
 - **The concept has no rules and no behavior.** If a string is just an opaque label that is never validated, compared against a fixed set, or operated on, a `NewType` alias may be all the clarity it needs, or nothing at all.
 
-The judgment is whether the concept *earns* a type: does wrapping it prevent a class of error, centralize a rule, or give behavior a home? If yes, introduce the type. If it only adds ceremony, leave the primitive.
+The judgment is whether the concept _earns_ a type: does wrapping it prevent a class of error, centralize a rule, or give behavior a home? If yes, introduce the type. If it only adds ceremony, leave the primitive.

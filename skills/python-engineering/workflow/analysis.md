@@ -1,6 +1,6 @@
 # Analysis: Python Engineering
 
-Collaborative exploration, not grading. Use this mode when the user wants to *decide what to do* rather than learn *what is wrong*: brainstorming an approach, designing a mechanism, analyzing how existing code behaves, or planning a refactor. There is no diff to score and no findings list to produce. The goal is a shared, well-reasoned decision.
+Collaborative exploration, not grading. Use this mode when the user wants to _decide what to do_ rather than learn _what is wrong_: brainstorming an approach, designing a mechanism, analyzing how existing code behaves, or planning a refactor. There is no diff to score and no findings list to produce. The goal is a shared, well-reasoned decision.
 
 ## Trigger
 
@@ -28,7 +28,7 @@ Lead with a recommendation, then show the reasoning. A useful analysis is not an
 
 1. **Frame the decision.** Restate the actual question and the constraints that bound it, version floor, existing architecture, dependency limits, how long the code must live. Surface a hidden constraint if you found one while reading.
 2. **Present options that genuinely differ.** Two or three real alternatives, not five trivial variations. For each: what it is, what it costs, when it wins. Use a short comparison table when the options are parallel choices along the same axes.
-3. **Recommend.** State which option you would choose and *why*, in terms of the constraints from step 1. A recommendation with a reason the user can push back on is more useful than a neutral menu.
+3. **Recommend.** State which option you would choose and _why_, in terms of the constraints from step 1. A recommendation with a reason the user can push back on is more useful than a neutral menu.
 4. **Name the tradeoff.** Every real choice gives something up. Say what the recommended path costs so the user is deciding with open eyes.
 
 ## Recommend Versus Ask

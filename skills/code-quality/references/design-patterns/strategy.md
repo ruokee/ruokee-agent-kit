@@ -22,7 +22,7 @@ The classic form has a **context** that holds a reference to a **strategy** inte
 
 - There is one algorithm, or a single `if` covers the two cases. Pre-emptive "strategy-fication" adds an interface for no benefit.
 - The strategy interface is so wide that callers must assemble a complex object just to vary one decision; the abstraction is mis-cut.
-- The "strategies" actually differ in *what* data they need, not just *how* they compute; they may not share a coherent interface.
+- The "strategies" actually differ in _what_ data they need, not just _how_ they compute; they may not share a coherent interface.
 
 ## Failure modes
 
@@ -49,9 +49,9 @@ Forms in rough order of weight:
 - **A plain function or `lambda`** passed as an argument: the lightest strategy.
 - **A closure** to capture a little stable configuration, or `functools.partial` to pre-bind arguments into a narrower callable.
 - **A `Protocol` or callable object** when the strategy needs state, multiple related methods, or a name that documents intent.
-- **`functools.singledispatch`** when the strategy is chosen by the *type* of the input rather than a config value.
+- **`functools.singledispatch`** when the strategy is chosen by the _type_ of the input rather than a config value.
 - **A dispatch map / `match`** when selection depends on a config value or several conditions.
 
 ## Relationship to other patterns
 
-[factory.md](./factory.md) often *chooses* which strategy to use. [command.md](./command.md) is structurally similar (a behavior as an object) but its intent is to capture a request for later execution, not to vary an algorithm. The [state.md](./state.md) pattern looks like Strategy but its variants change *themselves* in response to events rather than being selected by the caller. `functools.singledispatch` and pattern matching are the Python mechanisms that most often absorb Strategy.
+[factory.md](./factory.md) often _chooses_ which strategy to use. [command.md](./command.md) is structurally similar (a behavior as an object) but its intent is to capture a request for later execution, not to vary an algorithm. The [state.md](./state.md) pattern looks like Strategy but its variants change _themselves_ in response to events rather than being selected by the caller. `functools.singledispatch` and pattern matching are the Python mechanisms that most often absorb Strategy.

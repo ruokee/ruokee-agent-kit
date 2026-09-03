@@ -78,4 +78,4 @@ let request = RequestBuilder::new("https://example.com")
 
 ## Relationship to other patterns
 
-A [factory.md](./factory.md) decides *which* class to make in one step; Builder handles complex *how-to-assemble* over several steps. [abstract-factory.md](./abstract-factory.md) often uses builders to construct its individual products. The Prototype approach, cloning a template and changing a few fields, is an alternative when you mostly need small deltas from an existing object rather than fresh staged construction.
+A [factory.md](./factory.md) decides _which_ class to make in one step; Builder handles complex _how-to-assemble_ over several steps. [abstract-factory.md](./abstract-factory.md) often uses builders to construct its individual products. The Prototype approach, cloning a template and changing a few fields, is an alternative when you mostly need small deltas from an existing object rather than fresh staged construction.

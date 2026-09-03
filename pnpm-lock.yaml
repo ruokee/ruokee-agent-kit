@@ -1,0 +1,49 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      prettier:
+        specifier: ^3.9.6
+        version: 3.9.6
+      prettier-plugin-compact-markdown-table:
+        specifier: 0.1.0
+        version: 0.1.0(prettier@3.9.6)
+      prettier-plugin-zhfmt:
+        specifier: ^0.1.1
+        version: 0.1.2(prettier@3.9.6)
+
+packages:
+
+  prettier-plugin-compact-markdown-table@0.1.0:
+    resolution: {integrity: sha512-g7b+55D/VsUoKJkF5XViPeu8kPqo3mUzby5EOFluv4+royfGLrNOA3S3SwwZ4yoP/UL8lUWKydwKSqRyc2vapA==}
+    peerDependencies:
+      prettier: ^3.0.0
+
+  prettier-plugin-zhfmt@0.1.2:
+    resolution: {integrity: sha512-97yEPCHzUDI74XgMjviA3V3SlcVS3xxn40nnr0brO8+iwAAKa13IVdruJmaK4n/ZkMpQE02S875UVsHff9kYEA==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      prettier: ^3.6.0
+
+  prettier@3.9.6:
+    resolution: {integrity: sha512-OpN0zzVdiaiAhxpuuj5efpIS4sY9j7bY6uR5mnj5yPzGkdkjNKSJeUThPb60Jw29QuAZgA4o+/iB49kFiaBX6g==}
+    engines: {node: '>=14'}
+    hasBin: true
+
+snapshots:
+
+  prettier-plugin-compact-markdown-table@0.1.0(prettier@3.9.6):
+    dependencies:
+      prettier: 3.9.6
+
+  prettier-plugin-zhfmt@0.1.2(prettier@3.9.6):
+    dependencies:
+      prettier: 3.9.6
+
+  prettier@3.9.6: {}

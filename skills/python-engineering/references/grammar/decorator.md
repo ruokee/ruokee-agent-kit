@@ -81,7 +81,7 @@ class RateLimited:
         return wrapper
 ```
 
-Distinguish a *decorator class* (its `__call__` takes a function) from a class used to wrap an *instance*. The former decorates; the latter is plain composition.
+Distinguish a _decorator class_ (its `__call__` takes a function) from a class used to wrap an _instance_. The former decorates; the latter is plain composition.
 
 ## Stacking And Execution Order
 
@@ -97,7 +97,7 @@ Here `retry` wraps `fetch` first, then `cache` wraps that. At call time `cache` 
 
 ## Type Preservation Challenges
 
-A wrapper erases type information unless you preserve it deliberately. Use `ParamSpec` plus a return `TypeVar` for signature-preserving wrappers. Decorators that *change* the signature, adding an injected argument, changing the return type, cannot be expressed by simple `ParamSpec` passthrough and need a hand-written return type or `typing.overload`. A decorator that turns a function into a different kind of object (a descriptor, a registered handler) should annotate that new type so callers are not misled.
+A wrapper erases type information unless you preserve it deliberately. Use `ParamSpec` plus a return `TypeVar` for signature-preserving wrappers. Decorators that _change_ the signature, adding an injected argument, changing the return type, cannot be expressed by simple `ParamSpec` passthrough and need a hand-written return type or `typing.overload`. A decorator that turns a function into a different kind of object (a descriptor, a registered handler) should annotate that new type so callers are not misled.
 
 ## When Decorators Help And When They Hurt
 

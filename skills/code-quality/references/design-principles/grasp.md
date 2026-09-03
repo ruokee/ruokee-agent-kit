@@ -2,7 +2,7 @@
 
 ## What it is
 
-GRASP is a vocabulary of nine heuristics for the single most common design question: *where should this responsibility go?* Where does this behavior belong, which object should create that one, who coordinates a use case, where do we put a rule so that change stays contained. Unlike GoF patterns, GRASP patterns are not structures you build; they are reasoning tools for assigning responsibility well. They pair naturally with SOLID (see [solid.md](./solid.md)) and with [tell-dont-ask.md](./tell-dont-ask.md).
+GRASP is a vocabulary of nine heuristics for the single most common design question: _where should this responsibility go?_ Where does this behavior belong, which object should create that one, who coordinates a use case, where do we put a rule so that change stays contained. Unlike GoF patterns, GRASP patterns are not structures you build; they are reasoning tools for assigning responsibility well. They pair naturally with SOLID (see [solid.md](./solid.md)) and with [tell-dont-ask.md](./tell-dont-ask.md).
 
 The main misuse is treating GRASP as a UML-driven process, or reading "Controller" as "web controller" and then piling business logic into request handlers. Used well, GRASP is just a precise way to talk about responsibility placement.
 
@@ -12,7 +12,7 @@ The main misuse is treating GRASP as a UML-driven process, or reading "Controlle
 
 **Creator.** Assign the responsibility of creating an object B to a class A that aggregates, contains, closely uses, or has the initializing data for B. It puts construction where the knowledge to construct already lives, reducing coupling. When creation logic is complex enough to vary, this is where a Factory becomes justified.
 
-**Controller.** Assign the responsibility of handling a system operation (a use case) to a coordinating object that is *not* the UI and *not* the domain logic itself. The controller's job is thin coordination: receive the request, delegate to the domain, return a result. In Python a CLI command handler or an API view should be this thin controller, with business rules living in a core module.
+**Controller.** Assign the responsibility of handling a system operation (a use case) to a coordinating object that is _not_ the UI and _not_ the domain logic itself. The controller's job is thin coordination: receive the request, delegate to the domain, return a result. In Python a CLI command handler or an API view should be this thin controller, with business rules living in a core module.
 
 **Low Coupling.** Assign responsibilities so that dependencies between modules stay low. Lower coupling means a change in one place propagates to fewer others, and units are easier to test and reuse in isolation. It is a force to balance, not an absolute; some coupling is necessary.
 
@@ -24,4 +24,4 @@ The main misuse is treating GRASP as a UML-driven process, or reading "Controlle
 
 **Indirection.** Assign a responsibility to an intermediate object or function to decouple two units that would otherwise be directly coupled (an adapter between your core and a third-party client, for example). Indirection is a tool for Low Coupling, but each layer adds a hop to trace; add it for a real coupling problem, not reflexively.
 
-**Protected Variations.** Wrap a predicted point of instability behind a stable interface so that variation on one side does not ripple to the other. This is the unifying idea behind OCP, DIP, Indirection, and Polymorphism. The critical word is *predicted*; protect variations that are real and identified, not every point that *might* someday change, or you drift into the speculative generality that [yagni.md](./yagni.md) warns against.
+**Protected Variations.** Wrap a predicted point of instability behind a stable interface so that variation on one side does not ripple to the other. This is the unifying idea behind OCP, DIP, Indirection, and Polymorphism. The critical word is _predicted_; protect variations that are real and identified, not every point that _might_ someday change, or you drift into the speculative generality that [yagni.md](./yagni.md) warns against.

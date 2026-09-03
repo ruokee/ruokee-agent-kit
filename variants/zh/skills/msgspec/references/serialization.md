@@ -170,7 +170,6 @@ encoder = msgspec.json.Encoder(enc_hook=enc_hook)
 decoder = msgspec.json.Decoder(type=Project, dec_hook=dec_hook)
 ```
 
-
 ## 流式处理
 
 对于大型数据集，可以使用流式编码和解码：

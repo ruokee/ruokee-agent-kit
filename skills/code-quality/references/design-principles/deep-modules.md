@@ -1,6 +1,6 @@
 # Deep Modules and Information Hiding
 
-This document draws on John Ousterhout's *A Philosophy of Software Design*. Its central idea is
+This document draws on John Ousterhout's _A Philosophy of Software Design_. Its central idea is
 a way to judge the quality of an abstraction by comparing the cost of its interface against the
 value of what it hides.
 
@@ -41,7 +41,7 @@ across layers; these are leaks. Leakage is the deeper cause behind smells like
   protocol detail, a set of error and version differences.
 - Its interface is expressed in terms the caller already thinks in, not in terms of the
   implementation.
-- It does not force the caller to know the right *sequence* of calls or the internal state to
+- It does not force the caller to know the right _sequence_ of calls or the internal state to
   use it correctly. Needing such knowledge is itself a form of leaked complexity.
 - The common case is simple to invoke; the rare case is possible but does not complicate the
   common path.
@@ -57,10 +57,10 @@ Deep modules sharpen [KISS](./kiss.md). "Keep it simple" does not mean every fun
 short; it means minimizing the complexity a reader must hold in mind. A few deep modules with
 clean interfaces leave the reader with less total complexity than many shallow helpers that
 force constant jumping between files. Chasing short functions and small files for their own sake
-produces shallow modules and *more* interface to learn: the opposite of simple.
+produces shallow modules and _more_ interface to learn: the opposite of simple.
 
 Depth also tempers the small-interface instinct of [Interface Segregation](./solid.md): the goal
-is interfaces that are small *for what they deliver*, not interfaces sliced so thin that callers
+is interfaces that are small _for what they deliver_, not interfaces sliced so thin that callers
 must assemble many of them to get anything done.
 
 ## When the principle is misapplied

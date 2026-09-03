@@ -22,14 +22,14 @@ For example, checking logistics, refunding shipping, and changing an address are
 
 An autonomous agent is the superposition of traditional distributed hard problems; designing an agent is fitting the brakes one by one:
 
-| Hard problem | What it really is | The brake |
+|Hard problem|What it really is|The brake|
 |-|-|-|
-| The action loop can spin in place and burn money forever | Load shedding / circuit breaking | Step/cost/timeout caps + repetition detection; stop on breach |
-| Tool calls have side effects; multi-step resembles a distributed transaction | Saga / idempotency | Idempotent tools; multi-step actions compensable and rollback-able |
-| Long tasks run long, nodes die, state must be recoverable | Partial failure | Checkpoints persisted; resume after interruption |
-| Multi-agent collaboration | Distribution + fan-out amplification | Start with a single agent, split only when it cannot hold; control fan-out |
-| Prompt injection is the top threat | Security | Tool sandbox + least privilege; external content as untrusted input |
-| Gradual evolution from prototype | Evolution | Shadow runs to verify; gradual rollout |
+|The action loop can spin in place and burn money forever|Load shedding / circuit breaking|Step/cost/timeout caps + repetition detection; stop on breach|
+|Tool calls have side effects; multi-step resembles a distributed transaction|Saga / idempotency|Idempotent tools; multi-step actions compensable and rollback-able|
+|Long tasks run long, nodes die, state must be recoverable|Partial failure|Checkpoints persisted; resume after interruption|
+|Multi-agent collaboration|Distribution + fan-out amplification|Start with a single agent, split only when it cannot hold; control fan-out|
+|Prompt injection is the top threat|Security|Tool sandbox + least privilege; external content as untrusted input|
+|Gradual evolution from prototype|Evolution|Shadow runs to verify; gradual rollout|
 
 An agent loop without control valves is a runaway machine that burns money on its own and may cause harm. **The soul is not making it more autonomous but the ring of control valves fitted around the autonomy**: step/cost/timeout caps, sandboxing, least privilege, human-review gates, end-to-end tracing. Mature agent products without exception spend a large share of design on braking unleashed autonomy. Capability comes from the model; safety comes from the architecture.
 

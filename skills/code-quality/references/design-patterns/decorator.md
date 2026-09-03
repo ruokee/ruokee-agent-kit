@@ -1,6 +1,6 @@
 # Decorator Pattern
 
-This document covers the Gang of Four *structural* Decorator pattern: wrapping an object to add behavior.
+This document covers the Gang of Four _structural_ Decorator pattern: wrapping an object to add behavior.
 
 ## Intent
 
@@ -57,4 +57,4 @@ async def handle_request(request: Request) -> Response:
 
 ## Relationship to other patterns
 
-[adapter.md](./adapter.md) changes an interface. Decorator keeps the same interface and adds behavior. Proxy also wraps with the same interface but controls *access* such as lazy loading or permissions rather than enriching behavior. The structures are nearly identical and differ in intent. Chained decorators resemble a pipeline; for sequential request handling, see Chain of Responsibility. When the behavior is resource lifecycle, prefer a context manager over a decorator.
+[adapter.md](./adapter.md) changes an interface. Decorator keeps the same interface and adds behavior. Proxy also wraps with the same interface but controls _access_ such as lazy loading or permissions rather than enriching behavior. The structures are nearly identical and differ in intent. Chained decorators resemble a pipeline; for sequential request handling, see Chain of Responsibility. When the behavior is resource lifecycle, prefer a context manager over a decorator.

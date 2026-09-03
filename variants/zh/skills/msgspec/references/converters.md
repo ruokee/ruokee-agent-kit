@@ -371,6 +371,7 @@ print(user_dto)
 ```
 
 **from_attributes 参数说明。**
+
 - `from_attributes=True`：从对象的属性（`obj.attr`）读取值
 - 默认（`False`）：从对象的键（`obj["key"]`）读取值
 

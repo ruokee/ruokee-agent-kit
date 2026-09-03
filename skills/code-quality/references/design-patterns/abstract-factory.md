@@ -8,7 +8,7 @@ Create families of related objects that must be used together, without coupling 
 
 Some objects only make sense in combination. An S3 reader pairs with an S3 writer; a dark-theme button pairs with a dark-theme menu; a Postgres connection pairs with a Postgres dialect and migration runner. If callers assemble these pieces individually, nothing stops them from mixing a Postgres reader with a SQLite writer. Abstract Factory makes the family the unit of choice: select the backend once, and every product it hands back is consistent.
 
-This is the distinguishing constraint. [factory.md](./factory.md) answers "which one concrete class do I build?" Abstract Factory answers "which whole *set* of classes do I build, such that they fit together?"
+This is the distinguishing constraint. [factory.md](./factory.md) answers "which one concrete class do I build?" Abstract Factory answers "which whole _set_ of classes do I build, such that they fit together?"
 
 ## Structure and participants
 

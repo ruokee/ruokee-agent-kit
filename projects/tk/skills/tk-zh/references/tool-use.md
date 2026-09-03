@@ -4,14 +4,14 @@
 
 使用 Harness 原生形式或 MCP 形式：
 
-| 操作 | MCP | Pi 和 OMP |
-| --- | --- | --- |
-| 搜索 | `search` | `tk_search` |
-| 读取 | `read` | `tk_read` |
-| 创建 | `create` | `tk_create` |
-| 更新 | `update` | `tk_update` |
-| 记录 | `log` | `tk_log` |
-| 管理性 exec | `exec` | `tk_exec` |
+|操作|MCP|Pi 和 OMP|
+|-|-|-|
+|搜索|`search`|`tk_search`|
+|读取|`read`|`tk_read`|
+|创建|`create`|`tk_create`|
+|更新|`update`|`tk_update`|
+|记录|`log`|`tk_log`|
+|管理性 exec|`exec`|`tk_exec`|
 
 `tk_exec` 仅接受 `--version`、`init`、`check` 和 `rename`。它不通过 shell，直接调用公开解析器。迁移、表示切换、GC、schema 生成、组件生命周期、帮助、MCP 启动以及白名单之外的其他命令，应直接使用 CLI。
 

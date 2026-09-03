@@ -150,6 +150,7 @@ class User(msgspec.Struct):
 ```
 
 **Benefits.**
+
 - Automatic validation during deserialization
 - Clear data quality requirements
 - Reduced boilerplate code
@@ -192,6 +193,7 @@ type APIResponse = SuccessResponse | ErrorResponse
 ```
 
 **Why use tagged unions.**
+
 - Clear type discrimination
 - Type-safe pattern matching
 - Better IDE support
@@ -209,6 +211,7 @@ class Response(msgspec.Struct):
 ```
 
 **Problems with this approach.**
+
 - Unclear which fields are valid in which scenarios
 - Easy to create invalid states (e.g., `success=True` with `code=404`)
 - No type safety
@@ -291,6 +294,7 @@ decoded = decoder.decode(encoded)
 ```
 
 **Key points.**
+
 - `enc_hook` is called only for non-native types
 - For native types (datetime, Enum, etc.), msgspec uses built-in serialization and ignores enc_hook
 - Always reuse encoder/decoder instances for better performance
@@ -339,26 +343,31 @@ except Exception as e:
 **Recommended.** Choose the right protocol for your use case.
 
 **JSON.** Human-readable and widely supported.
+
 ```python
 encoded = msgspec.json.encode(data)
 ```
 
 **MessagePack.** Binary and compact.
+
 ```python
 encoded = msgspec.msgpack.encode(data)
 ```
 
 **YAML.** Human-editable configuration files.
+
 ```python
 encoded = msgspec.yaml.encode(data)  # Requires msgspec[yaml]
 ```
 
 **TOML.** Configuration files with TOML syntax.
+
 ```python
 encoded = msgspec.toml.encode(data)  # Requires msgspec[toml]
 ```
 
 **Guidelines.**
+
 - **APIs.** JSON (widest compatibility) or MessagePack (performance)
 - **Configuration.** YAML or TOML
 - **Internal services.** MessagePack (best performance)

@@ -4,7 +4,7 @@
 
 Event-driven architecture treats events as first-class facts: something happened, and that fact is recorded and published rather than directly triggering a known piece of code. A producer emits an event (`OrderPaid`, `FileUploaded`, `user.signup`) without knowing or caring who consumes it. Consumers subscribe to the events they care about. The coupling between them is the event schema, not a direct function call.
 
-This shows up at many scales: in-process signals and hooks (Django signals, pytest hooks, Qt signals), pub/sub within an application, and message queues or event buses across services (Kafka, RabbitMQ, SQS, Redis streams). The unifying idea is the same: invert the dependency so the thing that *causes* a state change does not hold a reference to everything that must *react* to it.
+This shows up at many scales: in-process signals and hooks (Django signals, pytest hooks, Qt signals), pub/sub within an application, and message queues or event buses across services (Kafka, RabbitMQ, SQS, Redis streams). The unifying idea is the same: invert the dependency so the thing that _causes_ a state change does not hold a reference to everything that must _react_ to it.
 
 ## The assumption underneath
 
@@ -15,7 +15,7 @@ This shows up at many scales: in-process signals and hooks (Django signals, pyte
 ## When appropriate
 
 - **Decoupling producers from consumers.** One action needs to trigger several unrelated reactions (send email, update analytics, invalidate cache) and you do not want the originating code to know about all of them.
-- **Audit trails and event sourcing.** The sequence of events *is* the source of truth; current state is a projection. This gives replay, temporal queries, and a built-in audit history.
+- **Audit trails and event sourcing.** The sequence of events _is_ the source of truth; current state is a projection. This gives replay, temporal queries, and a built-in audit history.
 - **Asynchronous workflows.** Work that should not block the request path, notifications, indexing, downstream processing, is naturally expressed as "emit event, let a worker handle it."
 - **Extension points.** Plugins and hooks let third parties react to lifecycle events without modifying core code.
 
@@ -44,7 +44,7 @@ The Observer pattern is the smallest, in-process instance of event-driven design
 
 ## Events vs commands
 
-A distinction worth keeping clear: a *command* tells a specific handler to do something (`SendEmail`, `ChargeCard`) and expects it to happen; an *event* announces that something already happened (`OrderPaid`, `EmailSent`) and makes no demand about who reacts. Commands are directed and usually have exactly one handler; events are broadcast and may have zero, one, or many. Confusing the two, naming an event like a command, or treating a published event as if a particular consumer must handle it, quietly reintroduces the coupling event-driven design was meant to remove. Name events in the past tense as facts; if you find yourself caring *which* consumer runs, you probably wanted a direct call or a command, not an event.
+A distinction worth keeping clear: a _command_ tells a specific handler to do something (`SendEmail`, `ChargeCard`) and expects it to happen; an _event_ announces that something already happened (`OrderPaid`, `EmailSent`) and makes no demand about who reacts. Commands are directed and usually have exactly one handler; events are broadcast and may have zero, one, or many. Confusing the two, naming an event like a command, or treating a published event as if a particular consumer must handle it, quietly reintroduces the coupling event-driven design was meant to remove. Name events in the past tense as facts; if you find yourself caring _which_ consumer runs, you probably wanted a direct call or a command, not an event.
 
 ## Synchronous vs asynchronous delivery
 

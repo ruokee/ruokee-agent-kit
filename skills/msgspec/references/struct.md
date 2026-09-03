@@ -46,6 +46,7 @@ class Product(msgspec.Struct):
 ```
 
 Benefits of `msgspec.Meta`:
+
 - Self-documenting fields
 - Automatic validation during deserialization
 - No runtime overhead for validation
@@ -84,7 +85,6 @@ print(user2.tags)  # Each instance has a separate list
 
 Use `msgspec.field(default_factory=...)` for dynamic defaults, non-empty mutable values, or custom mutable types.
 
-
 ## Special types (UNSET type)
 
 `msgspec.UNSET` represents a field that can be omitted during serialization:
@@ -112,6 +112,7 @@ print(encoded.decode())
 ```
 
 **UNSET vs none.**
+
 - `None`: Field is explicitly set to null value
 - `UNSET`: Field is omitted entirely from serialization
 
@@ -225,6 +226,7 @@ print(decoded.first_name)  # "Alice"
 ```
 
 **Available rename options.**
+
 - `"camel"`: snake_case → camelCase
 - `"pascal"`: snake_case → PascalCase
 - `"kebab"`: snake_case → kebab-case
@@ -438,6 +440,7 @@ print(new_point)  # Point(x=3.0, y=2.0)
 ```
 
 **Benefits.**
+
 - Thread-safe (immutable)
 - Hashable (can be used in sets/dict keys)
 - Prevents accidental modification
@@ -459,6 +462,7 @@ config = Config(api_key="secret-123")
 ```
 
 **Benefits.**
+
 - Explicit field names improve readability
 - Allows fields with defaults before required fields
 - Prevents argument order mistakes
@@ -481,6 +485,7 @@ encoded2 = msgspec.json.encode(user2)
 ```
 
 **Benefits.**
+
 - Smaller payload size
 - Cleaner JSON output
 - Useful for partial updates
@@ -502,6 +507,7 @@ data_extra = b'{"name":"Alice","age":30,"role":"admin"}'
 ```
 
 **Benefits.**
+
 - Catches typos in field names
 - Enforces strict schema compliance
 - Prevents silent data loss

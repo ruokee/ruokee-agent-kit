@@ -19,8 +19,8 @@ graph, renaming a field, inserting an intermediate object, changing a type, prop
 distant, seemingly unrelated call sites. This is the classic symptom of shotgun surgery: a
 small structural change forces edits in many places.
 
-LoD pushes you to give your immediate collaborator a method that expresses *what you want*,
-so the collaborator (which owns the structure) decides *how* to get it. The knowledge of the
+LoD pushes you to give your immediate collaborator a method that expresses _what you want_,
+so the collaborator (which owns the structure) decides _how_ to get it. The knowledge of the
 structure stays where the structure lives.
 
 ## The train wreck
@@ -70,8 +70,8 @@ LoD becomes noise when applied mechanically as "count the dots, then ban them."
   JSON-like structure is plain data access, not structural coupling to behavior. A dataclass
   used purely as a data holder can be traversed directly.
 
-The discriminator is always: *does the caller now know something about internal structure
-that, if changed, would break it?* If the chain is over a stable interface or transparent
+The discriminator is always: _does the caller now know something about internal structure
+that, if changed, would break it?_ If the chain is over a stable interface or transparent
 data, there is no violation. If the chain encodes the private layout of objects that own
 behavior and invariants, that is where LoD earns its keep.
 

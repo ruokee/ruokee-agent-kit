@@ -9,7 +9,7 @@ It is easy to dismiss imperative code as low-level or unsophisticated. That is a
 ## The assumption underneath
 
 - Some logic is inherently sequential: each step depends on the effect of the previous one.
-- Side effects should be *visible*, laid out in order, not hidden behind layers of abstraction.
+- Side effects should be _visible_, laid out in order, not hidden behind layers of abstraction.
 - For short scripts, entry points, and wiring layers, a direct linear flow is usually more maintainable than premature architecture.
 
 ## When it fits
@@ -17,7 +17,7 @@ It is easy to dismiss imperative code as low-level or unsophisticated. That is a
 - CLI entry points, one-off scripts, migrations, operational tooling.
 - Application startup: dependency wiring, config loading, logger initialization.
 - I/O orchestration: coordinating a transaction, calling several external systems in a required order, sequencing reads and writes.
-- The outer layer of almost any program; the part that has to actually *do* things in the world.
+- The outer layer of almost any program; the part that has to actually _do_ things in the world.
 
 A healthy imperative entry point reads like a recipe; each step names a phase, and the side effects are visible in order:
 
@@ -36,7 +36,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     return 0
 ```
 
-Notice what the entry point does *not* do: it does not compute the result itself. It sequences I/O and delegates the actual decision to `run_job`, which can be tested without a real client.
+Notice what the entry point does _not_ do: it does not compute the result itself. It sequences I/O and delegates the actual decision to `run_job`, which can be tested without a real client.
 
 ## When it becomes a problem
 
@@ -46,7 +46,7 @@ Notice what the entry point does *not* do: it does not compute the result itself
 - The function has grown past what a reader can hold in their head, and the only structure is top-to-bottom order.
 - "Just one more flag" parameters accumulate until the procedure has a dozen booleans steering hidden branches; a sign distinct operations have been merged into one sequence.
 
-When you see these signs, the issue is usually not "too imperative" but "imperative in the wrong place": decision logic that should have been pulled out into something testable. The fix is rarely to make the code less imperative overall; it is to separate the part that *decides* from the part that *acts*.
+When you see these signs, the issue is usually not "too imperative" but "imperative in the wrong place": decision logic that should have been pulled out into something testable. The fix is rarely to make the code less imperative overall; it is to separate the part that _decides_ from the part that _acts_.
 
 Consider a function that interleaves the two:
 

@@ -20,7 +20,7 @@ OCP：稳定的核心应对扩展开放，对修改关闭；你通过添加新�
 
 LSP：子类型必须可以在任何期望其基类型的地方使用，而不破坏程序的预期。关键词是*行为*，而非签名。匹配方法名和类型是必要但不充分的；子类型还必须遵守基类型的前提条件（不能要求更多）、后置条件（不能承诺更少）、不变量和异常语义。
 
-经典违规：子类缩小了方法接受的参数范围，或将继承的方法变成空操作或 `raise NotImplementedError`，或纯粹为了复用代码而子类化却没有真正的*is-a*关系。在 Python 中，鸭子类型和 `Protocol` 只表达结构：行为契约仍然存在于测试和文档中。当你只想复用一个实现时，优先选择组合、小型 mixin 或辅助函数而非继承，这样你就永远不会做出无法兑现的可替换性承诺（参见 [composition-over-inheritance.md](./composition-over-inheritance.md)）。
+经典违规：子类缩小了方法接受的参数范围，或将继承的方法变成空操作或 `raise NotImplementedError`，或纯粹为了复用代码而子类化却没有真正的 _is-a_ 关系。在 Python 中，鸭子类型和 `Protocol` 只表达结构：行为契约仍然存在于测试和文档中。当你只想复用一个实现时，优先选择组合、小型 mixin 或辅助函数而非继承，这样你就永远不会做出无法兑现的可替换性承诺（参见 [composition-over-inheritance.md](./composition-over-inheritance.md)）。
 
 ## 接口隔离原则（Interface Segregation Principle）
 

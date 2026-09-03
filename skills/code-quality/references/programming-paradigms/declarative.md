@@ -2,13 +2,13 @@
 
 ## What it is
 
-Declarative programming describes *what* you want, the goal, the constraint, the shape of the data, and leaves the *how* to a framework, library, or engine. Instead of writing the steps, you write a description and let something else execute it. SQL is the canonical example: you state the result set you want and the query planner decides how to produce it. Configuration files, schemas, routing tables, CLI argument definitions, validation rules, and rule engines are all declarative.
+Declarative programming describes _what_ you want, the goal, the constraint, the shape of the data, and leaves the _how_ to a framework, library, or engine. Instead of writing the steps, you write a description and let something else execute it. SQL is the canonical example: you state the result set you want and the query planner decides how to produce it. Configuration files, schemas, routing tables, CLI argument definitions, validation rules, and rule engines are all declarative.
 
 In a Python project, declarative style shows up far more than people notice: `pyproject.toml`, a `dataclass` field list, a `TypedDict`, an `argparse` parser, a web framework's route decorators, a permission table, a state machine's transition table. Each of these is data that some engine interprets, not code you step through.
 
 ## The assumption underneath
 
-- Some structures are easier to check, compose, and document as *data* than as imperative code.
+- Some structures are easier to check, compose, and document as _data_ than as imperative code.
 - A framework or library can own the repetitive execution logic, so your code only expresses what differs from the default.
 - When the rules are stable and the execution model is well understood, declaring them removes boilerplate and centralizes the source of truth.
 
@@ -35,7 +35,7 @@ def handle(event: str) -> None:
         raise ValueError(event)
 ```
 
-Declarative dispatch; the mapping *is* the logic, and a tiny engine applies it:
+Declarative dispatch; the mapping _is_ the logic, and a tiny engine applies it:
 
 ```python
 HANDLERS: dict[str, Callable[[], None]] = {
@@ -62,7 +62,7 @@ The declarative form makes the full set of cases visible in one place, is trivia
 
 Declarative style trades explicit control flow for conciseness. That trade is worth it when the engine is trustworthy and the structure is stable, and harmful when you need to see and step through what actually happens.
 
-A practical test: if a newcomer asks "what happens when this runs?" and the honest answer requires explaining the engine's evaluation model before you can answer, the declaration may have absorbed too much logic. Declarations should describe *facts and structure*; the moment they start describing *sequence and decisions*, the imperative form is usually clearer.
+A practical test: if a newcomer asks "what happens when this runs?" and the honest answer requires explaining the engine's evaluation model before you can answer, the declaration may have absorbed too much logic. Declarations should describe _facts and structure_; the moment they start describing _sequence and decisions_, the imperative form is usually clearer.
 
 ## Relationship to other paradigms
 

@@ -12,11 +12,11 @@ Many architecture diagrams run App → Redis → MQ → Kafka → Worker in one 
 
 Fits read hotspots. The three most common errors: treating the cache as the source of truth (cache lost, data lost); no invalidation strategy (users see stale, dirty data); all requests penetrating together (the primary store gets crushed).
 
-| Error | Correct posture |
+|Error|Correct posture|
 |-|-|
-| Cache as source of truth | The primary store is the source of truth; the cache is rebuildable |
-| No invalidation strategy | TTL, active invalidation, versioning |
-| Cache penetration | Negative caching, request coalescing, rate limiting, warming |
+|Cache as source of truth|The primary store is the source of truth; the cache is rebuildable|
+|No invalidation strategy|TTL, active invalidation, versioning|
+|Cache penetration|Negative caching, request coalescing, rate limiting, warming|
 
 Cache types by data shape: local caches fit config, dictionaries, infrequently changing data (watch multi-instance inconsistency); distributed caches (Redis) fit hot objects, sessions, counters, rate limiting (watch network overhead, capacity, eviction policy); CDN fits images, video, static assets, public pages (watch invalidation delay).
 
@@ -32,10 +32,10 @@ A queue does not stabilize by existing; it converts the problem from request lat
 
 ## Event systems: recording what happened, not commanding what to do
 
-| Category | What it means | Examples | Who owns the outcome |
+|Category|What it means|Examples|Who owns the outcome|
 |-|-|-|-|
-| Command | Please do something | `CreateOrder`, `SendEmail` | The receiver must succeed or fail |
-| Event | Something has happened | `OrderPaid`, `TicketLocked` | Subscribers react as needed |
+|Command|Please do something|`CreateOrder`, `SendEmail`|The receiver must succeed or fail|
+|Event|Something has happened|`OrderPaid`, `TicketLocked`|Subscribers react as needed|
 
 Events fit propagating facts across boundaries: the order service publishes `OrderPaid`; inventory confirms deduction, notifications send SMS, the data platform updates reports, risk control logs behavior—and the order service need not know all its downstreams. The costs: once an event schema is published, downstreams depend on it and upgrades must stay compatible; when a downstream handler fails, the fact has already happened and cannot simply roll back; events too fine drown the system, too coarse fail to express; long event chains make debugging hard—tracing is mandatory.
 

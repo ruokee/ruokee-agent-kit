@@ -16,10 +16,10 @@ Task 是值得持久保存的临时性努力。创建不代表用户或 Agent �
 
 tk 提供四个相互独立的自包含 Skill：
 
-| 模式 | 英文 | 中文 |
-| --- | --- | --- |
-| tools | `tk` | `tk-zh` |
-| CLI | `tk-cli` | `tk-cli-zh` |
+|模式|英文|中文|
+|-|-|-|
+|tools|`tk`|`tk-zh`|
+|CLI|`tk-cli`|`tk-cli-zh`|
 
 tools Skill 的 search、read、create、update 和 log 使用 Harness 逻辑操作，exec 只接受 version、init、check 和 rename。公开 CLI 只用于没有逻辑操作的支持命令。逻辑操作缺失、拒绝请求或执行失败时，按集成或传输故障报告，不通过直接 CLI 重试。
 
@@ -129,12 +129,12 @@ close 和 reopen 都需要非空原因和当前用户确认。closed Task 默认
 
 以下模式是非穷举参考，项目说明可以补充或覆盖：
 
-| 模式 | 适用内容 |
-| --- | --- |
-| scratchpad | 短期临时记事区，不作为最终交付 |
-| research package | 需要保存来源、证据、结论边界和未解决问题的研究 |
-| design revisions | 多轮相互替代的设计及当前版本入口 |
-| review records | 多方审查、分歧和处理结论 |
-| validation evidence | 可重复命令、环境、结果和验收判断 |
+|模式|适用内容|
+|-|-|
+|scratchpad|短期临时记事区，不作为最终交付|
+|research package|需要保存来源、证据、结论边界和未解决问题的研究|
+|design revisions|多轮相互替代的设计及当前版本入口|
+|review records|多方审查、分歧和处理结论|
+|validation evidence|可重复命令、环境、结果和验收判断|
 
 材料模式只组织普通文件，不增加运行时状态。

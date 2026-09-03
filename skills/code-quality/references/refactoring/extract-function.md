@@ -2,7 +2,7 @@
 
 ## What it is
 
-Extract Function takes a fragment of code and turns it into its own named function, replacing the fragment with a call. It is the most common refactoring and the primary cure for [long-function.md](./long-function.md). Fowler's guiding rule is about *intention*: if you have to spend effort working out what a block of code does, extract it into a function named after the *what*, not the *how*. The name then carries the meaning, and the body holds the mechanism.
+Extract Function takes a fragment of code and turns it into its own named function, replacing the fragment with a call. It is the most common refactoring and the primary cure for [long-function.md](./long-function.md). Fowler's guiding rule is about _intention_: if you have to spend effort working out what a block of code does, extract it into a function named after the _what_, not the _how_. The name then carries the meaning, and the body holds the mechanism.
 
 ```python
 # before

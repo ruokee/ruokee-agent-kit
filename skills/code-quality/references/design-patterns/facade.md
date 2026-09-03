@@ -53,8 +53,8 @@ class BillingClient:
         return invoice
 ```
 
-A good facade is a *deep module*: a small interface in front of substantial internal complexity. That depth is what makes it worth having; it hides real work, not just a few lines.
+A good facade is a _deep module_: a small interface in front of substantial internal complexity. That depth is what makes it worth having; it hides real work, not just a few lines.
 
 ## Relationship to other patterns
 
-[adapter.md](./adapter.md) changes an interface to match what a caller expects; Facade defines a *new, simpler* interface over many objects; Adapter wraps one thing to fit, Facade wraps many to simplify. A facade often fronts a [abstract-factory.md](./abstract-factory.md) or coordinates objects built by factories. The "deep module" idea behind a good facade connects to information-hiding principles in the design-principles references. Compare Mediator, which also centralizes interaction but lets the coordinated objects talk back through it, whereas a facade is a one-directional simplifying entry point.
+[adapter.md](./adapter.md) changes an interface to match what a caller expects; Facade defines a _new, simpler_ interface over many objects; Adapter wraps one thing to fit, Facade wraps many to simplify. A facade often fronts a [abstract-factory.md](./abstract-factory.md) or coordinates objects built by factories. The "deep module" idea behind a good facade connects to information-hiding principles in the design-principles references. Compare Mediator, which also centralizes interaction but lets the coordinated objects talk back through it, whereas a facade is a one-directional simplifying entry point.

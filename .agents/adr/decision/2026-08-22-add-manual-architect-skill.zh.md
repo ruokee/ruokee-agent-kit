@@ -83,37 +83,37 @@ skills/architect/
 
 每篇文档的第一版重点如下。短句限定内容边界，不要求固定章节结构：
 
-| 文档 | 内容边界 | 来源线索 |
+|文档|内容边界|来源线索|
 |-|-|-|
-| `SKILL.md` | 写明职责边界、导航、证据和输出约定。 | 本 ADR |
-| `glossary.md` | 定义 Skill 使用的架构术语及中英文对应。 | 术语表 |
-| `references/01-thinking-and-tradeoffs.md` | 从需求、约束和质量属性形成架构判断。 | 第 02、06、09 章 |
-| `references/02-system-analysis.md` | 从代码、配置和运行证据拆解陌生系统。 | 第 18 章 |
-| `references/03-views.md` | 选择视图并用图表达边界、关系和数据流。 | 第 03 章 |
-| `references/04-architecture-styles.md` | 比较常见架构风格的适用条件与取舍。 | 第 04 章 |
-| `references/05-data-and-state.md` | 说明状态归属、数据生命周期和存储边界。 | 第 05 章 |
-| `references/06-system-design.md` | 展示从需求到可验证系统设计的完整推导。 | 第 07、19 章 |
-| `references/07-architecture-decisions.md` | 记录候选方案、取舍、后果和重审条件。 | 第 08 章 |
-| `references/08-distributed-systems.md` | 说明网络、时间、并发和部分失败带来的约束。 | 第 10 章 |
-| `references/09-consistency.md` | 比较一致性模型、事务边界和冲突处理方法。 | 第 11 章 |
-| `references/10-resilience.md` | 说明超时、重试、幂等、隔离和降级设计，以及 RPO/RTO 与恢复设计。 | 第 12 章 |
-| `references/11-scaling.md` | 根据负载证据识别瓶颈并选择扩展方式。 | 第 13 章 |
-| `references/12-evolution-and-migration.md` | 根据演进触发信号和技术债证据规划拆分、迁移、回滚和退役。 | 第 08、14、20、21 章与《演进触发信号》附录 |
-| `references/13-organization-and-ownership.md` | 说明团队归属、沟通结构与系统边界的关系。 | 第 08、15 章 |
-| `references/14-security-and-tenancy.md` | 说明信任边界、身份权限、数据隔离和多租户风险。 | 第 16 章 |
-| `references/ai/01-ai-era-judgment.md` | 说明 AI 组件带来的不确定性、成本和能力边界。 | 第 17 章 |
-| `references/ai/02-ai-system-design.md` | 说明模型、上下文、工具、记忆和编排的系统边界。 | 第 22 章 |
-| `references/ai/03-specifications-for-ai.md` | 把架构约束写成 AI 可执行、可验证的规格。 | 第 23 章 |
-| `references/ai/04-reviewing-ai-output.md` | 只审查 AI 架构产出特有的遗漏，一致性、韧性、扩展和安全复用对应主题文档。 | 第 24 章 |
-| `references/ai/05-evaluation-driven-architecture.md` | 用评测目标、数据集和反馈定义 AI 系统质量。 | 第 25 章 |
-| `references/technology-selection/01-principles.md` | 给出技术选型的通用问题、比较维度和退出条件。 | 第 34 章 |
-| `references/technology-selection/02-languages-and-frameworks.md` | 比较语言与后端框架的约束、团队适配和维护成本。 | 第 27 章 |
-| `references/technology-selection/03-data-stores.md` | 比较数据存储的数据模型、一致性和运维代价。 | 第 28 章 |
-| `references/technology-selection/04-cache-messaging-and-events.md` | 区分缓存、消息队列和事件系统解决的问题与边界。 | 第 29 章 |
-| `references/technology-selection/05-api-and-communication.md` | 比较 API 和服务通信方式的耦合、性能与演进成本。 | 第 30 章 |
-| `references/technology-selection/06-cloud-and-deployment.md` | 比较部署形态和云平台的交付、弹性与运维约束。 | 第 31 章 |
-| `references/technology-selection/07-observability-and-reliability.md` | 说明可观测性与可靠性工具如何支撑故障检测和响应需求。 | 第 32 章 |
-| `references/technology-selection/08-ai-infrastructure.md` | 比较 AI 基础设施在训练、推理、数据和成本上的取舍。 | 第 33 章 |
+|`SKILL.md`|写明职责边界、导航、证据和输出约定。|本 ADR|
+|`glossary.md`|定义 Skill 使用的架构术语及中英文对应。|术语表|
+|`references/01-thinking-and-tradeoffs.md`|从需求、约束和质量属性形成架构判断。|第 02、06、09 章|
+|`references/02-system-analysis.md`|从代码、配置和运行证据拆解陌生系统。|第 18 章|
+|`references/03-views.md`|选择视图并用图表达边界、关系和数据流。|第 03 章|
+|`references/04-architecture-styles.md`|比较常见架构风格的适用条件与取舍。|第 04 章|
+|`references/05-data-and-state.md`|说明状态归属、数据生命周期和存储边界。|第 05 章|
+|`references/06-system-design.md`|展示从需求到可验证系统设计的完整推导。|第 07、19 章|
+|`references/07-architecture-decisions.md`|记录候选方案、取舍、后果和重审条件。|第 08 章|
+|`references/08-distributed-systems.md`|说明网络、时间、并发和部分失败带来的约束。|第 10 章|
+|`references/09-consistency.md`|比较一致性模型、事务边界和冲突处理方法。|第 11 章|
+|`references/10-resilience.md`|说明超时、重试、幂等、隔离和降级设计，以及 RPO/RTO 与恢复设计。|第 12 章|
+|`references/11-scaling.md`|根据负载证据识别瓶颈并选择扩展方式。|第 13 章|
+|`references/12-evolution-and-migration.md`|根据演进触发信号和技术债证据规划拆分、迁移、回滚和退役。|第 08、14、20、21 章与《演进触发信号》附录|
+|`references/13-organization-and-ownership.md`|说明团队归属、沟通结构与系统边界的关系。|第 08、15 章|
+|`references/14-security-and-tenancy.md`|说明信任边界、身份权限、数据隔离和多租户风险。|第 16 章|
+|`references/ai/01-ai-era-judgment.md`|说明 AI 组件带来的不确定性、成本和能力边界。|第 17 章|
+|`references/ai/02-ai-system-design.md`|说明模型、上下文、工具、记忆和编排的系统边界。|第 22 章|
+|`references/ai/03-specifications-for-ai.md`|把架构约束写成 AI 可执行、可验证的规格。|第 23 章|
+|`references/ai/04-reviewing-ai-output.md`|只审查 AI 架构产出特有的遗漏，一致性、韧性、扩展和安全复用对应主题文档。|第 24 章|
+|`references/ai/05-evaluation-driven-architecture.md`|用评测目标、数据集和反馈定义 AI 系统质量。|第 25 章|
+|`references/technology-selection/01-principles.md`|给出技术选型的通用问题、比较维度和退出条件。|第 34 章|
+|`references/technology-selection/02-languages-and-frameworks.md`|比较语言与后端框架的约束、团队适配和维护成本。|第 27 章|
+|`references/technology-selection/03-data-stores.md`|比较数据存储的数据模型、一致性和运维代价。|第 28 章|
+|`references/technology-selection/04-cache-messaging-and-events.md`|区分缓存、消息队列和事件系统解决的问题与边界。|第 29 章|
+|`references/technology-selection/05-api-and-communication.md`|比较 API 和服务通信方式的耦合、性能与演进成本。|第 30 章|
+|`references/technology-selection/06-cloud-and-deployment.md`|比较部署形态和云平台的交付、弹性与运维约束。|第 31 章|
+|`references/technology-selection/07-observability-and-reliability.md`|说明可观测性与可靠性工具如何支撑故障检测和响应需求。|第 32 章|
+|`references/technology-selection/08-ai-infrastructure.md`|比较 AI 基础设施在训练、推理、数据和成本上的取舍。|第 33 章|
 
 第 23 至 25 章处理 AI 参与系统级架构工作时的约束表达、产出审查和质量验证，因此纳入 `ai/`。第 01 章以职业和学习动机为主，第 26 章讨论一般协作方式，第 35 至 40 章讨论 AI 原生组织，它们不属于第一版系统架构知识的重点。模板与案例可以为参考文档提供例子，但不作为独立模板库复制进 Skill。
 

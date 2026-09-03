@@ -2,7 +2,7 @@
 
 A state machine models a process as a finite set of named states, a set of events, and the rules governing movement between them. It answers concrete questions: which states can the system be in, which events does it accept, which transitions are legal, how are illegal transitions rejected, and which side effects run during a transition. This model is useful because many everyday bugs are illegal-state bugs.
 
-It is not a synonym for the GoF State pattern. That pattern is one *object-oriented implementation* of a state machine. The model is broader and can be expressed as a transition table, an `Enum` plus dispatch, a `match` statement, a pure reducer function, or state objects.
+It is not a synonym for the GoF State pattern. That pattern is one _object-oriented implementation_ of a state machine. The model is broader and can be expressed as a transition table, an `Enum` plus dispatch, a `match` statement, a pure reducer function, or state objects.
 
 ## Concept
 
@@ -22,7 +22,7 @@ A state machine captures a workflow as data: the modes a thing can occupy, the t
 - The states are finite and can be named, and the events are finite and can be named.
 - Invalid transitions matter: moving from `cancelled` to `shipped` must be impossible, not merely unlikely.
 - Lifecycle correctness is part of the domain: orders, approvals, subscriptions, protocol/connection state, job and worker lifecycles.
-- You need to audit *why* `A -> B` is allowed and `A -> C` is not, often for compliance.
+- You need to audit _why_ `A -> B` is allowed and `A -> C` is not, often for compliance.
 - The process interacts with persistence, retry, or concurrency, where a precise notion of "current state" prevents corruption.
 
 ## When Not Appropriate
@@ -102,7 +102,7 @@ Reach for this model when you see:
 
 - Status strings assigned in scattered places with no single definition of the legal set.
 - Combinations of boolean flags standing in for state, with no enforced legal combinations.
-- `if/elif` ladders that check both current state *and* incoming event inline, repeated across several functions.
+- `if/elif` ladders that check both current state _and_ incoming event inline, repeated across several functions.
 - Repeated events causing duplicate effects; a sign actions are not idempotent and transitions are not gated.
 
 ## False-Positive Boundary

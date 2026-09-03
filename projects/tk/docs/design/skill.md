@@ -16,10 +16,10 @@ A Task is a temporary effort worth preserving. Creating one does not mean that t
 
 tk provides four independent, self-contained Skills:
 
-| Mode | English | Chinese |
-| --- | --- | --- |
-| tools | `tk` | `tk-zh` |
-| CLI | `tk-cli` | `tk-cli-zh` |
+|Mode|English|Chinese|
+|-|-|-|
+|tools|`tk`|`tk-zh`|
+|CLI|`tk-cli`|`tk-cli-zh`|
 
 The tools Skills use the Harness's logical operation for search, read, create, update, and log. Their exec operation accepts only version, init, check, and rename. Public CLI use is reserved for supported commands without a logical operation. A missing, refused, or failed logical operation is reported as an integration or transport failure and is not retried through the direct CLI.
 
@@ -129,12 +129,12 @@ When user input is genuinely required, explain the effect of each choice clearly
 
 The following patterns are non-exhaustive references. Project instructions may extend or override them:
 
-| Pattern | Appropriate content |
-| --- | --- |
-| scratchpad | A short-term temporary note area that is not a final deliverable |
-| research package | Research that must preserve sources, evidence, conclusion boundaries, and unresolved questions |
-| design revisions | Multiple rounds of superseding designs and an entry point to the current version |
-| review records | Multi-party reviews, disagreements, and resolution outcomes |
-| validation evidence | Reproducible commands, environment details, results, and acceptance judgments |
+|Pattern|Appropriate content|
+|-|-|
+|scratchpad|A short-term temporary note area that is not a final deliverable|
+|research package|Research that must preserve sources, evidence, conclusion boundaries, and unresolved questions|
+|design revisions|Multiple rounds of superseding designs and an entry point to the current version|
+|review records|Multi-party reviews, disagreements, and resolution outcomes|
+|validation evidence|Reproducible commands, environment details, results, and acceptance judgments|
 
 Material patterns organize ordinary files only. They do not add runtime state.

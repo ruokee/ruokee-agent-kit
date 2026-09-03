@@ -35,7 +35,7 @@ is genuinely large and dynamic: many interchangeable implementations, complex li
 scoping requirements, configuration-driven wiring across many modules.
 
 For typical applications, an explicit composition root is easier to read, debug, and trace than
-a container. A global *service locator* (a registry that code reaches into to fetch
+a container. A global _service locator_ (a registry that code reaches into to fetch
 dependencies) is worse than either: it hides the dependencies it satisfies, turning DI's
 explicitness back into implicit global coupling. Prefer passing dependencies in.
 
@@ -46,7 +46,7 @@ its HTTP client as parameters, a test passes in fakes or stubs directly: no monk
 module internals, no patching deep into implementation. This keeps tests coupled to the
 boundary (the abstraction) rather than to the implementation, so refactoring the internals does
 not break the tests. Over-mocking and deep `patch` targets are usually a symptom of dependencies
-that were *not* injected; fixing the seam fixes the test smell. See also
+that were _not_ injected; fixing the seam fixes the test smell. See also
 [tdd](./tdd.md).
 
 ## When NOT to invert

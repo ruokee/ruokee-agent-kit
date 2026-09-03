@@ -8,7 +8,7 @@ Duplicated Code is the smell of the same thing expressed in more than one place.
 
 This is the critical distinction, and getting it wrong in either direction causes damage.
 
-**Knowledge duplication** is the same *decision* expressed in multiple places: a business rule, a validation condition, a schema, a protocol detail, a tax calculation, a state transition. The test is counterfactual: *if the requirement behind one copy changed, would the others have to change too?* If yes, they encode one piece of knowledge, and having it in several places means a future edit will update some and miss others, leaving the system contradicting itself. This is worth removing.
+**Knowledge duplication** is the same _decision_ expressed in multiple places: a business rule, a validation condition, a schema, a protocol detail, a tax calculation, a state transition. The test is counterfactual: _if the requirement behind one copy changed, would the others have to change too?_ If yes, they encode one piece of knowledge, and having it in several places means a future edit will update some and miss others, leaving the system contradicting itself. This is worth removing.
 
 **Coincidental similarity** is code that looks alike today for unrelated reasons and is driven by different forces. Two validators with the same structure that check different concepts; two handlers with parallel boilerplate but unrelated logic; test setup that resembles other test setup while pinning distinct scenarios. If the requirement behind one changed, the others would not move. These fragments are not duplication in the meaningful sense, they merely rhyme, and unifying them couples things that should evolve independently.
 

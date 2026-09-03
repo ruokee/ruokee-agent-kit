@@ -6,7 +6,7 @@ Refactoring, in Martin Fowler's precise sense, is **restructuring existing code 
 
 This is narrower than the casual "I refactored the code" that often means "I rewrote it and changed some behavior along the way." When the observable behavior changes, it is not refactoring; it is a feature change, a bug fix, or a performance optimization. Keeping these activities separate is the whole discipline.
 
-Fowler's *Refactoring* pairs a catalog of **code smells** (symptoms that suggest a structural problem) with a catalog of **named refactorings** (small, behavior-preserving transformations that address them). The smells tell you *where* to look; the refactorings tell you *how* to fix it in controlled steps. See [code-smells.md](./code-smells.md) for the smell side and the individual technique documents like [extract-function.md](./extract-function.md) for the transformation side.
+Fowler's _Refactoring_ pairs a catalog of **code smells** (symptoms that suggest a structural problem) with a catalog of **named refactorings** (small, behavior-preserving transformations that address them). The smells tell you _where_ to look; the refactorings tell you _how_ to fix it in controlled steps. See [code-smells.md](./code-smells.md) for the smell side and the individual technique documents like [extract-function.md](./extract-function.md) for the transformation side.
 
 ## The discipline: small steps, one thing at a time
 
@@ -33,6 +33,6 @@ Refactoring is not a separate phase you schedule for later. It is woven into ord
 
 ## Smells point, refactorings cut
 
-The relationship between the two catalogs is diagnostic. A smell, a long function, duplicated code, a feature-envious method, is a *symptom*, not a verdict. It tells you to look closely, not to act mechanically. Once you have confirmed the underlying structural problem, you pick a named refactoring that addresses it and apply it in small steps. The smell is the question; the refactoring is one possible answer. This keeps you from "fixing" things that are not actually broken and from reaching for a heavy transformation when a rename would do.
+The relationship between the two catalogs is diagnostic. A smell, a long function, duplicated code, a feature-envious method, is a _symptom_, not a verdict. It tells you to look closely, not to act mechanically. Once you have confirmed the underlying structural problem, you pick a named refactoring that addresses it and apply it in small steps. The smell is the question; the refactoring is one possible answer. This keeps you from "fixing" things that are not actually broken and from reaching for a heavy transformation when a rename would do.
 
 In agent-assisted development the smell-then-refactor loop matters more, not less: code accumulates faster, so structural problems appear faster, and the temptation to rewrite rather than transform is stronger. The discipline of behavior-preserving small steps is what keeps fast-moving code from drifting into states no one can verify.

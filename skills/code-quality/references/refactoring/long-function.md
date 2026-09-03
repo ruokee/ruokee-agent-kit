@@ -4,7 +4,7 @@
 
 Long Function is the most common bloater, and the most misjudged. The smell is not length measured in lines; a function is too long when it **mixes levels of abstraction, carries more than one responsibility, or has subsections you can only understand by reading them in full**. Length is a hint that one of those is happening, not the problem itself. A forty-line function that reads as one clear sequence at a single level of abstraction is fine; a twelve-line function that interleaves high-level policy with low-level byte manipulation is not.
 
-The reliable test is whether you can name the function honestly. If the name is a truthful summary of everything inside, the function is cohesive. If the honest name would be "validate the order, *and* compute the total, *and* format the receipt, *and* send the email," it is doing several things and the "and"s mark the seams where it wants to split.
+The reliable test is whether you can name the function honestly. If the name is a truthful summary of everything inside, the function is cohesive. If the honest name would be "validate the order, _and_ compute the total, _and_ format the receipt, _and_ send the email," it is doing several things and the "and"s mark the seams where it wants to split.
 
 ## What makes a function too long
 

@@ -4,7 +4,7 @@
 
 ## singledispatch
 
-`@singledispatch` turns a function into a generic function that picks an implementation by the runtime type of its *first* argument. Register type-specific variants with `.register`:
+`@singledispatch` turns a function into a generic function that picks an implementation by the runtime type of its _first_ argument. Register type-specific variants with `.register`:
 
 ```python
 from functools import singledispatch
@@ -22,7 +22,7 @@ def _(value: list) -> str:
     return "[" + ", ".join(render(v) for v in value) + "]"
 ```
 
-Since Python 3.11 the registered annotation may be a union (`int | float`), covering a type family in one registration. `singledispatch` fits open extension where new types add handlers without editing a central function; a lightweight visitor. It does *not* dispatch on the second argument, on field values, or on combinations; those need explicit branching, `match`, or a dispatch map. Use `singledispatchmethod` for methods. Keep the base implementation meaningful (a sensible default or a clear error), because it runs whenever no registered type matches.
+Since Python 3.11 the registered annotation may be a union (`int | float`), covering a type family in one registration. `singledispatch` fits open extension where new types add handlers without editing a central function; a lightweight visitor. It does _not_ dispatch on the second argument, on field values, or on combinations; those need explicit branching, `match`, or a dispatch map. Use `singledispatchmethod` for methods. Keep the base implementation meaningful (a sensible default or a clear error), because it runs whenever no registered type matches.
 
 ## partial
 

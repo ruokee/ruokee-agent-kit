@@ -45,7 +45,7 @@ tools 模式安装 Harness 集成和所选 Skill。cli 模式只在 Harness 组�
 tk install --harness omp --mode cli --language zh --dry-run --output json
 ```
 
-生命周期和干净卸载规则见[安装](./design/installation.zh.md)。各组件内容见[Harness 集成](./design/harnesses.zh.md)。
+生命周期和干净卸载规则见[安装](./design/installation.zh.md)。各组件内容见 [Harness 集成](./design/harnesses.zh.md)。
 
 ## 初始化项目
 
@@ -171,6 +171,6 @@ tk uninstall --harness omp
 
 ## Agent 使用
 
-tk 提供四个可独立发现的 Skill：[tk](../skills/tk/SKILL.md)、[tk-zh](../skills/tk-zh/SKILL.md)、[tk-cli](../skills/tk-cli/SKILL.md)和 [tk-cli-zh](../skills/tk-cli-zh/SKILL.md)。四者均为自包含目录。安装时选择的模式和语言决定 Harness 加载哪一个。
+tk 提供四个可独立发现的 Skill：[tk](../skills/tk/SKILL.md)、[tk-zh](../skills/tk-zh/SKILL.md)、[tk-cli](../skills/tk-cli/SKILL.md) 和 [tk-cli-zh](../skills/tk-cli-zh/SKILL.md)。四者均为自包含目录。安装时选择的模式和语言决定 Harness 加载哪一个。
 
 [设计索引](./design/README.zh.md)列出当前运行时、数据、工具、Harness、安装、Skill 和验证合同。

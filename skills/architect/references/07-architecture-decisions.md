@@ -14,14 +14,14 @@ Hence a principle: **good documentation does not repeat what the code does, beca
 
 One architecture decision record answers six things:
 
-| Column | What goes in | What its absence costs |
+|Column|What goes in|What its absence costs|
 |-|-|-|
-| Title | One sentence saying what the decision is | Enables retrieval |
-| Status | Draft / accepted / deprecated / superseded | Tells readers whether it still counts |
-| Context | What problem and constraints were faced then | What successors lack most is the situation at the time |
-| Decision | What was finally decided | Visible in code too, but writing it down completes the record |
-| Alternatives | What else was considered and why it lost | Recording what was given up is the value records uniquely hold |
-| Tradeoffs and consequences | Benefits, costs, known debt | Lets successors inherit the deliberate tradeoff with eyes open |
+|Title|One sentence saying what the decision is|Enables retrieval|
+|Status|Draft / accepted / deprecated / superseded|Tells readers whether it still counts|
+|Context|What problem and constraints were faced then|What successors lack most is the situation at the time|
+|Decision|What was finally decided|Visible in code too, but writing it down completes the record|
+|Alternatives|What else was considered and why it lost|Recording what was given up is the value records uniquely hold|
+|Tradeoffs and consequences|Benefits, costs, known debt|Lets successors inherit the deliberate tradeoff with eyes open|
 
 Three disciplines:
 

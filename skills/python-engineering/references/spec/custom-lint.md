@@ -1,6 +1,6 @@
 # Custom Lint Rules
 
-A custom lint rule is a project-specific check that fails the build when code violates a convention no general-purpose tool knows about. It is a powerful way to make a rule *enforced* rather than *remembered*, but it is also a standing maintenance cost and a potential source of false positives that erode trust in the whole lint suite. Most conventions should not become custom rules. The skill here is recognizing the narrow set that should, designing them so they almost never cry wolf, and placing them where they run cheaply.
+A custom lint rule is a project-specific check that fails the build when code violates a convention no general-purpose tool knows about. It is a powerful way to make a rule _enforced_ rather than _remembered_, but it is also a standing maintenance cost and a potential source of false positives that erode trust in the whole lint suite. Most conventions should not become custom rules. The skill here is recognizing the narrow set that should, designing them so they almost never cry wolf, and placing them where they run cheaply.
 
 ## When A Custom Rule Is Warranted
 

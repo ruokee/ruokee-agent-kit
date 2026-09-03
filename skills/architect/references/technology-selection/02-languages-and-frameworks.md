@@ -12,13 +12,13 @@ The standard: a language/framework choice that measurably affects quality attrib
 
 ## The five rulers
 
-| Ruler | What to ask | Which answers it leans toward |
+|Ruler|What to ask|Which answers it leans toward|
 |-|-|-|
-| Business complexity | Many rules, much state, many permissions? | Strong type system, strong engineering conventions, mature test ecosystem |
-| Performance and resources | Are CPU, memory, P99 tail latency core? | Low runtime overhead, clear concurrency model |
-| Ecosystem maturity | Do payments, auth, ORM, messaging, monitoring have ready-made answers? | Deep ecosystem, rich docs, stable community |
-| Team capability | What does the team know? Is hiring easy? | The team's primary language, or a new language with manageable learning cost |
-| Delivery and evolution | Rapid iteration or long-term high reliability? | Clear framework conventions, explicit migration path |
+|Business complexity|Many rules, much state, many permissions?|Strong type system, strong engineering conventions, mature test ecosystem|
+|Performance and resources|Are CPU, memory, P99 tail latency core?|Low runtime overhead, clear concurrency model|
+|Ecosystem maturity|Do payments, auth, ORM, messaging, monitoring have ready-made answers?|Deep ecosystem, rich docs, stable community|
+|Team capability|What does the team know? Is hiring easy?|The team's primary language, or a new language with manageable learning cost|
+|Delivery and evolution|Rapid iteration or long-term high reliability?|Clear framework conventions, explicit migration path|
 
 Do not switch stacks just because a language looks more advanced. Only when the new technology clearly buys a quality attribute and you are willing to pay the learning, operations, hiring, and migration costs does it merit candidacy.
 
@@ -26,13 +26,13 @@ Do not switch stacks just because a language looks more advanced. Only when the 
 
 Not a ranking—a lens for forming judgment:
 
-| Technology | Common strengths | Common costs | Fits |
+|Technology|Common strengths|Common costs|Fits|
 |-|-|-|-|
-| Java/Kotlin + JVM | Mature ecosystem, enterprise libraries, stable performance | Heavy projects, slow startup, high framework complexity | Mid-to-large business systems, finance, e-commerce, SaaS backends |
-| Go | Simple deployment, direct concurrency model, low footprint | Comparatively heavy engineering-abstraction baggage | Gateways, infrastructure, microservices, real-time paths |
-| Python | Strong AI/data ecosystem, fast prototyping | Watch runtime performance and the concurrency model | AI services, data platforms, low-QPS backends |
-| TypeScript/Node.js | One language across frontend/backend, I/O-concurrency friendly | Unsuitable for CPU-heavy work | BFF, small-to-mid SaaS, light real-time services |
-| Rust | Strong performance and memory safety | Steep learning curve, slower delivery | Storage, proxies, engines, performance-sensitive components |
+|Java/Kotlin + JVM|Mature ecosystem, enterprise libraries, stable performance|Heavy projects, slow startup, high framework complexity|Mid-to-large business systems, finance, e-commerce, SaaS backends|
+|Go|Simple deployment, direct concurrency model, low footprint|Comparatively heavy engineering-abstraction baggage|Gateways, infrastructure, microservices, real-time paths|
+|Python|Strong AI/data ecosystem, fast prototyping|Watch runtime performance and the concurrency model|AI services, data platforms, low-QPS backends|
+|TypeScript/Node.js|One language across frontend/backend, I/O-concurrency friendly|Unsuitable for CPU-heavy work|BFF, small-to-mid SaaS, light real-time services|
+|Rust|Strong performance and memory safety|Steep learning curve, slower delivery|Storage, proxies, engines, performance-sensitive components|
 
 A system need not use one language: main business services in Java/Go/TS; AI inference and data processing in Python; high-performance proxies or storage engines in Rust/Go; frontend and BFF in TypeScript. But polyglot brings a **cognitive tax**: builds, deploys, monitoring, debugging, hiring, and code review all multiply. A small team picking "the most fitting language" per module and introducing five stacks is usually overdrawing organizational capacity ahead of schedule.
 

@@ -7,13 +7,13 @@ flexible and lower-coupling choice.
 
 ## Why inheritance creates coupling
 
-Class inheritance bundles two things that are logically separate: *implementation reuse* (the
-subclass gets the base class's code) and *subtype substitutability* (instances of the subclass
+Class inheritance bundles two things that are logically separate: _implementation reuse_ (the
+subclass gets the base class's code) and _subtype substitutability_ (instances of the subclass
 are expected to work wherever the base type is expected; see
 [Liskov substitution](./solid.md)). When you inherit only to reuse code, you also inherit the
 obligation to honor the base contract, plus exposure to every change in the base class.
 
-This produces the *fragile base class* problem: a change to a base class can break subclasses
+This produces the _fragile base class_ problem: a change to a base class can break subclasses
 in ways that are hard to see, because subclasses depend on the base class's internal behavior,
 not just its public interface. Deep hierarchies amplify this: behavior is smeared across
 several levels, and understanding one class means reading all its ancestors.

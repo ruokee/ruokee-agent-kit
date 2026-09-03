@@ -50,10 +50,10 @@ class SendEmail:
     context: dict[str, object]
 ```
 
-A separate handler (or a `dispatch` map keyed by command type) performs the work, keeping the command itself a plain, serializable record. When a command needs no persistence and only carries behavior, a plain function or `functools.partial` already *is* a command: Python's first-class functions absorb the simplest cases.
+A separate handler (or a `dispatch` map keyed by command type) performs the work, keeping the command itself a plain, serializable record. When a command needs no persistence and only carries behavior, a plain function or `functools.partial` already _is_ a command: Python's first-class functions absorb the simplest cases.
 
 For undo, the command must capture enough prior state to reverse itself, or pair with a [unit-of-work.md](./unit-of-work.md) or memento that snapshots state.
 
 ## Relationship to other patterns
 
-Command and [strategy.md](./strategy.md) both wrap behavior in an object, but Strategy parameterizes *how* something is done (interchangeable algorithms) while Command parameterizes *what* to do and *when*. A queue of commands is a common partner to [observer.md](./observer.md) event handling, where events become commands to process. Undo often combines Command with a memento or [unit-of-work.md](./unit-of-work.md). In Python, weigh every command class against a plain callable; only the need for state, serialization, queuing, audit, or undo justifies the object.
+Command and [strategy.md](./strategy.md) both wrap behavior in an object, but Strategy parameterizes _how_ something is done (interchangeable algorithms) while Command parameterizes _what_ to do and _when_. A queue of commands is a common partner to [observer.md](./observer.md) event handling, where events become commands to process. Undo often combines Command with a memento or [unit-of-work.md](./unit-of-work.md). In Python, weigh every command class against a plain callable; only the need for state, serialization, queuing, audit, or undo justifies the object.

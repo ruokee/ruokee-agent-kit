@@ -14,6 +14,7 @@ msgspec provides automatic validation during deserialization using `msgspec.Meta
 - **General metadata.** description, title, examples
 
 **Benefits.**
+
 - Validation happens automatically during decode
 - Clear, declarative constraints
 - Self-documenting schemas
@@ -90,6 +91,7 @@ valid = StringValidation(
 ```
 
 **Common regex patterns.**
+
 - Email: `r"^[\w\.-]+@[\w\.-]+\.\w+$"`
 - URL: `r"^https?://[\w\.-]+\.\w+(/[\w\.-]*)*$"`
 - UUID: `r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"`
@@ -297,6 +299,7 @@ except ValueError as e:
 ```
 
 Use `__post_init__` for:
+
 - Cross-field validation
 - Invariants that `Meta` cannot express
 - Derived values that depend on several fields
@@ -336,6 +339,7 @@ result3 = safe_decode(b'not json')
 ```
 
 **Error information in `ValidationError`.**
+
 - Field path (for nested structs)
 - Expected type/constraint
 - Actual value received

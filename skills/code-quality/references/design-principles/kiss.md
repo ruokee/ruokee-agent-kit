@@ -4,7 +4,7 @@
 
 KISS says: choose the simplest design that meets the actual goal. The trap is reading "simple" as "short." Simplicity is not measured in lines of code. It is measured in the number of concepts a reader must hold in their head to understand and safely change the code: the number of dependencies, the amount of hidden control flow, the breadth of state, and how far a change has to propagate.
 
-A more operational phrasing: minimize *unnecessary* complexity; the complexity you added, not the complexity the problem inherently has.
+A more operational phrasing: minimize _unnecessary_ complexity; the complexity you added, not the complexity the problem inherently has.
 
 ## Necessary vs accidental complexity
 
@@ -13,7 +13,7 @@ This distinction is the whole principle.
 - **Necessary (essential) complexity** comes from the problem itself. A correct distributed consensus protocol is complex because consensus is hard. A tax engine is complex because tax law is complex. You cannot wish this away.
 - **Accidental complexity** comes from the solution: speculative abstraction layers, configuration knobs nobody asked for, frameworks built for one call site, indirection that exists only to look flexible, clever one-liners that take ten minutes to read.
 
-KISS targets accidental complexity. It does not ask you to pretend a hard problem is easy. When the domain is genuinely complex, the goal is to *contain* that complexity inside a well-bounded module with a simple interface (see [deep-modules.md](./deep-modules.md)), not to spread it thin across the whole system.
+KISS targets accidental complexity. It does not ask you to pretend a hard problem is easy. When the domain is genuinely complex, the goal is to _contain_ that complexity inside a well-bounded module with a simple interface (see [deep-modules.md](./deep-modules.md)), not to spread it thin across the whole system.
 
 ## Simplicity is "fewer concepts," not "fewer lines"
 

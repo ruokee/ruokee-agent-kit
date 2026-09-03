@@ -1,6 +1,6 @@
 # Python Version Policy
 
-A project does not run on "Python" in the abstract; it runs on a range of versions, and that range is a design decision with consequences for syntax, dependencies, and deployment. Two numbers matter, and they are not the same: the *minimum* version the code must support, and the *target* version development and CI assume.
+A project does not run on "Python" in the abstract; it runs on a range of versions, and that range is a design decision with consequences for syntax, dependencies, and deployment. Two numbers matter, and they are not the same: the _minimum_ version the code must support, and the _target_ version development and CI assume.
 
 ## Minimum Versus Target
 
@@ -29,19 +29,19 @@ Each recent release adds capabilities that become usable only once the floor rea
 - **3.11** brings `ExceptionGroup` and `except*` for concurrent and batched failures, exception notes via `add_note()`, and `Self` in typing. See [exception-groups](../grammar/exception-groups.md).
 - **3.12** brings PEP 695: the `type X = ...` alias statement and inline generic parameters (`def f[T](x: T) -> T`), plus `typing.override`. These remove most `TypeVar`/`Generic` boilerplate but are a hard syntax gate; covered in [type-hint](../spec/type-hint.md).
 - **3.13** brings `warnings.deprecated()` as a runtime-and-static deprecation marker, type parameter defaults, and an experimental free-threaded build.
-- **3.14** brings deferred annotation evaluation by default (PEP 649/749), `annotationlib` for reading annotations, and template strings. Code that *reads* annotations at runtime, including frameworks, ORMs, serializers, and DI containers, needs verification against this behavior; see [type-hint](../spec/type-hint.md).
+- **3.14** brings deferred annotation evaluation by default (PEP 649/749), `annotationlib` for reading annotations, and template strings. Code that _reads_ annotations at runtime, including frameworks, ORMs, serializers, and DI containers, needs verification against this behavior; see [type-hint](../spec/type-hint.md).
 
 A feature being available is not a reason to use it. Pattern matching, exception groups, and generics each have a narrow zone where they help; the gate only decides whether the option exists.
 
 ## `requires-python` Semantics
 
-`requires-python` in `[project]` is a constraint on the *installing* interpreter, not a version the build pins. A specifier like `">=3.12"` tells installers and resolvers that the package refuses to install on anything older, and it lets dependency resolvers pick compatible versions of *your* package for *their* environment. It does not download or switch interpreters; it only declares the contract.
+`requires-python` in `[project]` is a constraint on the _installing_ interpreter, not a version the build pins. A specifier like `">=3.12"` tells installers and resolvers that the package refuses to install on anything older, and it lets dependency resolvers pick compatible versions of _your_ package for _their_ environment. It does not download or switch interpreters; it only declares the contract.
 
 Keep `requires-python`, the local `.python-version`, and the CI matrix consistent. When they drift, `requires-python = ">=3.10"` but every developer runs 3.12 and CI never tests 3.10, the floor becomes fiction, and 3.10-incompatible syntax can slip in undetected.
 
 ## Docker And Base Images
 
-When the deployment artifact is a container, the base image tag *is* part of the version policy. Pin a specific minor version (`python:3.12-slim`), not a floating `python:3` or `python:latest`, so the runtime cannot shift under you between builds. The image's interpreter should match the target version, and it must satisfy the declared floor. Slim and distroless variants reduce surface area but change which system libraries are present, which can matter for packages with compiled extensions.
+When the deployment artifact is a container, the base image tag _is_ part of the version policy. Pin a specific minor version (`python:3.12-slim`), not a floating `python:3` or `python:latest`, so the runtime cannot shift under you between builds. The image's interpreter should match the target version, and it must satisfy the declared floor. Slim and distroless variants reduce surface area but change which system libraries are present, which can matter for packages with compiled extensions.
 
 ## When To Bump The Minimum
 

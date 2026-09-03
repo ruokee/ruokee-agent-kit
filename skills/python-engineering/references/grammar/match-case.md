@@ -1,6 +1,6 @@
 # Structural Pattern Matching
 
-`match`/`case` (Python 3.10+, [PEP 634](https://peps.python.org/pep-0634/)) destructures a value by its *shape* and binds names from the parts that match. It is a declarative way to take apart structured data, not a cosmetic replacement for `if`/`elif`.
+`match`/`case` (Python 3.10+, [PEP 634](https://peps.python.org/pep-0634/)) destructures a value by its _shape_ and binds names from the parts that match. It is a declarative way to take apart structured data, not a cosmetic replacement for `if`/`elif`.
 
 ## What It Is
 
@@ -40,7 +40,7 @@ Patterns nest freely, so `case Response(status=200, body={"items": [first, *_]})
 
 ## When It Is Better Than if/elif
 
-`match` earns its place when branching depends on the *structure* of data rather than a single scalar:
+`match` earns its place when branching depends on the _structure_ of data rather than a single scalar:
 
 - Parsing or walking heterogeneous trees (AST nodes, JSON-like documents, protocol messages).
 - Dispatching on the shape of a result: a tuple of one length versus another, a mapping with certain keys, an instance of one class versus another.

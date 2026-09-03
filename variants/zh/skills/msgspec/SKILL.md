@@ -15,16 +15,16 @@ description: 当需要定义结构体、进行数据验证和处理序列化时�
 
 根据任务信号选择最小范围的文档。只阅读任务所需内容。
 
-| 信号 | 优先阅读 | 常搭配阅读 |
+|信号|优先阅读|常搭配阅读|
 |-|-|-|
-| Struct 字段、默认值、重命名、继承、选项 | [struct](./references/struct.md) | supported-types、validation |
-| `Meta`、约束、`ValidationError`、`__post_init__` | [validation](./references/validation.md) | struct |
-| 支持的类型注解、`UNSET`、原生类型和自定义类型 | [supported-types](./references/supported-types.md) | struct、converters |
-| `enc_hook`、`dec_hook`、`convert`、`from_attributes` | [converters](./references/converters.md) | supported-types、serialization |
-| JSON、MessagePack、YAML、TOML、JSONL、可复用编码器或解码器 | [serialization](./references/serialization.md) | supported-types、converters |
-| 在 msgspec、Pydantic 和 dataclasses 之间选择 | [comparison](./references/comparison.md) | best-practices |
-| 用法建议和常见错误 | [best-practices](./references/best-practices.md) | 对应的 API 文档 |
-| 可运行的端到端示例 | [基础用法](./examples/basic_usage.py)、[标签联合](./examples/tagged_union.py)、[自定义转换](./examples/custom_conversion.py) | 对应的参考文档 |
+|Struct 字段、默认值、重命名、继承、选项|[struct](./references/struct.md)|supported-types、validation|
+|`Meta`、约束、`ValidationError`、`__post_init__`|[validation](./references/validation.md)|struct|
+|支持的类型注解、`UNSET`、原生类型和自定义类型|[supported-types](./references/supported-types.md)|struct、converters|
+|`enc_hook`、`dec_hook`、`convert`、`from_attributes`|[converters](./references/converters.md)|supported-types、serialization|
+|JSON、MessagePack、YAML、TOML、JSONL、可复用编码器或解码器|[serialization](./references/serialization.md)|supported-types、converters|
+|在 msgspec、Pydantic 和 dataclasses 之间选择|[comparison](./references/comparison.md)|best-practices|
+|用法建议和常见错误|[best-practices](./references/best-practices.md)|对应的 API 文档|
+|可运行的端到端示例|[基础用法](./examples/basic_usage.py)、[标签联合](./examples/tagged_union.py)、[自定义转换](./examples/custom_conversion.py)|对应的参考文档|
 
 术语含义或中英文对应不清楚时，读取[术语表](./glossary.md)。
 

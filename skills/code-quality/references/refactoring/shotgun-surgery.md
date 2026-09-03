@@ -4,7 +4,7 @@
 
 Shotgun Surgery is the smell where one conceptual change forces you to make many small edits across many different files or classes. You decide to add a new payment method, change how dates are formatted, or rename a field in the wire protocol, and suddenly you are touching a dozen modules, each with a tiny piece of the change. Miss one, and the system is subtly broken. The change is logically single but physically scattered.
 
-The pain is felt at change time, which is what makes it a *change preventer*: the code might read fine in any one place, but the cost of evolving it is high and the risk of an incomplete change is constant. The more places a single decision is smeared across, the more likely some future edit updates most of them and forgets the rest.
+The pain is felt at change time, which is what makes it a _change preventer_: the code might read fine in any one place, but the cost of evolving it is high and the risk of an incomplete change is constant. The more places a single decision is smeared across, the more likely some future edit updates most of them and forgets the rest.
 
 ## The signal
 
@@ -26,7 +26,7 @@ The goal is that a future change of this kind touches one place. You will not al
 
 Shotgun Surgery and [divergent-change.md](./divergent-change.md) are inverse smells, and it is worth holding both in mind because the fixes pull in opposite directions.
 
-- **Shotgun Surgery:** *one change → many modules.* One kind of change is spread across too many places. The fix is to **gather**: pull the pieces together so the change is localized.
-- **Divergent Change:** *one module → many kinds of change.* One module is changed for many unrelated reasons. The fix is to **split**: separate the responsibilities so each changes for one reason.
+- **Shotgun Surgery:** _one change → many modules._ One kind of change is spread across too many places. The fix is to **gather**: pull the pieces together so the change is localized.
+- **Divergent Change:** _one module → many kinds of change._ One module is changed for many unrelated reasons. The fix is to **split**: separate the responsibilities so each changes for one reason.
 
 Both are about aligning module boundaries with the axes along which the code actually changes. Shotgun Surgery says a boundary is missing (a concept has no home); Divergent Change says a boundary is in the wrong place (a module holds too many concepts). The unifying target is the Single Responsibility Principle read as "one reason to change"; see [solid](../design-principles/solid.md). Fixing one can reveal the other, so re-evaluate after each move rather than over-gathering or over-splitting in a single pass.

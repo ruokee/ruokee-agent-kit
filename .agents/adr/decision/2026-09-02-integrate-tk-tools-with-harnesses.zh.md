@@ -24,7 +24,7 @@ Codex 和 Claude Code 使用 MCP。Pi 和 OMP 使用原生 extension。Pi 不设
 
 原生注册前，适配器验证固定可执行文件、version 输出、Rust 兼容性结果、生成 schema 和全部六项操作。预检失败时注册数为零。后续 `registerTool` 失败会停止注册，并可能保留 Harness API 已经接受的前缀。适配器只输出一条有界诊断，不终止 Harness 会话。
 
-当前合同见 [Harness 集成](../../../projects/tk/docs/design/harnesses.zh.md)、[工具 API](../../../projects/tk/docs/design/tool-api.zh.md)和 [tools Skill](../../../projects/tk/skills/tk-zh/SKILL.md)。
+当前合同见 [Harness 集成](../../../projects/tk/docs/design/harnesses.zh.md)、[工具 API](../../../projects/tk/docs/design/tool-api.zh.md) 和 [tools Skill](../../../projects/tk/skills/tk-zh/SKILL.md)。
 
 ## 考虑过的替代方案
 

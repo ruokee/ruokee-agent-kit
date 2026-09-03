@@ -1,6 +1,6 @@
 # Analysis Mode: Code Quality
 
-Advisory mode. The user is asking *what to do*, not *what is wrong*. No diff to grade. Help reason through a design or refactoring decision and converge on one.
+Advisory mode. The user is asking _what to do_, not _what is wrong_. No diff to grade. Help reason through a design or refactoring decision and converge on one.
 
 ## Trigger
 
@@ -16,7 +16,7 @@ Advisory mode. The user is asking *what to do*, not *what is wrong*. No diff to 
 2. Read the relevant reference documents (`skills/code-quality/references/design-principles`, `design-patterns/`, `refactoring/`, `programming-paradigms/`) matching the topic, so the discussion uses the project's real vocabulary.
 3. Present options with tradeoffs. Most design questions have several defensible answers; show the realistic ones and what each costs in change-cost, readability, and complexity.
 4. Frame the discussion in terms of principles, patterns, and paradigms where they genuinely apply, but only invoke a pattern once the variation point it manages actually exists.
-5. Converge. Recommend an option for *this* context and explain why, or ask a focused clarifying question. Don't just enumerate.
+5. Converge. Recommend an option for _this_ context and explain why, or ask a focused clarifying question. Don't just enumerate.
 
 ## Output
 

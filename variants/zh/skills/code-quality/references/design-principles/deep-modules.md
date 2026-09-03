@@ -1,6 +1,6 @@
 # 深模块与信息隐藏（Deep Modules and Information Hiding）
 
-本文档借鉴了 John Ousterhout 的《软件设计哲学》（*A Philosophy of Software Design*）。其核心思想
+本文档借鉴了 John Ousterhout 的《软件设计哲学》（_A Philosophy of Software Design_）。其核心思想
 是一种通过比较接口成本与隐藏内容的价值来判断抽象质量的方法。
 
 ## 深度：接口成本 vs 实现价值

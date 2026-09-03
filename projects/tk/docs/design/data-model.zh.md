@@ -40,16 +40,16 @@ Task 根目录没有永久索引或缓存。发现、搜索和全项目检查按
 
 当前初始 schema 版本是 1。元数据只包含：
 
-| 字段 | 合同 |
-| --- | --- |
-| `schema_version` | 必填正整数 |
-| `id` | 必填 UUIDv7，创建后不可变 |
-| `name` | 必填规范化名称，只有 rename 可修改 |
-| `status` | `planning`、`open` 或 `closed` |
-| `created_at` | 必填、带时区的 RFC 3339 时间戳，创建后不可变 |
-| `depends_on` | 同一 Task 根目录内的 UUID 集合 |
-| `related_to` | 同一 Task 根目录内的 UUID 集合 |
-| `extra` | 可选、可在 JSON 与 TOML 间无损表示的结构化值 |
+|字段|合同|
+|-|-|
+|`schema_version`|必填正整数|
+|`id`|必填 UUIDv7，创建后不可变|
+|`name`|必填规范化名称，只有 rename 可修改|
+|`status`|`planning`、`open` 或 `closed`|
+|`created_at`|必填、带时区的 RFC 3339 时间戳，创建后不可变|
+|`depends_on`|同一 Task 根目录内的 UUID 集合|
+|`related_to`|同一 Task 根目录内的 UUID 集合|
+|`extra`|可选、可在 JSON 与 TOML 间无损表示的结构化值|
 
 schema 不包含 `parent`、`branch`、`updated_at`、最后关闭原因、`paused`、`archived`、安装时间或会话状态。
 
@@ -100,12 +100,12 @@ UUIDv7 是权威身份。路径是定位符，rename 可以改变路径。名称
 
 ## 生命周期
 
-| 当前状态 | 目标状态 | 要求 |
-| --- | --- | --- |
-| `planning` | `open` | 允许，自动追加 WAL |
-| `planning` | `closed` | 非空原因、当前授权、关闭检查 |
-| `open` | `closed` | 非空原因、当前授权、关闭检查 |
-| `closed` | `open` | 非空原因、当前授权、没有已关闭祖先 |
+|当前状态|目标状态|要求|
+|-|-|-|
+|`planning`|`open`|允许，自动追加 WAL|
+|`planning`|`closed`|非空原因、当前授权、关闭检查|
+|`open`|`closed`|非空原因、当前授权、关闭检查|
+|`closed`|`open`|非空原因、当前授权、没有已关闭祖先|
 
 普通关闭要求所有后代和依赖目标已关闭。强制关闭只绕过后代和依赖检查，不绕过授权、原因、schema、路径、Git 或关系验证。
 
@@ -147,7 +147,7 @@ read、search 和纯诊断不会因为 Git 策略被拒绝。tk 永远不修改 
 
 省略状态过滤器或传入空数组时，搜索 `planning`、`open` 和 `closed` 全部状态。非空状态数组才缩小结果集。文件系统遍历不会在 closed 父 Task 处停止，结果会报告 closed 祖先。
 
-搜索排序和匹配方式由[工具 API](./tool-api.zh.md#搜索)定义。
+搜索排序和匹配方式由[工具 API](./tool-api.zh.md#搜索) 定义。
 
 ## WAL
 

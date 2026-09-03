@@ -373,6 +373,7 @@ print(user_dto)
 ```
 
 **from_attributes parameter.**
+
 - `from_attributes=True`: Read values from object attributes (`obj.attr`)
 - Default (`False`): Read values from object keys (`obj["key"]`)
 

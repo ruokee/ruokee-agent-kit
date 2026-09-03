@@ -55,4 +55,4 @@ If an exception occurs before `commit()`, the context manager's `__exit__` calls
 
 ## Relationship To Repository
 
-[Repository](./repository.md) provides the collection-like API for individual aggregates. Unit of Work coordinates *when* those changes are persisted. They compose naturally: the Unit of Work owns or provides access to repositories, and all repository operations within a Unit of Work share its transaction scope. See also [DDD aggregate boundaries](../design-principles/ddd.md) for deciding what constitutes an aggregate.
+[Repository](./repository.md) provides the collection-like API for individual aggregates. Unit of Work coordinates _when_ those changes are persisted. They compose naturally: the Unit of Work owns or provides access to repositories, and all repository operations within a Unit of Work share its transaction scope. See also [DDD aggregate boundaries](../design-principles/ddd.md) for deciding what constitutes an aggregate.

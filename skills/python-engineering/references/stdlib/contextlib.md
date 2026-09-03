@@ -18,13 +18,13 @@ def acquired(resource):
         resource.close()
 ```
 
-The generator must yield exactly once. An exception raised inside the `with` body is re-raised *at* the `yield` point, which is why cleanup belongs in `finally` rather than after a bare `yield`. `@asynccontextmanager` is the coroutine equivalent, driven by `async with`, with `await` allowed around the `yield`.
+The generator must yield exactly once. An exception raised inside the `with` body is re-raised _at_ the `yield` point, which is why cleanup belongs in `finally` rather than after a bare `yield`. `@asynccontextmanager` is the coroutine equivalent, driven by `async with`, with `await` allowed around the `yield`.
 
 This decorator form is the right default for sequential setup/teardown logic. Reach for a full class only when you need reuse as an instance, multiple methods, or reentrancy.
 
 ## ExitStack and AsyncExitStack
 
-`ExitStack` manages a *dynamic* set of context managers: when the number of resources is not known at parse time, or resources are acquired in a loop:
+`ExitStack` manages a _dynamic_ set of context managers: when the number of resources is not known at parse time, or resources are acquired in a loop:
 
 ```python
 from contextlib import ExitStack

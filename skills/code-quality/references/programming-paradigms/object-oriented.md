@@ -9,7 +9,7 @@ OO provides the most value when a concept has a long-lived identity, internal st
 ## The assumption underneath
 
 - When a concept has lasting identity, internal state, invariants, and related behavior, modeling it as an object keeps the logic that protects those invariants in one place.
-- An object's interface should express *meaning*, not expose its internal storage layout.
+- An object's interface should express _meaning_, not expose its internal storage layout.
 - Inheritance models a genuine subtype relationship or a framework extension point; reuse of implementation is better served by composition.
 
 ## When it fits
@@ -19,7 +19,7 @@ OO provides the most value when a concept has a long-lived identity, internal st
 - Objects with an obvious lifecycle: a connection pool, a transaction, a cache, a task runner.
 - Polymorphism: several implementations behind one interface, selected at runtime: though in Python a `Protocol` plus plain functions often expresses this with less ceremony.
 
-The test for "should this be an object" is whether bundling the data with its operations *protects an invariant that would otherwise be everyone's responsibility*. A `Money` type that refuses to add two different currencies, or a `DateRange` that refuses to construct with `end < start`, earns its class because the guarantee lives in one place and no caller can bypass it:
+The test for "should this be an object" is whether bundling the data with its operations _protects an invariant that would otherwise be everyone's responsibility_. A `Money` type that refuses to add two different currencies, or a `DateRange` that refuses to construct with `end < start`, earns its class because the guarantee lives in one place and no caller can bypass it:
 
 ```python
 @dataclass(frozen=True)
@@ -75,4 +75,4 @@ The difference is not style. In the first form, a new caller that forgets the ch
 
 ## Relationship to other paradigms
 
-A long-lived object with invariants is often best paired with a [state-machine.md](./state-machine.md) for its lifecycle. The decision *logic* inside its methods can still be pure and pushed toward a [functional-core.md](./functional-core.md). "More OO" is never the goal; the goal is to put state, invariants, and behavior at the boundary where they belong.
+A long-lived object with invariants is often best paired with a [state-machine.md](./state-machine.md) for its lifecycle. The decision _logic_ inside its methods can still be pure and pushed toward a [functional-core.md](./functional-core.md). "More OO" is never the goal; the goal is to put state, invariants, and behavior at the boundary where they belong.

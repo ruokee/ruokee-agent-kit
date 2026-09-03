@@ -11,7 +11,7 @@ The core value is that domain code works with domain objects through a clean int
 - **Domain objects**: pure domain entities or aggregates returned by the repository.
 - **Application/service layer**: uses the repository interface, not the concrete implementation.
 
-The dependency direction flows inward: domain code depends on the repository *interface*, and the concrete implementation depends on the domain objects it persists. This is [dependency inversion](../design-principles/dependency-inversion.md) applied to persistence.
+The dependency direction flows inward: domain code depends on the repository _interface_, and the concrete implementation depends on the domain objects it persists. This is [dependency inversion](../design-principles/dependency-inversion.md) applied to persistence.
 
 ## When The Pattern Fits
 
@@ -43,7 +43,7 @@ The dependency direction flows inward: domain code depends on the repository *in
 
 ## Relationship To Unit Of Work
 
-Repository handles individual aggregate persistence through a collection-like API. [Unit of Work](./unit-of-work.md) handles transactional consistency across multiple repositories. They are complementary: Repository provides the collection interface, Unit of Work provides the commit/rollback boundary. Together they give the application layer control over both *what to persist* and *when to persist*.
+Repository handles individual aggregate persistence through a collection-like API. [Unit of Work](./unit-of-work.md) handles transactional consistency across multiple repositories. They are complementary: Repository provides the collection interface, Unit of Work provides the commit/rollback boundary. Together they give the application layer control over both _what to persist_ and _when to persist_.
 
 ## Relationship To Facade
 

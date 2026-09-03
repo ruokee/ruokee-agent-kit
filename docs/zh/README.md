@@ -41,6 +41,28 @@ tk 通过一个 Rust 运行时和面向 Codex、Claude Code、Pi、OMP 的自包
 
 ## 开发
 
+Markdown 格式化需要 Node.js 18 或更高版本。安装锁定版本的依赖：
+
+```bash
+pnpm install --frozen-lockfile
+```
+
+格式化或检查全部 Markdown 文件：
+
+```bash
+pnpm docs:format
+pnpm docs:lint
+```
+
+将指定文件直接传给 Prettier：
+
+```bash
+pnpm exec prettier --write README.md docs/zh/README.md
+pnpm exec prettier --check README.md docs/zh/README.md
+```
+
+如果 Prettier 无法加载 Plugin，请重新运行 `pnpm install --frozen-lockfile`。
+
 安装 Git hook：
 
 ```bash

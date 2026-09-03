@@ -10,23 +10,23 @@ The same "order notifies inventory to deduct" can be a synchronous REST call, a 
 
 ## First cut: synchronous or asynchronous
 
-| Style | Fits | Cost |
+|Style|Fits|Cost|
 |-|-|-|
-| Synchronous request/response | The caller waits for the result on the spot, needs immediate validation, must learn of failure at once | Every hop stacks tail latency; any dependency's failure propagates down the chain |
-| Async messaging/events | Completion may lag; peak shaving needed; one datum feeding multiple downstreams | State progression gets complex; idempotency, compensation, and backlog governance must be added |
-| Streaming | Output while generating, real-time state refresh, long-task progress | Connection keepalive, backpressure, and resume-after-disconnect must be handled |
+|Synchronous request/response|The caller waits for the result on the spot, needs immediate validation, must learn of failure at once|Every hop stacks tail latency; any dependency's failure propagates down the chain|
+|Async messaging/events|Completion may lag; peak shaving needed; one datum feeding multiple downstreams|State progression gets complex; idempotency, compensation, and backlog governance must be added|
+|Streaming|Output while generating, real-time state refresh, long-task progress|Connection keepalive, backpressure, and resume-after-disconnect must be handled|
 
 Rules of thumb: the user must know immediately whether to proceed → sync; only needs to know it was accepted → async; needs to see change continuously → streaming.
 
 ## Protocols each have their edge; they are not substitutes
 
-| Style | Better for | Not for |
+|Style|Better for|Not for|
 |-|-|-|
-| REST | Public APIs, ordinary web/SaaS, easy debugging, universal ecosystem | High-frequency internal calls, strict typed-contract demands |
-| gRPC | Internal service-to-service, low latency, high throughput, strong IDL | Direct browser access, public APIs |
-| GraphQL | Multi-client aggregated queries, frequently changing fields, frontend needs flexible composition | Complex writes; teams weak in caching/permission/rate-limit governance |
-| Webhook | Third-party event notification, payment callbacks, external integration | Core paths needing synchronous, strong results |
-| MCP | Exposing tools, resources, and context to AI agents | Ordinary business service communication without agent semantics |
+|REST|Public APIs, ordinary web/SaaS, easy debugging, universal ecosystem|High-frequency internal calls, strict typed-contract demands|
+|gRPC|Internal service-to-service, low latency, high throughput, strong IDL|Direct browser access, public APIs|
+|GraphQL|Multi-client aggregated queries, frequently changing fields, frontend needs flexible composition|Complex writes; teams weak in caching/permission/rate-limit governance|
+|Webhook|Third-party event notification, payment callbacks, external integration|Core paths needing synchronous, strong results|
+|MCP|Exposing tools, resources, and context to AI agents|Ordinary business service communication without agent semantics|
 
 Public APIs favor understandable, stable, versionable; internal high-frequency calls favor strong contracts and performance; multi-client frontend aggregation considers GraphQL but demands governance capability; third-party callbacks must handle signing, idempotency, and replay attacks; agent tool interfaces must write permissions and human review into the protocol boundary.
 

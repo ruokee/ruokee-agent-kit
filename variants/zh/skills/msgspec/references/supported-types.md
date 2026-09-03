@@ -75,6 +75,7 @@ msgspec 原生支持以下标准库类型，无需自定义转换钩子：
 ### 原生支持 vs 自定义钩子
 
 **原生支持的类型。**
+
 - 所有内置类型（int, str, list, dict 等）
 - datetime, date, time, timedelta
 - uuid.UUID
@@ -83,6 +84,7 @@ msgspec 原生支持以下标准库类型，无需自定义转换钩子：
 - dataclasses.dataclass
 
 **需要自定义钩子的类型。**
+
 - `pathlib.Path` - 需要使用 `enc_hook` 和 `dec_hook` 转换为字符串
 - 第三方库类型（如 ORM 模型）
 - 自定义类（非 msgspec.Struct 或 dataclass）

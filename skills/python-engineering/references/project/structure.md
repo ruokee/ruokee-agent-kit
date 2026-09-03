@@ -30,7 +30,7 @@ project/
     └── test_app.py
 ```
 
-It is intuitive, has low startup cost, and is common in small libraries, historical projects, and simple internal tools. Its structural weakness is that the project root naturally enters `sys.path`, so local tests and scripts tend to import the *source directory* rather than the *installed artifact*: masking packaging mistakes such as a missing file in the built wheel.
+It is intuitive, has low startup cost, and is common in small libraries, historical projects, and simple internal tools. Its structural weakness is that the project root naturally enters `sys.path`, so local tests and scripts tend to import the _source directory_ rather than the _installed artifact_: masking packaging mistakes such as a missing file in the built wheel.
 
 The real degradation risk is not flat layout itself but its collapse into a "big script directory": `run.py`, `utils.py`, `db.py`, `api.py` all scattered at the root, importing each other through the current directory, with entry points and library logic tangled together and import-time side effects no one can trace. If you choose flat layout, still keep a clear package directory, separate entry scripts from importable logic, and forbid heavy import-time side effects (reading the environment, opening connections, starting threads).
 
@@ -50,7 +50,7 @@ project/
     └── test_app.py
 ```
 
-The point of the separation is *import safety*: because `src/` is not on `sys.path` by default, you cannot accidentally import the package from the source tree. Tests run against the *installed* package (via an editable install), so they exercise the same import paths and packaging boundaries that real users will. This catches a class of bugs, a module missing from the build, a data file not packaged, that flat layout hides until release.
+The point of the separation is _import safety_: because `src/` is not on `sys.path` by default, you cannot accidentally import the package from the source tree. Tests run against the _installed_ package (via an editable install), so they exercise the same import paths and packaging boundaries that real users will. This catches a class of bugs, a module missing from the build, a data file not packaged, that flat layout hides until release.
 
 Choose src layout for any project that will be published, deployed, or maintained over time: libraries, SDKs, frameworks, CLIs, web services, and workspace members. The cost is a slightly higher initial mental model (you must install the package, even if editable, to run it) in exchange for tests that mean what they claim. Local development uses an editable install or an equivalent uv-managed environment; never depend on hand-edited `PYTHONPATH`.
 
@@ -94,19 +94,19 @@ repo/
 └── tests/
 ```
 
-Introduce a workspace only when there are genuinely at least two packages with distinct, describable responsibilities, a clear dependency *direction* between them, and shared packages that expose a stable API rather than internal directories temporarily carved out of an application. The workspace root owns shared tool configuration and whole-repo commands; each member owns its own metadata and runtime dependencies. Application members must not reach into a shared package's internals; they depend on its public API and on the declared direction only.
+Introduce a workspace only when there are genuinely at least two packages with distinct, describable responsibilities, a clear dependency _direction_ between them, and shared packages that expose a stable API rather than internal directories temporarily carved out of an application. The workspace root owns shared tool configuration and whole-repo commands; each member owns its own metadata and runtime dependencies. Application members must not reach into a shared package's internals; they depend on its public API and on the declared direction only.
 
 Do not reach for a workspace just because there are many directories, or to split one large application by folder, or when packages import each other's internals with no stable boundary. Without whole-repo tests, type checking, and a dependency-upgrade strategy, a workspace amplifies coupling instead of containing it.
 
 ## Decision Table
 
-| Project type | Recommended layout | Signals to migrate up |
+|Project type|Recommended layout|Signals to migrate up|
 |-|-|-|
-| One-off automation, experiment | Single-file script (PEP 723) | Multiple helpers, test needs, a config file, or another module wants to import it |
-| Small library, simple internal tool | Flat layout | Multiple entry points, dependency groups, or packaging mistakes start slipping through |
-| Published library, SDK, framework | Src layout | (Default for anything maintained or released) |
-| CLI, web/API, service, internal app | Packaged application (src + `[project]`) | Deployment artifacts, entry points, and lockfile needed |
-| App + shared libs, service group, monorepo | Workspace | Two+ packages with stable APIs and a clear dependency direction |
+|One-off automation, experiment|Single-file script (PEP 723)|Multiple helpers, test needs, a config file, or another module wants to import it|
+|Small library, simple internal tool|Flat layout|Multiple entry points, dependency groups, or packaging mistakes start slipping through|
+|Published library, SDK, framework|Src layout|(Default for anything maintained or released)|
+|CLI, web/API, service, internal app|Packaged application (src + `[project]`)|Deployment artifacts, entry points, and lockfile needed|
+|App + shared libs, service group, monorepo|Workspace|Two+ packages with stable APIs and a clear dependency direction|
 
 When in doubt between flat and src for anything that will outlive the week, prefer src: the import-safety guarantee is cheap insurance against packaging surprises.
 
@@ -114,4 +114,4 @@ When in doubt between flat and src for anything that will outlive the week, pref
 
 Across all packaged forms, keep tests in a top-level `tests/` directory, not inside the production package, unless the ecosystem has a strong contrary convention. Name tests after behaviors and boundaries rather than mechanically mirroring every implementation file; for large frameworks and SDKs a loose mirror of the package tree aids navigation. Point the test runner at the test directory explicitly (`testpaths = ["tests"]`) so it never wanders into temporary directories or built docs. Coverage source should point at the actual package path so tooling and scripts do not pollute production coverage numbers. Detailed test conventions live in [testing](../spec/testing.md).
 
-Tool configuration centralizes in `pyproject.toml` under `[tool.*]`, with the exceptions that tools genuinely require their own files (pre-commit keeps `.pre-commit-config.yaml`). Entry points for installed commands belong in `[project.scripts]`; a `__main__.py` enables `python -m app_name`. The guiding rule is that project shape, dependency groups, test scope, and type-check scope should all be *explicit in configuration* rather than implied by whatever the current directory happens to make importable.
+Tool configuration centralizes in `pyproject.toml` under `[tool.*]`, with the exceptions that tools genuinely require their own files (pre-commit keeps `.pre-commit-config.yaml`). Entry points for installed commands belong in `[project.scripts]`; a `__main__.py` enables `python -m app_name`. The guiding rule is that project shape, dependency groups, test scope, and type-check scope should all be _explicit in configuration_ rather than implied by whatever the current directory happens to make importable.

@@ -6,7 +6,7 @@ A resource is anything that must be acquired and later released: a file handle, 
 
 Every resource needs exactly one owner: the code responsible for releasing it. Ambiguous ownership is the root of both leaks (everyone assumed someone else would close it) and use-after-close bugs (one holder closed it while another still needed it).
 
-The clearest rule is that the code which creates a resource owns it and closes it, and it does so within a scope it controls. When a function needs a resource only for its own duration, it should create, use, and release it locally. When a resource must outlive a single function, ownership moves up to a longer-lived holder, an application object, a context, a pool, and that holder's lifecycle becomes the resource's lifecycle. Passing an open resource into a function that does *not* own it is fine, as long as the convention is clear: the callee uses it, the caller closes it.
+The clearest rule is that the code which creates a resource owns it and closes it, and it does so within a scope it controls. When a function needs a resource only for its own duration, it should create, use, and release it locally. When a resource must outlive a single function, ownership moves up to a longer-lived holder, an application object, a context, a pool, and that holder's lifecycle becomes the resource's lifecycle. Passing an open resource into a function that does _not_ own it is fine, as long as the convention is clear: the callee uses it, the caller closes it.
 
 A function signature can make ownership explicit. A function that accepts an already-open resource borrows it; a function that opens its own resource owns it. Mixing the two, sometimes opening, sometimes accepting, is where ownership becomes ambiguous and resources leak.
 
@@ -39,7 +39,7 @@ Do not rely on `__del__` or CPython reference counting to release files, locks, 
 
 ## Scope-bound vs dynamic resource sets
 
-For a fixed, statically known set of resources, nested `with` statements (or a single `with` with multiple managers) are the clearest expression. When the *number* of resources is dynamic, opening one file per input path, acquiring a variable set of connections, use `contextlib.ExitStack` (or `AsyncExitStack`) instead of hand-writing a nested cleanup stack:
+For a fixed, statically known set of resources, nested `with` statements (or a single `with` with multiple managers) are the clearest expression. When the _number_ of resources is dynamic, opening one file per input path, acquiring a variable set of connections, use `contextlib.ExitStack` (or `AsyncExitStack`) instead of hand-writing a nested cleanup stack:
 
 ```python
 from contextlib import ExitStack
@@ -73,7 +73,7 @@ This is the other reason to prefer `with` and `ExitStack` over manual setup: the
 
 ## Pooling and lease patterns
 
-When acquisition is expensive (database connections, HTTP sessions), a pool owns a set of long-lived resources and *leases* them to callers for the duration of a unit of work. The lease, not the resource, is what the caller acquires and releases: typically via a context manager that checks the resource out on entry and returns it to the pool on exit. The discipline is identical: the leased resource has a clear scope, and it returns to the pool on every path out, including exceptions. A leaked lease is worse than a leaked file, because it permanently shrinks the pool until exhaustion.
+When acquisition is expensive (database connections, HTTP sessions), a pool owns a set of long-lived resources and _leases_ them to callers for the duration of a unit of work. The lease, not the resource, is what the caller acquires and releases: typically via a context manager that checks the resource out on entry and returns it to the pool on exit. The discipline is identical: the leased resource has a clear scope, and it returns to the pool on every path out, including exceptions. A leaked lease is worse than a leaked file, because it permanently shrinks the pool until exhaustion.
 
 ```python
 def handle_request() -> Result:

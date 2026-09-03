@@ -12,12 +12,12 @@ tk currently supports Codex, Claude Code, Pi, and OMP. Adding a Harness requires
 
 A Harness component is a self-contained tk unit assembled and installed for one Harness, mode, and language selection. The Skill mapping is:
 
-| Mode | Language | Skill |
-| --- | --- | --- |
-| `tools` | `en` | `tk` |
-| `tools` | `zh` | `tk-zh` |
-| `cli` | `en` | `tk-cli` |
-| `cli` | `zh` | `tk-cli-zh` |
+|Mode|Language|Skill|
+|-|-|-|
+|`tools`|`en`|`tk`|
+|`tools`|`zh`|`tk-zh`|
+|`cli`|`en`|`tk-cli`|
+|`cli`|`zh`|`tk-cli-zh`|
 
 Tools-mode components contain the selected Skill and the Harness's tk integration. CLI-mode components contain the selected CLI Skill. Claude Code, Pi, and OMP also retain the native manifest needed to load it; Codex needs no manifest. CLI-mode components contain no MCP configuration or native tool extension. A component does not contain the runtime executable, another Harness's content, review materials, or product source code.
 

@@ -6,11 +6,11 @@ The hard constraints that networks, time, concurrency, and partial failure impos
 
 Three things taken for granted in single-machine programs all vanish once you cross to a second machine:
 
-| Single-machine world | Distributed world |
+|Single-machine world|Distributed world|
 |-|-|
-| Function calls always arrive | The network is unreliable: loss, reordering, duplication, delay, partition |
-| One "now" for the whole world | No global clock: every machine's watch disagrees; "simultaneous" is an illusion |
-| Either success or failure | Partial failure: some nodes succeed, some fail, some are of unknown status |
+|Function calls always arrive|The network is unreliable: loss, reordering, duplication, delay, partition|
+|One "now" for the whole world|No global clock: every machine's watch disagrees; "simultaneous" is an illusion|
+|Either success or failure|Partial failure: some nodes succeed, some fail, some are of unknown status|
 
 Partial failure is the deadliest. You send a request to another machine and hear nothing for two seconds: did it not receive it? Is it computing? Did the reply get lost? Or is the whole machine down? **You cannot distinguish it being dead from it being slow** (gray failure). The only weapon is the timeout, and a timeout is inherently a guess: guess short, and you misjudge a merely-slow node as dead while retries pile on; guess long, and failure recovery turns sluggish. Distributed reliability design is, to a large extent, wrestling with "cannot tell dead from slow".
 
@@ -20,12 +20,12 @@ The mental flip: in the single-machine era, calls are assumed to succeed; in the
 
 Between strong and eventual consistency sit intermediate steps; each step stronger costs latency and availability:
 
-| Step | Guarantee | Fits |
+|Step|Guarantee|Fits|
 |-|-|-|
-| Linearizability | Anyone reading any node immediately sees the latest value, as if one machine existed | ATM balances, uniqueness allocation |
-| Sequential consistency | Everyone sees the same order, though possibly not in real time | Configuration rollout |
-| Causal consistency | Causally related operations keep their order; unrelated concurrent ones are not forced into order | Group chat, comments |
-| Eventual consistency | Converges eventually; during the window, everyone sees their own view | Like counts, view counts |
+|Linearizability|Anyone reading any node immediately sees the latest value, as if one machine existed|ATM balances, uniqueness allocation|
+|Sequential consistency|Everyone sees the same order, though possibly not in real time|Configuration rollout|
+|Causal consistency|Causally related operations keep their order; unrelated concurrent ones are not forced into order|Group chat, comments|
+|Eventual consistency|Converges eventually; during the window, everyone sees their own view|Like counts, view counts|
 
 Causal consistency is a practical middle step: you replied to my message—causally related operations appear in the same order for everyone; two strangers posting independently—whose came first does not matter. It is far cheaper than linearizability yet avoids the absurdity of seeing a reply before the original post.
 

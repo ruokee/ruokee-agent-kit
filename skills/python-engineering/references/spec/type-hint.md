@@ -59,11 +59,11 @@ type Handler = Callable[[Request], Awaitable[Response]]
 type Json = dict[str, "Json"] | list["Json"] | str | int | float | bool | None
 ```
 
-An alias adds clarity when a type expression is long, repeated, or carries domain meaning a bare structure hides. `type Handler = Callable[[Request], Awaitable[Response]]` tells a reader what the callable is *for* in a way the raw signature does not, and a recursive alias like `Json` would be unreadable inlined at every use site.
+An alias adds clarity when a type expression is long, repeated, or carries domain meaning a bare structure hides. `type Handler = Callable[[Request], Awaitable[Response]]` tells a reader what the callable is _for_ in a way the raw signature does not, and a recursive alias like `Json` would be unreadable inlined at every use site.
 
 The failure mode is an alias that hides structure the reader needs. Aliasing `int` to `Count` rarely helps: the reader gains a name but loses the knowledge that it is an `int` they can do arithmetic on, and the checker treats them as identical anyway, so it catches nothing. Use an alias when the name carries information the structure does not; avoid it when it merely renames something already clear.
 
-When you want a *distinct* type the checker enforces, so a `UserId` cannot be passed where an `OrderId` is expected even though both are `int` underneath, that is `NewType`, not an alias:
+When you want a _distinct_ type the checker enforces, so a `UserId` cannot be passed where an `OrderId` is expected even though both are `int` underneath, that is `NewType`, not an alias:
 
 ```python
 from typing import NewType
@@ -76,7 +76,7 @@ OrderId = NewType("OrderId", int)
 
 ## Gradual Typing Strategy
 
-Python's type system is gradual by design: typed and untyped code coexist, and `Any` is the seam between them. A sound strategy is not "type everything to the maximum" but "make the boundaries strict and contain the looseness." Public signatures and module edges should be fully and precisely typed. The messy interior, parsing arbitrary JSON, bridging an untyped third-party library, is where `Any` legitimately lives, and the goal is to *contain* it: convert external data into a typed shape as early as possible, so `Any` does not leak past the adapter layer into the rest of the code.
+Python's type system is gradual by design: typed and untyped code coexist, and `Any` is the seam between them. A sound strategy is not "type everything to the maximum" but "make the boundaries strict and contain the looseness." Public signatures and module edges should be fully and precisely typed. The messy interior, parsing arbitrary JSON, bridging an untyped third-party library, is where `Any` legitimately lives, and the goal is to _contain_ it: convert external data into a typed shape as early as possible, so `Any` does not leak past the adapter layer into the rest of the code.
 
 ```python
 def load_config(raw: object) -> Config:
@@ -89,7 +89,7 @@ def load_config(raw: object) -> Config:
 
 The danger of `Any` is that it is contagious: any expression touching an `Any` value becomes `Any`, silently switching off checking for everything downstream. A single un-contained `Any` at the top of a call chain can disable the contract for an entire subsystem. Containment, narrowing it to a typed shape at the first opportunity, is what keeps the rest of the code honest.
 
-`cast` is the explicit escape hatch for when you know more than the checker can prove: asserting a type after a runtime check the checker cannot follow, or narrowing a value the checker sees as broad. It generates no runtime check; it simply tells the checker "trust me here." That makes it a precision tool, not a way to silence errors in bulk: each `cast` is a small unchecked assertion, and a function full of them has lost the contract it was supposed to provide. Prefer a runtime check the checker *can* follow over a `cast` whenever one exists:
+`cast` is the explicit escape hatch for when you know more than the checker can prove: asserting a type after a runtime check the checker cannot follow, or narrowing a value the checker sees as broad. It generates no runtime check; it simply tells the checker "trust me here." That makes it a precision tool, not a way to silence errors in bulk: each `cast` is a small unchecked assertion, and a function full of them has lost the contract it was supposed to provide. Prefer a runtime check the checker _can_ follow over a `cast` whenever one exists:
 
 ```python
 # Prefer this: the checker follows the narrowing itself:
@@ -119,7 +119,7 @@ def consume(source: Readable) -> bytes:
 
 Any object with a matching `read` satisfies `Readable`, a file, a socket wrapper, an in-memory buffer, without any of them importing or subclassing it.
 
-Choose `Protocol` when you want to accept anything matching a shape, especially types you do not own and cannot make inherit from your base. Choose an abstract base class (ABC) when you own the hierarchy, want to share implementation, and want explicit, registered membership. The rule of thumb: `Protocol` for accepting external shapes structurally; ABC for defining a closed hierarchy you control. Protocols also keep the dependency arrow pointing the right way; the *consumer* defines the narrow interface it needs, instead of every producer being forced to import and subclass a base class. This is the typed expression of "depend on abstractions," and it is why a well-placed `Protocol` decouples modules that an ABC would have coupled.
+Choose `Protocol` when you want to accept anything matching a shape, especially types you do not own and cannot make inherit from your base. Choose an abstract base class (ABC) when you own the hierarchy, want to share implementation, and want explicit, registered membership. The rule of thumb: `Protocol` for accepting external shapes structurally; ABC for defining a closed hierarchy you control. Protocols also keep the dependency arrow pointing the right way; the _consumer_ defines the narrow interface it needs, instead of every producer being forced to import and subclass a base class. This is the typed expression of "depend on abstractions," and it is why a well-placed `Protocol` decouples modules that an ABC would have coupled.
 
 ## TYPE_CHECKING And Runtime Isolation
 
@@ -135,11 +135,11 @@ if TYPE_CHECKING:
 def load(user_id: int) -> "User": ...
 ```
 
-The checker sees the import and validates the annotation; the interpreter never runs it. This is the preferred tool for breaking annotation-only import cycles and deferring expensive imports, and it is the right answer to most situations where `from __future__ import annotations` is reached for; it solves the forward-reference and cycle problem locally, without committing the whole module to stringized-annotation semantics. The one caveat: a name imported under `TYPE_CHECKING` does not exist at runtime, so any code that *reads* annotations at runtime (frameworks, ORMs, serializers, DI containers) cannot resolve it the naive way. When runtime introspection matters, the version-specific behavior in [python-version](../project/python-version.md) governs how annotations should be read.
+The checker sees the import and validates the annotation; the interpreter never runs it. This is the preferred tool for breaking annotation-only import cycles and deferring expensive imports, and it is the right answer to most situations where `from __future__ import annotations` is reached for; it solves the forward-reference and cycle problem locally, without committing the whole module to stringized-annotation semantics. The one caveat: a name imported under `TYPE_CHECKING` does not exist at runtime, so any code that _reads_ annotations at runtime (frameworks, ORMs, serializers, DI containers) cannot resolve it the naive way. When runtime introspection matters, the version-specific behavior in [python-version](../project/python-version.md) governs how annotations should be read.
 
 ## collections.abc For Interface Boundaries
 
-When typing what a function *accepts*, prefer the abstract types in `collections.abc` over concrete ones. A function that only iterates should take `Iterable[T]`, not `list[T]`; one that only looks things up should take `Mapping[K, V]`, not `dict[K, V]`:
+When typing what a function _accepts_, prefer the abstract types in `collections.abc` over concrete ones. A function that only iterates should take `Iterable[T]`, not `list[T]`; one that only looks things up should take `Mapping[K, V]`, not `dict[K, V]`:
 
 ```python
 from collections.abc import Iterable
@@ -149,7 +149,7 @@ def total(values: Iterable[int]) -> int:
     return sum(values)
 ```
 
-Typed as `Iterable[int]`, `total` accepts a list, a tuple, a generator, a set, or any custom iterable, and the signature simultaneously *promises* it will only iterate, never index or mutate. Typing the parameter as `list[int]` would reject all those callers and over-claim what the function may do internally.
+Typed as `Iterable[int]`, `total` accepts a list, a tuple, a generator, a set, or any custom iterable, and the signature simultaneously _promises_ it will only iterate, never index or mutate. Typing the parameter as `list[int]` would reject all those callers and over-claim what the function may do internally.
 
 Use the concrete `list`/`dict` types for return values and for fields you own, where the caller benefits from knowing the exact type they are getting back. The principle mirrors interface design generally: accept the least specific type that supports what you need, return the most specific type you can commit to. Prefer the `collections.abc` forms (`Iterable`, `Sequence`, `Mapping`, `Callable`) over the deprecated `typing` aliases.
 
@@ -162,7 +162,7 @@ Static type checkers read the annotations without running the code, catching con
 - **basedpyright**: a stricter, opinionated fork of pyright, useful as a strict cross-check. It and **ty** can both serve as the LSP in editors like Zed.
 - **ty**: a fast, LSP-integrated checker built for a tight edit-feedback loop and CI. It is newer, so expect occasional behavior changes as it matures; treat adoption as a deliberate, watched choice.
 
-A project picks one as its gate; a second may be enabled temporarily for a migration, a release, or to reconcile a tricky inference difference. The detailed selection and configuration tradeoffs live in the tooling references ([mypy](../tooling/mypy.md), [basedpyright](../tooling/basedpyright.md), [ty](../tooling/ty.md)). What matters at the spec level is that the *annotations* are written to a single, coherent contract; the checker choice is a separate, project-level decision layered on top. Well-typed code does not bind itself to one checker; it expresses one clear contract that any conformant checker can verify.
+A project picks one as its gate; a second may be enabled temporarily for a migration, a release, or to reconcile a tricky inference difference. The detailed selection and configuration tradeoffs live in the tooling references ([mypy](../tooling/mypy.md), [basedpyright](../tooling/basedpyright.md), [ty](../tooling/ty.md)). What matters at the spec level is that the _annotations_ are written to a single, coherent contract; the checker choice is a separate, project-level decision layered on top. Well-typed code does not bind itself to one checker; it expresses one clear contract that any conformant checker can verify.
 
 ## Runtime Type Checking
 

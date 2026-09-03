@@ -1,6 +1,6 @@
 # AI 时代的架构判断（Architecture Judgment in the AI Era）
 
-AI 对架构师工作的两个根本改变：实现廉价化（vibe coding）与 LLM 系统作为新物种。本篇是总纲，给出"什么变了、什么没变"的判断基准；LLM 系统的具体设计约束见[AI 系统设计](./02-ai-system-design.md)。
+AI 对架构师工作的两个根本改变：实现廉价化（vibe coding）与 LLM 系统作为新物种。本篇是总纲，给出"什么变了、什么没变"的判断基准；LLM 系统的具体设计约束见 [AI 系统设计](./02-ai-system-design.md)。
 
 ## 两个同时发生的转变
 
@@ -38,7 +38,7 @@ AI 把实现变成商品，把判断的稀缺性推到历史最高。一个能�
 
 ## 与其他文档的关系
 
-- LLM 系统的完整设计约束展开见[AI 系统设计](./02-ai-system-design.md)。
+- LLM 系统的完整设计约束展开见 [AI 系统设计](./02-ai-system-design.md)。
 - 评测驱动的工程化做法见[评测驱动架构](./05-evaluation-driven-architecture.md)。
 - agent 权限与提示注入的防御见[安全与多租户](../14-security-and-tenancy.md)。
 - 判断力的通用框架（与 AI 无关的部分）见[思维与取舍](../01-thinking-and-tradeoffs.md)。

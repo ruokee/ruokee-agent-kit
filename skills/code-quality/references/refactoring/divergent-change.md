@@ -4,11 +4,11 @@
 
 Divergent Change is the smell where a single module is repeatedly changed for many unrelated reasons. Every time the database schema changes, you edit this module; every time the report format changes, you edit it again; every time a business rule moves, you are back in the same file touching a different part. The module has become a junction where several independent concerns happen to coexist. One file, many unrelated reasons to open it.
 
-It is a *change preventer* because the mixed concerns make every change riskier than it should be: editing the report-formatting code means navigating past the persistence code and the validation code, and a change to one concern can accidentally disturb another. The module also resists understanding, because to know "what this module is about" you have to hold several disjoint topics in your head at once.
+It is a _change preventer_ because the mixed concerns make every change riskier than it should be: editing the report-formatting code means navigating past the persistence code and the validation code, and a change to one concern can accidentally disturb another. The module also resists understanding, because to know "what this module is about" you have to hold several disjoint topics in your head at once.
 
 ## The signal
 
-The detection question is: *for how many different reasons does this module get edited?* If you can look at the commit history (or just imagine the kinds of future requests) and see that this one file changes for "new tax rule," "new export format," "new storage backend," and "new validation policy," those are four reasons, four concerns, one module. A within-file signal is a class or module whose sections have no data or logic in common: the methods cluster into groups that never call each other and never touch the same fields.
+The detection question is: _for how many different reasons does this module get edited?_ If you can look at the commit history (or just imagine the kinds of future requests) and see that this one file changes for "new tax rule," "new export format," "new storage backend," and "new validation policy," those are four reasons, four concerns, one module. A within-file signal is a class or module whose sections have no data or logic in common: the methods cluster into groups that never call each other and never touch the same fields.
 
 A clean contrast with [shotgun-surgery.md](./shotgun-surgery.md) sharpens it: there, one change hits many modules; here, many changes hit one module. They are mirror images.
 

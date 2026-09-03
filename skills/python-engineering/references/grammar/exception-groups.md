@@ -1,6 +1,6 @@
 # Exception Groups
 
-`ExceptionGroup` (Python 3.11+, PEP 654) lets a single raise carry *multiple* unrelated exceptions at once, and `except*` lets a handler select and process the members it cares about while letting the rest propagate. This solves a problem ordinary exceptions cannot: when several operations run together and more than one fails, a normal `try`/`except` can only surface the first failure and loses the others.
+`ExceptionGroup` (Python 3.11+, PEP 654) lets a single raise carry _multiple_ unrelated exceptions at once, and `except*` lets a handler select and process the members it cares about while letting the rest propagate. This solves a problem ordinary exceptions cannot: when several operations run together and more than one fails, a normal `try`/`except` can only surface the first failure and loses the others.
 
 ## The Problem It Solves
 
@@ -14,7 +14,7 @@ An `ExceptionGroup` is a real exception holding a message and a sequence of cont
 raise ExceptionGroup("download failures", [TimeoutError(...), ConnectionError(...)])
 ```
 
-`except*` matches by type against the *members* of the group. Each `except*` clause runs at most once, receiving a subgroup of the matching members; non-matching members continue propagating:
+`except*` matches by type against the _members_ of the group. Each `except*` clause runs at most once, receiving a subgroup of the matching members; non-matching members continue propagating:
 
 ```python
 try:

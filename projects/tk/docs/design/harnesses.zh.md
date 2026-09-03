@@ -12,12 +12,12 @@ Harness 是围绕模型、使模型能够作为 Agent 运行的软件环境，�
 
 Harness 组件是针对一个 Harness、模式和语言选择组装并安装的 tk 自包含单元。Skill 映射为：
 
-| 模式 | 语言 | Skill |
-| --- | --- | --- |
-| `tools` | `en` | `tk` |
-| `tools` | `zh` | `tk-zh` |
-| `cli` | `en` | `tk-cli` |
-| `cli` | `zh` | `tk-cli-zh` |
+|模式|语言|Skill|
+|-|-|-|
+|`tools`|`en`|`tk`|
+|`tools`|`zh`|`tk-zh`|
+|`cli`|`en`|`tk-cli`|
+|`cli`|`zh`|`tk-cli-zh`|
 
 tools 模式组件包含所选 Skill 和该 Harness 的 tk 集成。cli 模式组件包含所选 CLI Skill。Claude Code、Pi 和 OMP 还会保留加载该 Skill 所需的原生 manifest；Codex 不需要 manifest。cli 模式组件不包含 MCP 配置或原生工具 extension。组件不包含运行时可执行文件、其他 Harness 内容、评审材料或产品源码。
 

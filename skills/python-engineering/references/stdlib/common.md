@@ -35,13 +35,13 @@ class Role(StrEnum):
     VIEWER = "viewer"
 ```
 
-`StrEnum` (3.11+) members *are* strings, so they serialize and compare against plain strings directly: convenient for JSON, config, and database columns. A plain `Enum` keeps members distinct from their values, which is safer when you want to forbid accidental string comparison. `IntFlag`/`Flag` model bit-set options that combine with `|`.
+`StrEnum` (3.11+) members _are_ strings, so they serialize and compare against plain strings directly: convenient for JSON, config, and database columns. A plain `Enum` keeps members distinct from their values, which is safer when you want to forbid accidental string comparison. `IntFlag`/`Flag` model bit-set options that combine with `|`.
 
 Enums make exhaustiveness visible: a `match` over enum members can be checked for missing cases. Avoid enums for open-ended or frequently changing value sets, where they add ceremony without payoff. When serializing, pin the wire format to `.value` (or use `StrEnum`) rather than `.name`, so renaming a member does not silently break stored data.
 
 ## dataclasses
 
-`dataclasses` generates `__init__`, `__repr__`, and `__eq__` for classes that are primarily structured data. They suit value objects, configuration bundles, and DTOs where the fields *are* the type.
+`dataclasses` generates `__init__`, `__repr__`, and `__eq__` for classes that are primarily structured data. They suit value objects, configuration bundles, and DTOs where the fields _are_ the type.
 
 ```python
 from dataclasses import dataclass, field
@@ -59,7 +59,7 @@ Choose dataclasses for plain data with little behavior. Reach for `attrs` when y
 
 ## logging
 
-`logging` separates *emitting* diagnostic events from *deciding* where they go. The core split: a **library** configures named loggers and emits records but never configures handlers or levels; an **application** owns handler, level, and format configuration once at startup.
+`logging` separates _emitting_ diagnostic events from _deciding_ where they go. The core split: a **library** configures named loggers and emits records but never configures handlers or levels; an **application** owns handler, level, and format configuration once at startup.
 
 ```python
 import logging
@@ -102,4 +102,4 @@ def all_str(items: list[object]) -> TypeGuard[list[str]]:
     return all(isinstance(x, str) for x in items)
 ```
 
-`@runtime_checkable` lets a `Protocol` be used with `isinstance`, but it checks only attribute *presence*, not signatures, so treat it as a coarse guard. For runtime introspection on Python 3.14+, prefer `annotationlib.get_annotations()`, which is designed around deferred-annotation semantics. Keep runtime type logic at boundaries; do not scatter `isinstance` ladders through code the type checker could verify statically.
+`@runtime_checkable` lets a `Protocol` be used with `isinstance`, but it checks only attribute _presence_, not signatures, so treat it as a coarse guard. For runtime introspection on Python 3.14+, prefer `annotationlib.get_annotations()`, which is designed around deferred-annotation semantics. Keep runtime type logic at boundaries; do not scatter `isinstance` ladders through code the type checker could verify statically.

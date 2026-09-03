@@ -75,6 +75,7 @@ Abstract base classes are supported as type hints, and msgspec automatically sel
 ### Native support vs custom hooks
 
 **Natively supported types.**
+
 - All built-in types (int, str, list, dict, etc.)
 - datetime, date, time, timedelta
 - uuid.UUID
@@ -83,6 +84,7 @@ Abstract base classes are supported as type hints, and msgspec automatically sel
 - dataclasses.dataclass
 
 **Types requiring custom hooks.**
+
 - `pathlib.Path`: Requires `enc_hook` and `dec_hook` to convert to/from strings
 - Third-party library types (e.g., ORM models)
 - Custom classes (not msgspec.Struct or dataclass)

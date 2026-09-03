@@ -24,12 +24,12 @@ Sharding's premise is uniform load, and real load follows a power law: a few key
 
 Detection relies on monitoring the per-key traffic distribution, not just totals. The core idea of spreading has one move: turn a point into a field:
 
-| Lever | How | Fits |
+|Lever|How|Fits|
 |-|-|-|
-| Salting | Split a hot key into `key#1`…`key#N` scattered across shards; aggregate on read | Write hotspots (counters) |
-| Local cache | Cache a copy in the application process; most reads never leave the machine | Read hotspots (config, popular content) |
-| Read replicas | Extra replicas for hot data to share reads | Read-mostly hotspots |
-| Request coalescing | Of N simultaneous requests, let only one hit the backend; the rest await its result | Cache breakdown |
+|Salting|Split a hot key into `key#1`…`key#N` scattered across shards; aggregate on read|Write hotspots (counters)|
+|Local cache|Cache a copy in the application process; most reads never leave the machine|Read hotspots (config, popular content)|
+|Read replicas|Extra replicas for hot data to share reads|Read-mostly hotspots|
+|Request coalescing|Of N simultaneous requests, let only one hit the backend; the rest await its result|Cache breakdown|
 
 Twitter's write-time fan-out (a tweet pushed into every follower's timeline cache) meets a top influencer with tens of millions of followers and it is a disaster (one tweet equals tens of millions of writes). The fix is a hybrid: ordinary users get write-time fan-out; a handful of mega-influencers get read-time pull. For hotspots, spreading the write across tens of millions of places at write time trades for pulling from one place at read time.
 

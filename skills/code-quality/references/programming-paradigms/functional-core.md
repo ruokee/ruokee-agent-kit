@@ -2,9 +2,9 @@
 
 ## What it is
 
-Functional Core, Imperative Shell is an architecture popularized by Gary Bernhardt. It splits a program into two layers with different rules. The *core* holds pure decision logic: given input data, it computes output data and makes no side effects: no I/O, no clock reads, no randomness, no network, no database, no global mutation. The *shell* is the thin imperative layer that talks to the outside world: it reads inputs, calls the core to decide what should happen, then performs the side effects the core asked for.
+Functional Core, Imperative Shell is an architecture popularized by Gary Bernhardt. It splits a program into two layers with different rules. The _core_ holds pure decision logic: given input data, it computes output data and makes no side effects: no I/O, no clock reads, no randomness, no network, no database, no global mutation. The _shell_ is the thin imperative layer that talks to the outside world: it reads inputs, calls the core to decide what should happen, then performs the side effects the core asked for.
 
-The insight is that what makes code hard to test and hard to reason about is almost never the arithmetic or the branching; it is the dependence on the environment. A function that decides *whether* an order can ship is easy to test; a function that decides and also charges a card, writes a row, and sends an email is not. Push the environment to the edge and the interesting logic becomes pure, total, and trivially testable.
+The insight is that what makes code hard to test and hard to reason about is almost never the arithmetic or the branching; it is the dependence on the environment. A function that decides _whether_ an order can ship is easy to test; a function that decides and also charges a card, writes a row, and sends an email is not. Push the environment to the edge and the interesting logic becomes pure, total, and trivially testable.
 
 This is not an official Python concept, but it composes naturally with Python's multi-paradigm style and with the entry-point boundary discipline described in [imperative.md](./imperative.md).
 
@@ -29,7 +29,7 @@ Apply it wherever the interesting decision is separable from the act of carrying
 - Data transformation pipelines where the transform rules are pure and only the read/write ends are impure.
 - CLI and request handlers: the shell parses arguments or HTTP, assembles dependencies, and calls a pure planner; the core returns a decision or a description of work to do.
 
-A useful shape is for the core to return a *description* of side effects (a list of commands, an event, a typed result) and let the shell execute them. The core decides; the shell acts.
+A useful shape is for the core to return a _description_ of side effects (a list of commands, an event, a typed result) and let the shell execute them. The core decides; the shell acts.
 
 ```python
 # core: pure, no I/O; trivial to test with data in, data out
@@ -61,9 +61,9 @@ The failure mode to watch is a shell so thin that transactions, error handling, 
 
 ## Where the boundary goes
 
-Drawing the line well is the whole skill. The seam belongs exactly where a decision is made on the basis of data already in hand. Read everything the decision needs *first*, decide in the core, then act on the decision; do not interleave reads and decisions, because every read pulled into the middle of the logic drags the environment back into the core.
+Drawing the line well is the whole skill. The seam belongs exactly where a decision is made on the basis of data already in hand. Read everything the decision needs _first_, decide in the core, then act on the decision; do not interleave reads and decisions, because every read pulled into the middle of the logic drags the environment back into the core.
 
-A common refinement is to make the core return data that *describes* the effects rather than a bare value:
+A common refinement is to make the core return data that _describes_ the effects rather than a bare value:
 
 ```python
 # core returns a description of what should happen: still pure
@@ -80,12 +80,12 @@ def process(order_id: str) -> None:
         execute(effect)
 ```
 
-Now even the *choice* of which effects to perform is testable without performing any of them: assert on the returned list. The shell shrinks to a dumb interpreter, and the interesting branching is all in the core. This is the same shape a [state-machine.md](./state-machine.md) reducer takes when it returns `(next_state, actions)`.
+Now even the _choice_ of which effects to perform is testable without performing any of them: assert on the returned list. The shell shrinks to a dumb interpreter, and the interesting branching is all in the core. This is the same shape a [state-machine.md](./state-machine.md) reducer takes when it returns `(next_state, actions)`.
 
-The clock, `datetime.now(tz=UTC)`, is read in the shell and passed *into* the core as `now`. That single move is what keeps time-dependent rules pure and deterministic to test.
+The clock, `datetime.now(tz=UTC)`, is read in the shell and passed _into_ the core as `now`. That single move is what keeps time-dependent rules pure and deterministic to test.
 
 ## Interaction with other paradigms
 
-- Builds directly on [imperative.md](./imperative.md): the shell *is* the imperative orchestration layer, kept thin on purpose.
+- Builds directly on [imperative.md](./imperative.md): the shell _is_ the imperative orchestration layer, kept thin on purpose.
 - The pure core is where [data-oriented.md](./data-oriented.md) thinking pays off: plain data in, plain data out.
 - For lifecycle logic, a pure reducer in the core plus an effect-executing shell is the cleanest way to build a [state-machine.md](./state-machine.md).

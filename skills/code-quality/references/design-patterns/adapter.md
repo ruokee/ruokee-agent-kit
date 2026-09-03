@@ -17,7 +17,7 @@ This is the runtime expression of the Dependency Inversion Principle: high-level
 - **Adapter**: an object that implements Target and forwards to the Adaptee, translating data and errors across the boundary.
 - **Client**: code that uses Target and never sees the Adaptee.
 
-The classic distinction is **object adapter** versus **class adapter**. An object adapter *holds* the adaptee as an attribute and delegates to it; a class adapter *inherits* from both the target and the adaptee. Object adapters are favored almost everywhere because they compose rather than entangle inheritance, work with adaptee instances you did not create, and can adapt several adaptees. Class adapters need multiple inheritance and bind you to the adaptee's class at definition time. In Python, prefer the object adapter; reach for inheritance only when you genuinely need to be a subtype of the adaptee.
+The classic distinction is **object adapter** versus **class adapter**. An object adapter _holds_ the adaptee as an attribute and delegates to it; a class adapter _inherits_ from both the target and the adaptee. Object adapters are favored almost everywhere because they compose rather than entangle inheritance, work with adaptee instances you did not create, and can adapt several adaptees. Class adapters need multiple inheritance and bind you to the adaptee's class at definition time. In Python, prefer the object adapter; reach for inheritance only when you genuinely need to be a subtype of the adaptee.
 
 ## When to use
 
@@ -28,7 +28,7 @@ The classic distinction is **object adapter** versus **class adapter**. An objec
 ## When NOT to use
 
 - The interfaces already match, or duck typing makes the object usable as-is. A wrapper that only renames methods is pure overhead.
-- You actually want a *new* interface designed around your needs, not a translation of an existing one; then write that interface directly rather than dressing up the old one.
+- You actually want a _new_ interface designed around your needs, not a translation of an existing one; then write that interface directly rather than dressing up the old one.
 - The adaptee is yours and you can change it. Fix the source instead of permanently wrapping it.
 
 ## Failure modes

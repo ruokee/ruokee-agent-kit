@@ -19,7 +19,7 @@ The cost is that laziness is easy to lose. Wrapping a stage in `list()`, `sorted
 
 - `chain(a, b, ...)` and `chain.from_iterable(iterables)` concatenate iterables without building a combined list: useful for flattening one level.
 - `islice(it, start, stop, step)` slices an iterator. Unlike list slicing it cannot index backwards, but it works on infinite and streaming sources.
-- `groupby(it, key)` groups *consecutive* elements sharing a key. Input must already be sorted by that key, or groups fragment. This trips up newcomers expecting SQL-style grouping.
+- `groupby(it, key)` groups _consecutive_ elements sharing a key. Input must already be sorted by that key, or groups fragment. This trips up newcomers expecting SQL-style grouping.
 - `product`, `permutations`, `combinations` generate combinatorial sequences lazily: handy for test matrices and parameter sweeps, but growth is exponential, so guard the input size.
 - `pairwise(it)` (3.10+) yields overlapping adjacent pairs `(s0,s1), (s1,s2), ...`, cleaner than manual index zipping for deltas and windows.
 - `starmap(func, arg_tuples)` applies a function to pre-grouped argument tuples: `map` when arguments arrive already packed.

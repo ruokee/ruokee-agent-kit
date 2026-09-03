@@ -38,12 +38,11 @@ class Request(msgspec.Struct):
     request_id: str = msgspec.field(default_factory=generate_request_id)
 ```
 
-
 ## 3. 字段顺序
 
 **推荐。**
 
-**方案1：必选字段在前，可选字段在后**
+**方案 1：必选字段在前，可选字段在后**
 
 ```python
 class User(msgspec.Struct):
@@ -51,7 +50,7 @@ class User(msgspec.Struct):
     role: str = "user"
 ```
 
-**方案2：使用 kw_only 允许任意顺序**
+**方案 2：使用 kw_only 允许任意顺序**
 
 ```python
 class User(msgspec.Struct, kw_only=True):
@@ -67,7 +66,6 @@ class User(msgspec.Struct):
     role: str = "user"  # 有默认值
     name: str  # 必选字段
 ```
-
 
 ## 4. 不可变数据（frozen）
 

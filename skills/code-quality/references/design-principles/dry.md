@@ -2,7 +2,7 @@
 
 ## What it is
 
-DRY is one of the most misunderstood principles in software. The original formulation (Hunt and Thomas, *The Pragmatic Programmer*) is about *knowledge*: "Every piece of knowledge must have a single, unambiguous, authoritative representation within a system." It is not "no two pieces of code may look alike." The thing worth deduplicating is a domain rule, a schema, a protocol, a transformation, an error-handling policy; a decision that, if it changed, would have to change everywhere at once.
+DRY is one of the most misunderstood principles in software. The original formulation (Hunt and Thomas, _The Pragmatic Programmer_) is about _knowledge_: "Every piece of knowledge must have a single, unambiguous, authoritative representation within a system." It is not "no two pieces of code may look alike." The thing worth deduplicating is a domain rule, a schema, a protocol, a transformation, an error-handling policy; a decision that, if it changed, would have to change everywhere at once.
 
 The danger DRY warns against is having the same knowledge in several places that can drift out of sync. When a tax rule, a permission check, a state transition, or a validation condition lives in three files, a future change is likely to miss one of them, and now the system contradicts itself.
 
@@ -16,7 +16,7 @@ That last point is what separates good DRY from bad DRY. The principle is about 
 
 ## Duplicated knowledge vs coincidental similarity
 
-Ask: if the requirement behind one copy changed, would the other copy *have* to change too? If yes, they encode the same knowledge; deduplicate. If no, they merely resemble each other right now; leave them alone.
+Ask: if the requirement behind one copy changed, would the other copy _have_ to change too? If yes, they encode the same knowledge; deduplicate. If no, they merely resemble each other right now; leave them alone.
 
 Examples of real knowledge duplication, worth removing:
 
@@ -51,4 +51,4 @@ Before extracting a helper, ask whether it provides a stable semantic boundary, 
 
 - [rule-of-three.md](./rule-of-three.md) is the brake on DRY: it delays abstraction of shape-similar code until the third instance, while still allowing immediate deduplication of confirmed knowledge.
 - [deep-modules.md](./deep-modules.md): consolidating a domain rule behind a single clear interface satisfies DRY and information hiding at once.
-- [yagni.md](./yagni.md): both push back on speculative structure, but DRY can also *push toward* abstraction; let YAGNI and the Rule of Three temper it.
+- [yagni.md](./yagni.md): both push back on speculative structure, but DRY can also _push toward_ abstraction; let YAGNI and the Rule of Three temper it.

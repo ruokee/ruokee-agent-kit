@@ -12,11 +12,11 @@ Worse, AI defaults to the happy path: unless you explicitly write that refunds m
 
 Constraints layer by enforceability, harder and more unavoidable further down:
 
-| Layer | Vehicle | What it constrains | Who reads it |
+|Layer|Vehicle|What it constrains|Who reads it|
 |-|-|-|-|
-| Decision records | Documents in the project's existing format | Why it was decided, the tradeoffs | Humans + AI (understanding intent) |
-| AGENTS.md-style rule files | Standing rules at the project root | Do / do not | AI (auto-loaded when the runtime supports and is configured) |
-| Fitness functions / lint / CI | Automated tests | Red lines (violations block) | Machines |
+|Decision records|Documents in the project's existing format|Why it was decided, the tradeoffs|Humans + AI (understanding intent)|
+|AGENTS.md-style rule files|Standing rules at the project root|Do / do not|AI (auto-loaded when the runtime supports and is configured)|
+|Fitness functions / lint / CI|Automated tests|Red lines (violations block)|Machines|
 
 Each layer governs its own span; none can be dropped: some constraints can only be understood by humans (why dual-write was chosen back then)—decision record; some can be stated in natural language for the AI to keep respecting (refunds must be idempotent)—AGENTS.md; some can be verified precisely by machines (the domain layer must not import the web layer)—CI check. **Whatever can sink one layer lower must not stop on the upper layer**—documents rely on self-discipline; CI enforces.
 
@@ -65,13 +65,13 @@ Every "chose A, gave up B" tradeoff made in design, every decision record writte
 
 The pyramid's bottom layer is the hardest. Constraints sort by machine-verifiability into their destination:
 
-| Constraint | What it becomes |
+|Constraint|What it becomes|
 |-|-|
-| Domain layer decoupled from the framework | CI dependency check blocks on violation |
-| Refund interface requires idempotency | Rule in the rule file; contract test fails on a missing idempotency key |
-| Model calls must go through the abstraction layer | Dependency check blocks on direct provider connections |
-| p99 ceiling of 200ms | Performance test fails on breach |
-| Why RAG instead of fine-tuning | Decision record (human-readable only, not machine-verifiable) |
+|Domain layer decoupled from the framework|CI dependency check blocks on violation|
+|Refund interface requires idempotency|Rule in the rule file; contract test fails on a missing idempotency key|
+|Model calls must go through the abstraction layer|Dependency check blocks on direct provider connections|
+|p99 ceiling of 200ms|Performance test fails on breach|
+|Why RAG instead of fine-tuning|Decision record (human-readable only, not machine-verifiable)|
 
 The AI faithfully executes the constraints you write down, and faithfully ignores the ones you do not. Turn reminder-dependent constraints into red-light-guaranteed ones—the CI gate does not care whether the code was committed by a human or an AI; it blocks equally.
 

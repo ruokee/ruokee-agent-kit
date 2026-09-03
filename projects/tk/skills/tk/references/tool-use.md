@@ -4,14 +4,14 @@
 
 Use the Harness-native or MCP forms of:
 
-| Operation | MCP | Pi and OMP |
-| --- | --- | --- |
-| Search | `search` | `tk_search` |
-| Read | `read` | `tk_read` |
-| Create | `create` | `tk_create` |
-| Update | `update` | `tk_update` |
-| Log | `log` | `tk_log` |
-| Administrative exec | `exec` | `tk_exec` |
+|Operation|MCP|Pi and OMP|
+|-|-|-|
+|Search|`search`|`tk_search`|
+|Read|`read`|`tk_read`|
+|Create|`create`|`tk_create`|
+|Update|`update`|`tk_update`|
+|Log|`log`|`tk_log`|
+|Administrative exec|`exec`|`tk_exec`|
 
 `tk_exec` accepts only `--version`, `init`, `check`, and `rename`. It invokes the public parser without a shell. Use the CLI directly for migration, representation switching, GC, schema generation, component lifecycle, help, MCP startup, and other commands outside that whitelist.
 

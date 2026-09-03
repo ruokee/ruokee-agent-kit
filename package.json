@@ -1,0 +1,14 @@
+{
+  "name": "ruokee-agent-kit",
+  "packageManager": "pnpm@10.29.1",
+  "private": true,
+  "scripts": {
+    "docs:format": "prettier --write --ignore-unknown \"**/*.md\"",
+    "docs:lint": "prettier --check --ignore-unknown \"**/*.md\""
+  },
+  "devDependencies": {
+    "prettier": "^3.9.6",
+    "prettier-plugin-compact-markdown-table": "0.1.0",
+    "prettier-plugin-zhfmt": "^0.1.1"
+  }
+}

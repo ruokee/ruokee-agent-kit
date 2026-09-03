@@ -35,7 +35,7 @@ manifest 记录组件格式、Harness、组件版本、`runtime_compat`、`sourc
 
 Codex 组件包含英文 Skill 和 MCP 注册。Claude Code 组件是包含英文 Skill 和 MCP 配置的自包含 Plugin。Pi 和 OMP 分别使用包含英文 Skill 和原生适配器的独立自包含 Package。
 
-组件不包含运行时、中文 Skill、其他 Harness 文件、评审记录或产品源码。工具和适配器行为由 [Harness 集成 ADR](./2026-08-28-integrate-tk-with-harnesses.zh.md)负责。
+组件不包含运行时、中文 Skill、其他 Harness 文件、评审记录或产品源码。工具和适配器行为由 [Harness 集成 ADR](./2026-08-28-integrate-tk-with-harnesses.zh.md) 负责。
 
 ### 生命周期
 

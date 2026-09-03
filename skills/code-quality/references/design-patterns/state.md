@@ -38,11 +38,11 @@ This is one specific OO implementation of state-machine behavior. It is not syno
 
 ## Distinguishing State From Strategy
 
-[Strategy](./strategy.md) and State both delegate to polymorphic objects, but they vary different things. Strategy varies the *algorithm*. State varies the *lifecycle phase*. If objects do not transition between strategies during their lifetime, it is Strategy, not State. If the subject moves through a sequence of phases and behavior changes with each phase, it is State.
+[Strategy](./strategy.md) and State both delegate to polymorphic objects, but they vary different things. Strategy varies the _algorithm_. State varies the _lifecycle phase_. If objects do not transition between strategies during their lifetime, it is Strategy, not State. If the subject moves through a sequence of phases and behavior changes with each phase, it is State.
 
 ## Distinguishing State Pattern From State Machines
 
-The State Pattern is an implementation technique. State-machine modeling is a design technique. A state machine can be implemented as an enum + transition table, a reducer, a `match` block, a dispatch map, a dedicated library, *or* the GoF State Pattern. The State Pattern earns its keep only when each state carries substantial behavior that benefits from polymorphic dispatch.
+The State Pattern is an implementation technique. State-machine modeling is a design technique. A state machine can be implemented as an enum + transition table, a reducer, a `match` block, a dispatch map, a dedicated library, _or_ the GoF State Pattern. The State Pattern earns its keep only when each state carries substantial behavior that benefits from polymorphic dispatch.
 
 If you only need to track legal transitions and run side effects during a transition, without giving each state a rich behavioral interface, a [transition table](../programming-paradigms/state-machine.md) is simpler and easier to audit.
 

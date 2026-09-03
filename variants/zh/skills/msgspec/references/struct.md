@@ -7,6 +7,7 @@
 请注意，结构体定义中禁止重写 `__init__` 和 `__new__` 方法，但可以根据需要重写或添加其他方法。如果结构体类型定义了 `__post_init__(self)` 方法，则会在生成的 `__init__` 方法结束时调用此方法。此方法可用于向初始化过程添加额外逻辑（例如自定义验证）。
 
 除了在 `__init__` 中调用之外，`__post_init__` 钩子函数也会在以下情况下被调用：
+
 - 解码为结构体类型（例如 `msgspec.json.decode(..., type=MyStruct)`）
 - 转换为结构体类型（例如 `msgspec.convert(..., type=MyStruct)`）
 
@@ -53,7 +54,6 @@ class User(msgspec.Struct):
 class Request(msgspec.Struct):
     request_id: str = msgspec.field(default_factory=generate_request_id)
 ```
-
 
 ## 特殊类型
 
@@ -144,6 +144,7 @@ print(user.name)  # "Alice"
 ```
 
 **要点。**
+
 - 使用 `ClassVar` 注解标记类变量
 - 类变量不会出现在 `__init__` 方法中
 - 类变量不会被序列化或反序列化
@@ -183,6 +184,7 @@ encoded = msgspec.json.encode(user)
 ```
 
 **使用场景。**
+
 - 适配外部 API 的命名约定（如 `camelCase`、`PascalCase`）
 - 处理 Python 保留字（如 `class`、`type`）
 - 保持代码风格一致性
@@ -208,6 +210,7 @@ cat = Cat(name="Whiskers", age=3, indoor=True)
 ```
 
 **继承规则。**
+
 - 子类继承父类的所有字段和选项
 - 字段顺序：父类字段在前，子类字段在后
 - 可以继承多个 Struct 类
@@ -310,6 +313,7 @@ request = decoder.decode(b'{"type":"get","key":"name"}')  # GetRequest(key="name
 ```
 
 **工作原理。**
+
 - `tag` 参数指定用于区分不同类型的字段名（默认为 "type"）
 - 序列化时会自动添加标签字段
 - 反序列化时根据标签字段选择正确的类型
@@ -385,22 +389,22 @@ class OptimizedData(msgspec.Struct, omit_defaults=True):
 
 **所有可用选项。**
 
-| 选项 | 类型 | 默认值 | 说明 |
-|-----|------|--------|------|
-| `frozen` | bool | False | 设为 True 时，实例不可变且可哈希 |
-| `order` | bool | False | 启用比较运算符（<、<=、>、>=） |
-| `eq` | bool | True | 启用相等性比较（==、!=） |
-| `kw_only` | bool | False | 所有字段必须通过关键字参数传递 |
-| `omit_defaults` | bool | False | 序列化时省略值为默认值的字段 |
-| `forbid_unknown_fields` | bool | False | 反序列化时拒绝未知字段 |
-| `tag` | str \| int | None | 标签联合的标签字段值 |
-| `tag_field` | str | "type" | 标签联合使用的字段名 |
-| `rename` | str \| dict | None | 字段重命名规则（"lower"、"upper"、"camel"、"pascal" 或映射字典） |
-| `array_like` | bool | False | 使 Struct 表现得像元组（位置访问） |
-| `gc` | bool | True | 启用垃圾回收支持 |
-| `weakref` | bool | False | 启用弱引用支持 |
-| `dict` | bool | False | 为实例添加 `__dict__`，允许设置未声明的属性 |
-| `repr_omit_defaults` | bool | False | repr 中省略默认值字段 |
+|选项|类型|默认值|说明|
+|-|-|-|-|
+|`frozen`|bool|False|设为 True 时，实例不可变且可哈希|
+|`order`|bool|False|启用比较运算符（<、<=、>、>=）|
+|`eq`|bool|True|启用相等性比较（==、!=）|
+|`kw_only`|bool|False|所有字段必须通过关键字参数传递|
+|`omit_defaults`|bool|False|序列化时省略值为默认值的字段|
+|`forbid_unknown_fields`|bool|False|反序列化时拒绝未知字段|
+|`tag`|str \| int|None|标签联合的标签字段值|
+|`tag_field`|str|"type"|标签联合使用的字段名|
+|`rename`|str \| dict|None|字段重命名规则（"lower"、"upper"、"camel"、"pascal" 或映射字典）|
+|`array_like`|bool|False|使 Struct 表现得像元组（位置访问）|
+|`gc`|bool|True|启用垃圾回收支持|
+|`weakref`|bool|False|启用弱引用支持|
+|`dict`|bool|False|为实例添加 `__dict__`，允许设置未声明的属性|
+|`repr_omit_defaults`|bool|False|repr 中省略默认值字段|
 
 **高级选项示例。**
 
