@@ -1,31 +1,21 @@
-# Catch up on a Task
+# Catch up
 
-Use this reference when the user asks for catchup, handoff context, or a summary of an existing Task.
+Read this file when the user explicitly says `catchup` or when Task context must be restored before work continues.
 
-## Resolve first
+## Resolve
 
-A full UUIDv7 or exact Task path can be read directly. A name, UUID prefix, branch clue, text, regex, or material path must go through search. If several candidates remain plausible, show them and ask the user to choose.
+A complete UUIDv7, absolute Task directory, absolute canonical carrier, or project-relative Task path can be read directly. Search names, directory basenames, UUID prefixes, text, regular expressions, branches, and material paths first, then use the returned canonical reference.
 
-Start with `view = "summary"`. Use metadata when only managed state matters. Use detailed only when the full body or bounded WAL is needed. Detailed reads use `wal_max_entries` and `wal_max_length`; report truncation rather than copying old WAL into `TASK.md`.
+If several candidates remain plausible, show the relevant candidates and ask the user to choose. Do not guess from similarity.
 
-## Reconstruct current context
+## Read
 
-Report:
+Read the summary first. Extract the objective, scope, constraints, stable decisions, blockers, and material links from `TASK.md`. Use the detailed view only when the summary and bounded WAL are insufficient. Use metadata when only status and relationships matter.
 
-1. the objective;
-2. current status and closed ancestors;
-3. constraints and decisions that still apply;
-4. dependencies and related work that affect the next action;
-5. blockers and unresolved questions;
-6. material entry points;
-7. the next concrete action.
+Read recent WAL, relationships, and materials linked from `TASK.md` as needed. Do not recursively enumerate ordinary materials or read all history or related Tasks by default.
 
-Treat `TASK.md` as current truth and WAL as historical evidence. A later correction overrides an earlier WAL entry. Do not treat volatile old plans as current merely because they were logged.
+## Report
 
-Read ordinary material incrementally from links in `TASK.md` or a directory README. Do not recursively enumerate the whole Task directory.
+Report current status, conclusions that still apply, dependencies or `closed` ancestors, missing evidence, blockers, and the next step. Truncated WAL means the read budget was exceeded, not that a file is damaged.
 
-## Read-only boundary
-
-Catchup itself does not create, update, log, rename, migrate, close, reopen, or edit files. Reading a closed Task is not authorization to reopen it.
-
-If the user also requested follow-up work, complete the catchup and then continue under the normal creation, update, logging, and authorization rules.
+A catchup-only request restores context. It does not log, modify, reopen, or continue work automatically. When the user also asks to proceed, restore context and then perform the original request. An Agent that restores context during already authorized work may continue that work.

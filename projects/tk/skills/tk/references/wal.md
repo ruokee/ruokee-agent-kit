@@ -1,44 +1,36 @@
-# Work activity log
+# WAL
+
+Read this file when deciding what to record, reading older history, correcting an activity record, or handling a WAL append warning.
 
 ## Purpose
 
-WAL is an ordinary append-only Markdown activity log. It records durable events that are not the Task's current state. It is not a transaction log, lock, duplicate detector, authorization record, or domain recovery system.
+WAL records facts about Task activity. It is not current state, chat history, or a command transcript. `TASK.md` states current facts; WAL preserves the order in which facts formed.
 
-Each Task stores daily files under `wal/YYYY-MM-DD.md` with entries shaped like:
+Record user decisions and corrections, meaningful external edits, findings from exploration or analysis, verified conclusions, recoverable milestones, verification results, verified collaboration results, problems found during execution, and blockers that change the next step. Do not record routine reads, command transcripts, temporary plans, progress, drafts, unverified guesses, or lifecycle events already written by the runtime.
 
-```markdown
-## 2026-08-31T12:34:56+08:00 · actor
+## Format
 
-Message
+WAL is runtime-owned, append-only Markdown. An entry has a timezone-aware RFC 3339 timestamp, actor, and non-empty single-line message, followed by an optional body. Callers do not append directly, rewrite, sort, or delete entries.
 
-Optional body
-```
+Actor is single-line attribution. It is not identity, authentication, ownership, or authorization. Use the most specific current model or invocation-channel information available. Use a stable channel-level value when no reliable detail exists.
 
-Only a complete RFC 3339 timestamp, separator, and actor line starts an entry. Ordinary H2 text belongs to the preceding body. The format has no escaping or length prefix for body text that happens to look like a complete entry header.
+## Reading
 
-## What to log
+The summary view returns recent WAL context. Use the detailed view with entry and byte budgets only when the current Task needs earlier or complete history.
 
-Log immediately after a fact becomes durable and before starting another independent branch:
+Truncation means the read budget was exceeded, not that a file is damaged. Do not read all history by default for completeness, and do not recursively read related Tasks' WAL.
 
-- user decisions and corrections;
-- verified findings;
-- recoverable milestones;
-- validation results;
-- verified collaboration results;
-- blockers that change what can proceed.
+## Automatic entries
 
-Do not log routine reads, command transcripts, temporary todos, percentages, unverified guesses, or lifecycle events already recorded by the runtime.
+Updates, lifecycle transitions, and rename append WAL after metadata commits. Do not add a synonymous manual entry when the automatic entry already describes the event.
 
-Use a non-empty single-line message. Put details in the Markdown body. Keep facts formed at different times in separate entries.
+If metadata commits but WAL append fails, the result includes a `wal_append_failed` warning and does not roll back metadata.
 
-## actor
+Recovery:
 
-actor is single-line attribution, not identity, authentication, authorization, or assignment. Only update, log, and rename requests accept it. Prefer the most specific available model or Harness value.
+1. Read the Task and confirm whether metadata changed.
+2. Check recent WAL for the same event.
+3. Append one concise repair entry only when the event is missing.
+4. Do not repeat the update, rename, or lifecycle operation.
 
-## Failure handling
-
-Metadata commits before an automatic WAL append. If append fails, the metadata stays committed and the result contains a warning.
-
-Read the Task and WAL before retrying. Append only the missing event. Do not repeat the metadata update. Closed Tasks reject new WAL entries.
-
-Detailed reads apply both entry and byte budgets. Treat truncation as a read boundary, not a reason to copy old history into `TASK.md`.
+A `closed` Task rejects new WAL. If a repair event can be established only after closure, record it in a related open Task or an external maintenance record. Do not reopen only to write a log entry.
