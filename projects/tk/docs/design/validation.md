@@ -11,7 +11,8 @@ Validate the following static facts:
 - One Cargo package produces the `tk` executable;
 - Rust is the only component assembler;
 - Components have exactly one Rust-based assembly path;
-- All sixteen Harness, mode, and language payloads are self-contained and do not reference other component directories;
+- Multiple payloads cover the Harness, mode, and language selections without referencing other component directories;
+- The two standalone CLI Skill payloads contain only `tk-cli` or `tk-cli-zh` and have no Harness field;
 - The four Skill identities map exactly to tools or CLI mode and English or Chinese;
 - CLI payloads contain no tk operation registration, while tools payloads contain the selected Harness integration;
 - Review records and Task materials are not included in product artifacts.
@@ -112,8 +113,10 @@ CLI tests cover:
 - actor appears only in update, log, and rename;
 - All default statuses for search;
 - init force does not read Task data;
-- install defaults to tools mode and English, accepts all mode and language values, and reports the resolved Skill;
-- install has no local source;
+- Harness install defaults to tools mode and English, accepts all mode and language values, and reports the resolved Skill;
+- Custom-root install requires explicit CLI mode and rejects tools mode;
+- Install and uninstall require exactly one of Harness and Skill root;
+- Component commands have no local source and reject global cwd;
 - Unknown commands and options outside the current contract are rejected.
 
 MCP tests cover initialize, list, six tool calls, cancellation, protocol stdout, and clean shutdown.
@@ -134,17 +137,17 @@ Unit and process tests for Pi and OMP cover:
 
 ## Component assembly
 
-Repeated builds must produce the same sixteen component payloads, file bytes, `tar.zst` bytes, and manifest. Validate Harness, mode, language, Skill identity, paths, permissions, digests, missing items, extra items, and `runtime_compat`.
+Repeated builds must produce the same set of Harness payloads, two standalone CLI Skill payloads, file bytes, `tar.zst` bytes, and manifest. Validate target kind, Harness where applicable, mode, language, Skill identity, paths, permissions, digests, missing items, extra items, and `runtime_compat`.
 
 Validate builds both with and without `TK_SOURCE_REVISION`. Build scripts must not invoke Git or write generated artifacts outside Cargo-managed directories.
 
 ## Installation and uninstallation
 
-Isolated tests cover all sixteen Harness, mode, and language selections:
+Isolated tests cover all Harness, mode, and language selections:
 
 - install, update, selection switching, no_change, and uninstall;
 - Embedded archives with no network or local sources;
-- The resolved `mode`, `language`, and `skill` in text and JSON results;
+- The resolved `mode`, `language`, and `skill` in text and JSON install results;
 - Official Harness APIs take precedence;
 - Tools-mode registration and CLI-mode absence of tk operation registration;
 - The original file remains unchanged if shared configuration parsing fails;
@@ -153,6 +156,8 @@ Isolated tests cover all sixteen Harness, mode, and language selections:
 - Unrelated Harness content and later modifications are preserved;
 - Intermediate I/O failures report completed and incomplete items;
 - GC cleans up only temporary component content and does not continue lifecycle operations.
+
+Custom-root tests cover both standalone languages, relative and absolute roots, missing parent creation, complete payload convergence, language switching, dry-run, no_change, and uninstall. They prove that only `tk-cli` and `tk-cli-zh` are managed, unrelated children and the root remain, no Harness executable is required, and results contain `skill_root` instead of `harness`. Custom-root uninstall reports CLI mode and omits language and Skill.
 
 ## Real Harness validation
 

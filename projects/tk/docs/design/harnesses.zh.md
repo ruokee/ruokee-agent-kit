@@ -106,18 +106,18 @@ Pi 和 OMP 使用 `tk schema generate --type native --harness <pi|omp>` 的生�
 
 ## 构建时组装
 
-Cargo 构建使用 Rust 组装逻辑生成十六份组件载荷、一个确定性 `tar.zst` 归档和一份清单。十六种选择来自四个 Harness、两种模式和两种语言。相同输入必须产生相同路径、文件字节、归档字节和清单。
+Cargo 构建使用 Rust 组装逻辑生成多份 Harness 组件载荷、两份与 Harness 无关的 CLI Skill 载荷、一个确定性 `tar.zst` 归档和一份清单。Harness 选择覆盖四个 Harness、两种模式和两种语言。相同输入必须产生相同路径、文件字节、归档字节和清单。
 
-组装只读取所选 Harness 源码和四个自包含 Skill 目录之一。发布、安装和验证使用同一套 Rust 产物。
+Harness 组装只读取所选 Harness 源码和四个自包含 Skill 目录之一。独立载荷只读取 `tk-cli` 或 `tk-cli-zh`。发布、安装和验证使用同一套 Rust 产物。
 
 Rust 组装产物是发布、安装和验证的唯一组件输入。
 
 ## Skill 选择
 
-安装生命周期负责选择、更新和卸载四个 Skill 身份。语言选择属于 `tk install`，不是独立的手动安装流程。
+Harness 安装生命周期负责选择、更新和卸载四个 Skill 身份。自定义根目录生命周期只选择 `tk-cli` 与 `tk-cli-zh`。语言选择属于 `tk install`，不是独立的手工复制流程。
 
 ## 验证要求
 
-十六种选择都必须在隔离环境中完成安装、加载和卸载。tools 模式验证注册或原生扩展加载，cli 模式验证没有 tk 操作注册。OMP tools 模式还必须完成一次真实 tk 调用。
+所有 Harness 选择都必须在隔离环境中完成安装、加载和卸载。tools 模式验证注册或原生扩展加载，cli 模式验证没有 tk 操作注册。OMP tools 模式还必须完成一次真实 tk 调用。
 
-Codex、Claude Code 和 Pi 的真实验证到加载成功为止，不要求通过真实模型会话调用 tk。
+两份独立 CLI Skill 载荷必须在隔离环境中完成自定义根目录 install、update、语言切换、no_change 和 uninstall。该路径验证文件和所有权边界，不验证真实 Harness 加载。Codex、Claude Code 和 Pi 的真实 Harness 验证到加载成功为止，不要求通过模型会话调用 tk。

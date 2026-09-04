@@ -11,7 +11,8 @@
 - 一个 Cargo package 生成 `tk` 可执行文件；
 - Rust 是唯一组件组装器；
 - 组件组装只有一条 Rust 产物路径；
-- 十六份 Harness、模式与语言载荷都自包含，不引用其他组件目录；
+- 多份载荷覆盖各 Harness、模式和语言选择，且不引用其他组件目录；
+- 两份独立 CLI Skill 载荷只包含 `tk-cli` 或 `tk-cli-zh`，不含 Harness 字段；
 - 四个 Skill 身份与 tools 或 CLI 模式、英文或中文准确对应；
 - CLI 载荷不包含 tk 操作注册，tools 载荷包含所选 Harness 集成；
 - 评审记录和 Task 材料不进入产品产物。
@@ -112,8 +113,10 @@ CLI 测试覆盖：
 - actor 只出现在 update、log 和 rename；
 - search 全部默认状态；
 - init force 不读取 Task 数据；
-- install 默认 tools 模式和英文，接受全部模式与语言值，并报告最终 Skill；
-- install 没有本地 source；
+- Harness install 默认 tools 模式和英文，接受全部模式与语言值，并报告最终 Skill；
+- 自定义根目录 install 要求显式 CLI 模式，并拒绝 tools 模式；
+- install 与 uninstall 必须且只能选择 Harness 或 Skill 根目录；
+- 组件命令没有本地 source，并拒绝全局 cwd；
 - 拒绝未知命令和不属于当前合同的选项。
 
 MCP 测试覆盖 initialize、list、六次调用、取消、协议 stdout 和正常关闭。
@@ -134,17 +137,17 @@ Pi 和 OMP 的单元与进程测试覆盖：
 
 ## 组件组装
 
-重复构建必须产生相同的十六份组件载荷、文件字节、`tar.zst` 字节和清单。验证 Harness、模式、语言、Skill 身份、路径、权限、摘要、缺失项、多余项和 `runtime_compat`。
+重复构建必须产生同一组 Harness 载荷、两份独立 CLI Skill 载荷，以及相同的文件字节、`tar.zst` 字节和清单。验证目标类型、适用时的 Harness、模式、语言、Skill 身份、路径、权限、摘要、缺失项、多余项和 `runtime_compat`。
 
 `TK_SOURCE_REVISION` 有值和无值两种构建均验证。构建脚本不能调用 Git，也不能写出 Cargo 管理目录以外的生成物。
 
 ## 安装和卸载
 
-隔离测试覆盖十六种 Harness、模式和语言选择：
+隔离测试覆盖所有 Harness、模式和语言选择：
 
 - install、update、选择切换、no_change 和 uninstall；
 - 内嵌归档，无网络和本地来源；
-- text 和 JSON 结果中的最终 `mode`、`language` 和 `skill`；
+- text 和 JSON install 结果中的最终 `mode`、`language` 和 `skill`；
 - 官方 Harness API 优先；
 - tools 模式注册，以及 CLI 模式不存在 tk 操作注册；
 - 共享配置解析失败时原文件不变；
@@ -153,6 +156,8 @@ Pi 和 OMP 的单元与进程测试覆盖：
 - 无关 Harness 内容和后续修改保留；
 - 中途 I/O 失败报告完成和未完成项；
 - GC 只清理组件临时内容，不继续生命周期操作。
+
+自定义根目录测试覆盖两种独立语言载荷、相对与绝对根目录、创建缺失父目录、完整载荷收敛、语言切换、dry-run、no_change 和 uninstall。测试证明只管理 `tk-cli` 与 `tk-cli-zh`，无关子项和根目录保持不变，不要求 Harness 可执行文件，结果使用 `skill_root` 而不是 `harness`。自定义根目录 uninstall 报告 CLI 模式，并省略语言和 Skill。
 
 ## 真实 Harness 验证
 

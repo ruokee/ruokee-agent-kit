@@ -24,7 +24,7 @@ Draft writer: OMP GPT-5.6 Sol, Ruokee
 
 四个 Skill 使用各自的独立发现名称，全部位于 `projects/tk/skills/`。安装时把所选目录放入正常 Harness Skill 根目录，不改写其身份。
 
-同一模式的英文与中文 Skill 提供等价行为。install、dry-run、text 输出和 JSON 输出报告最终语言与 Skill。[可选择组件分发](./2026-09-02-distribute-selectable-tk-harness-components.zh.md)负责切换和卸载行为。
+同一模式的英文与中文 Skill 提供等价行为。install、dry-run、text 输出和 JSON 输出报告最终语言与 Skill。[Harness 组件与自定义根目录 CLI Skill 分发](./2026-09-03-distribute-custom-cli-skills.zh.md)负责切换和卸载行为。
 
 ## 考虑过的替代方案
 
@@ -39,3 +39,9 @@ Draft writer: OMP GPT-5.6 Sol, Ruokee
 每项 Harness 安装最终选择四个 Skill 身份之一。切换语言与切换模式使用同一组件更新生命周期。
 
 同一模式的两个语言实现必须保持语义对应，但每个目录都独立打包和发现。
+
+## 变更
+
+### 2026-09-03：把语言选择用于自定义根目录
+
+自定义根目录 install 使用相同的 `--language <en|zh>` 选择和 `en` 默认值。自定义根目录 uninstall 没有语言选择项，并删除两个已知 CLI Skill 身份。

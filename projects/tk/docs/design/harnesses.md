@@ -106,18 +106,18 @@ The adapter does not implement Task validation, name normalization, authorizatio
 
 ## Build-time assembly
 
-Cargo builds use Rust assembly logic to generate sixteen component payloads, one deterministic `tar.zst` archive, and one manifest. The sixteen selections are four Harnesses multiplied by two modes and two languages. Identical inputs must produce identical paths, file bytes, archive bytes, and manifests.
+Cargo builds use Rust assembly logic to generate multiple Harness component payloads and two Harness-independent CLI Skill payloads, one deterministic `tar.zst` archive, and one manifest. The Harness selections span four Harnesses, two modes, and two languages. Identical inputs must produce identical paths, file bytes, archive bytes, and manifests.
 
-Assembly reads only the selected Harness source and one of the four self-contained Skill trees. Publishing, installation, and validation use the same Rust artifacts.
+Harness assembly reads only the selected Harness source and one of the four self-contained Skill trees. The standalone payloads read only `tk-cli` or `tk-cli-zh`. Publishing, installation, and validation use the same Rust artifacts.
 
 Rust assembly artifacts are the only component inputs used for publishing, installation, and validation.
 
 ## Skill selection
 
-The installation lifecycle selects, updates, and uninstalls all four Skill identities. Language selection is part of `tk install`; it is not a separate manual installation path.
+The Harness installation lifecycle selects, updates, and uninstalls all four Skill identities. The custom-root lifecycle selects only `tk-cli` and `tk-cli-zh`. Language selection is part of `tk install`; it is not a separate manual copy path.
 
 ## Validation requirements
 
-All sixteen selections must complete installation, loading, and uninstallation in isolated environments. Tools-mode validation confirms registration or native extension loading. CLI-mode validation confirms that no tk operation registration is present. OMP tools mode additionally completes one real tk call.
+All Harness selections must complete installation, loading, and uninstallation in isolated environments. Tools-mode validation confirms registration or native extension loading. CLI-mode validation confirms that no tk operation registration is present. OMP tools mode additionally completes one real tk call.
 
-Real validation for Codex, Claude Code, and Pi ends after successful loading. It does not require calling tk through a real model session.
+The two standalone CLI Skill payloads must complete isolated custom-root install, update, language switch, no_change, and uninstall. This path validates files and ownership boundaries, not real Harness loading. Real Harness validation for Codex, Claude Code, and Pi ends after successful loading and does not require a model session call.

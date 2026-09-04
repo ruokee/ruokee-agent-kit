@@ -87,4 +87,8 @@ tk 文档现在引用 `decision/` 下的当前 ADR，不再用 `implemented` 状
 
 ### 2026-09-02：记录可选择的 Skill 与组件
 
-文档覆盖 tools 与 CLI 模式、通过 `tk install` 选择英文或中文、四个 Skill 身份、十六份组件载荷和分离的路由合同。上方四个 Skill 路径取代此前的英文 Skill，以及需要手动安装的中文 Skill。
+文档覆盖 tools 与 CLI 模式、通过 `tk install` 选择英文或中文、四个 Skill 身份、多份组件载荷和分离的路由合同。上方四个 Skill 路径取代此前的英文 Skill，以及需要手动安装的中文 Skill。
+
+### 2026-09-03：记录自定义 CLI Skill 根目录
+
+文档现在覆盖多份 Harness 载荷、两份与 Harness 无关的 CLI Skill 载荷、互斥的安装目标，以及有限范围的自定义根目录生命周期。

@@ -24,7 +24,7 @@ Mode and language are independent choices. Their command contract should express
 
 All four Skills live under `projects/tk/skills/` using their independent discovery names. Installation places the selected directory at the normal Harness Skill root without rewriting its identity.
 
-English and Chinese Skills in the same mode provide equivalent behavior. Install, dry-run, text output, and JSON output report the resolved language and Skill. [Selectable component distribution](./2026-09-02-distribute-selectable-tk-harness-components.md) owns switching and uninstallation behavior.
+English and Chinese Skills in the same mode provide equivalent behavior. Install, dry-run, text output, and JSON output report the resolved language and Skill. [Harness component and custom CLI Skill distribution](./2026-09-03-distribute-custom-cli-skills.md) owns switching and uninstallation behavior.
 
 ## Alternatives considered
 
@@ -39,3 +39,9 @@ English and Chinese Skills in the same mode provide equivalent behavior. Install
 Each Harness install resolves to one of four Skill identities. Changing language uses the same component update lifecycle as changing mode.
 
 The two language implementations in each mode must remain semantically aligned, but each directory is packaged and discovered independently.
+
+## Changes
+
+### 2026-09-03: Apply language selection to custom roots
+
+Custom-root install uses the same `--language <en|zh>` selection and `en` default. Custom-root uninstall has no language selector and removes both known CLI Skill identities.

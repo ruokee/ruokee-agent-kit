@@ -94,6 +94,7 @@ struct BundleManifest {
     archive_sha256: String,
     driver_contract_version: u32,
     components: BTreeMap<String, ComponentManifest>,
+    cli_skills: BTreeMap<String, CliSkillManifest>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -101,6 +102,16 @@ struct BundleManifest {
 struct ComponentManifest {
     harness: Harness,
     mode: Mode,
+    language: Language,
+    skill: String,
+    runtime_compat: String,
+    payload: String,
+    files: BTreeMap<String, FileManifest>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CliSkillManifest {
     language: Language,
     skill: String,
     runtime_compat: String,
@@ -127,7 +138,10 @@ struct Bundle {
 
 #[derive(Debug, Serialize)]
 pub struct ComponentResult {
-    pub harness: Harness,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub harness: Option<Harness>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub skill_root: Option<PathBuf>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mode: Option<Mode>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -190,7 +204,8 @@ pub fn install(
         &runtime,
         &bundle.manifest.runtime_version,
     )?;
-    let target_changed = component_differs(&target, component, &bundle.files)?;
+    let target_changed =
+        payload_differs(&target, &component.payload, &component.files, &bundle.files)?;
     let registration_changed = !registration.matches;
     let configure_needed = match harness {
         Harness::Codex => registration_changed,
@@ -220,7 +235,8 @@ pub fn install(
             .map(|path| path.display().to_string()),
     );
     let mut result = ComponentResult {
-        harness,
+        harness: Some(harness),
+        skill_root: None,
         mode: Some(mode),
         language: Some(language),
         skill: Some(skill),
@@ -246,7 +262,7 @@ pub fn install(
         |operation| {
             let staging = if target_changed {
                 let path = operation.temporary_path("component")?;
-                materialize_component(&path, component, &bundle.files)?;
+                materialize_payload(&path, &component.payload, &component.files, &bundle.files)?;
                 Some(path)
             } else {
                 None
@@ -320,6 +336,149 @@ pub fn install(
     result.uncompleted.clear();
     Ok(result)
 }
+
+pub fn install_skill_root(
+    skill_root: PathBuf,
+    language: Language,
+    dry_run: bool,
+) -> Result<ComponentResult> {
+    require_absolute_skill_root(&skill_root)?;
+    let home = home()?;
+    let runtime = home.join(".local/bin/tk");
+    require_runtime(&runtime)?;
+    let bundle = embedded_bundle()?;
+    let skill_manifest = bundle
+        .manifest
+        .cli_skills
+        .get(language.name())
+        .expect("validated CLI Skill exists");
+    require_compatible(&skill_manifest.runtime_compat)?;
+
+    let skill = skill_name(Mode::Cli, language);
+    let target = skill_root.join(skill);
+    let targets = cli_skill_targets(&skill_root);
+    let residual_targets = targets
+        .iter()
+        .filter(|candidate| **candidate != target)
+        .cloned()
+        .collect::<Vec<_>>();
+    let target_before = target_fingerprints(&targets)?;
+    let target_existed = entry_exists(&target)?;
+    let residual_existing = residual_targets
+        .into_iter()
+        .map(|path| entry_exists(&path).map(|exists| (path, exists)))
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .filter_map(|(path, exists)| exists.then_some(path))
+        .collect::<Vec<_>>();
+    let target_changed = payload_differs(
+        &target,
+        &skill_manifest.payload,
+        &skill_manifest.files,
+        &bundle.files,
+    )?;
+    let changed = target_changed || !residual_existing.is_empty();
+    let action = if !changed {
+        "no_change"
+    } else if dry_run {
+        "would_install"
+    } else if target_existed || !residual_existing.is_empty() {
+        "updated"
+    } else {
+        "installed"
+    };
+
+    let mut planned = Vec::new();
+    if target_changed {
+        planned.push(target.display().to_string());
+    }
+    planned.extend(
+        residual_existing
+            .iter()
+            .map(|path| path.display().to_string()),
+    );
+    let mut result = ComponentResult {
+        harness: None,
+        skill_root: Some(skill_root.clone()),
+        mode: Some(Mode::Cli),
+        language: Some(language),
+        skill: Some(skill),
+        action,
+        version: bundle.manifest.runtime_version.clone(),
+        runtime_compat: skill_manifest.runtime_compat.clone(),
+        source_revision: bundle.manifest.source_revision.clone(),
+        changed,
+        committed: false,
+        partial: false,
+        dry_run,
+        completed: Vec::new(),
+        uncompleted: planned.clone(),
+        installed_paths: target_changed.then(|| target.clone()).into_iter().collect(),
+        removed_paths: residual_existing.clone(),
+    };
+    if !changed || dry_run {
+        return Ok(result);
+    }
+
+    let operation = crate::gc::begin_user_operation(&skill_root)?;
+    let completed = operation.execute(
+        |operation| {
+            let staging = if target_changed {
+                let path = operation.temporary_path("skill")?;
+                materialize_payload(
+                    &path,
+                    &skill_manifest.payload,
+                    &skill_manifest.files,
+                    &bundle.files,
+                )?;
+                Some(path)
+            } else {
+                None
+            };
+            crate::cancel::checkpoint()?;
+            if target_fingerprints(&targets)? != target_before {
+                return Err(TkError::new(
+                    "changed_since_plan",
+                    ErrorCategory::Conflict,
+                    "CLI Skill state changed after preflight",
+                ));
+            }
+
+            let mut completed = Vec::new();
+            let mut remaining = planned.clone();
+            if let Some(staging) = staging {
+                replace_target(&staging, &target)?;
+                let item = target.display().to_string();
+                completed.push(item.clone());
+                remaining.retain(|candidate| candidate != &item);
+            }
+            for residual in &residual_existing {
+                if let Err(error) = crate::cancel::checkpoint() {
+                    return Err(skill_partial_error(error, &completed, &remaining));
+                }
+                if let Err(error) = remove_entry(residual) {
+                    return Err(skill_partial_error(error, &completed, &remaining));
+                }
+                let item = residual.display().to_string();
+                completed.push(item.clone());
+                remaining.retain(|candidate| candidate != &item);
+            }
+            Ok(completed)
+        },
+        |completed, cleanup_path, error| {
+            TkError::partial_commit(
+                "CLI Skill installation committed but cleanup failed",
+                serde_json::json!(completed),
+                serde_json::json!([cleanup_path]),
+                error,
+            )
+        },
+    )?;
+    result.committed = true;
+    result.completed = completed;
+    result.uncompleted.clear();
+    Ok(result)
+}
 pub fn uninstall(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
     let home = home()?;
     let runtime = home.join(".local/bin/tk");
@@ -370,7 +529,8 @@ pub fn uninstall(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
             .map(|path| path.display().to_string()),
     );
     let mut result = ComponentResult {
-        harness,
+        harness: Some(harness),
+        skill_root: None,
         mode: None,
         language: None,
         skill: None,
@@ -448,6 +608,105 @@ pub fn uninstall(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
     Ok(result)
 }
 
+pub fn uninstall_skill_root(skill_root: PathBuf, dry_run: bool) -> Result<ComponentResult> {
+    require_absolute_skill_root(&skill_root)?;
+    let home = home()?;
+    let runtime = home.join(".local/bin/tk");
+    require_runtime(&runtime)?;
+    let bundle = embedded_bundle()?;
+    let skill_manifest = bundle
+        .manifest
+        .cli_skills
+        .get(Language::En.name())
+        .expect("validated CLI Skill exists");
+    require_compatible(&skill_manifest.runtime_compat)?;
+
+    let targets = cli_skill_targets(&skill_root);
+    let target_before = target_fingerprints(&targets)?;
+    let existing_targets = targets
+        .iter()
+        .map(|path| entry_exists(path).map(|exists| (path, exists)))
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .filter_map(|(path, exists)| exists.then_some(path.clone()))
+        .collect::<Vec<_>>();
+    let changed = !existing_targets.is_empty();
+    let action = if !changed {
+        "no_change"
+    } else if dry_run {
+        "would_uninstall"
+    } else {
+        "uninstalled"
+    };
+    let planned = existing_targets
+        .iter()
+        .map(|path| path.display().to_string())
+        .collect::<Vec<_>>();
+    let mut result = ComponentResult {
+        harness: None,
+        skill_root: Some(skill_root.clone()),
+        mode: Some(Mode::Cli),
+        language: None,
+        skill: None,
+        action,
+        version: bundle.manifest.runtime_version.clone(),
+        runtime_compat: skill_manifest.runtime_compat.clone(),
+        source_revision: bundle.manifest.source_revision.clone(),
+        changed,
+        committed: false,
+        partial: false,
+        dry_run,
+        completed: Vec::new(),
+        uncompleted: planned.clone(),
+        installed_paths: Vec::new(),
+        removed_paths: existing_targets.clone(),
+    };
+    if !changed || dry_run {
+        return Ok(result);
+    }
+
+    let operation = crate::gc::begin_user_operation(&skill_root)?;
+    let completed = operation.execute(
+        |_operation| {
+            crate::cancel::checkpoint()?;
+            if target_fingerprints(&targets)? != target_before {
+                return Err(TkError::new(
+                    "changed_since_plan",
+                    ErrorCategory::Conflict,
+                    "CLI Skill state changed after preflight",
+                ));
+            }
+
+            let mut completed = Vec::new();
+            let mut remaining = planned.clone();
+            for target in &existing_targets {
+                if let Err(error) = crate::cancel::checkpoint() {
+                    return Err(skill_partial_error(error, &completed, &remaining));
+                }
+                if let Err(error) = remove_entry(target) {
+                    return Err(skill_partial_error(error, &completed, &remaining));
+                }
+                let item = target.display().to_string();
+                completed.push(item.clone());
+                remaining.retain(|candidate| candidate != &item);
+            }
+            Ok(completed)
+        },
+        |completed, cleanup_path, error| {
+            TkError::partial_commit(
+                "CLI Skill uninstall committed but cleanup failed",
+                serde_json::json!(completed),
+                serde_json::json!([cleanup_path]),
+                error,
+            )
+        },
+    )?;
+    result.committed = true;
+    result.completed = completed;
+    result.uncompleted.clear();
+    Ok(result)
+}
+
 fn embedded_bundle() -> Result<Bundle> {
     let manifest: BundleManifest = serde_json::from_slice(EMBEDDED_MANIFEST).map_err(|error| {
         TkError::new(
@@ -507,6 +766,34 @@ fn embedded_bundle() -> Result<Bundle> {
             }
         }
     }
+    if manifest.cli_skills.len() != 2 {
+        return Err(TkError::new(
+            "component_manifest_incomplete",
+            ErrorCategory::ManagedFile,
+            "Embedded component manifest must contain two CLI Skills",
+        ));
+    }
+    for language in [Language::En, Language::Zh] {
+        let id = language.name();
+        let skill = manifest.cli_skills.get(id).ok_or_else(|| {
+            TkError::new(
+                "component_manifest_incomplete",
+                ErrorCategory::ManagedFile,
+                format!("Missing {id} CLI Skill"),
+            )
+        })?;
+        if skill.language != language
+            || skill.skill != skill_name(Mode::Cli, language)
+            || skill.payload != format!("payloads/cli-skills/{id}")
+        {
+            return Err(TkError::new(
+                "component_manifest_invalid",
+                ErrorCategory::ManagedFile,
+                format!("Invalid CLI Skill metadata for {id}"),
+            ));
+        }
+        require_compatible(&skill.runtime_compat)?;
+    }
 
     let decoder = zstd::Decoder::new(EMBEDDED_ARCHIVE).map_err(archive_error)?;
     let mut archive = tar::Archive::new(decoder);
@@ -555,24 +842,15 @@ fn validate_payloads(
 ) -> Result<()> {
     let mut expected_count = 0;
     for component in manifest.components.values() {
-        expected_count += component.files.len();
-        for (relative, expected) in &component.files {
-            let path = format!("{}/{relative}", component.payload);
-            let actual = files.get(&path).ok_or_else(|| {
-                TkError::new(
-                    "component_archive_invalid",
-                    ErrorCategory::ManagedFile,
-                    format!("Missing component archive file: {path}"),
-                )
-            })?;
-            if digest(&actual.bytes) != expected.sha256 || actual.mode != expected.mode {
-                return Err(TkError::new(
-                    "component_archive_invalid",
-                    ErrorCategory::ManagedFile,
-                    format!("Component archive file does not match its manifest: {path}"),
-                ));
-            }
-        }
+        validate_payload_files(
+            &component.payload,
+            &component.files,
+            files,
+            &mut expected_count,
+        )?;
+    }
+    for skill in manifest.cli_skills.values() {
+        validate_payload_files(&skill.payload, &skill.files, files, &mut expected_count)?;
     }
     if files.len() != expected_count {
         return Err(TkError::new(
@@ -584,15 +862,43 @@ fn validate_payloads(
     Ok(())
 }
 
-fn materialize_component(
+fn validate_payload_files(
+    payload: &str,
+    manifest_files: &BTreeMap<String, FileManifest>,
+    files: &BTreeMap<String, PayloadFile>,
+    expected_count: &mut usize,
+) -> Result<()> {
+    *expected_count += manifest_files.len();
+    for (relative, expected) in manifest_files {
+        let path = format!("{payload}/{relative}");
+        let actual = files.get(&path).ok_or_else(|| {
+            TkError::new(
+                "component_archive_invalid",
+                ErrorCategory::ManagedFile,
+                format!("Missing component archive file: {path}"),
+            )
+        })?;
+        if digest(&actual.bytes) != expected.sha256 || actual.mode != expected.mode {
+            return Err(TkError::new(
+                "component_archive_invalid",
+                ErrorCategory::ManagedFile,
+                format!("Component archive file does not match its manifest: {path}"),
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn materialize_payload(
     target: &Path,
-    component: &ComponentManifest,
+    payload: &str,
+    manifest_files: &BTreeMap<String, FileManifest>,
     files: &BTreeMap<String, PayloadFile>,
 ) -> Result<()> {
     fs::create_dir(target)
         .map_err(|error| storage_error("create_component_staging", target, error))?;
-    for relative in component.files.keys() {
-        let archive_path = format!("{}/{relative}", component.payload);
+    for relative in manifest_files.keys() {
+        let archive_path = format!("{payload}/{relative}");
         let source = files.get(&archive_path).expect("validated payload file");
         let destination = target.join(safe_archive_path(Path::new(relative))?);
         let parent = destination.parent().expect("component file has a parent");
@@ -606,9 +912,10 @@ fn materialize_component(
     Ok(())
 }
 
-fn component_differs(
+fn payload_differs(
     target: &Path,
-    component: &ComponentManifest,
+    payload: &str,
+    manifest_files: &BTreeMap<String, FileManifest>,
     files: &BTreeMap<String, PayloadFile>,
 ) -> Result<bool> {
     if !target.is_dir() {
@@ -625,7 +932,7 @@ fn component_differs(
         &mut unexpected,
     )?;
     let mut expected_directories = BTreeSet::new();
-    for relative in component.files.keys() {
+    for relative in manifest_files.keys() {
         let mut parent = Path::new(relative).parent();
         while let Some(directory) = parent {
             if directory.as_os_str().is_empty() {
@@ -635,15 +942,14 @@ fn component_differs(
             parent = directory.parent();
         }
     }
-    if unexpected || directories != expected_directories || observed.len() != component.files.len()
-    {
+    if unexpected || directories != expected_directories || observed.len() != manifest_files.len() {
         return Ok(true);
     }
-    for (relative, expected) in &component.files {
+    for (relative, expected) in manifest_files {
         let Some((sha256, mode)) = observed.get(relative) else {
             return Ok(true);
         };
-        let archive_path = format!("{}/{relative}", component.payload);
+        let archive_path = format!("{payload}/{relative}");
         let payload = files.get(&archive_path).expect("validated payload file");
         if sha256 != &expected.sha256 || *mode != expected.mode || digest(&payload.bytes) != *sha256
         {
@@ -1137,6 +1443,28 @@ fn partial_error(error: TkError, completed: &[String], uncompleted: &[String]) -
     )
 }
 
+fn skill_partial_error(error: TkError, completed: &[String], uncompleted: &[String]) -> TkError {
+    if completed.is_empty() {
+        return error;
+    }
+    TkError::partial_commit(
+        "CLI Skill lifecycle stopped after committing some changes",
+        serde_json::json!(completed),
+        serde_json::json!(uncompleted),
+        error,
+    )
+}
+
+fn require_absolute_skill_root(path: &Path) -> Result<()> {
+    if path.is_absolute() {
+        return Ok(());
+    }
+    Err(TkError::request(
+        "invalid_skill_root",
+        format!("Skill root must be absolute: {}", path.display()),
+    ))
+}
+
 fn require_runtime(path: &Path) -> Result<()> {
     let metadata = match fs::metadata(path) {
         Ok(metadata) => metadata,
@@ -1212,6 +1540,13 @@ fn component_targets(harness: Harness, home: &Path) -> Vec<PathBuf> {
     }
 }
 
+fn cli_skill_targets(skill_root: &Path) -> Vec<PathBuf> {
+    ["tk-cli", "tk-cli-zh"]
+        .into_iter()
+        .map(|skill| skill_root.join(skill))
+        .collect()
+}
+
 fn home() -> Result<PathBuf> {
     env::var_os("HOME").map(PathBuf::from).ok_or_else(|| {
         TkError::new(
@@ -1255,7 +1590,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn embedded_components_cover_every_selection() {
+    fn embedded_bundle_covers_components_and_cli_skills() {
         let bundle = embedded_bundle().unwrap();
         assert_eq!(bundle.manifest.components.len(), 16);
         for harness in [Harness::Codex, Harness::Claude, Harness::Pi, Harness::Omp] {
@@ -1315,6 +1650,14 @@ mod tests {
                 }
             }
         }
+        assert_eq!(bundle.manifest.cli_skills.len(), 2);
+        for language in [Language::En, Language::Zh] {
+            let skill = bundle.manifest.cli_skills.get(language.name()).unwrap();
+            assert_eq!(skill.language, language);
+            assert_eq!(skill.skill, skill_name(Mode::Cli, language));
+            assert!(skill.files.contains_key("SKILL.md"));
+            assert!(skill.files.keys().all(|path| !path.starts_with("skills/")));
+        }
     }
 
     #[test]
@@ -1352,16 +1695,22 @@ mod tests {
         let root = std::env::temp_dir().join(format!("tk-component-test-{}", uuid::Uuid::now_v7()));
         let bundle = embedded_bundle().unwrap();
         let component = bundle.manifest.components.get("pi/tools/en").unwrap();
-        materialize_component(&root, component, &bundle.files).unwrap();
-        assert!(!component_differs(&root, component, &bundle.files).unwrap());
+        materialize_payload(&root, &component.payload, &component.files, &bundle.files).unwrap();
+        assert!(
+            !payload_differs(&root, &component.payload, &component.files, &bundle.files,).unwrap()
+        );
 
         let extra = root.join("extra");
         fs::create_dir(&extra).unwrap();
-        assert!(component_differs(&root, component, &bundle.files).unwrap());
+        assert!(
+            payload_differs(&root, &component.payload, &component.files, &bundle.files,).unwrap()
+        );
         fs::remove_dir(&extra).unwrap();
 
         std::os::unix::fs::symlink("missing", &extra).unwrap();
-        assert!(component_differs(&root, component, &bundle.files).unwrap());
+        assert!(
+            payload_differs(&root, &component.payload, &component.files, &bundle.files,).unwrap()
+        );
         fs::remove_dir_all(root).unwrap();
     }
 

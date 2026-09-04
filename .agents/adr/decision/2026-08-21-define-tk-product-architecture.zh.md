@@ -46,7 +46,7 @@ Harness 是围绕模型、使其能够作为 Agent 运行的软件环境。当�
 - [纯 CLI 模式](./2026-09-02-add-tk-cli-only-mode.zh.md)；
 - [Skill 语言选择](./2026-09-02-select-tk-skill-language.zh.md)；
 - [Harness 工具集成](./2026-09-02-integrate-tk-tools-with-harnesses.zh.md)；
-- [可选择 Harness 组件分发](./2026-09-02-distribute-selectable-tk-harness-components.zh.md)；
+- [Harness 组件与自定义根目录 CLI Skill 分发](./2026-09-03-distribute-custom-cli-skills.zh.md)；
 - [文档维护](./2026-08-29-maintain-tk-documentation.zh.md)。
 
 ## 考虑过的替代方案
@@ -69,4 +69,8 @@ Task 不依赖创建它的 Harness 也能读取和维护。CLI、MCP、Pi 和 OM
 
 ### 2026-09-02：增加可选择的 Skill 模式与语言
 
-产品现在包含四个可独立发现的 Skill 和十六种 Harness 组件选择。上文的决定归属列表用四项聚焦的现行决定，替换了已经归档的单语言 Harness 集成与组件分发决定。
+产品现在包含四个可独立发现的 Skill 和多种 Harness 组件选择。上文的决定归属列表用四项聚焦的现行决定，替换了已经归档的单语言 Harness 集成与组件分发决定。
+
+### 2026-09-03：增加自定义 CLI Skill 根目录
+
+产品仍包含四个可独立发现的 Skill 和多种 Harness 组件选择。runtime 还携带两份与 Harness 无关的 CLI Skill 载荷，用于把 `tk-cli` 和 `tk-cli-zh` 安装到显式指定的 Skill 根目录。

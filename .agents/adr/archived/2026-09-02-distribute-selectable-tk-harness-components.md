@@ -3,6 +3,8 @@
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol, Ruokee
 Reverses: [Distribute the tk runtime and Harness components](../archived/2026-08-28-distribute-tk-runtime-components.md)
+Archived: 2026-09-03
+Reversed by: [Distribute Harness components and custom CLI Skills](../decision/2026-09-03-distribute-custom-cli-skills.md)
 
 English | [中文](./2026-09-02-distribute-selectable-tk-harness-components.zh.md)
 
@@ -16,7 +18,7 @@ Each Harness now needs selectable tools or CLI mode and English or Chinese Skill
 
 The Linux runtime remains one regular executable with a Unix execution bit at `$HOME/.local/bin/tk`. Harness components verify and start it but never install, update, remove, wrap, or copy it.
 
-`projects/tk/build.rs` is the only component assembler. Cargo produces one deterministic `tar.zst` and one manifest containing sixteen payloads, formed by four Harnesses, two modes, and two languages. The manifest records the runtime version once at the top level. Each component entry records Harness, mode, language, Skill identity, `runtime_compat`, payload path, file types, Unix modes, and digests. `source_revision` identifies the source for the complete bundle. The executable embeds the archive and manifest.
+`projects/tk/build.rs` is the only component assembler. Cargo produces one deterministic `tar.zst` and one manifest containing multiple payloads spanning four Harnesses, two modes, and two languages. The manifest records the runtime version once at the top level. Each component entry records Harness, mode, language, Skill identity, `runtime_compat`, payload path, file types, Unix modes, and digests. `source_revision` identifies the source for the complete bundle. The executable embeds the archive and manifest.
 
 Tools payloads contain `tk` or `tk-zh` plus the selected Harness integration. CLI payloads contain `tk-cli` or `tk-cli-zh` and omit MCP configuration or native operation extensions. Components contain no runtime copy, another Harness's files, review records, or product source.
 
@@ -42,6 +44,6 @@ None
 
 ## Consequences
 
-The runtime carries sixteen payloads, so component additions increase executable size and release validation work. Updating any payload requires rebuilding and redistributing the runtime.
+The runtime carries multiple payloads, so component additions increase executable size and release validation work. Updating any payload requires rebuilding and redistributing the runtime.
 
 Install converges to `no_change` when targets and registrations match the selected payload. Clean uninstall deliberately deletes modified and extra files inside tk-specific targets, including all known tk Skill variant targets, while preserving unrelated shared content.

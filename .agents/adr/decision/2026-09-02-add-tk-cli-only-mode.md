@@ -19,7 +19,7 @@ CLI-only Skill content contains no logical operation names, discovery instructio
 
 A CLI-only Harness component installs the selected CLI Skill. Claude Code, Pi, and OMP also install the native manifest needed to load it; Codex needs no manifest. No CLI-only component installs MCP configuration, a native tool extension, or tk operation registration. The fixed `$HOME/.local/bin/tk` executable remains an external prerequisite.
 
-[Skill language selection](./2026-09-02-select-tk-skill-language.md) owns the two language identities. [Selectable component distribution](./2026-09-02-distribute-selectable-tk-harness-components.md) owns installation and packaging.
+[Skill language selection](./2026-09-02-select-tk-skill-language.md) owns the two language identities. [Harness component and custom CLI Skill distribution](./2026-09-03-distribute-custom-cli-skills.md) owns installation and packaging.
 
 ## Alternatives considered
 
@@ -32,3 +32,9 @@ A CLI-only Harness component installs the selected CLI Skill. Claude Code, Pi, a
 CLI-only installations carry less integration content and add no tk operation schemas to the Agent session. The Agent must select CLI subcommands and options itself, and the Harness cannot constrain request structure at the invocation boundary.
 
 The CLI-only Skills must stay synchronized with the public CLI contract and remain free of integration-specific routing language.
+
+## Changes
+
+### 2026-09-03: Add direct CLI Skill installation
+
+The same self-contained CLI Skills can now be installed into an explicit Skill root without a Harness wrapper, native manifest, or registration change. The fixed runtime prerequisite still applies.

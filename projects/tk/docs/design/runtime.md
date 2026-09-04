@@ -114,9 +114,9 @@ OMP marks search, read, create, update, and log as essential. Exec is discoverab
 
 ## Component builds and runtime sources
 
-Cargo builds use a single Rust assembly implementation to generate sixteen self-contained payloads from four Skill trees and the source code for each Harness. Generation writes only to Cargo `OUT_DIR` and Cargo's own target directory.
+Cargo builds use a single Rust assembly implementation to generate multiple self-contained Harness payloads from four Skill trees and the source code for each Harness, plus two standalone payloads containing only `tk-cli` or `tk-cli-zh`. Generation writes only to Cargo `OUT_DIR` and Cargo's own target directory.
 
-The runtime uses embedded archives and manifests through `include_bytes!`. Installation does not access the network, start `curl`, or accept a local archive path.
+The runtime uses embedded archives and manifests through `include_bytes!`. Harness and custom-root installation do not access the network, start `curl`, or accept a local archive path.
 
 ## Version dimensions
 
@@ -125,7 +125,7 @@ The runtime uses embedded archives and manifests through `include_bytes!`. Insta
 | runtime version | Executable package version |
 | CLI contract version | Version of the CLI, MCP, and native tool contracts |
 | Task schema version | Current Task metadata version |
-| component format version | Version of the embedded Harness component archive format |
+| component format version | Version of the embedded Harness component and standalone CLI Skill archive format |
 | cleanup manifest version | Version of the minimal cleanup manifest format |
 
 `tk --version --output json` uses `runtime_version`, `cli_contract_version`, `task_schema_version`, and `component_format_version`.

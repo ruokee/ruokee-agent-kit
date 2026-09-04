@@ -46,7 +46,7 @@ The following ADRs own the detailed contracts within this architecture:
 - [CLI-only mode](./2026-09-02-add-tk-cli-only-mode.md);
 - [Skill language selection](./2026-09-02-select-tk-skill-language.md);
 - [Harness tools integration](./2026-09-02-integrate-tk-tools-with-harnesses.md);
-- [selectable Harness component distribution](./2026-09-02-distribute-selectable-tk-harness-components.md);
+- [Harness component and custom CLI Skill distribution](./2026-09-03-distribute-custom-cli-skills.md);
 - [documentation maintenance](./2026-08-29-maintain-tk-documentation.md).
 
 ## Alternatives considered
@@ -69,4 +69,8 @@ The runtime is a shared failure boundary. A defect in the executable can affect 
 
 ### 2026-09-02: Add selectable Skill modes and languages
 
-The product now has four independently discoverable Skills and sixteen Harness component selections. The ownership list above replaces the archived single-language Harness integration and distribution decisions with four focused current decisions.
+The product now has four independently discoverable Skills and multiple Harness component selections. The ownership list above replaces the archived single-language Harness integration and distribution decisions with four focused current decisions.
+
+### 2026-09-03: Add custom CLI Skill roots
+
+The product still has four independently discoverable Skills and multiple Harness component selections. The runtime also carries two Harness-independent CLI Skill payloads so `tk-cli` and `tk-cli-zh` can be installed into an explicit Skill root.

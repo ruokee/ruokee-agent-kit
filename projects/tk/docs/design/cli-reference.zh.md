@@ -237,24 +237,32 @@ tk mcp
 tk install --harness <codex|claude|pi|omp>
   [--mode <tools|cli>] [--language <en|zh>]
   [--dry-run] [--output <text|json>]
+
+tk install --mode cli --skill-root <directory>
+  [--language <en|zh>] [--dry-run] [--output <text|json>]
 ```
 
-`--mode` 默认 `tools`，`--language` 默认 `en`。四个最终 Skill 分别为 `tk`、`tk-zh`、`tk-cli` 和 `tk-cli-zh`。
+`--harness` 与 `--skill-root` 必须且只能提供一个。Harness install 的 `--mode` 默认 `tools`。自定义根目录 install 必须显式传入 `--mode cli`，并拒绝 tools 模式。两种目标的 `--language` 都默认 `en`。四个最终 Skill 分别为 `tk`、`tk-zh`、`tk-cli` 和 `tk-cli-zh`。
 
-install 只使用当前可执行文件内嵌组件。固定目标、注册、模式、语言或所选 Skill 不一致时执行更新。切换选择时直接替换当前组件，并删除新选择所取代的已知 Skill 目标。
+Harness install 会在固定目标、注册、模式、语言或所选 Skill 与当前状态不一致时更新。自定义根目录 install 把 `tk-cli` 或 `tk-cli-zh` 放在所提供的父目录下，删除另一个 CLI Skill 目标，并保留 `tk`、`tk-zh` 和其他全部子项。相对根目录按进程当前工作目录解析。组件操作拒绝全局 `--cwd`。
 
-结果 action 为 `would_install`、`installed`、`updated` 或 `no_change`。text 和 JSON 结果包含最终 `mode`、`language`、`skill`，以及计划或实际路径与注册变更。失败时遵循跨文件操作的完成和未完成项合同。
+install 只使用当前可执行文件内嵌载荷，不访问网络，也不接受本地归档。
+
+结果 action 为 `would_install`、`installed`、`updated` 或 `no_change`。text 和 JSON 结果必须且只能包含一个目标字段，即 `harness` 或绝对路径 `skill_root`，并包含最终 `mode`、`language`、`skill` 和计划或实际变更。失败时遵循跨文件操作的完成和未完成项合同。
 
 ## `tk uninstall`
 
 ```text
 tk uninstall --harness <codex|claude|pi|omp>
   [--dry-run] [--output <text|json>]
+
+tk uninstall --skill-root <directory>
+  [--dry-run] [--output <text|json>]
 ```
 
-uninstall 不接受模式或语言选择。它移除当前组件、该 Harness 已知的全部残留 tk Skill variant 和 tk 注册，并保留无关内容。
+必须且只能提供一个目标选项。uninstall 不接受模式或语言选择。Harness uninstall 移除当前组件、该 Harness 已知的全部残留 tk Skill variant 和 tk 注册。自定义根目录 uninstall 删除所提供根目录下的 `tk-cli` 和 `tk-cli-zh`，并保留根目录及其他全部子项。
 
-结果 action 为 `would_uninstall`、`uninstalled` 或 `no_change`，并列出计划或实际变更。
+结果 action 为 `would_uninstall`、`uninstalled` 或 `no_change`。结果必须且只能包含一个目标字段，并列出计划或实际变更。自定义根目录结果报告 `mode: cli`，但省略 `language` 和 `skill`，因为两个 CLI Skill 身份都会被删除。
 
 ## 版本和帮助
 
@@ -272,7 +280,7 @@ tk <command> <subcommand> --help
   "runtime_version": "0.1.2",
   "cli_contract_version": 1,
   "task_schema_version": 1,
-  "component_format_version": 2
+  "component_format_version": 3
 }
 ```
 

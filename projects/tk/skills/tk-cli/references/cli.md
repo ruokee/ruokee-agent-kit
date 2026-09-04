@@ -269,36 +269,40 @@ Mode switching does not replace schema migration. See [Project storage](./projec
 
 ## `tk install`
 
-Install tk Harness components:
+Install a supported Harness component or a standalone CLI Skill:
 
 ```text
 tk install --harness <codex|claude|pi|omp>
   [--mode <tools|cli>] [--language <en|zh>]
   [--dry-run] [--output <text|json>]
+
+tk install --mode cli --skill-root <directory>
+  [--language <en|zh>] [--dry-run] [--output <text|json>]
 ```
 
-- `--harness` is required.
-- `--mode` defaults to `tools`.
+- Exactly one of `--harness` and `--skill-root` is required.
+- Harness mode defaults to `tools`.
+- Custom-root mode must be explicitly `cli`.
 - `--language` defaults to `en`.
-- The four resolved Skills are `tk`, `tk-zh`, `tk-cli`, and `tk-cli-zh`.
 - `--dry-run` returns a plan without writing.
 
-Installation uses only components embedded in the current executable. It does not access the network or accept a local archive. A changed target, registration, mode, language, or Skill is updated directly, and known residual Skill targets are removed.
+Installation uses only payloads embedded in the current executable. It does not access the network or accept a local archive. Harness install converges the selected component and registration. Custom-root install creates `tk-cli` or `tk-cli-zh` below the supplied parent directory, removes the other CLI target, and preserves every unrelated child.
 
-The action is `would_install`, `installed`, `updated`, or `no_change`. Cross-file failures follow the completed and uncompleted contract.
+The action is `would_install`, `installed`, `updated`, or `no_change`. Results contain exactly one target field, `harness` or the absolute `skill_root`, plus the resolved mode, language, Skill, and changes. Cross-file failures follow the completed and uncompleted contract.
 
 ## `tk uninstall`
-
-Uninstall tk Harness components:
 
 ```text
 tk uninstall --harness <codex|claude|pi|omp>
   [--dry-run] [--output <text|json>]
+
+tk uninstall --skill-root <directory>
+  [--dry-run] [--output <text|json>]
 ```
 
-Uninstall does not accept mode or language options. It removes the current component, every known residual tk Skill variant for that Harness, and tk registration while preserving unrelated content.
+Uninstall takes no mode or language options. Harness uninstall removes the current component, every known residual tk Skill variant for that Harness, and tk registration while preserving unrelated content. Custom-root uninstall removes both `tk-cli` and `tk-cli-zh` while preserving the root and every other child.
 
-The action is `would_uninstall`, `uninstalled`, or `no_change`, with planned or actual changes listed.
+The action is `would_uninstall`, `uninstalled`, or `no_change`, with planned or actual changes listed. Custom-root results report CLI mode and omit language and Skill.
 
 ## `tk --version`
 
@@ -316,7 +320,7 @@ The JSON payload contains:
   "runtime_version": "0.1.2",
   "cli_contract_version": 1,
   "task_schema_version": 1,
-  "component_format_version": 2
+  "component_format_version": 3
 }
 ```
 

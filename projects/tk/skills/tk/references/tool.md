@@ -81,8 +81,14 @@ tk install --harness <codex|claude|pi|omp>
   [--mode <tools|cli>] [--language <en|zh>]
   [--dry-run] [--output <text|json>]
 
+tk install --mode cli --skill-root <directory>
+  [--language <en|zh>] [--dry-run] [--output <text|json>]
+
 tk uninstall --harness <codex|claude|pi|omp>
+  [--dry-run] [--output <text|json>]
+
+tk uninstall --skill-root <directory>
   [--dry-run] [--output <text|json>]
 ```
 
-`install` defaults to `tools` and `en` and returns `would_install`, `installed`, `updated`, or `no_change`. `uninstall` removes every tk-owned target and known residual registration for the Harness while preserving unrelated content. Use `--dry-run` in an unfamiliar environment. After a partial commit, inspect `completed` and `uncompleted` to establish current state.
+Exactly one target option is required. Harness install defaults to `tools` and `en`. Custom-root install requires explicit CLI mode and manages only `tk-cli` and `tk-cli-zh` below the supplied root. Uninstall takes no mode or language selector. Use `--dry-run` in an unfamiliar environment. After a partial commit, inspect `completed` and `uncompleted` to establish current state.

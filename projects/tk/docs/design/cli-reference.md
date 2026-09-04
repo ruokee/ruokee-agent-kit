@@ -237,24 +237,32 @@ The command starts a single-connection stdio MCP server. It does not accept cwd,
 tk install --harness <codex|claude|pi|omp>
   [--mode <tools|cli>] [--language <en|zh>]
   [--dry-run] [--output <text|json>]
+
+tk install --mode cli --skill-root <directory>
+  [--language <en|zh>] [--dry-run] [--output <text|json>]
 ```
 
-`--mode` defaults to `tools`. `--language` defaults to `en`. The four resolved Skills are `tk`, `tk-zh`, `tk-cli`, and `tk-cli-zh`.
+Exactly one of `--harness` and `--skill-root` is required. Harness install defaults `--mode` to `tools`. Custom-root install requires explicit `--mode cli` and rejects tools mode. `--language` defaults to `en` for both target types. The four resolved Skills are `tk`, `tk-zh`, `tk-cli`, and `tk-cli-zh`.
 
-install uses only components embedded in the current executable. It performs an update when the fixed target, registration, mode, language, or selected Skill differs. Switching selection replaces the current component directly and removes known superseded Skill targets.
+Harness install updates the fixed target, registration, mode, language, or selected Skill when current state differs. Custom-root install places `tk-cli` or `tk-cli-zh` below the supplied parent directory, removes the other CLI Skill target, and leaves `tk`, `tk-zh`, and every unrelated child unchanged. A relative root resolves from the process working directory. Component operations reject global `--cwd`.
 
-The result action is `would_install`, `installed`, `updated`, or `no_change`. Text and JSON results include the resolved `mode`, `language`, and `skill`, plus planned or actual path and registration changes. On failure, install follows the completed and incomplete item contract for cross-file operations.
+Install uses only payloads embedded in the current executable. It does not access the network or accept a local archive.
+
+The result action is `would_install`, `installed`, `updated`, or `no_change`. Text and JSON results contain exactly one target field, `harness` or the absolute `skill_root`, plus the resolved `mode`, `language`, `skill`, and planned or actual changes. On failure, install follows the completed and incomplete item contract for cross-file operations.
 
 ## `tk uninstall`
 
 ```text
 tk uninstall --harness <codex|claude|pi|omp>
   [--dry-run] [--output <text|json>]
+
+tk uninstall --skill-root <directory>
+  [--dry-run] [--output <text|json>]
 ```
 
-uninstall takes no mode or language selector. It removes the active component, all known residual tk Skill variants for that Harness, and tk registrations. Unrelated content remains intact.
+Exactly one target option is required. Uninstall takes no mode or language selector. Harness uninstall removes the active component, all known residual tk Skill variants for that Harness, and tk registrations. Custom-root uninstall removes both `tk-cli` and `tk-cli-zh` below the supplied root, while preserving the root and every other child.
 
-The result action is `would_uninstall`, `uninstalled`, or `no_change`, and the result lists planned or actual changes.
+The result action is `would_uninstall`, `uninstalled`, or `no_change`. Results contain exactly one target field and list planned or actual changes. Custom-root results report `mode: cli` and omit `language` and `skill` because both CLI Skill identities are removed.
 
 ## Version and help
 
@@ -272,7 +280,7 @@ Version JSON is:
   "runtime_version": "0.1.2",
   "cli_contract_version": 1,
   "task_schema_version": 1,
-  "component_format_version": 2
+  "component_format_version": 3
 }
 ```
 

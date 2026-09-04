@@ -269,36 +269,40 @@ tk metadata switch --to <split|embed>
 
 ## `tk install`
 
-安装 tk 的 Harness 组件：
+安装已支持 Harness 组件或独立 CLI Skill：
 
 ```text
 tk install --harness <codex|claude|pi|omp>
   [--mode <tools|cli>] [--language <en|zh>]
   [--dry-run] [--output <text|json>]
+
+tk install --mode cli --skill-root <directory>
+  [--language <en|zh>] [--dry-run] [--output <text|json>]
 ```
 
-- `--harness` 是必填目标。
-- `--mode` 默认是 `tools`。
+- `--harness` 与 `--skill-root` 必须且只能提供一个。
+- Harness 模式默认是 `tools`。
+- 自定义根目录模式必须显式使用 `cli`。
 - `--language` 默认是 `en`。
-- 四种解析后的 Skill 是 `tk`、`tk-zh`、`tk-cli` 和 `tk-cli-zh`。
 - `--dry-run` 返回计划，不写入。
 
-安装只使用当前可执行文件中的内嵌组件，不联网，也不接受本地归档。目标、注册、模式、语言或 Skill 发生变化时直接更新，并删除已知的旧 Skill 目标。
+安装只使用当前可执行文件中的内嵌载荷，不联网，也不接受本地归档。Harness install 收敛所选组件和注册。自定义根目录 install 在所提供父目录下创建 `tk-cli` 或 `tk-cli-zh`，删除另一个 CLI 目标，并保留其他全部子项。
 
-结果动作是 `would_install`、`installed`、`updated` 或 `no_change`。跨文件失败遵循已完成项和未完成项合同。
+结果动作是 `would_install`、`installed`、`updated` 或 `no_change`。结果必须且只能包含 `harness` 或绝对路径 `skill_root` 中的一个目标字段，并包含最终模式、语言、Skill 和变更。跨文件失败遵循已完成项和未完成项合同。
 
 ## `tk uninstall`
-
-卸载 tk 的 Harness 组件：
 
 ```text
 tk uninstall --harness <codex|claude|pi|omp>
   [--dry-run] [--output <text|json>]
+
+tk uninstall --skill-root <directory>
+  [--dry-run] [--output <text|json>]
 ```
 
-卸载不接受模式或语言选项。它删除当前组件、该 Harness 下所有已知残留的 tk Skill 变体和 tk 注册，同时保留无关内容。
+uninstall 不接受模式或语言选项。Harness uninstall 删除当前组件、该 Harness 下所有已知残留的 tk Skill variant 和 tk 注册，同时保留无关内容。自定义根目录 uninstall 删除 `tk-cli` 和 `tk-cli-zh`，并保留根目录和其他全部子项。
 
-结果动作是 `would_uninstall`、`uninstalled` 或 `no_change`，并列出计划或实际变更。
+结果动作是 `would_uninstall`、`uninstalled` 或 `no_change`，并列出计划或实际变更。自定义根目录结果报告 CLI 模式，但省略语言和 Skill。
 
 ## `tk --version`
 
@@ -316,7 +320,7 @@ JSON 结果包含：
   "runtime_version": "0.1.2",
   "cli_contract_version": 1,
   "task_schema_version": 1,
-  "component_format_version": 2
+  "component_format_version": 3
 }
 ```
 

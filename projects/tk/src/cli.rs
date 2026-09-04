@@ -79,9 +79,9 @@ enum Commands {
     },
     /// Serve the six tk tools over stdio MCP.
     Mcp,
-    /// Install or update one Harness component.
+    /// Install or update one Harness component or CLI Skill root.
     Install(ComponentArgs),
-    /// Remove one Harness component.
+    /// Remove one Harness component or CLI Skill root.
     Uninstall(UninstallArgs),
     /// Initialize project-local Task storage.
     Init(InitArgs),
@@ -247,10 +247,10 @@ struct GcArgs {
 
 #[derive(Debug, Args)]
 struct ComponentArgs {
+    #[command(flatten)]
+    target: InstallTargetArgs,
     #[arg(long, value_enum)]
-    harness: CliHarness,
-    #[arg(long, value_enum, default_value_t = CliMode::Tools)]
-    mode: CliMode,
+    mode: Option<CliMode>,
     #[arg(long, value_enum, default_value_t = CliLanguage::En)]
     language: CliLanguage,
     #[arg(long)]
@@ -258,11 +258,29 @@ struct ComponentArgs {
 }
 
 #[derive(Debug, Args)]
-struct UninstallArgs {
+#[group(required = true, multiple = false)]
+struct InstallTargetArgs {
     #[arg(long, value_enum)]
-    harness: CliHarness,
+    harness: Option<CliHarness>,
+    #[arg(long, requires = "mode")]
+    skill_root: Option<PathBuf>,
+}
+
+#[derive(Debug, Args)]
+struct UninstallArgs {
+    #[command(flatten)]
+    target: UninstallTargetArgs,
     #[arg(long)]
     dry_run: bool,
+}
+
+#[derive(Debug, Args)]
+#[group(required = true, multiple = false)]
+struct UninstallTargetArgs {
+    #[arg(long, value_enum)]
+    harness: Option<CliHarness>,
+    #[arg(long)]
+    skill_root: Option<PathBuf>,
 }
 
 #[derive(Debug, Args)]
@@ -517,6 +535,14 @@ fn discover_for_existing_absolute_path(
         project::discover_from_exact_path(path)
     } else {
         project::discover(cwd)
+    }
+}
+
+fn resolve_skill_root(cwd: &std::path::Path, path: PathBuf) -> PathBuf {
+    if path.is_absolute() {
+        path
+    } else {
+        cwd.join(path)
     }
 }
 
@@ -827,12 +853,28 @@ fn execute(command: Commands, cwd: PathBuf) -> Result<CommandOutput> {
             })
         }
         Commands::Install(args) => {
-            let result = component::install(
-                args.harness.into(),
-                args.mode.into(),
-                args.language.into(),
-                args.dry_run,
-            )?;
+            let result = match (args.target.harness, args.target.skill_root) {
+                (Some(harness), None) => component::install(
+                    harness.into(),
+                    args.mode.unwrap_or(CliMode::Tools).into(),
+                    args.language.into(),
+                    args.dry_run,
+                )?,
+                (None, Some(skill_root)) => {
+                    if !matches!(args.mode, Some(CliMode::Cli)) {
+                        return Err(TkError::request(
+                            "invalid_install_mode",
+                            "--skill-root requires --mode cli",
+                        ));
+                    }
+                    component::install_skill_root(
+                        resolve_skill_root(&cwd, skill_root),
+                        args.language.into(),
+                        args.dry_run,
+                    )?
+                }
+                _ => unreachable!("clap requires exactly one install target"),
+            };
             Ok(CommandOutput {
                 text: serde_json::to_string_pretty(&result).expect("serializing install result"),
                 data: serde_json::to_value(result).expect("serializing install result"),
@@ -840,7 +882,14 @@ fn execute(command: Commands, cwd: PathBuf) -> Result<CommandOutput> {
             })
         }
         Commands::Uninstall(args) => {
-            let result = component::uninstall(args.harness.into(), args.dry_run)?;
+            let result = match (args.target.harness, args.target.skill_root) {
+                (Some(harness), None) => component::uninstall(harness.into(), args.dry_run)?,
+                (None, Some(skill_root)) => component::uninstall_skill_root(
+                    resolve_skill_root(&cwd, skill_root),
+                    args.dry_run,
+                )?,
+                _ => unreachable!("clap requires exactly one uninstall target"),
+            };
             Ok(CommandOutput {
                 text: serde_json::to_string_pretty(&result).expect("serializing uninstall result"),
                 data: serde_json::to_value(result).expect("serializing uninstall result"),
@@ -1120,12 +1169,13 @@ mod tests {
     }
 
     #[test]
-    fn install_defaults_to_english_tools() {
+    fn harness_install_keeps_default_selection() {
         let cli = Cli::try_parse_from(["tk", "install", "--harness", "codex"]).unwrap();
         let Some(Commands::Install(args)) = cli.command else {
             panic!("expected install command");
         };
-        assert!(matches!(args.mode, CliMode::Tools));
+        assert!(matches!(args.target.harness, Some(CliHarness::Codex)));
+        assert!(args.mode.is_none());
         assert!(matches!(args.language, CliLanguage::En));
     }
 
@@ -1145,7 +1195,64 @@ mod tests {
         let Some(Commands::Install(args)) = cli.command else {
             panic!("expected install command");
         };
-        assert!(matches!(args.mode, CliMode::Cli));
+        assert!(matches!(args.target.harness, Some(CliHarness::Omp)));
+        assert!(matches!(args.mode, Some(CliMode::Cli)));
         assert!(matches!(args.language, CliLanguage::Zh));
+    }
+
+    #[test]
+    fn parses_custom_skill_root() {
+        let cli = Cli::try_parse_from([
+            "tk",
+            "install",
+            "--skill-root",
+            ".agents/skills",
+            "--mode",
+            "cli",
+        ])
+        .unwrap();
+        let Some(Commands::Install(args)) = cli.command else {
+            panic!("expected install command");
+        };
+        assert_eq!(
+            args.target.skill_root,
+            Some(PathBuf::from(".agents/skills"))
+        );
+        assert!(matches!(args.mode, Some(CliMode::Cli)));
+    }
+
+    #[test]
+    fn install_and_uninstall_require_exactly_one_target() {
+        assert!(Cli::try_parse_from(["tk", "install"]).is_err());
+        assert!(
+            Cli::try_parse_from([
+                "tk",
+                "install",
+                "--harness",
+                "codex",
+                "--skill-root",
+                "skills",
+                "--mode",
+                "cli",
+            ])
+            .is_err()
+        );
+        assert!(Cli::try_parse_from(["tk", "uninstall"]).is_err());
+        assert!(
+            Cli::try_parse_from([
+                "tk",
+                "uninstall",
+                "--harness",
+                "codex",
+                "--skill-root",
+                "skills",
+            ])
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn custom_install_requires_explicit_mode() {
+        assert!(Cli::try_parse_from(["tk", "install", "--skill-root", "skills"]).is_err());
     }
 }

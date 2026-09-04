@@ -3,6 +3,8 @@
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol, Ruokee
 Reverses: [分发 tk 运行时与 Harness 组件](../archived/2026-08-28-distribute-tk-runtime-components.zh.md)
+Archived: 2026-09-03
+Reversed by: [分发 Harness 组件与自定义根目录 CLI Skill](../decision/2026-09-03-distribute-custom-cli-skills.zh.md)
 
 [English](./2026-09-02-distribute-selectable-tk-harness-components.md) | 中文
 
@@ -16,7 +18,7 @@ Reverses: [分发 tk 运行时与 Harness 组件](../archived/2026-08-28-distrib
 
 Linux 运行时仍是位于 `$HOME/.local/bin/tk`、具有 Unix 执行位的一份常规可执行文件。Harness 组件验证并启动它，但不安装、更新、删除、包装或复制它。
 
-`projects/tk/build.rs` 是唯一组件组装器。Cargo 生成一个确定性 `tar.zst` 和一份包含十六份载荷的清单。十六份载荷来自四个 Harness、两种模式和两种语言。运行时版本在清单顶层只记录一次。每个组件项记录 Harness、模式、语言、Skill 身份、`runtime_compat`、载荷路径、文件类型、Unix 权限和摘要。`source_revision` 标识整份 bundle 的来源。可执行文件内嵌归档与清单。
+`projects/tk/build.rs` 是唯一组件组装器。Cargo 生成一个确定性 `tar.zst` 和一份包含多份载荷的清单。这些载荷覆盖四个 Harness、两种模式和两种语言。运行时版本在清单顶层只记录一次。每个组件项记录 Harness、模式、语言、Skill 身份、`runtime_compat`、载荷路径、文件类型、Unix 权限和摘要。`source_revision` 标识整份 bundle 的来源。可执行文件内嵌归档与清单。
 
 tools 载荷包含 `tk` 或 `tk-zh`，以及所选 Harness 集成。CLI 载荷包含 `tk-cli` 或 `tk-cli-zh`，并省略 MCP 配置或原生操作 extension。组件不包含运行时副本、其他 Harness 文件、评审记录或产品源码。
 
@@ -42,6 +44,6 @@ tk uninstall --harness <codex|claude|pi|omp> [--dry-run]
 
 ## 结果
 
-运行时携带十六份载荷，因此新增组件会增加可执行文件体积和发布验证工作。更新任一载荷都需要重新构建并分发运行时。
+运行时携带多份载荷，因此新增组件会增加可执行文件体积和发布验证工作。更新任一载荷都需要重新构建并分发运行时。
 
 目标与注册符合所选载荷时，install 收敛为 `no_change`。干净卸载会删除 tk 专用目标中的修改和额外文件，包括全部已知 tk Skill variant 目标，同时保留无关共享内容。

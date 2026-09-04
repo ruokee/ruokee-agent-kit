@@ -19,7 +19,7 @@ tk 通过自包含的 `tk-cli` 和 `tk-cli-zh` Skill 提供纯 CLI 模式。这�
 
 纯 CLI Harness 组件安装所选 CLI Skill。Claude Code、Pi 和 OMP 还会安装加载该 Skill 所需的原生 manifest；Codex 不需要 manifest。纯 CLI 组件不安装 MCP 配置、原生工具 extension 或 tk 操作注册。固定 `$HOME/.local/bin/tk` 可执行文件仍是外部前置条件。
 
-[Skill 语言选择](./2026-09-02-select-tk-skill-language.zh.md)负责两个语言身份。[可选择组件分发](./2026-09-02-distribute-selectable-tk-harness-components.zh.md)负责安装与打包。
+[Skill 语言选择](./2026-09-02-select-tk-skill-language.zh.md)负责两个语言身份。[Harness 组件与自定义根目录 CLI Skill 分发](./2026-09-03-distribute-custom-cli-skills.zh.md)负责安装与打包。
 
 ## 考虑过的替代方案
 
@@ -32,3 +32,9 @@ tk 通过自包含的 `tk-cli` 和 `tk-cli-zh` Skill 提供纯 CLI 模式。这�
 纯 CLI 安装包含的集成内容更少，也不会向 Agent 会话加入 tk 操作 schema。Agent 需要自行选择 CLI 子命令和选项，Harness 无法在调用入口约束请求结构。
 
 纯 CLI Skill 必须与公开 CLI 合同保持同步，并始终不含集成专用的路由表述。
+
+## 变更
+
+### 2026-09-03：增加直接安装 CLI Skill
+
+同一份自包含 CLI Skill 现在可以安装到显式指定的 Skill 根目录，不需要 Harness 包装、原生 manifest 或注册变更。固定 runtime 前置条件仍然适用。

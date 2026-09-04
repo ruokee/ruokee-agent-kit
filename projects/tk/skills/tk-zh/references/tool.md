@@ -81,8 +81,14 @@ tk install --harness <codex|claude|pi|omp>
   [--mode <tools|cli>] [--language <en|zh>]
   [--dry-run] [--output <text|json>]
 
+tk install --mode cli --skill-root <directory>
+  [--language <en|zh>] [--dry-run] [--output <text|json>]
+
 tk uninstall --harness <codex|claude|pi|omp>
+  [--dry-run] [--output <text|json>]
+
+tk uninstall --skill-root <directory>
   [--dry-run] [--output <text|json>]
 ```
 
-`install` 默认 `tools` 和 `en`，根据当前状态返回 `would_install`、`installed`、`updated` 或 `no_change`。`uninstall` 删除全部 tk 专用目标和已知残留注册，保留无关 Harness 内容。陌生环境先 `dry-run`；部分提交后按 `completed` 和 `uncompleted` 检查当前状态。
+必须且只能提供一个目标选项。Harness install 默认 `tools` 和 `en`。自定义根目录 install 必须显式使用 CLI 模式，并只管理所提供根目录下的 `tk-cli` 与 `tk-cli-zh`。uninstall 不接受模式或语言选择。陌生环境先 `dry-run`；部分提交后按 `completed` 和 `uncompleted` 检查当前状态。

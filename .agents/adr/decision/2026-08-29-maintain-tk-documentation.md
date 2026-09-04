@@ -87,4 +87,8 @@ tk documentation now refers to current ADRs under `decision/` rather than modeli
 
 ### 2026-09-02: Document selectable Skills and components
 
-Documentation covers tools and CLI modes, English and Chinese selection through `tk install`, four Skill identities, sixteen component payloads, and the split routing contract. The four Skill paths above replace the earlier English Skill and the Chinese Skill that required manual installation.
+Documentation covers tools and CLI modes, English and Chinese selection through `tk install`, four Skill identities, multiple component payloads, and the split routing contract. The four Skill paths above replace the earlier English Skill and the Chinese Skill that required manual installation.
+
+### 2026-09-03: Document custom CLI Skill roots
+
+Documentation now covers multiple Harness payloads, two Harness-independent CLI Skill payloads, the mutually exclusive install targets, and the bounded custom-root lifecycle.

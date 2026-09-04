@@ -39,7 +39,7 @@ The Rust runtime is responsible for:
 - enforcing lifecycle, relationship, migration, and path rules;
 - reading and writing project state and the WAL;
 - generating MCP and native tool contracts;
-- installing, updating, and uninstalling Harness components.
+- installing, updating, and uninstalling Harness components and standalone CLI Skills.
 
 A Harness must not duplicate the Task domain rules. Pi and OMP adapters do not implement semantic version range parsing. Rust determines compatibility.
 
@@ -47,9 +47,9 @@ A Harness must not duplicate the Task domain rules. Pi and OMP adapters do not i
 
 `projects/tk/` contains one Rust runtime, four self-contained Skills, native component source for the current Harnesses, and public documentation. The specific directory layout is an implementation detail, not a public contract.
 
-Each Harness selection is a self-contained distribution unit. A component must not reference other component directories in the repository. The selected tools or CLI Skill, in English or Chinese, is included in the embedded payload.
+Each Harness selection is a self-contained distribution unit. A component must not reference other component directories in the repository. The selected tools or CLI Skill, in English or Chinese, is included in the embedded Harness payload. Two additional payloads contain only the English or Chinese CLI Skill for direct installation into a custom root.
 
-Only the Rust build logic assembles components. Cargo builds sixteen deterministic payloads, one archive, and one manifest in `OUT_DIR`, then embeds the archive and manifest in the executable. Component installation reads only artifacts embedded in the current executable.
+Only the Rust build logic assembles components. Cargo builds multiple deterministic Harness payloads and two standalone CLI Skill payloads, one archive, and one manifest in `OUT_DIR`, then embeds the archive and manifest in the executable. Installation reads only artifacts embedded in the current executable.
 
 ## Task operation flow
 
@@ -95,11 +95,11 @@ The target result of uninstall is to restore the Harness to the state it would h
 11. All Task project relationships remain within the same Task root directory.
 12. Harness names and tool schema types are different concepts. A Harness is a product; `mcp` and `native` are schema types.
 13. Component installation does not access the network, read Task projects, or run Git policy checks.
-14. Installation, update, and uninstallation operate only on fixed tk-specific targets and tk configuration entries. They do not maintain installation history.
+14. Harness installation, update, and uninstallation operate only on fixed tk-specific targets and tk configuration entries. Custom-root operations manage only the `tk-cli` and `tk-cli-zh` children of the supplied Skill root; install may create the root and its parents. Neither lifecycle maintains installation history.
 15. Public documentation describes only the current formal contract. It does not retain obsolete development-stage commands or superseded behavior.
 
 ## Platform boundary
 
 The current implementation and automation target Linux. Paths, executable bits, process identity, and Harness user-level locations follow Linux behavior.
 
-The runtime uses the fixed user-level path `$HOME/.local/bin/tk`. Harness components must not install another runtime copy, wrapper, or parallel version.
+The runtime uses the fixed user-level path `$HOME/.local/bin/tk`. Component lifecycle commands must not install another runtime copy, wrapper, or parallel version.

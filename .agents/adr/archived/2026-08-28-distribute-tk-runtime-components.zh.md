@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
 Archived: 2026-09-02
-Reversed by: [分发可选择的 tk Harness 组件](../decision/2026-09-02-distribute-selectable-tk-harness-components.zh.md)
+Reversed by: [分发可选择的 tk Harness 组件](./2026-09-02-distribute-selectable-tk-harness-components.zh.md)
 
 [English](./2026-08-28-distribute-tk-runtime-components.md) | 中文
 
