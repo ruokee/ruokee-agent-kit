@@ -4,7 +4,7 @@ Read this file when the user explicitly says `catchup` or when Task context must
 
 ## Resolve
 
-A complete UUIDv7, absolute Task directory, absolute canonical carrier, or project-relative Task path can be read directly. Search names, directory basenames, UUID prefixes, text, regular expressions, branches, and material paths first, then use the returned canonical reference.
+A complete UUIDv7, absolute discovered Task directory, absolute managed carrier, or project-relative discovered Task path can be read directly. Search names, directory basenames, UUID prefixes, text, regular expressions, branches, and material paths first, then use the returned exact reference.
 
 If several candidates remain plausible, show the relevant candidates and ask the user to choose. Do not guess from similarity.
 

@@ -151,15 +151,12 @@ pub fn switch(project: &Project, target: MetadataMode, dry_run: bool) -> Result<
 }
 
 fn build_plan(project: &Project, target: MetadataMode) -> Result<Vec<PlannedTask>> {
-    let candidates = task_store::scan_candidates(
-        &project.task_root,
-        &project.config.subtasks_dir,
-        project.config.metadata_mode,
-    )?;
+    let tasks =
+        task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?.into_tasks();
     let mut ids = HashSet::new();
-    let mut plans = Vec::with_capacity(candidates.len());
-    for directory in candidates {
-        let task = task_store::read_task(&directory, project.config.metadata_mode)?;
+    let mut plans = Vec::with_capacity(tasks.len());
+    for task in tasks {
+        let directory = task.directory.clone();
         if !ids.insert(task.metadata.id) {
             return Err(TkError::new(
                 "duplicate_task_id",

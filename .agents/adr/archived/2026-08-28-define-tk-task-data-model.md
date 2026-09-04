@@ -2,12 +2,14 @@
 
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
+Archived: 2026-09-03
+Reversed by: [Define the tk Task data model with carrier discovery](../decision/2026-09-03-define-tk-task-data-model.md)
 
 English | [中文](./2026-08-28-define-tk-task-data-model.zh.md)
 
 ## Motivation
 
-The [tk product architecture](./2026-08-21-define-tk-product-architecture.md) makes project files the only authoritative Task state. That choice requires one exact model for identity, paths, lifecycle, relationships, representations, discovery, writes, migration, and cleanup. Loose recognition or hidden recovery state would make ordinary project files ambiguous and give different callers different views of the same Task.
+The [tk product architecture](../decision/2026-08-21-define-tk-product-architecture.md) makes project files the only authoritative Task state. That choice requires one exact model for identity, paths, lifecycle, relationships, representations, discovery, writes, migration, and cleanup. Loose recognition or hidden recovery state would make ordinary project files ambiguous and give different callers different views of the same Task.
 
 The model must remain inspectable by people while surviving interrupted writes, schema changes, and project-wide operations without turning into a database or transaction engine.
 

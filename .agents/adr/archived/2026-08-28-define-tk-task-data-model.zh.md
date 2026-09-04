@@ -2,12 +2,14 @@
 
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
+Archived: 2026-09-03
+Reversed by: [使用载体发现定义 tk Task 数据模型](../decision/2026-09-03-define-tk-task-data-model.zh.md)
 
 [English](./2026-08-28-define-tk-task-data-model.md) | 中文
 
 ## 动机
 
-[tk 产品架构](./2026-08-21-define-tk-product-architecture.zh.md)把项目文件作为唯一权威的 Task 状态，因此必须为身份、路径、生命周期、关系、表示、发现、写入、迁移和清理定义一套明确模型。宽松识别或隐藏恢复状态会让普通项目文件产生歧义，也会使不同调用方看到不同的 Task 状态。
+[tk 产品架构](../decision/2026-08-21-define-tk-product-architecture.zh.md)把项目文件作为唯一权威的 Task 状态，因此必须为身份、路径、生命周期、关系、表示、发现、写入、迁移和清理定义一套明确模型。宽松识别或隐藏恢复状态会让普通项目文件产生歧义，也会使不同调用方看到不同的 Task 状态。
 
 这套模型需要保持人类可读，同时能处理写入中断、schema 变化和项目级操作，但不能演变为数据库或事务引擎。
 

@@ -14,7 +14,7 @@ Top-level Tasks normally live at:
 <task_root>/YYYY/MM/DD-NN--slug/
 ```
 
-Subtasks live below the parent's configured `subtasks_dir` and use an `NN--slug` directory name. Discovery recognizes only this canonical topology. See [Subtasks](./subtask.md).
+New subtasks normally live below the parent's configured `subtasks_dir` and use an `NN--slug` directory name. `subtasks_dir` controls creation placement only. Discovery can recognize Tasks elsewhere below the parent from valid carriers. See [Subtasks](./subtask.md).
 
 Names use NFKC normalization, allow a restricted character set, and occupy at most 32 terminal display columns. Display columns are not Unicode character count. Let the runtime validate names and compute slugs during creation or rename.
 

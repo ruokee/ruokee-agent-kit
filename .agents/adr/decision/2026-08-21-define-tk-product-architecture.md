@@ -41,7 +41,7 @@ The current platform contract is Linux. The runtime uses the fixed user-level pa
 
 The following ADRs own the detailed contracts within this architecture:
 
-- [Task data model](./2026-08-28-define-tk-task-data-model.md);
+- [Task data model](./2026-09-03-define-tk-task-data-model.md);
 - [runtime and CLI](./2026-08-28-define-tk-runtime-and-cli.md);
 - [CLI-only mode](./2026-09-02-add-tk-cli-only-mode.md);
 - [Skill language selection](./2026-09-02-select-tk-skill-language.md);

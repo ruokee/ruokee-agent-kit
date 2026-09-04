@@ -10,11 +10,61 @@ use crate::path::{atomic_write, atomic_write_with, storage_error};
 use crate::project::MetadataMode;
 
 const MAX_FRONTMATTER_BYTES: usize = 1024 * 1024;
+const MAX_DISCOVERY_DEPTH: usize = 256;
+const MAX_DISCOVERY_DIRECTORIES: usize = 100_000;
 
 #[derive(Debug)]
 pub struct StoredTask {
     pub directory: PathBuf,
     pub metadata: Metadata,
+}
+#[derive(Debug)]
+pub struct DiscoveredTask {
+    pub task: StoredTask,
+    pub parent: Option<usize>,
+}
+
+#[derive(Debug)]
+pub struct InvalidTaskCandidate {
+    pub directory: PathBuf,
+    pub error: TkError,
+}
+
+#[derive(Debug, Default)]
+pub struct TaskGraph {
+    pub tasks: Vec<DiscoveredTask>,
+    pub invalid_candidates: Vec<InvalidTaskCandidate>,
+}
+
+impl TaskGraph {
+    pub fn task_index(&self, directory: &Path) -> Option<usize> {
+        self.tasks
+            .iter()
+            .position(|candidate| candidate.task.directory == directory)
+    }
+
+    pub fn owning_task_index(&self, path: &Path) -> Option<usize> {
+        self.tasks
+            .iter()
+            .enumerate()
+            .filter(|(_, candidate)| path.starts_with(&candidate.task.directory))
+            .max_by_key(|(_, candidate)| candidate.task.directory.components().count())
+            .map(|(index, _)| index)
+    }
+
+    pub fn is_descendant_of(&self, mut candidate: usize, ancestor: usize) -> bool {
+        while let Some(parent) = self.tasks[candidate].parent {
+            if parent == ancestor {
+                return true;
+            }
+            candidate = parent;
+        }
+        false
+    }
+
+    pub fn into_tasks(self) -> Vec<StoredTask> {
+        self.tasks.into_iter().map(|entry| entry.task).collect()
+    }
 }
 
 pub fn read_task(directory: &Path, mode: MetadataMode) -> Result<StoredTask> {
@@ -22,12 +72,18 @@ pub fn read_task(directory: &Path, mode: MetadataMode) -> Result<StoredTask> {
         MetadataMode::Split => read_split_metadata(directory)?,
         MetadataMode::Embed => {
             let split_path = directory.join("tk.toml");
-            if split_path.exists() {
-                return Err(managed_error(
-                    "metadata_mode_mismatch",
-                    &split_path,
-                    "embed projects cannot contain tk.toml",
-                ));
+            match fs::symlink_metadata(&split_path) {
+                Ok(_) => {
+                    return Err(managed_error(
+                        "metadata_mode_mismatch",
+                        &split_path,
+                        "embed projects cannot contain tk.toml",
+                    ));
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                Err(error) => {
+                    return Err(storage_error("inspect_task_metadata", &split_path, error));
+                }
             }
             read_embed_metadata(&directory.join("TASK.md"))?.0
         }
@@ -142,15 +198,7 @@ pub fn replace_metadata(directory: &Path, metadata: &Metadata, mode: MetadataMod
     }
 }
 
-pub fn is_canonical_task_directory(root: &Path, subtasks_dir: &Path, directory: &Path) -> bool {
-    canonical_task_slug(root, subtasks_dir, directory).is_some()
-}
-
-pub fn canonical_task_slug<'a>(
-    root: &Path,
-    subtasks_dir: &Path,
-    directory: &'a Path,
-) -> Option<&'a str> {
+pub fn top_level_task_slug<'a>(root: &Path, directory: &'a Path) -> Option<&'a str> {
     let relative = directory.strip_prefix(root).ok()?;
     let parts: Vec<_> = relative
         .components()
@@ -159,58 +207,22 @@ pub fn canonical_task_slug<'a>(
             _ => None,
         })
         .collect::<Option<_>>()?;
-    if parts.len() < 3 || !digits(parts[0], 4) || !digits(parts[1], 2) {
+    if parts.len() != 3 || !digits(parts[0], 4) || !digits(parts[1], 2) {
         return None;
     }
-    let mut slug = top_level_slug(parts[2])?;
+    let slug = top_level_slug(parts[2])?;
     let year = parts[0].parse().ok()?;
     let month = parts[1].parse().ok()?;
     let day = parts[2][..2].parse().ok()?;
     NaiveDate::from_ymd_opt(year, month, day)?;
-    let subtask_parts: Vec<_> = subtasks_dir
-        .components()
-        .map(|component| match component {
-            std::path::Component::Normal(value) => value.to_str(),
-            _ => None,
-        })
-        .collect::<Option<_>>()?;
-    let mut index = 3;
-    while index < parts.len() {
-        if !subtask_parts.is_empty() {
-            let end = index.checked_add(subtask_parts.len())?;
-            if parts.get(index..end)? != subtask_parts.as_slice() {
-                return None;
-            }
-            index = end;
-        }
-        slug = child_slug(parts.get(index)?)?;
-        index += 1;
-    }
     Some(slug)
 }
 
-pub fn read_canonical_task(
-    root: &Path,
-    subtasks_dir: &Path,
-    directory: &Path,
-    mode: MetadataMode,
-) -> Result<StoredTask> {
-    let slug = canonical_task_slug(root, subtasks_dir, directory).ok_or_else(|| {
-        managed_error(
-            "invalid_task_directory",
-            directory,
-            "Task is not stored at a canonical Task path",
-        )
-    })?;
-    let task = read_task(directory, mode)?;
-    if task.metadata.name != slug {
-        return Err(managed_error(
-            "task_name_path_mismatch",
-            directory,
-            "Task metadata name does not match its directory suffix",
-        ));
-    }
-    Ok(task)
+pub fn generated_child_slug(directory: &Path) -> Option<&str> {
+    directory
+        .file_name()
+        .and_then(|value| value.to_str())
+        .and_then(child_slug)
 }
 
 fn digits(value: &str, length: usize) -> bool {
@@ -233,76 +245,17 @@ fn child_slug(value: &str) -> Option<&str> {
         .then(|| &value[4..])
 }
 
-pub fn visit_tasks(
-    root: &Path,
-    subtasks_dir: &Path,
-    mode: MetadataMode,
-    mut visitor: impl FnMut(StoredTask) -> Result<()>,
-) -> Result<()> {
-    visit_canonical_directories(root, subtasks_dir, |directory| {
-        if let Ok(task) = read_canonical_task(root, subtasks_dir, directory, mode) {
-            visitor(task)?;
-        }
-        Ok(())
-    })
-}
-
-pub fn direct_canonical_tasks(
-    root: &Path,
-    subtasks_dir: &Path,
-    base: &Path,
-    mode: MetadataMode,
-) -> Result<Vec<StoredTask>> {
-    let mut tasks = Vec::new();
-    for directory in direct_real_directories(base)? {
-        if let Ok(task) = read_canonical_task(root, subtasks_dir, &directory, mode) {
-            tasks.push(task);
-        }
-    }
-    Ok(tasks)
-}
-
-pub fn scan_candidates(
-    root: &Path,
-    subtasks_dir: &Path,
-    mode: MetadataMode,
-) -> Result<Vec<PathBuf>> {
-    let mut candidates = Vec::new();
-    visit_tasks(root, subtasks_dir, mode, |task| {
-        candidates.push(task.directory);
-        Ok(())
-    })?;
-    candidates.sort();
-    Ok(candidates)
-}
-
-pub fn scan_structural_candidates(root: &Path, subtasks_dir: &Path) -> Result<Vec<PathBuf>> {
-    let mut candidates = Vec::new();
-    visit_canonical_directories(root, subtasks_dir, |directory| {
-        let metadata_present = carrier_present(&directory.join("tk.toml"))?;
-        let body_present = carrier_present(&directory.join("TASK.md"))?;
-        if metadata_present || body_present {
-            candidates.push(directory.to_path_buf());
-        }
-        Ok(())
-    })?;
-    candidates.sort();
-    Ok(candidates)
-}
-
-fn visit_canonical_directories(
-    root: &Path,
-    subtasks_dir: &Path,
-    mut visitor: impl FnMut(&Path) -> Result<()>,
-) -> Result<()> {
-    for year in direct_real_directories(root)? {
+pub fn discover_tasks(root: &Path, mode: MetadataMode) -> Result<TaskGraph> {
+    let mut graph = TaskGraph::default();
+    let mut visited = 0;
+    for year in bounded_real_directories(root, &mut visited)? {
         let Some(year_name) = year.file_name().and_then(|value| value.to_str()) else {
             continue;
         };
         if !digits(year_name, 4) {
             continue;
         }
-        for month in direct_real_directories(&year)? {
+        for month in bounded_real_directories(&year, &mut visited)? {
             let Some(month_name) = month.file_name().and_then(|value| value.to_str()) else {
                 continue;
             };
@@ -313,51 +266,157 @@ fn visit_canonical_directories(
             {
                 continue;
             }
-            for task in direct_real_directories(&month)? {
-                if !is_canonical_task_directory(root, subtasks_dir, &task) {
+            for directory in bounded_real_directories(&month, &mut visited)? {
+                let Some(slug) = top_level_task_slug(root, &directory) else {
+                    continue;
+                };
+                if !candidate_marker(&directory, mode)? {
                     continue;
                 }
-                visitor(&task)?;
-                visit_canonical_descendants(root, subtasks_dir, &task, &mut visitor)?;
+                match read_discovery_candidate(&directory, mode, Some(slug))? {
+                    Ok(task) => {
+                        let parent = graph.tasks.len();
+                        graph.tasks.push(DiscoveredTask { task, parent: None });
+                        visit_descendants(&directory, mode, parent, 0, &mut visited, &mut graph)?;
+                    }
+                    Err(error) => graph
+                        .invalid_candidates
+                        .push(InvalidTaskCandidate { directory, error }),
+                }
             }
         }
     }
-    Ok(())
+    Ok(graph)
 }
 
-fn visit_canonical_descendants(
-    root: &Path,
-    subtasks_dir: &Path,
-    parent: &Path,
-    visitor: &mut impl FnMut(&Path) -> Result<()>,
+fn visit_descendants(
+    directory: &Path,
+    mode: MetadataMode,
+    parent: usize,
+    depth: usize,
+    visited: &mut usize,
+    graph: &mut TaskGraph,
 ) -> Result<()> {
-    let Some(base) = configured_subtask_base(parent, subtasks_dir)? else {
-        return Ok(());
-    };
-    for task in direct_real_directories(&base)? {
-        if !is_canonical_task_directory(root, subtasks_dir, &task) {
+    if depth >= MAX_DISCOVERY_DEPTH {
+        return Err(discovery_limit_error(
+            directory,
+            "depth",
+            MAX_DISCOVERY_DEPTH,
+        ));
+    }
+    for child in bounded_real_directories(directory, visited)? {
+        if is_runtime_directory(&child) {
             continue;
         }
-        visitor(&task)?;
-        visit_canonical_descendants(root, subtasks_dir, &task, visitor)?;
+        let mut descendant_parent = parent;
+        if candidate_marker(&child, mode)? {
+            let expected_name = generated_child_slug(&child);
+            match read_discovery_candidate(&child, mode, expected_name)? {
+                Ok(task) => {
+                    descendant_parent = graph.tasks.len();
+                    graph.tasks.push(DiscoveredTask {
+                        task,
+                        parent: Some(parent),
+                    });
+                }
+                Err(error) => graph.invalid_candidates.push(InvalidTaskCandidate {
+                    directory: child.clone(),
+                    error,
+                }),
+            }
+        }
+        visit_descendants(&child, mode, descendant_parent, depth + 1, visited, graph)?;
     }
     Ok(())
 }
 
-fn configured_subtask_base(parent: &Path, subtasks_dir: &Path) -> Result<Option<PathBuf>> {
-    let mut current = parent.to_path_buf();
-    for component in subtasks_dir.components() {
-        current.push(component.as_os_str());
-        match fs::symlink_metadata(&current) {
-            Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
-                return Ok(None);
-            }
-            Ok(_) => {}
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
-            Err(error) => return Err(storage_error("inspect_subtask_root", &current, error)),
+fn read_discovery_candidate(
+    directory: &Path,
+    mode: MetadataMode,
+    expected_name: Option<&str>,
+) -> Result<std::result::Result<StoredTask, TkError>> {
+    match read_task(directory, mode) {
+        Ok(task) if expected_name.is_some_and(|name| task.metadata.name != name) => {
+            Ok(Err(managed_error(
+                "task_name_path_mismatch",
+                directory,
+                "Task metadata name does not match its generated directory suffix",
+            )))
         }
+        Ok(task) => Ok(Ok(task)),
+        Err(error)
+            if matches!(
+                error.category,
+                ErrorCategory::Storage
+                    | ErrorCategory::Environment
+                    | ErrorCategory::Internal
+                    | ErrorCategory::Cancelled
+            ) =>
+        {
+            Err(error)
+        }
+        Err(error) => Ok(Err(error)),
     }
-    Ok(Some(current))
+}
+
+fn candidate_marker(directory: &Path, mode: MetadataMode) -> Result<bool> {
+    match mode {
+        MetadataMode::Split => regular_file_present(&directory.join("tk.toml")),
+        MetadataMode::Embed => recognizable_embed_marker(&directory.join("TASK.md")),
+    }
+}
+
+fn recognizable_embed_marker(path: &Path) -> Result<bool> {
+    if !regular_file_present(path)? {
+        return Ok(false);
+    }
+    let file = File::open(path).map_err(|error| storage_error("open_task_marker", path, error))?;
+    let mut reader = BufReader::new(file);
+    let mut line = Vec::new();
+    let Some(_) = read_line_capped(&mut reader, &mut line, 5)
+        .map_err(|error| storage_error("read_task_marker", path, error))?
+    else {
+        return Ok(false);
+    };
+    if trim_line_ending(&line) != b"---" {
+        return Ok(false);
+    }
+    let Some(_) = read_line_capped(&mut reader, &mut line, 256)
+        .map_err(|error| storage_error("read_task_marker", path, error))?
+    else {
+        return Ok(false);
+    };
+    Ok(trim_line_ending(&line).starts_with(b"schema_version:"))
+}
+
+fn regular_file_present(path: &Path) -> Result<bool> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) => Ok(metadata.file_type().is_file() && !metadata.file_type().is_symlink()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
+        Err(error) => Err(storage_error("inspect_task_candidate", path, error)),
+    }
+}
+
+fn is_runtime_directory(path: &Path) -> bool {
+    matches!(
+        path.file_name().and_then(|value| value.to_str()),
+        Some("wal" | ".tk-tmp")
+    )
+}
+
+fn bounded_real_directories(base: &Path, visited: &mut usize) -> Result<Vec<PathBuf>> {
+    let directories = direct_real_directories(base)?;
+    *visited = visited
+        .checked_add(directories.len())
+        .ok_or_else(|| discovery_limit_error(base, "directories", MAX_DISCOVERY_DIRECTORIES))?;
+    if *visited > MAX_DISCOVERY_DIRECTORIES {
+        return Err(discovery_limit_error(
+            base,
+            "directories",
+            MAX_DISCOVERY_DIRECTORIES,
+        ));
+    }
+    Ok(directories)
 }
 
 fn direct_real_directories(base: &Path) -> Result<Vec<PathBuf>> {
@@ -379,18 +438,26 @@ fn direct_real_directories(base: &Path) -> Result<Vec<PathBuf>> {
             .map_err(|error| storage_error("inspect_task_candidate", &entry.path(), error))?;
         if file_type.is_dir() && !file_type.is_symlink() {
             directories.push(entry.path());
+            if directories.len() > MAX_DISCOVERY_DIRECTORIES {
+                return Err(discovery_limit_error(
+                    base,
+                    "directories",
+                    MAX_DISCOVERY_DIRECTORIES,
+                ));
+            }
         }
     }
     directories.sort();
     Ok(directories)
 }
 
-fn carrier_present(path: &Path) -> Result<bool> {
-    match fs::symlink_metadata(path) {
-        Ok(_) => Ok(true),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
-        Err(error) => Err(storage_error("inspect_task_candidate", path, error)),
-    }
+fn discovery_limit_error(path: &Path, dimension: &str, limit: usize) -> TkError {
+    TkError::new(
+        "task_discovery_limit_exceeded",
+        ErrorCategory::Storage,
+        format!("Task discovery exceeded the {dimension} limit of {limit}"),
+    )
+    .with_details(serde_json::json!({"path": path, "dimension": dimension, "limit": limit}))
 }
 
 fn read_split_metadata(directory: &Path) -> Result<Metadata> {
@@ -607,8 +674,17 @@ fn trim_line_ending(line: &[u8]) -> &[u8] {
 }
 
 fn ensure_regular_file(path: &Path) -> Result<()> {
-    let metadata = fs::symlink_metadata(path)
-        .map_err(|error| storage_error("inspect_managed_file", path, error))?;
+    let metadata = match fs::symlink_metadata(path) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Err(managed_error(
+                "missing_managed_file",
+                path,
+                "Required managed file is missing",
+            ));
+        }
+        Err(error) => return Err(storage_error("inspect_managed_file", path, error)),
+    };
     if metadata.file_type().is_symlink() || !metadata.file_type().is_file() {
         return Err(managed_error(
             "invalid_managed_file_type",
@@ -658,6 +734,12 @@ mod tests {
             related_to: vec![],
             extra: BTreeMap::from([("area".into(), json!({"z": 1, "a": true}))]),
         }
+    }
+    fn named_metadata(name: &str) -> Metadata {
+        let mut value = metadata();
+        value.id = Uuid::now_v7();
+        value.name = name.into();
+        value
     }
 
     fn temp_directory() -> PathBuf {
@@ -738,43 +820,89 @@ mod tests {
     }
 
     #[test]
-    fn candidate_scan_ignores_noncanonical_task_placements() {
+    fn discovery_uses_carriers_and_nearest_valid_ancestors() {
         let root = temp_directory();
-        let top = root.join("2026/08/28-01--tk-设计");
-        create_task_files(&top, &metadata(), b"top\n", MetadataMode::Split).unwrap();
+        let top = root.join("2026/08/28-01--top");
+        create_task_files(&top, &named_metadata("top"), b"top\n", MetadataMode::Split).unwrap();
 
-        let mut child_metadata = metadata();
-        child_metadata.id = Uuid::now_v7();
-        child_metadata.name = "child".into();
-        let child = top.join("01--child");
-        create_task_files(&child, &child_metadata, b"child\n", MetadataMode::Split).unwrap();
-
-        let mut misplaced_metadata = metadata();
-        misplaced_metadata.id = Uuid::now_v7();
-        misplaced_metadata.name = "misplaced".into();
-        let misplaced = top.join("materials/2026/08/28-02--misplaced");
+        let direct = top.join("direct-box");
         create_task_files(
-            &misplaced,
-            &misplaced_metadata,
-            b"misplaced\n",
+            &direct,
+            &named_metadata("direct"),
+            b"direct\n",
             MetadataMode::Split,
         )
         .unwrap();
-        let arbitrary = root.join("foo--tk-设计");
-        create_task_files(&arbitrary, &metadata(), b"arbitrary\n", MetadataMode::Split).unwrap();
+        let nested = top.join("materials/archive/imported");
+        create_task_files(
+            &nested,
+            &named_metadata("imported"),
+            b"nested\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+        let grandchild = nested.join("notes/01--grandchild");
+        create_task_files(
+            &grandchild,
+            &named_metadata("grandchild"),
+            b"grandchild\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
 
-        let candidates = scan_candidates(&root, Path::new(""), MetadataMode::Split).unwrap();
-        assert_eq!(candidates, vec![top, child]);
-        assert!(!is_canonical_task_directory(
-            &root,
-            Path::new(""),
-            &misplaced
-        ));
-        assert!(is_canonical_task_directory(
-            &root,
-            Path::new("children/items"),
-            &root.join("2026/08/28-01--parent/children/items/01--child")
-        ));
+        let mismatch = top.join("02--path-name");
+        create_task_files(
+            &mismatch,
+            &named_metadata("metadata-name"),
+            b"mismatch\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+        let malformed = top.join("broken-carrier");
+        fs::create_dir(&malformed).unwrap();
+        fs::write(malformed.join("tk.toml"), "not = [").unwrap();
+        let ignored = root.join("outside-top-level");
+        create_task_files(
+            &ignored,
+            &named_metadata("ignored"),
+            b"ignored\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+        let runtime = top.join("wal/imported");
+        create_task_files(
+            &runtime,
+            &named_metadata("runtime"),
+            b"runtime\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+
+        let graph = discover_tasks(&root, MetadataMode::Split).unwrap();
+        let paths: Vec<_> = graph
+            .tasks
+            .iter()
+            .map(|candidate| candidate.task.directory.clone())
+            .collect();
+        assert_eq!(paths, vec![top.clone(), direct, nested.clone(), grandchild]);
+        assert_eq!(
+            graph
+                .tasks
+                .iter()
+                .map(|task| task.parent)
+                .collect::<Vec<_>>(),
+            vec![None, Some(0), Some(0), Some(2)]
+        );
+        let invalid_codes: Vec<_> = graph
+            .invalid_candidates
+            .iter()
+            .map(|candidate| candidate.error.code.as_str())
+            .collect();
+        assert_eq!(
+            invalid_codes,
+            vec!["task_name_path_mismatch", "missing_managed_file"]
+        );
+        assert_eq!(top_level_task_slug(&root, &top), Some("top"));
         for invalid in [
             "2026/8/28-01--task",
             "2026/08/8-01--task",
@@ -783,14 +911,51 @@ mod tests {
             "2026/08/28-01--",
             "2026/13/28-01--task",
             "2026/02/30-01--task",
-            "2026/08/28-01--parent/1--child",
+            "2026/08/28-01--parent/child",
         ] {
-            assert!(!is_canonical_task_directory(
-                &root,
-                Path::new(""),
-                &root.join(invalid)
-            ));
+            assert!(top_level_task_slug(&root, &root.join(invalid)).is_none());
         }
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn embed_discovery_requires_a_tk_frontmatter_marker() {
+        let root = temp_directory();
+        let top = root.join("2026/08/28-01--top");
+        create_task_files(&top, &named_metadata("top"), b"top\n", MetadataMode::Embed).unwrap();
+        let ordinary = top.join("notes");
+        fs::create_dir(&ordinary).unwrap();
+        fs::write(
+            ordinary.join("TASK.md"),
+            "---\ntitle: ordinary material\n---\nbody\n",
+        )
+        .unwrap();
+        let malformed = top.join("broken");
+        fs::create_dir(&malformed).unwrap();
+        fs::write(
+            malformed.join("TASK.md"),
+            "---\nschema_version: nope\n---\nbody\n",
+        )
+        .unwrap();
+        let child = top.join("materials/imported");
+        create_task_files(
+            &child,
+            &named_metadata("imported"),
+            b"child\n",
+            MetadataMode::Embed,
+        )
+        .unwrap();
+
+        let graph = discover_tasks(&root, MetadataMode::Embed).unwrap();
+        assert_eq!(graph.tasks.len(), 2);
+        assert_eq!(graph.tasks[1].task.directory, child);
+        assert_eq!(graph.tasks[1].parent, Some(0));
+        assert_eq!(graph.invalid_candidates.len(), 1);
+        assert_eq!(graph.invalid_candidates[0].directory, malformed);
+        assert_eq!(
+            graph.invalid_candidates[0].error.code,
+            "invalid_task_metadata"
+        );
         fs::remove_dir_all(root).unwrap();
     }
 }

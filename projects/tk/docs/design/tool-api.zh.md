@@ -38,10 +38,9 @@ cwd 选择顺序是请求显式值、Harness 会话目录、运行时进程目�
 `task_ref` 只接受：
 
 - 完整规范 UUIDv7；
-- 绝对 Task 目录；
-- 绝对规范 `tk.toml`；
-- 绝对规范 `TASK.md`；
-- 当前项目中的相对 Task 路径。
+- 绝对已发现 Task 目录；
+- 绝对受管 `tk.toml` 或 `TASK.md` 载体；
+- 当前项目中的相对已发现 Task 路径。
 
 名称、目录基名、UUID 前缀、子字符串、正则表达式和材料路径不是精确引用。读取和修改必须解析为恰好一个 Task。
 
@@ -108,7 +107,7 @@ cwd 选择顺序是请求显式值、Harness 会话目录、运行时进程目�
 |`managed_file`|`invalid_managed_file`、`unsupported_schema`、`representation_mismatch`|
 |`invariant`|`dependency_cycle`、`closed_task_read_only`、`active_descendant`、`active_dependency`、`closed_ancestor`|
 |`conflict`|`target_exists`、`operation_in_progress`|
-|`storage`|`check_incomplete`、`wal_append_failed`、`partial_commit`|
+|`storage`|`check_incomplete`、`task_discovery_limit_exceeded`、`wal_append_failed`、`partial_commit`|
 |`compatibility`|`runtime_incompatible`、`component_incompatible`|
 |`internal`|`internal_error`|
 
@@ -137,9 +136,9 @@ cwd 选择顺序是请求显式值、Harness 会话目录、运行时进程目�
 
 确定类型后不回退。去掉连字符的 UUID 十六进制前缀最少 8 位，只用于搜索。
 
-结果先按匹配类别排序，同一类别按 `created_at` 降序、ID 升序排列。每项包括 Task 摘要、`match`、`closed_ancestors` 和规范 Task 引用。`match` 至少为 `uuid`、`path`、`regex` 或 `string`。
+结果先按匹配类别排序，同一类别按 `created_at` 降序、ID 升序排列。每项包括 Task 摘要、`match`、`closed_ancestors` 和精确 Task 引用。`match` 至少为 `uuid`、`path`、`regex` 或 `string`。
 
-运行时只保留生成前 100 项所需的有界候选集。无效和相似普通文件直接忽略，不返回伪造 Task。
+发现任务图可以包含项目中的全部有效 Task。search 最多保留前 100 个结果项。无效标记载体和相似普通文件不会作为 Task 返回。必要发现 I/O 失败或资源上限错误会使搜索失败，不返回部分任务图。
 
 ## 读取
 
@@ -153,7 +152,7 @@ cwd 选择顺序是请求显式值、Harness 会话目录、运行时进程目�
 |`wal_max_length`|16384|0 到 1048576 字节；只用于 detailed|
 |`cwd`|公共默认|项目解析|
 
-metadata 返回元数据和规范路径。summary 增加正文摘要、关系摘要和最近 WAL 摘要。detailed 返回完整正文及受预算限制的 WAL。
+metadata 返回元数据和受管路径。summary 增加正文摘要、关系摘要和最近 WAL 摘要。detailed 返回完整正文及受预算限制的 WAL。
 
 ## 创建
 
@@ -188,7 +187,7 @@ strict 项目要求 `user_confirmed=true`。permissive 项目允许值得持久�
 |`user_confirmed`|当前对话是否明确授权创建 planning 子 Task，默认 `false`|
 |`cwd`|项目解析|
 
-创建 open 子 Task 不需要新的顶层授权。批次只要包含 planning 子 Task，就要求 `user_confirmed=true`。首次写入前完成全部校验。部分创建失败时返回已创建和未创建项。重试会跳过已经存在且内容匹配的子 Task。
+创建 open 子 Task 不需要新的顶层授权。批次只要包含 planning 子 Task，就要求 `user_confirmed=true`。首次写入前完成全部校验。新子 Task 在配置的创建目录下使用 `NN--slug`。编号统计所有叶子目录使用生成式名称的已发现直接子 Task，取最大序号且不填补空洞，最大为 `99`。部分创建失败时返回已创建和未创建项。重试会跳过内容匹配的已发现直接子 Task。
 
 ## 更新
 
@@ -220,6 +219,8 @@ exec 是低频管理入口：
 |`actor`|只在首项为 `rename` 时允许|
 
 exec 直接从 argv 调用公开命令解析器，不经过 shell。它拒绝 search、read、create、update、log、mcp、schema、metadata、gc、install、uninstall 和其他首项。
+
+rename 结果包含存在时的已解析父 Task 路径、旧路径、目标路径和 Markdown 引用。非生成式子 Task 目录保持不变；生成式子 Task 和顶层路径保留序号并更新 slug。
 
 ## 传输
 

@@ -59,6 +59,8 @@ pub struct RenamePlan {
     pub new_name: String,
     pub old_path: PathBuf,
     pub target_path: PathBuf,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_task: Option<PathBuf>,
     pub references: Vec<MarkdownReference>,
     pub expected_wal: String,
 }
@@ -230,32 +232,48 @@ fn build_rename_plan(
     requested_name: &str,
 ) -> Result<RenamePlan> {
     let new_name = normalize_name(requested_name)?;
-    let file_name = task
-        .directory
-        .file_name()
-        .and_then(|name| name.to_str())
-        .ok_or_else(|| {
+    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    let task_index = graph.task_index(&task.directory).ok_or_else(|| {
+        TkError::new(
+            "task_discovery_changed",
+            ErrorCategory::Conflict,
+            "Task disappeared before rename planning",
+        )
+    })?;
+    let parent_task = graph.tasks[task_index]
+        .parent
+        .map(|parent| graph.tasks[parent].task.directory.clone());
+    let generated_directory = graph.tasks[task_index].parent.is_none()
+        || task_store::generated_child_slug(&task.directory).is_some();
+    let target_path = if generated_directory {
+        let file_name = task
+            .directory
+            .file_name()
+            .and_then(|name| name.to_str())
+            .ok_or_else(|| {
+                TkError::new(
+                    "invalid_task_path",
+                    ErrorCategory::ManagedFile,
+                    "Task directory name is not UTF-8",
+                )
+            })?;
+        let (prefix, _) = file_name.split_once("--").ok_or_else(|| {
             TkError::new(
                 "invalid_task_path",
                 ErrorCategory::ManagedFile,
-                "Task directory name is not UTF-8",
+                format!(
+                    "Generated Task directory lacks a sequence separator: {}",
+                    task.directory.display()
+                ),
             )
         })?;
-    let (prefix, _) = file_name.split_once("--").ok_or_else(|| {
-        TkError::new(
-            "invalid_task_path",
-            ErrorCategory::ManagedFile,
-            format!(
-                "Task directory lacks a sequence separator: {}",
-                task.directory.display()
-            ),
-        )
-    })?;
-    let target_path = task
-        .directory
-        .parent()
-        .expect("managed Task has a parent")
-        .join(format!("{prefix}--{new_name}"));
+        task.directory
+            .parent()
+            .expect("managed Task has a parent")
+            .join(format!("{prefix}--{new_name}"))
+    } else {
+        task.directory.clone()
+    };
     if target_path != task.directory && target_path.exists() {
         return Err(TkError::new(
             "rename_target_exists",
@@ -270,6 +288,7 @@ fn build_rename_plan(
         new_name: new_name.clone(),
         old_path: task.directory.clone(),
         target_path,
+        parent_task,
         references,
         expected_wal: format!("Renamed Task from {} to {new_name}.", task.metadata.name),
     })
@@ -291,9 +310,18 @@ fn scan_markdown_references(
         GitPolicy::Track => tracked_markdown(project)?,
         GitPolicy::Ignore | GitPolicy::None => task_root_markdown(project)?,
     };
+    let embedded_tasks: HashSet<_> = if project.config.metadata_mode == MetadataMode::Embed {
+        task_store::discover_tasks(&project.task_root, MetadataMode::Embed)?
+            .tasks
+            .into_iter()
+            .map(|task| task.task.directory)
+            .collect()
+    } else {
+        HashSet::new()
+    };
     let mut references = Vec::new();
     for path in paths {
-        scan_markdown_file(project, &path, &needle, &mut references)?;
+        scan_markdown_file(project, &path, &needle, &embedded_tasks, &mut references)?;
     }
     references.sort_by(|left, right| left.path.cmp(&right.path).then(left.line.cmp(&right.line)));
     references.dedup();
@@ -359,21 +387,17 @@ fn scan_markdown_file(
     project: &Project,
     path: &Path,
     needle: &str,
+    embedded_tasks: &HashSet<PathBuf>,
     references: &mut Vec<MarkdownReference>,
 ) -> Result<()> {
     let text = fs::read_to_string(path)
         .map_err(|error| storage_error("read_markdown_reference", path, error))?;
     let body_start = if project.config.metadata_mode == MetadataMode::Embed
         && path.file_name().and_then(|value| value.to_str()) == Some("TASK.md")
-        && path.parent().is_some_and(|directory| {
-            task_store::read_canonical_task(
-                &project.task_root,
-                &project.config.subtasks_dir,
-                directory,
-                MetadataMode::Embed,
-            )
-            .is_ok()
-        }) {
+        && path
+            .parent()
+            .is_some_and(|directory| embedded_tasks.contains(directory))
+    {
         embedded_body_line(&text).unwrap_or(0)
     } else {
         0
@@ -417,68 +441,44 @@ fn inspect_root(project: &Project, diagnostics: &mut Vec<Diagnostic>) -> Result<
     inspect_cleanup_markers(project, diagnostics)?;
     inspect_symlinks(&project.task_root, diagnostics)?;
 
-    let candidates =
-        task_store::scan_structural_candidates(&project.task_root, &project.config.subtasks_dir)?;
-    let mut tasks = Vec::with_capacity(candidates.len());
+    let task_store::TaskGraph {
+        tasks: discovered,
+        invalid_candidates,
+    } = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    for candidate in invalid_candidates {
+        diagnostics.push(error_diagnostic(candidate.error, Some(candidate.directory)));
+    }
     let mut ids: HashMap<Uuid, Vec<PathBuf>> = HashMap::new();
     let mut sequences: BTreeMap<(PathBuf, String), Vec<PathBuf>> = BTreeMap::new();
-    for directory in candidates {
-        let Some(slug) = task_store::canonical_task_slug(
-            &project.task_root,
-            &project.config.subtasks_dir,
-            &directory,
-        ) else {
-            diagnostics.push(diagnostic(
-                Severity::Error,
-                "invalid_task_directory",
-                "Managed Task carriers are not stored at a canonical Task path",
-                Some(directory),
-            ));
-            continue;
-        };
-        let task = match task_store::read_task(&directory, project.config.metadata_mode) {
-            Ok(task) => task,
-            Err(error)
-                if !matches!(
-                    error.category,
-                    ErrorCategory::Storage
-                        | ErrorCategory::Environment
-                        | ErrorCategory::Internal
-                        | ErrorCategory::Cancelled
-                ) =>
-            {
-                diagnostics.push(error_diagnostic(error, Some(directory)));
-                continue;
-            }
-            Err(error) => return Err(error),
-        };
+    for candidate in &discovered {
+        let task = &candidate.task;
         ids.entry(task.metadata.id)
             .or_default()
-            .push(directory.clone());
-        let (sequence, _) = directory
-            .file_name()
-            .and_then(|name| name.to_str())
-            .and_then(|name| name.split_once("--"))
-            .expect("canonical Task names contain the sequence separator");
-        sequences
-            .entry((
-                directory
-                    .parent()
-                    .unwrap_or(&project.task_root)
-                    .to_path_buf(),
-                sequence.into(),
-            ))
-            .or_default()
-            .push(directory.clone());
-        if slug != task.metadata.name {
-            diagnostics.push(diagnostic(
-                Severity::Error,
-                "task_name_path_mismatch",
-                "Task metadata name does not match its directory suffix",
-                Some(directory.clone()),
-            ));
+            .push(task.directory.clone());
+        let file_name = task.directory.file_name().and_then(|name| name.to_str());
+        let sequence = if candidate.parent.is_none() {
+            file_name.and_then(|name| name.split_once("--").map(|(prefix, _)| prefix))
+        } else if task_store::generated_child_slug(&task.directory).is_some() {
+            file_name.and_then(|name| name.split_once("--").map(|(prefix, _)| prefix))
+        } else {
+            None
+        };
+        if let Some(sequence) = sequence {
+            let parent = candidate.parent.map_or_else(
+                || {
+                    task.directory
+                        .parent()
+                        .unwrap_or(&project.task_root)
+                        .to_path_buf()
+                },
+                |parent| discovered[parent].task.directory.clone(),
+            );
+            sequences
+                .entry((parent, sequence.into()))
+                .or_default()
+                .push(task.directory.clone());
         }
-        let wal_read = wal::read(&directory, usize::MAX, usize::MAX)?;
+        let wal_read = wal::read(&task.directory, usize::MAX, usize::MAX)?;
         for warning in wal_read.warnings {
             diagnostics.push(Diagnostic {
                 severity: Severity::Warning,
@@ -493,10 +493,9 @@ fn inspect_root(project: &Project, diagnostics: &mut Vec<Diagnostic>) -> Result<
                 Severity::Warning,
                 "wal_truncated",
                 "WAL inspection reached its bounded read limit",
-                Some(directory.join("wal")),
+                Some(task.directory.join("wal")),
             ));
         }
-        tasks.push(task);
     }
     for (id, paths) in ids.iter().filter(|(_, paths)| paths.len() > 1) {
         diagnostics.push(Diagnostic {
@@ -507,15 +506,16 @@ fn inspect_root(project: &Project, diagnostics: &mut Vec<Diagnostic>) -> Result<
             details: Some(json!({"paths": paths})),
         });
     }
-    for ((_, sequence), paths) in sequences.into_iter().filter(|(_, paths)| paths.len() > 1) {
+    for ((parent, sequence), paths) in sequences.into_iter().filter(|(_, paths)| paths.len() > 1) {
         diagnostics.push(Diagnostic {
             severity: Severity::Error,
             code: "duplicate_task_sequence".into(),
             message: format!("Task sequence {sequence} is reused under one parent"),
-            path: None,
-            details: Some(json!({"paths": paths})),
+            path: Some(parent.clone()),
+            details: Some(json!({"parent": parent, "paths": paths})),
         });
     }
+    let tasks: Vec<_> = discovered.into_iter().map(|task| task.task).collect();
     inspect_relations(&tasks, diagnostics);
     Ok(())
 }
@@ -728,6 +728,18 @@ mod tests {
             "schema_version = {schema_version}\nid = \"{id}\"\nname = \"{name}\"\nstatus = \"open\"\ncreated_at = \"2026-08-31T12:00:00+08:00\"\n"
         )
     }
+    fn task_metadata(name: &str) -> crate::domain::Metadata {
+        crate::domain::Metadata {
+            schema_version: crate::version::TASK_SCHEMA_VERSION,
+            id: Uuid::now_v7(),
+            name: name.into(),
+            status: crate::domain::Status::Open,
+            created_at: chrono::DateTime::parse_from_rfc3339("2026-08-31T12:00:00+08:00").unwrap(),
+            depends_on: Vec::new(),
+            related_to: Vec::new(),
+            extra: BTreeMap::new(),
+        }
+    }
 
     #[test]
     fn check_reports_malformed_split_carriers_without_becoming_incomplete() {
@@ -831,6 +843,134 @@ mod tests {
         assert!(result.complete);
         assert!(result.ok, "{:?}", result.diagnostics);
         assert!(result.diagnostics.is_empty());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn check_reports_nested_invalid_carriers_and_logical_sequence_duplicates() {
+        let root = std::env::temp_dir().join(format!("tk-check-nested-test-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = crate::project::init(&root, crate::project::InitOptions::default())
+            .unwrap()
+            .project;
+        let parent = project.task_root.join("2026/08/31-01--parent");
+        task_store::create_task_files(
+            &parent,
+            &task_metadata("parent"),
+            b"parent\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+        task_store::create_task_files(
+            &parent.join("left/01--first"),
+            &task_metadata("first"),
+            b"first\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+        task_store::create_task_files(
+            &parent.join("right/01--second"),
+            &task_metadata("second"),
+            b"second\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+        let malformed = parent.join("materials/broken");
+        fs::create_dir_all(&malformed).unwrap();
+        fs::write(malformed.join("tk.toml"), "schema_version = 1\n").unwrap();
+
+        let result = check(&root);
+        assert!(result.complete);
+        assert!(!result.ok);
+        let codes: Vec<_> = result
+            .diagnostics
+            .iter()
+            .map(|diagnostic| diagnostic.code.as_str())
+            .collect();
+        assert!(codes.contains(&"duplicate_task_sequence"));
+        assert!(codes.contains(&"missing_managed_file"));
+        let duplicate = result
+            .diagnostics
+            .iter()
+            .find(|diagnostic| diagnostic.code == "duplicate_task_sequence")
+            .unwrap();
+        assert_eq!(duplicate.path.as_deref(), Some(parent.as_path()));
+        assert_eq!(duplicate.details.as_ref().unwrap()["parent"], json!(parent));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn rename_keeps_non_generated_child_directory_in_place() {
+        let root = std::env::temp_dir().join(format!("tk-rename-child-test-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = crate::project::init(&root, crate::project::InitOptions::default())
+            .unwrap()
+            .project;
+        let parent = project.task_root.join("2026/08/31-01--parent");
+        task_store::create_task_files(
+            &parent,
+            &task_metadata("parent"),
+            b"parent\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+        let imported = parent.join("materials/imported-task");
+        let imported_metadata = task_metadata("imported");
+        task_store::create_task_files(
+            &imported,
+            &imported_metadata,
+            b"imported\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+        let generated = parent.join("children/01--generated");
+        let generated_metadata = task_metadata("generated");
+        task_store::create_task_files(
+            &generated,
+            &generated_metadata,
+            b"generated\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+
+        let imported_result = rename(
+            &project,
+            &imported_metadata.id.to_string(),
+            "renamed-import",
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        assert_eq!(imported_result.plan.old_path, imported);
+        assert_eq!(imported_result.plan.target_path, imported);
+        assert_eq!(imported_result.plan.parent_task, Some(parent.clone()));
+        assert_eq!(
+            task_store::read_task(&imported, MetadataMode::Split)
+                .unwrap()
+                .metadata
+                .name,
+            "renamed-import"
+        );
+
+        let generated_result = rename(
+            &project,
+            &generated_metadata.id.to_string(),
+            "renamed-generated",
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        let generated_target = parent.join("children/01--renamed-generated");
+        assert_eq!(generated_result.plan.target_path, generated_target);
+        assert_eq!(generated_result.plan.parent_task, Some(parent.clone()));
+        assert!(!generated.exists());
+        assert_eq!(
+            task_store::read_task(&generated_target, MetadataMode::Split)
+                .unwrap()
+                .metadata
+                .name,
+            "renamed-generated"
+        );
         fs::remove_dir_all(root).unwrap();
     }
 

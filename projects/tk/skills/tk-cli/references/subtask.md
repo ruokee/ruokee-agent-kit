@@ -10,9 +10,9 @@ One request creates 1 to 50 sibling subtasks below one parent. Each item require
 
 Subtasks may be nested. Do not combine independent work in one name; create sibling Tasks instead. Use a subtask only for a work unit that needs its own status, relationships, WAL, body, or materials. Do not persist every routine execution step or backlog item as a subtask.
 
-## Configured placement
+## Default creation placement
 
-`subtasks_dir` specifies the canonical relative location for subtasks below each parent. Its default is the empty path:
+`subtasks_dir` specifies only the default location for new subtasks below a parent. Its default is the empty path:
 
 ```text
 <parent>/NN--slug/
@@ -28,22 +28,22 @@ For example, `subtasks_dir = "children"` places new Tasks at `<parent>/children/
 
 `subtasks_dir` must be a safe relative path. An empty value means the parent directory itself. A non-empty value cannot contain an absolute path, `.` or `..` components, symbolic links, or parent-directory escape.
 
-Direct subtasks use `01..99`. The runtime scans valid direct children in the configured location, takes the largest `NN--slug` number, and adds one without filling gaps. A batch receives consecutive numbers. If `99` is already occupied, the request fails before its first write.
+Direct subtasks use `01..99`. The runtime scans discovered direct children, takes the largest valid `NN--slug` number, and adds one without filling gaps. The new directory is still written to the default creation location. A batch receives consecutive numbers. If `99` is already occupied, the request fails before its first write.
 
 ## Subtask discovery
 
-Discovery follows the configured canonical topology. For each parent, the runtime checks only the parent's `subtasks_dir` and direct real directories with valid `NN--slug` names.
+Creation placement and discovery range are separate. `subtasks_dir` does not limit discovery.
 
-A directory at that location becomes a Task only when it has a valid carrier for the project's metadata mode:
+Discovery walks real ordinary directories below the parent. A directory first becomes a structural candidate when it has an unambiguous marker for the current metadata mode:
 
-- `split` mode requires valid paired `tk.toml` and `TASK.md` files;
-- `embed` mode requires `TASK.md` to start with valid tk YAML frontmatter.
+- `split` mode uses `tk.toml` as the marker and requires a valid paired `TASK.md` in the same directory;
+- `embed` mode requires `TASK.md` to start with recognizable, valid tk YAML frontmatter. An ordinary material file named `TASK.md` is not enough.
 
-Changing `subtasks_dir` changes both future creation and discovery. It does not move existing Task directories. Existing subtasks outside the configured path are not discoverable.
+A candidate becomes a Task only after carrier, schema, identity, path-safety, and project-ownership checks pass. `check` reports a marked directory with damaged contents; normal discovery does not return it as a Task. Symbolic links, tk temporary files, and managed WAL directories do not participate in discovery.
 
-After discovering a child, the runtime applies the same rule recursively below it. Apart from the configured `subtasks_dir` path, ordinary material directories cannot occur between a parent and a discovered child. Symbolic links, special files, and non-canonical directory names do not participate in discovery.
+The parent of a valid Task is its nearest valid ancestor Task. Ordinary material directories and a configured `subtasks_dir` may appear between them. A valid Task moved or imported elsewhere below the parent therefore remains discoverable, but the move itself must preserve path safety, unique identity, and valid relationships.
 
-The canonical parent is the Task whose configured subtask location directly contains the child. Directory topology expresses only parentage. It does not create dependencies or associations or inherit status.
+Directory topology expresses only parentage. It does not create dependencies or associations or inherit status.
 
 ## Batch creation
 

@@ -20,11 +20,11 @@ A complete scan that finds problems returns `check_failed`. If a required direct
 
 ## Rename
 
-Run every rename with `--dry-run` first. Confirm the normalized name, target path, conflicts, and reported Markdown references. The runtime changes only the Task's own name, directory, and metadata. It does not rewrite references in ordinary materials.
+Run every rename with `--dry-run` first. Confirm the normalized name, resolved parent, target path, conflicts, and reported Markdown references. The runtime changes only the Task's own name, its generated directory when applicable, and metadata. It does not rewrite references in ordinary materials.
 
-A name and path already in canonical form return no change. Do not bypass a target conflict, damaged managed data, or failed reference scan with an alias, copied directory, or direct metadata edit.
+A requested name and its applicable generated path that already match return no change. Do not bypass a target conflict, damaged managed data, or failed reference scan with an alias, copied directory, or direct metadata edit.
 
-A commit-stage failure may leave only part of the name, directory, or WAL update complete. Run `check` immediately, then decide from canonical state whether to rerun rename or enter manual repair.
+A commit-stage failure may leave only part of the name, generated directory, or WAL update complete. Run `check` immediately, then decide from current managed state whether to rerun rename or enter manual repair.
 
 ## GC
 
@@ -40,7 +40,7 @@ Routine changes must use public tk operations. Manual repair is allowed only whe
 
 Before editing:
 
-1. Resolve the affected Task and canonical carrier uniquely.
+1. Resolve the affected Task and managed carrier uniquely.
 2. State the exact fields, final contents, and path changes.
 3. Obtain the user's current explicit authorization.
 4. Confirm that no tk writer is active.
@@ -54,7 +54,7 @@ Manual repair cannot bypass authorization, Git, lifecycle, relationship, conflic
 
 Historical split-mode Tasks may have names longer than 32 display columns. When metadata cannot load, rename may also be unavailable.
 
-If no public operation can express the repair, update both `name` in `tk.toml` and the directory leaf slug so they agree canonically. Preserve the date, sequence number, UUID, status, timestamps, relationships, body, and WAL. Changing only one side creates a name/path mismatch.
+If no public operation can express the repair, update both `name` in `tk.toml` and the directory leaf slug for a generated Task so they agree. For a non-generated child, update `name` only and preserve its directory. Preserve the date, sequence number, UUID, status, timestamps, relationships, body, and WAL.
 
 The current contract does not permit applying this procedure directly to embedded frontmatter. When no public recovery path exists, report the limitation and do not edit the frontmatter manually.
 

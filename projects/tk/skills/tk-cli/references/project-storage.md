@@ -45,7 +45,7 @@ A custom Task root requires the configuration file. Creating `tasks/` alone does
 
 ## `subtasks_dir`
 
-`subtasks_dir` selects the canonical relative directory used both to create and discover subtasks below each parent. Its default is the empty path, which places subtasks directly below the parent directory.
+`subtasks_dir` selects the default relative directory used to create subtasks below each parent. Its default is the empty path, which creates subtasks directly below the parent directory.
 
 Example:
 
@@ -53,7 +53,7 @@ Example:
 subtasks_dir = "children"
 ```
 
-New subtasks are created and discovered at `<parent>/children/`. Changing this setting does not move existing Task directories; subtasks outside the configured path are not discoverable.
+New subtasks then default to `<parent>/children/`. This setting controls creation placement, not discovery range. Existing valid Tasks elsewhere below the parent remain discoverable.
 
 An empty value is valid. A non-empty value must be a safe relative path without an absolute path or `.` or `..` components.
 

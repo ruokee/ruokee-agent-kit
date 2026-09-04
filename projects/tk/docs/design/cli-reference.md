@@ -182,7 +182,7 @@ tk rename <task_ref> <name>
   [global-options]
 ```
 
-rename modifies only the Task itself. Both dry-run and execution return the list of Markdown references found and do not rewrite them automatically. Repeating the command when the name and path are already correct returns no change. actor defaults to `cli`.
+rename modifies only the Task itself. It moves generated child and top-level directories when their slug changes, while non-generated child directories stay in place. Dry-run and execution return the resolved parent and Markdown references without rewriting them. Repeating a request whose name and applicable path already match returns no change. actor defaults to `cli`.
 
 ## `tk gc`
 
@@ -210,7 +210,7 @@ tk metadata migrate
   [global-options]
 ```
 
-When no file is specified, the command selects all canonical carriers in the current project. Each specified value must be a canonical `tk.toml` or embed `TASK.md` in the current project. Directories, Task IDs, material paths, and globs are not accepted.
+When no file is specified, the command selects every discovered carrier in the current project. Each specified value must be a managed `tk.toml` or embed `TASK.md` belonging to a discovered Task in the current project. Directories, Task IDs, material paths, and globs are not accepted.
 
 Migration only applies officially released forward transformations one version at a time. After preflighting all targets, it commits them in deterministic order. A failure result lists completed and incomplete files. It provides no downgrade, rollback, or resume state.
 
@@ -221,7 +221,7 @@ tk metadata switch --to <split|embed>
   [--dry-run] [global-options]
 ```
 
-The command switches the entire project. After preflighting every Task, it commits them in deterministic order and updates the project configuration last. A failure result lists completed and incomplete Tasks.
+The command switches every discovered Task in the project. After preflighting all Tasks, it commits them in deterministic order and updates the project configuration last. A failure result lists completed and incomplete Tasks.
 
 ## `tk mcp`
 

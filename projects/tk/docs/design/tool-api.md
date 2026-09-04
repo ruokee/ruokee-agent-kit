@@ -38,10 +38,9 @@ cwd selection follows this order: an explicit request value, the Harness session
 `task_ref` accepts only:
 
 - A full canonical UUIDv7;
-- An absolute Task directory;
-- An absolute canonical `tk.toml`;
-- An absolute canonical `TASK.md`;
-- A relative Task path in the current project.
+- An absolute discovered Task directory;
+- An absolute managed `tk.toml` or `TASK.md` carrier;
+- A relative discovered Task path in the current project.
 
 Names, directory basenames, UUID prefixes, substrings, regular expressions, and material paths are not exact references. Reads and modifications must resolve to exactly one Task.
 
@@ -108,7 +107,7 @@ The runtime does not fabricate domain error results for panics, transport interr
 |`managed_file`|`invalid_managed_file`, `unsupported_schema`, `representation_mismatch`|
 |`invariant`|`dependency_cycle`, `closed_task_read_only`, `active_descendant`, `active_dependency`, `closed_ancestor`|
 |`conflict`|`target_exists`, `operation_in_progress`|
-|`storage`|`check_incomplete`, `wal_append_failed`, `partial_commit`|
+|`storage`|`check_incomplete`, `task_discovery_limit_exceeded`, `wal_append_failed`, `partial_commit`|
 |`compatibility`|`runtime_incompatible`, `component_incompatible`|
 |`internal`|`internal_error`|
 
@@ -137,9 +136,9 @@ The query type is determined once in this order:
 
 There is no fallback after the type is determined. Hyphen-free hexadecimal UUID prefixes of at least 8 digits are used only for search.
 
-Results are sorted first by match class, then within each class by `created_at` descending and ID ascending. Each item includes a Task summary, `match`, `closed_ancestors`, and the canonical Task reference. `match` is at least one of `uuid`, `path`, `regex`, or `string`.
+Results are sorted first by match class, then within each class by `created_at` descending and ID ascending. Each item includes a Task summary, `match`, `closed_ancestors`, and an exact Task reference. `match` is at least one of `uuid`, `path`, `regex`, or `string`.
 
-The runtime retains only the bounded candidate set needed to produce the first 100 items. Invalid and similar-looking ordinary files are ignored and are not returned as fabricated Tasks.
+The discovery graph may contain every valid Task in the project. Search retains at most the first 100 result items. Invalid marked carriers and similar-looking ordinary files are not returned as Tasks. A required discovery I/O failure or resource-limit error fails the search instead of returning a partial graph.
 
 ## Read
 
@@ -153,7 +152,7 @@ Request:
 |`wal_max_length`|16384|0 to 1048576 bytes; used only for detailed|
 |`cwd`|Common default|Project resolution|
 
-metadata returns metadata and canonical paths. summary adds a body summary, relationship summary, and recent WAL summary. detailed returns the full body and a budget-limited WAL.
+metadata returns metadata and managed paths. summary adds a body summary, relationship summary, and recent WAL summary. detailed returns the full body and a budget-limited WAL.
 
 ## Create
 
@@ -188,7 +187,7 @@ Child Task branch:
 |`user_confirmed`|Current conversation authorization for planning child Tasks; defaults to `false`|
 |`cwd`|Project resolution|
 
-Open child Tasks do not require new top-level authorization. A batch containing a planning child requires `user_confirmed=true`. All validation completes before the first write in the batch. If creation partially fails, the result returns the created and uncreated items. A retry skips child Tasks that already exist with matching content.
+Open child Tasks do not require new top-level authorization. A batch containing a planning child requires `user_confirmed=true`. All validation completes before the first write in the batch. New children use `NN--slug` under the configured creation directory. Numbering uses all discovered direct children with generated leaf names, takes the largest sequence without filling gaps, and stops at `99`. If creation partially fails, the result returns the created and uncreated items. A retry skips discovered direct children that already match the requested content.
 
 ## Update
 
@@ -220,6 +219,8 @@ exec is a low-frequency administrative entry point:
 |`actor`|Allowed only when the first item is `rename`|
 
 exec invokes the public command parser directly from argv without using a shell. It rejects search, read, create, update, log, mcp, schema, metadata, gc, install, uninstall, and any other first item.
+
+rename results include the resolved parent Task path when one exists, the old path, the target path, and Markdown references. Non-generated child directories remain in place; generated child and top-level paths keep their sequence and update the slug.
 
 ## Transport
 

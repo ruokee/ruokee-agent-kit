@@ -52,17 +52,17 @@ Project discovery is separate from Git policy checks.
 
 read, search, and check only locate the project and read state. Write operations run the shared Git policy check before the first persistent write. `git_policy=none` does not require Git to be installed.
 
-Exact absolute paths first locate the project through the Task directory structure and bounded ancestor checks. Git projects use the Git root. Non-Git projects do not traverse without bounds to the file system root.
+Exact absolute paths first locate the project through the canonical top-level Task directory and bounded ancestor checks. The runtime then requires the path to belong to a Task in the carrier-based discovery graph. Git projects use the Git root. Non-Git projects do not traverse without bounds to the file system root.
 
 ## Memory bounds
 
-search processes candidates one at a time and retains at most the best 100 items needed for the final result. When `search_body=false`, it does not read body content.
+Discovery builds one in-memory graph and may use O(number of Tasks) memory. search retains at most the best 100 result items and does not read body content when `search_body=false`.
 
-check, relationship graphs, schema migration, and representation switching may use O(number of Tasks) memory when they genuinely require full-project information. The runtime does not claim that all project operations use constant memory.
+One discovery scan accepts at most 100,000 real directories and 256 descendant levels. It skips symbolic links and runtime-owned directories. Crossing a limit or encountering a required I/O failure aborts the scan without returning a partial graph.
 
-Process stdout, stderr, tool schemas, WAL reads, and protocol frames have explicit byte or entry limits.
+check, relationship validation, schema migration, and representation switching reuse the discovered graph. The runtime does not claim that project operations use constant memory.
 
-Each subprocess stream and each MCP JSON payload is limited to 1 MiB. Oversized MCP input closes the stdio transport. Oversized MCP output fails the transport instead of emitting a partial frame.
+Process stdout, stderr, tool schemas, WAL reads, frontmatter, and protocol frames have explicit byte or entry limits. Each subprocess stream and each MCP JSON payload is limited to 1 MiB. Oversized MCP input closes the stdio transport. Oversized MCP output fails the transport instead of emitting a partial frame.
 
 ## Writes and cancellation
 

@@ -403,8 +403,13 @@ pub fn discover_from_exact_path(path: &Path) -> Result<Project> {
         && is_project_candidate(&git_root)
     {
         match load(&git_root) {
-            Ok(project) if project_owns_path(&project, path, start) => return Ok(project),
-            Ok(_) => {}
+            Ok(project) => match project_owns_path(&project, path, start) {
+                Ok(true) => return Ok(project),
+                Ok(false) => {}
+                Err(error) => {
+                    first_error.get_or_insert(error);
+                }
+            },
             Err(error) => {
                 first_error.get_or_insert(error);
             }
@@ -417,11 +422,14 @@ pub fn discover_from_exact_path(path: &Path) -> Result<Project> {
                 continue;
             }
             match load(candidate) {
-                Ok(project)
-                    if project.task_root == task_root
-                        && project_owns_path(&project, path, start) =>
-                {
-                    return Ok(project);
+                Ok(project) if project.task_root == task_root => {
+                    match project_owns_path(&project, path, start) {
+                        Ok(true) => return Ok(project),
+                        Ok(false) => {}
+                        Err(error) => {
+                            first_error.get_or_insert(error);
+                        }
+                    }
                 }
                 Ok(_) => {}
                 Err(error) => {
@@ -440,23 +448,15 @@ pub fn discover_from_exact_path(path: &Path) -> Result<Project> {
     ))
 }
 
-fn project_owns_path(project: &Project, original: &Path, path: &Path) -> bool {
+fn project_owns_path(project: &Project, original: &Path, path: &Path) -> Result<bool> {
     if !path.starts_with(&project.task_root)
         || ensure_safe_project_path(&project.root, original).is_err()
     {
-        return false;
+        return Ok(false);
     }
-    path.ancestors()
-        .take_while(|ancestor| *ancestor != project.task_root)
-        .any(|directory| {
-            crate::task_store::read_canonical_task(
-                &project.task_root,
-                &project.config.subtasks_dir,
-                directory,
-                project.config.metadata_mode,
-            )
-            .is_ok()
-        })
+    let graph =
+        crate::task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    Ok(graph.owning_task_index(path).is_some())
 }
 
 fn task_root_from_top_level(path: &Path) -> Option<&Path> {
@@ -654,10 +654,41 @@ mod tests {
         fs::create_dir_all(&lookalike).unwrap();
         let nested_material = lookalike.join("notes.md");
         fs::write(&nested_material, "notes\n").unwrap();
+        let imported = task.join("materials/imported");
+        crate::task_store::create_task_files(
+            &imported,
+            &crate::domain::Metadata {
+                schema_version: crate::version::TASK_SCHEMA_VERSION,
+                id: uuid::Uuid::now_v7(),
+                name: "imported".into(),
+                status: crate::domain::Status::Open,
+                created_at: chrono::DateTime::parse_from_rfc3339("2026-08-31T13:00:00+08:00")
+                    .unwrap(),
+                depends_on: vec![],
+                related_to: vec![],
+                extra: Default::default(),
+            },
+            b"# imported\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+        let imported_material = imported.join("notes.md");
+        fs::write(&imported_material, "imported notes\n").unwrap();
 
         assert_eq!(discover_from_exact_path(&material).unwrap().root, root);
         assert_eq!(
             discover_from_exact_path(&nested_material).unwrap().root,
+            root
+        );
+        assert_eq!(discover_from_exact_path(&imported).unwrap().root, root);
+        assert_eq!(
+            discover_from_exact_path(&imported.join("tk.toml"))
+                .unwrap()
+                .root,
+            root
+        );
+        assert_eq!(
+            discover_from_exact_path(&imported_material).unwrap().root,
             root
         );
         fs::remove_dir_all(root).unwrap();

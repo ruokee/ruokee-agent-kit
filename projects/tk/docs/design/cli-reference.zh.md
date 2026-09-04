@@ -182,7 +182,7 @@ tk rename <task_ref> <name>
   [global-options]
 ```
 
-rename 只修改 Task 本身。dry-run 和执行都返回找到的 Markdown 引用列表，不自动改写。重复执行且名称和路径已经正确时返回无变化。actor 默认为 `cli`。
+rename 只修改 Task 本身。生成式子 Task 和顶层 Task 的 slug 改变时移动目录，非生成式子 Task 保持目录不变。dry-run 和执行都返回解析出的父级和 Markdown 引用，不改写引用。名称及其适用路径已经匹配时，重复请求返回无变化。actor 默认为 `cli`。
 
 ## `tk gc`
 
@@ -210,7 +210,7 @@ tk metadata migrate
   [global-options]
 ```
 
-未指定 file 时选择当前项目全部规范载体。指定值必须是当前项目中的规范 `tk.toml` 或 embed `TASK.md`，不接受目录、Task ID、材料路径或 glob。
+未指定 file 时选择当前项目全部已发现载体。指定值必须是当前项目中属于已发现 Task 的受管 `tk.toml` 或 embed `TASK.md`，不接受目录、Task ID、材料路径或 glob。
 
 迁移只向前执行正式发布的逐级转换。全部目标预检后按确定顺序提交。失败结果列出完成和未完成文件，不提供降级、回滚或续跑状态。
 
@@ -221,7 +221,7 @@ tk metadata switch --to <split|embed>
   [--dry-run] [global-options]
 ```
 
-切换整个项目。全部 Task 预检后按确定顺序提交，最后更新项目配置。失败结果列出完成和未完成 Task。
+命令切换项目中的全部已发现 Task。全部 Task 预检后按确定顺序提交，最后更新项目配置。失败结果列出完成和未完成 Task。
 
 ## `tk mcp`
 

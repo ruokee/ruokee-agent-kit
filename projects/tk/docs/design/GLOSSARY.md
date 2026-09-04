@@ -38,7 +38,7 @@ This glossary includes only terms that have a special meaning in tk, require fix
 |Task root|Task 根目录|A configured path within a project that stores a top-level Task tree.|
 |metadata mode|元数据模式|The project-wide choice of `split` or `embed`.|
 |metadata representation|元数据表示|The physical representation of metadata in split `tk.toml` or embed frontmatter.|
-|metadata carrier|元数据载体|The `tk.toml` or embed `TASK.md` that stores canonical Task metadata.|
+|metadata carrier|元数据载体|The managed `tk.toml` or embed `TASK.md` that stores Task metadata.|
 |frontmatter|frontmatter|The restricted YAML metadata block at the beginning of an embed `TASK.md`.|
 |managed file|受管文件|A project file whose format and change rules are governed by tk.|
 |material|材料|An ordinary file that supports a Task and is not indexed by the runtime.|

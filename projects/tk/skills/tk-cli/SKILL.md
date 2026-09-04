@@ -49,9 +49,9 @@ See [CLI](./references/cli.md) for the complete command reference.
 
 ## Resolve a Task
 
-Exact operations accept a complete UUIDv7, an absolute Task directory, an absolute canonical `tk.toml` or `TASK.md`, or a project-relative Task path.
+Exact operations accept a complete UUIDv7, an absolute discovered Task directory, an absolute managed `tk.toml` or `TASK.md`, or a project-relative discovered Task path.
 
-Search names, directory basenames, UUID prefixes, text, regular expressions, branches, and material paths first, then use the returned canonical reference. If several candidates remain plausible, show the relevant candidates and ask the user to choose.
+Search names, directory basenames, UUID prefixes, text, regular expressions, branches, and material paths first, then use the returned exact reference. If several candidates remain plausible, show the relevant candidates and ask the user to choose.
 
 ## Create Tasks
 
@@ -75,7 +75,7 @@ See [Subtasks](./references/subtask.md).
 - Create subtasks only below an `open` or `planning` Task. Do not create below a `closed` Task or force a reopen to create one.
 - Do not combine independent work in one subtask name. Create sibling subtasks instead.
 - Subtasks may be nested.
-- `subtasks_dir` defines the canonical child location used for both creation and discovery.
+- `subtasks_dir` controls only the default creation location. Discovery uses valid carriers below the parent and is not restricted by this setting.
 
 ## Catch up
 

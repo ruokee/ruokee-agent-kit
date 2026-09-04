@@ -38,7 +38,7 @@
 |Task root|Task 根目录|一个项目内保存顶层 Task 树的配置路径|
 |metadata mode|元数据模式|项目统一选择的 `split` 或 `embed`|
 |metadata representation|元数据表示|元数据在 split `tk.toml` 或 embed frontmatter 中的物理表达|
-|metadata carrier|元数据载体|保存规范 Task 元数据的 `tk.toml` 或 embed `TASK.md`|
+|metadata carrier|元数据载体|保存 Task 元数据的受管 `tk.toml` 或 embed `TASK.md`|
 |frontmatter|frontmatter|embed `TASK.md` 开头的受限 YAML 元数据块|
 |managed file|受管文件|tk 对格式和变更规则具有规范权的项目文件|
 |material|材料|支持 Task 的普通文件，不由运行时建立索引|

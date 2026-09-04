@@ -287,46 +287,42 @@ pub fn search(project: &Project, request: SearchRequest) -> Result<SearchResult>
         ));
     }
     validate_extra(&Value::Object(request.extra.clone().into_iter().collect()))?;
-    let query = classify_search_query(project, &request)?;
+    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    let query = classify_search_query(project, &request, &graph)?;
     let retained = request.limit;
     let mut matches = Vec::with_capacity(retained);
     let mut truncated = false;
-    task_store::visit_tasks(
-        &project.task_root,
-        &project.config.subtasks_dir,
-        project.config.metadata_mode,
-        |task| {
-            if !request.statuses.is_empty() && !request.statuses.contains(&task.metadata.status) {
-                return Ok(());
-            }
-            if !request.extra.iter().all(|(key, expected)| {
-                task.metadata
-                    .extra
-                    .get(key)
-                    .is_some_and(|actual| actual == expected)
-            }) {
-                return Ok(());
-            }
-            let Some(match_reason) = query.matches(project, &task, request.search_body)? else {
-                return Ok(());
-            };
-            matches.push(SearchItem {
-                id: task.metadata.id,
-                name: task.metadata.name,
-                status: task.metadata.status,
-                created_at: task.metadata.created_at,
-                task_dir: task.directory.clone(),
-                match_reason: match_reason.into(),
-                closed_ancestors: closed_ancestors(project, &task.directory)?,
-            });
-            matches.sort_by(compare_search_items);
-            if matches.len() > retained {
-                truncated = true;
-                matches.truncate(retained);
-            }
-            Ok(())
-        },
-    )?;
+    for (task_index, discovered) in graph.tasks.iter().enumerate() {
+        let task = &discovered.task;
+        if !request.statuses.is_empty() && !request.statuses.contains(&task.metadata.status) {
+            continue;
+        }
+        if !request.extra.iter().all(|(key, expected)| {
+            task.metadata
+                .extra
+                .get(key)
+                .is_some_and(|actual| actual == expected)
+        }) {
+            continue;
+        }
+        let Some(match_reason) = query.matches(project, task, request.search_body)? else {
+            continue;
+        };
+        matches.push(SearchItem {
+            id: task.metadata.id,
+            name: task.metadata.name.clone(),
+            status: task.metadata.status,
+            created_at: task.metadata.created_at,
+            task_dir: task.directory.clone(),
+            match_reason: match_reason.into(),
+            closed_ancestors: closed_ancestors(&graph, task_index),
+        });
+        matches.sort_by(compare_search_items);
+        if matches.len() > retained {
+            truncated = true;
+            matches.truncate(retained);
+        }
+    }
 
     Ok(SearchResult {
         items: matches,
@@ -408,11 +404,15 @@ impl SearchQuery {
     }
 }
 
-fn classify_search_query(project: &Project, request: &SearchRequest) -> Result<SearchQuery> {
+fn classify_search_query(
+    project: &Project,
+    request: &SearchRequest,
+    graph: &task_store::TaskGraph,
+) -> Result<SearchQuery> {
     if let Ok(id) = Uuid::parse_str(&request.query) {
         return Ok(SearchQuery::UuidPrefix(id.simple().to_string()));
     }
-    if let Some(path) = classify_existing_search_path(project, &request.query)? {
+    if let Some(path) = classify_existing_search_path(project, &request.query, graph)? {
         return Ok(SearchQuery::Path(path));
     }
     if request.regex {
@@ -444,6 +444,7 @@ fn classify_search_query(project: &Project, request: &SearchRequest) -> Result<S
 fn classify_existing_search_path(
     project: &Project,
     query: &str,
+    graph: &task_store::TaskGraph,
 ) -> Result<Option<Option<PathBuf>>> {
     let input = Path::new(query);
     let path = if input.is_absolute() {
@@ -463,49 +464,24 @@ fn classify_existing_search_path(
     if !canonical.starts_with(&project.task_root) {
         return Ok(Some(None));
     }
-    let mut cursor = if canonical.is_dir() {
-        Some(canonical.as_path())
-    } else {
-        canonical.parent()
-    };
-    while let Some(directory) = cursor {
-        if task_store::read_canonical_task(
-            &project.task_root,
-            &project.config.subtasks_dir,
-            directory,
-            project.config.metadata_mode,
-        )
-        .is_ok()
-        {
-            return Ok(Some(Some(directory.to_path_buf())));
-        }
-        if directory == project.task_root {
-            break;
-        }
-        cursor = directory.parent();
-    }
-    Ok(Some(None))
+    Ok(Some(
+        graph
+            .owning_task_index(&canonical)
+            .map(|index| graph.tasks[index].task.directory.clone()),
+    ))
 }
 
-fn closed_ancestors(project: &Project, directory: &Path) -> Result<Vec<Uuid>> {
+fn closed_ancestors(graph: &task_store::TaskGraph, task_index: usize) -> Vec<Uuid> {
     let mut closed = Vec::new();
-    let mut ancestor = directory.parent();
-    while let Some(path) = ancestor {
-        if path == project.task_root {
-            break;
+    let mut ancestor = graph.tasks[task_index].parent;
+    while let Some(index) = ancestor {
+        let task = &graph.tasks[index];
+        if task.task.metadata.status == Status::Closed {
+            closed.push(task.task.metadata.id);
         }
-        if let Ok(task) = task_store::read_canonical_task(
-            &project.task_root,
-            &project.config.subtasks_dir,
-            path,
-            project.config.metadata_mode,
-        ) && task.metadata.status == Status::Closed
-        {
-            closed.push(task.metadata.id);
-        }
-        ancestor = path.parent();
+        ancestor = task.parent;
     }
-    Ok(closed)
+    closed
 }
 
 pub fn update(
@@ -644,10 +620,13 @@ pub fn log(
 }
 
 pub fn resolve_ref(project: &Project, task_ref: &str) -> Result<StoredTask> {
+    let mut graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
     if let Ok(id) = Uuid::parse_str(task_ref) {
-        let matches: Vec<_> = valid_tasks(project)?
+        let matches: Vec<_> = graph
+            .tasks
             .into_iter()
-            .filter(|task| task.metadata.id == id)
+            .filter(|task| task.task.metadata.id == id)
+            .map(|task| task.task)
             .collect();
         return match matches.len() {
             0 => Err(resolution_error(
@@ -703,12 +682,20 @@ pub fn resolve_ref(project: &Project, task_ref: &str) -> Result<StoredTask> {
             format!("Task is outside {}", project.task_root.display()),
         ));
     }
-    task_store::read_canonical_task(
-        &project.task_root,
-        &project.config.subtasks_dir,
-        &directory,
-        project.config.metadata_mode,
-    )
+    if let Some(index) = graph.task_index(&directory) {
+        return Ok(graph.tasks.swap_remove(index).task);
+    }
+    if let Some(index) = graph
+        .invalid_candidates
+        .iter()
+        .position(|candidate| candidate.directory == directory)
+    {
+        return Err(graph.invalid_candidates.swap_remove(index).error);
+    }
+    Err(resolution_error(
+        "task_not_found",
+        format!("No discovered Task exists at {}", directory.display()),
+    ))
 }
 
 fn create_top_level(
@@ -797,7 +784,15 @@ fn create_subtasks(
     }
 
     let base = parent.directory.join(&project.config.subtasks_dir);
-    let existing = direct_subtasks(project, &base)?;
+    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    let parent_index = graph.task_index(&parent.directory).ok_or_else(|| {
+        TkError::new(
+            "task_discovery_changed",
+            ErrorCategory::Conflict,
+            "Parent Task disappeared during subtask preparation",
+        )
+    })?;
+    let existing = direct_subtasks(&graph, parent_index);
     let mut used = vec![false; existing.len()];
     let mut satisfied = Vec::new();
     let mut pending = Vec::new();
@@ -825,7 +820,7 @@ fn create_subtasks(
         });
     }
 
-    let first_sequence = next_subtask_sequence(project, &base)?;
+    let first_sequence = next_subtask_sequence(&graph, parent_index, &base)?;
     if first_sequence + pending.len() as u64 - 1 > MAX_TASK_SEQUENCE {
         return Err(TkError::new(
             "task_sequence_exhausted",
@@ -960,13 +955,13 @@ fn prepare_task(
     })
 }
 
-fn direct_subtasks(project: &Project, base: &Path) -> Result<Vec<StoredTask>> {
-    task_store::direct_canonical_tasks(
-        &project.task_root,
-        &project.config.subtasks_dir,
-        base,
-        project.config.metadata_mode,
-    )
+fn direct_subtasks(graph: &task_store::TaskGraph, parent: usize) -> Vec<&StoredTask> {
+    graph
+        .tasks
+        .iter()
+        .filter(|candidate| candidate.parent == Some(parent))
+        .map(|candidate| &candidate.task)
+        .collect()
 }
 
 fn prepared_matches(
@@ -1065,14 +1060,18 @@ fn top_level_path(
     let month = created_at.format("%m").to_string();
     let day = created_at.format("%d").to_string();
     let base = project.task_root.join(year).join(month);
+    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
     let mut maximum = 0;
-    for task in task_store::direct_canonical_tasks(
-        &project.task_root,
-        &project.config.subtasks_dir,
-        &base,
-        project.config.metadata_mode,
-    )? {
-        let Some(value) = task.directory.file_name().and_then(|value| value.to_str()) else {
+    for task in graph.tasks.iter().filter(|task| task.parent.is_none()) {
+        if task.task.directory.parent() != Some(base.as_path()) {
+            continue;
+        }
+        let Some(value) = task
+            .task
+            .directory
+            .file_name()
+            .and_then(|value| value.to_str())
+        else {
             continue;
         };
         if let Some(sequence) = value
@@ -1086,22 +1085,20 @@ fn top_level_path(
     Ok(base.join(format!("{day}-{sequence:02}--{name}")))
 }
 
-fn next_subtask_sequence(project: &Project, base: &Path) -> Result<u64> {
-    let maximum = task_store::direct_canonical_tasks(
-        &project.task_root,
-        &project.config.subtasks_dir,
-        base,
-        project.config.metadata_mode,
-    )?
-    .iter()
-    .filter_map(|task| {
-        task.directory
-            .file_name()
-            .and_then(|value| value.to_str())
-            .and_then(parse_sequence)
-    })
-    .max()
-    .unwrap_or(0);
+fn next_subtask_sequence(graph: &task_store::TaskGraph, parent: usize, base: &Path) -> Result<u64> {
+    let maximum = graph
+        .tasks
+        .iter()
+        .filter(|task| task.parent == Some(parent))
+        .filter_map(|task| {
+            task.task
+                .directory
+                .file_name()
+                .and_then(|value| value.to_str())
+                .and_then(parse_sequence)
+        })
+        .max()
+        .unwrap_or(0);
     next_sequence(maximum, base)
 }
 
@@ -1172,17 +1169,7 @@ fn require_creation_authorization(
 }
 
 fn valid_tasks(project: &Project) -> Result<Vec<StoredTask>> {
-    let mut tasks = Vec::new();
-    task_store::visit_tasks(
-        &project.task_root,
-        &project.config.subtasks_dir,
-        project.config.metadata_mode,
-        |task| {
-            tasks.push(task);
-            Ok(())
-        },
-    )?;
-    Ok(tasks)
+    Ok(task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?.into_tasks())
 }
 
 fn validate_update_input(request: &UpdateRequest) -> Result<()> {
@@ -1262,19 +1249,28 @@ fn require_lifecycle_authorization(action: &str, reason: &str, confirmed: bool) 
 }
 
 fn ensure_closeable(project: &Project, task: &StoredTask) -> Result<()> {
-    let tasks = valid_tasks(project)?;
-    let status_by_id: HashMap<_, _> = tasks
+    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    let task_index = graph.task_index(&task.directory).ok_or_else(|| {
+        TkError::new(
+            "task_discovery_changed",
+            ErrorCategory::Conflict,
+            "Task disappeared before lifecycle validation",
+        )
+    })?;
+    let status_by_id: HashMap<_, _> = graph
+        .tasks
         .iter()
-        .map(|candidate| (candidate.metadata.id, candidate.metadata.status))
+        .map(|candidate| (candidate.task.metadata.id, candidate.task.metadata.status))
         .collect();
-    let open_descendants: Vec<_> = tasks
+    let open_descendants: Vec<_> = graph
+        .tasks
         .iter()
-        .filter(|candidate| {
-            candidate.directory != task.directory
-                && candidate.directory.starts_with(&task.directory)
-                && candidate.metadata.status != Status::Closed
+        .enumerate()
+        .filter(|(index, candidate)| {
+            graph.is_descendant_of(*index, task_index)
+                && candidate.task.metadata.status != Status::Closed
         })
-        .map(|candidate| candidate.metadata.id)
+        .map(|(_, candidate)| candidate.task.metadata.id)
         .collect();
     let open_dependencies: Vec<_> = task
         .metadata
@@ -1297,27 +1293,27 @@ fn ensure_closeable(project: &Project, task: &StoredTask) -> Result<()> {
 }
 
 fn ensure_reopenable(project: &Project, task: &StoredTask) -> Result<()> {
-    let mut ancestor = task.directory.parent();
-    while let Some(directory) = ancestor {
-        if directory == project.task_root {
-            break;
-        }
-        if let Ok(candidate) = task_store::read_canonical_task(
-            &project.task_root,
-            &project.config.subtasks_dir,
-            directory,
-            project.config.metadata_mode,
-        ) && candidate.metadata.status == Status::Closed
-        {
+    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    let task_index = graph.task_index(&task.directory).ok_or_else(|| {
+        TkError::new(
+            "task_discovery_changed",
+            ErrorCategory::Conflict,
+            "Task disappeared before lifecycle validation",
+        )
+    })?;
+    let mut ancestor = graph.tasks[task_index].parent;
+    while let Some(index) = ancestor {
+        let candidate = &graph.tasks[index];
+        if candidate.task.metadata.status == Status::Closed {
             return Err(TkError::invariant(
                 "closed_ancestor",
                 format!(
                     "Cannot reopen below closed ancestor {}",
-                    candidate.metadata.id
+                    candidate.task.metadata.id
                 ),
             ));
         }
-        ancestor = directory.parent();
+        ancestor = candidate.parent;
     }
     Ok(())
 }
@@ -1611,13 +1607,10 @@ mod tests {
             .is_err()
         );
         assert!(
-            task_store::scan_candidates(
-                &project.task_root,
-                &project.config.subtasks_dir,
-                project.config.metadata_mode,
-            )
-            .unwrap()
-            .is_empty()
+            task_store::discover_tasks(&project.task_root, project.config.metadata_mode)
+                .unwrap()
+                .tasks
+                .is_empty()
         );
         fs::remove_dir_all(root).unwrap();
     }
@@ -1651,7 +1644,7 @@ mod tests {
     }
 
     #[test]
-    fn subtask_retry_skips_matching_children_without_new_confirmation() {
+    fn subtask_retry_counts_discovered_direct_children() {
         let (root, project) = temp_project();
         let parent = create(
             &project,
@@ -1698,7 +1691,7 @@ mod tests {
             },
         )
         .unwrap();
-        assert_eq!(first.created.len(), 2);
+        assert_eq!(first.created.len(), 1);
 
         let retry = create(
             &project,
@@ -1713,13 +1706,10 @@ mod tests {
         assert!(!retry.committed);
         assert!(retry.created.is_empty());
         assert_eq!(
-            task_store::scan_candidates(
-                &project.task_root,
-                &project.config.subtasks_dir,
-                project.config.metadata_mode,
-            )
-            .unwrap()
-            .len(),
+            task_store::discover_tasks(&project.task_root, project.config.metadata_mode)
+                .unwrap()
+                .tasks
+                .len(),
             3
         );
 
@@ -1734,15 +1724,81 @@ mod tests {
         .unwrap();
         assert_eq!(duplicate.created.len(), 1);
         assert_eq!(
-            task_store::scan_candidates(
-                &project.task_root,
-                &project.config.subtasks_dir,
-                project.config.metadata_mode,
-            )
-            .unwrap()
-            .len(),
+            task_store::discover_tasks(&project.task_root, project.config.metadata_mode)
+                .unwrap()
+                .tasks
+                .len(),
             4
         );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn subtask_sequence_uses_all_discovered_direct_children_after_config_change() {
+        let root = std::env::temp_dir().join(format!("tk-app-test-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = init(
+            &root,
+            InitOptions {
+                subtasks_dir: Some("old-children".into()),
+                ..InitOptions::default()
+            },
+        )
+        .unwrap()
+        .project;
+        let parent = create(
+            &project,
+            CreateRequest::Task {
+                input: top_input("parent"),
+                user_confirmed: true,
+            },
+        )
+        .unwrap()
+        .created
+        .remove(0);
+        let first = create(
+            &project,
+            CreateRequest::Subtasks {
+                parent_ref: parent.id.to_string(),
+                subtasks: vec![subtask_input("first")],
+                user_confirmed: false,
+            },
+        )
+        .unwrap()
+        .created
+        .remove(0);
+        assert!(first.task_dir.ends_with("old-children/01--first"));
+
+        let imported =
+            prepare_task(&project, subtask_input("imported").into(), Some(parent.id)).unwrap();
+        task_store::create_task_files(
+            &parent.task_dir.join("materials/03--imported"),
+            &imported.metadata,
+            &imported.body,
+            project.config.metadata_mode,
+        )
+        .unwrap();
+        fs::write(&project.config_path, "subtasks_dir = \"new-children\"\n").unwrap();
+        let project = crate::project::discover(&root).unwrap();
+
+        assert_eq!(
+            resolve_ref(&project, &first.id.to_string())
+                .unwrap()
+                .directory,
+            first.task_dir
+        );
+        let second = create(
+            &project,
+            CreateRequest::Subtasks {
+                parent_ref: parent.id.to_string(),
+                subtasks: vec![subtask_input("second")],
+                user_confirmed: false,
+            },
+        )
+        .unwrap()
+        .created
+        .remove(0);
+        assert!(second.task_dir.ends_with("new-children/04--second"));
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -2090,7 +2146,10 @@ mod tests {
             )
             .unwrap();
         }
-        let error = next_subtask_sequence(&project, &subtask_base).unwrap_err();
+        let graph =
+            task_store::discover_tasks(&project.task_root, project.config.metadata_mode).unwrap();
+        let parent_index = graph.task_index(&parent.task_dir).unwrap();
+        let error = next_subtask_sequence(&graph, parent_index, &subtask_base).unwrap_err();
         assert_eq!(error.code, "task_sequence_exhausted");
         fs::remove_dir_all(root).unwrap();
     }

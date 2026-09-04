@@ -220,7 +220,7 @@ tk rename <task_ref> <name>
   [--cwd <path>] [--output <text|json>]
 ```
 
-`--dry-run` returns a plan without writing. Execution changes only the target Task and reports Markdown references it finds without rewriting them. A name and path already in canonical form return no change. `--actor` defaults to `cli`.
+`--dry-run` returns a plan without writing. Execution changes only the target Task, moves its directory only when it has a generated path, and reports the resolved parent and Markdown references without rewriting them. A name and applicable path that already match return no change. `--actor` defaults to `cli`.
 
 ## `tk gc`
 

@@ -189,15 +189,13 @@ fn parse_target(target: &str) -> Result<u32> {
 }
 
 fn select_carriers(project: &Project, selected: &[PathBuf]) -> Result<Vec<PathBuf>> {
+    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
     let candidates = if selected.is_empty() {
-        task_store::scan_candidates(
-            &project.task_root,
-            &project.config.subtasks_dir,
-            project.config.metadata_mode,
-        )?
-        .into_iter()
-        .map(|directory| carrier(&directory, project.config.metadata_mode))
-        .collect()
+        graph
+            .tasks
+            .iter()
+            .map(|task| carrier(&task.task.directory, project.config.metadata_mode))
+            .collect()
     } else {
         selected
             .iter()
@@ -225,22 +223,18 @@ fn select_carriers(project: &Project, selected: &[PathBuf]) -> Result<Vec<PathBu
     let mut seen = HashSet::new();
     let mut result = Vec::new();
     for path in candidates {
-        let canonical_directory = path.parent().is_some_and(|directory| {
-            task_store::is_canonical_task_directory(
-                &project.task_root,
-                &project.config.subtasks_dir,
-                directory,
-            )
-        });
+        let discovered_directory = path
+            .parent()
+            .is_some_and(|directory| graph.task_index(directory).is_some());
         if !path.starts_with(&root)
-            || !canonical_directory
+            || !discovered_directory
             || path.file_name().and_then(|name| name.to_str()) != Some(expected)
             || fs::symlink_metadata(&path).is_ok_and(|metadata| !metadata.file_type().is_file())
         {
             return Err(TkError::request(
                 "invalid_request",
                 format!(
-                    "Not a canonical metadata carrier in this project: {}",
+                    "Not a discovered metadata carrier in this project: {}",
                     path.display()
                 ),
             ));

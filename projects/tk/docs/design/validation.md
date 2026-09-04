@@ -22,12 +22,16 @@ Cover split and embed:
 
 - Strict decoding, stable encoding, and body preservation for schema 1;
 - Unknown fields, missing versions, unknown versions, incorrect types, and restricted YAML;
-- Only strictly valid formats become candidates, while ordinary similar-looking Markdown is ignored;
-- UUIDv7, names, path topology, relation deduplication, cross-root references, and dependency cycles;
+- Canonical top-level discovery and mode-specific carrier markers for descendants;
+- Direct, configured-directory, and ordinary-material nested children with nearest-valid-ancestor parenthood;
+- Marked invalid carriers, symbolic links, runtime-owned paths, discovery limits, duplicate identities, and logical sibling sequences;
+- UUIDv7, generated name-path agreement, relation deduplication, cross-root references, and dependency cycles;
+- Child sequence allocation after `subtasks_dir` changes, gap preservation, and exhaustion at `99`;
+- Non-generated child rename without a directory move and generated rename with a stable sequence;
 - planning, open, and closed transitions and closing constraints;
 - Strict and permissive creation;
 - Git `track`, `ignore`, and `none` preflight checks only before writes;
-- Reverse project discovery from absolute Task and material paths;
+- Reverse project discovery from absolute discovered Task, carrier, and material paths;
 - Bounded ancestor checks for non-Git discovery.
 
 ## Search tests
@@ -41,7 +45,7 @@ Cover:
 - UUID prefixes of at least 8 characters;
 - Match class, descending `created_at`, and ascending ID;
 - `match` returns `uuid`, `path`, `regex`, or `string`;
-- A default limit of 20, a maximum of 100, and a bounded candidate set;
+- A default limit of 20, a maximum of 100, and a bounded result set;
 - `search_body=false` does not read bodies.
 
 ## WAL tests

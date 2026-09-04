@@ -17,7 +17,7 @@ metadata_mode = "split"
 Default values are not written to the configuration file. The file may be absent when all defaults apply.
 
 - `task_root` is a project-relative path and defaults to `.tk`.
-- `subtasks_dir` is an optional relative directory under each parent Task.
+- `subtasks_dir` is the optional relative default creation directory under each parent Task. It does not constrain discovery.
 - `git_policy` is `track`, `ignore`, or `none`.
 - `creation_policy` is `strict` or `permissive`.
 - `metadata_mode` is `split` or `embed` and applies to the entire project.
@@ -32,9 +32,9 @@ Top-level Tasks use this layout:
 <task-root>/YYYY/MM/DD-NN--slug/
 ```
 
-A child Task is stored directly under its parent Task directory or under the parent's `subtasks_dir`, using a stable sequence number and slug. Directory topology represents parent-child relationships. Metadata does not store `parent`.
+New child Tasks use a stable `NN--slug` directory directly below the parent or below its configured `subtasks_dir`. Existing child Tasks may be stored deeper below ordinary material directories. The nearest enclosing valid Task defines parenthood, so directory topology still represents parent-child relationships without storing `parent` in metadata.
 
-The Task root has no persistent index or cache. Discovery, search, and project-wide checks traverse the file system on demand.
+The Task root has no persistent index or cache. Discovery builds one in-memory graph from the file system on demand, and every project-wide caller uses that graph.
 
 ## Metadata schema
 
@@ -80,17 +80,20 @@ When modifying embed metadata, the runtime preserves the body byte for byte. Rep
 
 ## Candidate identification
 
-Candidate scanning takes the project's `metadata_mode` and first requires canonical topology. A top-level Task is stored at `YYYY/MM/DD-NN--slug`. Each descendant is stored under the configured `subtasks_dir` with an exact `NN--slug` directory. The sequence widths, `--` separator, calendar date, and non-empty slug are mandatory.
+Top-level Task discovery requires the canonical `YYYY/MM/DD-NN--slug` topology, including fixed sequence widths, the `--` separator, a valid calendar date, a non-empty slug, and a metadata name matching the slug. After discovering a valid top-level Task, the runtime recursively scans real descendant directories. Ordinary material directories remain traversable because a child Task may be below them.
 
-Sequence allocation considers only existing canonical Task siblings. It never widens the sequence field beyond two digits. When sequence `99` is already in use, creation fails with a conflict before writing.
+A descendant directory first needs an intentional marker for the project's `metadata_mode`:
 
-- In split mode, only canonical directories containing both regular `tk.toml` and `TASK.md` files are candidates.
-- In embed mode, only canonical `TASK.md` files with strictly valid tk frontmatter are candidates.
-- Ordinary `TASK.md` files, ordinary YAML frontmatter, malformed frontmatter, content with incomplete fields, noncanonical placements, and directories containing only similarly named files are ignored.
-- symlink, devices, directories masquerading as files, and out-of-bounds paths cannot become candidates.
-- `.tk-tmp`, WAL, and reserved temporary directories do not participate in Task discovery.
+- In split mode, a regular `tk.toml` is the marker. A valid Task also requires a regular paired `TASK.md`.
+- In embed mode, a regular `TASK.md` is a marker only when it starts with the tk YAML delimiter and `schema_version` header. The complete frontmatter must then pass strict validation.
 
-`check` may report managed carriers that are explicitly referenced by project configuration but have invalid types or content. It does not promote arbitrary similar files to "damaged Task candidates."
+A marked directory becomes a Task only after its carrier, schema, UUIDv7 identity, representation, and project path pass validation. A generated `NN--slug` child must also match its metadata name. A non-generated child has no path-to-name requirement. Marked but invalid directories are omitted from normal discovery and reported by `check`; unrelated `TASK.md` files and ordinary YAML frontmatter remain materials.
+
+The nearest enclosing valid Task is the discovered parent. Invalid marked directories and ordinary material directories do not replace that ancestor. Symbolic links, special files, WAL directories, `.tk-tmp`, cleanup data, and paths outside the Task root do not participate in discovery.
+
+Traversal order is deterministic. One scan accepts at most 100,000 real directories and 256 descendant levels. Crossing either limit or encountering a required I/O failure returns `task_discovery_limit_exceeded` or the relevant storage error instead of a partial Task graph. `check` reports such a scan as incomplete.
+
+`subtasks_dir` controls only where new children are written. Sequence allocation examines all discovered direct children whose leaf has a valid generated `NN--slug`, takes the largest sequence, and does not fill gaps. New names remain two digits wide. If sequence `99` is already present, creation fails before writing.
 
 ## Identity, names, and relationships
 
@@ -125,13 +128,14 @@ Git projects are located using the Git root and project configuration.
 
 For an exact path outside Git, use the Task directory structure:
 
-1. Starting from a Task, managed file, or material path, search upward for the first directory matching `DD-NN--slug`.
+1. Starting from a Task, managed file, or material path, search upward for an ancestor matching `DD-NN--slug`.
 2. Its parent must match `MM`, and the next parent must match `YYYY`.
 3. The parent of `YYYY` is the candidate Task root.
 4. Inspect at most two additional ancestor directories to match project configuration against the Task root.
-5. If the project cannot be confirmed within two levels, fail without continuing to the file-system root.
+5. Load the carrier-based graph and require the exact path to be inside a discovered Task.
+6. If the project cannot be confirmed within two levels, fail without continuing to the file-system root.
 
-For an ordinary context directory, use bounded nearest-project discovery. An exact absolute Task path or material path first locates its owning project, allowing a caller in project A's cwd to read an absolute reference in project B.
+For an ordinary context directory, use bounded nearest-project discovery. An exact absolute discovered Task path, managed carrier, or material path first locates its owning project, allowing a caller in project A's cwd to read an absolute reference in project B.
 
 ## Git policy
 
@@ -192,7 +196,7 @@ Batch creation, schema migration, representation switching, rename, and Harness 
 4. Return completed items, incomplete items, and the original error.
 5. Do not roll back automatically, create continuation state, or continue operating after the process exits.
 
-The same request may be executed again after the caller confirms the current state. Each invocation replans from the current canonical state.
+The same request may be executed again after the caller confirms the current state. Each invocation rebuilds the discovered Task graph and replans from current managed files.
 
 Batch creation may skip existing items that match the request. schema migration skips carriers already at the target version.
 
@@ -213,7 +217,7 @@ Migrators may be implemented as Rust modules or as resource files embedded at bu
 
 Representation switching converts the entire project between split and embed:
 
-1. Read and validate all candidate Tasks.
+1. Read and validate all discovered Tasks.
 2. Generate the target carrier for each Task.
 3. Commit Tasks in deterministic order.
 4. Update project configuration last.
@@ -223,13 +227,13 @@ Switching does not append Task WAL entries.
 
 ## rename
 
-rename modifies only the Task's own name, directory, and metadata:
+rename modifies only the Task's own name, generated directory when applicable, and metadata:
 
-1. Resolve a unique Task.
-2. Normalize the new name and compute the target path.
-3. Verify that the target does not exist, relationships are valid, and Git policy allows the write.
-4. Scan Markdown references and return the list.
-5. Move the directory without overwriting.
+1. Resolve a unique discovered Task and its nearest valid parent.
+2. Normalize the new name. Keep a non-generated child directory unchanged; otherwise preserve the generated sequence and compute the new slug path.
+3. Verify that any moved target does not exist, relationships are valid, and Git policy allows the write.
+4. Scan Markdown references and return the resolved parent, old path, target path, and reference list.
+5. Move a generated directory without overwriting. Skip this step for a non-generated child.
 6. Update metadata.
 7. Append WAL.
 
@@ -269,6 +273,6 @@ If an I/O error occurs during deletion, GC stops and reports deleted and undelet
 
 ## check
 
-check strictly validates project configuration, Task carriers, schema, representation consistency, paths, UUIDs, relationships, WAL, activity markers, and temporary manifests.
+check strictly validates project configuration, marked Task carriers, schema, representation consistency, generated name-path agreement, UUID uniqueness, direct-child sequence uniqueness, relationships, WAL, activity markers, and temporary manifests. It reports the resolved parent path for logical sibling-sequence conflicts.
 
-If a required directory or file cannot be read, check immediately returns an incomplete check and does not continue collecting diagnostics. If format or domain errors are found after a complete read, the check is complete but failed. check does not modify any content.
+If a required directory or file cannot be read, or discovery crosses a resource limit, check immediately returns an incomplete check and does not continue collecting diagnostics. If marked carrier, format, or domain errors are found after a complete read, the check is complete but failed. check does not modify any content.
