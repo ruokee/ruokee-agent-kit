@@ -41,7 +41,7 @@ tk provides persistent project Tasks through one Rust runtime and self-contained
 
 ## Development
 
-Markdown formatting requires Node.js 18 or newer. Install the locked dependencies:
+Markdown formatting requires Node.js 20 or newer. Install the locked dependencies:
 
 ```bash
 pnpm install --frozen-lockfile
@@ -66,14 +66,16 @@ Run `pnpm install --frozen-lockfile` again if Prettier cannot load a plugin.
 Install the Git hook:
 
 ```bash
-uvx pre-commit install --install-hooks
+pnpm hooks:install
 ```
 
 Run all configured checks:
 
 ```bash
-uvx pre-commit run --all-files
+pnpm check
 ```
+
+`pnpm check` runs the Markdown check, `cargo fmt --manifest-path projects/tk/Cargo.toml -- --check`, and `cargo test --manifest-path projects/tk/Cargo.toml`.
 
 `main` is the only long-lived branch. Work happens on a short-lived branch created from current `main`, uses English Conventional Commit messages, and enters `main` through an authorized squash merge.
 

@@ -4,14 +4,14 @@
 
 ## 逻辑工具
 
-|操作|Pi 或 OMP 名称|主要输入|
-|-|-|-|
-|`search`|`tk_search`|`query`、`regex`、`search_body`、`status`、`extra`、`limit`、`cwd`|
-|`read`|`tk_read`|`task_ref`、`view`、WAL 预算、`cwd`|
-|`create`|`tk_create`|顶层任务或 1..50 个子任务的 tagged union|
-|`update`|`tk_update`|关系增量、`extra`、至多一个生命周期动作|
-|`log`|`tk_log`|`task_ref`、单行 `message`、可选 `body` 和 `actor`|
-|`exec`|`tk_exec`|`argv`、`cwd`，`rename` 时可有 `actor`|
+| 操作 | Pi 或 OMP 名称 | 主要输入 |
+| --- | --- | --- |
+| `search` | `tk_search` | `query`、`regex`、`search_body`、`status`、`extra`、`limit`、`cwd` |
+| `read` | `tk_read` | `task_ref`、`view`、WAL 预算、`cwd` |
+| `create` | `tk_create` | 顶层任务或 1..50 个子任务的 tagged union |
+| `update` | `tk_update` | 关系增量、`extra`、至多一个生命周期动作 |
+| `log` | `tk_log` | `task_ref`、单行 `message`、可选 `body` 和 `actor` |
+| `exec` | `tk_exec` | `argv`、`cwd`，`rename` 时可有 `actor` |
 
 MCP 使用相同逻辑名称并由服务命名空间区分。Harness 不能增加字段、改变默认值或复制领域校验。
 

@@ -10,12 +10,12 @@ Reviewing AI output differs in focus from reviewing human code: humans forget ed
 
 The full checklists for general dimensions are not expanded here; route by signal:
 
-|What you hit|Where to check|
-|-|-|
-|Touches money/inventory: idempotency, concurrency, transaction boundaries|[Consistency](../09-consistency.md)|
-|Calls external services/high concurrency: timeouts, retries, degradation, resource caps|[Resilience](../10-resilience.md)|
-|Massive users: hotspots, fan-out, pagination, tail latency|[Scaling](../11-scaling.md)|
-|User data/multi-tenant: authn, authz, isolation, secrets|[Security and tenancy](../14-security-and-tenancy.md)|
+| What you hit | Where to check |
+| --- | --- |
+| Touches money/inventory: idempotency, concurrency, transaction boundaries | [Consistency](../09-consistency.md) |
+| Calls external services/high concurrency: timeouts, retries, degradation, resource caps | [Resilience](../10-resilience.md) |
+| Massive users: hotspots, fan-out, pagination, tail latency | [Scaling](../11-scaling.md) |
+| User data/multi-tenant: authn, authz, isolation, secrets | [Security and tenancy](../14-security-and-tenancy.md) |
 
 Below, only the AI-specific items.
 

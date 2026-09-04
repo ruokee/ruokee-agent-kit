@@ -41,7 +41,7 @@ tk 通过一个 Rust 运行时和面向 Codex、Claude Code、Pi、OMP 的自包
 
 ## 开发
 
-Markdown 格式化需要 Node.js 18 或更高版本。安装锁定版本的依赖：
+Markdown 格式化需要 Node.js 20 或更高版本。安装锁定版本的依赖：
 
 ```bash
 pnpm install --frozen-lockfile
@@ -66,14 +66,16 @@ pnpm exec prettier --check README.md docs/zh/README.md
 安装 Git hook：
 
 ```bash
-uvx pre-commit install --install-hooks
+pnpm hooks:install
 ```
 
 运行全部检查：
 
 ```bash
-uvx pre-commit run --all-files
+pnpm check
 ```
+
+`pnpm check` 会运行 Markdown 检查、`cargo fmt --manifest-path projects/tk/Cargo.toml -- --check` 和 `cargo test --manifest-path projects/tk/Cargo.toml`。
 
 `main` 是唯一长期分支。所有工作都从当前 `main` 创建短期分支，使用英文 Conventional Commit 消息，并在明确授权后通过 squash merge 进入 `main`。
 

@@ -4,14 +4,14 @@ Read this file for exact tool names, request fields, results, cancellation, rout
 
 ## Logical tools
 
-|Operation|Pi or OMP name|Main input|
-|-|-|-|
-|`search`|`tk_search`|`query`, `regex`, `search_body`, `status`, `extra`, `limit`, `cwd`|
-|`read`|`tk_read`|`task_ref`, `view`, WAL budgets, `cwd`|
-|`create`|`tk_create`|Tagged union for a top-level Task or 1..50 subtasks|
-|`update`|`tk_update`|Relationship deltas, `extra`, and at most one lifecycle action|
-|`log`|`tk_log`|`task_ref`, single-line `message`, optional `body` and `actor`|
-|`exec`|`tk_exec`|`argv`, `cwd`, and optional `actor` for `rename`|
+| Operation | Pi or OMP name | Main input |
+| --- | --- | --- |
+| `search` | `tk_search` | `query`, `regex`, `search_body`, `status`, `extra`, `limit`, `cwd` |
+| `read` | `tk_read` | `task_ref`, `view`, WAL budgets, `cwd` |
+| `create` | `tk_create` | Tagged union for a top-level Task or 1..50 subtasks |
+| `update` | `tk_update` | Relationship deltas, `extra`, and at most one lifecycle action |
+| `log` | `tk_log` | `task_ref`, single-line `message`, optional `body` and `actor` |
+| `exec` | `tk_exec` | `argv`, `cwd`, and optional `actor` for `rename` |
 
 MCP uses the same logical names under a service namespace. A Harness must not add fields, change defaults, or duplicate domain validation.
 

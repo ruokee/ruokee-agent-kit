@@ -16,11 +16,11 @@ This vocabulary turns "is the system stable" from a feeling into discussable num
 
 ## Three kinds of evidence
 
-|Signal|Answers|Cost|
-|-|-|-|
-|Metrics|System-wide trends: QPS, error rate, P95/P99 latency, queue depth|Cheap, alert-friendly, but thin on detail|
-|Logs|Single-event detail: why an order failed, why auth refused|Rich detail, but costly and noisy|
-|Traces|One request's full cross-service path and per-hop timing|Strong distributed localization, but sampling and context propagation need design|
+| Signal | Answers | Cost |
+| --- | --- | --- |
+| Metrics | System-wide trends: QPS, error rate, P95/P99 latency, queue depth | Cheap, alert-friendly, but thin on detail |
+| Logs | Single-event detail: why an order failed, why auth refused | Rich detail, but costly and noisy |
+| Traces | One request's full cross-service path and per-hop timing | Strong distributed localization, but sampling and context propagation need design |
 
 OpenTelemetry's value is decoupling instrumentation from the backend: generate telemetry in a relatively standard way first, and later switching the backend from open source to commercial, vendor A to vendor B, costs little. **Tools can be swapped; instrumentation habits barely can.** Getting the evidence formats right first—trace ids, structured logs, key business metrics—matters more than dashboard color schemes.
 

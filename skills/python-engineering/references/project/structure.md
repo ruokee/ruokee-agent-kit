@@ -100,13 +100,13 @@ Do not reach for a workspace just because there are many directories, or to spli
 
 ## Decision Table
 
-|Project type|Recommended layout|Signals to migrate up|
-|-|-|-|
-|One-off automation, experiment|Single-file script (PEP 723)|Multiple helpers, test needs, a config file, or another module wants to import it|
-|Small library, simple internal tool|Flat layout|Multiple entry points, dependency groups, or packaging mistakes start slipping through|
-|Published library, SDK, framework|Src layout|(Default for anything maintained or released)|
-|CLI, web/API, service, internal app|Packaged application (src + `[project]`)|Deployment artifacts, entry points, and lockfile needed|
-|App + shared libs, service group, monorepo|Workspace|Two+ packages with stable APIs and a clear dependency direction|
+| Project type | Recommended layout | Signals to migrate up |
+| --- | --- | --- |
+| One-off automation, experiment | Single-file script (PEP 723) | Multiple helpers, test needs, a config file, or another module wants to import it |
+| Small library, simple internal tool | Flat layout | Multiple entry points, dependency groups, or packaging mistakes start slipping through |
+| Published library, SDK, framework | Src layout | (Default for anything maintained or released) |
+| CLI, web/API, service, internal app | Packaged application (src + `[project]`) | Deployment artifacts, entry points, and lockfile needed |
+| App + shared libs, service group, monorepo | Workspace | Two+ packages with stable APIs and a clear dependency direction |
 
 When in doubt between flat and src for anything that will outlive the week, prefer src: the import-safety guarantee is cheap insurance against packaging surprises.
 

@@ -40,16 +40,16 @@ The Task root has no persistent index or cache. Discovery builds one in-memory g
 
 The current initial schema version is 1. Metadata contains only:
 
-|Field|Contract|
-|-|-|
-|`schema_version`|Required positive integer|
-|`id`|Required UUIDv7, immutable after creation|
-|`name`|Required normalized name, modifiable only by rename|
-|`status`|`planning`, `open`, or `closed`|
-|`created_at`|Required RFC 3339 timestamp with a time zone, immutable after creation|
-|`depends_on`|Set of UUIDs within the same Task root|
-|`related_to`|Set of UUIDs within the same Task root|
-|`extra`|Optional structured value that can be represented losslessly in both JSON and TOML|
+| Field | Contract |
+| --- | --- |
+| `schema_version` | Required positive integer |
+| `id` | Required UUIDv7, immutable after creation |
+| `name` | Required normalized name, modifiable only by rename |
+| `status` | `planning`, `open`, or `closed` |
+| `created_at` | Required RFC 3339 timestamp with a time zone, immutable after creation |
+| `depends_on` | Set of UUIDs within the same Task root |
+| `related_to` | Set of UUIDs within the same Task root |
+| `extra` | Optional structured value that can be represented losslessly in both JSON and TOML |
 
 The schema does not include `parent`, `branch`, `updated_at`, the most recent close reason, `paused`, `archived`, installation time, or session state.
 
@@ -103,12 +103,12 @@ UUIDv7 is the authoritative identity. Paths are locators and may change through 
 
 ## Lifecycle
 
-|Current status|Target status|Requirements|
-|-|-|-|
-|`planning`|`open`|Allowed, with an automatic WAL append|
-|`planning`|`closed`|Non-empty reason, current authorization, and close checks|
-|`open`|`closed`|Non-empty reason, current authorization, and close checks|
-|`closed`|`open`|Non-empty reason, current authorization, and no closed ancestor|
+| Current status | Target status | Requirements |
+| --- | --- | --- |
+| `planning` | `open` | Allowed, with an automatic WAL append |
+| `planning` | `closed` | Non-empty reason, current authorization, and close checks |
+| `open` | `closed` | Non-empty reason, current authorization, and close checks |
+| `closed` | `open` | Non-empty reason, current authorization, and no closed ancestor |
 
 A normal close requires all descendants and dependency targets to be closed. A forced close bypasses only descendant and dependency checks. It does not bypass authorization, reason, schema, path, Git, or relationship validation.
 

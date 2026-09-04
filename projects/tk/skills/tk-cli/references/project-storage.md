@@ -61,11 +61,11 @@ An empty value is valid. A non-empty value must be a safe relative path without 
 
 `git_policy` controls checks before writes:
 
-|Value|Behavior|
-|-|-|
-|`track`|Requires a Git worktree. The Task root and any existing project configuration must not be ignored. Use when Task data belongs in version control.|
-|`ignore`|Requires a Git worktree and requires the Task root to be ignored. Use for local Task data.|
-|`none`|Does not require Git or inspect ignore state. This is the default.|
+| Value | Behavior |
+| --- | --- |
+| `track` | Requires a Git worktree. The Task root and any existing project configuration must not be ignored. Use when Task data belongs in version control. |
+| `ignore` | Requires a Git worktree and requires the Task root to be ignored. Use for local Task data. |
+| `none` | Does not require Git or inspect ignore state. This is the default. |
 
 Read operations do not run write-policy checks. Create, update, log, and other writes check the policy before the first persistent write.
 
@@ -75,10 +75,10 @@ Read operations do not run write-policy checks. Create, update, log, and other w
 
 `creation_policy` controls the authorization an Agent needs to create a top-level Task:
 
-|Value|Behavior|
-|-|-|
-|`strict`|Default. An Agent may create a Task only when the user explicitly requests or confirms creation.|
-|`permissive`|An Agent may create an open Task for work that clearly needs durable state across steps or sessions. A user's planning intent alone is still not authorization to create.|
+| Value | Behavior |
+| --- | --- |
+| `strict` | Default. An Agent may create a Task only when the user explicitly requests or confirms creation. |
+| `permissive` | An Agent may create an open Task for work that clearly needs durable state across steps or sessions. A user's planning intent alone is still not authorization to create. |
 
 The policy does not restrict a terminal user who invokes the CLI directly and does not let a caller fabricate `user_confirmed`. Subtask creation still follows the current parent and invocation-entry authorization rules.
 
@@ -86,10 +86,10 @@ The policy does not restrict a terminal user who invokes the CLI directly and do
 
 `metadata_mode` selects the Task metadata carrier for the whole project:
 
-|Value|Behavior|
-|-|-|
-|`split`|Default. Managed metadata is stored in `tk.toml`; the body is stored in `TASK.md`.|
-|`embed`|Managed metadata is stored in YAML frontmatter in `TASK.md`, followed by the body.|
+| Value | Behavior |
+| --- | --- |
+| `split` | Default. Managed metadata is stored in `tk.toml`; the body is stored in `TASK.md`. |
+| `embed` | Managed metadata is stored in YAML frontmatter in `TASK.md`, followed by the body. |
 
 A project uses one mode. Do not switch by editing the configuration value manually. Use `tk metadata switch` so the runtime converts every Task carrier before it updates configuration.
 

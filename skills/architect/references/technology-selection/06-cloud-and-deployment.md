@@ -40,12 +40,12 @@ GitOps turns the live target state from clicking a console into versioned, revie
 
 ## The steadiest evolution path
 
-|Stage|Shape|
-|-|-|
-|MVP/monolith|Managed app platform + managed database + simple CI/CD|
-|Multi-service|Containers + managed container platform + standard logs/metrics/secrets|
-|Multi-team|Managed K8s + platform team + GitOps + service catalog + permission governance|
-|Heavily regulated / on-prem / hybrid|K8s or private-cloud platform, accepting higher ops cost|
+| Stage | Shape |
+| --- | --- |
+| MVP/monolith | Managed app platform + managed database + simple CI/CD |
+| Multi-service | Containers + managed container platform + standard logs/metrics/secrets |
+| Multi-team | Managed K8s + platform team + GitOps + service catalog + permission governance |
+| Heavily regulated / on-prem / hybrid | K8s or private-cloud platform, accepting higher ops cost |
 
 Get the business running first; then converge recurring operational complexity into platform capability; let real pain decide the complexity investment.
 

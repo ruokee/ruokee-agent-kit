@@ -15,12 +15,12 @@ Mode and language are independent choices. Their command contract should express
 
 `tk install` accepts `--language <en|zh>` and defaults to `en`. Language combines with `--mode <tools|cli>` to select one independently discoverable Skill:
 
-|Mode|Language|Skill|
-|-|-|-|
-|`tools`|`en`|`tk`|
-|`tools`|`zh`|`tk-zh`|
-|`cli`|`en`|`tk-cli`|
-|`cli`|`zh`|`tk-cli-zh`|
+| Mode | Language | Skill |
+| --- | --- | --- |
+| `tools` | `en` | `tk` |
+| `tools` | `zh` | `tk-zh` |
+| `cli` | `en` | `tk-cli` |
+| `cli` | `zh` | `tk-cli-zh` |
 
 All four Skills live under `projects/tk/skills/` using their independent discovery names. Installation places the selected directory at the normal Harness Skill root without rewriting its identity.
 

@@ -4,11 +4,23 @@
   "private": true,
   "scripts": {
     "docs:format": "prettier --write --ignore-unknown \"**/*.md\"",
-    "docs:lint": "prettier --check --ignore-unknown \"**/*.md\""
+    "docs:lint": "prettier --check --ignore-unknown \"**/*.md\"",
+    "hooks:install": "simple-git-hooks",
+    "cargo:fmt:check": "cargo fmt --manifest-path projects/tk/Cargo.toml -- --check",
+    "cargo:test": "cargo test --manifest-path projects/tk/Cargo.toml",
+    "check": "pnpm docs:lint && pnpm cargo:fmt:check && pnpm cargo:test"
   },
   "devDependencies": {
+    "lint-staged": "^16.4.0",
     "prettier": "^3.9.6",
-    "prettier-plugin-compact-markdown-table": "0.1.0",
-    "prettier-plugin-zhfmt": "^0.1.1"
+    "prettier-plugin-markdown-table-layout": "github:ruokee/prettier-plugin-markdown-table-layout#v0.1.1",
+    "prettier-plugin-zhfmt": "^0.1.1",
+    "simple-git-hooks": "^2.14.0"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged"
+  },
+  "lint-staged": {
+    "*": "prettier --write --ignore-unknown"
   }
 }

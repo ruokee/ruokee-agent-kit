@@ -14,11 +14,11 @@ Worse is **silent regression**: upgrade the model or change one line of system p
 
 **Scoring**: who judges good enough.
 
-|Method|Fits|Cost|
-|-|-|-|
-|Rule/programmatic checks|Objective criteria (keyword presence, format, citations present)|Cheap and stable; only judges hard criteria|
-|LLM-as-judge|Subjective quality (is the answer good, is it relevant)|Flexible, but the judge is itself non-deterministic, fallible, and token-burning|
-|Human sampling|Calibrating the other two; backstopping high-value scenarios|Good for defining standards and calibration, but limited by inter-annotator agreement, domain expertise, and cost|
+| Method | Fits | Cost |
+| --- | --- | --- |
+| Rule/programmatic checks | Objective criteria (keyword presence, format, citations present) | Cheap and stable; only judges hard criteria |
+| LLM-as-judge | Subjective quality (is the answer good, is it relevant) | Flexible, but the judge is itself non-deterministic, fallible, and token-burning |
+| Human sampling | Calibrating the other two; backstopping high-value scenarios | Good for defining standards and calibration, but limited by inter-annotator agreement, domain expertise, and cost |
 
 Practice: rules first where rules can judge; LLM-as-judge for the subjective; regular human sampling to calibrate the judge—never blindly trust the model judge; it is also a model that errs (with a preference for long answers, for instance).
 

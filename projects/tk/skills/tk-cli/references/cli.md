@@ -45,14 +45,14 @@ Text output communicates the same facts, but its formatting is not a machine int
 
 ## Exit statuses
 
-|Status|Meaning|
-|-:|-|
-|`0`|Success, including no change and success with non-fatal warnings|
-|`2`|Invalid CLI syntax, option, JSON, range, or request field|
-|`3`|Rejected context, configuration, policy, resolution, managed file, invariant, conflict, or compatibility|
-|`4`|Storage failure, partial commit, protocol startup failure, or internal failure|
-|`5`|A required external executable is missing, non-executable, or cannot start|
-|`130`|Cancellation before the first persistent write|
+| Status | Meaning |
+| ---: | --- |
+| `0` | Success, including no change and success with non-fatal warnings |
+| `2` | Invalid CLI syntax, option, JSON, range, or request field |
+| `3` | Rejected context, configuration, policy, resolution, managed file, invariant, conflict, or compatibility |
+| `4` | Storage failure, partial commit, protocol startup failure, or internal failure |
+| `5` | A required external executable is missing, non-executable, or cannot start |
+| `130` | Cancellation before the first persistent write |
 
 Exit status identifies only the error class. Automation should still read stable JSON error fields.
 
@@ -68,14 +68,14 @@ tk search <query>
   [--cwd <path>] [--output <text|json>]
 ```
 
-|Argument|Default|Behavior|
-|-|-|-|
-|`<query>`|Required|UUID, Task path, material path, name, or text|
-|`--regex`|`false`|Interpret ordinary text explicitly as a Rust regular expression|
-|`--search-body`|`false`|Include the Task body for text or regular-expression matching|
-|`--status`|All statuses|Repeatable; a non-empty set narrows results|
-|`--extra`|`{}`|JSON object with top-level conditions joined by `AND`|
-|`--limit`|`20`|Range `1..100`|
+| Argument | Default | Behavior |
+| --- | --- | --- |
+| `<query>` | Required | UUID, Task path, material path, name, or text |
+| `--regex` | `false` | Interpret ordinary text explicitly as a Rust regular expression |
+| `--search-body` | `false` | Include the Task body for text or regular-expression matching |
+| `--status` | All statuses | Repeatable; a non-empty set narrows results |
+| `--extra` | `{}` | JSON object with top-level conditions joined by `AND` |
+| `--limit` | `20` | Range `1..100` |
 
 Search determines the query type first and does not fall back to another interpretation after one fails. It may return zero, one, or several candidates. Choose one target before modifying a Task.
 

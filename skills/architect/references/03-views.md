@@ -19,12 +19,12 @@ Drawing is also thinking. When you try to put the system on paper, "which of the
 
 The C4 model splits diagrams into four zoom levels, like a map app zooming in:
 
-|Level|What you draw|Audience|
-|-|-|-|
-|Context|The whole system as one box, surrounded by user roles and external systems|Everyone, including non-technical roles|
-|Container|The independently runnable, independently deployable chunks inside the system and their communication|Technical teams, architects, ops|
-|Component|The module composition inside one container|Engineers working on it|
-|Code|Classes and functions|Almost never drawn; leave it to the IDE|
+| Level | What you draw | Audience |
+| --- | --- | --- |
+| Context | The whole system as one box, surrounded by user roles and external systems | Everyone, including non-technical roles |
+| Container | The independently runnable, independently deployable chunks inside the system and their communication | Technical teams, architects, ops |
+| Component | The module composition inside one container | Engineers working on it |
+| Code | Classes and functions | Almost never drawn; leave it to the IDE |
 
 Container does not mean Docker. It means a unit that starts and deploys on its own: a frontend app, a backend service, a database, a cache. The test is "is this an independently runnable process or store".
 
@@ -36,12 +36,12 @@ The Code level is usually skipped. The code itself and the IDE's generated relat
 
 C4 expresses static structure; it cannot answer every question. Choose by question:
 
-|Question|View|Minimal example|
-|-|-|-|
-|Structure: what exists, what connects to what|C4 Context/Container|Frontend → gateway → order service → inventory service|
-|Timing: how one request or a Saga flows, failure branches included|Sequence diagram|Checkout happy path plus the compensation branch when stock is short|
-|Data: how facts flow to read models, how stale they get|Data-flow diagram|Primary store → CDC → read model (about 1 minute behind)|
-|Runtime: nodes, regions, failure domains, deployment topology|Deployment diagram|Two regions each running a full stack, primary-standby async replication|
+| Question | View | Minimal example |
+| --- | --- | --- |
+| Structure: what exists, what connects to what | C4 Context/Container | Frontend → gateway → order service → inventory service |
+| Timing: how one request or a Saga flows, failure branches included | Sequence diagram | Checkout happy path plus the compensation branch when stock is short |
+| Data: how facts flow to read models, how stale they get | Data-flow diagram | Primary store → CDC → read model (about 1 minute behind) |
+| Runtime: nodes, regions, failure domains, deployment topology | Deployment diagram | Two regions each running a full stack, primary-standby async replication |
 
 A common misuse is answering timing or data-flow questions with a Container diagram—a structure sheet shows who connects to whom, not who times out first or how compensation runs when something fails. In reviews, match the view to the question type; do not compete on drawing everything.
 

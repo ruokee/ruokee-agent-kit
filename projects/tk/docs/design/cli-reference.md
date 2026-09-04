@@ -51,14 +51,14 @@ The stdout of schema generate, MCP, and version is the command's own payload and
 
 The current mapping is:
 
-|Status|Meaning|
-|-:|-|
-|0|Success, including no change and success with non-fatal warnings|
-|2|Invalid CLI syntax, option, JSON, range, or request field|
-|3|Rejected because of context, configuration, policy, parsing, managed files, invariants, conflicts, or compatibility|
-|4|Storage failure, partial commit, protocol startup failure, or internal failure|
-|5|A required external executable is missing, not executable, or cannot be started|
-|130|Canceled before the first persistent write|
+| Status | Meaning |
+| ---: | --- |
+| 0 | Success, including no change and success with non-fatal warnings |
+| 2 | Invalid CLI syntax, option, JSON, range, or request field |
+| 3 | Rejected because of context, configuration, policy, parsing, managed files, invariants, conflicts, or compatibility |
+| 4 | Storage failure, partial commit, protocol startup failure, or internal failure |
+| 5 | A required external executable is missing, not executable, or cannot be started |
+| 130 | Canceled before the first persistent write |
 
 Automation must inspect JSON `error.code` and `error.category` to distinguish specific causes. Numeric exit codes are not a fine-grained error contract.
 
@@ -72,14 +72,14 @@ tk search <query>
   [global-options]
 ```
 
-|Argument|Default|Contract|
-|-|-|-|
-|`<query>`|Required|UUID, Task path, material path, name, or text|
-|`--regex`|false|Explicitly interpret plain text as a Rust regular expression|
-|`--search-body`|false|Include the Task body in text or regular-expression matching|
-|`--status`|All statuses|Repeatable; a non-empty set narrows the results|
-|`--extra`|`{}`|JSON object whose top-level entries are combined with AND|
-|`--limit`|20|1 to 100|
+| Argument | Default | Contract |
+| --- | --- | --- |
+| `<query>` | Required | UUID, Task path, material path, name, or text |
+| `--regex` | false | Explicitly interpret plain text as a Rust regular expression |
+| `--search-body` | false | Include the Task body in text or regular-expression matching |
+| `--status` | All statuses | Repeatable; a non-empty set narrows the results |
+| `--extra` | `{}` | JSON object whose top-level entries are combined with AND |
+| `--limit` | 20 | 1 to 100 |
 
 For query interpretation, UUID prefixes, ordering, and the `match` field, see [Tool API search](./tool-api.md#search).
 

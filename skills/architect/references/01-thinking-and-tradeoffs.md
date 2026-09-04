@@ -29,14 +29,14 @@ When the business changes or scale changes, constraints and quality targets shif
 
 Constraints are boundaries the design cannot cross. The difference from quality attributes: quality attributes are goals you pursue; constraints are givens.
 
-|Constraint|How it narrows options|
-|-|-|
-|Team size|Architecture complexity cannot exceed what the team can operate. A three-person team running dozens of microservices drowns in ops alone.|
-|Time|Ship next week versus a year of runway forces entirely different solutions. Under time pressure, pick what delivers now, not the theoretical optimum.|
-|Budget|Determines machines, services, and headcount. An elegant plan you cannot afford is empty talk.|
-|Compliance|Red lines like data-residency requirements. Violate and the design is void; no tradeoff space.|
-|Existing systems|Most designs do not start from zero; they accommodate the interfaces and temper of what already runs.|
-|Third-party dependencies|The capability ceiling and failures of an external gateway or cloud service become your ceiling.|
+| Constraint | How it narrows options |
+| --- | --- |
+| Team size | Architecture complexity cannot exceed what the team can operate. A three-person team running dozens of microservices drowns in ops alone. |
+| Time | Ship next week versus a year of runway forces entirely different solutions. Under time pressure, pick what delivers now, not the theoretical optimum. |
+| Budget | Determines machines, services, and headcount. An elegant plan you cannot afford is empty talk. |
+| Compliance | Red lines like data-residency requirements. Violate and the design is void; no tradeoff space. |
+| Existing systems | Most designs do not start from zero; they accommodate the interfaces and temper of what already runs. |
+| Third-party dependencies | The capability ceiling and failures of an external gateway or cloud service become your ceiling. |
 
 Constraints are helpers, not obstacles. Without constraints, a design problem has infinite options and nowhere to start; knowing it is a three-person team, three months, must-pass compliance kills most fancy options on the spot. Map the constraints before drawing anything, and you will usually beat the person who starts drawing immediately—faster and steadier.
 
@@ -44,15 +44,15 @@ Constraints are helpers, not obstacles. Without constraints, a design problem ha
 
 Given a system, walk this checklist item by item. For each, ask two questions: does it matter to this system, and what is the target? Most items rating low is itself important information—it tells you not to over-engineer.
 
-|Quality attribute|How to measure|Typical levers|Mainly conflicts with|
-|-|-|-|-|
-|Performance|Latency (how long one call takes), throughput (how many per second); watch P99, not the average|Caching, read/write splitting, async, CDN, indexes|Cost, consistency, simplicity|
-|Availability|Nines; corresponding allowed downtime per year|Redundancy, eliminating SPOFs, fault-domain isolation, graceful degradation|Cost, consistency|
-|Scalability|Whether N× load is absorbed smoothly by adding resources|Stateless design, horizontal scaling, replication, sharding|Consistency, simplicity, cost|
-|Consistency|Where on the spectrum from strong to eventual|Transactions and coordination protocols (strong); async replication (eventual)|Performance, availability, scalability|
-|Security|Attack surface; worst-case loss|Distrust input, least privilege, defense in depth, data classification|Performance, convenience, cost|
-|Maintainability|How long a change takes; how fast a newcomer gets productive|Clear boundaries, low coupling, observability, recorded decisions|Extreme performance, short-term delivery speed|
-|Cost|Unit cost: per user, per request, per order|The budget, in reverse, caps the targets of other attributes|Conflicts with nearly everything|
+| Quality attribute | How to measure | Typical levers | Mainly conflicts with |
+| --- | --- | --- | --- |
+| Performance | Latency (how long one call takes), throughput (how many per second); watch P99, not the average | Caching, read/write splitting, async, CDN, indexes | Cost, consistency, simplicity |
+| Availability | Nines; corresponding allowed downtime per year | Redundancy, eliminating SPOFs, fault-domain isolation, graceful degradation | Cost, consistency |
+| Scalability | Whether N× load is absorbed smoothly by adding resources | Stateless design, horizontal scaling, replication, sharding | Consistency, simplicity, cost |
+| Consistency | Where on the spectrum from strong to eventual | Transactions and coordination protocols (strong); async replication (eventual) | Performance, availability, scalability |
+| Security | Attack surface; worst-case loss | Distrust input, least privilege, defense in depth, data classification | Performance, convenience, cost |
+| Maintainability | How long a change takes; how fast a newcomer gets productive | Clear boundaries, low coupling, observability, recorded decisions | Extreme performance, short-term delivery speed |
+| Cost | Unit cost: per user, per request, per order | The budget, in reverse, caps the targets of other attributes | Conflicts with nearly everything |
 
 Cost deserves its own emphasis: it is the most overlooked attribute and often the real constraint. Redundancy costs money, caching costs money, strong consistency costs money because it is hard to scale. An inefficient design burns a few hundred extra yuan a month at ten thousand users—nobody notices—and millions a month at a hundred million, the same flaw amplified by scale. Strip most architecture arguments to the bottom and the dispute is not whether something is technically possible, but whether the money and people are worth it.
 
@@ -95,13 +95,13 @@ Only three features, almost no design space. Ask the six questions:
 
 Translate the answers into quality targets:
 
-|Attribute|Target|From which answer|
-|-|-|-|
-|Read latency|Redirect under 50ms|Lopsided read ratio; redirect is the core experience|
-|Read scalability|Absorb massive read traffic|The peak is in reads|
-|Durability|Short-link mappings must never be lost|Loss invalidates every shared link|
-|Consistency|Eventual is fine|A second or two of delay is tolerable|
-|Cost|Storage must stay cheap|Data accumulates forever on a limited budget|
+| Attribute | Target | From which answer |
+| --- | --- | --- |
+| Read latency | Redirect under 50ms | Lopsided read ratio; redirect is the core experience |
+| Read scalability | Absorb massive read traffic | The peak is in reads |
+| Durability | Short-link mappings must never be lost | Loss invalidates every shared link |
+| Consistency | Eventual is fine | A second or two of delay is tolerable |
+| Cost | Storage must stay cheap | Data accumulates forever on a limited budget |
 
 This table is what every later decision leans on. Hash the code (simple, but handle collisions) or a global sequence service (clean, but a new moving part); absorb reads with a cache (fast; the price is stale data—acceptable once eventual consistency is confirmed); store mappings in a key-value store (the access shape is a simple key lookup). Every decision traces back to an answer from the six questions. That is the difference between architecture judgment and "just picked a database".
 

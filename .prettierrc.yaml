@@ -5,9 +5,9 @@ useTabs: false
 endOfLine: lf
 embeddedLanguageFormatting: off
 plugins:
-  - prettier-plugin-compact-markdown-table
   - prettier-plugin-zhfmt
-tableLayout: compact
+  - prettier-plugin-markdown-table-layout
+markdownTableLayout: compact
 overrides:
   - files: "**/*.md"
     options:

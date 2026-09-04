@@ -12,12 +12,12 @@ If the existing stack can solve the problem within the target performance, cost,
 
 The same system has completely different answers at different stages:
 
-|Stage|Main contradiction|The resulting lean|
-|-|-|-|
-|MVP|Validation speed|Fewer components the better; mainstream stack, managed first; migration cost not yet a concern|
-|Growth|Controllable growth|Add observability and gradual rollout first; draw boundaries; scale locally|
-|Scale|Efficiency and cost|Only now worth deep per-unit-cost optimization and platformization|
-|Critical|Stability and compliance|Audit, isolation, disaster recovery, SLOs, and incident process become hard requirements|
+| Stage | Main contradiction | The resulting lean |
+| --- | --- | --- |
+| MVP | Validation speed | Fewer components the better; mainstream stack, managed first; migration cost not yet a concern |
+| Growth | Controllable growth | Add observability and gradual rollout first; draw boundaries; scale locally |
+| Scale | Efficiency and cost | Only now worth deep per-unit-cost optimization and platformization |
+| Critical | Stability and compliance | Audit, isolation, disaster recovery, SLOs, and incident process become hard requirements |
 
 A technology that is the right answer at maturity may be over-engineering at MVP. Validating demand: fewest components; sustaining growth: controllability; optimizing at scale: only then is complexity worth paying for unit cost and deep customization.
 
@@ -25,16 +25,16 @@ A technology that is the right answer at maturity may be over-engineering at MVP
 
 Once the existing stack is confirmed insufficient, do not reach for a tool immediately—locate the failure mode first:
 
-|Which failure you fear most|Where to look first|
-|-|-|
-|Data corruption, states disagreeing everywhere|Check whether the data model matches transaction boundaries; idempotency and Outbox in place; reconciliation as backstop|
-|Concentrated read traffic burning the primary store|Evaluate a cache tier, read-model isolation, CDN offload, ingress rate limiting|
-|Instantaneous write floods crushing the backend|Introduce queue buffering, backpressure propagation, peak shaving, asynchronization of non-critical paths|
-|Deep call chains amplifying tail latency|Examine API boundary division, per-layer timeout budgets, degradation means, trace-based localization|
-|Every release a heart-stopper|Build deployment-platform capability, gradual rollout, fast rollback, config governance|
-|Incidents taking half a day to diagnose|Check metrics, logging, tracing coverage; whether SLO alerts point at the responsible party|
-|AI output quality quietly degrading|Build eval baselines, trace observation, RAG retrieval evaluation, model-routing fallbacks|
-|Teams constantly waiting on and blocking each other|Draw module boundaries; evaluate platform-engineering investment; sort out service ownership|
+| Which failure you fear most | Where to look first |
+| --- | --- |
+| Data corruption, states disagreeing everywhere | Check whether the data model matches transaction boundaries; idempotency and Outbox in place; reconciliation as backstop |
+| Concentrated read traffic burning the primary store | Evaluate a cache tier, read-model isolation, CDN offload, ingress rate limiting |
+| Instantaneous write floods crushing the backend | Introduce queue buffering, backpressure propagation, peak shaving, asynchronization of non-critical paths |
+| Deep call chains amplifying tail latency | Examine API boundary division, per-layer timeout budgets, degradation means, trace-based localization |
+| Every release a heart-stopper | Build deployment-platform capability, gradual rollout, fast rollback, config governance |
+| Incidents taking half a day to diagnose | Check metrics, logging, tracing coverage; whether SLO alerts point at the responsible party |
+| AI output quality quietly degrading | Build eval baselines, trace observation, RAG retrieval evaluation, model-routing fallbacks |
+| Teams constantly waiting on and blocking each other | Draw module boundaries; evaluate platform-engineering investment; sort out service ownership |
 
 **Tools are only the shell of the answer; the failure mode is the actual question of selection.**
 
@@ -65,15 +65,15 @@ The record's point is not format but writing "why chosen" and "how to retreat if
 
 ## The "ask first" of the seven domains
 
-|Domain|Do not ask first|Ask first|
-|-|-|-|
-|Language/framework|Which language is more advanced|Do team, ecosystem, runtime, and business complexity match|
-|Database/storage|Which database is strongest|Who is the source of truth, and what is the query shape|
-|Cache/queue/events|Should we get Kafka|Is it a read hotspot, a time mismatch, or a business-fact broadcast|
-|API/communication|REST or gRPC|Sync/async, internal/external, contract strength|
-|Deployment platform|Should we get K8s|Does the team need platform capability, and can it sustain it|
-|Observability/reliability|Which monitoring tool|What is the user SLO, and how do incidents end|
-|AI infrastructure|Should we self-host GPUs|Is the scarce resource the model, context, cost, quality, or controllability|
+| Domain | Do not ask first | Ask first |
+| --- | --- | --- |
+| Language/framework | Which language is more advanced | Do team, ecosystem, runtime, and business complexity match |
+| Database/storage | Which database is strongest | Who is the source of truth, and what is the query shape |
+| Cache/queue/events | Should we get Kafka | Is it a read hotspot, a time mismatch, or a business-fact broadcast |
+| API/communication | REST or gRPC | Sync/async, internal/external, contract strength |
+| Deployment platform | Should we get K8s | Does the team need platform capability, and can it sustain it |
+| Observability/reliability | Which monitoring tool | What is the user SLO, and how do incidents end |
+| AI infrastructure | Should we self-host GPUs | Is the scarce resource the model, context, cost, quality, or controllability |
 
 ## Relationship to other documents
 

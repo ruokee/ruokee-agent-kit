@@ -35,16 +35,16 @@ Ordinary materials are not governed by the tk schema and are not added to the Ta
 
 ### Managed fields
 
-|Field|Rule|
-|-|-|
-|`id`|Required UUIDv7; immutable after creation|
-|`name`|Required; changed only through `rename`|
-|`status`|`planning`, `open`, or `closed`|
-|`created_at`|Timezone-aware RFC 3339; immutable after creation|
-|`depends_on`|UUID set within the same Task root|
-|`related_to`|UUID set within the same Task root|
-|`extra`|Structured extension values changed by top-level key|
-|`schema_version`|Current supported schema version|
+| Field | Rule |
+| --- | --- |
+| `id` | Required UUIDv7; immutable after creation |
+| `name` | Required; changed only through `rename` |
+| `status` | `planning`, `open`, or `closed` |
+| `created_at` | Timezone-aware RFC 3339; immutable after creation |
+| `depends_on` | UUID set within the same Task root |
+| `related_to` | UUID set within the same Task root |
+| `extra` | Structured extension values changed by top-level key |
+| `schema_version` | Current supported schema version |
 
 `parent`, close reasons, historical names, `actor`, and session bindings are not managed fields. Directory containment determines parentage. Lifecycle reasons go to WAL.
 
@@ -87,11 +87,11 @@ Search may return zero, one, or several candidates. Choose one Task before updat
 
 ### Status
 
-|Status|Meaning|
-|-|-|
-|`planning`|An idea, investigation, or plan the user explicitly wants preserved while it is still forming|
-|`open`|Work that is being carried out|
-|`closed`|Work that ended, including completion, abandonment, infeasibility, or replacement|
+| Status | Meaning |
+| --- | --- |
+| `planning` | An idea, investigation, or plan the user explicitly wants preserved while it is still forming |
+| `open` | Work that is being carried out |
+| `closed` | Work that ended, including completion, abandonment, infeasibility, or replacement |
 
 Status states a fact, not priority.
 

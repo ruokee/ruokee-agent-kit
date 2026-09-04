@@ -51,8 +51,8 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 
 ## Validation
 
-- Install the Git hooks with `uvx pre-commit install --install-hooks`.
-- Run `uvx pre-commit run --all-files` before requesting review.
+- Install the Git hooks with `pnpm hooks:install`.
+- Run `pnpm check` before requesting review. This runs the Markdown check, Rust formatting check, and Rust tests.
 - Add component-specific checks beside a Skill or tool when its implementation requires more than the repository baseline.
 
 ## Git workflow

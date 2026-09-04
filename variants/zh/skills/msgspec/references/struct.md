@@ -389,22 +389,22 @@ class OptimizedData(msgspec.Struct, omit_defaults=True):
 
 **所有可用选项。**
 
-|选项|类型|默认值|说明|
-|-|-|-|-|
-|`frozen`|bool|False|设为 True 时，实例不可变且可哈希|
-|`order`|bool|False|启用比较运算符（<、<=、>、>=）|
-|`eq`|bool|True|启用相等性比较（==、!=）|
-|`kw_only`|bool|False|所有字段必须通过关键字参数传递|
-|`omit_defaults`|bool|False|序列化时省略值为默认值的字段|
-|`forbid_unknown_fields`|bool|False|反序列化时拒绝未知字段|
-|`tag`|str \| int|None|标签联合的标签字段值|
-|`tag_field`|str|"type"|标签联合使用的字段名|
-|`rename`|str \| dict|None|字段重命名规则（"lower"、"upper"、"camel"、"pascal" 或映射字典）|
-|`array_like`|bool|False|使 Struct 表现得像元组（位置访问）|
-|`gc`|bool|True|启用垃圾回收支持|
-|`weakref`|bool|False|启用弱引用支持|
-|`dict`|bool|False|为实例添加 `__dict__`，允许设置未声明的属性|
-|`repr_omit_defaults`|bool|False|repr 中省略默认值字段|
+| 选项 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `frozen` | bool | False | 设为 True 时，实例不可变且可哈希 |
+| `order` | bool | False | 启用比较运算符（<、<=、>、>=） |
+| `eq` | bool | True | 启用相等性比较（==、!=） |
+| `kw_only` | bool | False | 所有字段必须通过关键字参数传递 |
+| `omit_defaults` | bool | False | 序列化时省略值为默认值的字段 |
+| `forbid_unknown_fields` | bool | False | 反序列化时拒绝未知字段 |
+| `tag` | str \| int | None | 标签联合的标签字段值 |
+| `tag_field` | str | "type" | 标签联合使用的字段名 |
+| `rename` | str \| dict | None | 字段重命名规则（"lower"、"upper"、"camel"、"pascal" 或映射字典） |
+| `array_like` | bool | False | 使 Struct 表现得像元组（位置访问） |
+| `gc` | bool | True | 启用垃圾回收支持 |
+| `weakref` | bool | False | 启用弱引用支持 |
+| `dict` | bool | False | 为实例添加 `__dict__`，允许设置未声明的属性 |
+| `repr_omit_defaults` | bool | False | repr 中省略默认值字段 |
 
 **高级选项示例。**
 

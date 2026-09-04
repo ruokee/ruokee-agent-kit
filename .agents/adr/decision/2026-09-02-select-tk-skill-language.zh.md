@@ -15,12 +15,12 @@ Draft writer: OMP GPT-5.6 Sol, Ruokee
 
 `tk install` 接受 `--language <en|zh>`，默认 `en`。语言与 `--mode <tools|cli>` 共同选择一个可独立发现的 Skill：
 
-|模式|语言|Skill|
-|-|-|-|
-|`tools`|`en`|`tk`|
-|`tools`|`zh`|`tk-zh`|
-|`cli`|`en`|`tk-cli`|
-|`cli`|`zh`|`tk-cli-zh`|
+| 模式 | 语言 | Skill |
+| --- | --- | --- |
+| `tools` | `en` | `tk` |
+| `tools` | `zh` | `tk-zh` |
+| `cli` | `en` | `tk-cli` |
+| `cli` | `zh` | `tk-cli-zh` |
 
 四个 Skill 使用各自的独立发现名称，全部位于 `projects/tk/skills/`。安装时把所选目录放入正常 Harness Skill 根目录，不改写其身份。
 

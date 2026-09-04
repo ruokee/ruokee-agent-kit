@@ -156,12 +156,12 @@ Isolated tests cover all sixteen Harness, mode, and language selections:
 
 ## Real Harness validation
 
-|Harness|Required validation|
-|-|-|
-|Codex|Real installation, loading, and uninstallation in an isolated environment|
-|Claude Code|Real installation, loading, and uninstallation in an isolated environment|
-|Pi|Real installation, loading, and uninstallation in an isolated environment|
-|OMP|Real installation, loading, one real tool call, and uninstallation in an isolated environment|
+| Harness | Required validation |
+| --- | --- |
+| Codex | Real installation, loading, and uninstallation in an isolated environment |
+| Claude Code | Real installation, loading, and uninstallation in an isolated environment |
+| Pi | Real installation, loading, and uninstallation in an isolated environment |
+| OMP | Real installation, loading, one real tool call, and uninstallation in an isolated environment |
 
 Each Harness validates all four mode and language selections. OMP tools mode additionally performs the real operation call shown above.
 

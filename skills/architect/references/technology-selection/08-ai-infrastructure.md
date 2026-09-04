@@ -12,33 +12,33 @@ AI infrastructure is not "deeper is more advanced". The deeper you go, the more 
 
 ## The five layers
 
-|Layer|Components|
-|-|-|
-|Ingress governance|Model gateway, auth, rate limiting, cost accounting, model routing|
-|Context|RAG, vector store, document permissions, rerank, citations|
-|Inference|Inference serving, GPUs, KV cache, batching|
-|Training and fine-tuning|Data versioning, job orchestration, checkpoints, experiment tracking, validation and promotion|
-|Gatekeeping|Observability, eval, trace, human approval|
+| Layer | Components |
+| --- | --- |
+| Ingress governance | Model gateway, auth, rate limiting, cost accounting, model routing |
+| Context | RAG, vector store, document permissions, rerank, citations |
+| Inference | Inference serving, GPUs, KV cache, batching |
+| Training and fine-tuning | Data versioning, job orchestration, checkpoints, experiment tracking, validation and promotion |
+| Gatekeeping | Observability, eval, trace, human approval |
 
 Not all five layers exist from day one. The correct order: **see the risk that cannot be skipped first, then add the layer that answers it**: cannot see cost—add the gateway or usage logging first; retrieval quality caps the answers—add RAG eval first; multiple teams calling models—add the unified gateway; GPU cost exceeding API cost—consider self-hosted inference; a genuine need to change model behavior—only then fine-tuning or training; agents executing side effects—permissions, human review, and audit are mandatory.
 
 ## API or self-hosted inference: a cost decision, not a vanity decision
 
-|Approach|Strength|Cost|
-|-|-|-|
-|Managed model APIs|Fast start, stable operation, little ops, new models on tap|Vendor lock-in, data traverses their path, unit cost may overtake at volume|
-|Self-hosted inference|Full control of model, data, cost structure, deployment|GPUs, VRAM, batching, scaling, failures, capacity—all on you|
-|Hybrid routing|Cheap models for simple tasks, strong models only for hard ones|Routing policy, evaluation, fallback, cost accounting all get more complex|
+| Approach | Strength | Cost |
+| --- | --- | --- |
+| Managed model APIs | Fast start, stable operation, little ops, new models on tap | Vendor lock-in, data traverses their path, unit cost may overtake at volume |
+| Self-hosted inference | Full control of model, data, cost structure, deployment | GPUs, VRAM, batching, scaling, failures, capacity—all on you |
+| Hybrid routing | Cheap models for simple tasks, strong models only for hard ones | Routing policy, evaluation, fallback, cost accounting all get more complex |
 
 The fork is a cost decision, not a vanity decision: it asks four questions: can the data leave the domain? can the managed API meet the latency target? is the call volume big enough that self-hosting is cheaper? can the team operate GPU serving? One yes usually does not justify self-hosting; hitting two or three together is when sinking the infrastructure makes sense.
 
 ## RAG, long context, fine-tuning: adding knowledge or changing behavior?
 
-|Route|Solves|Choose when|
-|-|-|-|
-|RAG|Answers grounded in material retrieved on the spot|Large knowledge base, frequently updated content, citations required, permission filtering needed|
-|Long context|Reading a body of material whole in the window in one pass|Limited material volume, one-shot tasks, window capacity sufficient|
-|Fine-tuning|Adjusting the model's default behavior, output style, fixed formats|Rigid format requirements, stable domain vocabulary, high-quality samples in hand|
+| Route | Solves | Choose when |
+| --- | --- | --- |
+| RAG | Answers grounded in material retrieved on the spot | Large knowledge base, frequently updated content, citations required, permission filtering needed |
+| Long context | Reading a body of material whole in the window in one pass | Limited material volume, one-shot tasks, window capacity sufficient |
+| Fine-tuning | Adjusting the model's default behavior, output style, fixed formats | Rigid format requirements, stable domain vocabulary, high-quality samples in hand |
 
 The most common misjudgment: blaming the model for dumbness when retrieval was done poorly, or fine-tuning a "knowledge freshness" problem that RAG should have solved. The test sentence: **knowledge goes through retrieval; only behavior talks fine-tuning.** Need citations, updates, or permissions—get RAG right first.
 
@@ -62,16 +62,16 @@ When the system touches money, user data, or autonomous actions, eval is not "ad
 
 ## Selection quick reference
 
-|Question|Start with|Upgrade trigger|
-|-|-|-|
-|Just validating an AI product|Managed model API plus basic logging|Multiple apps sharing, cost opaque, vendor failures with wide impact—then add the gateway|
-|Multiple models/teams calling|Model gateway as the unified entry|When unified auth, rate limiting, billing, failover are needed|
-|Answering from private knowledge|RAG plus simple vector retrieval|Retrieval quality unstable, permissions complex, or the knowledge base has grown|
-|Vector scale still small|pgvector or single-node vector search|Millions of vectors and up, complex filtering, tight latency—then a dedicated vector store|
-|Model call cost high|Model routing, caching, quotas|API cost above total self-hosted cost, or data cannot leave the domain|
-|Autonomous actions needed|Deterministic workflow|Steps open-ended, dynamic planning required—then an agent|
-|Steady iteration needed|Trace plus a small eval set|Production-grade, money-touching, frequent model swaps—expand to full gates|
-|Changing model behavior|Managed fine-tuning service|Training frequent enough that self-building pays, data/models confined, deep customization needed|
+| Question | Start with | Upgrade trigger |
+| --- | --- | --- |
+| Just validating an AI product | Managed model API plus basic logging | Multiple apps sharing, cost opaque, vendor failures with wide impact—then add the gateway |
+| Multiple models/teams calling | Model gateway as the unified entry | When unified auth, rate limiting, billing, failover are needed |
+| Answering from private knowledge | RAG plus simple vector retrieval | Retrieval quality unstable, permissions complex, or the knowledge base has grown |
+| Vector scale still small | pgvector or single-node vector search | Millions of vectors and up, complex filtering, tight latency—then a dedicated vector store |
+| Model call cost high | Model routing, caching, quotas | API cost above total self-hosted cost, or data cannot leave the domain |
+| Autonomous actions needed | Deterministic workflow | Steps open-ended, dynamic planning required—then an agent |
+| Steady iteration needed | Trace plus a small eval set | Production-grade, money-touching, frequent model swaps—expand to full gates |
+| Changing model behavior | Managed fine-tuning service | Training frequent enough that self-building pays, data/models confined, deep customization needed |
 
 ## Relationship to other documents
 
