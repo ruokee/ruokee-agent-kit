@@ -21,7 +21,6 @@ const MAX_TASK_SEQUENCE: u64 = 99;
 #[derive(Debug)]
 pub struct CreateTaskInput {
     pub name: String,
-    pub body: Option<String>,
     pub status: Status,
     pub created_at: Option<String>,
     pub depends_on: Vec<String>,
@@ -33,8 +32,6 @@ pub struct CreateTaskInput {
 #[serde(deny_unknown_fields)]
 pub struct SubtaskInput {
     pub name: String,
-    #[serde(default)]
-    pub body: Option<String>,
     #[serde(default = "default_open_status")]
     pub status: Status,
     #[serde(default)]
@@ -799,7 +796,7 @@ fn create_subtasks(
     for task in prepared {
         let mut matched = None;
         for (index, candidate) in existing.iter().enumerate() {
-            if !used[index] && prepared_matches(project, &task, candidate)? {
+            if !used[index] && prepared_matches(&task, candidate) {
                 matched = Some(index);
                 break;
             }
@@ -904,10 +901,8 @@ struct PreparedTask {
     match_created_at: bool,
 }
 
-#[derive(Debug)]
 struct CommonTaskInput {
     name: String,
-    body: Option<String>,
     status: Status,
     created_at: Option<String>,
     depends_on: Vec<String>,
@@ -944,10 +939,7 @@ fn prepare_task(
         extra: input.extra,
     };
     metadata.validate()?;
-    let body = input
-        .body
-        .unwrap_or_else(|| format!("# {name}\n"))
-        .into_bytes();
+    let body = format!("# {name}\n").into_bytes();
     Ok(PreparedTask {
         metadata,
         body,
@@ -964,25 +956,14 @@ fn direct_subtasks(graph: &task_store::TaskGraph, parent: usize) -> Vec<&StoredT
         .collect()
 }
 
-fn prepared_matches(
-    project: &Project,
-    prepared: &PreparedTask,
-    existing: &StoredTask,
-) -> Result<bool> {
+fn prepared_matches(prepared: &PreparedTask, existing: &StoredTask) -> bool {
     let metadata = &existing.metadata;
-    if metadata.name != prepared.metadata.name
-        || metadata.status != prepared.metadata.status
-        || metadata.depends_on != prepared.metadata.depends_on
-        || metadata.related_to != prepared.metadata.related_to
-        || metadata.extra != prepared.metadata.extra
-        || (prepared.match_created_at && metadata.created_at != prepared.metadata.created_at)
-    {
-        return Ok(false);
-    }
-    Ok(
-        task_store::read_body_bytes(&existing.directory, project.config.metadata_mode)?
-            == prepared.body,
-    )
+    metadata.name == prepared.metadata.name
+        && metadata.status == prepared.metadata.status
+        && metadata.depends_on == prepared.metadata.depends_on
+        && metadata.related_to == prepared.metadata.related_to
+        && metadata.extra == prepared.metadata.extra
+        && (!prepared.match_created_at || metadata.created_at == prepared.metadata.created_at)
 }
 
 fn resolve_relations(project: &Project, refs: &[String], self_id: Uuid) -> Result<Vec<Uuid>> {
@@ -1392,7 +1373,6 @@ impl From<CreateTaskInput> for CommonTaskInput {
     fn from(value: CreateTaskInput) -> Self {
         Self {
             name: value.name,
-            body: value.body,
             status: value.status,
             created_at: value.created_at,
             depends_on: value.depends_on,
@@ -1406,7 +1386,6 @@ impl From<SubtaskInput> for CommonTaskInput {
     fn from(value: SubtaskInput) -> Self {
         Self {
             name: value.name,
-            body: value.body,
             status: value.status,
             created_at: value.created_at,
             depends_on: value.depends_on,
@@ -1419,7 +1398,7 @@ impl From<SubtaskInput> for CommonTaskInput {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::project::{InitOptions, init};
+    use crate::project::{InitOptions, MetadataMode, init};
 
     fn temp_project() -> (PathBuf, Project) {
         temp_project_with_policy(CreationPolicy::Strict)
@@ -1443,7 +1422,6 @@ mod tests {
     fn top_input(name: &str) -> CreateTaskInput {
         CreateTaskInput {
             name: name.into(),
-            body: None,
             status: Status::Open,
             created_at: Some("2026-08-28T10:00:00+08:00".into()),
             depends_on: vec![],
@@ -1455,7 +1433,6 @@ mod tests {
     fn subtask_input(name: &str) -> SubtaskInput {
         SubtaskInput {
             name: name.into(),
-            body: None,
             status: Status::Open,
             created_at: Some("2026-08-28T11:00:00+08:00".into()),
             depends_on: vec![],
@@ -1731,6 +1708,100 @@ mod tests {
             4
         );
         fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn subtask_retry_ignores_agent_edited_body() {
+        let (root, project) = temp_project_with_policy(CreationPolicy::Permissive);
+        let parent = create(
+            &project,
+            CreateRequest::Task {
+                input: top_input("parent"),
+                user_confirmed: true,
+            },
+        )
+        .unwrap()
+        .created
+        .remove(0);
+        let first = create(
+            &project,
+            CreateRequest::Subtasks {
+                parent_ref: parent.id.to_string(),
+                subtasks: vec![subtask_input("first")],
+                user_confirmed: false,
+            },
+        )
+        .unwrap()
+        .created
+        .remove(0);
+
+        fs::write(
+            first.task_dir.join("TASK.md"),
+            "# first\n\nAgent rewrote this body after creation.\n",
+        )
+        .unwrap();
+
+        let retry = create(
+            &project,
+            CreateRequest::Subtasks {
+                parent_ref: parent.id.to_string(),
+                subtasks: vec![subtask_input("first")],
+                user_confirmed: false,
+            },
+        )
+        .unwrap();
+        assert!(!retry.changed);
+        assert!(!retry.committed);
+        assert!(retry.created.is_empty());
+        assert_eq!(
+            task_store::discover_tasks(&project.task_root, project.config.metadata_mode)
+                .unwrap()
+                .tasks
+                .len(),
+            2
+        );
+        assert_eq!(
+            fs::read_to_string(first.task_dir.join("TASK.md")).unwrap(),
+            "# first\n\nAgent rewrote this body after creation.\n"
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn split_and_embed_creation_write_only_the_normalized_name_heading() {
+        for mode in [MetadataMode::Split, MetadataMode::Embed] {
+            let root = std::env::temp_dir().join(format!("tk-app-test-{}", Uuid::now_v7()));
+            fs::create_dir(&root).unwrap();
+            let project = init(
+                &root,
+                InitOptions {
+                    creation_policy: Some(CreationPolicy::Permissive),
+                    metadata_mode: Some(mode),
+                    ..InitOptions::default()
+                },
+            )
+            .unwrap()
+            .project;
+            let created = create(
+                &project,
+                CreateRequest::Task {
+                    input: top_input("Mixed Case!"),
+                    user_confirmed: false,
+                },
+            )
+            .unwrap()
+            .created
+            .remove(0);
+            let carrier = created.task_dir.join("TASK.md");
+            let content = fs::read_to_string(&carrier).unwrap();
+            let body = content
+                .strip_prefix("---\n")
+                .and_then(|rest| rest.split_once("\n---\n"))
+                .map(|(_, body)| body)
+                .unwrap_or(&content);
+            assert_eq!(body, "# Mixed-Case\n");
+            fs::remove_dir_all(root).unwrap();
+        }
     }
 
     #[test]

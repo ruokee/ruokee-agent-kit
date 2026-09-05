@@ -84,6 +84,8 @@ tk create task "Investigate startup latency"
 
 CLI creation is an explicit user action, so strict projects treat it as confirmed. Agents using MCP or native tools must pass the actual current authorization state.
 
+When tk creates a Task, the runtime automatically writes `# <normalized-name>` as the initial `TASK.md` body. Use ordinary file tools to extend it after creation; the create command and create tool accept no body input.
+
 Search includes planning, open, and closed Tasks by default:
 
 ```sh
@@ -157,6 +159,8 @@ Rename a Task and inspect references without rewriting them:
 tk rename <task_ref> "New name" --dry-run
 tk rename <task_ref> "New name"
 ```
+
+A rename that moves the Task path stops with exit status 3 when references to the old path exist. Update the reported references and run the rename again. To proceed while accepting broken links, add `--ignore-brokenlinks`.
 
 Clean temporary content left by ended tk processes:
 

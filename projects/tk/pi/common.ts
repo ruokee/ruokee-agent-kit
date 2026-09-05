@@ -7,14 +7,7 @@ import { join, resolve } from "node:path";
 const MAX_OUTPUT_BYTES = 1024 * 1024;
 const MAX_LOAD_ERROR_LENGTH = 500;
 const RUNTIME_COMPAT = ">=0.1,<0.2";
-const TOOL_NAMES = [
-  "tk_search",
-  "tk_read",
-  "tk_create",
-  "tk_update",
-  "tk_log",
-  "tk_exec",
-] as const;
+const TOOL_NAMES = ["tk_search", "tk_read", "tk_create", "tk_update", "tk_log", "tk_exec"] as const;
 
 export type ProcessResult = {
   stdout: string;
@@ -33,21 +26,12 @@ export type RegisteredTool = {
   label: string;
   description: string;
   parameters: unknown;
-  execute(
-    params: Record<string, unknown>,
-    signal: AbortSignal | undefined,
-    context: ToolContext,
-  ): Promise<ToolResult>;
+  execute(params: Record<string, unknown>, signal: AbortSignal | undefined, context: ToolContext): Promise<ToolResult>;
 };
 export type HarnessAdapter = {
   harnessName: "pi";
   wrapSchema(schema: Record<string, unknown>): unknown;
-  run(
-    command: string,
-    args: string[],
-    cwd: string,
-    signal?: AbortSignal,
-  ): Promise<ProcessResult>;
+  run(command: string, args: string[], cwd: string, signal?: AbortSignal): Promise<ProcessResult>;
   registerTool(tool: RegisteredTool): void;
 };
 
@@ -63,7 +47,7 @@ type ToolSchema = {
   inputSchema: Record<string, unknown>;
 };
 type NativeContract = {
-  contract_version: 1;
+  contract_version: 2;
   runtime_version: string;
   runtime_compat: string[];
   harness: "pi";
@@ -99,29 +83,28 @@ export function runBoundedProcess(
       child.kill("SIGKILL");
     }
   };
-  const capture = (chunks: Buffer[], stream: "stdout" | "stderr") =>
-    (chunk: Buffer | string) => {
-      if (overflow) {
+  const capture = (chunks: Buffer[], stream: "stdout" | "stderr") => (chunk: Buffer | string) => {
+    if (overflow) {
+      return;
+    }
+    const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    if (stream === "stdout") {
+      stdoutBytes += bytes.length;
+      if (stdoutBytes > MAX_OUTPUT_BYTES) {
+        overflow = true;
+        stop();
         return;
       }
-      const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-      if (stream === "stdout") {
-        stdoutBytes += bytes.length;
-        if (stdoutBytes > MAX_OUTPUT_BYTES) {
-          overflow = true;
-          stop();
-          return;
-        }
-      } else {
-        stderrBytes += bytes.length;
-        if (stderrBytes > MAX_OUTPUT_BYTES) {
-          overflow = true;
-          stop();
-          return;
-        }
+    } else {
+      stderrBytes += bytes.length;
+      if (stderrBytes > MAX_OUTPUT_BYTES) {
+        overflow = true;
+        stop();
+        return;
       }
-      chunks.push(bytes);
-    };
+    }
+    chunks.push(bytes);
+  };
   const abort = () => {
     cancelled = true;
     stop();
@@ -166,12 +149,7 @@ export async function registerTkTools(adapter: HarnessAdapter): Promise<void> {
   const runtime = join(process.env.HOME ?? homedir(), ".local", "bin", "tk");
   await requireRuntime(runtime);
   const loadCwd = process.cwd();
-  const version = await runRawJson(
-    adapter,
-    runtime,
-    ["--version", "--output", "json"],
-    loadCwd,
-  );
+  const version = await runRawJson(adapter, runtime, ["--version", "--output", "json"], loadCwd);
   if (!isObject(version) || typeof version.runtime_version !== "string") {
     throw new Error("tk returned an invalid version document");
   }
@@ -186,17 +164,12 @@ export async function registerTkTools(adapter: HarnessAdapter): Promise<void> {
   if (contract.runtime_version !== version.runtime_version) {
     throw new Error("tk version and native schema runtime versions differ");
   }
-  if (
-    contract.runtime_compat.length !== 1 ||
-    contract.runtime_compat[0] !== RUNTIME_COMPAT
-  ) {
+  if (contract.runtime_compat.length !== 1 || contract.runtime_compat[0] !== RUNTIME_COMPAT) {
     throw new Error("tk native schema reports a different runtime compatibility range");
   }
   validateToolSet(contract.tools);
 
-  const tools = contract.tools.map((definition) =>
-    makeTool(adapter, runtime, definition),
-  );
+  const tools = contract.tools.map((definition) => makeTool(adapter, runtime, definition));
   for (const tool of tools) {
     adapter.registerTool(tool);
   }
@@ -224,11 +197,7 @@ async function requireRuntime(runtime: string): Promise<void> {
   }
 }
 
-function makeTool(
-  adapter: HarnessAdapter,
-  runtime: string,
-  definition: ToolSchema,
-): RegisteredTool {
+function makeTool(adapter: HarnessAdapter, runtime: string, definition: ToolSchema): RegisteredTool {
   return {
     name: definition.name,
     label: toolLabel(definition.name),
@@ -248,11 +217,7 @@ function makeTool(
   };
 }
 
-function mapArguments(
-  name: string,
-  params: Record<string, unknown>,
-  actor: unknown,
-): string[] {
+function mapArguments(name: string, params: Record<string, unknown>, actor: unknown): string[] {
   switch (name) {
     case "tk_search": {
       const args = ["search", requiredString(params, "query")];
@@ -289,12 +254,7 @@ function mapArguments(
       return args;
     }
     case "tk_log": {
-      const args = [
-        "log",
-        requiredString(params, "task_ref"),
-        "--message",
-        requiredString(params, "message"),
-      ];
+      const args = ["log", requiredString(params, "task_ref"), "--message", requiredString(params, "message")];
       option(args, params.body, "--body");
       option(args, actor, "--actor");
       return args;
@@ -308,7 +268,6 @@ function createArguments(params: Record<string, unknown>): string[] {
   const type = requiredString(params, "type");
   if (type === "task") {
     const args = ["create", "task", requiredString(params, "name")];
-    option(args, params.body, "--body");
     option(args, params.status, "--status");
     option(args, params.created_at, "--created-at");
     repeat(args, params.depends_on, "--depends-on");
@@ -323,7 +282,7 @@ function createArguments(params: Record<string, unknown>): string[] {
       if (!isObject(subtask)) {
         throw new Error("each subtask must be an object");
       }
-      args.push("--item", JSON.stringify(subtask));
+      args.push("--item", JSON.stringify({ ...subtask, body: undefined }));
     }
     args.push("--user-confirmed", String(Boolean(params.user_confirmed)));
     return args;
@@ -352,17 +311,10 @@ async function executeRaw(
   if (first === "rename") {
     option(args, params.actor ?? context.actor ?? adapter.harnessName, "--actor");
   }
-  const result = await adapter.run(
-    runtime,
-    args,
-    requestCwd(params.cwd, context.cwd),
-    signal,
-  );
+  const result = await adapter.run(runtime, args, requestCwd(params.cwd, context.cwd), signal);
   enforceResult(result, signal);
   if (result.code !== 0) {
-    throw new Error(
-      JSON.stringify({ code: result.code, stdout: result.stdout, stderr: result.stderr }),
-    );
+    throw new Error(JSON.stringify({ code: result.code, stdout: result.stdout, stderr: result.stderr }));
   }
   return toolResult({
     ok: true,
@@ -386,12 +338,7 @@ async function runEnvelope(
   return value as RuntimeEnvelope;
 }
 
-async function runRawJson(
-  adapter: HarnessAdapter,
-  runtime: string,
-  args: string[],
-  cwd: string,
-): Promise<unknown> {
+async function runRawJson(adapter: HarnessAdapter, runtime: string, args: string[], cwd: string): Promise<unknown> {
   const result = await adapter.run(runtime, args, cwd);
   enforceResult(result);
   if (result.code !== 0) {
@@ -403,7 +350,7 @@ async function runRawJson(
 function parseContract(value: unknown): NativeContract {
   if (
     !isObject(value) ||
-    value.contract_version !== 1 ||
+    value.contract_version !== 2 ||
     value.schema_type !== "native" ||
     value.harness !== "pi" ||
     typeof value.runtime_version !== "string" ||
@@ -429,7 +376,7 @@ function parseContract(value: unknown): NativeContract {
     };
   });
   return {
-    contract_version: 1,
+    contract_version: 2,
     runtime_version: value.runtime_version,
     runtime_compat: value.runtime_compat.map(String),
     harness: "pi",
@@ -439,19 +386,13 @@ function parseContract(value: unknown): NativeContract {
 
 function validateToolSet(tools: ToolSchema[]): void {
   const names = tools.map((tool) => tool.name);
-  if (
-    names.length !== TOOL_NAMES.length ||
-    names.some((name, index) => name !== TOOL_NAMES[index])
-  ) {
+  if (names.length !== TOOL_NAMES.length || names.some((name, index) => name !== TOOL_NAMES[index])) {
     throw new Error(`tk native schema must expose exactly: ${TOOL_NAMES.join(", ")}`);
   }
 }
 
 function enforceResult(result: ProcessResult, signal?: AbortSignal): void {
-  if (
-    Buffer.byteLength(result.stdout) > MAX_OUTPUT_BYTES ||
-    Buffer.byteLength(result.stderr) > MAX_OUTPUT_BYTES
-  ) {
+  if (Buffer.byteLength(result.stdout) > MAX_OUTPUT_BYTES || Buffer.byteLength(result.stderr) > MAX_OUTPUT_BYTES) {
     throw new Error("tk output exceeded the 1 MiB adapter limit");
   }
   if (result.killed || signal?.aborted) {
@@ -516,12 +457,7 @@ function repeat(args: string[], value: unknown, name: string): void {
   }
 }
 
-function jsonOption(
-  args: string[],
-  object: Record<string, unknown>,
-  key: string,
-  name: string,
-): void {
+function jsonOption(args: string[], object: Record<string, unknown>, key: string, name: string): void {
   if (Object.hasOwn(object, key)) {
     args.push(name, JSON.stringify(object[key]));
   }

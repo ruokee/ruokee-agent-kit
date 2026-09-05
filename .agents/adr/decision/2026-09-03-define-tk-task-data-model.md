@@ -93,3 +93,13 @@ Recursive discovery reads more directories than configured-path discovery. The f
 Ordinary concurrent writes have last-completing-writer behavior. Multi-target failures can leave valid partial results, and callers must inspect completed and uncompleted lists before retrying. No hidden continuation state exists after the process exits.
 
 Every released schema transition becomes long-lived maintenance code. Supporting two representations also requires equivalent validation, migration, and body preservation in both paths.
+
+## Changes
+
+### 2026-09-05: Creation no longer accepts body input
+
+`TASK.md` remains ordinary Agent-maintained content, so the create interface does not accept body text through `tk create task --body`, the top-level create request, or child Task items. When the runtime creates a Task, it automatically generates `# <normalized-name>` as the initial body: alone in split mode, after the managed frontmatter in embed mode. After creation the caller maintains the body, and rename and subtask retry matching use no body input or matching condition. Callers write `TASK.md` with ordinary file operations after creation. `tk log --body` is unchanged because WAL entries are not Task content. The persisted metadata schema and component format are unchanged.
+
+### 2026-09-05: Rename guards against broken references
+
+A rename that would move a Task path stops with a conflict error before the first persistent write when references to the old path exist. The error details carry the old path, the normalized new name, the absolute target path, and every reference path and line. `--ignore-brokenlinks` permits that move without rewriting references. Dry-run reports the plan and references without writing. The scan boundaries, including tracked project Markdown, ordinary Markdown under the Task root, and split and embed bodies, are unchanged.

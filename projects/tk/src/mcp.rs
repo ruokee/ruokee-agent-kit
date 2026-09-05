@@ -358,7 +358,6 @@ fn dispatch_create(params: CreateParams) -> Result<ToolOutcome> {
     let (cwd, project_ref, request) = match params {
         CreateParams::Task {
             name,
-            body,
             status,
             created_at,
             depends_on,
@@ -372,7 +371,6 @@ fn dispatch_create(params: CreateParams) -> Result<ToolOutcome> {
             CreateRequest::Task {
                 input: CreateTaskInput {
                     name,
-                    body,
                     status: status.unwrap_or(Status::Open),
                     created_at,
                     depends_on,
@@ -649,7 +647,6 @@ async fn read_bounded(
 fn subtask_input(task: TaskPayload) -> SubtaskInput {
     SubtaskInput {
         name: task.name,
-        body: task.body,
         status: task.status.unwrap_or(Status::Open),
         created_at: task.created_at,
         depends_on: task.depends_on,

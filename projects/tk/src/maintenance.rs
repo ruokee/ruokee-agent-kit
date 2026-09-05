@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::ffi::OsString;
+use std::fmt::Write as _;
 use std::fs;
 use std::os::unix::ffi::OsStringExt;
 use std::path::{Path, PathBuf};
@@ -114,6 +115,7 @@ pub fn rename(
     task_ref: &str,
     requested_name: &str,
     dry_run: bool,
+    ignore_brokenlinks: bool,
     actor: &str,
 ) -> Result<RenameResult> {
     let task = crate::app::resolve_ref(project, task_ref)?;
@@ -146,6 +148,31 @@ pub fn rename(
             plan,
             warnings: Vec::new(),
         });
+    }
+    if path_changed && !plan.references.is_empty() && !ignore_brokenlinks {
+        let mut listing = String::new();
+        for reference in &plan.references {
+            let _ = writeln!(listing, "  {}:{}", reference.path.display(), reference.line);
+        }
+        let listing = listing.trim_end();
+        return Err(TkError::new(
+            "broken_reference_conflict",
+            ErrorCategory::Conflict,
+            format!(
+                "Renaming {} would leave {} reference{} to the old path broken. Rename to {} after updating them, or pass --ignore-brokenlinks to move anyway:\n{}",
+                plan.old_path.display(),
+                plan.references.len(),
+                if plan.references.len() == 1 { "" } else { "s" },
+                plan.target_path.display(),
+                listing
+            ),
+        )
+        .with_details(json!({
+            "old_path": plan.old_path,
+            "new_name": plan.new_name,
+            "target_path": plan.target_path,
+            "references": plan.references,
+        })));
     }
 
     project::ensure_mutable(project)?;
@@ -938,6 +965,7 @@ mod tests {
             &imported_metadata.id.to_string(),
             "renamed-import",
             false,
+            false,
             "test:agent",
         )
         .unwrap();
@@ -956,6 +984,7 @@ mod tests {
             &project,
             &generated_metadata.id.to_string(),
             "renamed-generated",
+            false,
             false,
             "test:agent",
         )
@@ -992,6 +1021,290 @@ mod tests {
         fs::set_permissions(&fake_git, fs::Permissions::from_mode(0o755)).unwrap();
         let error = tracked_markdown_with(&project, &fake_git).unwrap_err();
         assert_eq!(error.code, "process_output_too_large");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    fn rename_test_project(
+        root: &Path,
+        metadata_mode: MetadataMode,
+        git_policy: GitPolicy,
+    ) -> crate::project::Project {
+        crate::project::init(
+            root,
+            crate::project::InitOptions {
+                metadata_mode: Some(metadata_mode),
+                git_policy: Some(git_policy),
+                ..crate::project::InitOptions::default()
+            },
+        )
+        .unwrap()
+        .project
+    }
+
+    fn rename_task_directory(root: &Path, mode: MetadataMode) -> std::path::PathBuf {
+        let directory = root.join(".tk/2026/08/31-01--source");
+        task_store::create_task_files(&directory, &task_metadata("source"), b"source body\n", mode)
+            .unwrap();
+        directory
+    }
+
+    fn write_reference(root: &Path, relative: &str, content: &str) -> std::path::PathBuf {
+        let path = root.join(relative);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(&path, content).unwrap();
+        path
+    }
+
+    #[test]
+    fn path_moving_rename_with_references_requires_explicit_override() {
+        for (mode, policy) in [
+            (MetadataMode::Split, GitPolicy::None),
+            (MetadataMode::Embed, GitPolicy::Track),
+            (MetadataMode::Split, GitPolicy::Ignore),
+        ] {
+            let root = std::env::temp_dir().join(format!("tk-rename-gate-test-{}", Uuid::now_v7()));
+            fs::create_dir(&root).unwrap();
+            if policy != GitPolicy::None {
+                let status = std::process::Command::new("git")
+                    .args(["init", "--quiet"])
+                    .current_dir(&root)
+                    .status()
+                    .unwrap();
+                assert!(status.success());
+                if policy == GitPolicy::Ignore {
+                    fs::write(root.join(".gitignore"), ".tk\n").unwrap();
+                }
+            }
+            let project = rename_test_project(&root, mode, policy);
+            let directory = rename_task_directory(&root, mode);
+            let references_expected: Vec<(&str, usize)> = if policy == GitPolicy::Track {
+                write_reference(
+                    &root,
+                    "notes/links.md",
+                    "intro line\nsee .tk/2026/08/31-01--source/README for detail\n",
+                );
+                write_reference(
+                    &root,
+                    "docs/other.md",
+                    "also links .tk/2026/08/31-01--source/README here\n",
+                );
+                let status = std::process::Command::new("git")
+                    .args(["add", "notes/links.md", "docs/other.md"])
+                    .current_dir(&root)
+                    .status()
+                    .unwrap();
+                assert!(status.success());
+                vec![("notes/links.md", 2), ("docs/other.md", 1)]
+            } else {
+                write_reference(
+                    &root,
+                    ".tk/notes/links.md",
+                    "intro line\nsee .tk/2026/08/31-01--source/README for detail\n",
+                );
+                write_reference(
+                    &root,
+                    ".tk/docs/other.md",
+                    "also links .tk/2026/08/31-01--source/README here\n",
+                );
+                vec![(".tk/notes/links.md", 2), (".tk/docs/other.md", 1)]
+            };
+            let reference_contents: Vec<_> = references_expected
+                .iter()
+                .map(|(relative, _)| fs::read_to_string(root.join(relative)).unwrap())
+                .collect();
+            let body_before = task_store::read_body_bytes(&directory, mode).unwrap();
+            let metadata_name_before = task_store::read_task(&directory, mode)
+                .unwrap()
+                .metadata
+                .name;
+            assert!(!directory.join("wal").exists());
+
+            let dry = rename(
+                &project,
+                &directory.to_string_lossy(),
+                "target",
+                true,
+                false,
+                "test:agent",
+            )
+            .unwrap();
+            assert!(dry.changed && !dry.committed);
+            assert_eq!(dry.plan.references.len(), 2);
+            assert!(directory.exists(), "dry-run must not move anything");
+
+            let error = rename(
+                &project,
+                &directory.to_string_lossy(),
+                "target",
+                false,
+                false,
+                "test:agent",
+            )
+            .unwrap_err();
+            assert_eq!(error.code, "broken_reference_conflict");
+            assert!(matches!(error.category, ErrorCategory::Conflict));
+            assert!(error.message.contains("31-01--target"));
+            assert!(error.message.contains("--ignore-brokenlinks"));
+            for (relative, line) in &references_expected {
+                let listed = format!("{}/{relative}:{line}", root.display());
+                assert!(error.message.contains(&listed), "message lists {listed}");
+            }
+            let details = error.details.as_ref().unwrap();
+            assert_eq!(details["new_name"], "target");
+            assert_eq!(
+                details["target_path"],
+                json!(root.join(".tk/2026/08/31-01--target"))
+            );
+            assert_eq!(details["old_path"], json!(directory));
+            let listed_references = details["references"].as_array().unwrap();
+            assert_eq!(listed_references.len(), 2);
+            for (relative, line) in &references_expected {
+                assert!(
+                    listed_references.iter().any(|reference| {
+                        reference["path"] == json!(root.join(relative))
+                            && reference["line"] == *line
+                    }),
+                    "details list {relative}:{line}"
+                );
+            }
+            assert!(directory.exists(), "gate must block before any write");
+            assert!(!root.join(".tk/2026/08/31-01--target").exists());
+            assert_eq!(
+                task_store::read_task(&directory, mode)
+                    .unwrap()
+                    .metadata
+                    .name,
+                metadata_name_before
+            );
+            assert_eq!(
+                task_store::read_body_bytes(&directory, mode).unwrap(),
+                body_before
+            );
+            assert!(!directory.join("wal").exists());
+
+            let overridden = rename(
+                &project,
+                &directory.to_string_lossy(),
+                "target",
+                false,
+                true,
+                "test:agent",
+            )
+            .unwrap();
+            assert!(overridden.changed && overridden.committed);
+            assert_eq!(overridden.plan.references.len(), 2);
+            for (relative, content) in references_expected
+                .iter()
+                .map(|(relative, _)| *relative)
+                .zip(&reference_contents)
+            {
+                let reference_path = root.join(relative);
+                assert!(
+                    reference_path.exists(),
+                    "override must not rewrite reference files"
+                );
+                assert_eq!(
+                    fs::read_to_string(&reference_path).unwrap(),
+                    *content,
+                    "reference content must stay unchanged"
+                );
+            }
+            assert!(!directory.exists());
+            fs::remove_dir_all(root).unwrap();
+        }
+    }
+
+    #[test]
+    fn rename_without_references_moves_the_path() {
+        let root = std::env::temp_dir().join(format!("tk-rename-move-test-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
+        let directory = rename_task_directory(&root, MetadataMode::Split);
+
+        let result = rename(
+            &project,
+            &directory.to_string_lossy(),
+            "New Name!",
+            false,
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        assert!(result.changed && result.committed);
+        assert!(result.plan.references.is_empty());
+        assert_eq!(result.plan.new_name, "New-Name");
+        assert_eq!(
+            result.plan.target_path,
+            root.join(".tk/2026/08/31-01--New-Name")
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn non_generated_child_and_repeated_rename_skip_the_gate() {
+        let root = std::env::temp_dir().join(format!("tk-rename-child-gate-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
+        let parent = project.task_root.join("2026/08/31-01--parent");
+        task_store::create_task_files(
+            &parent,
+            &task_metadata("parent"),
+            b"parent\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+        let imported = parent.join("materials/imported-task");
+        let imported_metadata = task_metadata("imported");
+        task_store::create_task_files(
+            &imported,
+            &imported_metadata,
+            b"imported\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+        let old_relative = ".tk/2026/08/31-01--parent/materials/imported-task";
+        write_reference(
+            &root,
+            ".tk/notes/child.md",
+            &format!("points at {old_relative} from the task root\n"),
+        );
+
+        let first = rename(
+            &project,
+            &imported_metadata.id.to_string(),
+            "renamed-import",
+            false,
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        assert!(first.changed && first.committed);
+        assert!(!first.plan.references.is_empty());
+        assert_eq!(
+            first.plan.references[0].path,
+            root.join(".tk/notes/child.md")
+        );
+        assert_eq!(first.plan.target_path, imported);
+        assert_eq!(
+            task_store::read_task(&imported, MetadataMode::Split)
+                .unwrap()
+                .metadata
+                .name,
+            "renamed-import"
+        );
+
+        let repeat = rename(
+            &project,
+            &imported_metadata.id.to_string(),
+            "renamed-import",
+            false,
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        assert!(!repeat.changed && !repeat.committed);
+        assert!(!repeat.plan.references.is_empty());
+        assert_eq!(repeat.plan.target_path, imported);
         fs::remove_dir_all(root).unwrap();
     }
 }

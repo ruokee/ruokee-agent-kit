@@ -78,6 +78,12 @@ Task/
 
 When modifying embed metadata, the runtime preserves the body byte for byte. Representation switching applies to the entire project. Mixing representations per Task is not allowed.
 
+## Creation body
+
+create accepts no body input. The CLI has no `--body` option, and the create tool request rejects `body` as an unknown field on both the top-level Task and child Task items. When the runtime creates a Task, it automatically writes `# <normalized-name>` as the initial body: alone in `TASK.md` for split, after the managed frontmatter for embed.
+
+After creation the caller maintains the body as ordinary content. Neither rename nor subtask retry matching takes body input or matches on it. All other body behavior is unchanged: the runtime reads bodies for search and read output, preserves them byte for byte during metadata changes, and keeps them intact across representation switching.
+
 ## Candidate identification
 
 Top-level Task discovery requires the canonical `YYYY/MM/DD-NN--slug` topology, including fixed sequence widths, the `--` separator, a valid calendar date, a non-empty slug, and a metadata name matching the slug. After discovering a valid top-level Task, the runtime recursively scans real descendant directories. Ordinary material directories remain traversable because a child Task may be below them.

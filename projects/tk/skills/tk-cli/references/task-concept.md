@@ -65,7 +65,7 @@ The project's `metadata_mode` must match the carriers on disk. Do not convert ca
 
 ### Creation input
 
-A top-level creation requires at least a name. The body defaults to a generated heading, status defaults to `open`, time defaults to now, and relationships and `extra` default to empty.
+A top-level creation requires at least a name. The tk runtime automatically generates `# <normalized-name>` as the initial body when it creates the Task. Status defaults to `open`, time defaults to now, and relationships and `extra` default to empty.
 
 Pass `created_at` only when importing a historical Task whose original timezone-aware timestamp is reliable. Relationship targets must already exist in the same Task root. A Task cannot reference itself, and dependencies cannot form a cycle.
 

@@ -84,6 +84,8 @@ tk create task "调查启动延迟"
 
 CLI 创建本身就是用户明确操作，因此 strict 项目把它视为已确认。Agent 通过 MCP 或原生工具创建时，必须传入当前对话中真实的授权状态。
 
+tk 创建 Task 时，运行时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。创建完成后可用普通文件工具扩展正文；create 命令和 create 工具不接受正文输入。
+
 search 默认包含 planning、open 和 closed：
 
 ```sh
@@ -157,6 +159,8 @@ tk metadata switch --to embed
 tk rename <task_ref> "新名称" --dry-run
 tk rename <task_ref> "新名称"
 ```
+
+移动 Task 路径的 rename 在存在旧路径引用时以退出码 3 停止。更新报告中的引用后，再重新执行 rename。如果明确接受断链风险并继续移动，加上 `--ignore-brokenlinks`。
 
 清理已结束 tk 进程留下的临时内容：
 

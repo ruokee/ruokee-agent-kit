@@ -37,16 +37,9 @@ async function installFakeRuntime(): Promise<string> {
 }
 
 function contract(harness: "pi" | "omp") {
-  const names = [
-    "tk_search",
-    "tk_read",
-    "tk_create",
-    "tk_update",
-    "tk_log",
-    "tk_exec",
-  ];
+  const names = ["tk_search", "tk_read", "tk_create", "tk_update", "tk_log", "tk_exec"];
   return {
-    contract_version: 1,
+    contract_version: 2,
     runtime_version: "0.1.0",
     runtime_compat: [">=0.1,<0.2"],
     schema_type: "native",
@@ -86,38 +79,19 @@ describe("bounded process runners", () => {
 
   test("kill processes when either output stream exceeds one MiB", async () => {
     await expect(
-      runPiProcess(
-        process.execPath,
-        ["-e", 'process.stdout.write("x".repeat(1024 * 1024 + 1))'],
-        tmpdir(),
-      ),
+      runPiProcess(process.execPath, ["-e", 'process.stdout.write("x".repeat(1024 * 1024 + 1))'], tmpdir()),
     ).rejects.toThrow("output exceeded the 1 MiB adapter limit");
     await expect(
-      runOmpProcess(
-        process.execPath,
-        ["-e", 'process.stderr.write("x".repeat(1024 * 1024 + 1))'],
-        tmpdir(),
-      ),
+      runOmpProcess(process.execPath, ["-e", 'process.stderr.write("x".repeat(1024 * 1024 + 1))'], tmpdir()),
     ).rejects.toThrow("output exceeded the 1 MiB adapter limit");
   });
 
   test("kill cancelled processes and report the killed result", async () => {
     const piController = new AbortController();
     const ompController = new AbortController();
-    const blockingScript =
-      "Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0)";
-    const pi = runPiProcess(
-      process.execPath,
-      ["-e", blockingScript],
-      tmpdir(),
-      piController.signal,
-    );
-    const omp = runOmpProcess(
-      process.execPath,
-      ["-e", blockingScript],
-      tmpdir(),
-      ompController.signal,
-    );
+    const blockingScript = "Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0)";
+    const pi = runPiProcess(process.execPath, ["-e", blockingScript], tmpdir(), piController.signal);
+    const omp = runOmpProcess(process.execPath, ["-e", blockingScript], tmpdir(), ompController.signal);
     piController.abort();
     ompController.abort();
     const [piResult, ompResult] = await Promise.all([pi, omp]);
@@ -152,11 +126,9 @@ describe("Pi native adapter", () => {
     expect(registered).toHaveLength(6);
     expect(registered.every((tool) => !("loadMode" in tool))).toBe(true);
     const read = registered.find((tool) => tool.name === "tk_read");
-    await read?.execute(
-      { task_ref: "task", wal_max_entries: 7, wal_max_length: 8192 },
-      undefined,
-      { cwd: temporaryHome! },
-    );
+    await read?.execute({ task_ref: "task", wal_max_entries: 7, wal_max_length: 8192 }, undefined, {
+      cwd: temporaryHome!,
+    });
     expect(calls.at(-1)).toEqual({
       command: runtime,
       args: [
@@ -176,9 +148,33 @@ describe("Pi native adapter", () => {
     const create = registered.find((tool) => tool.name === "tk_create");
     await create?.execute(
       {
+        type: "task",
+        name: "top",
+        body: "ignored body",
+        status: "open",
+        user_confirmed: true,
+      },
+      undefined,
+      { cwd: temporaryHome! },
+    );
+    expect(calls.at(-1)?.args).toEqual([
+      "--output",
+      "json",
+      "--cwd",
+      temporaryHome!,
+      "create",
+      "task",
+      "top",
+      "--status",
+      "open",
+      "--user-confirmed",
+      "true",
+    ]);
+    await create?.execute(
+      {
         type: "subtasks",
         parent_ref: "parent",
-        subtasks: [{ name: "child", status: "planning" }],
+        subtasks: [{ name: "child", status: "planning", body: "ignored body" }],
         user_confirmed: false,
       },
       undefined,
@@ -201,7 +197,7 @@ describe("Pi native adapter", () => {
         if (args[0] === "--version") {
           return success({ runtime_version: "0.1.0" });
         }
-        return success({ ...contract("pi"), contract_version: 2 });
+        return success({ ...contract("pi"), contract_version: 3 });
       },
       registerTool(tool) {
         registered.push(tool);
@@ -214,7 +210,6 @@ describe("Pi native adapter", () => {
 
 describe("OMP native adapter", () => {
   test("uses Rust-provided load modes and command-local actor", async () => {
-
     const runtime = await installFakeRuntime();
     const registered: OmpTool[] = [];
     const calls: Array<{ command: string; args: string[]; cwd: string }> = [];
@@ -236,21 +231,14 @@ describe("OMP native adapter", () => {
       },
     });
 
-    expect(registered.find((tool) => tool.name === "tk_search")?.loadMode).toBe(
-      "essential",
-    );
-    expect(registered.find((tool) => tool.name === "tk_exec")?.loadMode).toBe(
-      "discoverable",
-    );
-    expect(registered.find((tool) => tool.name === "tk_update")?.loadMode).toBe(
-      "essential",
-    );
+    expect(registered.find((tool) => tool.name === "tk_search")?.loadMode).toBe("essential");
+    expect(registered.find((tool) => tool.name === "tk_exec")?.loadMode).toBe("discoverable");
+    expect(registered.find((tool) => tool.name === "tk_update")?.loadMode).toBe("essential");
     const update = registered.find((tool) => tool.name === "tk_update");
-    await update?.execute(
-      { task_ref: "task", start: true, user_confirmed: true },
-      undefined,
-      { cwd: temporaryHome!, actor: "omp:test/model" },
-    );
+    await update?.execute({ task_ref: "task", start: true, user_confirmed: true }, undefined, {
+      cwd: temporaryHome!,
+      actor: "omp:test/model",
+    });
     expect(calls.at(-1)).toEqual({
       command: runtime,
       args: [
@@ -271,9 +259,33 @@ describe("OMP native adapter", () => {
     const create = registered.find((tool) => tool.name === "tk_create");
     await create?.execute(
       {
+        type: "task",
+        name: "top",
+        body: "ignored body",
+        status: "open",
+        user_confirmed: true,
+      },
+      undefined,
+      { cwd: temporaryHome! },
+    );
+    expect(calls.at(-1)?.args).toEqual([
+      "--output",
+      "json",
+      "--cwd",
+      temporaryHome!,
+      "create",
+      "task",
+      "top",
+      "--status",
+      "open",
+      "--user-confirmed",
+      "true",
+    ]);
+    await create?.execute(
+      {
         type: "subtasks",
         parent_ref: "parent",
-        subtasks: [{ name: "child" }],
+        subtasks: [{ name: "child", body: "ignored body" }],
         user_confirmed: true,
       },
       undefined,

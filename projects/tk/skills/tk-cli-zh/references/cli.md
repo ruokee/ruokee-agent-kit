@@ -106,7 +106,7 @@ tk read <task_ref>
 
 ```text
 tk create task <name>
-  [--body <markdown>] [--status <planning|open>]
+  [--status <planning|open>]
   [--created-at <rfc3339>]
   [--depends-on <uuid>]... [--related-to <uuid>]...
   [--extra <object-json>]
@@ -115,12 +115,13 @@ tk create task <name>
 ```
 
 - `<name>` 是必填任务名称。
-- `--body` 设置初始 `TASK.md` 正文。
 - `--status` 只接受 `planning` 或 `open`，默认是 `open`。
 - `--created-at` 只用于保留可靠的历史创建时间。普通创建应省略。
 - `--depends-on` 和 `--related-to` 可重复传入，值是同一任务根内已存在任务的完整 UUID。
 - `--extra` 接受 JSON 对象。
 - CLI 直接创建代表当前用户请求，因此 `--user-confirmed` 默认是 `true`。其他调用入口不得借用这个默认值伪造确认。
+
+tk 运行时在创建 Task 时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。任务需要持久内容时，只在创建完成后单独写入 `TASK.md`。
 
 命名、授权和任务字段规则见[任务概念](./task-concept.md)与[项目和存储](./project-storage.md)。
 
@@ -135,7 +136,7 @@ tk create subtask <parent_ref>
   [--cwd <path>] [--output <text|json>]
 ```
 
-每个 `--item` 是一个 JSON 对象，包含必填 `name`，以及可选 `body`、`status`、`created_at`、关系和 `extra`。一次请求接受 1 到 50 个条目。
+每个 `--item` 是一个 JSON 对象，包含必填 `name`，以及可选 `status`、`created_at`、关系和 `extra`。item 不接受正文；每个创建的子任务都以生成的规范化名称标题开头。一次请求接受 1 到 50 个条目。
 
 运行时先预检整个批次，再按输入顺序创建。CLI 的 `--user-confirmed` 默认是 `true`；其他调用入口必须传递真实授权状态。创建 `planning` 子任务需要确认。
 
@@ -216,11 +217,13 @@ tk check [--cwd <path>] [--output <text|json>]
 
 ```text
 tk rename <task_ref> <name>
-  [--dry-run] [--actor <text>]
+  [--dry-run] [--ignore-brokenlinks] [--actor <text>]
   [--cwd <path>] [--output <text|json>]
 ```
 
-`--dry-run` 返回计划，不写入文件。执行只修改目标任务，仅在路径属于生成式路径时移动目录，并报告解析出的父级和 Markdown 引用，不改写引用内容。名称及其适用路径已经匹配时返回无变化。`--actor` 默认是 `cli`。
+`--dry-run` 返回计划，不写入文件，发现引用时也照常成功。执行只修改目标任务，仅在路径属于生成式路径时移动目录，并报告解析出的父级和 Markdown 引用，不改写引用内容。名称及其适用路径已经匹配时返回无变化。`--actor` 默认是 `cli`。
+
+路径移动会留下旧路径引用时，执行在写入任何内容前以退出码 3 停止。错误会列出每个引用的文件路径和行号。传入 `--ignore-brokenlinks` 可以继续移动；引用文件保持原样，结果中仍会报告它们。
 
 ## `tk gc`
 
@@ -318,7 +321,7 @@ JSON 结果包含：
 ```json
 {
   "runtime_version": "0.1.2",
-  "cli_contract_version": 1,
+  "cli_contract_version": 2,
   "task_schema_version": 1,
   "component_format_version": 3
 }

@@ -6,7 +6,7 @@ Read this file when creating subtasks or handling placement, numbering, discover
 
 The parent must resolve uniquely and have status `open` or `planning`. Creation never reopens a `closed` parent implicitly.
 
-One request creates 1 to 50 sibling subtasks below one parent. Each item requires a name and may include a body, `planning` or `open` status, historical `created_at`, relationships, and `extra`. Relationships in the batch may point only to Tasks that already exist, not to sibling Tasks that the same batch has not created yet.
+One request creates 1 to 50 sibling subtasks below one parent. Each item requires a name and may include `planning` or `open` status, historical `created_at`, relationships, and `extra`. Items do not accept a body; every created subtask starts with the generated normalized-name heading. Relationships in the batch may point only to Tasks that already exist, not to sibling Tasks that the same batch has not created yet.
 
 Subtasks may be nested. Do not combine independent work in one name; create sibling Tasks instead. Use a subtask only for a work unit that needs its own status, relationships, WAL, body, or materials. Do not persist every routine execution step or backlog item as a subtask.
 

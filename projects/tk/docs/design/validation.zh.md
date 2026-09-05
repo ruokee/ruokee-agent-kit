@@ -31,6 +31,9 @@
 - 非生成式子 Task 重命名不移动目录，生成式重命名保持序号；
 - planning、open、closed 转换和关闭约束；
 - strict 与 permissive 创建；
+- create 把 `--body` 作为未知 CLI 参数拒绝，并在 create 请求与子 Task item 上把 `body` 作为未知字段拒绝；
+- 运行时在 split 和 embed 模式创建 Task 时写入恰为 `# <规范化名称>` 的初始正文；
+- 子 Task 重试只匹配 create 拥有的字段，正文被改写后重试返回无变更且不产生重复；
 - Git `track`、`ignore` 和 `none` 只在写入前预检；
 - 绝对已发现 Task、载体和材料路径反向定位项目；
 - 非 Git 发现的有界祖先检查。
@@ -85,7 +88,11 @@
 - `git_policy=track` 扫描 Git 跟踪的项目 Markdown；
 - `ignore` 和 `none` 扫描 task_root 普通 Markdown；
 - split 和 embed 正文均参与；
-- 引用只报告，不自动修改。
+- 引用只报告，不自动修改；
+- 带引用的 dry-run 成功并返回完整计划；
+- 带引用的路径移动执行在首次写入前以稳定错误码 `broken_reference_conflict`、`conflict` 类别和退出码 3 停止，details 包含 `old_path`、规范化 `new_name`、绝对 `target_path` 和全部引用路径与行号；
+- `--ignore-brokenlinks` 让移动完成，引用文件逐字节保持原样，结果中仍包含引用；
+- 无引用的路径移动正常完成。非生成式子 Task 改名不会移动目录，重复相同 rename 返回无变化；这两种情况都不返回 `broken_reference_conflict`。
 
 ## check 和 GC
 

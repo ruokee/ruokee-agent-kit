@@ -166,7 +166,6 @@ create 使用 `oneOf` 区分顶层 Task 和子 Task 批次。
 | --- | --- | --- |
 | `type` | 必填 | `task` |
 | `name` | 必填 | 可规范化名称 |
-| `body` | 生成标题 | UTF-8 Markdown |
 | `status` | `open` | `planning` 或 `open` |
 | `created_at` | 当前时间 | 只在已知原始时间时显式提供 |
 | `depends_on` | 空 | 同根 UUID 集合 |
@@ -177,17 +176,19 @@ create 使用 `oneOf` 区分顶层 Task 和子 Task 批次。
 
 strict 项目要求 `user_confirmed=true`。permissive 项目允许值得持久保存的工作在 `false` 时创建，调用 Agent 负责根据语境选择 planning 或 open 并报告创建结果。
 
+运行时在创建 Task 时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文，并且不接受任何 create 请求中的正文输入。调用方在创建完成后用普通文件操作写入 `TASK.md`。
+
 子 Task 分支：
 
 | 字段 | 合同 |
 | --- | --- |
 | `type` | `subtasks` |
 | `parent_ref` | 精确、非 closed 父 Task |
-| `subtasks` | 1 到 50 项，每项使用顶层分支的 Task 内容字段 |
+| `subtasks` | 1 到 50 项，每项携带 `name`、可选 `status`（默认 `open`）、可选 `created_at`、`depends_on`、`related_to` 和 `extra`；item 不接受正文字段 |
 | `user_confirmed` | 当前对话是否明确授权创建 planning 子 Task，默认 `false` |
 | `cwd` | 项目解析 |
 
-创建 open 子 Task 不需要新的顶层授权。批次只要包含 planning 子 Task，就要求 `user_confirmed=true`。首次写入前完成全部校验。新子 Task 在配置的创建目录下使用 `NN--slug`。编号统计所有叶子目录使用生成式名称的已发现直接子 Task，取最大序号且不填补空洞，最大为 `99`。部分创建失败时返回已创建和未创建项。重试会跳过内容匹配的已发现直接子 Task。
+创建 open 子 Task 不需要新的顶层授权。批次只要包含 planning 子 Task，就要求 `user_confirmed=true`。首次写入前完成全部校验。新子 Task 在配置的创建目录下使用 `NN--slug`。编号统计所有叶子目录使用生成式名称的已发现直接子 Task，取最大序号且不填补空洞，最大为 `99`。部分创建失败时返回已创建和未创建项。重试只把已发现直接子 Task 与 create 拥有的请求字段（`name`、`status`、显式提供的 `created_at`、`depends_on`、`related_to`、`extra`）匹配；正文不参与匹配。
 
 ## 更新
 
@@ -220,7 +221,9 @@ exec 是低频管理入口：
 
 exec 直接从 argv 调用公开命令解析器，不经过 shell。它拒绝 search、read、create、update、log、mcp、schema、metadata、gc、install、uninstall 和其他首项。
 
-rename 结果包含存在时的已解析父 Task 路径、旧路径、目标路径和 Markdown 引用。非生成式子 Task 目录保持不变；生成式子 Task 和顶层路径保留序号并更新 slug。
+rename 结果包含存在时的已解析父 Task 路径、旧路径、规范化后的新名称、目标路径，以及每个 Markdown 引用及其行号。非生成式子 Task 目录保持不变；生成式子 Task 和顶层路径保留序号并更新 slug。
+
+exec 的 rename 与 CLI 采用相同的断链处理。执行会移动 Task 路径且存在旧路径引用时，在首次写入前以 conflict 错误停止。在 argv 中传入 `--ignore-brokenlinks` 可以继续移动；引用文件保持原样，结果中仍会报告它们。dry-run 在生成合法计划后始终成功。
 
 ## 传输
 

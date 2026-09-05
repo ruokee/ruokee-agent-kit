@@ -166,7 +166,6 @@ Top-level branch:
 | --- | --- | --- |
 | `type` | Required | `task` |
 | `name` | Required | Canonicalizable name |
-| `body` | Generated heading | UTF-8 Markdown |
 | `status` | `open` | `planning` or `open` |
 | `created_at` | Current time | Provide explicitly only when the original time is known |
 | `depends_on` | Empty | Set of same-root UUIDs |
@@ -177,17 +176,19 @@ Top-level branch:
 
 strict projects require `user_confirmed=true`. permissive projects allow work worth persisting to be created when it is `false`. The calling Agent selects planning or open based on context and reports the creation result.
 
+The runtime automatically generates `# <normalized-name>` as the initial `TASK.md` body when it creates a Task, and it accepts no body input on any create request. Callers write `TASK.md` with ordinary file operations after creation.
+
 Child Task branch:
 
 | Field | Contract |
 | --- | --- |
 | `type` | `subtasks` |
 | `parent_ref` | Exact, non-closed parent Task |
-| `subtasks` | 1 to 50 items, each using the Task content fields from the top-level branch |
+| `subtasks` | 1 to 50 items, each carrying `name`, optional `status` (default `open`), optional `created_at`, `depends_on`, `related_to`, and `extra`; items accept no body field |
 | `user_confirmed` | Current conversation authorization for planning child Tasks; defaults to `false` |
 | `cwd` | Project resolution |
 
-Open child Tasks do not require new top-level authorization. A batch containing a planning child requires `user_confirmed=true`. All validation completes before the first write in the batch. New children use `NN--slug` under the configured creation directory. Numbering uses all discovered direct children with generated leaf names, takes the largest sequence without filling gaps, and stops at `99`. If creation partially fails, the result returns the created and uncreated items. A retry skips discovered direct children that already match the requested content.
+Open child Tasks do not require new top-level authorization. A batch containing a planning child requires `user_confirmed=true`. All validation completes before the first write in the batch. New children use `NN--slug` under the configured creation directory. Numbering uses all discovered direct children with generated leaf names, takes the largest sequence without filling gaps, and stops at `99`. If creation partially fails, the result returns the created and uncreated items. A retry matches discovered direct children only against the request fields create owns (`name`, `status`, `created_at` when supplied, `depends_on`, `related_to`, `extra`); the body never participates in matching.
 
 ## Update
 
@@ -220,7 +221,9 @@ exec is a low-frequency administrative entry point:
 
 exec invokes the public command parser directly from argv without using a shell. It rejects search, read, create, update, log, mcp, schema, metadata, gc, install, uninstall, and any other first item.
 
-rename results include the resolved parent Task path when one exists, the old path, the target path, and Markdown references. Non-generated child directories remain in place; generated child and top-level paths keep their sequence and update the slug.
+rename results include the resolved parent Task path when one exists, the old path, the normalized new name, the target path, and every Markdown reference with its line. Non-generated child directories remain in place; generated child and top-level paths keep their sequence and update the slug.
+
+The exec rename path follows the same broken-reference behavior as the CLI. An execution that would move the Task path stops with a conflict error before the first write when references to the old path exist. Pass `--ignore-brokenlinks` in argv to move anyway; reference files stay unchanged, and the result still reports them. Dry-run always succeeds after a valid plan is built.
 
 ## Transport
 

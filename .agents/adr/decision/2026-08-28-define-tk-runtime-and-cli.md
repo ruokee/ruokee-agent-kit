@@ -96,3 +96,13 @@ Every interface shares one executable and one error model. Runtime changes can a
 Short-lived processes reread canonical state on every call. This avoids cache invalidation and stale project graphs at the cost of process startup and repeated bounded discovery.
 
 The CLI is a public compatibility boundary. Command names, argument ownership, JSON fields, error codes, and version output require coordinated changes across runtime, adapters, Skills, documentation, and validation.
+
+## Changes
+
+### 2026-09-05: Creation no longer accepts body input
+
+The create interface owns no body input. `tk create task` rejects `--body` as an unknown argument, and create tool requests and child Task items reject `body` as an unknown field. When the runtime creates a Task, it automatically writes `# <normalized-name>` as the initial body. The CLI contract version rises to 2.
+
+### 2026-09-05: Rename guards against broken references
+
+`tk rename` gains `--ignore-brokenlinks`. An execution that would move the Task path stops with a conflict error and exit status 3 before the first persistent write when references to the old path exist. The flag permits that move without touching the reference files. Dry-run reports the plan and references without writing. CLI and `tk_exec rename` use the same rule, and the CLI contract version stays at 2.

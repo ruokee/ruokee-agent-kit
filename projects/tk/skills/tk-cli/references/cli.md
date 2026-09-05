@@ -106,7 +106,7 @@ Create a top-level Task:
 
 ```text
 tk create task <name>
-  [--body <markdown>] [--status <planning|open>]
+  [--status <planning|open>]
   [--created-at <rfc3339>]
   [--depends-on <uuid>]... [--related-to <uuid>]...
   [--extra <object-json>]
@@ -115,12 +115,13 @@ tk create task <name>
 ```
 
 - `<name>` is required.
-- `--body` sets the initial `TASK.md` body.
 - `--status` accepts only `planning` or `open` and defaults to `open`.
 - `--created-at` preserves a reliable historical creation time. Omit it for ordinary creation.
 - `--depends-on` and `--related-to` are repeatable and accept complete UUIDs for existing Tasks in the same Task root.
 - `--extra` accepts a JSON object.
 - Direct CLI creation represents the current user's request, so `--user-confirmed` defaults to `true`. Other invocation entries must not borrow this default to fabricate confirmation.
+
+The tk runtime automatically writes `# <normalized-name>` as the initial `TASK.md` body when it creates the Task. Write `TASK.md` separately after creation only when the Task needs durable content.
 
 See [Task concepts](./task-concept.md) and [Project storage](./project-storage.md) for naming, authorization, and Task-field rules.
 
@@ -135,7 +136,7 @@ tk create subtask <parent_ref>
   [--cwd <path>] [--output <text|json>]
 ```
 
-Each `--item` is a JSON object with required `name` and optional `body`, `status`, `created_at`, relationships, and `extra`. One request accepts 1 to 50 items.
+Each `--item` is a JSON object with required `name` and optional `status`, `created_at`, relationships, and `extra`. Items do not accept a body; every created subtask starts with the generated normalized-name heading. One request accepts 1 to 50 items.
 
 The runtime preflights the complete batch, then creates in input order. CLI `--user-confirmed` defaults to `true`; other invocation entries must pass the real authorization state. Creating a `planning` subtask requires confirmation.
 
@@ -216,11 +217,13 @@ Rename a Task:
 
 ```text
 tk rename <task_ref> <name>
-  [--dry-run] [--actor <text>]
+  [--dry-run] [--ignore-brokenlinks] [--actor <text>]
   [--cwd <path>] [--output <text|json>]
 ```
 
-`--dry-run` returns a plan without writing. Execution changes only the target Task, moves its directory only when it has a generated path, and reports the resolved parent and Markdown references without rewriting them. A name and applicable path that already match return no change. `--actor` defaults to `cli`.
+`--dry-run` returns a plan without writing and always succeeds, including when references exist. Execution changes only the target Task, moves its directory only when it has a generated path, and reports the resolved parent and Markdown references without rewriting them. A name and applicable path that already match return no change. `--actor` defaults to `cli`.
+
+When the path move would leave references to the old path, execution stops with exit status 3 before writing anything. The error lists every reference path and line. Pass `--ignore-brokenlinks` to move anyway; the reference files stay unchanged and the result still reports them.
 
 ## `tk gc`
 
@@ -318,7 +321,7 @@ The JSON payload contains:
 ```json
 {
   "runtime_version": "0.1.2",
-  "cli_contract_version": 1,
+  "cli_contract_version": 2,
   "task_schema_version": 1,
   "component_format_version": 3
 }

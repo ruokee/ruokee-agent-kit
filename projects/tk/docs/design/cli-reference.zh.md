@@ -105,7 +105,7 @@ tk read <task_ref>
 
 ```text
 tk create task <name>
-  [--body <markdown>] [--status <planning|open>]
+  [--status <planning|open>]
   [--created-at <rfc3339>]
   [--depends-on <uuid>]... [--related-to <uuid>]...
   [--extra <object-json>]
@@ -114,6 +114,8 @@ tk create task <name>
 ```
 
 默认状态是 open。CLI 直接创建表示用户当前明确请求，因此 `--user-confirmed` 默认为 true。调用方不得用该默认值伪造其他传输中的用户确认。
+
+运行时在创建 Task 时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。create 不接受正文输入；任务需要持久内容时，在创建完成后单独写入 `TASK.md`。
 
 ## `tk create subtask`
 
@@ -124,7 +126,7 @@ tk create subtask <parent_ref>
   [global-options]
 ```
 
-每个 item 包含 `name` 及可选的 `body`、`status`、`created_at`、关系和 `extra`。一次接受 1 到 50 项。批次全部预检后按输入顺序创建。直接通过 CLI 创建时，`--user-confirmed` 默认为 true。其他传输必须传入当前授权状态，创建 planning 子 Task 需要确认。
+每个 item 包含 `name` 及可选的 `status`、`created_at`、关系和 `extra`。item 不接受正文；每个创建的 Task 都以生成的规范化名称标题开头。一次接受 1 到 50 项。批次全部预检后按输入顺序创建。直接通过 CLI 创建时，`--user-confirmed` 默认为 true。其他传输必须传入当前授权状态，创建 planning 子 Task 需要确认。
 
 ## `tk update`
 
@@ -178,11 +180,13 @@ check 不修复文件。损坏的 `tk.toml` 只有在 tk 无法表达修复、Ag
 
 ```text
 tk rename <task_ref> <name>
-  [--dry-run] [--actor <text>]
+  [--dry-run] [--ignore-brokenlinks] [--actor <text>]
   [global-options]
 ```
 
 rename 只修改 Task 本身。生成式子 Task 和顶层 Task 的 slug 改变时移动目录，非生成式子 Task 保持目录不变。dry-run 和执行都返回解析出的父级和 Markdown 引用，不改写引用。名称及其适用路径已经匹配时，重复请求返回无变化。actor 默认为 `cli`。
+
+dry-run 文本显示 `Old path:`、规范化名称 `New name:` 和绝对目标路径 `Target path:`。每个执行结果都显示目标路径，无变化的结果先输出 `No changes` 再输出 `Target path:`。存在旧路径引用时，文本追加 `References to the old path:` 列表，每个引用以 `path:line` 表示；没有引用时不输出该列表。dry-run 在生成合法计划后始终成功。执行会移动 Task 路径且存在旧路径引用时，在首次写入前以稳定错误码 `broken_reference_conflict`（`conflict` 类别、退出码 3）停止；错误显示目标路径和每个引用及其行号。`--ignore-brokenlinks` 允许此次移动继续进行。引用文件保持原样，结果中仍会报告它们。
 
 ## `tk gc`
 
@@ -278,7 +282,7 @@ tk <command> <subcommand> --help
 ```json
 {
   "runtime_version": "0.1.2",
-  "cli_contract_version": 1,
+  "cli_contract_version": 2,
   "task_schema_version": 1,
   "component_format_version": 3
 }

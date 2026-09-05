@@ -34,13 +34,13 @@ tk 运行时负责处理元数据、关系、生命周期、路径和持久化�
 ```text
 tk search <query> [--regex] [--search-body] [--status <planning|open|closed>]... [--extra <json>] [--limit <n>]
 tk read <task_ref> [--view <metadata|summary|detailed>] [--wal-max-entries <n>] [--wal-max-length <bytes>]
-tk create task <name> [--body <markdown>] [--status <planning|open>] [--created-at <rfc3339>] [--depends-on <uuid>]... [--related-to <uuid>]... [--extra <json>] [--user-confirmed <true|false>]
+tk create task <name> [--status <planning|open>] [--created-at <rfc3339>] [--depends-on <uuid>]... [--related-to <uuid>]... [--extra <json>] [--user-confirmed <true|false>]
 tk create subtask <parent_ref> --item <json> [--item <json>]... [--user-confirmed <true|false>]
 tk update <task_ref> [--depends-on-add <uuid>]... [--depends-on-remove <uuid>]... [--related-to-add <uuid>]... [--related-to-remove <uuid>]... [--extra-set <json>] [--extra-remove <key>]... [--start | --close <reason> | --reopen <reason>] [--force] [--user-confirmed <true|false>] [--actor <text>]
 tk log <task_ref> --message <text> [--body <markdown>] [--actor <text>]
 tk init [--task-root <path>] [--subtasks-dir <path>] [--git-policy <track|ignore|none>] [--creation-policy <strict|permissive>] [--metadata-mode <split|embed>] [--force]
 tk check
-tk rename <task_ref> <name> [--dry-run] [--actor <text>]
+tk rename <task_ref> <name> [--dry-run] [--ignore-brokenlinks] [--actor <text>]
 ```
 
 如果任务所在位置不是当前运行目录，可以通过 `--cwd` 进行覆盖。典型场景是跨目录提供任务信息。
@@ -61,6 +61,7 @@ tk rename <task_ref> <name> [--dry-run] [--actor <text>]
 - 用户没有明确要求时，选择能清楚表达用途的任务名称。建议使用短祈使句、短语或名词，禁止使用并列关系词，例如“和”“且”“与”“并”或 `and`。
 - 在同一回复中报告新任务的名称、状态和路径。
 - 只在补充创建历史任务时才传入 `created_at`。
+- tk 运行时在创建 Task 时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。任务创建成功后，如需持久保存目标、约束、决定或材料链接，再用单独的文件操作编辑 `TASK.md`。
 
 ### 授权
 

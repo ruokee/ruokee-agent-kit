@@ -193,7 +193,6 @@ pub enum ToolReadView {
 pub enum CreateParams {
     Task {
         name: String,
-        body: Option<String>,
         status: Option<Status>,
         created_at: Option<String>,
         #[serde(default)]
@@ -219,7 +218,6 @@ pub enum CreateParams {
 #[serde(deny_unknown_fields)]
 pub struct TaskPayload {
     pub name: String,
-    pub body: Option<String>,
     pub status: Option<Status>,
     pub created_at: Option<String>,
     #[serde(default)]
@@ -365,7 +363,6 @@ fn create_schema() -> Value {
                 json!({
                     "type": {"const": "task"},
                     "name": {"type": "string", "minLength": 1},
-                    "body": {"type": "string"},
                     "status": {"type": "string", "enum": ["planning", "open"], "default": "open"},
                     "created_at": {"type": "string", "format": "date-time"},
                     "depends_on": ref_array_schema(),
@@ -394,7 +391,6 @@ fn task_payload_schema() -> Value {
     object_schema(
         json!({
             "name": {"type": "string", "minLength": 1},
-            "body": {"type": "string"},
             "status": {"type": "string", "enum": ["planning", "open"]},
             "created_at": {"type": "string", "format": "date-time"},
             "depends_on": ref_array_schema(),
@@ -545,5 +541,43 @@ mod tests {
                 .load_mode,
             Some("discoverable")
         );
+    }
+
+    #[test]
+    fn create_schema_has_no_body_but_log_keeps_it() {
+        let contract = tool_contract(SchemaType::Native, Some(NativeHarness::Pi));
+        let create = contract
+            .tools
+            .iter()
+            .find(|tool| tool.name == "tk_create")
+            .unwrap();
+        for branch in create.input_schema["oneOf"].as_array().unwrap() {
+            assert!(branch["properties"].get("body").is_none());
+        }
+        let item = create.input_schema["oneOf"][1]["properties"]["subtasks"]["items"]
+            .as_object()
+            .unwrap();
+        assert!(item["properties"].get("body").is_none());
+        assert_eq!(item["additionalProperties"], false);
+        let log = contract
+            .tools
+            .iter()
+            .find(|tool| tool.name == "tk_log")
+            .unwrap();
+        assert!(log.input_schema["properties"].get("body").is_some());
+    }
+
+    #[test]
+    fn create_params_reject_body_as_unknown_field() {
+        let request = json!({
+            "type": "task",
+            "name": "probe",
+            "body": "unused",
+        });
+        let error = serde_json::from_value::<CreateParams>(request).unwrap_err();
+        assert!(error.to_string().contains("unknown field `body`"));
+        let item = json!({"name": "probe", "body": "unused"});
+        let error = serde_json::from_value::<TaskPayload>(item).unwrap_err();
+        assert!(error.to_string().contains("unknown field `body`"));
     }
 }

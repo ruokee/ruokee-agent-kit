@@ -52,6 +52,7 @@ Use `create` to create Tasks.
 - When the user does not supply a name, choose one that states the purpose clearly. Prefer a short imperative, phrase, or noun. Do not combine independent work with conjunctions such as `and`.
 - Report the new Task's name, status, and path in the same response.
 - Pass `created_at` only when adding a historical Task.
+- The tk runtime automatically writes `# <normalized-name>` as the initial `TASK.md` body when it creates a Task. After creation succeeds, edit `TASK.md` with a separate file operation when the Task needs durable goals, constraints, decisions, or material links.
 
 ### Authorization
 

@@ -22,6 +22,8 @@ A complete scan that finds problems returns `check_failed`. If a required direct
 
 Run every rename with `--dry-run` first. Confirm the normalized name, resolved parent, target path, conflicts, and reported Markdown references. The runtime changes only the Task's own name, its generated directory when applicable, and metadata. It does not rewrite references in ordinary materials.
 
+A path-moving rename that finds references to the old path stops with exit status 3 before the first write. One option is to update the reported references and run the rename again. To proceed while accepting broken links, pass `--ignore-brokenlinks`; the reference files stay unchanged, and the result still reports them.
+
 A requested name and its applicable generated path that already match return no change. Do not bypass a target conflict, damaged managed data, or failed reference scan with an alias, copied directory, or direct metadata edit.
 
 A commit-stage failure may leave only part of the name, generated directory, or WAL update complete. Run `check` immediately, then decide from current managed state whether to rerun rename or enter manual repair.

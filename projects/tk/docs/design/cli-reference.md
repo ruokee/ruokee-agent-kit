@@ -105,7 +105,7 @@ The default view is summary. WAL budgets apply only to detailed. For exact refer
 
 ```text
 tk create task <name>
-  [--body <markdown>] [--status <planning|open>]
+  [--status <planning|open>]
   [--created-at <rfc3339>]
   [--depends-on <uuid>]... [--related-to <uuid>]...
   [--extra <object-json>]
@@ -114,6 +114,8 @@ tk create task <name>
 ```
 
 The default status is open. Direct CLI creation represents an explicit current user request, so `--user-confirmed` defaults to true. Callers must not use this default to fabricate user confirmation from another transport.
+
+The runtime automatically writes `# <normalized-name>` as the initial `TASK.md` body when it creates a Task. The create command accepts no body input; write `TASK.md` separately after creation when the Task needs durable content.
 
 ## `tk create subtask`
 
@@ -124,7 +126,7 @@ tk create subtask <parent_ref>
   [global-options]
 ```
 
-Each item contains `name` and optional `body`, `status`, `created_at`, relationships, and `extra`. A request accepts 1 to 50 items. After preflighting the entire batch, it creates the items in input order. Direct CLI creation defaults `--user-confirmed` to true. Other transports must pass the current authorization state, and planning children require confirmation.
+Each item contains `name` and optional `status`, `created_at`, relationships, and `extra`. Items do not accept a body; every created Task starts with the generated normalized-name heading. A request accepts 1 to 50 items. After preflighting the entire batch, it creates the items in input order. Direct CLI creation defaults `--user-confirmed` to true. Other transports must pass the current authorization state, and planning children require confirmation.
 
 ## `tk update`
 
@@ -178,11 +180,13 @@ check does not repair files. A corrupted `tk.toml` may be repaired manually only
 
 ```text
 tk rename <task_ref> <name>
-  [--dry-run] [--actor <text>]
+  [--dry-run] [--ignore-brokenlinks] [--actor <text>]
   [global-options]
 ```
 
 rename modifies only the Task itself. It moves generated child and top-level directories when their slug changes, while non-generated child directories stay in place. Dry-run and execution return the resolved parent and Markdown references without rewriting them. Repeating a request whose name and applicable path already match returns no change. actor defaults to `cli`.
+
+Dry-run text shows `Old path:`, the normalized name as `New name:`, and the absolute destination as `Target path:`. Every execution result shows the target path, and a no-op result prints `No changes` followed by `Target path:`. When references to the old path exist, the text appends a `References to the old path:` list with every reference as `path:line`; the section is absent when there are none. Dry-run always succeeds after a valid plan is built. An execution that would move the Task path stops with the stable error code `broken_reference_conflict` (category `conflict`, exit status 3) before the first write when references to the old path exist; the error shows the target path and every reference with its line. `--ignore-brokenlinks` lets that move proceed. Reference files stay unchanged, and the result still reports them.
 
 ## `tk gc`
 
@@ -278,7 +282,7 @@ Version JSON is:
 ```json
 {
   "runtime_version": "0.1.2",
-  "cli_contract_version": 1,
+  "cli_contract_version": 2,
   "task_schema_version": 1,
   "component_format_version": 3
 }

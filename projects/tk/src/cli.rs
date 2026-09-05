@@ -1,3 +1,4 @@
+use std::fmt::Write as _;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
@@ -138,8 +139,6 @@ enum SchemaCommands {
 #[derive(Debug, Args)]
 struct CreateTaskArgs {
     name: String,
-    #[arg(long)]
-    body: Option<String>,
     #[arg(long, value_enum, default_value_t = CliCreationStatus::Open)]
     status: CliCreationStatus,
     #[arg(long)]
@@ -209,6 +208,8 @@ struct RenameArgs {
     name: String,
     #[arg(long)]
     dry_run: bool,
+    #[arg(long = "ignore-brokenlinks")]
+    ignore_brokenlinks: bool,
     #[arg(long)]
     actor: Option<String>,
 }
@@ -614,7 +615,6 @@ fn execute(command: Commands, cwd: PathBuf) -> Result<CommandOutput> {
                 CreateCommands::Task(args) => CreateRequest::Task {
                     input: CreateTaskInput {
                         name: args.name,
-                        body: args.body,
                         status: args.status.into(),
                         created_at: args.created_at,
                         depends_on: args.depends_on,
@@ -784,23 +784,13 @@ fn execute(command: Commands, cwd: PathBuf) -> Result<CommandOutput> {
                 &args.task_ref,
                 &args.name,
                 args.dry_run,
+                args.ignore_brokenlinks,
                 args.actor.as_deref().unwrap_or("cli"),
             )?;
             let warnings = convert_warnings(std::mem::take(&mut result.warnings));
-            let text = if args.dry_run {
-                format!(
-                    "{} -> {}",
-                    result.plan.old_path.display(),
-                    result.plan.target_path.display()
-                )
-            } else if result.changed {
-                format!("Renamed to {}", result.task.task_dir.display())
-            } else {
-                "No changes".into()
-            };
             Ok(CommandOutput {
-                data: serde_json::to_value(result).expect("serializing rename result"),
-                text,
+                data: serde_json::to_value(&result).expect("serializing rename result"),
+                text: rename_text(args.dry_run, &result),
                 warnings,
             })
         }
@@ -977,6 +967,40 @@ fn print_error(output: Output, error: &TkError) {
     }
 }
 
+fn rename_references_section(plan: &maintenance::RenamePlan) -> String {
+    if plan.references.is_empty() {
+        return String::new();
+    }
+    let mut section = String::from("\nReferences to the old path:\n");
+    for reference in &plan.references {
+        let _ = writeln!(section, "{}:{}", reference.path.display(), reference.line);
+    }
+    section.pop();
+    section
+}
+
+fn rename_text(dry_run: bool, result: &maintenance::RenameResult) -> String {
+    let reference_section = rename_references_section(&result.plan);
+    if dry_run {
+        format!(
+            "Old path: {}\nNew name: {}\nTarget path: {}{reference_section}",
+            result.plan.old_path.display(),
+            result.plan.new_name,
+            result.plan.target_path.display(),
+        )
+    } else if result.changed {
+        format!(
+            "Renamed to {}{reference_section}",
+            result.task.task_dir.display()
+        )
+    } else {
+        format!(
+            "No changes\nTarget path: {}{reference_section}",
+            result.plan.target_path.display()
+        )
+    }
+}
+
 fn print_version(output: Output) {
     match output {
         Output::Text => println!("tk {}", env!("CARGO_PKG_VERSION")),
@@ -1090,6 +1114,8 @@ impl From<CliReadView> for ReadView {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use clap::error::ErrorKind;
+    use uuid::Uuid;
 
     #[test]
     fn accepts_version_with_json_output() {
@@ -1144,6 +1170,13 @@ mod tests {
     #[test]
     fn rejects_subtasks_alias() {
         assert!(Cli::try_parse_from(["tk", "create", "subtasks"]).is_err());
+    }
+
+    #[test]
+    fn create_task_rejects_body_option() {
+        let error =
+            Cli::try_parse_from(["tk", "create", "task", "name", "--body", "x"]).unwrap_err();
+        assert_eq!(error.kind(), ErrorKind::UnknownArgument);
     }
 
     #[test]
@@ -1254,5 +1287,127 @@ mod tests {
     #[test]
     fn custom_install_requires_explicit_mode() {
         assert!(Cli::try_parse_from(["tk", "install", "--skill-root", "skills"]).is_err());
+    }
+
+    fn rename_result_fixture(
+        changed: bool,
+        committed: bool,
+        references: Vec<(usize, &str)>,
+    ) -> maintenance::RenameResult {
+        let id = Uuid::now_v7();
+        let references = references
+            .into_iter()
+            .map(|(line, path)| maintenance::MarkdownReference {
+                path: PathBuf::from(path),
+                line,
+            })
+            .collect();
+        maintenance::RenameResult {
+            changed,
+            committed,
+            partial: false,
+            task: app::TaskReference {
+                id,
+                name: "target".into(),
+                status: crate::domain::Status::Open,
+                task_dir: PathBuf::from("/tmp/project/.tk/2026/09/05-01--target"),
+            },
+            plan: maintenance::RenamePlan {
+                task_id: id,
+                old_name: "source".into(),
+                new_name: "target".into(),
+                old_path: PathBuf::from("/tmp/project/.tk/2026/09/05-01--source"),
+                target_path: PathBuf::from("/tmp/project/.tk/2026/09/05-01--target"),
+                parent_task: None,
+                references,
+                expected_wal: String::new(),
+            },
+            warnings: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn rename_text_covers_dry_run_changed_noop_and_references() {
+        let with_refs = rename_result_fixture(
+            true,
+            false,
+            vec![
+                (2, "/tmp/project/notes/a.md"),
+                (7, "/tmp/project/notes/b.md"),
+            ],
+        );
+        assert_eq!(
+            rename_text(true, &with_refs),
+            "Old path: /tmp/project/.tk/2026/09/05-01--source\n\
+             New name: target\n\
+             Target path: /tmp/project/.tk/2026/09/05-01--target\n\
+             References to the old path:\n\
+             /tmp/project/notes/a.md:2\n\
+             /tmp/project/notes/b.md:7"
+        );
+        let no_op = rename_result_fixture(
+            false,
+            false,
+            vec![
+                (2, "/tmp/project/notes/a.md"),
+                (7, "/tmp/project/notes/b.md"),
+            ],
+        );
+        assert_eq!(
+            rename_text(false, &no_op),
+            "No changes\nTarget path: /tmp/project/.tk/2026/09/05-01--target\n\
+             References to the old path:\n\
+             /tmp/project/notes/a.md:2\n\
+             /tmp/project/notes/b.md:7"
+        );
+
+        let changed = rename_result_fixture(
+            true,
+            true,
+            vec![
+                (2, "/tmp/project/notes/a.md"),
+                (7, "/tmp/project/notes/b.md"),
+            ],
+        );
+        assert_eq!(
+            rename_text(false, &changed),
+            "Renamed to /tmp/project/.tk/2026/09/05-01--target\n\
+             References to the old path:\n\
+             /tmp/project/notes/a.md:2\n\
+             /tmp/project/notes/b.md:7"
+        );
+
+        let without_refs = rename_result_fixture(true, false, Vec::new());
+        assert_eq!(
+            rename_text(true, &without_refs),
+            "Old path: /tmp/project/.tk/2026/09/05-01--source\n\
+             New name: target\n\
+             Target path: /tmp/project/.tk/2026/09/05-01--target"
+        );
+    }
+
+    #[test]
+    fn rename_accepts_exact_ignore_brokenlinks_spelling() {
+        let cli = Cli::try_parse_from([
+            "tk",
+            "rename",
+            ".tk/2026/09/05-01--source",
+            "target",
+            "--ignore-brokenlinks",
+        ])
+        .unwrap();
+        assert!(matches!(
+            &cli.command,
+            Some(Commands::Rename(args)) if args.ignore_brokenlinks
+        ));
+
+        let misspelled = Cli::try_parse_from([
+            "tk",
+            "rename",
+            ".tk/2026/09/05-01--source",
+            "target",
+            "--ignore-broken-links",
+        ]);
+        assert!(misspelled.is_err());
     }
 }

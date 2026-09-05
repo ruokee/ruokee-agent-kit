@@ -34,13 +34,13 @@ Common commands:
 ```text
 tk search <query> [--regex] [--search-body] [--status <planning|open|closed>]... [--extra <json>] [--limit <n>]
 tk read <task_ref> [--view <metadata|summary|detailed>] [--wal-max-entries <n>] [--wal-max-length <bytes>]
-tk create task <name> [--body <markdown>] [--status <planning|open>] [--created-at <rfc3339>] [--depends-on <uuid>]... [--related-to <uuid>]... [--extra <json>] [--user-confirmed <true|false>]
+tk create task <name> [--status <planning|open>] [--created-at <rfc3339>] [--depends-on <uuid>]... [--related-to <uuid>]... [--extra <json>] [--user-confirmed <true|false>]
 tk create subtask <parent_ref> --item <json> [--item <json>]... [--user-confirmed <true|false>]
 tk update <task_ref> [--depends-on-add <uuid>]... [--depends-on-remove <uuid>]... [--related-to-add <uuid>]... [--related-to-remove <uuid>]... [--extra-set <json>] [--extra-remove <key>]... [--start | --close <reason> | --reopen <reason>] [--force] [--user-confirmed <true|false>] [--actor <text>]
 tk log <task_ref> --message <text> [--body <markdown>] [--actor <text>]
 tk init [--task-root <path>] [--subtasks-dir <path>] [--git-policy <track|ignore|none>] [--creation-policy <strict|permissive>] [--metadata-mode <split|embed>] [--force]
 tk check
-tk rename <task_ref> <name> [--dry-run] [--actor <text>]
+tk rename <task_ref> <name> [--dry-run] [--ignore-brokenlinks] [--actor <text>]
 ```
 
 Use `--cwd` when the Task is outside the current runtime directory, such as when the user supplies information from another directory.
@@ -61,6 +61,7 @@ Use `tk create` to create Tasks.
 - When the user does not supply a name, choose one that states the purpose clearly. Prefer a short imperative, phrase, or noun. Do not combine independent work with conjunctions such as `and`.
 - Report the new Task's name, status, and path in the same response.
 - Pass `created_at` only when adding a historical Task.
+- The tk runtime automatically writes `# <normalized-name>` as the initial `TASK.md` body when it creates a Task. After creation succeeds, edit `TASK.md` with a separate file operation when the Task needs durable goals, constraints, decisions, or material links.
 
 ### Authorization
 

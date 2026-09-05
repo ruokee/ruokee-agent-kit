@@ -31,6 +31,9 @@ Cover split and embed:
 - Non-generated child rename without a directory move and generated rename with a stable sequence;
 - planning, open, and closed transitions and closing constraints;
 - Strict and permissive creation;
+- create rejects `--body` as an unknown CLI argument and rejects `body` as an unknown field in create requests and child Task items;
+- The runtime writes an initial body of exactly `# <normalized-name>` for both split and embed creation;
+- subtask retry matches only fields create owns, so a retry after the body was rewritten returns no changes and no duplicates;
 - Git `track`, `ignore`, and `none` preflight checks only before writes;
 - Reverse project discovery from absolute discovered Task, carrier, and material paths;
 - Bounded ancestor checks for non-Git discovery.
@@ -85,7 +88,11 @@ Cover name and path updates, unchanged results for repeated identical rename ope
 - `git_policy=track` scans Git-tracked project Markdown;
 - `ignore` and `none` scan ordinary Markdown under task_root;
 - Bodies in both split and embed participate;
-- References are reported but not modified automatically.
+- References are reported but not modified automatically;
+- Dry-run with references succeeds and returns the complete plan;
+- A path-moving execution with references stops with the stable error code `broken_reference_conflict`, category `conflict`, and exit status 3 before the first write, with `old_path`, normalized `new_name`, absolute `target_path`, and every reference path and line in the details;
+- `--ignore-brokenlinks` lets the move complete, leaves reference files byte for byte unchanged, and keeps the references in the result;
+- A path move without references completes. A non-generated child rename completes without moving its directory, and repeating an identical rename returns no change; neither returns `broken_reference_conflict`.
 
 ## check and GC
 
