@@ -57,9 +57,11 @@ pnpm docs:lint
 将指定文件直接传给 Prettier：
 
 ```bash
-pnpm exec prettier --write README.md docs/zh/README.md
-pnpm exec prettier --check README.md docs/zh/README.md
+pnpm exec prettier --write --log-level warn README.md docs/zh/README.md
+pnpm exec prettier --check --log-level warn README.md docs/zh/README.md
 ```
+
+这些命令和 Git hook 使用 `--log-level warn`，只显示 Prettier 的警告和错误。不输出未变化的文件、成功格式化的文件和成功摘要。检查仍会列出格式不合格的文件，并在失败时返回非零退出码。
 
 如果 Prettier 无法加载 Plugin，请重新运行 `pnpm install --frozen-lockfile`。
 

@@ -57,9 +57,11 @@ pnpm docs:lint
 Pass selected files directly to Prettier:
 
 ```bash
-pnpm exec prettier --write README.md docs/zh/README.md
-pnpm exec prettier --check README.md docs/zh/README.md
+pnpm exec prettier --write --log-level warn README.md docs/zh/README.md
+pnpm exec prettier --check --log-level warn README.md docs/zh/README.md
 ```
+
+These commands and the Git hook use `--log-level warn` to show only Prettier warnings and errors. Unchanged files, successfully formatted files, and success summaries are not printed. Checks still report unformatted files and return a nonzero exit code on failure.
 
 Run `pnpm install --frozen-lockfile` again if Prettier cannot load a plugin.
 
