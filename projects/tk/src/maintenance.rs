@@ -505,8 +505,7 @@ fn inspect_root(project: &Project, diagnostics: &mut Vec<Diagnostic>) -> Result<
                 .or_default()
                 .push(task.directory.clone());
         }
-        let wal_read = wal::read(&task.directory, usize::MAX, usize::MAX)?;
-        for warning in wal_read.warnings {
+        for warning in wal::inspect(&task.directory)? {
             diagnostics.push(Diagnostic {
                 severity: Severity::Warning,
                 code: warning.code,
@@ -514,14 +513,6 @@ fn inspect_root(project: &Project, diagnostics: &mut Vec<Diagnostic>) -> Result<
                 path: Some(warning.path),
                 details: None,
             });
-        }
-        if wal_read.truncated {
-            diagnostics.push(diagnostic(
-                Severity::Warning,
-                "wal_truncated",
-                "WAL inspection reached its bounded read limit",
-                Some(task.directory.join("wal")),
-            ));
         }
     }
     for (id, paths) in ids.iter().filter(|(_, paths)| paths.len() > 1) {
@@ -718,11 +709,17 @@ fn diagnostic(severity: Severity, code: &str, message: &str, path: Option<PathBu
 }
 
 fn error_diagnostic(error: TkError, path: Option<PathBuf>) -> Diagnostic {
+    let detail_path = error
+        .details
+        .as_ref()
+        .and_then(|details| details.get("path"))
+        .and_then(Value::as_str)
+        .map(PathBuf::from);
     Diagnostic {
         severity: Severity::Error,
         code: error.code,
         message: error.message,
-        path,
+        path: path.or(detail_path),
         details: error.details,
     }
 }
@@ -738,15 +735,25 @@ mod tests {
     }
 
     #[test]
-    fn cleanup_marker_read_failure_aborts_check() {
+    fn required_io_failure_makes_check_incomplete_with_path() {
         let root =
             std::env::temp_dir().join(format!("tk-maintenance-test-{}", uuid::Uuid::now_v7()));
         fs::create_dir(&root).unwrap();
         crate::project::init(&root, crate::project::InitOptions::default()).unwrap();
         let project = crate::project::discover(&root).unwrap();
-        fs::create_dir_all(project.task_root.join(".tk-tmp/incomplete")).unwrap();
-        let error = inspect_cleanup_markers(&project, &mut Vec::new()).unwrap_err();
-        assert_eq!(error.code, "read_cleanup_manifest_failed");
+        let operation = project.task_root.join(".tk-tmp/incomplete");
+        fs::create_dir_all(&operation).unwrap();
+        let manifest = operation.join(crate::gc::MANIFEST_FILE);
+
+        let result = check(&root);
+        assert!(!result.complete);
+        assert!(!result.ok);
+        let diagnostic = result
+            .diagnostics
+            .iter()
+            .find(|diagnostic| diagnostic.code == "read_cleanup_manifest_failed")
+            .unwrap();
+        assert_eq!(diagnostic.path.as_deref(), Some(manifest.as_path()));
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -766,6 +773,93 @@ mod tests {
             related_to: Vec::new(),
             extra: BTreeMap::new(),
         }
+    }
+
+    #[test]
+    fn check_streams_wal_beyond_bounded_read_limits() {
+        let root = std::env::temp_dir().join(format!("tk-check-wal-test-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = crate::project::init(&root, crate::project::InitOptions::default())
+            .unwrap()
+            .project;
+        let task = project.task_root.join("2026/08/31-01--wal-history");
+        task_store::create_task_files(
+            &task,
+            &task_metadata("wal-history"),
+            b"# wal-history\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+        let wal = task.join("wal");
+        fs::create_dir(&wal).unwrap();
+        let start = chrono::NaiveDate::from_ymd_opt(2020, 1, 1).unwrap();
+        let mut total_bytes = 0;
+        let first_path = wal.join(format!("{start}.md"));
+        let fragment = format!("outside entry\n{}\n", "x".repeat(1024));
+        total_bytes += fragment.len();
+        fs::write(&first_path, fragment).unwrap();
+        for offset in 1..=1024 {
+            let date = start.checked_add_days(chrono::Days::new(offset)).unwrap();
+            let text = format!(
+                "## {date}T00:00:00+00:00 · test:writer\n\nmessage-{offset}\n\n{}\n",
+                "x".repeat(1024)
+            );
+            total_bytes += text.len();
+            fs::write(wal.join(format!("{date}.md")), text).unwrap();
+        }
+        assert!(total_bytes > 1024 * 1024);
+
+        let result = check(&root);
+        assert!(result.complete);
+        assert!(result.ok, "{:?}", result.diagnostics);
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "wal_fragment"
+                    && diagnostic.path.as_deref() == Some(first_path.as_path()))
+        );
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .all(|diagnostic| diagnostic.code != "wal_truncated")
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn cancellation_makes_wal_check_incomplete() {
+        use std::sync::Arc;
+        use std::sync::atomic::{AtomicBool, Ordering};
+
+        let root = std::env::temp_dir().join(format!("tk-check-cancel-test-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = crate::project::init(&root, crate::project::InitOptions::default())
+            .unwrap()
+            .project;
+        let task = project.task_root.join("2026/08/31-01--cancelled");
+        task_store::create_task_files(
+            &task,
+            &task_metadata("cancelled"),
+            b"# cancelled\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+        wal::append(&task, "message", None, "test:writer").unwrap();
+        let requested = Arc::new(AtomicBool::new(false));
+        requested.store(true, Ordering::SeqCst);
+
+        let result = crate::cancel::with_request(requested, || check(&root));
+        assert!(!result.complete);
+        assert!(!result.ok);
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "cancelled")
+        );
+        fs::remove_dir_all(root).unwrap();
     }
 
     #[test]

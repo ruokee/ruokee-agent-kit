@@ -99,7 +99,7 @@ Read a unique Task reference:
 
 ```sh
 tk read <task_ref>
-tk read <task_ref> --view detailed --wal-max-entries 50 --wal-max-length 65536
+tk read <task_ref> --view detailed --wal-max-entries 50 --wal-max-length 16000
 ```
 
 Names, UUID prefixes, text, and material paths are search inputs, not exact references. Use the full reference returned by search for reads and updates.

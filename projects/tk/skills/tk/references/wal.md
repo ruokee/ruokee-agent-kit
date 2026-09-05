@@ -16,9 +16,9 @@ Actor is single-line attribution. It is not identity, authentication, ownership,
 
 ## Reading
 
-The summary view returns recent WAL context. Use the detailed view with entry and byte budgets only when the current Task needs earlier or complete history.
+`minimal`, `summary`, and `detailed` are `tk read` views. `minimal` does not read WAL. `summary` returns recent WAL entries without their bodies. `detailed` includes bodies within its selected entry and byte budgets.
 
-Truncation means the read budget was exceeded, not that a file is damaged. Do not read all history by default for completeness, and do not recursively read related Tasks' WAL.
+Bounded reads silently omit older entries. Read daily WAL files directly when older or complete history is required. Do not read all history by default for completeness, and do not recursively read related Tasks' WAL.
 
 ## Automatic entries
 

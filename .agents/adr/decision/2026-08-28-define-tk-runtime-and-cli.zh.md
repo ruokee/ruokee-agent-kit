@@ -106,3 +106,9 @@ create 接口不再拥有正文输入。`tk create task` 把 `--body` 作为未�
 ### 2026-09-05：rename 防止断链引用
 
 `tk rename` 新增 `--ignore-brokenlinks`。执行会移动 Task 路径且存在旧路径引用时，在首次持久写入前以 conflict 错误和退出码 3 停止。该参数允许此次移动继续且不改写引用文件。dry-run 报告计划和引用，不写入内容。CLI 与 `tk_exec rename` 采用相同规则，CLI 合同版本保持 2。
+
+### 2026-09-05：区分 read 返回限制与 WAL 完整检查
+
+`tk read` 现在使用 `minimal`、`summary` 和 `detailed`，默认使用 `summary`。`minimal` 不读取 Task 正文或 WAL。`summary` 返回完整 Task 正文和不含正文的最近 WAL 条目，默认最多 5 条、4000 字节。`detailed` 增加 WAL 正文，默认最多 50 条、16000 字节。显式预算可以在 0 到两种视图共用的上限 50 条、16000 字节之间取值。运行时在确定返回字段后，按紧凑 JSON 的 UTF-8 字节数计量，并静默省略预算之外的条目，不返回截断字段、警告或诊断。完整历史继续通过每日 WAL 文件提供，不增加分页或完整历史读取模式。
+
+`tk check` 使用单独的流式 WAL 检查器。它读取每个普通的每日 WAL 文件和其中全部条目，不设置固定的总文件数、总字节数或总条目数上限。必要 I/O 失败会指出失败路径，取消会使检查不完整，有效 WAL 的规模本身不会产生 `wal_truncated`。CLI 合同版本升到 3，生成 schema 以及 OMP 和 Pi 适配器会拒绝版本 2 合同。

@@ -147,12 +147,14 @@ Request:
 | Field | Default | Contract |
 | --- | --- | --- |
 | `task_ref` | Required | Exact reference |
-| `view` | `summary` | `metadata`, `summary`, or `detailed` |
-| `wal_max_entries` | 20 | 0 to 1000; used only for detailed |
-| `wal_max_length` | 16384 | 0 to 1048576 bytes; used only for detailed |
+| `view` | `summary` | `minimal`, `summary`, or `detailed` |
+| `wal_max_entries` | 5 for summary; 50 for detailed | 0 to 50; unused by minimal |
+| `wal_max_length` | 4000 for summary; 16000 for detailed | 0 to 16000 bytes; unused by minimal |
 | `cwd` | Common default | Project resolution |
 
-metadata returns metadata and managed paths. summary adds a body summary, relationship summary, and recent WAL summary. detailed returns the full body and a budget-limited WAL.
+`minimal` returns metadata and managed paths without reading the Task body or WAL. `summary` returns the complete current body and recent WAL entries containing `timestamp`, `actor`, and `message`. `detailed` returns the same Task information and adds each available WAL `body`.
+
+The runtime projects entries for the selected view before measuring their compact JSON UTF-8 size. It selects complete entries from newest to oldest within both budgets, then returns them in chronological order. Entries outside the budgets are silently omitted without a truncation field, warning, or diagnostic. `tk read` has no pagination or full-history mode; read `wal/YYYY-MM-DD.md` directly when complete history is required.
 
 ## Create
 

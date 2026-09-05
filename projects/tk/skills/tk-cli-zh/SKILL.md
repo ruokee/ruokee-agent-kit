@@ -33,7 +33,7 @@ tk 运行时负责处理元数据、关系、生命周期、路径和持久化�
 
 ```text
 tk search <query> [--regex] [--search-body] [--status <planning|open|closed>]... [--extra <json>] [--limit <n>]
-tk read <task_ref> [--view <metadata|summary|detailed>] [--wal-max-entries <n>] [--wal-max-length <bytes>]
+tk read <task_ref> [--view <minimal|summary|detailed>] [--wal-max-entries <n>] [--wal-max-length <bytes>]
 tk create task <name> [--status <planning|open>] [--created-at <rfc3339>] [--depends-on <uuid>]... [--related-to <uuid>]... [--extra <json>] [--user-confirmed <true|false>]
 tk create subtask <parent_ref> --item <json> [--item <json>]... [--user-confirmed <true|false>]
 tk update <task_ref> [--depends-on-add <uuid>]... [--depends-on-remove <uuid>]... [--related-to-add <uuid>]... [--related-to-remove <uuid>]... [--extra-set <json>] [--extra-remove <key>]... [--start | --close <reason> | --reopen <reason>] [--force] [--user-confirmed <true|false>] [--actor <text>]

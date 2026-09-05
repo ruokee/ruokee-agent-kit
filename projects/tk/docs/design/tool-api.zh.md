@@ -147,12 +147,14 @@ cwd 选择顺序是请求显式值、Harness 会话目录、运行时进程目�
 | 字段 | 默认值 | 合同 |
 | --- | --- | --- |
 | `task_ref` | 必填 | 精确引用 |
-| `view` | `summary` | `metadata`、`summary` 或 `detailed` |
-| `wal_max_entries` | 20 | 0 到 1000；只用于 detailed |
-| `wal_max_length` | 16384 | 0 到 1048576 字节；只用于 detailed |
+| `view` | `summary` | `minimal`、`summary` 或 `detailed` |
+| `wal_max_entries` | summary 为 5；detailed 为 50 | 0 到 50；minimal 不使用 |
+| `wal_max_length` | summary 为 4000；detailed 为 16000 | 0 到 16000 字节；minimal 不使用 |
 | `cwd` | 公共默认 | 项目解析 |
 
-metadata 返回元数据和受管路径。summary 增加正文摘要、关系摘要和最近 WAL 摘要。detailed 返回完整正文及受预算限制的 WAL。
+`minimal` 返回元数据和受管路径，不读取 Task 正文或 WAL。`summary` 返回完整的当前正文，以及包含 `timestamp`、`actor` 和 `message` 的最近 WAL 条目。`detailed` 返回相同的 Task 信息，并增加存在的 WAL `body`。
+
+运行时先按所选视图确定条目的返回字段，再按紧凑 JSON 的 UTF-8 字节数计量。它从最新条目开始，在两项预算内选择完整条目，最后按时间正序返回。预算之外的条目会被静默省略，不返回截断字段、警告或诊断。`tk read` 不提供分页或完整历史模式；需要完整历史时直接读取 `wal/YYYY-MM-DD.md`。
 
 ## 创建
 

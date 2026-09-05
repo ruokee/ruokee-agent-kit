@@ -336,16 +336,17 @@ fn dispatch_read(params: ReadParams) -> Result<ToolOutcome> {
     let cwd = request_cwd(params.cwd)?;
     let project = discover_for_value(&cwd, &params.task_ref)?;
     let view = match params.view {
-        ToolReadView::Metadata => ReadView::Metadata,
+        ToolReadView::Minimal => ReadView::Minimal,
         ToolReadView::Summary => ReadView::Summary,
         ToolReadView::Detailed => ReadView::Detailed,
     };
+    let (default_entries, default_length) = view.default_wal_limits();
     let mut result = app::read(
         &project,
         &params.task_ref,
         view,
-        params.wal_max_entries,
-        params.wal_max_length,
+        params.wal_max_entries.unwrap_or(default_entries),
+        params.wal_max_length.unwrap_or(default_length),
     )?;
     let warnings = std::mem::take(&mut result.warnings);
     Ok(ToolOutcome {

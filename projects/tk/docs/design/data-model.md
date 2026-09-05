@@ -179,6 +179,10 @@ actor is single-line attribution information, not identity authentication or aut
 
 Metadata is committed first, then the automatic WAL entry is appended. If the WAL append fails, the operation returns a warning and does not roll back the committed metadata.
 
+`tk read` returns recent WAL within caller-selectable entry and byte budgets. The `summary` view omits WAL bodies, while `detailed` includes them. Entries outside the budgets are silently omitted without a truncation field, warning, or diagnostic. Complete history remains available in the daily files.
+
+`tk check` uses a separate streaming inspector. It reads every regular daily WAL Markdown file and every entry in deterministic order without fixed total file, byte, or entry limits. A required I/O failure or cancellation makes the check incomplete rather than returning a successful partial scan.
+
 ## Single-file writes
 
 A managed single-file update uses a temporary file in the same directory followed by atomic replacement:
@@ -281,4 +285,4 @@ If an I/O error occurs during deletion, GC stops and reports deleted and undelet
 
 check strictly validates project configuration, marked Task carriers, schema, representation consistency, generated name-path agreement, UUID uniqueness, direct-child sequence uniqueness, relationships, WAL, activity markers, and temporary manifests. It reports the resolved parent path for logical sibling-sequence conflicts.
 
-If a required directory or file cannot be read, or discovery crosses a resource limit, check immediately returns an incomplete check and does not continue collecting diagnostics. If marked carrier, format, or domain errors are found after a complete read, the check is complete but failed. check does not modify any content.
+If a required directory or file cannot be read, discovery crosses a resource limit, or the scan is interrupted, check immediately returns an incomplete check and does not continue collecting diagnostics. The failed I/O path is included when available. Valid WAL size alone does not make the check incomplete. If marked carrier, format, or domain errors are found after a complete read, the check is complete but failed. check does not modify any content.

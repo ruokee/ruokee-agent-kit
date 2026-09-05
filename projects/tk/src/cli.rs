@@ -108,10 +108,12 @@ struct ReadArgs {
     task_ref: String,
     #[arg(long, value_enum, default_value_t = CliReadView::Summary)]
     view: CliReadView,
-    #[arg(long, default_value_t = 20)]
-    wal_max_entries: usize,
-    #[arg(long, default_value_t = 16384)]
-    wal_max_length: usize,
+    /// Maximum recent WAL entries. Defaults to 5 for summary and 50 for detailed.
+    #[arg(long)]
+    wal_max_entries: Option<usize>,
+    /// Maximum recent WAL bytes. Defaults to 4000 for summary and 16000 for detailed.
+    #[arg(long)]
+    wal_max_length: Option<usize>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -315,7 +317,7 @@ enum CliCreationStatus {
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
 enum CliReadView {
-    Metadata,
+    Minimal,
     Summary,
     Detailed,
 }
@@ -591,12 +593,14 @@ fn execute(command: Commands, cwd: PathBuf) -> Result<CommandOutput> {
         }
         Commands::Read(args) => {
             let project = discover_for_task_ref(&cwd, &args.task_ref)?;
+            let view = ReadView::from(args.view);
+            let (default_entries, default_length) = view.default_wal_limits();
             let mut result = app::read(
                 &project,
                 &args.task_ref,
-                args.view.into(),
-                args.wal_max_entries,
-                args.wal_max_length,
+                view,
+                args.wal_max_entries.unwrap_or(default_entries),
+                args.wal_max_length.unwrap_or(default_length),
             )?;
             let warnings = convert_warnings(std::mem::take(&mut result.warnings));
             let text = serde_json::to_string_pretty(&result).expect("serializing read result");
@@ -1104,7 +1108,7 @@ impl From<CliCreationStatus> for Status {
 impl From<CliReadView> for ReadView {
     fn from(value: CliReadView) -> Self {
         match value {
-            CliReadView::Metadata => Self::Metadata,
+            CliReadView::Minimal => Self::Minimal,
             CliReadView::Summary => Self::Summary,
             CliReadView::Detailed => Self::Detailed,
         }
@@ -1159,6 +1163,28 @@ mod tests {
         };
         assert!(matches!(args.metadata_mode, Some(CliMetadataMode::Embed)));
         assert!(matches!(args.git_policy, Some(CliGitPolicy::Track)));
+    }
+
+    #[test]
+    fn read_uses_view_specific_budget_defaults() {
+        let cli = Cli::try_parse_from(["tk", "read", "task-ref"]).unwrap();
+        let Some(Commands::Read(args)) = cli.command else {
+            panic!("expected read command");
+        };
+        assert!(matches!(args.view, CliReadView::Summary));
+        assert_eq!(args.wal_max_entries, None);
+        assert_eq!(args.wal_max_length, None);
+        assert_eq!(ReadView::from(args.view).default_wal_limits(), (5, 4_000));
+
+        let cli = Cli::try_parse_from(["tk", "read", "task-ref", "--view", "detailed"]).unwrap();
+        let Some(Commands::Read(args)) = cli.command else {
+            panic!("expected read command");
+        };
+        assert_eq!(ReadView::from(args.view).default_wal_limits(), (50, 16_000));
+        assert!(Cli::try_parse_from(["tk", "read", "task-ref", "--view", "minimal"]).is_ok());
+        let error =
+            Cli::try_parse_from(["tk", "read", "task-ref", "--view", "metadata"]).unwrap_err();
+        assert_eq!(error.kind(), ErrorKind::InvalidValue);
     }
 
     #[test]

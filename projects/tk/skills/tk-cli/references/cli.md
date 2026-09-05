@@ -85,18 +85,18 @@ Read one Task:
 
 ```text
 tk read <task_ref>
-  [--view <metadata|summary|detailed>]
+  [--view <minimal|summary|detailed>]
   [--wal-max-entries <n>] [--wal-max-length <bytes>]
   [--cwd <path>] [--output <text|json>]
 ```
 
 The default view is `summary`:
 
-- `metadata` returns managed metadata;
-- `summary` returns common status and a body summary;
-- `detailed` returns fuller context and includes WAL within the requested budgets.
+- `minimal` returns metadata and managed paths without reading body or WAL;
+- `summary` returns the complete Task body and recent WAL entries without bodies;
+- `detailed` returns the same Task information and adds WAL bodies.
 
-`--wal-max-entries` and `--wal-max-length` apply only to `detailed` and limit WAL entries and bytes.
+`--wal-max-entries` and `--wal-max-length` apply to `summary` and `detailed`. When omitted, summary uses 5 entries and 4000 bytes, while detailed uses 50 entries and 16000 bytes. Explicit values may range from 0 to the shared maximum of 50 entries and 16000 bytes. Entries outside the budgets are silently omitted. Read `wal/YYYY-MM-DD.md` directly when complete history is required.
 
 `task_ref` should be a complete UUIDv7 or exact path. Send fuzzy names to `tk search` first.
 
@@ -321,7 +321,7 @@ The JSON payload contains:
 ```json
 {
   "runtime_version": "0.1.2",
-  "cli_contract_version": 2,
+  "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3
 }

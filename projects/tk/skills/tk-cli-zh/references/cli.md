@@ -85,18 +85,18 @@ tk search <query>
 
 ```text
 tk read <task_ref>
-  [--view <metadata|summary|detailed>]
+  [--view <minimal|summary|detailed>]
   [--wal-max-entries <n>] [--wal-max-length <bytes>]
   [--cwd <path>] [--output <text|json>]
 ```
 
 默认视图是 `summary`：
 
-- `metadata`：返回受管元数据；
-- `summary`：返回常用状态和正文摘要；
-- `detailed`：返回更完整的上下文，并按预算附带 WAL。
+- `minimal` 返回元数据和受管路径，不读取正文或 WAL；
+- `summary` 返回完整 Task 正文和不含正文的最近 WAL 条目；
+- `detailed` 返回相同的 Task 信息，并增加 WAL 正文。
 
-`--wal-max-entries` 和 `--wal-max-length` 只对 `detailed` 有效，分别限制 WAL 条目数和字节数。
+`--wal-max-entries` 和 `--wal-max-length` 适用于 `summary` 和 `detailed`。未提供参数时，summary 使用 5 条和 4000 字节，detailed 使用 50 条和 16000 字节。显式取值范围为 0 到两种视图共用的上限 50 条和 16000 字节。预算之外的条目会被静默省略。需要完整历史时直接读取 `wal/YYYY-MM-DD.md`。
 
 `task_ref` 应是完整 UUIDv7 或精确路径。模糊名称先交给 `tk search`。
 
@@ -321,7 +321,7 @@ JSON 结果包含：
 ```json
 {
   "runtime_version": "0.1.2",
-  "cli_contract_version": 2,
+  "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3
 }

@@ -94,12 +94,14 @@ tk search 'api|cli' --regex --search-body --output json
 
 ```text
 tk read <task_ref>
-  [--view <metadata|summary|detailed>]
+  [--view <minimal|summary|detailed>]
   [--wal-max-entries <n>] [--wal-max-length <bytes>]
   [global-options]
 ```
 
-默认 view 是 summary。WAL 预算只对 detailed 有效。精确引用规则见[工具 API](./tool-api.zh.md#精确-task-引用)。
+默认视图是 `summary`。`minimal` 返回元数据和受管路径，不读取 Task 正文或 WAL。`summary` 返回完整 Task 正文和不含正文的最近 WAL 条目。`detailed` 增加 WAL 条目正文。
+
+WAL 预算适用于 `summary` 和 `detailed`。未提供参数时，`summary` 使用 5 条和 4000 字节，`detailed` 使用 50 条和 16000 字节。调用方可以调低任一预算，也可以把 summary 请求调高到两种视图共用的上限 50 条和 16000 字节。返回结果静默省略所选预算之外的更早条目。精确引用与预算规则见[工具 API](./tool-api.zh.md#精确-task-引用)。
 
 ## `tk create task`
 
@@ -282,7 +284,7 @@ tk <command> <subcommand> --help
 ```json
 {
   "runtime_version": "0.1.2",
-  "cli_contract_version": 2,
+  "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3
 }

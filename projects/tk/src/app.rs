@@ -59,9 +59,19 @@ pub enum CreateRequest {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReadView {
-    Metadata,
+    Minimal,
     Summary,
     Detailed,
+}
+
+impl ReadView {
+    pub const fn default_wal_limits(self) -> (usize, usize) {
+        match self {
+            Self::Minimal => (0, 0),
+            Self::Summary => (5, 4_000),
+            Self::Detailed => (50, 16_000),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -129,8 +139,6 @@ pub struct ReadResult {
     pub body: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub wal: Option<WalRead>,
-    pub truncated_body: bool,
-    pub truncated_wal: bool,
     #[serde(skip)]
     pub warnings: Vec<AppWarning>,
 }
@@ -173,10 +181,6 @@ pub struct SearchResult {
     pub warnings: Vec<AppWarning>,
 }
 
-const SUMMARY_BODY_CHAR_LIMIT: usize = 2000;
-const SUMMARY_WAL_ENTRY_LIMIT: usize = 5;
-const SUMMARY_WAL_LENGTH_LIMIT: usize = 4096;
-
 pub fn create(project: &Project, request: CreateRequest) -> Result<CreateResult> {
     match request {
         CreateRequest::Task {
@@ -198,43 +202,36 @@ pub fn read(
     wal_max_entries: usize,
     wal_max_length: usize,
 ) -> Result<ReadResult> {
-    if wal_max_entries > 1000 {
+    if wal_max_entries > 50 {
         return Err(TkError::request(
             "invalid_wal_max_entries",
-            "wal_max_entries must be between 0 and 1000",
+            "wal_max_entries must be between 0 and 50",
         ));
     }
-    if wal_max_length > 1_048_576 {
+    if wal_max_length > 16_000 {
         return Err(TkError::request(
             "invalid_wal_max_length",
-            "wal_max_length must be between 0 and 1048576",
+            "wal_max_length must be between 0 and 16000",
         ));
     }
     let task = resolve_ref(project, task_ref)?;
-    let (body, truncated_body) = match view {
-        ReadView::Metadata => (None, false),
-        ReadView::Summary => {
-            let body = task_store::read_body(&task.directory, project.config.metadata_mode)?;
-            let (body, truncated) = truncate_chars(body, SUMMARY_BODY_CHAR_LIMIT);
-            (Some(body), truncated)
-        }
-        ReadView::Detailed => (
-            Some(task_store::read_body(
-                &task.directory,
-                project.config.metadata_mode,
-            )?),
-            false,
-        ),
+    let body = match view {
+        ReadView::Minimal => None,
+        ReadView::Summary | ReadView::Detailed => Some(task_store::read_body(
+            &task.directory,
+            project.config.metadata_mode,
+        )?),
     };
     let (wal, warnings) = match view {
-        ReadView::Metadata => (None, vec![]),
+        ReadView::Minimal => (None, vec![]),
         ReadView::Summary | ReadView::Detailed => {
-            let (entry_limit, length_limit) = match view {
-                ReadView::Summary => (SUMMARY_WAL_ENTRY_LIMIT, SUMMARY_WAL_LENGTH_LIMIT),
-                ReadView::Detailed => (wal_max_entries, wal_max_length),
-                ReadView::Metadata => unreachable!(),
+            let entry_view = match view {
+                ReadView::Summary => wal::WalEntryView::Summary,
+                ReadView::Detailed => wal::WalEntryView::Detailed,
+                ReadView::Minimal => unreachable!(),
             };
-            let mut result = wal::read(&task.directory, entry_limit, length_limit)?;
+            let mut result =
+                wal::read(&task.directory, wal_max_entries, wal_max_length, entry_view)?;
             let warnings = result
                 .warnings
                 .drain(..)
@@ -247,7 +244,6 @@ pub fn read(
             (Some(result), warnings)
         }
     };
-    let truncated_wal = wal.as_ref().is_some_and(|read| read.truncated);
     Ok(ReadResult {
         task: ReadTask {
             task_dir: task.directory,
@@ -255,19 +251,8 @@ pub fn read(
         },
         body,
         wal,
-        truncated_body,
-        truncated_wal,
         warnings,
     })
-}
-
-fn truncate_chars(value: String, budget: usize) -> (String, bool) {
-    let end = value
-        .char_indices()
-        .nth(budget)
-        .map_or(value.len(), |(index, _)| index);
-    let truncated = end < value.len();
-    (value[..end].to_owned(), truncated)
 }
 
 pub fn search(project: &Project, request: SearchRequest) -> Result<SearchResult> {
@@ -1476,6 +1461,136 @@ mod tests {
         )
         .unwrap();
         assert_eq!(found.items.len(), 1);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn read_views_return_complete_body_and_project_wal_entries() {
+        let (root, project) = temp_project();
+        let reference = create(
+            &project,
+            CreateRequest::Task {
+                input: top_input("read-contract"),
+                user_confirmed: true,
+            },
+        )
+        .unwrap()
+        .created
+        .remove(0);
+        let body = format!("# read-contract\n\n{}\n", "current body ".repeat(300));
+        fs::write(reference.task_dir.join("TASK.md"), &body).unwrap();
+        wal::append(
+            &reference.task_dir,
+            "reviewed",
+            Some("durable detail"),
+            "test:agent",
+        )
+        .unwrap();
+
+        let summary = read(
+            &project,
+            &reference.id.to_string(),
+            ReadView::Summary,
+            50,
+            16_000,
+        )
+        .unwrap();
+        assert_eq!(summary.body.as_deref(), Some(body.as_str()));
+        assert!(
+            summary
+                .wal
+                .as_ref()
+                .unwrap()
+                .entries
+                .iter()
+                .all(|entry| entry.body.is_none())
+        );
+        let serialized = serde_json::to_value(&summary).unwrap();
+        assert!(serialized.get("truncated_wal").is_none());
+        assert!(serialized["wal"].get("truncated").is_none());
+
+        let detailed = read(
+            &project,
+            &reference.id.to_string(),
+            ReadView::Detailed,
+            50,
+            16_000,
+        )
+        .unwrap();
+        assert_eq!(detailed.body.as_deref(), Some(body.as_str()));
+        assert_eq!(
+            detailed
+                .wal
+                .unwrap()
+                .entries
+                .last()
+                .and_then(|entry| entry.body.as_deref()),
+            Some("durable detail")
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn minimal_read_skips_task_body_and_wal() {
+        let (root, project) = temp_project();
+        let reference = create(
+            &project,
+            CreateRequest::Task {
+                input: top_input("minimal-read"),
+                user_confirmed: true,
+            },
+        )
+        .unwrap()
+        .created
+        .remove(0);
+        fs::write(reference.task_dir.join("TASK.md"), [0xff]).unwrap();
+        fs::write(reference.task_dir.join("wal"), "not a directory").unwrap();
+
+        let result = read(
+            &project,
+            &reference.id.to_string(),
+            ReadView::Minimal,
+            50,
+            16_000,
+        )
+        .unwrap();
+        assert!(result.body.is_none());
+        assert!(result.wal.is_none());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn read_rejects_wal_budgets_above_contract_limits() {
+        let (root, project) = temp_project();
+        let reference = create(
+            &project,
+            CreateRequest::Task {
+                input: top_input("read-limits"),
+                user_confirmed: true,
+            },
+        )
+        .unwrap()
+        .created
+        .remove(0);
+
+        let entries = read(
+            &project,
+            &reference.id.to_string(),
+            ReadView::Summary,
+            51,
+            16_000,
+        )
+        .unwrap_err();
+        assert_eq!(entries.code, "invalid_wal_max_entries");
+        let length = read(
+            &project,
+            &reference.id.to_string(),
+            ReadView::Summary,
+            50,
+            16_001,
+        )
+        .unwrap_err();
+        assert_eq!(length.code, "invalid_wal_max_length");
         fs::remove_dir_all(root).unwrap();
     }
 

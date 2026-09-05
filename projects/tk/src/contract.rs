@@ -172,17 +172,15 @@ pub struct ReadParams {
     pub task_ref: String,
     #[serde(default)]
     pub view: ToolReadView,
-    #[serde(default = "default_wal_max_entries")]
-    pub wal_max_entries: usize,
-    #[serde(default = "default_wal_max_length")]
-    pub wal_max_length: usize,
+    pub wal_max_entries: Option<usize>,
+    pub wal_max_length: Option<usize>,
     pub cwd: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, Copy, Default, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ToolReadView {
-    Metadata,
+    Minimal,
     #[default]
     Summary,
     Detailed,
@@ -288,7 +286,7 @@ pub fn tool_contract(schema_type: SchemaType, harness: Option<NativeHarness>) ->
     };
     let descriptions = [
         "Find Task candidates by exact reference, path, keyword, or regex.",
-        "Read one exact Task with a bounded view of its durable log.",
+        "Read one exact Task with bounded recent WAL.",
         "Create one top-level Task or 1 to 50 subtasks.",
         "Update Task relations, extra metadata, or one lifecycle action.",
         "Append one durable event to an open Task.",
@@ -345,9 +343,9 @@ fn read_schema() -> Value {
     object_schema(
         json!({
             "task_ref": {"type": "string", "minLength": 1},
-            "view": {"type": "string", "enum": ["metadata", "summary", "detailed"], "default": "summary"},
-            "wal_max_entries": {"type": "integer", "minimum": 0, "maximum": 1000, "default": 20},
-            "wal_max_length": {"type": "integer", "minimum": 0, "maximum": 1048576, "default": 16384},
+            "view": {"type": "string", "enum": ["minimal", "summary", "detailed"], "default": "summary"},
+            "wal_max_entries": {"type": "integer", "minimum": 0, "maximum": 50, "description": "Defaults to 5 for summary and 50 for detailed; unused by minimal."},
+            "wal_max_length": {"type": "integer", "minimum": 0, "maximum": 16000, "description": "Defaults to 4000 for summary and 16000 for detailed; unused by minimal."},
             "cwd": {"type": "string"}
         }),
         &["task_ref"],
@@ -475,14 +473,6 @@ fn default_limit() -> usize {
     20
 }
 
-fn default_wal_max_entries() -> usize {
-    20
-}
-
-fn default_wal_max_length() -> usize {
-    16384
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
@@ -540,6 +530,44 @@ mod tests {
                 .unwrap()
                 .load_mode,
             Some("discoverable")
+        );
+    }
+
+    #[test]
+    fn read_schema_uses_contract_version_three_limits() {
+        let contract = tool_contract(SchemaType::Native, Some(NativeHarness::Pi));
+        assert_eq!(contract.contract_version, 3);
+        let read = contract
+            .tools
+            .iter()
+            .find(|tool| tool.name == "tk_read")
+            .unwrap();
+        let properties = &read.input_schema["properties"];
+        assert_eq!(
+            properties["view"]["enum"],
+            json!(["minimal", "summary", "detailed"])
+        );
+        assert_eq!(properties["view"]["default"], "summary");
+        assert_eq!(properties["wal_max_entries"]["maximum"], 50);
+        assert!(properties["wal_max_entries"].get("default").is_none());
+        assert_eq!(
+            properties["wal_max_entries"]["description"],
+            "Defaults to 5 for summary and 50 for detailed; unused by minimal."
+        );
+        assert_eq!(properties["wal_max_length"]["maximum"], 16000);
+        assert!(properties["wal_max_length"].get("default").is_none());
+        assert_eq!(
+            properties["wal_max_length"]["description"],
+            "Defaults to 4000 for summary and 16000 for detailed; unused by minimal."
+        );
+
+        let defaults = serde_json::from_value::<ReadParams>(json!({"task_ref": "task"})).unwrap();
+        assert!(matches!(defaults.view, ToolReadView::Summary));
+        assert_eq!(defaults.wal_max_entries, None);
+        assert_eq!(defaults.wal_max_length, None);
+        assert!(
+            serde_json::from_value::<ReadParams>(json!({"task_ref": "task", "view": "metadata"}))
+                .is_err()
         );
     }
 

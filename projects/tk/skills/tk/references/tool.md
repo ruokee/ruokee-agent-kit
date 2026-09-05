@@ -21,7 +21,7 @@ MCP uses the same logical names under a service namespace. A Harness must not ad
 
 `search` requires a non-empty `query`. `regex` and `search_body` default to `false`; `status` defaults to every status; top-level `extra` conditions use `AND`; `limit` defaults to 20 and allows `1..100`.
 
-`read` defaults to `summary`. In `detailed`, the WAL entry budget defaults to 20 with a maximum of 1000, and the byte budget defaults to 16384 with a maximum of 1048576.
+`read` defaults to `summary`. `minimal` returns metadata and managed paths without reading body or WAL. `summary` returns the complete Task body and recent WAL entries without bodies, defaulting to 5 entries and 4000 bytes. `detailed` adds WAL bodies and defaults to 50 entries and 16000 bytes. Explicit budgets may range from 0 to the shared maximum of 50 entries and 16000 bytes. Entries outside the budgets are silently omitted.
 
 `create` uses `type=task` or `type=subtasks`. The tool entry point defaults `user_confirmed` to `false`; it must reflect current authorization. `close` and `reopen` updates require a non-empty `reason` and current confirmation. `force` applies only to `close`. An empty update or a net no-op returns `changed=false`.
 

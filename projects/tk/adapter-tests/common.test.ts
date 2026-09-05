@@ -39,7 +39,7 @@ async function installFakeRuntime(): Promise<string> {
 function contract(harness: "pi" | "omp") {
   const names = ["tk_search", "tk_read", "tk_create", "tk_update", "tk_log", "tk_exec"];
   return {
-    contract_version: 2,
+    contract_version: 3,
     runtime_version: "0.1.0",
     runtime_compat: [">=0.1,<0.2"],
     schema_type: "native",
@@ -197,7 +197,7 @@ describe("Pi native adapter", () => {
         if (args[0] === "--version") {
           return success({ runtime_version: "0.1.0" });
         }
-        return success({ ...contract("pi"), contract_version: 3 });
+        return success({ ...contract("pi"), contract_version: 2 });
       },
       registerTool(tool) {
         registered.push(tool);

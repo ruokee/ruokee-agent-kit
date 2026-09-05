@@ -103,3 +103,9 @@ Every released schema transition becomes long-lived maintenance code. Supporting
 ### 2026-09-05: Rename guards against broken references
 
 A rename that would move a Task path stops with a conflict error before the first persistent write when references to the old path exist. The error details carry the old path, the normalized new name, the absolute target path, and every reference path and line. `--ignore-brokenlinks` permits that move without rewriting references. Dry-run reports the plan and references without writing. The scan boundaries, including tracked project Markdown, ordinary Markdown under the Task root, and split and embed bodies, are unchanged.
+
+### 2026-09-05: Separate bounded WAL reads from complete inspection
+
+`tk read` returns recent WAL within caller-selectable limits of at most 50 entries and 16000 compact JSON UTF-8 bytes. The `summary` view defaults to 5 entries and 4000 bytes and omits WAL bodies. `detailed` defaults to 50 entries and 16000 bytes and includes WAL bodies. Both views return the complete current Task body. `minimal` reads neither body nor WAL. The runtime selects complete projected entries from newest to oldest, silently omits the rest without a truncation indicator, and returns the selected entries in chronological order. Complete history remains in ordinary `wal/YYYY-MM-DD.md` files.
+
+`tk check` no longer validates WAL through the bounded read path. Its streaming inspector reads every regular daily WAL file and validates every entry in deterministic order without fixed total history limits. It retains no complete WAL history in memory. Required I/O failures and cancellation make the check incomplete, while valid WAL size alone does not.

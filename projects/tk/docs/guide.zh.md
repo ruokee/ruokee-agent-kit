@@ -99,7 +99,7 @@ tk search 'startup|cold' --regex --search-body --output json
 
 ```sh
 tk read <task_ref>
-tk read <task_ref> --view detailed --wal-max-entries 50 --wal-max-length 65536
+tk read <task_ref> --view detailed --wal-max-entries 50 --wal-max-length 16000
 ```
 
 名称、UUID 前缀、文本和材料路径属于 search 输入，不是精确引用。read 和 update 应使用 search 返回的完整引用。

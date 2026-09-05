@@ -62,7 +62,7 @@ One discovery scan accepts at most 100,000 real directories and 256 descendant l
 
 check, relationship validation, schema migration, and representation switching reuse the discovered graph. The runtime does not claim that project operations use constant memory.
 
-Process stdout, stderr, tool schemas, WAL reads, frontmatter, and protocol frames have explicit byte or entry limits. Each subprocess stream and each MCP JSON payload is limited to 1 MiB. Oversized MCP input closes the stdio transport. Oversized MCP output fails the transport instead of emitting a partial frame.
+Process stdout, stderr, tool schemas, `tk read` WAL responses, frontmatter, and protocol frames have explicit byte or entry limits. Each subprocess stream and each MCP JSON payload is limited to 1 MiB. Oversized MCP input closes the stdio transport. Oversized MCP output fails the transport instead of emitting a partial frame. `tk check` separately streams complete WAL input without fixed total file, byte, or entry limits.
 
 ## Writes and cancellation
 
@@ -80,7 +80,7 @@ Expected errors use stable error codes, categories, messages, and structured det
 - panic, impossible states, and internal encoding failures are internal.
 - Errors after partial writes must include completed and incomplete items.
 - A WAL append failure does not roll back metadata that has already been committed.
-- Required I/O failures during check indicate that the scan is incomplete.
+- A required I/O failure or cancellation during check makes the scan incomplete and identifies an I/O failure path when one exists.
 
 Exit codes use the current implementation mapping. 0 means success, and nonzero means failure or rejection. Error codes and categories express the specific reason instead of binding each error to a new numeric contract.
 

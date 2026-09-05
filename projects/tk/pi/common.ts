@@ -47,7 +47,7 @@ type ToolSchema = {
   inputSchema: Record<string, unknown>;
 };
 type NativeContract = {
-  contract_version: 2;
+  contract_version: 3;
   runtime_version: string;
   runtime_compat: string[];
   harness: "pi";
@@ -350,7 +350,7 @@ async function runRawJson(adapter: HarnessAdapter, runtime: string, args: string
 function parseContract(value: unknown): NativeContract {
   if (
     !isObject(value) ||
-    value.contract_version !== 2 ||
+    value.contract_version !== 3 ||
     value.schema_type !== "native" ||
     value.harness !== "pi" ||
     typeof value.runtime_version !== "string" ||
@@ -376,7 +376,7 @@ function parseContract(value: unknown): NativeContract {
     };
   });
   return {
-    contract_version: 2,
+    contract_version: 3,
     runtime_version: value.runtime_version,
     runtime_compat: value.runtime_compat.map(String),
     harness: "pi",

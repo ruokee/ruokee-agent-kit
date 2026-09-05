@@ -94,12 +94,14 @@ tk search 'api|cli' --regex --search-body --output json
 
 ```text
 tk read <task_ref>
-  [--view <metadata|summary|detailed>]
+  [--view <minimal|summary|detailed>]
   [--wal-max-entries <n>] [--wal-max-length <bytes>]
   [global-options]
 ```
 
-The default view is summary. WAL budgets apply only to detailed. For exact reference rules, see [Tool API](./tool-api.md#exact-task-references).
+The default view is `summary`. `minimal` returns metadata and managed paths without reading Task body or WAL. `summary` returns the complete Task body and recent WAL entries without their bodies. `detailed` adds WAL entry bodies.
+
+WAL budgets apply to `summary` and `detailed`. When omitted, `summary` uses 5 entries and 4000 bytes, while `detailed` uses 50 entries and 16000 bytes. Callers may set either budget lower or raise a summary request up to the shared maximum of 50 entries and 16000 bytes. The response silently omits older entries outside the selected budgets. For exact reference and budget rules, see [Tool API](./tool-api.md#exact-task-references).
 
 ## `tk create task`
 
@@ -282,7 +284,7 @@ Version JSON is:
 ```json
 {
   "runtime_version": "0.1.2",
-  "cli_contract_version": 2,
+  "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3
 }
