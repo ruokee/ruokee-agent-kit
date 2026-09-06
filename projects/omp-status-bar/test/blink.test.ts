@@ -14,11 +14,11 @@ const model = { provider: "acme", id: "big-1", contextWindow: 200000, input: ["t
 describe("blink composition", () => {
   test("indicating first frame is emphasized, second frame dims", () => {
     const lit = composeContextFragment(usage(1000), "percent", "indicating", true)!;
-    const glyph = lit.spans.at(-1)!;
+    const glyph = lit.spans[0]!;
     expect(glyph.color).toBe("#5fafaf");
     expect(glyph.dim).toBeUndefined();
     const dim = composeContextFragment(usage(1000), "percent", "indicating", false)!;
-    expect(dim.spans.at(-1)!.dim).toBe(true);
+    expect(dim.spans[0]!.dim).toBe(true);
   });
 
   test("hidden state contributes no glyph spans", () => {
@@ -29,13 +29,18 @@ describe("blink composition", () => {
 
   test("normal state renders the dimmed glyph", () => {
     const fragment = composeContextFragment(usage(24000), "percent", "normal")!;
-    expect(fragment.spans.map((span) => span.text)).toEqual(["ctx 12%", " ", "󰁨"]);
-    expect(fragment.spans.at(-1)!.dim).toBe(true);
+    expect(fragment.spans.map((span) => span.text)).toEqual(["󰁨", " ", "ctx 12%"]);
+    expect(fragment.spans[0]!.dim).toBe(true);
   });
 
   test("absolute mode renders only current tokens", () => {
     const fragment = composeContextFragment(usage(24000), "absolute", "hidden")!;
     expect(fragment.spans[0]?.text).toBe("24K");
+  });
+
+  test("absolute mode places the indicator before current tokens", () => {
+    const fragment = composeContextFragment(usage(24000), "absolute", "normal")!;
+    expect(fragment.spans.map((span) => span.text).join("")).toBe("󰁨 24K");
   });
 
   test("composing two fragments separates them with a dim slash", () => {
@@ -45,9 +50,7 @@ describe("blink composition", () => {
       1,
     );
     const rendered = bar.spans.map((span) => span.text).join("");
-    expect(rendered).toContain("ctx 12%");
-    expect(rendered).toContain("T 5K");
-    expect(rendered).toContain(" / ");
+    expect(rendered).toBe("󰁨 ctx 12% / T 5K");
   });
 });
 

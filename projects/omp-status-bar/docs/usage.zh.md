@@ -128,7 +128,7 @@ options:
 | --- | --- |
 | `total` | `#5fafaf` |
 | `input` | `#00afff` |
-| `cache` | `#8787af` |
+| `cache` | `#af87ff` |
 | `output` | `#ff5faf` |
 | `cache-hit` | `#8787af` |
 
@@ -144,7 +144,7 @@ options:
 
 数据来自 `ctx.getContextUsage()`。数据不存在或 `contextWindow <= 0` 时，该 Provider 不发布片段。`percent` 使用整数四舍五入；`absolute` 只用共享 token formatter 格式化当前 token 数。context window 仍用于数据校验和投机区间计算，但不显示。
 
-上下文文本和投机压缩图标属于同一个 ProviderFragment，中间用一个普通空格连接，不经过顶层 separator。
+投机压缩图标位于上下文文本左侧。两者属于同一个 ProviderFragment，中间用一个普通空格连接，不经过顶层 separator。
 
 ## 投机压缩区间指示
 

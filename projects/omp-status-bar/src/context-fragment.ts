@@ -38,14 +38,14 @@ export function composeContextFragment(
   }
   const spans: ProviderSpan[] = [];
   const usageText = mode === "absolute" ? formatTokenCount(usage.tokens) : `ctx ${Math.round(usage.percent)}%`;
-  spans.push({ text: usageText });
   if (state !== "hidden") {
-    spans.push({ text: " " });
     if (state === "indicating" && blinkPhase) {
       spans.push({ text: SPECULATION_GLYPH, color: SPECULATION_COLOR });
     } else {
       spans.push({ text: SPECULATION_GLYPH, color: SPECULATION_COLOR, dim: true });
     }
+    spans.push({ text: " " });
   }
+  spans.push({ text: usageText });
   return { spans };
 }

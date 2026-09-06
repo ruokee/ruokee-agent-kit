@@ -28,7 +28,7 @@ import { SpeculationMachine, type SpeculationState } from "../speculation.ts";
 const COLORS = {
   total: "#5fafaf",
   input: "#00afff",
-  cache: "#8787af",
+  cache: "#af87ff",
   output: "#ff5faf",
   cacheHit: "#8787af",
 } as const;

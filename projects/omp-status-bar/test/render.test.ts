@@ -4,13 +4,14 @@ import { composeLine, createStatusBarWidget } from "../src/widget.ts";
 import type { SeparatorValue } from "../src/config.ts";
 import { BUILTIN_PROVIDERS } from "../src/providers/bundled.ts";
 import type { ProviderFragment } from "../src/provider.ts";
+import { getSnapshotStore, resetSnapshotStoreForTests } from "../src/snapshot-store.ts";
 
 const STATUS_LINE_PRESETS = ["default", "minimal", "compact", "full", "nerd", "ascii", "custom"] as const;
 
 const fragments: ProviderFragment[] = [
   { spans: [{ text: "T 120K", color: "#5fafaf" }] },
   { spans: [{ text: "I 30K", color: "#00afff" }] },
-  { spans: [{ text: "C 84K", color: "#8787af" }] },
+  { spans: [{ text: "C 84K", color: "#af87ff" }] },
   { spans: [{ text: "O 6K", color: "#ff5faf" }] },
   { spans: [{ text: "H 84K", color: "#8787af" }] },
   { spans: [{ text: "ctx 12%" }] },
@@ -20,6 +21,46 @@ const WIDTHS = [200, 80, 60, 40, 20, 10] as const;
 
 /** Extension-registered shape: any non-builtin `composer.shape` value uses the same widget path. */
 const EXTENSION_SHAPE = "custom-accent";
+
+describe("builtin metric colors", () => {
+  test("Cache renders blue-violet while cache-hit retains its color", async () => {
+    resetSnapshotStoreForTests();
+    const store = getSnapshotStore();
+    store.bind({
+      getUsageStatistics: () => ({ input: 20, cacheWrite: 0, cacheRead: 80, output: 0 }),
+      getContextUsage: () => undefined,
+      getModel: () => undefined,
+      getCompactionSettings: () => undefined,
+    });
+    store.attachTimers({ setInterval: () => 1, clearTimeout: () => {} });
+    try {
+      for (const [id, text, rgb] of [
+        ["cache", "Cache 80", "175;135;255"],
+        ["cache-hit", "Hit 80%", "135;135;175"],
+      ] as const) {
+        const provider = BUILTIN_PROVIDERS.find((provider) => provider.id === id)!;
+        const widget = createStatusBarWidget();
+        const options = { label: "word" };
+        const instance = provider.create({
+          options,
+          config: provider.describe(options),
+          publish: (fragment) => widget.setLine(composeLine([fragment], "space", 1)),
+          setInterval: () => 1,
+          setTimeout: () => 2,
+          clearTimer: () => {},
+        });
+        try {
+          await instance.start();
+          expect(widget.render(80)[0]).toContain(`\x1b[38;2;${rgb}m${text}`);
+        } finally {
+          await instance.stop();
+        }
+      }
+    } finally {
+      resetSnapshotStoreForTests();
+    }
+  });
+});
 
 describe("shape x preset rendering", () => {
   test("all builtin shapes render through one widget path at all widths", () => {

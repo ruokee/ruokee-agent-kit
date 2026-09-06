@@ -128,7 +128,7 @@ The label, the following space, and the number share one color span. These color
 | --- | --- |
 | `total` | `#5fafaf` |
 | `input` | `#00afff` |
-| `cache` | `#8787af` |
+| `cache` | `#af87ff` |
 | `output` | `#ff5faf` |
 | `cache-hit` | `#8787af` |
 
@@ -144,7 +144,7 @@ An unknown option or another `mode` value invalidates that entry.
 
 Data comes from `ctx.getContextUsage()`. When usage is missing or `contextWindow <= 0`, the provider publishes nothing. `percent` rounds to an integer; `absolute` formats only the current token count with the shared token formatter. The context window remains an internal input for validation and speculation-band calculation and is not displayed.
 
-The context text and the speculation glyph share one provider fragment joined by a plain space, never crossing the top-level separator.
+The speculation glyph appears to the left of the context text. They share one provider fragment joined by a plain space, never crossing the top-level separator.
 
 ## Speculative-compaction band indicator
 
