@@ -36,9 +36,9 @@ Work through these dimensions, recording evidence per finding:
 
 For each high-severity finding, re-check the evidence, state your confidence, and actively consider the false positive: could the structure be deliberate, or driven by a reason-to-change you have not seen? Downgrade or drop findings that don't survive this.
 
-### 5. Confirmation stop
+### 5. Execution approval
 
-Stop and ask before recommending or doing any: cross-file refactoring, architecture migration, or bulk change. Present the plan and its cost; let the user decide.
+Report recommendations directly. Obtain the required authorization before carrying out cross-file refactoring, architecture migration, or bulk changes. Present the plan and its cost so the user can decide whether to proceed.
 
 ## Output Format
 
@@ -65,6 +65,6 @@ Group findings by category. Be explicit about what you downgraded and why.
 ## Stop Rules
 
 - Do not modify code without an explicit ask.
-- Confirmation stop on cross-file refactors, migrations, and bulk changes.
+- Obtain authorization before carrying out cross-file refactors, migrations, or bulk changes.
 - Do not force findings to satisfy a principle, or abstract on similarity alone.
 - Separate fact, judgment, and recommendation in every finding.

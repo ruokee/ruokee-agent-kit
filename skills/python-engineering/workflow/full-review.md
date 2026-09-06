@@ -1,6 +1,6 @@
 # Full Review: Python Engineering
 
-A systematic, evidence-driven Python engineering review. Heavier than fast review: it reads in stages, verifies high-severity findings, and stops for confirmation before risky suggestions. Run only when the user asks for it.
+A systematic, evidence-driven Python engineering review. It reads in stages, verifies high-severity findings, and reports recommendations directly. Risky changes require authorization before execution. Run only when the user asks for a full review.
 
 ## Trigger
 
@@ -32,11 +32,11 @@ User explicitly says "full review", "complete review", "systematic review", or "
     - Stdlib usage, `functools`, `itertools`, `contextlib`, `pathlib`, `enum`, `dataclasses`, `logging` used instead of hand-rolled equivalents.
     - Tooling config, uv, Ruff, ty/mypy/basedpyright, pytest, coverage, pre-commit configured coherently and not contradicting each other.
 4. Self-verify every high-severity finding. Re-read the evidence, consider a plausible false-positive reading, and state confidence. Downgrade or drop anything you cannot support.
-5. Confirmation stop. Before suggesting any of these, stop and ask:
-    - Unsafe fixes or commands that write files, create `.venv`/cache, or alter the lockfile.
+5. Execution approval. Report recommendations directly; obtain the required authorization before carrying out:
+    - Unsafe fixes or commands that modify reviewed files, create `.venv`/cache, or alter the lockfile.
     - Bulk suppressions or sweeping config changes.
     - Cross-file refactoring or dependency changes.
-    - Behavior-changing recommendations.
+    - Behavior changes.
 
 ## Output Format
 
@@ -65,6 +65,6 @@ Notes
 ## Stop Rules
 
 - Do not modify code without an explicit request for fixes.
-- Confirmation stop on unsafe, bulk, cross-file, dependency, or behavior-changing suggestions.
+- Obtain authorization before carrying out unsafe fixes, bulk edits, cross-file refactoring, dependency changes, or behavior changes.
 - Do not report what Ruff, ty, mypy, or pre-commit catch mechanically, note once if it affects the review, then move on.
 - Keep facts, inferences, judgments, and recommendations separate.

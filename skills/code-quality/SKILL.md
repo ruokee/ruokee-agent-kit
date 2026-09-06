@@ -99,5 +99,5 @@ Write output in the language required by global, project, or user instructions; 
 - Do not abstract merely because code looks similar.
 - Do not treat similar code as duplicate knowledge without proving shared intent.
 - Do not automatically apply refactors, patches, unsafe fixes, or bulk suppressions.
-- Do not write file modifications during read-only or analysis tasks.
+- Read-only and analysis tasks leave reviewed files unchanged. Existing authorization to maintain reports or Task materials still applies.
 - Do not report issues that a formatter or linter can catch mechanically. Note them once if relevant, then move on.

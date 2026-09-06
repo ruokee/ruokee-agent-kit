@@ -71,5 +71,5 @@ Write output in the language required by global, project, or user instructions; 
 - Do not automatically run full review mode.
 - Do not modify code unless the user asks for fixes.
 - Do not run unsafe fixes, bulk suppressions, cross-file refactors, dependency changes, or lockfile-altering commands without explicit confirmation.
-- Do not write file modifications during read-only or analysis tasks.
+- Read-only and analysis tasks leave reviewed files unchanged. Existing authorization to maintain reports or Task materials still applies.
 - Do not report issues that Ruff, ty, or pre-commit can catch mechanically. Note them once in Notes if relevant, then move on.
