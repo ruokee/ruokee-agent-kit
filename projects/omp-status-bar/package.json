@@ -1,0 +1,46 @@
+{
+  "name": "@ruokee/omp-status-bar",
+  "version": "0.1.0",
+  "description": "Persistent status bar widget for Oh My Pi: one Host composes sanitized structured provider fragments into a belowEditor row, with a versioned provider registration API for third-party extensions",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "omp-package",
+    "status-bar"
+  ],
+  "omp": {
+    "extensions": [
+      "./src/extension.ts"
+    ]
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    },
+    "./provider": {
+      "types": "./src/provider.ts",
+      "import": "./src/provider.ts"
+    }
+  },
+  "peerDependencies": {
+    "@oh-my-pi/pi-agent-core": ">=18.1.8 <19",
+    "@oh-my-pi/pi-coding-agent": ">=18.1.8 <19",
+    "@oh-my-pi/pi-tui": ">=18.1.8 <19"
+  },
+  "devDependencies": {
+    "@oh-my-pi/pi-agent-core": "18.1.8",
+    "@oh-my-pi/pi-coding-agent": "18.1.8",
+    "@oh-my-pi/pi-tui": "18.1.8",
+    "@types/bun": "^1.3.14",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "trustedDependencies": [
+    "onnxruntime-node",
+    "protobufjs"
+  ]
+}

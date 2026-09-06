@@ -39,6 +39,10 @@ tk 通过一个 Rust 运行时和面向 Codex、Claude Code、Pi、OMP 的自包
 
 [tk 设计索引](../../projects/tk/docs/design/README.zh.md)
 
+OMP 状态栏是一个常驻的 `belowEditor` Widget，内置 token 指标、缓存命中率和上下文 Provider，并通过带版本的 Provider 合同扩展：
+
+[omp-status-bar package](../../projects/omp-status-bar/README.zh.md)
+
 ## 开发
 
 Markdown 格式化需要 Node.js 20 或更高版本。安装锁定版本的依赖：

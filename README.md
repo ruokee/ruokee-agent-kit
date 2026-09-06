@@ -39,6 +39,10 @@ tk provides persistent project Tasks through one Rust runtime and self-contained
 
 [tk design index](./projects/tk/docs/design/README.md)
 
+The OMP status bar is a persistent `belowEditor` widget with builtin token-metric, cache-hit, and context providers, extensible through a versioned provider contract:
+
+[omp-status-bar package](./projects/omp-status-bar/README.md)
+
 ## Development
 
 Markdown formatting requires Node.js 20 or newer. Install the locked dependencies:
