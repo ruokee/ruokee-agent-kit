@@ -17,3 +17,7 @@
 ## architect
 
 [`architect`](../../skills/architect/SKILL.md) covers system-level architecture analysis, design, review, technology selection, and evolution. Invoke it manually when a decision crosses module or service boundaries and needs explicit tradeoffs. It provides judgment rationale, common tradeoffs, and examples; it does not handle concrete implementation or replace project facts, product documentation, or user decisions.
+
+## deep-research
+
+[`deep-research`](../../skills/deep-research/SKILL.md) guides structured, evidence-first research through broad exploration, targeted investigation, source validation, and synthesis. It covers source capture, claim classification, unresolved questions, and parallel research with sub-agents. Reports and supporting documents are the default output.
