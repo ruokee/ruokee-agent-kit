@@ -1,4 +1,4 @@
-# ADR 提案：添加用户主动调用的 grill-me Skill
+# ADR 决定：添加用户主动调用的 grill-me Skill
 
 Decision owner: Ruokee
 Draft writer: OMP GPT-6 Astra
@@ -9,17 +9,15 @@ Draft writer: OMP GPT-6 Astra
 
 Ruokee 需要一项持续提问能力，将不完整想法或已有方案收敛为共同理解和可行动规格。`grill-me` 用于发现需求与偏好、核实可查证的事实，并明确行动前需要作出的选择。
 
-持续提问是一种需要用户主动选择的交互方式。普通讨论、规划和审查不得自动启用它。调用契约沿用 [architect 决定](../decision/2026-08-22-add-manual-architect-skill.zh.md)。
+持续提问是一种需要用户主动选择的交互方式。普通讨论、规划和审查不得自动启用它。调用契约沿用 [architect 决定](./2026-08-22-add-manual-architect-skill.zh.md)。
 
-## 提议
+## 决定
 
 ### 归属与分发
 
-`grill-me` 由 Ruokee 创作并独立维护，遵守[第一方仓库边界](../decision/2026-08-20-establish-first-party-capability-kit.zh.md)。原始概念来自 Matt Pocock 的 [skills 仓库](https://github.com/mattpocock/skills)。
+`grill-me` 由 Ruokee 创作并独立维护，遵守[第一方仓库边界](./2026-08-20-establish-first-party-capability-kit.zh.md)。其持续提问概念受到 Matt Pocock 的 [skills 仓库](https://github.com/mattpocock/skills)启发，但本 Skill 由 Ruokee 另行独立编写，并非直接修改其实现所得。
 
-保留概念来源说明，以及所保留第三方材料适用的 MIT 版权声明和许可证。作为第一方能力维护，仍需履行署名义务。
-
-英文 Skill 位于 `skills/grill-me/`，完整中文变体位于 `variants/zh/skills/grill-me/`。两者均独立分发，各自包含 `SKILL.md`、`agents/openai.yaml` 和适用的 `LICENSE.txt`。每个语言组件都完整且可独立使用。
+英文 Skill 位于 `skills/grill-me/`，完整中文变体位于 `variants/zh/skills/grill-me/`。两者均独立分发，各自包含 `SKILL.md` 和 `agents/openai.yaml`。每个语言组件都完整且可独立使用。
 
 采用本仓库的纯 Skill 布局，不包含 Plugin 包装或独立运行时。中英文 Skill 索引说明其功能和显式调用条件。
 
@@ -64,17 +62,20 @@ Skill 通过证据和聚焦的问题轮次建立共同理解：
 
 以 Plugin 分发这项能力。Plugin 会包装相同的 Skill 内容和描述元数据，不增加运行时行为。纯 Skill 布局已能满足需要，无需引入独立的包契约。
 
-## 验收标准
+## 结果
 
-1. 两个独立语言组件均使用 `grill-me` 标识和 `Grill Me` 显示名称，保留适用的来源说明与许可，不依赖其他组件。
+Skill 提供两个可独立使用的语言组件。调用配置将持续提问与普通规划和审查分开。其行为和宿主集成须满足以下验证要求。
+
+### 验证要求
+
+1. 两个独立语言组件均使用 `grill-me` 标识和 `Grill Me` 显示名称，且不依赖其他组件。
 2. 两者均设置 `disable-model-invocation: true` 和 `policy.allow_implicit_invocation: false`。描述不允许因深入审视请求而自动启用。
 3. 两个变体实现上述行为且语义一致。Skill 索引说明相同职责和手动调用条件。
 4. 对纳入验证的每个宿主，确认普通规划、未显式调用的深入审视请求，以及对 Skill 本身的讨论均不加载它；显式调用能够加载。
 5. 显式调用后，分别从不完整想法和已有方案出发，检查先调研再提问、问题上限与编号、记录连续性、上游回答纠正、提前结束和禁止未授权实施。记录测试的宿主、场景、结果与限制。
 6. 通过仓库检查。
 
-## 风险
+### 风险
 
 - 忽略调用元数据的宿主仍可能误启用 Skill，将普通工作转为持续追问。需验证目标宿主行为并说明无法保证调用边界的情况，不能依赖描述文字代替验证。
 - `grill-me` 可能与其他已安装的同名 Skill 冲突。安装说明需标明本仓库来源，发现冲突时交由用户处理，不静默覆盖其他组件。
-- 语言组件缺少许可证或其他必要文件时，分发内容将不完整。需独立验证每个语言目录。

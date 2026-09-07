@@ -1,0 +1,6 @@
+interface:
+  display_name: "Grill Me"
+  short_description: "将想法或方案通过持续提问收敛为行动前的共同理解"
+  default_prompt: "使用 $grill-me 发现当前想法或方案背后的需求、经验与偏好，从证据中确定可查证事实，并在行动前通过聚焦的问题轮次进行审视。"
+policy:
+  allow_implicit_invocation: false
