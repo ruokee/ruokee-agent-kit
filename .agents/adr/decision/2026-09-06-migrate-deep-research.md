@@ -19,7 +19,7 @@ Provide `deep-research` as a pure Skill, following the [language variant packagi
 - Keep the Skill identity `deep-research` in both variants. Install either variant at the normal `skills/deep-research/` host path, without the `variants/zh/` prefix.
 - Cover question clarification, identifying research dimensions, broad exploration, targeted research, evidence validation, and synthesis. Capture sources, distinguish claim types, produce reports by default, and record unresolved gaps. Use sub-agents for parallel research within the environment's concurrency limit. Research has no fixed time or token limit; stop when the work within the requested scope and all deliverables are complete.
 - Each language variant consists of one `SKILL.md` containing the research instructions.
-- The [English Skill index](../../../docs/en/skills.md) and [Chinese Skill index](../../../docs/zh/skills.md) link to their corresponding variants.
+- The [English repository README](../../../README.md) and [Chinese repository README](../../../README.zh.md) include the Skill in their capability indexes, each linking to both language variants.
 
 ## Alternatives considered
 
@@ -31,4 +31,4 @@ Either variant can be installed and used independently. Each component contains 
 
 Both variants use `name: deep-research`, with equivalent `description` fields describing when to use the Skill. Their research requirements remain semantically aligned. An incomplete translation could omit an evidence requirement or change when research stops, so review the English and Chinese instructions together.
 
-Keep both Skill index links valid and run `pnpm check` for repository validation.
+Keep the capability-index links in both repository READMEs valid and run `pnpm check` for repository validation.

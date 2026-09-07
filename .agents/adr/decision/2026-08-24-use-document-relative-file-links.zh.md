@@ -15,10 +15,10 @@ Draft writer: OMP GPT-5.6 Sol
 
 `AGENTS.md` 的 `File paths` 规则要求供读者跳转的仓库文件引用使用 Markdown 链接。每个链接目标都相对于引用所在的 Markdown 文档。当前目录或下级目录使用 `./`，向上返回时使用所需数量的 `../`。链接目标不以 `/` 开头，不使用仓库根目录相对路径，同一仓库中的文件也不使用 GitHub 绝对 URL。
 
-当链接文本用于标明文件时，文本仍使用仓库根目录相对路径，让文件在仓库中的位置保持清晰。例如，`docs/zh/` 下的文档这样链接 architect Skill：
+当链接文本用于标明文件时，文本仍使用仓库根目录相对路径，让文件在仓库中的位置保持清晰。例如，`.agents/adr/decision/` 下的 ADR 这样链接 architect Skill：
 
 ```markdown
-[skills/architect/SKILL.md](../../skills/architect/SKILL.md)
+[skills/architect/SKILL.md](../../../skills/architect/SKILL.md)
 ```
 
 显示文本从仓库根目录标明文件，相对于当前文档的链接目标则让同一个链接可以在 GitHub 和本地编辑器中跳转。

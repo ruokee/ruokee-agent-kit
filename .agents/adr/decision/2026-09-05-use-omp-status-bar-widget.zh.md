@@ -83,7 +83,7 @@ context Provider 的文本配有一个字形，表示上下文大概进入了 OM
 
 ### 实现证据随项目保存
 
-[英文和中文公开文档决定](./2026-08-20-maintain-bilingual-public-documentation.md)适用，Package 本地使用文档互相链接。Package 文档覆盖安装、启停、配置 schema、内置 Provider ID 和 options、按条目失败行为、Widget 位置、投机估计及其限制，以及验证过的 OMP 兼容范围。Provider 编写文档定义公开导入路径、注册时机、合同版本、冲突行为、生命周期上下文，以及如何安装和选用独立打包的 Provider。
+[英文和中文公开文档决定](./2026-09-07-colocate-bilingual-docs.zh.md)适用，Package 本地使用文档互相链接。Package 文档覆盖安装、启停、配置 schema、内置 Provider ID 和 options、按条目失败行为、Widget 位置、投机估计及其限制，以及验证过的 OMP 兼容范围。Provider 编写文档定义公开导入路径、注册时机、合同版本、冲突行为、生命周期上下文，以及如何安装和选用独立打包的 Provider。
 
 直接 `@oh-my-pi/*` 导入以 `>=18.1.8 <19` 范围声明对等依赖；Package 面向 OMP 18.x 并记录验证过的版本。行为测试覆盖配置解析和按条目降级、片段清理和无效片段隔离、有序组合、宽度截断、可控时钟下的投机状态机、来自独立加载夹具扩展的注册（无共享模块身份），以及无残留 timer 或 Widget 的清理。渲染检查枚举目标版本的内置 Composer shape 和 statusline preset，并包含一个扩展注册的 shape，全部走同一个 Widget 路径。自动化测试全部无头运行，看不到终端：确认 Widget 出现在编辑器下方并与原生 statusline 共存的真实 OMP TUI 会话是发布要求，按发布提交运行并评审后才可打标签，不进入单元测试套件。
 

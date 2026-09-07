@@ -28,8 +28,8 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 
 - Read the relevant documentation before analyzing requirements or starting development.
 - Keep documentation in sync with the code it describes. Update affected documents in the same change.
-- Write code, comments, documentation, and configuration in English.
-- Maintain user-facing Chinese documentation under `docs/zh/` alongside the English documentation when behavior or usage changes.
+- Write code, comments, configuration, and default public documentation in English.
+- Pair ordinary public Markdown documentation in the same directory as `name.md` and `name.zh.md`; use `README.md` and `README.zh.md` for repository and component entry pages. Keep Skill language variants in their existing component layouts.
 - Keep language links between corresponding English and Chinese documents.
 
 ## ADRs
@@ -47,7 +47,7 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 - Use Markdown links for repository file references that readers should follow, with each destination relative to the Markdown document containing it.
 - Prefix destinations in the current directory or a descendant directory with `./`. Use as many `../` segments as needed to reach files outside that tree.
 - Do not use a leading `/`, a repository-root-relative destination, or an absolute GitHub URL for a file in this repository.
-- When the link text names a file, write it from the repository root without a leading `/`. For example, a document under `docs/zh/` links to the `<skill>` Skill as `[skills/<skill>/SKILL.md](../../skills/<skill>/SKILL.md)`.
+- When the link text names a file, write it from the repository root without a leading `/`. For example, an ADR under `.agents/adr/decision/` links to the `<skill>` Skill as `[skills/<skill>/SKILL.md](../../../skills/<skill>/SKILL.md)`.
 
 ## Validation
 

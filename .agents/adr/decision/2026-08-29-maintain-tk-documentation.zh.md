@@ -92,3 +92,7 @@ tk 文档现在引用 `decision/` 下的当前 ADR，不再用 `implemented` 状
 ### 2026-09-03：记录自定义 CLI Skill 根目录
 
 文档现在覆盖多份 Harness 载荷、两份与 Harness 无关的 CLI Skill 载荷、互斥的安装目标，以及有限范围的自定义根目录生命周期。
+
+### 2026-09-07：定义组件 README 导航
+
+公开文档集合包括组件[英文 README](../../../projects/tk/README.md) 和[中文 README](../../../projects/tk/README.zh.md)。它们介绍 tk 并链接现有指南和设计页面，不重复详细命令或规范性合同。仓库 README 文件对链接到这些组件入口页。公开 Markdown 文档遵循[公开文档决定](./2026-09-07-colocate-bilingual-docs.zh.md)，采用同目录 `name.md` 和 `name.zh.md` 配对；主题归属保持不变。

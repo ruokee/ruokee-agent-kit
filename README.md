@@ -1,89 +1,85 @@
 # Ruokee Agent Kit
 
-[中文](./docs/zh/README.md)
+English | [中文](./README.zh.md)
 
-I keep running into the same problems across Agent Harnesses. Sometimes the answer is a Skill. Other problems need an extension, Plugin, executable, or host package. This repository is where I maintain those capabilities in public.
+I use these Agent Skills and extensions every day for real engineering work, personal note management, and more.
 
-Ruokee Agent Kit contains capabilities I wrote for my own work and am willing to maintain. Each one should have a clear job, readable documentation, and a real validation path. This is not a warehouse for everything I happened to install once.
+I keep running into the same problems across Agent Harnesses. Some are a good fit for a Skill; others need a more complex extension.
+
+Ruokee Agent Kit contains only capabilities I developed for my own work and am willing to maintain in public. Each capability should have a clear purpose, readable documentation, and a real validation path.
 
 ## What Harness I use
 
-I currently use my own fork of OMP with a small preset.
-
-I want the interface to look good and common development features to work without extra setup. OMP includes many features out of the box. I think of it as Pi with a large set of features preinstalled. After disabling most of what I do not need, it works well for me. OMP still has limits, so I may move to a better-fitting Harness in the future.
-
-I maintain a fork because OMP does not fully match my preferences, and extensions cannot change some of its behavior. Once I started changing the source, I began treating the fork as "My Harness".
+I currently mainly use OMP, Oh My Pi, with a small configuration. I want a Harness that can use model services from most providers rather than being limited to particular models. I also want strong extensibility, a good-looking interface, and common development features within reach. OMP includes many features out of the box. I think of it as Pi with a large set of features preinstalled. After disabling most of what I do not need, it works well for me. OMP still has limits, so I may switch if a better-fitting Harness becomes available.
 
 I also use Pi, Claude Code, and Codex.
 
-## What belongs here
+## Capabilities
 
-- **Skills.** Self-contained Agent Skills I develop for my own work and maintain in public.
-- **Plugins and executables.** Capabilities that need deterministic code or their own runtime.
-- **Extensions.** Standalone extensions that add or adjust Agent Harness functionality.
-- **Harness packages and adapters.** First-party installation and transport support for repository capabilities.
-- **Optional variants.** Alternative versions of repository content or configuration for different languages, environments, or preferences.
-- **Documentation.** Capability indexes, installation instructions, development conventions, and validation guidance.
+### Skills
 
-## Repository layout
+These are the Skills I use in my daily work.
 
-English Skills live under `./skills/<name>/`. Chinese variants live under `./variants/zh/skills/<name>/`, but install at the normal `skills/<name>/` host path. A pure Skill contains only the material needed to discover, understand, and use it.
+**User-invoked**
 
-Plugins, extensions, executables, and Harness packages keep the layout their Harness or build system expects. The repository adds a top-level area only when a real component needs it.
+- **[architect](./skills/architect/SKILL.md)** covers system-level architecture analysis, design, review, technology selection, and evolution. Use it for system decisions that cross module or service boundaries and need explicit tradeoffs. It provides architecture judgment criteria, common tradeoffs, and examples. [Chinese variant](./variants/zh/skills/architect/SKILL.md)
 
-Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/README.md).
+**Agent-invoked**
 
-tk provides persistent project Tasks through one Rust runtime and self-contained components for Codex, Claude Code, Pi, and OMP. A Task is a temporary project effort worth preserving, not an execution commitment.
+- **[code-quality](./skills/code-quality/SKILL.md)** covers code and test quality, design tradeoffs, refactoring opportunities, and Agent configuration, with quick reviews, full reviews, and exploratory analysis. [Chinese variant](./variants/zh/skills/code-quality/SKILL.md)
+- **[python-engineering](./skills/python-engineering/SKILL.md)** covers Python project structure, version and dependency policy, typing, testing, standard-library choices, tooling, and Python-specific code review. [Chinese variant](./variants/zh/skills/python-engineering/SKILL.md)
+- **[msgspec](./skills/msgspec/SKILL.md)** covers struct definitions, type validation, serialization, and deserialization with `msgspec`. [Chinese variant](./variants/zh/skills/msgspec/SKILL.md)
+- **[deep-research](./skills/deep-research/SKILL.md)** guides structured, evidence-first research through broad exploration, targeted research, source verification, and synthesis. It includes source collection, claim classification, unresolved-question records, and parallel sub-agent research, producing a report and supporting documents by default. [Chinese variant](./variants/zh/skills/deep-research/SKILL.md)
 
-[tk user guide](./projects/tk/docs/guide.md)
+### Extensions
 
-[tk design index](./projects/tk/docs/design/README.md)
+Standalone plugins and extensions that add or adjust Harness functionality.
 
-The OMP status bar is a persistent `belowEditor` widget with builtin token-metric, cache-hit, and context providers, extensible through a versioned provider contract:
+**General**
 
-[omp-status-bar package](./projects/omp-status-bar/README.md)
+- **[tk](./projects/tk/README.md)** is a persistent task management tool for temporary project efforts worth preserving. It provides access through the `tk` CLI, MCP, Pi Packages, and other integrations. `tk` preserves task progress and shared understanding across context compaction, sessions, and Agents.
+
+**OMP**
+
+- **[omp-status-bar](./projects/omp-status-bar/README.md)** adds an OMP status bar with extra context information, including current session context usage as a number rather than the native percentage, total tokens, input tokens, cached tokens, output tokens, cache-hit rate, and speculative-compaction indicators.
 
 ## Development
 
-Markdown formatting requires Node.js 20 or newer. Install the locked dependencies:
+### Git
+
+The project follows [Trunk-Based Development](https://trunkbaseddevelopment.com/). `main` is the only long-lived branch. Start work on a short-lived branch from current `main`, use English Conventional Commit messages, and merge into `main` through squash merge after explicit authorization.
+
+Before development, install the Git pre-commit hook:
 
 ```bash
 pnpm install --frozen-lockfile
-```
-
-Format or check all Markdown files:
-
-```bash
-pnpm docs:format
-pnpm docs:lint
-```
-
-Pass selected files directly to Prettier:
-
-```bash
-pnpm exec prettier --write --log-level warn README.md docs/zh/README.md
-pnpm exec prettier --check --log-level warn README.md docs/zh/README.md
-```
-
-These commands and the Git hook use `--log-level warn` to show only Prettier warnings and errors. Unchanged files, successfully formatted files, and success summaries are not printed. Checks still report unformatted files and return a nonzero exit code on failure.
-
-Run `pnpm install --frozen-lockfile` again if Prettier cannot load a plugin.
-
-Install the Git hook:
-
-```bash
 pnpm hooks:install
 ```
 
-Run all configured checks:
+### Repository layout
+
+English Skills live under `skills/<name>/`. Chinese variants live under `variants/zh/skills/<name>/`, but install at the normal `skills/<name>/` host path. A pure Skill contains only the material needed to discover, understand, and use it.
+
+Plugins, extensions, executables, and Harness packages keep the layout their Harness or build system expects. The repository adds a top-level area only when a real component needs it.
+
+Ordinary public documentation uses same-directory `name.md` and `name.zh.md` pairs. Repository and component entry pages use `README.md` and `README.zh.md`.
+
+Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/README.md).
+
+### Common commands
 
 ```bash
+# Run all checks
 pnpm check
+
+# Format or check all Markdown files
+pnpm docs:format
+pnpm docs:lint
+
+# Pass selected files directly to Prettier
+pnpm exec prettier --write [files]
+pnpm exec prettier --check [files]
 ```
-
-`pnpm check` runs the Markdown check, `cargo fmt --manifest-path projects/tk/Cargo.toml -- --check`, and `cargo test --manifest-path projects/tk/Cargo.toml`.
-
-`main` is the only long-lived branch. Work happens on a short-lived branch created from current `main`, uses English Conventional Commit messages, and enters `main` through an authorized squash merge.
 
 ## License
 

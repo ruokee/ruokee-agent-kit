@@ -2,6 +2,8 @@
 
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
+Archived: 2026-09-07
+Reversed by: [同目录维护中英文公开文档](../decision/2026-09-07-colocate-bilingual-docs.zh.md)
 
 [English](./2026-08-20-maintain-bilingual-public-documentation.md) | 中文
 
@@ -19,7 +21,7 @@ Draft writer: OMP GPT-5.6 Sol
 
 同一变更中审查两种语言。要求语义一致，不要求逐句或逐字节翻译。只要行为、限制和指令一致，中文可以采用更自然的解释。
 
-不要求翻译所有内部实现记录、注释、生成文件或只供维护者使用的材料。公开的行为与用法文档必须成对维护。ADR 使用 [建立 ADR 机制](./2026-09-02-establish-adr-mechanism.zh.md) 定义的更严格文件对格式。
+不要求翻译所有内部实现记录、注释、生成文件或只供维护者使用的材料。公开的行为与用法文档必须成对维护。ADR 使用 [建立 ADR 机制](../decision/2026-09-02-establish-adr-mechanism.zh.md) 定义的更严格文件对格式。
 
 ## 考虑过的替代方案
 
@@ -39,4 +41,4 @@ Draft writer: OMP GPT-5.6 Sol
 
 ### 2026-09-02：采用 ADR 文件对格式
 
-ADR 使用 [建立 ADR 机制](./2026-09-02-establish-adr-mechanism.zh.md) 定义的严格中英文文件对格式。两份文件在语义上具有同等权威，并且一起移动。
+ADR 使用 [建立 ADR 机制](../decision/2026-09-02-establish-adr-mechanism.zh.md) 定义的严格中英文文件对格式。两份文件在语义上具有同等权威，并且一起移动。

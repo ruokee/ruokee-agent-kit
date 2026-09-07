@@ -8,6 +8,7 @@
 
 公开文档包含：
 
+- 组件[英文 README](../../README.md) 和[中文 README](../../README.zh.md)；
 - 英文和中文用户指南；
 - 英文和中文设计索引；
 - system、data-model、runtime、tool-api、cli-reference、harnesses、installation、skill、validation、documentation 和 GLOSSARY 的英文中文对应页面；
@@ -20,6 +21,7 @@
 
 | 页面 | 负责内容 |
 | --- | --- |
+| 组件 README | 能力简介，以及使用和设计文档导航 |
 | guide | 运行时前提、安装、首次使用、常用工作流和 CLI 链接 |
 | system | 产品范围、系统组成、Task 与 Harness 边界和不变量 |
 | data-model | Task schema、表示、发现、WAL、写入、迁移、rename、清理和检查 |
@@ -45,11 +47,11 @@
 
 ## 英文和中文
 
-每个 design 专题和 guide 在一级标题后提供指向另一语言的链接。链接使用仓库内相对路径。
+公开 Markdown 页面采用同目录 `name.md` 和 `name.zh.md` 配对，包括组件 `README.md` 和 `README.zh.md`。每个 design 专题和 guide 在一级标题后提供指向另一语言的链接。链接相对于当前文档。
 
 英文和中文页面语义对应，但中文应按自然中文重写，不做逐句机械翻译。命令、字段、代码、日志和必须固定大小写的产品术语保持原文。
 
-中文仓库索引和根 README 使用自然段落中的语言入口，不强制套用专题页面格式。
+仓库和组件 README 文件对提供双向语言入口，不强制套用专题页面格式。
 
 固定译法见[术语表](./GLOSSARY.zh.md)。
 

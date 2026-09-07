@@ -8,6 +8,7 @@ This page defines the layout, language pairing, topic ownership, and maintenance
 
 Public documentation includes:
 
+- The component [English README](../../README.md) and [Chinese README](../../README.zh.md);
 - English and Chinese user guides;
 - English and Chinese design indexes;
 - Paired English and Chinese pages for system, data-model, runtime, tool-api, cli-reference, harnesses, installation, skill, validation, documentation, and GLOSSARY;
@@ -20,6 +21,7 @@ Review records, revision numbers, Task paths, and local materials do not appear 
 
 | Page | Owns |
 | --- | --- |
+| Component README | Capability overview and navigation to usage and design documentation |
 | guide | Runtime prerequisites, installation, first use, common workflows, and CLI links |
 | system | Product scope, system components, Task and Harness boundaries, and invariants |
 | data-model | Task schema, representation, discovery, WAL, writes, migration, rename, cleanup, and checks |
@@ -45,11 +47,11 @@ Documentation states the final state. It does not describe the change process, r
 
 ## English and Chinese
 
-Each design topic and guide provides a link to the other language immediately after its H1. Links use repository-relative paths.
+Public Markdown pages use same-directory `name.md` and `name.zh.md` pairs, including the component `README.md` and `README.zh.md`. Each design topic and guide provides a link to the other language immediately after its H1. Links are relative to the current document.
 
 English and Chinese pages must have equivalent meaning, but Chinese pages use natural Chinese rather than sentence-by-sentence translation. Preserve commands, fields, code, logs, and product terms with fixed capitalization.
 
-The Chinese repository index and the root README provide language entry points in natural prose. They do not have to follow the format used by topic pages.
+Repository and component README pairs provide reciprocal language entry points without requiring the topic-page format.
 
 See the [glossary](./GLOSSARY.md) for fixed translations.
 

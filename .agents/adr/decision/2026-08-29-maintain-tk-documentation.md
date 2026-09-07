@@ -92,3 +92,7 @@ Documentation covers tools and CLI modes, English and Chinese selection through 
 ### 2026-09-03: Document custom CLI Skill roots
 
 Documentation now covers multiple Harness payloads, two Harness-independent CLI Skill payloads, the mutually exclusive install targets, and the bounded custom-root lifecycle.
+
+### 2026-09-07: Define component README navigation
+
+The public documentation set includes the component [English README](../../../projects/tk/README.md) and [Chinese README](../../../projects/tk/README.zh.md). They introduce tk and link to the existing guides and design pages without duplicating detailed commands or normative contracts. The repository README pair links to these component entry pages. Public Markdown counterparts use same-directory `name.md` and `name.zh.md` pairs under the [public documentation decision](./2026-09-07-colocate-bilingual-docs.md); topic ownership remains unchanged.
