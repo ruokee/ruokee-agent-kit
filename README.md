@@ -43,6 +43,7 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 **OMP**
 
 - **[omp-status-bar](./projects/omp-status-bar/README.md)** adds an OMP status bar with extra context information, including current session context usage as a number rather than the native percentage, total tokens, input tokens, cached tokens, output tokens, cache-hit rate, and speculative-compaction indicators.
+- **[omp-codex-web-access](./projects/omp-codex-web-access/README.md)** lets OMP use a Codex subscription through a forwarding Provider for web search and page extraction.
 
 ## Development
 

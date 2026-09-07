@@ -1,0 +1,28 @@
+{
+  "name": "@ruokee/omp-codex-web-access",
+  "version": "0.1.0",
+  "description": "OMP extension letting OMP use a forwarded Codex subscription for web search and page extraction",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "omp-package",
+    "web-access"
+  ],
+  "omp": {
+    "extensions": [
+      "./src/extension.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@oh-my-pi/pi-coding-agent": ">=18.1.8 <19"
+  },
+  "devDependencies": {
+    "@oh-my-pi/pi-coding-agent": "18.1.8",
+    "@types/bun": "^1.3.14",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p ."
+  }
+}
