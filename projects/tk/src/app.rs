@@ -602,7 +602,15 @@ pub fn log(
 }
 
 pub fn resolve_ref(project: &Project, task_ref: &str) -> Result<StoredTask> {
-    let mut graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    resolve_ref_in_graph(project, task_ref, graph)
+}
+
+pub(crate) fn resolve_ref_in_graph(
+    project: &Project,
+    task_ref: &str,
+    mut graph: task_store::TaskGraph,
+) -> Result<StoredTask> {
     if let Ok(id) = Uuid::parse_str(task_ref) {
         let matches: Vec<_> = graph
             .tasks
@@ -1134,10 +1142,6 @@ fn require_creation_authorization(
     Ok(())
 }
 
-fn valid_tasks(project: &Project) -> Result<Vec<StoredTask>> {
-    Ok(task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?.into_tasks())
-}
-
 fn validate_update_input(request: &UpdateRequest) -> Result<()> {
     let unset: HashSet<_> = request.unset_extra.iter().collect();
     if request.set_extra.keys().any(|key| unset.contains(key)) {
@@ -1285,9 +1289,18 @@ fn ensure_reopenable(project: &Project, task: &StoredTask) -> Result<()> {
 }
 
 fn validate_relation_graph(project: &Project, updated: &Metadata) -> Result<()> {
-    let mut graph: HashMap<Uuid, Vec<Uuid>> = valid_tasks(project)?
-        .into_iter()
-        .map(|task| (task.metadata.id, task.metadata.depends_on))
+    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    validate_relation_graph_in_tasks(&graph, updated)
+}
+
+pub(crate) fn validate_relation_graph_in_tasks(
+    tasks: &task_store::TaskGraph,
+    updated: &Metadata,
+) -> Result<()> {
+    let mut graph: HashMap<Uuid, Vec<Uuid>> = tasks
+        .tasks
+        .iter()
+        .map(|task| (task.task.metadata.id, task.task.metadata.depends_on.clone()))
         .collect();
     graph.insert(updated.id, updated.depends_on.clone());
     for target in updated.depends_on.iter().chain(&updated.related_to) {

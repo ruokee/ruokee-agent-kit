@@ -20,11 +20,11 @@ A complete scan that finds problems returns `check_failed`. If a required direct
 
 ## Rename
 
-Run every rename with `--dry-run` first. Confirm the normalized name, resolved parent, target path, conflicts, and reported Markdown references. The runtime changes only the Task's own name, its generated directory when applicable, and metadata. It does not rewrite references in ordinary materials.
+Run every rename with `--dry-run` first. Confirm the raw old name, normalized new name, resolved parent, target path, conflicts, and reported Markdown references. rename can repair an existing string name that is noncanonical, empty, empty after normalization, or too wide, and a recognizable generated suffix that disagrees with metadata. The runtime changes only the Task's own name, its generated directory when applicable, and metadata. It does not rewrite references in ordinary materials.
 
 A path-moving rename that finds references to the old path stops with a conflict error before the first write. One option is to update the reported references and run the rename again. To proceed while accepting broken links, pass `--ignore-brokenlinks` to `tk_exec rename`; the reference files stay unchanged, and the result still reports them.
 
-A requested name and its applicable generated path that already match return no change. Do not bypass a target conflict, damaged managed data, or failed reference scan with an alias, copied directory, or direct metadata edit.
+A requested name and its applicable generated path that already match return no change. Do not bypass a target conflict, damage outside rename's name-repair scope, or a failed reference scan with an alias, copied directory, or direct metadata edit.
 
 A commit-stage failure may leave only part of the name, generated directory, or WAL update complete. Run `check` immediately, then decide from current managed state whether to rerun rename or enter manual repair.
 
@@ -52,13 +52,11 @@ Before editing:
 
 Manual repair cannot bypass authorization, Git, lifecycle, relationship, conflict, or compatibility rejection.
 
-## Historical long names
+## Name repair
 
-Historical split-mode Tasks may have names longer than 32 display columns. When metadata cannot load, rename may also be unavailable.
+Use `tk_exec rename` with a full UUID, exact Task directory, or exact managed carrier for eligible old-name damage in split or embed. Name repair does not tolerate missing or incorrectly typed names, unparseable carriers, missing markers, unsupported schema, damaged identity, unsafe paths, invalid relationships or `extra`, or unrecognizable generated directory structures.
 
-If no public operation can express the repair, update both `name` in `tk.toml` and the directory leaf slug for a generated Task so they agree. For a non-generated child, update `name` only and preserve its directory. Preserve the date, sequence number, UUID, status, timestamps, relationships, body, and WAL.
-
-The current contract does not permit applying this procedure directly to embedded frontmatter. When no public recovery path exists, report the limitation and do not edit the frontmatter manually.
+After repair, run `check` and read the Task. Use manual repair only when the damage remains outside the public operation's scope.
 
 ## Transport failures
 

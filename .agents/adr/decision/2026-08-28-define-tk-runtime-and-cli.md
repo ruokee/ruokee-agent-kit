@@ -112,3 +112,7 @@ The create interface owns no body input. `tk create task` rejects `--body` as an
 `tk read` now uses `minimal`, `summary`, and `detailed`, with `summary` as the default. `minimal` reads neither Task body nor WAL. `summary` returns the complete Task body and recent WAL entries without bodies, defaulting to 5 entries and 4000 bytes. `detailed` adds WAL bodies and defaults to 50 entries and 16000 bytes. Explicit budgets may range from 0 to the shared maximum of 50 entries and 16000 bytes. The runtime measures compact JSON UTF-8 bytes after selecting the returned fields and silently omits entries outside the budgets without a truncation field, warning, or diagnostic. Complete history remains available through the daily WAL files rather than pagination or a full-history read mode.
 
 `tk check` uses a separate streaming WAL inspector. It reads every regular daily WAL file and every entry without fixed total file, byte, or entry limits. Required I/O failures identify the failed path, cancellation makes the check incomplete, and valid WAL size alone never produces `wal_truncated`. The CLI contract version rises to 3, and generated schemas plus OMP and Pi adapters reject version 2 contracts.
+
+### 2026-09-08: Rename restores name repair
+
+`tk rename` and `tk_exec rename` accept the existing exact reference forms for an eligible Task whose old string name or recognizable generated suffix needs repair. They retain the same command arguments, result shape, reference protection, validation outside the repair scope, and CLI contract version.

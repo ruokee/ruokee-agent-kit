@@ -1,16 +1,16 @@
-# ADR decision: Define the tk Task data model with carrier discovery
+# ADR decision: Define the tk Task data model with name repair
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
-Reverses: [Define the tk Task data model](../archived/2026-08-28-define-tk-task-data-model.md)
+Draft writer: pro-20x/gpt-6-astra
+Reverses: [Define the tk Task data model with carrier discovery](../archived/2026-09-03-define-tk-task-data-model.md)
 
-English | [中文](./2026-09-03-define-tk-task-data-model.zh.md)
+English | [中文](./2026-09-08-repair-names-through-tk-rename.zh.md)
 
 ## Motivation
 
 The [tk product architecture](./2026-08-21-define-tk-product-architecture.md) makes project files the only authoritative Task state. The runtime therefore needs one exact model for identity, paths, lifecycle, relationships, representations, discovery, writes, migration, and cleanup.
 
-The earlier model used `subtasks_dir` for both child creation and discovery. That made a placement preference part of Task visibility. Changing the setting, importing a valid child, or placing a child below ordinary materials could hide valid managed data. Creation still needs one predictable destination and numbering rule, while discovery must recognize existing valid carriers without treating ordinary Markdown as Tasks.
+Carrier discovery separates valid Tasks from ordinary materials and damaged managed data. Normal operations require that strict discovery result. rename is also responsible for repairing an existing string name and a recognizable generated directory suffix. Requiring the old name to pass complete validation would prevent the runtime from performing that repair even though UUID remains identity and the path remains a locator.
 
 ## Decision
 
@@ -44,13 +44,13 @@ UUIDv7 is authoritative identity. Paths locate Tasks and names describe them. Du
 
 A strict project requires current explicit authorization to create a top-level Task. A permissive project may create work worth preserving without treating creation as an execution commitment. Creating a planning Task still requires an expressed intent to save the early work.
 
-### Discovery graph, search, and Git policy
+### Discovery graph, exact references, and Git policy
 
-The Task root has no persistent index or cache. Each operation builds one carrier-based Task graph on demand. Search, exact path resolution, parent and descendant checks, relationship validation, `check`, schema migration, metadata mode switching, and sequence allocation use this graph.
+The Task root has no persistent index or cache. Each operation builds one carrier-based Task graph on demand. Search, ordinary exact path resolution, parent and descendant checks, relationship validation, `check`, schema migration, metadata mode switching, and sequence allocation use the strict graph.
 
-Exact read and mutation accept a complete UUIDv7, an absolute discovered Task directory, an absolute managed carrier, or a relative discovered Task path in the current project. An absolute material path may locate its owning project but is not an exact Task reference. Git projects use their Git root. Non-Git project discovery uses the canonical top-level ancestor and bounded project checks rather than walking to the file-system root.
+Exact read and ordinary mutation accept a complete UUIDv7, an absolute discovered Task directory, an absolute managed carrier, or a relative discovered Task path in the current project. rename accepts the same exact forms for a uniquely identified repair candidate whose carrier parses and whose only tolerated old-state defects are a string name or recognizable generated suffix within rename's repair scope. An absolute material path may locate its owning project but is not an exact Task reference. Git projects use their Git root. Non-Git project discovery uses the canonical top-level ancestor and bounded project checks rather than walking to the file-system root.
 
-Search classifies a query once as UUID or explicit Task path, existing material path, explicit regular expression, or string. It does not fall back after classification. Search includes all three statuses by default and orders `uuid`, `path`, `regex`, then `string` matches. Items within a class use `created_at` descending and ID ascending. The default limit is 20 and the maximum is 100. Results include closed ancestors derived from the discovery graph.
+Search classifies a query once as UUID or explicit Task path, existing material path, explicit regular expression, or string. It does not fall back after classification. Search includes all three statuses by default and orders `uuid`, `path`, `regex`, then `string` matches. Items within a class use `created_at` descending and ID ascending. The default limit is 20 and the maximum is 100. Results include closed ancestors derived from the strict discovery graph.
 
 Git policy runs only before persistent writes. `track` requires managed Task files not to be ignored, `ignore` requires the Task root to be ignored, and `none` does not invoke Git policy commands. tk does not modify Git configuration, ignore rules, the index, commits, or history.
 
@@ -66,9 +66,13 @@ A multi-target project write creates an activity marker before the first persist
 
 Cleanup manifests contain only their format version, producer identity, creation time, and tk temporary paths. GC removes provably tk-owned temporary content and ended activity markers. It never completes, rolls back, or repairs a Task, migration, rename, or component operation.
 
-rename updates only the Task itself and reports the resolved parent, old path, target path, and Markdown references. A non-generated child keeps its directory and changes metadata only. A generated child or top-level Task preserves its sequence and updates the slug path. rename does not rewrite references. `git_policy=track` scans Git-tracked project Markdown. `ignore` and `none` scan ordinary Markdown under the Task root.
+rename performs ordinary renaming and repairs an existing string name that is noncanonical, empty, empty after normalization, or wider than the current display limit. It also repairs a recognizable generated directory whose nonempty suffix disagrees with metadata. The new name, identity, schema, dates, status, relationships, `extra`, project ownership, and final path must pass validation. Missing names, wrong field types, unparseable carriers, missing markers, unsupported schemas, damaged identity, unsafe paths, damaged dates or sequences, and unrecognizable generated structures remain errors.
 
-`check` validates marked carriers, generated name-path agreement, UUID and direct-child sequence uniqueness, relationships, WAL, activity markers, and cleanup data without modifying content. It reports marked invalid carriers and resolved logical parents. A required I/O failure or discovery limit stops the scan and reports it as incomplete. A damaged split carrier may be repaired manually only when tk cannot express the repair, the Agent describes the exact edit, and the user explicitly authorizes it in the current conversation. The Agent then reruns `check` and records the repair in WAL when the Task is usable.
+The repair scan uses the normal representation markers, path boundaries, traversal order, and resource limits. Repairable candidates participate in UUID uniqueness and structural ownership. A damaged-name copy cannot remove UUID ambiguity. A candidate below an invalid enclosing candidate is rejected when parenthood cannot be determined. Other commands retain strict discovery.
+
+rename changes only the Task name and an applicable generated directory, then appends the normal WAL event. It preserves UUID, status, creation time, relationships, `extra`, body bytes, existing WAL, date, sequence, and parent location. A non-generated child keeps its directory. A generated child or top-level Task preserves its sequence and updates the slug path. rename reports the raw old name, resolved parent, old path, target path, and Markdown references. It does not rewrite references. `git_policy=track` scans Git-tracked project Markdown. `ignore` and `none` scan ordinary Markdown under the Task root. Dry-run writes nothing. A path-only repair is a change.
+
+`check` validates marked carriers, generated name-path agreement, UUID and direct-child sequence uniqueness, relationships, WAL, activity markers, and cleanup data without modifying content. It reports marked invalid carriers and resolved logical parents. A required I/O failure or discovery limit stops the scan and reports it as incomplete. Manual repair is allowed only when tk cannot express the repair, the Agent describes the exact edit, and the user explicitly authorizes it in the current conversation. The Agent then reruns `check` and records the repair in WAL when the Task is usable.
 
 The complete format and operation details live in the [data model](../../../projects/tk/docs/design/data-model.md) and [tool API](../../../projects/tk/docs/design/tool-api.md).
 
@@ -82,17 +86,21 @@ The complete format and operation details live in the [data model](../../../proj
 
 **Keep child discovery under `subtasks_dir`.** This narrows scanning and guarantees generated paths, but changing a placement preference can hide valid carriers and make imported children unreachable.
 
+**Require manual name repair before rename.** This prevents the runtime operation responsible for name repair from loading its target and gives split and embed unequal recovery paths.
+
 ## Consequences
 
 Task state remains readable with ordinary file tools and portable across interfaces. Changing `subtasks_dir` no longer changes visibility, and imported or reorganized valid child carriers remain usable.
 
 A fully valid carrier below a Task becomes a Task even when its author intended it as an example. Repositories must not copy complete managed carriers into ordinary materials. Moving a valid carrier below another valid Task also changes its derived parent, close blockers, and sibling numbering without changing metadata. `check` and rename expose the resolved parent and paths for diagnosis.
 
-Recursive discovery reads more directories than configured-path discovery. The fixed depth and directory limits prevent unbounded work, but large or unreadable material trees can make project-wide operations fail explicitly. The absence of a permanent index means discovery, checks, relationship validation, migration, and representation switching may use memory proportional to the number of Tasks.
+Recursive discovery reads more directories than configured-path discovery. The fixed depth and directory limits prevent unbounded work, but large or unreadable material trees can make project-wide operations fail explicitly. The absence of a permanent index means discovery, checks, relationship validation, migration, representation switching, and repair planning may use memory proportional to the number of candidates.
 
-Ordinary concurrent writes have last-completing-writer behavior. Multi-target failures can leave valid partial results, and callers must inspect completed and uncompleted lists before retrying. No hidden continuation state exists after the process exits.
+rename can recover eligible names without granting permissive loading to read, search, update, lifecycle, migration, or representation switching. Repair planning must maintain a second validation mode limited to old-name and recognizable-suffix defects. Invalid enclosing candidates can make a descendant ineligible because its parent cannot be established safely.
 
-Every released schema transition becomes long-lived maintenance code. Supporting two representations also requires equivalent validation, migration, and body preservation in both paths.
+Ordinary concurrent writes have last-completing-writer behavior. Multi-target failures can leave valid partial results, and callers must inspect completed and uncompleted lists before retrying. A directory move followed by metadata failure is replanned from current managed files after activity-marker cleanup. No hidden continuation state or automatic rollback exists.
+
+Every released schema transition becomes long-lived maintenance code. Supporting two representations also requires equivalent validation, migration, body preservation, and name repair in both paths.
 
 ## Changes
 

@@ -41,7 +41,7 @@ Harness 是围绕模型、使其能够作为 Agent 运行的软件环境。当�
 
 以下 ADR 分别负责本架构中的详细合同：
 
-- [Task 数据模型](./2026-09-03-define-tk-task-data-model.zh.md)；
+- [Task 数据模型](./2026-09-08-repair-names-through-tk-rename.zh.md)；
 - [运行时与 CLI](./2026-08-28-define-tk-runtime-and-cli.zh.md)；
 - [纯 CLI 模式](./2026-09-02-add-tk-cli-only-mode.zh.md)；
 - [Skill 语言选择](./2026-09-02-select-tk-skill-language.zh.md)；

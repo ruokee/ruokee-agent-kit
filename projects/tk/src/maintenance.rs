@@ -118,7 +118,7 @@ pub fn rename(
     ignore_brokenlinks: bool,
     actor: &str,
 ) -> Result<RenameResult> {
-    let task = crate::app::resolve_ref(project, task_ref)?;
+    let task = resolve_rename_ref(project, task_ref)?;
     if task.metadata.status == Status::Closed {
         return Err(TkError::new(
             "closed_task_read_only",
@@ -179,7 +179,7 @@ pub fn rename(
     let operation = crate::gc::begin_project_operation(&project.task_root)?;
     let (metadata, warnings, _completed) = operation.execute(
         |_operation| {
-            let current = crate::app::resolve_ref(project, &task.metadata.id.to_string())?;
+            let current = resolve_rename_ref(project, &task.metadata.id.to_string())?;
             let rechecked = build_rename_plan(project, &current, requested_name)?;
             if current.directory != task.directory
                 || current.metadata != task.metadata
@@ -202,7 +202,7 @@ pub fn rename(
             let mut metadata = task.metadata.clone();
             metadata.name = plan.new_name.clone();
             let carrier = metadata_path(&plan.target_path, project.config.metadata_mode);
-            if let Err(error) = task_store::replace_metadata(
+            if let Err(error) = task_store::replace_metadata_for_rename(
                 &plan.target_path,
                 &metadata,
                 project.config.metadata_mode,
@@ -253,13 +253,37 @@ pub fn rename(
     })
 }
 
+fn resolve_rename_ref(project: &Project, task_ref: &str) -> Result<StoredTask> {
+    let graph =
+        task_store::discover_tasks_for_rename(&project.task_root, project.config.metadata_mode)?;
+    crate::app::resolve_ref_in_graph(project, task_ref, graph)
+}
+
 fn build_rename_plan(
     project: &Project,
     task: &StoredTask,
     requested_name: &str,
 ) -> Result<RenamePlan> {
     let new_name = normalize_name(requested_name)?;
-    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    let mut repaired_metadata = task.metadata.clone();
+    repaired_metadata.name = new_name.clone();
+    repaired_metadata.validate()?;
+    let graph =
+        task_store::discover_tasks_for_rename(&project.task_root, project.config.metadata_mode)?;
+    crate::app::validate_relation_graph_in_tasks(&graph, &repaired_metadata)?;
+    if graph
+        .tasks
+        .iter()
+        .filter(|candidate| candidate.task.metadata.id == task.metadata.id)
+        .count()
+        != 1
+    {
+        return Err(TkError::new(
+            "duplicate_task_id",
+            ErrorCategory::Resolution,
+            format!("More than one Task has ID {}", task.metadata.id),
+        ));
+    }
     let task_index = graph.task_index(&task.directory).ok_or_else(|| {
         TkError::new(
             "task_discovery_changed",
@@ -1399,6 +1423,221 @@ mod tests {
         assert!(!repeat.changed && !repeat.committed);
         assert!(!repeat.plan.references.is_empty());
         assert_eq!(repeat.plan.target_path, imported);
+        fs::remove_dir_all(root).unwrap();
+    }
+    fn damage_task_name(directory: &Path, mode: MetadataMode, old_name: &str) {
+        let path = match mode {
+            MetadataMode::Split => directory.join("tk.toml"),
+            MetadataMode::Embed => directory.join("TASK.md"),
+        };
+        let text = fs::read_to_string(&path).unwrap();
+        let needle = match mode {
+            MetadataMode::Split => "name = \"source\"",
+            MetadataMode::Embed => "name: \"source\"",
+        };
+        let replacement = match mode {
+            MetadataMode::Split => format!("name = {}", serde_json::to_string(old_name).unwrap()),
+            MetadataMode::Embed => format!("name: {}", serde_json::to_string(old_name).unwrap()),
+        };
+        assert!(text.contains(needle));
+        fs::write(path, text.replacen(needle, &replacement, 1)).unwrap();
+    }
+
+    #[test]
+    fn rename_repairs_invalid_names_in_split_and_embed() {
+        for mode in [MetadataMode::Split, MetadataMode::Embed] {
+            let old_names = [
+                "source name".to_owned(),
+                String::new(),
+                "!!!".to_owned(),
+                "a".repeat(33),
+            ];
+            for old_name in old_names {
+                let root =
+                    std::env::temp_dir().join(format!("tk-rename-repair-test-{}", Uuid::now_v7()));
+                fs::create_dir(&root).unwrap();
+                let project = rename_test_project(&root, mode, GitPolicy::None);
+                let directory = rename_task_directory(&root, mode);
+                damage_task_name(&directory, mode, &old_name);
+
+                let result = rename(
+                    &project,
+                    &directory.to_string_lossy(),
+                    "repaired",
+                    false,
+                    false,
+                    "test:agent",
+                )
+                .unwrap();
+                let target = project.task_root.join("2026/08/31-01--repaired");
+                assert!(result.changed && result.committed);
+                assert_eq!(result.plan.old_name, old_name);
+                assert_eq!(
+                    task_store::read_body_bytes(&target, mode).unwrap(),
+                    b"source body\n"
+                );
+                assert_eq!(
+                    task_store::read_task(&target, mode).unwrap().metadata.name,
+                    "repaired"
+                );
+                fs::remove_dir_all(root).unwrap();
+            }
+        }
+    }
+
+    #[test]
+    fn rename_repair_supports_exact_references_and_preserves_child_ownership() {
+        let root = std::env::temp_dir().join(format!("tk-rename-parent-test-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = rename_test_project(&root, MetadataMode::Embed, GitPolicy::None);
+        let parent = rename_task_directory(&root, MetadataMode::Embed);
+        let child = parent.join("children/01--child");
+        let child_metadata = task_metadata("child");
+        task_store::create_task_files(
+            &child,
+            &child_metadata,
+            b"child body\n",
+            MetadataMode::Embed,
+        )
+        .unwrap();
+        let parent_id = task_store::read_task(&parent, MetadataMode::Embed)
+            .unwrap()
+            .metadata
+            .id;
+        damage_task_name(&parent, MetadataMode::Embed, "bad parent");
+
+        for task_ref in [
+            parent.to_string_lossy().into_owned(),
+            parent.join("TASK.md").to_string_lossy().into_owned(),
+            parent_id.to_string(),
+        ] {
+            let preview = rename(&project, &task_ref, "parent", true, false, "test:agent").unwrap();
+            assert!(preview.changed && !preview.committed);
+            assert_eq!(preview.plan.parent_task, None);
+        }
+
+        rename(
+            &project,
+            &parent_id.to_string(),
+            "parent",
+            false,
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        let target = project.task_root.join("2026/08/31-01--parent");
+        let graph = task_store::discover_tasks(&project.task_root, MetadataMode::Embed).unwrap();
+        let child_index = graph
+            .task_index(&target.join("children/01--child"))
+            .unwrap();
+        let parent_index = graph.tasks[child_index].parent.unwrap();
+        assert_eq!(graph.tasks[parent_index].task.metadata.id, parent_id);
+        assert_eq!(graph.tasks[child_index].task.metadata.id, child_metadata.id);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn rename_repair_rejects_duplicate_identity_and_other_metadata_damage() {
+        let root = std::env::temp_dir().join(format!("tk-rename-invalid-test-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
+        let first = rename_task_directory(&root, MetadataMode::Split);
+        let first_id = task_store::read_task(&first, MetadataMode::Split)
+            .unwrap()
+            .metadata
+            .id;
+        damage_task_name(&first, MetadataMode::Split, "bad name");
+
+        let duplicate = project.task_root.join("2026/08/31-02--source");
+        fs::create_dir_all(&duplicate).unwrap();
+        fs::write(
+            duplicate.join("tk.toml"),
+            split_metadata(1, first_id, "other name"),
+        )
+        .unwrap();
+        fs::write(duplicate.join("TASK.md"), "duplicate\n").unwrap();
+        let error = rename(
+            &project,
+            &first.to_string_lossy(),
+            "repaired",
+            true,
+            false,
+            "test:agent",
+        )
+        .unwrap_err();
+        assert_eq!(error.code, "duplicate_task_id");
+
+        fs::remove_dir_all(&duplicate).unwrap();
+        let carrier = first.join("tk.toml");
+        let text = fs::read_to_string(&carrier).unwrap();
+        fs::write(&carrier, format!("{text}depends_on = [\"{first_id}\"]\n")).unwrap();
+        let error = rename(
+            &project,
+            &first.to_string_lossy(),
+            "repaired",
+            true,
+            false,
+            "test:agent",
+        )
+        .unwrap_err();
+        assert_eq!(error.code, "self_relation");
+        fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn rename_repairs_path_only_and_keeps_non_generated_child_path() {
+        let root = std::env::temp_dir().join(format!("tk-rename-path-test-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
+        let wrong_path = project.task_root.join("2026/08/31-01--wrong");
+        let parent_metadata = task_metadata("source");
+        task_store::create_task_files(
+            &wrong_path,
+            &parent_metadata,
+            b"parent body\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+
+        let path_repair = rename(
+            &project,
+            &parent_metadata.id.to_string(),
+            "source",
+            false,
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        let parent = project.task_root.join("2026/08/31-01--source");
+        assert!(path_repair.changed && path_repair.committed);
+        assert!(!wrong_path.exists());
+
+        let imported = parent.join("materials/imported-task");
+        task_store::create_task_files(
+            &imported,
+            &task_metadata("source"),
+            b"imported body\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+        damage_task_name(&imported, MetadataMode::Split, "bad imported name");
+        let repaired = rename(
+            &project,
+            &imported.to_string_lossy(),
+            "imported",
+            false,
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        assert_eq!(repaired.plan.target_path, imported);
+        assert!(imported.exists());
+        assert_eq!(
+            task_store::read_task(&imported, MetadataMode::Split)
+                .unwrap()
+                .metadata
+                .name,
+            "imported"
+        );
         fs::remove_dir_all(root).unwrap();
     }
 }

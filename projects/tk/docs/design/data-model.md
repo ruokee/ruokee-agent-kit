@@ -237,15 +237,16 @@ Switching does not append Task WAL entries.
 
 ## rename
 
-rename modifies only the Task's own name, generated directory when applicable, and metadata:
+rename performs ordinary renaming and repairs an existing string name that is noncanonical, empty, empty after normalization, or wider than 32 display columns. It also repairs a recognizable generated directory whose nonempty suffix disagrees with metadata:
 
-1. Resolve a unique discovered Task and its nearest valid parent.
-2. Normalize the new name. Keep a non-generated child directory unchanged; otherwise preserve the generated sequence and compute the new slug path.
-3. Verify that any moved target does not exist, relationships are valid, and Git policy allows the write.
-4. Scan Markdown references and return the resolved parent, old path, target path, and reference list.
-5. Move a generated directory without overwriting. Skip this step for a non-generated child.
-6. Update metadata.
-7. Append WAL.
+1. Resolve one eligible candidate by full UUID, exact Task directory, or exact managed carrier. Repairable candidates participate in UUID uniqueness and parent ownership; indeterminate ancestry is rejected.
+2. Normalize the new name and validate the complete metadata with that replacement. Missing or incorrectly typed names, damaged identity, unsupported schema, invalid relationships or `extra`, unsafe paths, and unrecognizable generated structures remain errors.
+3. Keep a non-generated child directory unchanged. Otherwise preserve the date and sequence and compute the new slug path.
+4. Verify that any moved target does not exist and Git policy allows the write.
+5. Scan Markdown references and return the raw old name, resolved parent, old path, target path, and reference list.
+6. Move a generated directory without overwriting. Skip this step for a non-generated child.
+7. Update metadata while preserving the body and all fields except `name`.
+8. Append WAL.
 
 The runtime does not automatically rewrite references. With `git_policy=track`, it scans all Git-tracked Markdown in the project. With `ignore` or `none`, it scans regular Markdown under `task_root`. Task bodies in both split and embed are included. Managed frontmatter, WAL, and temporary content are excluded.
 

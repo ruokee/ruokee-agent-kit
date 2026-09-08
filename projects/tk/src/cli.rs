@@ -529,6 +529,15 @@ fn discover_for_task_ref(cwd: &std::path::Path, task_ref: &str) -> Result<projec
     discover_for_existing_absolute_path(cwd, task_ref)
 }
 
+fn discover_for_rename_ref(cwd: &std::path::Path, task_ref: &str) -> Result<project::Project> {
+    let path = std::path::Path::new(task_ref);
+    if path.is_absolute() && path.exists() {
+        project::discover_from_exact_path_for_rename(path)
+    } else {
+        project::discover(cwd)
+    }
+}
+
 fn discover_for_existing_absolute_path(
     cwd: &std::path::Path,
     value: &str,
@@ -782,7 +791,7 @@ fn execute(command: Commands, cwd: PathBuf) -> Result<CommandOutput> {
             })
         }
         Commands::Rename(args) => {
-            let project = discover_for_task_ref(&cwd, &args.task_ref)?;
+            let project = discover_for_rename_ref(&cwd, &args.task_ref)?;
             let mut result = maintenance::rename(
                 &project,
                 &args.task_ref,

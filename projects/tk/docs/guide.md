@@ -162,6 +162,8 @@ tk rename <task_ref> "New name"
 
 A rename that moves the Task path stops with exit status 3 when references to the old path exist. Update the reported references and run the rename again. To proceed while accepting broken links, add `--ignore-brokenlinks`.
 
+The same command repairs eligible old string names and recognizable generated suffix mismatches in split and embed. Use a full UUID, exact Task directory, or exact managed carrier; other managed-data validation remains strict.
+
 Clean temporary content left by ended tk processes:
 
 ```sh

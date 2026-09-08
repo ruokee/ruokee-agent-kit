@@ -13,6 +13,12 @@ const MAX_FRONTMATTER_BYTES: usize = 1024 * 1024;
 const MAX_DISCOVERY_DEPTH: usize = 256;
 const MAX_DISCOVERY_DIRECTORIES: usize = 100_000;
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum MetadataValidation {
+    Strict,
+    RepairName,
+}
+
 #[derive(Debug)]
 pub struct StoredTask {
     pub directory: PathBuf,
@@ -68,8 +74,16 @@ impl TaskGraph {
 }
 
 pub fn read_task(directory: &Path, mode: MetadataMode) -> Result<StoredTask> {
+    read_task_with_validation(directory, mode, MetadataValidation::Strict)
+}
+
+fn read_task_with_validation(
+    directory: &Path,
+    mode: MetadataMode,
+    validation: MetadataValidation,
+) -> Result<StoredTask> {
     let metadata = match mode {
-        MetadataMode::Split => read_split_metadata(directory)?,
+        MetadataMode::Split => read_split_metadata(directory, validation)?,
         MetadataMode::Embed => {
             let split_path = directory.join("tk.toml");
             match fs::symlink_metadata(&split_path) {
@@ -85,7 +99,7 @@ pub fn read_task(directory: &Path, mode: MetadataMode) -> Result<StoredTask> {
                     return Err(storage_error("inspect_task_metadata", &split_path, error));
                 }
             }
-            read_embed_metadata(&directory.join("TASK.md"))?.0
+            read_embed_metadata(&directory.join("TASK.md"), validation)?.0
         }
     };
     Ok(StoredTask {
@@ -111,7 +125,7 @@ pub fn read_body_bytes(directory: &Path, mode: MetadataMode) -> Result<Vec<u8>> 
     let mut file =
         File::open(&path).map_err(|error| storage_error("open_task_body", &path, error))?;
     if mode == MetadataMode::Embed {
-        let (_, offset) = read_embed_metadata(&path)?;
+        let (_, offset) = read_embed_metadata(&path, MetadataValidation::Strict)?;
         file.seek(SeekFrom::Start(offset))
             .map_err(|error| storage_error("seek_task_body", &path, error))?;
     }
@@ -173,13 +187,30 @@ pub fn create_task_files(
 }
 
 pub fn replace_metadata(directory: &Path, metadata: &Metadata, mode: MetadataMode) -> Result<()> {
+    replace_metadata_with_validation(directory, metadata, mode, MetadataValidation::Strict)
+}
+
+pub(crate) fn replace_metadata_for_rename(
+    directory: &Path,
+    metadata: &Metadata,
+    mode: MetadataMode,
+) -> Result<()> {
+    replace_metadata_with_validation(directory, metadata, mode, MetadataValidation::RepairName)
+}
+
+fn replace_metadata_with_validation(
+    directory: &Path,
+    metadata: &Metadata,
+    mode: MetadataMode,
+    existing_validation: MetadataValidation,
+) -> Result<()> {
     metadata.validate()?;
     match mode {
         MetadataMode::Split => atomic_write(&directory.join("tk.toml"), &encode_toml(metadata)?),
         MetadataMode::Embed => {
             let path = directory.join("TASK.md");
             ensure_regular_file(&path)?;
-            let (_, body_offset) = read_embed_metadata(&path)?;
+            let (_, body_offset) = read_embed_metadata(&path, existing_validation)?;
             let mut source = File::open(&path)
                 .map_err(|error| storage_error("open_embed_task", &path, error))?;
             source
@@ -246,6 +277,18 @@ fn child_slug(value: &str) -> Option<&str> {
 }
 
 pub fn discover_tasks(root: &Path, mode: MetadataMode) -> Result<TaskGraph> {
+    discover_tasks_with_validation(root, mode, MetadataValidation::Strict)
+}
+
+pub(crate) fn discover_tasks_for_rename(root: &Path, mode: MetadataMode) -> Result<TaskGraph> {
+    discover_tasks_with_validation(root, mode, MetadataValidation::RepairName)
+}
+
+fn discover_tasks_with_validation(
+    root: &Path,
+    mode: MetadataMode,
+    validation: MetadataValidation,
+) -> Result<TaskGraph> {
     let mut graph = TaskGraph::default();
     let mut visited = 0;
     for year in bounded_real_directories(root, &mut visited)? {
@@ -273,15 +316,35 @@ pub fn discover_tasks(root: &Path, mode: MetadataMode) -> Result<TaskGraph> {
                 if !candidate_marker(&directory, mode)? {
                     continue;
                 }
-                match read_discovery_candidate(&directory, mode, Some(slug))? {
+                match read_discovery_candidate(&directory, mode, Some(slug), validation)? {
                     Ok(task) => {
                         let parent = graph.tasks.len();
                         graph.tasks.push(DiscoveredTask { task, parent: None });
-                        visit_descendants(&directory, mode, parent, 0, &mut visited, &mut graph)?;
+                        visit_descendants(
+                            &directory,
+                            mode,
+                            parent,
+                            0,
+                            &mut visited,
+                            &mut graph,
+                            validation,
+                        )?;
                     }
-                    Err(error) => graph
-                        .invalid_candidates
-                        .push(InvalidTaskCandidate { directory, error }),
+                    Err(error) => {
+                        graph.invalid_candidates.push(InvalidTaskCandidate {
+                            directory: directory.clone(),
+                            error,
+                        });
+                        if validation == MetadataValidation::RepairName {
+                            visit_indeterminate_descendants(
+                                &directory,
+                                mode,
+                                0,
+                                &mut visited,
+                                &mut graph,
+                            )?;
+                        }
+                    }
                 }
             }
         }
@@ -293,6 +356,63 @@ fn visit_descendants(
     directory: &Path,
     mode: MetadataMode,
     parent: usize,
+    depth: usize,
+    visited: &mut usize,
+    graph: &mut TaskGraph,
+    validation: MetadataValidation,
+) -> Result<()> {
+    if depth >= MAX_DISCOVERY_DEPTH {
+        return Err(discovery_limit_error(
+            directory,
+            "depth",
+            MAX_DISCOVERY_DEPTH,
+        ));
+    }
+    for child in bounded_real_directories(directory, visited)? {
+        if is_runtime_directory(&child) {
+            continue;
+        }
+        let mut descendant_parent = parent;
+        let mut indeterminate = false;
+        if candidate_marker(&child, mode)? {
+            let expected_name = generated_child_slug(&child);
+            match read_discovery_candidate(&child, mode, expected_name, validation)? {
+                Ok(task) => {
+                    descendant_parent = graph.tasks.len();
+                    graph.tasks.push(DiscoveredTask {
+                        task,
+                        parent: Some(parent),
+                    });
+                }
+                Err(error) => {
+                    graph.invalid_candidates.push(InvalidTaskCandidate {
+                        directory: child.clone(),
+                        error,
+                    });
+                    indeterminate = validation == MetadataValidation::RepairName;
+                }
+            }
+        }
+        if indeterminate {
+            visit_indeterminate_descendants(&child, mode, depth + 1, visited, graph)?;
+        } else {
+            visit_descendants(
+                &child,
+                mode,
+                descendant_parent,
+                depth + 1,
+                visited,
+                graph,
+                validation,
+            )?;
+        }
+    }
+    Ok(())
+}
+
+fn visit_indeterminate_descendants(
+    directory: &Path,
+    mode: MetadataMode,
     depth: usize,
     visited: &mut usize,
     graph: &mut TaskGraph,
@@ -308,24 +428,17 @@ fn visit_descendants(
         if is_runtime_directory(&child) {
             continue;
         }
-        let mut descendant_parent = parent;
         if candidate_marker(&child, mode)? {
-            let expected_name = generated_child_slug(&child);
-            match read_discovery_candidate(&child, mode, expected_name)? {
-                Ok(task) => {
-                    descendant_parent = graph.tasks.len();
-                    graph.tasks.push(DiscoveredTask {
-                        task,
-                        parent: Some(parent),
-                    });
-                }
-                Err(error) => graph.invalid_candidates.push(InvalidTaskCandidate {
-                    directory: child.clone(),
-                    error,
-                }),
-            }
+            graph.invalid_candidates.push(InvalidTaskCandidate {
+                directory: child.clone(),
+                error: managed_error(
+                    "task_structure_indeterminate",
+                    &child,
+                    "Task parent cannot be determined because an enclosing candidate is invalid",
+                ),
+            });
         }
-        visit_descendants(&child, mode, descendant_parent, depth + 1, visited, graph)?;
+        visit_indeterminate_descendants(&child, mode, depth + 1, visited, graph)?;
     }
     Ok(())
 }
@@ -334,9 +447,13 @@ fn read_discovery_candidate(
     directory: &Path,
     mode: MetadataMode,
     expected_name: Option<&str>,
+    validation: MetadataValidation,
 ) -> Result<std::result::Result<StoredTask, TkError>> {
-    match read_task(directory, mode) {
-        Ok(task) if expected_name.is_some_and(|name| task.metadata.name != name) => {
+    match read_task_with_validation(directory, mode, validation) {
+        Ok(task)
+            if validation == MetadataValidation::Strict
+                && expected_name.is_some_and(|name| task.metadata.name != name) =>
+        {
             Ok(Err(managed_error(
                 "task_name_path_mismatch",
                 directory,
@@ -460,7 +577,7 @@ fn discovery_limit_error(path: &Path, dimension: &str, limit: usize) -> TkError 
     .with_details(serde_json::json!({"path": path, "dimension": dimension, "limit": limit}))
 }
 
-fn read_split_metadata(directory: &Path) -> Result<Metadata> {
+fn read_split_metadata(directory: &Path, validation: MetadataValidation) -> Result<Metadata> {
     let metadata_path = directory.join("tk.toml");
     let body_path = directory.join("TASK.md");
     ensure_regular_file(&metadata_path)?;
@@ -470,10 +587,10 @@ fn read_split_metadata(directory: &Path) -> Result<Metadata> {
     let metadata: Metadata = toml::from_str(&text).map_err(|error| {
         managed_error("invalid_task_metadata", &metadata_path, error.to_string())
     })?;
-    validate_managed_metadata(metadata, &metadata_path)
+    validate_managed_metadata(metadata, &metadata_path, validation)
 }
 
-fn read_embed_metadata(path: &Path) -> Result<(Metadata, u64)> {
+fn read_embed_metadata(path: &Path, validation: MetadataValidation) -> Result<(Metadata, u64)> {
     ensure_regular_file(path)?;
     let file =
         File::open(path).map_err(|error| storage_error("open_task_metadata", path, error))?;
@@ -520,7 +637,10 @@ fn read_embed_metadata(path: &Path) -> Result<(Metadata, u64)> {
     reject_yaml_extensions(text, path)?;
     let metadata: Metadata = serde_yml::from_str(text)
         .map_err(|error| managed_error("invalid_task_metadata", path, error.to_string()))?;
-    Ok((validate_managed_metadata(metadata, path)?, offset))
+    Ok((
+        validate_managed_metadata(metadata, path, validation)?,
+        offset,
+    ))
 }
 
 fn read_line_capped(
@@ -578,8 +698,19 @@ fn reject_yaml_extensions(text: &str, path: &Path) -> Result<()> {
     Ok(())
 }
 
-fn validate_managed_metadata(mut metadata: Metadata, path: &Path) -> Result<Metadata> {
-    if let Err(mut error) = metadata.validate() {
+fn validate_managed_metadata(
+    mut metadata: Metadata,
+    path: &Path,
+    validation: MetadataValidation,
+) -> Result<Metadata> {
+    let validation_result = if validation == MetadataValidation::RepairName {
+        let mut repaired = metadata.clone();
+        repaired.name = "repair-name".into();
+        repaired.validate()
+    } else {
+        metadata.validate()
+    };
+    if let Err(mut error) = validation_result {
         error.category = ErrorCategory::ManagedFile;
         error.details = Some(serde_json::json!({"path": path}));
         return Err(error);

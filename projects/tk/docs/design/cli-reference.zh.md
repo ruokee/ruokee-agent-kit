@@ -186,7 +186,7 @@ tk rename <task_ref> <name>
   [global-options]
 ```
 
-rename 只修改 Task 本身。生成式子 Task 和顶层 Task 的 slug 改变时移动目录，非生成式子 Task 保持目录不变。dry-run 和执行都返回解析出的父级和 Markdown 引用，不改写引用。名称及其适用路径已经匹配时，重复请求返回无变化。actor 默认为 `cli`。
+rename 只修改 Task 本身。它也修复已有字符串名称不规范、为空、规范化后为空或过宽的问题，以及与元数据不一致但结构可识别的生成式后缀。普通发现因旧名称拒绝目标时，完整 UUID、精确 Task 目录和精确受管载体仍可定位符合条件的修复对象。其他元数据、身份、路径、生命周期、策略和冲突校验保持严格。生成式子 Task 和顶层 Task 的 slug 改变时移动目录，非生成式子 Task 保持目录不变。dry-run 和执行都返回原始旧名称、解析出的父级和 Markdown 引用，不改写引用。名称及其适用路径已经匹配时，重复请求返回无变化。actor 默认为 `cli`。
 
 dry-run 文本显示 `Old path:`、规范化名称 `New name:` 和绝对目标路径 `Target path:`。每个执行结果都显示目标路径，无变化的结果先输出 `No changes` 再输出 `Target path:`。存在旧路径引用时，文本追加 `References to the old path:` 列表，每个引用以 `path:line` 表示；没有引用时不输出该列表。dry-run 在生成合法计划后始终成功。执行会移动 Task 路径且存在旧路径引用时，在首次写入前以稳定错误码 `broken_reference_conflict`（`conflict` 类别、退出码 3）停止；错误显示目标路径和每个引用及其行号。`--ignore-brokenlinks` 允许此次移动继续进行。引用文件保持原样，结果中仍会报告它们。
 

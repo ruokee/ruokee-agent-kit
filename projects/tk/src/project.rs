@@ -373,6 +373,14 @@ pub fn ensure_safe_project_path(root: &Path, path: &Path) -> Result<()> {
 }
 
 pub fn discover_from_exact_path(path: &Path) -> Result<Project> {
+    discover_from_exact_path_with_validation(path, false)
+}
+
+pub fn discover_from_exact_path_for_rename(path: &Path) -> Result<Project> {
+    discover_from_exact_path_with_validation(path, true)
+}
+
+fn discover_from_exact_path_with_validation(path: &Path, repair_name: bool) -> Result<Project> {
     if !path.is_absolute() || !path.exists() {
         return Err(TkError::new(
             "invalid_exact_path",
@@ -403,7 +411,7 @@ pub fn discover_from_exact_path(path: &Path) -> Result<Project> {
         && is_project_candidate(&git_root)
     {
         match load(&git_root) {
-            Ok(project) => match project_owns_path(&project, path, start) {
+            Ok(project) => match project_owns_path(&project, path, start, repair_name) {
                 Ok(true) => return Ok(project),
                 Ok(false) => {}
                 Err(error) => {
@@ -423,7 +431,7 @@ pub fn discover_from_exact_path(path: &Path) -> Result<Project> {
             }
             match load(candidate) {
                 Ok(project) if project.task_root == task_root => {
-                    match project_owns_path(&project, path, start) {
+                    match project_owns_path(&project, path, start, repair_name) {
                         Ok(true) => return Ok(project),
                         Ok(false) => {}
                         Err(error) => {
@@ -448,14 +456,25 @@ pub fn discover_from_exact_path(path: &Path) -> Result<Project> {
     ))
 }
 
-fn project_owns_path(project: &Project, original: &Path, path: &Path) -> Result<bool> {
+fn project_owns_path(
+    project: &Project,
+    original: &Path,
+    path: &Path,
+    repair_name: bool,
+) -> Result<bool> {
     if !path.starts_with(&project.task_root)
         || ensure_safe_project_path(&project.root, original).is_err()
     {
         return Ok(false);
     }
-    let graph =
-        crate::task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    let graph = if repair_name {
+        crate::task_store::discover_tasks_for_rename(
+            &project.task_root,
+            project.config.metadata_mode,
+        )?
+    } else {
+        crate::task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?
+    };
     Ok(graph.owning_task_index(path).is_some())
 }
 
@@ -689,6 +708,16 @@ mod tests {
         );
         assert_eq!(
             discover_from_exact_path(&imported_material).unwrap().root,
+            root
+        );
+        let carrier = task.join("tk.toml");
+        let damaged = fs::read_to_string(&carrier)
+            .unwrap()
+            .replace("name = \"deep-task\"", "name = \"\"");
+        fs::write(&carrier, damaged).unwrap();
+        assert!(discover_from_exact_path(&carrier).is_err());
+        assert_eq!(
+            discover_from_exact_path_for_rename(&carrier).unwrap().root,
             root
         );
         fs::remove_dir_all(root).unwrap();

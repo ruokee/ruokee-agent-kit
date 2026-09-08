@@ -2,13 +2,15 @@
 
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
-Reverses: [定义 tk Task 数据模型](../archived/2026-08-28-define-tk-task-data-model.zh.md)
+Archived: 2026-09-08
+Reversed by: [使用名称修复定义 tk Task 数据模型](../decision/2026-09-08-repair-names-through-tk-rename.zh.md)
+Reverses: [定义 tk Task 数据模型](./2026-08-28-define-tk-task-data-model.zh.md)
 
 [English](./2026-09-03-define-tk-task-data-model.md) | 中文
 
 ## 动机
 
-[tk 产品架构](./2026-08-21-define-tk-product-architecture.zh.md)把项目文件作为唯一权威的 Task 状态，因此运行时必须为身份、路径、生命周期、关系、表示、发现、写入、迁移和清理定义一套明确模型。
+[tk 产品架构](../decision/2026-08-21-define-tk-product-architecture.zh.md)把项目文件作为唯一权威的 Task 状态，因此运行时必须为身份、路径、生命周期、关系、表示、发现、写入、迁移和清理定义一套明确模型。
 
 旧模型同时使用 `subtasks_dir` 控制子 Task 创建和发现，使放置偏好成为 Task 可见性的一部分。改变配置、导入有效子 Task 或把子 Task 放在普通材料下，都可能隐藏有效受管数据。创建仍需要可预测的目标位置和编号规则，发现则必须识别已有有效载体，同时不能把普通 Markdown 当成 Task。
 
