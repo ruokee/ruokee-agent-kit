@@ -63,6 +63,7 @@ export interface StatusEntryConfig {
 export interface StatusBarConfig {
   version: number;
   separator: SeparatorValue;
+  tight: boolean;
   statuses: StatusEntryConfig[];
 }
 
@@ -109,7 +110,7 @@ export function parseStatusBarConfig(text: string): ConfigParseResult {
     return { kind: "invalid", reason: "Configuration must be a mapping at the document root" };
   }
   for (const key of Object.keys(parsed)) {
-    if (key !== "version" && key !== "separator" && key !== "statuses") {
+    if (key !== "version" && key !== "separator" && key !== "tight" && key !== "statuses") {
       return { kind: "invalid", reason: `Unknown top-level field ${JSON.stringify(key)}` };
     }
   }
@@ -125,6 +126,10 @@ export function parseStatusBarConfig(text: string): ConfigParseResult {
       kind: "invalid",
       reason: `\`separator\` must be one of ${SEPARATOR_VALUES.map((value) => JSON.stringify(value)).join(", ")}`,
     };
+  }
+  const tightRaw = parsed.tight;
+  if (tightRaw !== undefined && typeof tightRaw !== "boolean") {
+    return { kind: "invalid", reason: "`tight` must be a boolean when present" };
   }
   const statusesRaw = parsed.statuses;
   if (!Array.isArray(statusesRaw)) {
@@ -159,6 +164,7 @@ export function parseStatusBarConfig(text: string): ConfigParseResult {
     config: {
       version: CONFIG_SCHEMA_VERSION,
       separator: (separatorRaw as SeparatorValue | undefined) ?? DEFAULT_SEPARATOR,
+      tight: tightRaw ?? false,
       statuses,
     },
     problems,

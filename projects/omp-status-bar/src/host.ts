@@ -294,6 +294,8 @@ export class StatusBarHost {
   #instances: RunningInstance[] = [];
   /** Separator kind from the configuration; fixed at start. */
   #separator: "space" | "slash" | "dot" | "pipe" = "slash";
+  /** Whether the first visible status starts at the widget edge. */
+  #tight = false;
   /** Bumped by any fragment change; drives the widget render memo. */
   #revision = 0;
   /** Set by start() and never cleared: one Host serves exactly one session. */
@@ -357,6 +359,7 @@ export class StatusBarHost {
       return;
     }
     this.#separator = loaded.config.separator;
+    this.#tight = loaded.config.tight;
     // The shared built-in sampler runs on one OMP-managed interval owned by
     // the snapshot store; built-in providers only retain/release scopes.
     // Sampler errors (source getters, listener callbacks) route into the
@@ -730,7 +733,7 @@ export class StatusBarHost {
 
   #composedLine(): ComposedLine {
     const fragments = this.#instances.map((running) => ({ spans: running.spans }));
-    return composeLine(fragments, this.#separator, this.#revision, this.#separatorText);
+    return composeLine(fragments, this.#separator, this.#revision, this.#separatorText, !this.#tight);
   }
 
   /**

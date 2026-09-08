@@ -98,6 +98,11 @@ describe("widget composition and rendering", () => {
     ]);
   });
 
+  test("composeLine optionally prefixes visible content with one space", () => {
+    expect(composeLine([fragment("x")], "slash", 1, undefined, true).spans).toEqual([{ text: " " }, { text: "x" }]);
+    expect(composeLine([], "slash", 1, undefined, true).spans).toEqual([]);
+  });
+
   test("composeLine skips empty fragments without separator residue", () => {
     const line = composeLine([fragment(""), { spans: [] }, fragment("x")], "space", 1);
     expect(line.spans).toEqual([{ text: "x" }]);

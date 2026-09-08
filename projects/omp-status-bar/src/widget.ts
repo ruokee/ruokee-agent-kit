@@ -77,6 +77,7 @@ export function composeLine(
   separator: SeparatorValue,
   revision: number,
   themedSeparator?: string,
+  leadingSpace = false,
 ): ComposedLine {
   const spans: StyledSpan[] = [];
   let visible = 0;
@@ -84,6 +85,9 @@ export function composeLine(
     const contributes = fragment.spans.filter((span) => span.text.length > 0);
     if (contributes.length === 0) {
       continue;
+    }
+    if (visible === 0 && leadingSpace) {
+      spans.push({ text: " " });
     }
     if (visible > 0) {
       if (themedSeparator !== undefined) {

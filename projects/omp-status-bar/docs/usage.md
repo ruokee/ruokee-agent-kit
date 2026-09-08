@@ -35,6 +35,7 @@ Full example:
 ```yaml
 version: 1
 separator: slash
+tight: false
 statuses:
   - id: total
     options:
@@ -58,6 +59,7 @@ statuses:
 | --- | --- | --- |
 | `version` | yes | Only the integer `1` is accepted |
 | `separator` | no | `space`, `slash`, `dot`, `pipe`; default `slash` |
+| `tight` | no | `false` prefixes non-empty output with one ASCII space; `true` removes it; default `false` |
 | `statuses` | yes | Ordered array; order defines both enablement and display order |
 
 There is no package-level `enabled` switch; OMP plugins manage overall enablement.

@@ -250,6 +250,7 @@ describe("parseConfig", () => {
     expect(config).toEqual({
       version: 1,
       separator: "slash",
+      tight: false,
       statuses: [{ id: "total", options: {}, sourceIndex: 0 }],
     });
   });
@@ -259,6 +260,12 @@ describe("parseConfig", () => {
       const config = parseConfig(`version: 1\nseparator: ${separator}\nstatuses: []\n`);
       expect("config" in { config } && (config as { separator?: string }).separator).toBe(separator);
     }
+  });
+
+  test("accepts tight booleans and rejects other values", () => {
+    expect(parseConfig("version: 1\ntight: true\nstatuses: []\n")?.tight).toBe(true);
+    expect(parseConfig("version: 1\ntight: false\nstatuses: []\n")?.tight).toBe(false);
+    expect(parseConfig("version: 1\ntight: compact\nstatuses: []\n")).toBeUndefined();
   });
 
   test("rejects an unknown top-level field", () => {

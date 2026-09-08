@@ -85,7 +85,12 @@ function makeHost(env: TestEnv, reader: () => Promise<unknown>, diagnostics: (m:
 }
 
 const SIMPLE_CONFIG = () => ({
-  config: { version: 1, separator: "slash", statuses: [{ id: "test.pass", options: {}, sourceIndex: 0 }] },
+  config: {
+    version: 1,
+    separator: "slash",
+    tight: false,
+    statuses: [{ id: "test.pass", options: {}, sourceIndex: 0 }],
+  },
   problems: [],
 });
 
@@ -170,6 +175,7 @@ describe("StatusBarHost lifecycle", () => {
         config: {
           version: 1,
           separator: "slash",
+          tight: false,
           statuses: [
             { id: "test.pass", options: {}, sourceIndex: 0 },
             { id: "test.second", options: {}, sourceIndex: 1 },
@@ -190,11 +196,36 @@ describe("StatusBarHost lifecycle", () => {
     // shows both fragments joined by the themed dim separator.
     const rows = component.render(80);
     expect(rows.length).toBe(1);
+    expect(rows[0]?.startsWith(" ")).toBe(true);
     expect(rows[0]).toContain("hello");
     expect(rows[0]).toContain("world");
     // The separator text went through the theme's public `fg` channel and
     // the theme's own escape codes are kept verbatim.
     expect(rows[0]).toContain("\x1b[2m / \x1b[22m");
+    await host.shutdown();
+  });
+
+  test("tight config removes the leading space", async () => {
+    resetProviderRegistryForTests();
+    resetSnapshotStoreForTests();
+    registerPass();
+    const env = makeEnvironment();
+    const host = makeHost(
+      env,
+      async () => ({
+        config: {
+          version: 1,
+          separator: "slash",
+          tight: true,
+          statuses: [{ id: "test.pass", options: {}, sourceIndex: 0 }],
+        },
+        problems: [],
+      }),
+      () => {},
+    );
+    await host.start();
+    const component = env.widgets[0]!.factory(env.getTui(), env.getTheme()) as StatusBarWidgetComponent;
+    expect(component.render(80)).toEqual(["hello"]);
     await host.shutdown();
   });
 
