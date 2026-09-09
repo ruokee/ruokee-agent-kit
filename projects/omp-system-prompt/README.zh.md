@@ -1,0 +1,124 @@
+# omp-system-prompt
+
+[English](./README.md)
+
+本 OMP 扩展将 OMP 默认系统提示词中的固定策略文本替换为一份维护的英文文本，并把已识别的宿主运行时段落保留在对应语义位置。OMP 每一轮都会重新装配系统提示词，并把块数组交给 `before_agent_start` 事件；本扩展变换的是该事件输入，而不是启动时的快照。
+
+## 工作机制
+
+OMP 18.1.11 的默认系统提示词由多个块组成：默认主块、可选的 Computer Safety 与活动仓库块，以及 PROJECT 页脚。每一轮中，扩展通过 `before_agent_start` 事件拿到当前块数组，然后：
+
+- 依据 `§ Role` 身份行识别恰好一个默认主块，并识别恰好一个结构有效的 PROJECT 页脚；其余块按原位置逐字节保留。
+- 用扩展自有模板重建主块。七个槽位分别接收宿主渲染的工具目录、动态 `xd://` 设备文档、Internal URLs、Skills、always-apply 规则、领域规则和运行时模式协议。自有模板把工具目录放在 `### Tool inventory` 下，把设备目录放在 `### Mounted devices` 下。
+- 将 Computer Use、Scratchpad、Tool I/O 动态行、包含自动 QA 的 Specialized Tools 和 AST 放入 runtime-modes 槽位；删除宿主固定的 Tool Policy、Exploration、Workflow、Delivery 和 Critical 策略文本前，按 18.1.11 的实际渲染顺序校验必需行与条件行。自有末尾 `# Delivery` 章节按 `renderDelivery` 决定保留或省略。
+- 将保留的 OMP 运行时区段 `# Computer Use`、`§ Scratchpad`、`# Tool I/O`、`# Specialized Tools` 和 `# AST` 统一为标题与正文之间恰好两个 LF。若 OMP 在 `Specialized Tools` 相邻列表项之间注入空行，扩展会删除该区段内所有此类间隔；不会全局压缩空白，也不会改写自有静态正文、代码块或任意宿主内容。自有主块不保留末尾 LF，因此 OMP 使用 `systemPrompt.join("\n\n")` 时，`# Project snapshot` 前恰好只有两个 LF。
+- 校验宿主 Internal URLs 区段，丢弃固定的 `Most FS/bash tools auto-resolve these to FS paths.` 引导句，只保留 URI 条目。
+- 校验完整的宿主 Delegation 区段后将其删除。自有的 `# Agent coordination` 只包含两段固定正文；已渲染的并发上限和额外的 `hub` 通信提示不会进入任何自有槽位。宿主仍按其设置执行并发限制，但主策略正文不再提前给出当前并发数值。
+- 在完整 Skill 命令元数据与目录对应时，把 Skill 目录 description 归一化为单行，见下文。
+- 只改写 PROJECT 外层内容：外层标题改为 `# Project snapshot`，替换加载说明，并在结构位置删除字节精确的固定 `<critical>` 尾部。上下文文件正文、路径列表、工作区内容、附加根目录和追加的提示词字节逐字节保留。
+
+## Delivery 配置
+
+包在 `omp.settings.renderDelivery` 中声明 boolean 设置，默认值为 `true`。
+
+- `true` 或未配置时渲染完整的末尾 `# Delivery` 章节。
+- `false` 时省略该精确章节，包括 `Task scope`、`Completion`、`Evidence` 和 `Pausing`。
+- 每个 `before_agent_start` turn 都通过公开的 `getPluginSettings(PACKAGE_NAME, ctx.cwd)` API 读取有效值。用户级值可用 `omp plugin config set @ruokee/omp-system-prompt renderDelivery false` 设置；项目级 `.omp/plugin-overrides.json` 中 `settings.@ruokee/omp-system-prompt.renderDelivery` 下的值覆盖用户级值。
+- 设置读取失败或值不是 boolean 时保持 Delivery 启用，针对该原因每个会话报告一条有界诊断，请求继续执行。
+- 设置在 turn 之间变化时，扩展识别有 Delivery 和无 Delivery 两种自有形态，复用已捕获的动态槽位、Skill 回退目录、PROJECT 块和独立块，只切换 Delivery 章节。
+
+## Skill description 单行化
+
+宿主把每个 Skill 渲染为 `- <name>: <description>`，description 文本直接插入，不带字段边界。一个 Skill 的 description 为 `First\n- beta: Second` 时，渲染结果与两个 Skill `alpha: First`、`beta: Second` 完全相同，因此仅凭列表语法无法还原条目边界。
+
+当事件中存在非空 Skill 目录时，扩展读取当前公开 `pi.getCommands()` 中 `source: "skill"` 的条目作为有序候选，只使用名称、顺序和 description。候选可以不出现在事件目录中，包括隐藏 Skill。事件目录仍决定可见集合。扩展不读取命令路径、不重新扫描资源，也不会把候选补入输出。
+
+只有完整可见目录能够对应到一个唯一的有序候选子序列时才建立对应。每个可见名称及其顺序必须匹配，每个宿主渲染的完整 description 区间必须与候选 description 在空白归一化后相等。元数据只用于确定边界，不会覆盖与事件文本不同的内容。对应成功后，仅对可见 description 区间将连续空白归一化为一个 ASCII 空格并去除首尾空白，覆盖 LF、CRLF、制表符、空段落和 Unicode 行分隔符。未使用的隐藏候选不会进入输出。
+
+无法建立唯一对应时，扩展逐字节保留完整且已经分离的 `<skills>` 目录，然后继续其他提示词变换：
+
+- Skill 命令被关闭，没有可用的 Skill 命令元数据。
+- 候选缺失、顺序不同，或多余元数据无法与可见目录对应。
+- description 与事件文本不符，或前序扩展改写了目录内容。
+- 条目区间有歧义、名称格式错误或宿主排版不受支持。
+
+缺失或受支持的空 Skill 目录无需元数据，保持缺失或为空。扩展不会从命令清单补入 Skill。Skill 外层边界无法分离时仍按结构失败处理，完整输入原样保留。局部 Skill 回退报告 `Skill catalog formatting skipped`，不会声称整份系统提示词替换失败。
+
+## 失败回退
+
+处理有两个范围。版本门禁失败、模板缺失或损坏、默认主块或 PROJECT 页脚缺失或重复、无法证明固定 PROJECT critical 位于外层尾部结构、区段顺序异常、受检查区域出现意外结构或非空内容，或 Skill 外层边界不可靠时，扩展让整组输入原样通过，并报告不包含提示词正文、Skill 名称或私人路径的有界整体替换失败。外层结构确认有效后，Skill 元数据失败只影响 Skill 目录，静态策略、运行时区段和 PROJECT 修改继续应用，并报告另一条独立去重诊断。
+
+本扩展已经归一化的输出只有在完整结构校验通过后才被视为无变化：主块必须与自有模板的静态片段逐字节一致，每个动态槽位位于其有界位置；片段匹配已经固定了静态骨架，因此槽位值中的模板形似文本作为不透明宿主内容被接受。PROJECT snapshot 必须带有完整的已改写结构，包括自有加载说明以及必需的 workstation 与上下文文件区段。每个容器的闭合标签都在下一个已知外层结构之前确定，因此后续容器正文或追加提示词中的闭合标签形似文本不会提前结束前面的容器。只共享身份行、标题顺序或 `# Project snapshot` 前缀的块——损坏、被注入或第三方构造——会以 `owned-output-invalid` 拒绝，而不会被认领为本扩展输出。
+
+激活期失败遵循同一通道约定。宿主版本不受支持（`unsupported-version`）或模板缺失、不可读（`template-unavailable`）时，扩展仍注册 turn 处理器，首次 turn 的输入保持不变，并按会话通道报告一次：交互会话使用 `ctx.ui.notify`，其他情况使用 OMP 文件日志。
+
+本扩展只支持 OMP 18.1.11，通过公开的 `VERSION` 导出校验。保留的运行时内容只来自宿主渲染后的事件块；扩展不会自行加载 Skills、规则、工具或设备。
+
+## 覆盖边界
+
+扩展覆盖普通主会话 turn，以及重新绑定父会话扩展的普通子 Agent turn。各子 Agent 保留其角色、yield 协议和独立块。
+
+受限工具及 plan-mode 子 Agent 不加载扩展，因此该钩子不会运行。容器观察：plan-mode 父会话 turn 使用自有提示词，它派生的受限子 Agent 请求使用宿主默认提示词，工具集缩减为 `read`/`grep`/`glob`/`yield`，且不含自有身份。公开的 task 参数、agent 定义字段或配置项都不能直接请求工具限制；plan mode 是公开入口，其子 Agent 就是受限子 Agent。
+
+Handoff 生成使用基础提示词，标题生成与难度分类采用独立路径，都不运行本轮钩子。容器观察：`/handoff` 完成压缩，其旁路请求使用宿主默认提示词，而不是自有提示词。
+
+`/btw` 等临时旁路请求不独立运行该钩子，而是发送当前生效的 Agent 提示词。容器观察：任何 turn 之前的 `/btw` 使用宿主默认提示词；在发生过替换的 turn 之后，`/btw` 使用自有提示词，因为逐轮 override 会一直作为 Agent 当前提示词，直到下一轮替换或清除。
+
+设备通知：会话中途挂载 `xd://` 设备时，OMP 会对已交付基础目录中已有的设备抑制通知。替换后的提示词丢掉了该基础目录，因此同一设备会被再次通告，即使自有 `### Mounted devices` 槽位已经列出它。容器观察：`/mcp enable probe` 之后，同一个 Provider 请求既包含自有目录条目 `xd://mcp__probe_ping`，又包含针对该设备的隐藏 `xdev-mount-notice`；同一场景不加载本扩展时，设备出现在宿主目录中且没有通知。两种情况设备都可用。本扩展不额外维护设备状态管理器，因此接受这条重复通知。
+
+覆盖有效期是一个 Agent turn，不是一次 Provider 请求。宿主在轮中重建时保留 override，因此转换后的目录描述的是轮次开始时的装配结果，直到下一轮才更新。前序扩展的块保持不变，后序处理器可以覆盖本扩展结果；扩展不调整其他扩展的顺序，也不宣称对最终 Provider 请求拥有优先权。
+
+## 安装
+
+包尚未发布。克隆 GitHub 仓库后，安装锁定依赖并将包安装进 OMP：
+
+```bash
+git clone https://github.com/ruokee/ruokee-agent-kit.git
+cd ruokee-agent-kit/projects/omp-system-prompt
+bun install
+omp install "$(pwd)" --scope user
+```
+
+`omp install` 是 `omp plugin install` 的别名；`omp plugin link "$(pwd)" --scope user` 效果相同。OMP 从 `package.json` 的 `omp.extensions` 读取扩展声明并加载 `src/extension.ts`。
+
+### 扩展顺序
+
+OMP 按扩展安装顺序运行 `before_agent_start` 处理器，每个处理器拿到的输入都是上一个处理器的输出。本扩展读取它收到的任意数组，因此安装在本扩展之后的扩展看到的是自有主块而非默认主块；期望原始 18.1.11 主块的扩展必须安装在本扩展之前。
+
+### 已验证范围
+
+组件检查在组件目录运行 `bun run typecheck` 与 `bun test`（90 项测试、450 个断言）。测试在运行时读取已安装的 18.1.11 模板并渲染输入，覆盖原生工具列表、内联工具目录、Code Mode、固定区段的已知条件分支、条件行错位拒绝、携带槽位标记形态运行时数据的单次槽位填充、固定区域拒绝、结构边界、转义安装路径、逐字节保留、块顺序、PROJECT 页脚变体、Skill description 归一化、隐藏有序...
+
+容器检查使用一次性 CachyOS Podman 容器。每个容器通过 `podman cp` 接收文件，未挂载任何宿主目录，销毁前 `HostConfig.Binds` 与 `Mounts` 均为空。容器与复制进去的凭据已经删除。
+
+- 受控成功场景：两个 Skill，其中一个 description 含制表符、空行和 Unicode 行分隔符空白。最终 Provider 载荷包含自有静态骨架、单行化后的 description、保留的工具与设备目录、`# Project snapshot` 标题，且不含宿主 Delegation 并发上限和额外 `hub` 提示。
+- Skill 局部格式回退逐字节保留完整且已分离的目录，包括有效 `<skills>` 外层中的任意正文，同时继续应用静态策略与 PROJECT 改写；诊断写明 `Skill catalog formatting skipped`，下一次变换仍识别为自有输出并保持幂等。
+- 结构回退覆盖不可靠的外层边界以及损坏的主块或 PROJECT 结构；输入块原样保留，并报告有界的整体替换失败通道。
+- 真实 OMP 18.1.11 与 `pro-20x/gpt-5.6-luna` 接受了这样一份配置：可见事件目录省略隐藏的 `architect` Skill，但 `pi.getCommands()` 仍返回该候选。Provider-facing instructions 使用自有身份与 PROJECT snapshot，保留挂载的 `xd://` 设备条目和插件加载的运行时策略，并省略隐藏候选。
+- 真实 OMP 在前序扩展对目录做有界改写时，逐字节保留改写后的 Skill 条目，继续应用自有身份与 PROJECT snapshot，并只发出 `Skill catalog formatting skipped` 局部诊断。
+- 手动调用 `/skill:architect` 仍能解析隐藏命令。Provider 输入通过 `role` 为 `user` 的自定义消息携带调用标记、完整 Skill 正文和用户参数，模型返回了请求的精确标记。
+- 容器中观察到的会话路径：首次 turn、续接的第二次 turn、工具调用后的轮中重建（自有提示词延续到第二次 Provider 请求）、普通子 Agent turn（子 Agent 自身角色块保持完整），以及后序扩展在 Provider 请求前覆盖本扩展结果。
+- 容器中观察到的受限子 Agent：`omp --plan-yolo` 的 plan-mode 父会话 turn 使用自有提示词，派生子 Agent 的请求使用宿主默认提示词，工具集为 `read`/`grep`/`glob`/`yield`，不含自有身份。
+- 容器中观察到的 Handoff：`/handoff` 完成会话压缩，其旁路请求使用宿主默认提示词。
+- 容器中观察到的 `/btw`：任何 turn 之前使用宿主默认提示词；在发生过替换的 turn 之后使用自有提示词。
+- 容器中观察到的设备通知：`/mcp enable probe` 之后，同一个请求既含自有目录条目 `xd://mcp__probe_ping`，又含针对该设备的隐藏 `xdev-mount-notice`；不加载本扩展的同一场景中，设备出现在宿主目录里且没有通知。
+- 新鲜的 OMP 18.1.11 与 `pro-20x/gpt-5.6-luna` 实机运行覆盖了仅分析请求、用户要求的原型、项目兼容性要求、授权边界、合理暂停、诚实验证、引用控制标签、运行时设备通知和工作区上下文变化。模型按预期执行或拒绝了每项请求；每个捕获的 Provider 请求都以自有身份开头。
+
+本次使用的 Provider key 并发上限较低，部分请求返回 `429` 并重试。请求体在响应之前已经组装并发出，因此上述观察读取的都是最终 Provider 请求内容。
+
+剩余限制：公开的 task 参数、agent 定义字段或配置项都无法在 plan mode 之外请求工具限制，因此 plan-mode 子 Agent 是唯一可驱动的受限子 Agent，ADR 已记录该边界。OMP 只在存在挂载增量时发出重复设备通知，而本扩展有意不维护单独的设备状态。
+
+## 开发
+
+```bash
+cd projects/omp-system-prompt
+bun install
+bun run typecheck
+bun test
+```
+
+运行时依赖只有一个 peer 依赖：`@oh-my-pi/pi-coding-agent`，作为 peer 与 dev 依赖都精确锁定在 `18.1.11`。测试还直接声明精确 `18.1.11` 的 `@oh-my-pi/pi-ai` 与 `@oh-my-pi/pi-utils` 开发依赖，不依赖传递依赖提升。
+
+## 许可
+
+MIT。

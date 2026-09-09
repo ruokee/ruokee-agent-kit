@@ -1,4 +1,4 @@
-# ADR proposal: Add an OMP system prompt extension
+# ADR decision: Add an OMP system prompt extension
 
 Decision owner: Ruokee
 Draft writer: OMP GPT-6 Astra
@@ -23,11 +23,11 @@ The evidence baseline is OMP `v18.1.11`, commit `e3106be68f778635da3a17106835ce2
 - [Side-request context](https://github.com/can1357/oh-my-pi/blob/e3106be68f778635da3a17106835ce2e0e6992af/packages/agent/src/agent.ts#L773-L802) defaults to the live Agent prompt; callers such as Handoff can explicitly select the base prompt.
 - [Task concurrency enforcement](https://github.com/can1357/oh-my-pi/blob/e3106be68f778635da3a17106835ce2e0e6992af/packages/coding-agent/src/task/index.ts#L574-L640) uses a session semaphore configured by `task.maxConcurrency`, independently of the prompt's Cap text.
 
-## Proposal
+## Decision
 
 ### Distribute one self-contained extension
 
-Add `projects/omp-system-prompt/` as the first-party package `@ruokee/omp-system-prompt`. Declare its entry through native `omp.extensions` metadata. Keep its runtime, maintainer-owned English prompt, checks, and bilingual README documentation inside the component. This follows the [first-party capability boundary](../decision/2026-08-20-establish-first-party-capability-kit.md) and [self-contained component contract](../decision/2026-08-24-keep-components-self-contained.md); neither decision needs reversal.
+Add `projects/omp-system-prompt/` as the first-party package `@ruokee/omp-system-prompt`. Declare its entry through native `omp.extensions` metadata. Keep its runtime, maintainer-owned English prompt, checks, and bilingual README documentation inside the component. This follows the [first-party capability boundary](./2026-08-20-establish-first-party-capability-kit.md) and [self-contained component contract](./2026-08-24-keep-components-self-contained.md); neither decision needs reversal.
 
 Use public OMP extension APIs. Do not import private prompt builders, rescan resources, duplicate context discovery, or vendor upstream templates. Do not require files from another repository component or a machine-specific installation. Use native installation, activation, disablement, and removal mechanisms. Do not write `SYSTEM.md` on the user's behalf.
 
@@ -167,7 +167,9 @@ A CLI flag would affect one invocation, would not persist the choice, and would 
 
 A component-owned file would create a second configuration source. Parsing `omp-plugins.lock.json` or another host file directly would copy OMP's configuration responsibility and bypass the public API. Both approaches were rejected in favor of the native plugin setting and public effective-settings lookup.
 
-## Acceptance criteria
+## Consequences
+
+The component and its public documentation carry the following observable contract:
 
 1. The package installs and loads through native OMP mechanisms on unmodified 18.1.11. Its documentation states the exact version, format, session, metadata, fallback, and extension-order boundaries. No private files, host patches, or other repository components are required.
 2. Successful output follows the specified identity text, section order, tool and device headings, URI introduction handling, and the two Agent coordination paragraphs. With effective `renderDelivery` true, absent, or safely defaulted, it includes the complete `# Delivery` chapter. With `false`, it omits exactly the range from that heading through the final `## Pausing` body, including Task scope, Completion, Evidence, and Pausing. Other owned chapters, dynamic slots, PROJECT content, and independent instructions remain intact. No removed host Delegation fragment is relocated into another owned slot. Actual tool descriptions and runtime notices remain intact.
@@ -184,7 +186,7 @@ A component-owned file would create a second configuration source. Parsing `omp-
 11. Component checks and the repository's `pnpm check` pass before release. Public documentation reports verified behavior, successful hidden-Skill support, Skill-only fallback, and whole-prompt fallback in the exercised scenarios without private prompt captures. Do not make the extension a daily default while required runtime or behavioral checks remain unverified.
 12. `package.json` declares `renderDelivery` under `omp.settings` as a boolean with default `true`. Documentation shows the native `omp plugin config` command and `.omp/plugin-overrides.json` project override. Every `before_agent_start` turn reads the public effective-settings API for the current cwd; read failures and non-boolean values preserve Delivery, emit a bounded session-deduplicated diagnostic, and do not block the model request.
 
-## Risks
+### Risks
 
 The event exposes text without provenance or structured field boundaries. A host format change or embedded imitation can lead to incorrect slicing and loss of instructions. Exact version checks, unique complete catalog correspondence with command candidates, complete outer target coverage, ambiguity handling, and preservation tests reduce this risk but do not turn text recognition into a security boundary. Pure text cannot reveal every ambiguity in the original Skill structure.
 

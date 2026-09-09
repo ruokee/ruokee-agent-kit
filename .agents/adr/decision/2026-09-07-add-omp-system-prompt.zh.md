@@ -1,4 +1,4 @@
-# ADR 提案：添加 OMP 系统提示词扩展
+# ADR 决定：添加 OMP 系统提示词扩展
 
 Decision owner: Ruokee
 Draft writer: OMP GPT-6 Astra
@@ -23,11 +23,11 @@ OMP 默认系统提示词将运行时能力与工程偏好、派发策略、人�
 - [旁路请求上下文](https://github.com/can1357/oh-my-pi/blob/e3106be68f778635da3a17106835ce2e0e6992af/packages/agent/src/agent.ts#L773-L802)默认使用当前生效的 Agent 提示词；Handoff 等调用者可以显式选择基础提示词。
 - [Task 并发限制](https://github.com/can1357/oh-my-pi/blob/e3106be68f778635da3a17106835ce2e0e6992af/packages/coding-agent/src/task/index.ts#L574-L640)由会话 semaphore 根据 `task.maxConcurrency` 执行，独立于提示词中的 Cap 文字。
 
-## 提议
+## 决定
 
 ### 分发一个自包含扩展
 
-在 `projects/omp-system-prompt/` 添加第一方包 `@ruokee/omp-system-prompt`，通过原生 `omp.extensions` 元数据声明入口。运行代码、维护者自有英文提示词、检查和双语 README 均位于组件内。该选择遵循[第一方能力边界](../decision/2026-08-20-establish-first-party-capability-kit.zh.md)和[组件自包含契约](../decision/2026-08-24-keep-components-self-contained.zh.md)，无需反转这两个决定。
+在 `projects/omp-system-prompt/` 添加第一方包 `@ruokee/omp-system-prompt`，通过原生 `omp.extensions` 元数据声明入口。运行代码、维护者自有英文提示词、检查和双语 README 均位于组件内。该选择遵循[第一方能力边界](./2026-08-20-establish-first-party-capability-kit.zh.md)和[组件自包含契约](./2026-08-24-keep-components-self-contained.zh.md)，无需反转这两个决定。
 
 使用公开 OMP 扩展 API，不导入私有提示词装配器，不重新扫描资源，不复制上下文发现机制，也不收录上游模板副本。不依赖其他仓库组件中的文件或特定机器的安装。安装、启用、禁用和卸载采用原生机制，不替用户写入 `SYSTEM.md`。
 
@@ -167,7 +167,9 @@ CLI flag 只影响一次调用，不能持久化选择，也不能提供项目�
 
 组件自有文件会产生第二个配置来源。直接解析 `omp-plugins.lock.json` 或其他宿主文件会复制 OMP 的配置职责并绕过公开 API。这两条路线都不采用，改用原生插件设置和公开的有效设置查询。
 
-## 验收标准
+## 后果
+
+组件及其公开文档形成以下可观察契约：
 
 1. 包能在未修改的 18.1.11 中通过原生 OMP 机制安装与加载。文档说明精确版本、格式、会话、元数据、回退和扩展顺序边界，不依赖私人文件、宿主补丁或其他仓库组件。
 2. 成功输出符合指定身份正文、章节顺序、工具和设备标题、URI 引导处理及两段 Agent coordination 正文。有效 `renderDelivery` 为 `true`、未配置或安全回退时，输出完整的 `# Delivery` 章节。为 `false` 时，精确省略从该标题到最后 `## Pausing` 正文结束的范围，包括 Task scope、Completion、Evidence 和 Pausing。其他自有章节、动态槽位、PROJECT 内容和独立指令保持不变。被移除的宿主 Delegation 片段不迁移至其他自有槽位。实际工具描述和运行通知保持完整。
@@ -184,7 +186,7 @@ CLI flag 只影响一次调用，不能持久化选择，也不能提供项目�
 11. 发布前通过组件检查与仓库的 `pnpm check`。公开文档报告已验证行为、隐藏 Skill 支持成功、Skill 局部回退及整份提示词回退的实际场景，不包含私人提示词抓取内容。必需的运行与行为检查未验证时，不将扩展设为日常默认。
 12. `package.json` 在 `omp.settings` 下将 `renderDelivery` 声明为 boolean，默认值为 `true`。文档提供原生 `omp plugin config` 命令和 `.omp/plugin-overrides.json` 项目覆盖示例。每个 `before_agent_start` turn 都通过公开的有效设置 API 读取当前 cwd；读取失败或非 boolean 值保留 Delivery，发出有界且按会话去重的诊断，并且不阻止模型请求。
 
-## 风险
+### 风险
 
 事件提供的文本没有来源映射或结构化字段边界。宿主格式变化或嵌入内容的模仿可能造成错误切分，丢失指令。精确版本检查、完整目录与命令候选的唯一对应、外层目标完整覆盖、歧义处理和保真测试可以降低风险，但不能将文本识别变成安全边界。纯文本不能揭示原始 Skill 结构中的每一种歧义。
 
