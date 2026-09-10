@@ -11,7 +11,42 @@
   "omp": {
     "extensions": [
       "./src/extension.ts"
-    ]
+    ],
+    "settings": {
+      "model": {
+        "type": "string",
+        "default": "",
+        "description": "Responses model selector in provider/model format."
+      },
+      "searchEnabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Register the codex_web_search tool."
+      },
+      "searchLoadMode": {
+        "type": "enum",
+        "values": [
+          "essential",
+          "discoverable"
+        ],
+        "default": "essential",
+        "description": "How codex_web_search is presented to the model."
+      },
+      "fetchEnabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Register the codex_web_fetch tool."
+      },
+      "fetchLoadMode": {
+        "type": "enum",
+        "values": [
+          "essential",
+          "discoverable"
+        ],
+        "default": "discoverable",
+        "description": "How codex_web_fetch is presented to the model."
+      }
+    }
   },
   "peerDependencies": {
     "@oh-my-pi/pi-coding-agent": ">=18.1.8 <19"

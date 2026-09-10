@@ -1,51 +1,24 @@
 /**
- * Extension entry and execution-chain tests.
+ * Extension activation and execution-chain tests.
  *
- * Drives the real extension factory through a stub Extension API and the
- * real per-module execution path with a stub extension context:
- *
- * - registration honors the config: defaults, per-tool disablement, both
- *   load modes, and explicit null rejection, with `read` approval on every
- *   registered tool;
- * - an invalid configuration (malformed YAML, unknown field, wrong type or
- *   value, unreadable file) registers zero tools and reports the problem;
- * - execution resolves the configured model, fetches its credential, and
- *   passes the URL/prompt inputs through to the Responses request;
- * - model failures (missing config, unresolvable model, missing
- *   credential, wrong API type) return clear error results;
- * - the abort signal reaches the credential lookup and the HTTP request;
- * - page extraction rejects non-HTTP(S) URLs before any model or network
- *   work.
- *
- * The agent directory is a real temp dir: this file sets
- * `PI_CODING_AGENT_DIR` before importing the extension, so the real
- * `getAgentDir()` reads it. Each test writes the YAML it needs before
- * activating the factory.
+ * Tests substitute the public settings getter at the extension seam. No real
+ * OMP user settings or project settings are read. The suite covers the
+ * session_start activation barrier, one-snapshot registration, native setting
+ * validation failures, legacy YAML isolation, and the existing model-backed
+ * execution and cancellation behavior.
  */
 
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { YAML } from "bun";
-// Module-load boundary: set the agent dir env before the first import of
-// pi-coding-agent (transitively loaded by src/extension.ts), because the
-// dirs resolver caches the directory at module init.
-const AGENT_DIR = mkdtempSync(path.join(tmpdir(), "codex-web-entry-"));
-const ORIGINAL_AGENT_DIR = process.env.PI_CODING_AGENT_DIR;
-process.env.PI_CODING_AGENT_DIR = AGENT_DIR;
-const { default: factory } = await import("../src/extension.ts");
+import { activate as installExtension, PACKAGE_NAME, type PluginSettingsReader } from "../src/extension.ts";
 
 const originalFetch = globalThis.fetch;
+const TEST_CWD = path.join(tmpdir(), "codex-web-session-project");
+
 afterEach(() => {
   globalThis.fetch = originalFetch;
-});
-
-/** Restore the agent dir env and clean the temp dir after the whole file. */
-process.on("exit", () => {
-  if (ORIGINAL_AGENT_DIR === undefined) delete process.env.PI_CODING_AGENT_DIR;
-  else process.env.PI_CODING_AGENT_DIR = ORIGINAL_AGENT_DIR;
-  rmSync(AGENT_DIR, { recursive: true, force: true });
 });
 
 /**
@@ -76,14 +49,23 @@ interface RegisteredTool {
   }>;
 }
 
+type SessionHandler = (_event: unknown, ctx: { cwd: string }) => Promise<void>;
+
 interface Harness {
   tools: RegisteredTool[];
   warnings: string[];
+  sessionStart: SessionHandler;
 }
 
-/** Activate the factory against the current agent dir and config. */
-function activate(): Harness {
-  const harness: Harness = { tools: [], warnings: [] };
+/** Install the extension with a replaceable native settings getter. */
+function activate(
+  readSettings: PluginSettingsReader = async () => ({}),
+  onRegister?: (tool: unknown) => void,
+): Harness {
+  const harness: Omit<Harness, "sessionStart"> & { sessionStart?: SessionHandler } = {
+    tools: [],
+    warnings: [],
+  };
   const zodString = {
     describe() {
       return this;
@@ -98,22 +80,29 @@ function activate(): Harness {
       return this;
     },
   };
-  factory({
-    logger: { warn: (message: string) => harness.warnings.push(message) },
-    registerTool: (tool: unknown) => harness.tools.push(tool as RegisteredTool),
-    zod: { z: { object: (shape: Record<string, unknown>) => shape, string: () => ({ ...zodString }) } },
-  } as never);
-  return harness;
+  installExtension(
+    {
+      logger: { warn: (message: string) => harness.warnings.push(message) },
+      on: (_event: string, handler: unknown) => {
+        harness.sessionStart = handler as SessionHandler;
+      },
+      registerTool: (tool: unknown) => {
+        if (onRegister) {
+          onRegister(tool);
+        } else {
+          harness.tools.push(tool as RegisteredTool);
+        }
+      },
+      zod: { z: { object: (shape: Record<string, unknown>) => shape, string: () => ({ ...zodString }) } },
+    } as never,
+    readSettings,
+  );
+  if (harness.sessionStart === undefined) throw new Error("session_start handler was not installed");
+  return harness as Harness;
 }
 
-/** Write a config file (or delete it when null) before activation. */
-function setConfig(yaml: string | null): void {
-  const file = path.join(AGENT_DIR, "omp-codex-web-access.yml");
-  if (yaml === null) {
-    rmSync(file, { force: true });
-  } else {
-    writeFileSync(file, yaml);
-  }
+async function start(harness: Harness, cwd = TEST_CWD): Promise<void> {
+  await harness.sessionStart({}, { cwd });
 }
 
 /** Minimal structured model stub satisfying the transport's field needs. */
@@ -150,85 +139,196 @@ function context(registered: typeof model | undefined, key: string | undefined =
   };
 }
 
-describe("extension entry registration", () => {
-  test("missing file registers both tools with default load modes", async () => {
-    setConfig(null);
-    const { tools } = activate();
-    expect(tools.map((tool) => tool.name)).toEqual(["codex_web_search", "codex_web_fetch"]);
-    expect(tools.map((tool) => tool.loadMode)).toEqual(["essential", "discoverable"]);
-    expect(tools.every((tool) => tool.approval === "read")).toBe(true);
-    expect(String(tools[1]?.description)).toMatch(/model-assisted/);
-    expect(String(tools[1]?.description)).toMatch(/not raw HTML/);
+describe("session_start activation", () => {
+  test("does not register tools before the first session_start", async () => {
+    const harness = activate();
+    expect(harness.tools).toEqual([]);
+    await start(harness);
+    expect(harness.tools.map((tool) => tool.name)).toEqual(["codex_web_search", "codex_web_fetch"]);
+    expect(harness.tools.map((tool) => tool.loadMode)).toEqual(["essential", "discoverable"]);
+    expect(harness.tools.every((tool) => tool.approval === "read")).toBe(true);
   });
 
-  test("each tool can be disabled independently", async () => {
-    setConfig("tools:\n  codex_web_search:\n    enabled: false\n");
-    expect(activate().tools.map((tool) => tool.name)).toEqual(["codex_web_fetch"]);
-
-    setConfig("tools:\n  codex_web_fetch:\n    enabled: false\n");
-    expect(activate().tools.map((tool) => tool.name)).toEqual(["codex_web_search"]);
+  test("keeps registration at zero while the settings getter is pending", async () => {
+    const deferred = Promise.withResolvers<Record<string, unknown>>();
+    const harness = activate(async () => deferred.promise);
+    const pending = start(harness);
+    await Promise.resolve();
+    expect(harness.tools).toEqual([]);
+    deferred.resolve({});
+    await pending;
+    expect(harness.tools).toHaveLength(2);
   });
 
-  test("loadMode is honored per tool", async () => {
-    setConfig("tools:\n  codex_web_search:\n    loadMode: discoverable\n  codex_web_fetch:\n    loadMode: essential\n");
-    expect(activate().tools.map((tool) => tool.loadMode)).toEqual(["discoverable", "essential"]);
-  });
-
-  test("explicit null fields register nothing and report the field", async () => {
-    for (const yaml of ["model: null\n", "tools: null\n", "tools:\n  codex_web_search: null\n"]) {
-      setConfig(yaml);
-      const { tools, warnings } = activate();
-      expect(tools).toEqual([]);
-      expect(warnings[0]).toContain("omp-codex-web-access");
-    }
-  });
-
-  test("invalid YAML registers nothing and reports the problem", async () => {
-    setConfig("model: [unclosed\n");
-    const { tools, warnings } = activate();
-    expect(tools).toEqual([]);
-    expect(warnings.length).toBe(1);
-    expect(warnings[0]).toContain("omp-codex-web-access");
-  });
-
-  test("unknown top-level field registers nothing", async () => {
-    setConfig("model: provider/m\nversion: 2\n");
-    const { tools, warnings } = activate();
-    expect(tools).toEqual([]);
-    expect(warnings[0]).toContain("version");
-  });
-
-  test("wrong type and invalid values register nothing", async () => {
-    setConfig("model: 42\n");
-    expect(activate().tools).toEqual([]);
-
-    setConfig("tools:\n  codex_web_search:\n    loadMode: sideways\n");
-    const { tools, warnings } = activate();
-    expect(tools).toEqual([]);
-    expect(warnings[0]).toContain("loadMode");
-  });
-
-  test("unreadable config registers nothing and explains the read failure", () => {
-    // A directory at the config path makes readFileSync fail with EISDIR,
-    // exercising the non-ENOENT error branch on a real filesystem.
-    setConfig(null);
-    mkdirSync(path.join(AGENT_DIR, "omp-codex-web-access.yml"));
+  test("passes the session cwd and package name to the public getter", async () => {
+    const calls: Array<{ packageName: string; cwd: string }> = [];
+    const sessionCwd = mkdtempSync(path.join(tmpdir(), "codex-web-session-cwd-"));
     try {
-      const { tools, warnings } = activate();
-      expect(tools).toEqual([]);
-      expect(warnings.length).toBe(1);
-      expect(warnings[0]).toContain("omp-codex-web-access");
-      expect(warnings[0]).toContain("Cannot read");
+      const harness = activate(async (packageName, cwd) => {
+        calls.push({ packageName, cwd });
+        return {};
+      });
+      await start(harness, sessionCwd);
+      expect(calls).toEqual([{ packageName: PACKAGE_NAME, cwd: sessionCwd }]);
+      expect(sessionCwd).not.toBe(process.cwd());
     } finally {
-      rmSync(path.join(AGENT_DIR, "omp-codex-web-access.yml"), { recursive: true, force: true });
+      rmSync(sessionCwd, { recursive: true, force: true });
     }
+  });
+
+  test("shares one pending read and one registration across duplicate concurrent events", async () => {
+    const deferred = Promise.withResolvers<Record<string, unknown>>();
+    let reads = 0;
+    const harness = activate(async () => {
+      reads += 1;
+      return deferred.promise;
+    });
+    const first = start(harness, "/tmp/project-one");
+    const second = start(harness, "/tmp/project-two");
+    await Promise.resolve();
+    expect(reads).toBe(1);
+    expect(harness.tools).toEqual([]);
+    deferred.resolve({});
+    await Promise.all([first, second]);
+    await start(harness, "/tmp/project-three");
+    expect(reads).toBe(1);
+    expect(harness.tools).toHaveLength(2);
+  });
+
+  test("rereads settings for a new extension activation", async () => {
+    let reads = 0;
+    const first = activate(async () => {
+      reads += 1;
+      return { searchEnabled: false };
+    });
+    await start(first);
+    expect(first.tools.map((tool) => tool.name)).toEqual(["codex_web_fetch"]);
+
+    const second = activate(async () => {
+      reads += 1;
+      return { fetchEnabled: false };
+    });
+    await start(second);
+    expect(reads).toBe(2);
+    expect(second.tools.map((tool) => tool.name)).toEqual(["codex_web_search"]);
+  });
+
+  test("keeps registration at zero after a rejected read and does not retry", async () => {
+    let reads = 0;
+    const harness = activate(async () => {
+      reads += 1;
+      throw new Error("settings unavailable");
+    });
+    await start(harness);
+    await start(harness);
+    expect(reads).toBe(1);
+    expect(harness.tools).toEqual([]);
+    expect(harness.warnings).toHaveLength(1);
+    expect(harness.warnings[0]).toContain("settings getter failed");
+  });
+
+  test("keeps registration at zero for an invalid effective object", async () => {
+    const harness = activate(async () => ({ searchEnabled: "yes" }));
+    await start(harness);
+    expect(harness.tools).toEqual([]);
+    expect(harness.warnings).toHaveLength(1);
+    expect(harness.warnings[0]).toContain("searchEnabled");
+  });
+
+  test("honors independent enablement and load modes", async () => {
+    const harness = activate(async () => ({
+      searchEnabled: false,
+      searchLoadMode: "discoverable",
+      fetchEnabled: true,
+      fetchLoadMode: "essential",
+    }));
+    await start(harness);
+    expect(harness.tools.map((tool) => tool.name)).toEqual(["codex_web_fetch"]);
+    expect(harness.tools[0]?.loadMode).toBe("essential");
+  });
+
+  test("keeps both tools disabled when both enablement settings are false", async () => {
+    const harness = activate(async () => ({ searchEnabled: false, fetchEnabled: false }));
+    await start(harness);
+    expect(harness.tools).toEqual([]);
+  });
+
+  test("isolates concurrent activations with different project directories", async () => {
+    const projectOne = mkdtempSync(path.join(tmpdir(), "codex-web-project-one-"));
+    const projectTwo = mkdtempSync(path.join(tmpdir(), "codex-web-project-two-"));
+    try {
+      const first = activate(async (_packageName, cwd) => (cwd === projectOne ? { searchEnabled: false } : {}));
+      const second = activate(async (_packageName, cwd) => (cwd === projectTwo ? { fetchEnabled: false } : {}));
+      await Promise.all([start(first, projectOne), start(second, projectTwo)]);
+      expect(first.tools.map((tool) => tool.name)).toEqual(["codex_web_fetch"]);
+      expect(second.tools.map((tool) => tool.name)).toEqual(["codex_web_search"]);
+    } finally {
+      rmSync(projectOne, { recursive: true, force: true });
+      rmSync(projectTwo, { recursive: true, force: true });
+    }
+  });
+
+  test("bounds and redacts settings getter exception diagnostics", async () => {
+    const marker = "GETTER-SENSITIVE-MARKER";
+    const harness = activate(async () => {
+      throw new Error(`${marker}\n${"x".repeat(1_000)}`);
+    });
+    await start(harness);
+    const warning = harness.warnings[0] ?? "";
+    expect(warning).toContain("settings getter failed");
+    expect(warning).not.toContain(marker);
+    expect(warning).not.toContain("\n");
+    expect(warning.length).toBeLessThanOrEqual(256);
+  });
+
+  test("bounds unknown setting diagnostics and removes control characters", async () => {
+    const marker = "UNKNOWN-SENSITIVE-MARKER";
+    const unknownKey = `unknown-${"x".repeat(200)}-${marker}\n\u001b[31m`;
+    const harness = activate(async () => ({ [unknownKey]: "value" }));
+    await start(harness);
+    const warning = harness.warnings[0] ?? "";
+    expect(warning).not.toContain(marker);
+    expect(warning).not.toContain("\n");
+    expect(warning).not.toContain("\u001b");
+    expect(warning.length).toBeLessThanOrEqual(256);
+  });
+
+  test("bounds registration exception diagnostics without exposing the exception", async () => {
+    const marker = "REGISTRATION-SENSITIVE-MARKER";
+    const harness = activate(
+      async () => ({}),
+      () => {
+        throw new Error(`${marker}\n${"x".repeat(1_000)}`);
+      },
+    );
+    await start(harness);
+    const warning = harness.warnings[0] ?? "";
+    expect(warning).toContain("registration error");
+    expect(warning).not.toContain(marker);
+    expect(warning).not.toContain("\n");
+    expect(warning.length).toBeLessThanOrEqual(256);
+  });
+
+  test("uses one model snapshot for registered tools", async () => {
+    const settings: Record<string, unknown> = { model: "test-provider/first" };
+    const harness = activate(async () => settings);
+    await start(harness);
+    settings.model = "test-provider/second";
+    const [tool] = harness.tools;
+    if (!tool) throw new Error("codex_web_search was not registered");
+
+    installFetch(async () => Response.json({ output_text: "Found it" }));
+    const ctx = context(model);
+    await tool.execute("call", { query: "needle" }, undefined, undefined, ctx.value);
+    expect(ctx.calls.resolve).toEqual(["test-provider/first"]);
   });
 });
 
 describe("tool execution chain", () => {
   test("search resolves the configured model, gets its credential, and sends the query", async () => {
-    setConfig("model: test-provider/gpt-test\n");
-    const [tool] = activate().tools;
+    const harness = activate(async () => ({ model: "test-provider/gpt-test" }));
+    await start(harness);
+    const [tool] = harness.tools;
     if (!tool) throw new Error("codex_web_search was not registered");
     let body: Record<string, unknown> = {};
     installFetch(async (_input, init) => {
@@ -245,8 +345,9 @@ describe("tool execution chain", () => {
   });
 
   test("fetch passes the URL and extraction prompt to Responses", async () => {
-    setConfig("model: test-provider/gpt-test\n");
-    const [, tool] = activate().tools;
+    const harness = activate(async () => ({ model: "test-provider/gpt-test" }));
+    await start(harness);
+    const [, tool] = harness.tools;
     if (!tool) throw new Error("codex_web_fetch was not registered");
     let input = "";
     installFetch(async (_url, init) => {
@@ -266,8 +367,9 @@ describe("tool execution chain", () => {
   });
 
   test("fetch rejects non-HTTP(S) URLs before any model or network work", async () => {
-    setConfig("model: test-provider/gpt-test\n");
-    const [, tool] = activate().tools;
+    const harness = activate(async () => ({ model: "test-provider/gpt-test" }));
+    await start(harness);
+    const [, tool] = harness.tools;
     if (!tool) throw new Error("codex_web_fetch was not registered");
     let fetched = false;
     installFetch(async () => {
@@ -285,8 +387,9 @@ describe("tool execution chain", () => {
   });
 
   test("missing or empty model errors at call time", async () => {
-    setConfig(null);
-    const [tool] = activate().tools;
+    const harness = activate();
+    await start(harness);
+    const [tool] = harness.tools;
     if (!tool) throw new Error("codex_web_search was not registered");
     let fetched = false;
     installFetch(async () => {
@@ -295,13 +398,14 @@ describe("tool execution chain", () => {
     });
     const result = await tool.execute("call", { query: "x" }, undefined, undefined, context(model).value);
     expect(result.isError).toBe(true);
-    expect(result.content[0]?.text).toContain("omp-codex-web-access.yml");
+    expect(result.content[0]?.text).toContain("No model configured");
     expect(fetched).toBe(false);
   });
 
   test("returns clear model errors", async () => {
-    setConfig("model: missing/model\n");
-    const [tool] = activate().tools;
+    const harness = activate(async () => ({ model: "missing/model" }));
+    await start(harness);
+    const [tool] = harness.tools;
     if (!tool) throw new Error("codex_web_search was not registered");
 
     let result = await tool.execute("call", { query: "x" }, undefined, undefined, context(undefined).value);
@@ -324,8 +428,9 @@ describe("tool execution chain", () => {
   });
 
   test("propagates the abort signal to credential lookup and HTTP request", async () => {
-    setConfig("model: test-provider/gpt-test\n");
-    const [tool] = activate().tools;
+    const harness = activate(async () => ({ model: "test-provider/gpt-test" }));
+    await start(harness);
+    const [tool] = harness.tools;
     if (!tool) throw new Error("codex_web_search was not registered");
     const controller = new AbortController();
     let httpSignal: AbortSignal | undefined;
@@ -333,9 +438,6 @@ describe("tool execution chain", () => {
       httpSignal = init?.signal ?? undefined;
       const { promise, reject } = Promise.withResolvers<Response>();
       const signal = init?.signal;
-      // Real fetch rejects synchronously for an already-aborted signal; the
-      // execute path awaits credential lookup before fetching, so abort can
-      // fire before the request starts.
       if (signal?.aborted) {
         reject(signal.reason);
         return promise;
@@ -344,8 +446,6 @@ describe("tool execution chain", () => {
       return promise;
     });
     const ctx = context(model);
-    // Cancellation surfaces as an error result (the tool boundary catches),
-    // so the observable contract is the error message plus signal flow.
     const request = tool.execute("call", { query: "x" }, controller.signal, undefined, ctx.value);
     controller.abort(new DOMException("cancelled", "AbortError"));
     const result = await request;

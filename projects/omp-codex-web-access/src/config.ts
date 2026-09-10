@@ -1,23 +1,14 @@
 /**
- * YAML configuration for the Codex web access tools.
+ * Validation and defaulting for the native OMP plugin settings.
  *
- * The file lives in the active agent directory as `omp-codex-web-access.yml`
- * and is read once when the extension initializes; changes apply to new OMP
- * sessions. Top level allows exactly `model` (string selector) and `tools`
- * (per-tool `enabled` / `loadMode`). Validation is atomic: any unknown
- * field, malformed YAML, wrong type, or invalid value rejects the whole
- * document, and the extension then registers neither tool.
- *
- * Omitted parts fall back to defaults: a missing file, a missing `model`,
- * or a missing tool entry means both tools register with their default load
- * modes. An omitted or empty `model` only errors at tool-call time, when
- * the tools explain that no model is configured.
+ * The public OMP settings getter supplies one effective settings object for an
+ * extension activation. Missing keys receive the manifest defaults here;
+ * explicit nulls, unknown keys, wrong types, and invalid enum values reject
+ * the complete object. The returned shape keeps the internal model/tools
+ * structure used by the tool registration code.
  */
 
 import { isObject } from "./object-guard.ts";
-
-/** File name resolved inside the active agent directory. */
-export const CONFIG_FILE_NAME = "omp-codex-web-access.yml";
 
 /** The two tool names this package owns. */
 export const TOOL_NAMES = ["codex_web_search", "codex_web_fetch"] as const;
@@ -27,11 +18,14 @@ export type ToolName = (typeof TOOL_NAMES)[number];
 export const LOAD_MODES = ["essential", "discoverable"] as const;
 export type LoadMode = (typeof LOAD_MODES)[number];
 
-/** Default presentation when a tool entry or its `loadMode` is omitted. */
-export const DEFAULT_LOAD_MODES: Record<ToolName, LoadMode> = {
-  codex_web_search: "essential",
-  codex_web_fetch: "discoverable",
-};
+/** Manifest defaults mirrored by runtime validation. */
+export const DEFAULT_SETTINGS = {
+  model: "",
+  searchEnabled: true,
+  searchLoadMode: "essential" as LoadMode,
+  fetchEnabled: true,
+  fetchLoadMode: "discoverable" as LoadMode,
+} as const;
 
 /** Per-tool registration settings. */
 export interface ToolConfig {
@@ -39,9 +33,9 @@ export interface ToolConfig {
   loadMode: LoadMode;
 }
 
-/** Fully resolved configuration. */
+/** Fully resolved configuration used by the registration and execution code. */
 export interface CodexWebAccessConfig {
-  /** Model selector (`provider/id`) or empty when the file omits it. */
+  /** Model selector (`provider/id`) or empty when no model is configured. */
   model: string;
   tools: Record<ToolName, ToolConfig>;
 }
@@ -52,154 +46,93 @@ export interface ConfigProblem {
   reason: string;
 }
 
-/** Parse result: a config or the full problem list for a rejected document. */
+/** Parse result: a config or the full problem list for a rejected object. */
 export type ConfigParseResult =
   { kind: "loaded"; config: CodexWebAccessConfig } | { kind: "invalid"; problems: ConfigProblem[] };
 
-export function defaultTools(): Record<ToolName, ToolConfig> {
+function isLoadMode(value: unknown): value is LoadMode {
+  return LOAD_MODES.some((mode) => mode === value);
+}
+
+function invalidLoadMode(field: string): ConfigProblem {
   return {
-    codex_web_search: { enabled: true, loadMode: DEFAULT_LOAD_MODES.codex_web_search },
-    codex_web_fetch: { enabled: true, loadMode: DEFAULT_LOAD_MODES.codex_web_fetch },
+    field,
+    reason: `must be one of ${LOAD_MODES.map((value) => JSON.stringify(value)).join(", ")}`,
   };
 }
 
 /**
- * Parse one tool entry. Returns the entry or the problems that reject it.
- * A missing key (`undefined`) yields the tool's defaults; an explicit
- * `null` is a type error, not an omission.
+ * Validate one effective object returned by OMP's public settings getter.
+ * Validation is atomic: any problem rejects the complete object.
  */
-function parseToolEntry(name: ToolName, entry: unknown): { config: ToolConfig } | { problems: ConfigProblem[] } {
-  if (entry === undefined) {
-    return { config: { enabled: true, loadMode: DEFAULT_LOAD_MODES[name] } };
+export function parseCodexWebAccessSettings(settings: unknown): ConfigParseResult {
+  if (!isObject(settings)) {
+    return { kind: "invalid", problems: [{ field: "(root)", reason: "must be a settings object" }] };
   }
-  if (entry === null) {
-    return { problems: [{ field: `tools.${name}`, reason: "must be a mapping when present" }] };
-  }
-  if (!isObject(entry)) {
-    return { problems: [{ field: `tools.${name}`, reason: "must be a mapping when present" }] };
-  }
-  for (const key of Object.keys(entry)) {
-    if (key !== "enabled" && key !== "loadMode") {
-      return { problems: [{ field: `tools.${name}.${key}`, reason: "unknown field" }] };
-    }
-  }
-  const enabled = entry.enabled;
-  if (enabled !== undefined && typeof enabled !== "boolean") {
-    return { problems: [{ field: `tools.${name}.enabled`, reason: "must be a boolean" }] };
-  }
-  const loadMode = entry.loadMode;
-  if (
-    loadMode !== undefined &&
-    !(typeof loadMode === "string" && (LOAD_MODES as readonly string[]).includes(loadMode))
-  ) {
-    return {
-      problems: [
-        {
-          field: `tools.${name}.loadMode`,
-          reason: `must be one of ${LOAD_MODES.map((v) => JSON.stringify(v)).join(", ")}`,
-        },
-      ],
-    };
-  }
-  return {
-    config: {
-      enabled: enabled ?? true,
-      loadMode: (loadMode as LoadMode | undefined) ?? DEFAULT_LOAD_MODES[name],
-    },
-  };
-}
 
-/**
- * Validate the optional `tools` mapping. A missing key (`undefined`) keeps
- * both tools at their defaults; an explicit `null` is a type error.
- */
-function parseTools(toolsRaw: unknown): { tools: Record<ToolName, ToolConfig> } | { problems: ConfigProblem[] } {
-  if (toolsRaw === undefined) {
-    return { tools: defaultTools() };
-  }
-  if (!isObject(toolsRaw)) {
-    return { problems: [{ field: "tools", reason: "must be a mapping when present" }] };
-  }
   const problems: ConfigProblem[] = [];
-  for (const key of Object.keys(toolsRaw)) {
-    if (!(TOOL_NAMES as readonly string[]).includes(key)) {
-      problems.push({ field: `tools.${key}`, reason: "unknown tool name" });
+  for (const key of Object.keys(settings)) {
+    if (!Object.hasOwn(DEFAULT_SETTINGS, key)) {
+      problems.push({ field: key, reason: "unknown setting" });
     }
   }
-  const search = parseToolEntry("codex_web_search", toolsRaw.codex_web_search);
-  const fetch = parseToolEntry("codex_web_fetch", toolsRaw.codex_web_fetch);
-  if ("problems" in search) problems.push(...search.problems);
-  if ("problems" in fetch) problems.push(...fetch.problems);
-  if (problems.length > 0) {
-    return { problems };
-  }
-  return {
-    tools: {
-      codex_web_search: (search as { config: ToolConfig }).config,
-      codex_web_fetch: (fetch as { config: ToolConfig }).config,
-    },
-  };
-}
 
-/**
- * Validate the optional top-level `model` selector. A missing key
- * (`undefined`) means no model is configured; an explicit `null` is a type
- * error, not an omission.
- */
-function parseModel(modelRaw: unknown): { model: string } | { problems: ConfigProblem[] } {
-  if (modelRaw === undefined) {
-    return { model: "" };
-  }
-  if (modelRaw === null) {
-    return { problems: [{ field: "model", reason: "must be a string" }] };
-  }
+  const modelRaw = Object.hasOwn(settings, "model") ? settings.model : DEFAULT_SETTINGS.model;
+  const model = typeof modelRaw === "string" ? modelRaw.trim() : "";
   if (typeof modelRaw !== "string") {
-    return { problems: [{ field: "model", reason: "must be a string" }] };
+    problems.push({ field: "model", reason: "must be a string" });
   }
-  return { model: modelRaw.trim() };
-}
 
-/**
- * Parse configuration text. Returns every problem when the document is
- * rejected, so one message can list all failures.
- */
-export function parseCodexWebAccessConfig(text: string, yaml: { parse(text: string): unknown }): ConfigParseResult {
-  let parsed: unknown;
-  try {
-    parsed = yaml.parse(text);
-  } catch (error) {
-    return {
-      kind: "invalid",
-      problems: [
-        { field: "(root)", reason: `YAML parse failed: ${error instanceof Error ? error.message : String(error)}` },
-      ],
-    };
+  const searchEnabledRaw = Object.hasOwn(settings, "searchEnabled")
+    ? settings.searchEnabled
+    : DEFAULT_SETTINGS.searchEnabled;
+  const searchEnabled = typeof searchEnabledRaw === "boolean" ? searchEnabledRaw : false;
+  if (typeof searchEnabledRaw !== "boolean") {
+    problems.push({ field: "searchEnabled", reason: "must be a boolean" });
   }
-  // An empty document is a missing file's twin: everything defaults.
-  if (parsed === null || parsed === undefined) {
-    return { kind: "loaded", config: { model: "", tools: defaultTools() } };
+
+  const searchLoadModeRaw = Object.hasOwn(settings, "searchLoadMode")
+    ? settings.searchLoadMode
+    : DEFAULT_SETTINGS.searchLoadMode;
+  const searchLoadMode = isLoadMode(searchLoadModeRaw) ? searchLoadModeRaw : DEFAULT_SETTINGS.searchLoadMode;
+  if (!isLoadMode(searchLoadModeRaw)) {
+    problems.push(invalidLoadMode("searchLoadMode"));
   }
-  if (!isObject(parsed)) {
-    return { kind: "invalid", problems: [{ field: "(root)", reason: "must be a mapping at the document root" }] };
+
+  const fetchEnabledRaw = Object.hasOwn(settings, "fetchEnabled")
+    ? settings.fetchEnabled
+    : DEFAULT_SETTINGS.fetchEnabled;
+  const fetchEnabled = typeof fetchEnabledRaw === "boolean" ? fetchEnabledRaw : false;
+  if (typeof fetchEnabledRaw !== "boolean") {
+    problems.push({ field: "fetchEnabled", reason: "must be a boolean" });
   }
-  const problems: ConfigProblem[] = [];
-  for (const key of Object.keys(parsed)) {
-    if (key !== "model" && key !== "tools") {
-      problems.push({ field: key, reason: "unknown top-level field" });
-    }
+
+  const fetchLoadModeRaw = Object.hasOwn(settings, "fetchLoadMode")
+    ? settings.fetchLoadMode
+    : DEFAULT_SETTINGS.fetchLoadMode;
+  const fetchLoadMode = isLoadMode(fetchLoadModeRaw) ? fetchLoadModeRaw : DEFAULT_SETTINGS.fetchLoadMode;
+  if (!isLoadMode(fetchLoadModeRaw)) {
+    problems.push(invalidLoadMode("fetchLoadMode"));
   }
-  const modelResult = parseModel(parsed.model);
-  const toolsResult = parseTools(parsed.tools);
-  if ("problems" in modelResult) problems.push(...modelResult.problems);
-  if ("problems" in toolsResult) problems.push(...toolsResult.problems);
+
   if (problems.length > 0) {
     return { kind: "invalid", problems };
   }
+
   return {
     kind: "loaded",
     config: {
-      model: (modelResult as { model: string }).model,
-      tools: (toolsResult as { tools: Record<ToolName, ToolConfig> }).tools,
+      model,
+      tools: {
+        codex_web_search: {
+          enabled: searchEnabled,
+          loadMode: searchLoadMode,
+        },
+        codex_web_fetch: {
+          enabled: fetchEnabled,
+          loadMode: fetchLoadMode,
+        },
+      },
     },
   };
 }

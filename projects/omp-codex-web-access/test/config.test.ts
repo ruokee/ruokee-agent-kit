@@ -1,136 +1,167 @@
 /**
- * Configuration parse tests.
+ * Native plugin settings validation tests.
  *
- * Covers the observable configuration contract: defaults for an empty
- * document and omitted fields, independent per-tool enablement and load
- * modes, and atomic rejection (whole document invalid, zero tools
- * registered downstream) for malformed YAML, unknown fields, wrong types,
- * and invalid values. File-level behavior (missing file, unreadable file)
- * is covered by the extension entry tests, which drive the real read path.
+ * The parser receives the effective object returned by OMP's public settings
+ * getter. Manifest defaults are mirrored for missing keys, while any explicit
+ * null, unknown key, wrong type, or invalid enum rejects the whole object.
  */
 
 import { describe, expect, test } from "bun:test";
-import { YAML } from "bun";
-import { DEFAULT_LOAD_MODES, parseCodexWebAccessConfig, type ConfigParseResult } from "../src/config.ts";
+import { DEFAULT_SETTINGS, parseCodexWebAccessSettings, type ConfigParseResult } from "../src/config.ts";
 
-const parse = (text: string): ConfigParseResult => parseCodexWebAccessConfig(text, YAML);
+const parse = (settings: unknown): ConfigParseResult => parseCodexWebAccessSettings(settings);
 
-/** Assert the document is rejected and return the problems. */
-const invalidProblems = (text: string) => {
-  const result = parse(text);
+function invalidProblems(settings: unknown) {
+  const result = parse(settings);
   expect(result.kind).toBe("invalid");
   return result.kind === "invalid" ? result.problems : [];
-};
+}
 
-describe("parseCodexWebAccessConfig", () => {
-  test("defaults when the document is empty", () => {
-    const result = parse("");
-    expect(result.kind).toBe("loaded");
-    if (result.kind !== "loaded") return;
-    expect(result.config.model).toBe("");
-    expect(result.config.tools.codex_web_search).toEqual({ enabled: true, loadMode: "essential" });
-    expect(result.config.tools.codex_web_fetch).toEqual({ enabled: true, loadMode: "discoverable" });
-  });
-
-  test("full explicit config round-trips", () => {
-    const result = parse(
-      "model: provider/model-1\ntools:\n  codex_web_search:\n    enabled: false\n    loadMode: discoverable\n  codex_web_fetch:\n    enabled: true\n    loadMode: essential\n",
-    );
-    expect(result.kind).toBe("loaded");
-    if (result.kind !== "loaded") return;
-    expect(result.config).toEqual({
-      model: "provider/model-1",
-      tools: {
-        codex_web_search: { enabled: false, loadMode: "discoverable" },
-        codex_web_fetch: { enabled: true, loadMode: "essential" },
+describe("parseCodexWebAccessSettings", () => {
+  test("defaults every missing setting", () => {
+    const result = parse({});
+    expect(result).toEqual({
+      kind: "loaded",
+      config: {
+        model: DEFAULT_SETTINGS.model,
+        tools: {
+          codex_web_search: { enabled: DEFAULT_SETTINGS.searchEnabled, loadMode: DEFAULT_SETTINGS.searchLoadMode },
+          codex_web_fetch: { enabled: DEFAULT_SETTINGS.fetchEnabled, loadMode: DEFAULT_SETTINGS.fetchLoadMode },
+        },
       },
     });
   });
 
-  test("omitted loadMode uses each tool's default, disabled omits it from effect", () => {
-    const result = parse("model: provider/model-1\ntools:\n  codex_web_search:\n    enabled: false\n");
-    expect(result.kind).toBe("loaded");
-    if (result.kind !== "loaded") return;
-    expect(result.config.tools.codex_web_search).toEqual({
-      enabled: false,
-      loadMode: DEFAULT_LOAD_MODES.codex_web_search,
+  test("keeps manifest fields, types, enum values, and defaults aligned with runtime", async () => {
+    const packageJson = (await Bun.file(new URL("../package.json", import.meta.url)).json()) as {
+      omp?: {
+        settings?: Record<string, { type?: string; values?: unknown[]; default?: unknown }>;
+      };
+    };
+    const settings = packageJson.omp?.settings ?? {};
+    expect(Object.keys(settings).sort()).toEqual(
+      ["model", "searchEnabled", "searchLoadMode", "fetchEnabled", "fetchLoadMode"].sort(),
+    );
+    expect(settings.model).toMatchObject({ type: "string", default: DEFAULT_SETTINGS.model });
+    expect(settings.searchEnabled).toMatchObject({ type: "boolean", default: DEFAULT_SETTINGS.searchEnabled });
+    expect(settings.searchLoadMode).toMatchObject({
+      type: "enum",
+      values: ["essential", "discoverable"],
+      default: DEFAULT_SETTINGS.searchLoadMode,
     });
-    expect(result.config.tools.codex_web_fetch).toEqual({
-      enabled: true,
-      loadMode: DEFAULT_LOAD_MODES.codex_web_fetch,
+    expect(settings.fetchEnabled).toMatchObject({ type: "boolean", default: DEFAULT_SETTINGS.fetchEnabled });
+    expect(settings.fetchLoadMode).toMatchObject({
+      type: "enum",
+      values: ["essential", "discoverable"],
+      default: DEFAULT_SETTINGS.fetchLoadMode,
+    });
+    expect(settings.model?.default).toBe(DEFAULT_SETTINGS.model);
+    expect(settings.searchEnabled?.default).toBe(DEFAULT_SETTINGS.searchEnabled);
+    expect(settings.searchLoadMode?.default).toBe(DEFAULT_SETTINGS.searchLoadMode);
+    expect(settings.fetchEnabled?.default).toBe(DEFAULT_SETTINGS.fetchEnabled);
+    expect(settings.fetchLoadMode?.default).toBe(DEFAULT_SETTINGS.fetchLoadMode);
+    expect(parse({})).toEqual({
+      kind: "loaded",
+      config: {
+        model: DEFAULT_SETTINGS.model,
+        tools: {
+          codex_web_search: {
+            enabled: DEFAULT_SETTINGS.searchEnabled,
+            loadMode: DEFAULT_SETTINGS.searchLoadMode,
+          },
+          codex_web_fetch: {
+            enabled: DEFAULT_SETTINGS.fetchEnabled,
+            loadMode: DEFAULT_SETTINGS.fetchLoadMode,
+          },
+        },
+      },
     });
   });
 
-  test("empty quoted model parses; a blank value is YAML null and invalid", () => {
-    // `model: ""` is a present, empty selector: it parses here and errors at
-    // tool-call time. A blank value collapses to YAML null, a type error.
-    const result = parse('model: ""\n');
+  test("maps all five native settings to the internal model/tools shape", () => {
+    const result = parse({
+      model: " provider/model-1 ",
+      searchEnabled: false,
+      searchLoadMode: "discoverable",
+      fetchEnabled: true,
+      fetchLoadMode: "essential",
+    });
+    expect(result).toEqual({
+      kind: "loaded",
+      config: {
+        model: "provider/model-1",
+        tools: {
+          codex_web_search: { enabled: false, loadMode: "discoverable" },
+          codex_web_fetch: { enabled: true, loadMode: "essential" },
+        },
+      },
+    });
+  });
+
+  test("accepts both tools disabled while still validating their load modes", () => {
+    const result = parse({
+      searchEnabled: false,
+      searchLoadMode: "essential",
+      fetchEnabled: false,
+      fetchLoadMode: "discoverable",
+    });
+    expect(result.kind).toBe("loaded");
+    if (result.kind !== "loaded") return;
+    expect(result.config.tools.codex_web_search.enabled).toBe(false);
+    expect(result.config.tools.codex_web_fetch.enabled).toBe(false);
+  });
+
+  test("keeps an explicitly empty model valid for call-time failure", () => {
+    const result = parse({ model: "" });
     expect(result.kind).toBe("loaded");
     if (result.kind !== "loaded") return;
     expect(result.config.model).toBe("");
-    expect(invalidProblems("model:  \n").map((problem) => problem.field)).toEqual(["model"]);
   });
 
-  test("rejects malformed YAML atomically", () => {
-    const problems = invalidProblems("model: [unclosed\n  bad: : yaml\n");
-    expect(problems.length).toBeGreaterThan(0);
+  test("rejects a non-object root atomically", () => {
+    expect(invalidProblems(null)).toEqual([{ field: "(root)", reason: "must be a settings object" }]);
+    expect(invalidProblems([])).toEqual([{ field: "(root)", reason: "must be a settings object" }]);
   });
 
-  test("rejects an unknown top-level field and lists it", () => {
-    const problems = invalidProblems("model: provider/m\nversion: 2\n");
-    expect(problems).toEqual([{ field: "version", reason: "unknown top-level field" }]);
-  });
-
-  test("rejects a non-string model", () => {
-    const problems = invalidProblems("model: 42\n");
-    expect(problems).toEqual([{ field: "model", reason: "must be a string" }]);
-  });
-
-  test("rejects a non-mapping tools block", () => {
-    const problems = invalidProblems("tools: [1]\n");
-    expect(problems).toEqual([{ field: "tools", reason: "must be a mapping when present" }]);
-  });
-
-  test("rejects an unknown tool name", () => {
-    const problems = invalidProblems("tools:\n  web_search:\n    enabled: true\n");
-    expect(problems).toEqual([{ field: "tools.web_search", reason: "unknown tool name" }]);
-  });
-
-  test("rejects unknown fields inside a tool entry", () => {
-    const problems = invalidProblems("tools:\n  codex_web_search:\n    enabled: true\n    hidden: true\n");
-    expect(problems).toEqual([{ field: "tools.codex_web_search.hidden", reason: "unknown field" }]);
-  });
-
-  test("rejects a non-boolean enabled", () => {
-    const problems = invalidProblems("tools:\n  codex_web_search:\n    enabled: yes-please\n");
-    expect(problems).toEqual([{ field: "tools.codex_web_search.enabled", reason: "must be a boolean" }]);
-  });
-
-  test("rejects a loadMode outside essential/discoverable", () => {
-    const problems = invalidProblems("tools:\n  codex_web_fetch:\n    loadMode: hidden\n");
-    expect(problems[0]?.field).toBe("tools.codex_web_fetch.loadMode");
-    expect(problems[0]?.reason).toContain("essential");
-  });
-
-  test("collects multiple problems in one document", () => {
-    const problems = invalidProblems('model: 42\nextra: 1\ntools:\n  codex_web_fetch:\n    enabled: "true"\n');
-    expect(problems.map((problem) => problem.field).sort()).toEqual([
-      "extra",
-      "model",
-      "tools.codex_web_fetch.enabled",
+  test("rejects unknown settings", () => {
+    expect(invalidProblems({ model: "provider/model", extra: true })).toEqual([
+      { field: "extra", reason: "unknown setting" },
     ]);
   });
 
-  test("rejects explicit null in place of a string, mapping, or boolean", () => {
-    // `field: null` is a type error, not the omission semantics that a
-    // missing key gets.
-    expect(invalidProblems("model: null\n").map((problem) => problem.field)).toEqual(["model"]);
-    expect(invalidProblems("tools: null\n").map((problem) => problem.field)).toEqual(["tools"]);
-    expect(invalidProblems("tools:\n  codex_web_search: null\n").map((problem) => problem.field)).toEqual([
-      "tools.codex_web_search",
+  test("rejects explicit null for all five settings", () => {
+    for (const field of ["model", "searchEnabled", "searchLoadMode", "fetchEnabled", "fetchLoadMode"]) {
+      const problems = invalidProblems({ [field]: null });
+      expect(problems.map((problem) => problem.field)).toEqual([field]);
+    }
+  });
+
+  test("rejects a wrong type for all five settings", () => {
+    const cases: Array<[string, unknown]> = [
+      ["model", 42],
+      ["searchEnabled", "false"],
+      ["searchLoadMode", 42],
+      ["fetchEnabled", "false"],
+      ["fetchLoadMode", 42],
+    ];
+    for (const [field, value] of cases) {
+      const problems = invalidProblems({ [field]: value });
+      expect(problems.map((problem) => problem.field)).toEqual([field]);
+    }
+  });
+
+  test("rejects invalid enum values even when that tool is disabled", () => {
+    const problems = invalidProblems({ searchEnabled: false, searchLoadMode: "hidden" });
+    expect(problems).toEqual([
+      {
+        field: "searchLoadMode",
+        reason: 'must be one of "essential", "discoverable"',
+      },
     ]);
-    expect(invalidProblems("tools:\n  codex_web_search:\n    enabled: null\n").map((problem) => problem.field)).toEqual(
-      ["tools.codex_web_search.enabled"],
-    );
+  });
+
+  test("collects multiple problems before rejecting the object", () => {
+    const problems = invalidProblems({ model: 42, extra: true, fetchEnabled: "true" });
+    expect(problems.map((problem) => problem.field).sort()).toEqual(["extra", "fetchEnabled", "model"]);
   });
 });

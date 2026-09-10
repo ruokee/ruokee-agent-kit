@@ -2,8 +2,8 @@
  * Shared execution path for both tools: resolve the configured model, fetch
  * its credential, POST to the Responses endpoint, and format the answer.
  *
- * The model selector comes from the YAML configuration (not an environment
- * variable). Credential resolution and the HTTP request both receive the
+ * The model selector comes from the native OMP plugin settings (not an
+ * environment variable). Credential resolution and the HTTP request both receive the
  * caller's abort signal, so a cancelled tool call stops pending work. Every
  * failure becomes a tool-level error result; nothing throws past the tool
  * boundary.
@@ -32,7 +32,7 @@ export async function executeWebAccess(
   try {
     if (!selector.trim()) {
       throw new Error(
-        "No model configured for codex_web_search/codex_web_fetch: set `model: provider/model-id` in omp-codex-web-access.yml in the agent directory",
+        "No model configured for codex_web_search/codex_web_fetch: set the native `model` plugin setting to `provider/model-id`",
       );
     }
     const model = ctx.models.resolve(selector);

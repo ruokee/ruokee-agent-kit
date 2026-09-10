@@ -28,53 +28,85 @@ omp install "$(pwd)" --scope user
 
 ## Configuration
 
-The extension reads one file when it initializes:
+The extension uses OMP's native plugin settings. User settings are written with the OMP plugin CLI; project settings are read from `.omp/plugin-overrides.json` and override matching user values for that project.
 
-```text
-<agentDir>/omp-codex-web-access.yml
+### Five settings
+
+| Setting | Type | Default | Effect |
+| --- | --- | --- | --- |
+| `model` | string | `""` | OMP model selector in `provider/model-id` form; an empty value fails when a tool is called |
+| `searchEnabled` | boolean | `true` | Register `codex_web_search` |
+| `searchLoadMode` | `essential` or `discoverable` | `essential` | How `codex_web_search` is presented by OMP |
+| `fetchEnabled` | boolean | `true` | Register `codex_web_fetch` |
+| `fetchLoadMode` | `essential` or `discoverable` | `discoverable` | How `codex_web_fetch` is presented by OMP |
+
+The manifest and runtime validator use the same five keys, types, enum values, and defaults. Missing keys receive these defaults. Explicit `null`, unknown keys, wrong types, and invalid enum values reject the complete settings object, so neither tool is registered.
+
+### User settings
+
+Use the OMP CLI for user-level values:
+
+```bash
+omp plugin config set @ruokee/omp-codex-web-access model provider/model-id
+omp plugin config set @ruokee/omp-codex-web-access searchEnabled true
+omp plugin config set @ruokee/omp-codex-web-access searchLoadMode essential
+omp plugin config set @ruokee/omp-codex-web-access fetchEnabled true
+omp plugin config set @ruokee/omp-codex-web-access fetchLoadMode discoverable
+
+omp plugin config list @ruokee/omp-codex-web-access
+omp plugin config get @ruokee/omp-codex-web-access model
+omp plugin config delete @ruokee/omp-codex-web-access model
 ```
 
-`agentDir` comes from `getAgentDir()` in `@oh-my-pi/pi-coding-agent`; it is usually `~/.omp/agent`, and with a non-default OMP profile the actual directory can differ. The configuration is read once per activation; edits apply to new OMP sessions only.
+`delete` removes the user-level key; a same-name project override remains effective, and the runtime default applies only when both user and project values are absent. The model selector is not a credential. Model identity, endpoint, headers, and credentials continue to come from OMP's model registry and credential APIs.
 
-```yaml
-model: provider/model-id
-tools:
-  codex_web_search:
-    enabled: true
-    loadMode: essential
-  codex_web_fetch:
-    enabled: true
-    loadMode: discoverable
+### Project override
+
+Place a project override at `.omp/plugin-overrides.json`. Keep the other plugin entries and settings in the object when adding this package:
+
+```json
+{
+  "settings": {
+    "@other/plugin": {
+      "keepThisSetting": true
+    },
+    "@ruokee/omp-codex-web-access": {
+      "searchEnabled": false,
+      "fetchLoadMode": "essential"
+    }
+  }
+}
 ```
 
-The placeholder `provider/model-id` is not a default model. Omitted tool settings use the values shown above, including when the file is absent.
+OMP merges the project package entry over the user package entry. A missing project override leaves user settings unchanged. OMP's loader handles file parsing: a missing user runtime JSON produces empty user settings, malformed user runtime JSON rejects the public getter, and missing or malformed project candidates are skipped while OMP checks its candidate directories. If no valid project candidate exists, there is no project override. The extension validates only the object returned by `getPluginSettings`; it does not parse OMP files to recover swallowed or rejected file errors. A getter failure registers neither tool and emits a bounded diagnostic without dumping raw exceptions or configuration values.
 
-### Top-level fields
+### Activation and snapshots
 
-| Field | Required | Contract |
-| --- | --- | --- |
-| `model` | no | Model selector for a model registered in OMP; a missing key or the explicit empty string `model: ""` errors at call time, while the bare value `model:` (YAML null) invalidates the configuration |
-| `tools` | no | Mapping of per-tool settings; a missing key keeps that tool's defaults |
+The extension factory installs a `session_start` handler and does not read settings or register tools during factory loading. The first `session_start` awaits `getPluginSettings(PACKAGE_NAME, ctx.cwd)`, validates one complete effective object, and registers enabled tools from that snapshot. Repeated or concurrent `session_start` events in the same activation share one promise, do not refresh settings, and do not duplicate tools. A later extension activation reads again; changing a file during an existing activation is not hot reload. An initialization error fails that activation and is not retried within the same activation.
 
-A malformed YAML document, an unknown field, a wrong type, an explicit `null`, or an invalid value produces a configuration error and registers neither tool. A missing file or an empty document registers both tools with their defaults.
+OMP modes wait for extension initialization before their first prompt. A direct OMP SDK caller must explicitly initialize the OMP extension runtime and emit `session_start` before calling `prompt`, then await that event handler. This extension does not add a separate initialization API or make a model request during registration.
 
-### Per-tool settings
+### Enablement and discovery
 
-Each tool has independent `enabled` and `loadMode` settings:
+`enabled: false` in the old file maps to the corresponding native `*Enabled: false` key. The tool is not registered and cannot be called through top-level tools or `xd://`. `essential` and `discoverable` apply only to enabled tools. `essential` keeps a tool in OMP's top-level presentation; `discoverable` registers it for OMP discovery and may use `xd://` when the OMP transport is available. OMP can fall back to top-level presentation when discovery is unavailable. `discoverable` does not disable a tool.
 
-| Setting | Effect |
+### Manual migration from the old YAML
+
+The extension does not read, import, delete, or rewrite `omp-codex-web-access.yml`. Transfer values manually before using the native settings:
+
+| Old YAML field | Native setting |
 | --- | --- |
-| `enabled: false` | Do not register the tool; neither top-level calls nor `xd://` can invoke it |
-| `enabled: true`, `loadMode: essential` | Register the tool for top-level presentation |
-| `enabled: true`, `loadMode: discoverable` | Register the tool for discovery through `xd://codex_web_search` or `xd://codex_web_fetch` |
+| `model` | `model` |
+| `tools.codex_web_search.enabled` | `searchEnabled` |
+| `tools.codex_web_search.loadMode` | `searchLoadMode` |
+| `tools.codex_web_fetch.enabled` | `fetchEnabled` |
+| `tools.codex_web_fetch.loadMode` | `fetchLoadMode` |
 
-`loadMode` accepts only `essential` and `discoverable`. When a tool is disabled, its load mode has no effect.
-
-Discovery follows OMP's host rules. With `tools.xdev` enabled and the required read/write transport available, discoverable tools use `xd://` unless the host explicitly pins them to the top level. When xd is unavailable, OMP can present them at the top level. To make a tool unavailable, set `enabled: false`, not `discoverable`. The extension does not change host settings or provide its own discovery transport.
+An old YAML file by itself has no effect. Transfer the values to native settings, then restart the OMP process so the extension is activated again and reads the new values. Creating or switching a session in the same process does not refresh the snapshot; if initialization fails, the same activation does not retry. If no native value is set, both tools use their defaults and the model selector is empty, so calls fail until a valid OMP model selector is configured.
 
 ## Model execution
 
-Both tools use the configured model through the `openai-responses` API with native web search, so the selected model must support it. Model identity, endpoint, headers, and credentials resolve through OMP's model registry and credential APIs; the YAML file carries a model selector, not credentials. A missing model key or the explicit empty string `model: ""`, an unregistered model, or a missing credential produces a clear tool error when the tool is called.
+Both tools use the configured model through the `openai-responses` API with native web search, so the selected model must support it. The native settings carry a model selector, not credentials. A missing model key, an explicitly empty native `model` string, an unregistered model, or a missing credential produces a clear tool error when the tool is called.
 
 The two tools share one request and response implementation: answer text, citation collection, Responses error handling, and JSON and SSE response support. Page extraction validates that the URL protocol is HTTP or HTTPS before any model, credential, or network work; the model performs the web access, and the extension does not fetch the target URL itself.
 

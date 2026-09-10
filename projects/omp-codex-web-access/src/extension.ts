@@ -1,68 +1,63 @@
 /**
  * OMP extension entry: register `codex_web_search` and `codex_web_fetch`.
  *
- * At activation the extension reads `omp-codex-web-access.yml` from the
- * active agent directory (`getAgentDir()`), then registers only the tools
- * the configuration enables. An invalid configuration registers neither
- * tool and reports every problem through the extension logger; a missing
- * file or omitted fields use the defaults (search essential, fetch
- * discoverable). Configuration is read once per activation, so changes
- * apply to new OMP sessions.
+ * The factory only installs a `session_start` handler. The first event awaits
+ * the public OMP settings getter with that event's cwd, validates one complete
+ * settings object, and registers enabled tools from the resulting snapshot.
+ * Repeated and concurrent events share the same activation promise, so they do
+ * not reread settings or register duplicate tools. A failed activation remains
+ * terminal until the extension is created again.
  *
  * Page extraction accepts only HTTP(S) URLs; the protocol check runs before
  * model resolution, credential lookup, and any network request. Public
  * reachability is the caller's contract and the model's to determine. This
- * component never fetches the target URL itself — the model performs the
- * web access — so there is no DNS or private-address probing here.
+ * component never fetches the target URL itself — the model performs the web
+ * access — so there is no DNS or private-address probing here.
  */
 
-import { readFileSync } from "node:fs";
-import path from "node:path";
-import { getAgentDir, type ExtensionAPI, type ExtensionContext } from "@oh-my-pi/pi-coding-agent";
-import { YAML } from "bun";
-import {
-  CONFIG_FILE_NAME,
-  defaultTools,
-  parseCodexWebAccessConfig,
-  type CodexWebAccessConfig,
-  type ConfigProblem,
-  type ToolName,
-} from "./config.ts";
+import { type ExtensionAPI, type ExtensionContext } from "@oh-my-pi/pi-coding-agent";
+import { getPluginSettings as getPublicPluginSettings } from "@oh-my-pi/pi-coding-agent/extensibility/plugins";
+import { parseCodexWebAccessSettings, type CodexWebAccessConfig, type ConfigProblem, type ToolName } from "./config.ts";
 import { executeWebAccess, toolError } from "./execute.ts";
 
-/** Result of resolving configuration for registration. */
+export const PACKAGE_NAME = "@ruokee/omp-codex-web-access";
+
+/** Public settings seam used by activation and replaced by tests. */
+export type PluginSettingsReader = (packageName: string, cwd: string) => Promise<Record<string, unknown>>;
+
+/** Result of resolving settings for registration. */
 type RegistrationConfig = { config: CodexWebAccessConfig } | { invalid: true; problems: ConfigProblem[] };
 
-function describeProblems(problems: ConfigProblem[]): string {
-  return problems.map((problem) => `${problem.field}: ${problem.reason}`).join("; ");
+const MAX_DIAGNOSTIC_LENGTH = 256;
+const MAX_DIAGNOSTIC_PART_LENGTH = 80;
+
+function sanitizeDiagnosticPart(value: string): string {
+  const printable = value.replace(/[^\x20-\x7e]/g, "?");
+  if (printable.length <= MAX_DIAGNOSTIC_PART_LENGTH) return printable;
+  return `${printable.slice(0, MAX_DIAGNOSTIC_PART_LENGTH - 3)}...`;
 }
 
-/** Read the YAML config from the agent directory; a missing file defaults. */
-function loadRegistrationConfig(agentDir: string): RegistrationConfig {
-  // Synchronous read keeps activation atomic: the tools either register
-  // from a valid config or not at all, before any session starts.
-  const configPath = path.join(agentDir, CONFIG_FILE_NAME);
-  let text: string | undefined;
+function describeProblems(problems: ConfigProblem[]): string {
+  const shown = problems
+    .slice(0, 8)
+    .map((problem) => `${sanitizeDiagnosticPart(problem.field)}: ${sanitizeDiagnosticPart(problem.reason)}`);
+  if (problems.length > shown.length) shown.push(`...and ${problems.length - shown.length} more`);
+  const message = shown.join("; ");
+  if (message.length <= MAX_DIAGNOSTIC_LENGTH) return message;
+  return `${message.slice(0, MAX_DIAGNOSTIC_LENGTH - 3)}...`;
+}
+
+async function loadRegistrationConfig(readSettings: PluginSettingsReader, cwd: string): Promise<RegistrationConfig> {
   try {
-    text = readFileSync(configPath, "utf8");
-  } catch (error) {
-    if (!(error instanceof Error && (error as NodeJS.ErrnoException).code === "ENOENT")) {
-      return {
-        invalid: true,
-        problems: [
-          {
-            field: "(file)",
-            reason: `Cannot read ${CONFIG_FILE_NAME}: ${error instanceof Error ? error.message : String(error)}`,
-          },
-        ],
-      };
-    }
+    const settings = await readSettings(PACKAGE_NAME, cwd);
+    const parsed = parseCodexWebAccessSettings(settings);
+    return parsed.kind === "invalid" ? { invalid: true, problems: parsed.problems } : { config: parsed.config };
+  } catch {
+    return {
+      invalid: true,
+      problems: [{ field: "(settings)", reason: "settings getter failed" }],
+    };
   }
-  if (text === undefined) {
-    return { config: { model: "", tools: defaultTools() } };
-  }
-  const parsed = parseCodexWebAccessConfig(text, YAML);
-  return parsed.kind === "invalid" ? { invalid: true, problems: parsed.problems } : { config: parsed.config };
 }
 
 /** Reject anything but HTTP(S) URLs before any model or credential work. */
@@ -86,25 +81,8 @@ const TOOL_DESCRIPTIONS: Record<ToolName, string> = {
     "Use the OMP-configured Responses model to read and extract information from a URL. The result is model-assisted and may be cleaned or summarized; it is not raw HTML or a verbatim page snapshot.",
 };
 
-export default function codexWebAccessExtension(pi: ExtensionAPI): void {
+function registerConfiguredTools(pi: ExtensionAPI, config: CodexWebAccessConfig): void {
   const { z } = pi.zod;
-  let registration: RegistrationConfig;
-  try {
-    registration = loadRegistrationConfig(getAgentDir());
-  } catch (error) {
-    pi.logger.warn(
-      `omp-codex-web-access: configuration error, registering no tools: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    return;
-  }
-  if ("invalid" in registration) {
-    pi.logger.warn(
-      `omp-codex-web-access: configuration error, registering no tools: ${describeProblems(registration.problems)}`,
-    );
-    return;
-  }
-  const { config } = registration;
-
   const entries: [ToolName, boolean][] = [
     ["codex_web_search", config.tools.codex_web_search.enabled],
     ["codex_web_fetch", config.tools.codex_web_fetch.enabled],
@@ -149,4 +127,33 @@ export default function codexWebAccessExtension(pi: ExtensionAPI): void {
       });
     }
   }
+}
+
+/** Install one session_start activation barrier with a replaceable settings reader. */
+export function activate(pi: ExtensionAPI, readSettings: PluginSettingsReader = getPublicPluginSettings): void {
+  let initialization: Promise<void> | undefined;
+
+  pi.on("session_start", async (_event, ctx) => {
+    if (initialization === undefined) {
+      initialization = (async () => {
+        const registration = await loadRegistrationConfig(readSettings, ctx.cwd);
+        if ("invalid" in registration) {
+          pi.logger.warn(
+            `omp-codex-web-access: configuration error, registering no tools: ${describeProblems(registration.problems)}`,
+          );
+          return;
+        }
+        try {
+          registerConfiguredTools(pi, registration.config);
+        } catch {
+          pi.logger.warn("omp-codex-web-access: registration error, no further tools were registered");
+        }
+      })();
+    }
+    await initialization;
+  });
+}
+
+export default function codexWebAccessExtension(pi: ExtensionAPI): void {
+  activate(pi);
 }
