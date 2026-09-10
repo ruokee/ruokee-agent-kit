@@ -323,7 +323,7 @@ fn build_rename_plan(
         ));
     }
     // Strict discovery stops at a damaged name; the repair graph reaches its
-    // descendants so their runtime directories stay out of the exclusion set.
+    // descendants so their runtime directories stay out of the reference scan.
     let references = scan_markdown_references(project, &task.directory, &graph)?;
     Ok(RenamePlan {
         task_id: task.metadata.id,
