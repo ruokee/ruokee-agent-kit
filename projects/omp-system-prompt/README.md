@@ -13,9 +13,15 @@ OMP assembles the system prompt from blocks: a default main block, optional Comp
 - Places Computer Use, Scratchpad, dynamic Tool I/O lines, Specialized Tools with automated QA, and AST in the runtime-modes slot. Before removing the host's fixed Tool Policy, Exploration, Workflow, Delivery, and Critical policy text, it validates the required and conditional lines in their rendered order against the recognized prompt structure. The owned final `# Delivery` chapter is included or omitted according to `renderDelivery`.
 - Normalizes the retained OMP runtime chapters `# Computer Use`, `§ Scratchpad`, `# Tool I/O`, `# Specialized Tools`, and `# AST` to exactly two LF characters between each heading and its body. If OMP emits blank lines between adjacent `Specialized Tools` list items, the extension removes every such gap in that section; it does not compress whitespace globally or rewrite static owned text, code blocks, or arbitrary host content. The owned main block has no trailing LF, so OMP's `systemPrompt.join("\n\n")` leaves exactly two LFs before `# Project snapshot`.
 - Validates the host Internal URLs section, discards its fixed `Most FS/bash tools auto-resolve these to FS paths.` introduction, and retains only the URI entries.
-- Validates the whole host Delegation section, then drops it. The owned `# Agent coordination` section contains two fixed paragraphs; the rendered concurrency cap and the extra `hub` communication hint are not carried into any owned slot. Host concurrency enforcement is unaffected.
+- Validates the whole host Delegation section, then drops it. The owned `# Agent coordination` section supplies the coordination policy described below; the rendered concurrency cap and the extra `hub` communication hint are not carried into any owned slot. Host concurrency enforcement is unaffected.
 - Normalizes Skill catalog descriptions to one line when complete Skill command metadata corresponds to the catalog. See below.
 - Rewrites only the PROJECT wrapper: its outer heading becomes `# Project snapshot`, its loading guidance is replaced, and the exact fixed `<critical>` tail is removed at its structural position. Context-file bodies, listed paths, workspace data, extra roots, and appended prompt bytes stay verbatim.
+
+## Agent coordination
+
+The owned coordination policy stays active with either `renderDelivery` value. It instructs the parent to continue independent authorized work after dispatch, wait when no such work remains and children are unfinished, and collect and assess every child's outcome before normal final delivery. A wait may return for one result, a message, a timeout, or an interruption, so the parent must recheck outstanding tasks. Results already delivered need no extra wait; failures, cancellation, and blockers must be reported honestly, and healthy work must not be cancelled merely to finish sooner.
+
+Task completion does not require an idle or parked agent to exit. Messages that only acknowledge completion, idle status, or closure need no reply; substantive questions, corrections, and new work still do. These are model instructions. The extension does not add a runtime barrier or change host job and messaging behavior.
 
 ## Delivery setting
 
@@ -89,7 +95,7 @@ OMP runs `before_agent_start` handlers in extension installation order, and each
 
 ### Verified scope
 
-Component checks run in the component directory: `bun run typecheck` and `bun test` (90 tests, 451 assertions). Tests render inputs at test time from the locked host fixture and cover native tool lists, inline catalogs, Code Mode, fixed-section condition branches, misplaced condition-line rejection, one-pass slot filling, fixed-region rejection, structural boundaries, encoded installation paths, byte preservation, block order, PROJECT footer variants, Skill description normalization, hidden ordered candidates, both Delivery shapes and transitions, settings failures, unexpected turn-processing exceptions, and bounded diagnostics.
+Component checks run in the component directory: `bun run typecheck` and `bun test` (91 tests, 475 assertions). Tests render inputs at test time from the locked host fixture and cover native tool lists, inline catalogs, Code Mode, fixed-section condition branches, misplaced condition-line rejection, one-pass slot filling, fixed-region rejection, structural boundaries, encoded installation paths, byte preservation, block order, PROJECT footer variants, Skill description normalization, hidden ordered candidates, both Delivery shapes and transitions, child collection and message rules in both shapes, settings failures, unexpected turn-processing exceptions, and bounded diagnostics. The coordination assertions verify rendered instructions; they do not establish actual parent-child scheduling or message behavior.
 
 Container checks ran in disposable Podman containers without host-directory mounts. The containers were removed after the checks.
 

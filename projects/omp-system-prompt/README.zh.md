@@ -13,9 +13,15 @@ OMP 将系统提示词装配为多个块：默认主块、可选的 Computer Saf
 - 将 Computer Use、Scratchpad、Tool I/O 动态行、包含自动 QA 的 Specialized Tools 和 AST 放入 runtime-modes 槽位；删除宿主固定的 Tool Policy、Exploration、Workflow、Delivery 和 Critical 策略文本前，按照已识别的提示词结构校验必需行、条件行及其渲染顺序。自有末尾 `# Delivery` 章节按 `renderDelivery` 决定保留或省略。
 - 将保留的 OMP 运行时区段 `# Computer Use`、`§ Scratchpad`、`# Tool I/O`、`# Specialized Tools` 和 `# AST` 统一为标题与正文之间恰好两个 LF。若 OMP 在 `Specialized Tools` 相邻列表项之间注入空行，扩展会删除该区段内所有此类间隔；不会全局压缩空白，也不会改写自有静态正文、代码块或任意宿主内容。自有主块不保留末尾 LF，因此 OMP 使用 `systemPrompt.join("\n\n")` 时，`# Project snapshot` 前恰好只有两个 LF。
 - 校验宿主 Internal URLs 区段，丢弃固定的 `Most FS/bash tools auto-resolve these to FS paths.` 引导句，只保留 URI 条目。
-- 校验完整的宿主 Delegation 区段后将其删除。自有的 `# Agent coordination` 只包含两段固定正文；已渲染的并发上限和额外的 `hub` 通信提示不会进入任何自有槽位。宿主按其设置执行并发限制。
+- 校验完整的宿主 Delegation 区段后将其删除。自有的 `# Agent coordination` 章节提供下文所述的协调规则；已渲染的并发上限和额外的 `hub` 通信提示不会进入任何自有槽位。宿主按其设置执行并发限制。
 - 在完整 Skill 命令元数据与目录对应时，把 Skill 目录 description 归一化为单行，见下文。
 - 只改写 PROJECT 外层内容：外层标题改为 `# Project snapshot`，替换加载说明，并在结构位置删除字节精确的固定 `<critical>` 尾部。上下文文件正文、路径列表、工作区内容、附加根目录和追加的提示词字节逐字节保留。
+
+## Agent 协调
+
+自有协调规则在 `renderDelivery` 的两种取值下都生效。父会话派发子代理后继续推进独立且已授权的工作；无此类工作可推进且仍有子任务未完成时等待；正常交付前收齐并核验每个子代理的结果。等待可能因单个结果、消息、超时或中断返回，因此父会话必须重新核对剩余任务。已经取得的结果无需额外等待；失败、取消和阻塞应当如实说明，不得仅为提早结束而取消正常执行的工作。
+
+任务完成无需等待 idle 或 parked 代理退出。仅用于确认完成、空闲或结束的消息无需回复；实质问题、纠正和新工作仍需处理。这些是模型指令，扩展不增加运行时等待屏障，也不改变宿主任务和消息机制。
 
 ## Delivery 配置
 
@@ -89,7 +95,7 @@ OMP 按扩展安装顺序运行 `before_agent_start` 处理器，每个处理器
 
 ### 已验证范围
 
-组件检查在组件目录运行 `bun run typecheck` 与 `bun test`（90 项测试、451 个断言）。测试运行时从锁定的宿主 fixture 渲染输入，覆盖原生工具列表、内联工具目录、Code Mode、固定区段的条件分支、条件行错位拒绝、单次槽位填充、固定区域拒绝、结构边界、编码安装路径、逐字节保留、块顺序、PROJECT 页脚变体、Skill description 归一化、隐藏有序候选、两种 Delivery 形态及切换、设置失败、意外 turn 处理异常与有界诊断。
+组件检查在组件目录运行 `bun run typecheck` 与 `bun test`（91 项测试、475 个断言）。测试运行时从锁定的宿主 fixture 渲染输入，覆盖原生工具列表、内联工具目录、Code Mode、固定区段的条件分支、条件行错位拒绝、单次槽位填充、固定区域拒绝、结构边界、编码安装路径、逐字节保留、块顺序、PROJECT 页脚变体、Skill description 归一化、隐藏有序候选、两种 Delivery 形态及切换、两种形态中的子代理结果收集与消息规则、设置失败、意外 turn 处理异常与有界诊断。协调规则断言验证渲染后的指令，不能证明实际的父子调度或消息行为。
 
 容器检查使用不挂载宿主目录的一次性 Podman 容器。检查结束后删除容器。
 

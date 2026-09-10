@@ -201,6 +201,31 @@ describe("static contract", () => {
     expect(output).not.toContain("Small missing piece: run parallel");
     expect(output).not.toContain("# Delegation");
   });
+
+  test("retains child collection and message rules in both Delivery shapes", () => {
+    const main = renderMain({ tools: ["read", "task"], task: true });
+    for (const renderDelivery of [true, false]) {
+      const output = expectSuccess(transform(main, { renderDelivery })).blocks[1] ?? "";
+      const coordination = output.split("# Agent coordination\n")[1]?.split("\n\n# Delivery\n")[0] ?? "";
+
+      expect(coordination).toContain("After dispatch, continue independent authorized work.");
+      expect(coordination).toContain(
+        "When no such work remains and any child task is unfinished, use the host's wait controls.",
+      );
+      expect(coordination).toContain("recheck outstanding tasks and wait again when needed.");
+      expect(coordination).toContain(
+        "Before normal final delivery, collect and assess every dispatched child's outcome.",
+      );
+      expect(coordination).toContain("Results already delivered need no extra wait.");
+      expect(coordination).toContain("Report failures, cancellation, and blockers honestly");
+      expect(coordination).toContain("never cancel healthy work just to finish sooner.");
+      expect(coordination).toContain("Task completion does not require an idle or parked agent to exit.");
+      expect(coordination).toContain(
+        "Do not send or answer messages whose only purpose is acknowledging completion, idle status, or closure.",
+      );
+      expect(coordination).toContain("Reply to substantive questions, corrections, and new work.");
+    }
+  });
 });
 
 describe("Delivery setting", () => {
