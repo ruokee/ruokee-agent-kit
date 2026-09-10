@@ -1,7 +1,9 @@
 # ADR 决定：添加 OMP 系统提示词扩展
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-6 Astra
+Draft writer: OMP
+Archived: 2026-09-09
+Reversed by: [添加 OMP 系统提示词扩展](../decision/2026-09-09-add-omp-system-prompt.zh.md)
 
 [English](./2026-09-07-add-omp-system-prompt.md) | 中文
 
@@ -27,7 +29,7 @@ OMP 默认系统提示词将运行时能力与工程偏好、派发策略、人�
 
 ### 分发一个自包含扩展
 
-在 `projects/omp-system-prompt/` 添加第一方包 `@ruokee/omp-system-prompt`，通过原生 `omp.extensions` 元数据声明入口。运行代码、维护者自有英文提示词、检查和双语 README 均位于组件内。该选择遵循[第一方能力边界](./2026-08-20-establish-first-party-capability-kit.zh.md)和[组件自包含契约](./2026-08-24-keep-components-self-contained.zh.md)，无需反转这两个决定。
+在 `projects/omp-system-prompt/` 添加第一方包 `@ruokee/omp-system-prompt`，通过原生 `omp.extensions` 元数据声明入口。运行代码、维护者自有英文提示词、检查和双语 README 均位于组件内。该选择遵循[第一方能力边界](../decision/2026-08-20-establish-first-party-capability-kit.zh.md)和[组件自包含契约](../decision/2026-08-24-keep-components-self-contained.zh.md)，无需反转这两个决定。
 
 使用公开 OMP 扩展 API，不导入私有提示词装配器，不重新扫描资源，不复制上下文发现机制，也不收录上游模板副本。不依赖其他仓库组件中的文件或特定机器的安装。安装、启用、禁用和卸载采用原生机制，不替用户写入 `SYSTEM.md`。
 
@@ -167,7 +169,7 @@ CLI flag 只影响一次调用，不能持久化选择，也不能提供项目�
 
 组件自有文件会产生第二个配置来源。直接解析 `omp-plugins.lock.json` 或其他宿主文件会复制 OMP 的配置职责并绕过公开 API。这两条路线都不采用，改用原生插件设置和公开的有效设置查询。
 
-## 后果
+## 结果
 
 组件及其公开文档形成以下可观察契约：
 
@@ -182,7 +184,7 @@ CLI flag 只影响一次调用，不能持久化选择，也不能提供项目�
 
 8. 通过真实 OMP 执行验证主会话和普通子 Agent turn 最终发给 Provider 的内容、受限子 Agent 与 Handoff 边界、有无有效 turn override 时的旁路请求、轮中重建行为及设备通知。在宿主命令启用时手动调用隐藏 Skill，验证请求中的完整正文、参数及用户归属保持不变，该 Skill 未进入自动目录，且提示词替换继续生效。仅有处理器返回值不足以作为证据。
 9. 有代表性的配置宿主场景包含已启用插件、其可见及隐藏 Skills 与设备，以及路径有效的外部托管组件。在 Skill 命令启用时，必须证明即使命令候选包含隐藏项，自有策略、PROJECT 替换及可见 description 单行化仍成功。不得为获得成功而移除插件或修改隐藏标记。记录同次运行的宿主输入、命令元数据、处理器输出、最终 Provider 内容及诊断，发现缺失或增加的能力。单独执行 Skill 回退场景，验证其他替换仍到达 Provider；回退场景不能代替代表性配置的成功场景。最小配置场景仅包含该请求所需的模型配置。部分环境须明确标为部分；私人清单与提示词抓取不进入公开产物。
-10. 行为检查覆盖只要求分析、按要求交付原型、项目特定兼容要求、授权边界、合理暂停、如实说明验证、引用控制标签、真实运行通知和工作区上下文变化。获准调用模型时使用已配置的 `pro-20x` 渠道的 `luna`。逐场景记录输入、预期行为、观察到的动作或回答及结果。在覆盖路径上使用模型行为验证自有策略前，确认自有提示词已应用；仅有请求抓取或确认字符串不足以作为证据。按观察结果记录范围，不宣称安全保证。
+10. 行为检查覆盖只要求分析、按要求交付原型、项目特定兼容要求、授权边界、合理暂停、如实说明验证、引用控制标签、真实运行通知和工作区上下文变化。获准调用模型时使用已配置的模型。逐场景记录输入、预期行为、观察到的动作或回答及结果。在覆盖路径上使用模型行为验证自有策略前，确认自有提示词已应用；仅有请求抓取或确认字符串不足以作为证据。按观察结果记录范围，不宣称安全保证。
 11. 发布前通过组件检查与仓库的 `pnpm check`。公开文档报告已验证行为、隐藏 Skill 支持成功、Skill 局部回退及整份提示词回退的实际场景，不包含私人提示词抓取内容。必需的运行与行为检查未验证时，不将扩展设为日常默认。
 12. `package.json` 在 `omp.settings` 下将 `renderDelivery` 声明为 boolean，默认值为 `true`。文档提供原生 `omp plugin config` 命令和 `.omp/plugin-overrides.json` 项目覆盖示例。每个 `before_agent_start` turn 都通过公开的有效设置 API 读取当前 cwd；读取失败或非 boolean 值保留 Delivery，发出有界且按会话去重的诊断，并且不阻止模型请求。
 

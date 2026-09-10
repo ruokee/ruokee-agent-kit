@@ -12,7 +12,7 @@
         "typescript": "^5.9.3",
       },
       "peerDependencies": {
-        "@oh-my-pi/pi-coding-agent": "18.1.11",
+        "@oh-my-pi/pi-coding-agent": "*",
       },
     },
   },

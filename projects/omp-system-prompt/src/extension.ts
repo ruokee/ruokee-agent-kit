@@ -1,16 +1,15 @@
 /**
  * OMP extension entry: replace the default system prompt's fixed policy.
  *
- * At activation the extension reads the owned template once and checks the
- * host version against the public `VERSION` export. It registers
+ * At activation the extension reads the owned template once. It registers
  * `before_agent_start`; on each turn the handler transforms the current
  * `event.systemPrompt` array — never a startup snapshot or
  * `ctx.getSystemPrompt()`, which reflects the already-chained result rather
  * than the handler-chain input.
  *
- * Failure handling is fail-open by design: unsupported versions, custom
- * prompt paths, malformed templates, and unrecognized block shapes leave
- * the incoming array untouched so the turn proceeds with the host prompt.
+ * Failure handling is fail-open by design: custom prompt paths, malformed
+ * templates, unrecognized block shapes, and unexpected turn-processing
+ * errors leave the incoming array untouched so the turn proceeds with the host prompt.
  * A bounded diagnostic reports the reason through the session channel
  * (interactive notify or file logger); it does not claim to have blocked
  * the model request. Activation-time failures register the handler too, so
@@ -18,7 +17,6 @@
  */
 
 import {
-  VERSION,
   type BeforeAgentStartEvent,
   type BeforeAgentStartEventResult,
   type ExtensionAPI,
@@ -30,7 +28,6 @@ import { fileURLToPath } from "node:url";
 import { DiagnosticTracker, type DiagnosticSink } from "./diagnostics.ts";
 import { TEMPLATE_FILE_NAME, loadTemplate } from "./template.ts";
 import { transformSystemPrompt } from "./transform.ts";
-import { SUPPORTED_HOST_VERSION, isSupportedVersion } from "./version.ts";
 
 const PACKAGE_NAME = "@ruokee/omp-system-prompt";
 
@@ -42,7 +39,6 @@ const REASON_TARGETS: Record<string, string> = {
   "unknown-section": "unrecognized section",
   "ambiguous-boundary": "ambiguous boundary",
   "owned-output-invalid": "owned output structure",
-  "unsupported-version": "supported host version",
   "template-unavailable": "owned prompt template",
 };
 
@@ -54,7 +50,6 @@ const SCOPE = "omp-system-prompt";
 export type PluginSettingsReader = (packageName: string, cwd: string) => Promise<Record<string, unknown>>;
 
 export interface ExtensionHost {
-  version: string | undefined;
   importMetaUrl: string;
   getPluginSettings?: PluginSettingsReader;
 }
@@ -97,9 +92,9 @@ async function resolveRenderDelivery(
 }
 
 /**
- * Shared activation used by the production entry and tests. `host`
- * abstracts the version source so checks can run without the real OMP
- * runtime; the template file lives beside this module.
+ * Shared activation used by the production entry and tests. `host` supplies
+ * replaceable public runtime inputs; the template file lives beside this
+ * module.
  */
 export function activate(
   pi: ExtensionAPI,
@@ -119,12 +114,8 @@ export function activate(
   // Activation-time failures still register the turn handler: the session
   // channel is only known from the event context, and the diagnostic is
   // reported once per session on the first turn. The input stays unchanged.
-  const fatal = !isSupportedVersion(host.version)
-    ? {
-        reason: "unsupported-version",
-        target: `${REASON_TARGETS["unsupported-version"] ?? "supported host version"} (requires ${SUPPORTED_HOST_VERSION}, found ${host.version ?? "unknown"})`,
-      }
-    : templateText === null
+  const fatal =
+    templateText === null
       ? { reason: "template-unavailable", target: REASON_TARGETS["template-unavailable"] ?? "owned prompt template" }
       : null;
 
@@ -137,31 +128,36 @@ export function activate(
       tracker.report(fatal.reason, fatal.target);
       return undefined;
     }
-    const renderDelivery = await resolveRenderDelivery(readSettings, ctx.cwd, tracker);
-    // Current-turn Skill command metadata: names, order, and descriptions
-    // only. Paths are ignored and no resource is rescanned; the event
-    // catalog stays authoritative for what is visible.
-    const skillMetadata = pi
-      .getCommands()
-      .filter((command) => command.source === "skill" && command.name.startsWith(SKILL_COMMAND_PREFIX))
-      .map((command) => ({
-        name: command.name.slice(SKILL_COMMAND_PREFIX.length),
-        description: command.description ?? "",
-      }));
-    const result = transformSystemPrompt(event.systemPrompt, templateText, skillMetadata, renderDelivery);
-    if (result.ok) {
-      if (result.skillFormattingSkipped !== undefined) {
-        tracker.reportSkillFormattingSkipped(result.skillFormattingSkipped, SKILL_FORMATTING_TARGET);
+
+    try {
+      const renderDelivery = await resolveRenderDelivery(readSettings, ctx.cwd, tracker);
+      // Current-turn Skill command metadata: names, order, and descriptions
+      // only. Paths are ignored and no resource is rescanned; the event
+      // catalog stays authoritative for what is visible.
+      const skillMetadata = pi
+        .getCommands()
+        .filter((command) => command.source === "skill" && command.name.startsWith(SKILL_COMMAND_PREFIX))
+        .map((command) => ({
+          name: command.name.slice(SKILL_COMMAND_PREFIX.length),
+          description: command.description ?? "",
+        }));
+      const result = transformSystemPrompt(event.systemPrompt, templateText, skillMetadata, renderDelivery);
+      if (result.ok) {
+        if (result.skillFormattingSkipped !== undefined) {
+          tracker.reportSkillFormattingSkipped(result.skillFormattingSkipped, SKILL_FORMATTING_TARGET);
+        }
+        if (!result.changed) return undefined;
+        return { systemPrompt: result.blocks } satisfies BeforeAgentStartEventResult;
       }
-      if (!result.changed) return undefined;
-      return { systemPrompt: result.blocks } satisfies BeforeAgentStartEventResult;
+      tracker.report(result.reason, REASON_TARGETS[result.reason] ?? "system prompt");
+    } catch {
+      tracker.report("unexpected-error", "system prompt transformation");
     }
-    tracker.report(result.reason, REASON_TARGETS[result.reason] ?? "system prompt");
     return undefined;
   });
 }
 
-/** Production entry: the real host version and the real component template. */
+/** Production entry: the component template and public host APIs. */
 export default function ompSystemPromptExtension(pi: ExtensionAPI): void {
-  activate(pi, { version: VERSION, importMetaUrl: import.meta.url });
+  activate(pi, { importMetaUrl: import.meta.url });
 }

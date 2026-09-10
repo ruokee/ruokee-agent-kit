@@ -20,7 +20,7 @@ type Handler = (
 const noSettings: PluginSettingsReader = async () => ({});
 
 function host(importMetaUrl = ENTRY_URL, getPluginSettings: PluginSettingsReader = noSettings) {
-  return { version: "18.1.11", importMetaUrl, getPluginSettings };
+  return { importMetaUrl, getPluginSettings };
 }
 
 function context(hasUI = false, notify: Notify = () => {}): { cwd: string; hasUI: boolean; ui: { notify: Notify } } {
@@ -248,7 +248,7 @@ test("fails open on settings errors and invalid values with session deduplicatio
   expect(warnings.every((message) => !message.includes("replacement NOT applied"))).toBe(true);
 });
 
-test("reports an unsupported host version through the interactive sink without transforming", async () => {
+test("reports unexpected turn-processing errors and leaves the host prompt active", async () => {
   const blocks = ["before", renderMain(), renderProject(), "after"];
   const warnings: string[] = [];
   const notifications: Array<{ message: string; level: string }> = [];
@@ -257,35 +257,36 @@ test("reports an unsupported host version through the interactive sink without t
   let settingsReads = 0;
   const readSettings: PluginSettingsReader = async () => {
     settingsReads += 1;
-    throw new Error("settings must not be read for a fatal activation");
+    return {};
   };
   const pi = {
     logger: { warn: (message: string) => warnings.push(message) },
     on: (_event: string, handler: Handler) => handlers.push(handler),
     getCommands: () => {
       commandReads += 1;
-      return [] as Command[];
+      throw new Error("unexpected command failure");
     },
   };
 
-  activate(pi as never, { ...host(), version: "18.1.10", getPluginSettings: readSettings }, "template");
+  activate(pi as never, host(ENTRY_URL, readSettings), "template");
   const handler = handlers[0];
   expect(handler).toBeDefined();
 
   const ctx = context(true, (message, level) => notifications.push({ message, level }));
   expect(await handler!({ systemPrompt: blocks }, ctx)).toBeUndefined();
-  expect(commandReads).toBe(0);
-  expect(settingsReads).toBe(0);
+  expect(commandReads).toBe(1);
+  expect(settingsReads).toBe(1);
   expect(warnings).toEqual([]);
   expect(notifications).toHaveLength(1);
   expect(notifications[0]?.level).toBe("warning");
-  expect(notifications[0]?.message).toContain("unsupported-version");
-  expect(notifications[0]?.message).toContain("18.1.11");
+  expect(notifications[0]?.message).toContain("unexpected-error");
+  expect(notifications[0]?.message).toContain("replacement NOT applied");
+  expect(notifications[0]?.message).not.toContain("unexpected command failure");
 
   // One report per session even across turns.
   expect(await handler!({ systemPrompt: blocks }, ctx)).toBeUndefined();
-  expect(commandReads).toBe(0);
-  expect(settingsReads).toBe(0);
+  expect(commandReads).toBe(2);
+  expect(settingsReads).toBe(2);
   expect(notifications).toHaveLength(1);
 });
 

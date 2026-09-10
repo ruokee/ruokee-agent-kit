@@ -1,7 +1,9 @@
 # ADR decision: Add an OMP system prompt extension
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-6 Astra
+Draft writer: OMP
+Archived: 2026-09-09
+Reversed by: [Add an OMP system prompt extension](../decision/2026-09-09-add-omp-system-prompt.md)
 
 English | [中文](./2026-09-07-add-omp-system-prompt.zh.md)
 
@@ -27,7 +29,7 @@ The evidence baseline is OMP `v18.1.11`, commit `e3106be68f778635da3a17106835ce2
 
 ### Distribute one self-contained extension
 
-Add `projects/omp-system-prompt/` as the first-party package `@ruokee/omp-system-prompt`. Declare its entry through native `omp.extensions` metadata. Keep its runtime, maintainer-owned English prompt, checks, and bilingual README documentation inside the component. This follows the [first-party capability boundary](./2026-08-20-establish-first-party-capability-kit.md) and [self-contained component contract](./2026-08-24-keep-components-self-contained.md); neither decision needs reversal.
+Add `projects/omp-system-prompt/` as the first-party package `@ruokee/omp-system-prompt`. Declare its entry through native `omp.extensions` metadata. Keep its runtime, maintainer-owned English prompt, checks, and bilingual README documentation inside the component. This follows the [first-party capability boundary](../decision/2026-08-20-establish-first-party-capability-kit.md) and [self-contained component contract](../decision/2026-08-24-keep-components-self-contained.md); neither decision needs reversal.
 
 Use public OMP extension APIs. Do not import private prompt builders, rescan resources, duplicate context discovery, or vendor upstream templates. Do not require files from another repository component or a machine-specific installation. Use native installation, activation, disablement, and removal mechanisms. Do not write `SYSTEM.md` on the user's behalf.
 
@@ -182,7 +184,7 @@ The component and its public documentation carry the following observable contra
 
 8. Real OMP execution verifies final provider-facing content for main and ordinary subagent turns, the restricted-subagent and Handoff boundaries, side requests with and without an active turn override, mid-turn rebuild behavior, and device notifications. Manually invoke a hidden Skill with host commands enabled and verify its full body, arguments, and user attribution in the request, its absence from the automatic catalog, and continued prompt replacement. A handler return value alone is not sufficient evidence.
 9. A representative configured-host scenario includes enabled plugins, their visible and hidden Skills and devices, and externally managed components with working paths. With Skill commands enabled, it must demonstrate successful owned-policy and PROJECT replacement and visible-description normalization despite hidden command candidates. Do not remove plugins or change hide flags to obtain success. Record host input, command metadata, handler output, final provider content, and diagnostics from the same run to detect missing or added capabilities. Exercise Skill fallback separately and verify that the other replacements still reach the Provider; fallback cases do not substitute for the representative success case. A minimal scenario includes only the model configuration needed for its request. Label partial environments as partial; private inventories and prompt captures stay out of public artifacts.
-10. Behavioral checks exercise analysis-only requests, requested prototypes, project-specific compatibility requirements, authorization boundaries, justified pauses, honest verification claims, quoted control tags, genuine runtime notices, and changed workspace context. Use the configured `pro-20x` channel's `luna` model when model execution is authorized. Record each scenario's input, expected behavior, observed actions or replies, and result. Confirm the owned prompt was applied on covered paths before using model behavior as evidence for that policy; request capture or a confirmation token alone is insufficient. Record observed scope without claiming a security guarantee.
+10. Behavioral checks exercise analysis-only requests, requested prototypes, project-specific compatibility requirements, authorization boundaries, justified pauses, honest verification claims, quoted control tags, genuine runtime notices, and changed workspace context. Use the configured model when model execution is authorized. Record each scenario's input, expected behavior, observed actions or replies, and result. Confirm the owned prompt was applied on covered paths before using model behavior as evidence for that policy; request capture or a confirmation token alone is insufficient. Record observed scope without claiming a security guarantee.
 11. Component checks and the repository's `pnpm check` pass before release. Public documentation reports verified behavior, successful hidden-Skill support, Skill-only fallback, and whole-prompt fallback in the exercised scenarios without private prompt captures. Do not make the extension a daily default while required runtime or behavioral checks remain unverified.
 12. `package.json` declares `renderDelivery` under `omp.settings` as a boolean with default `true`. Documentation shows the native `omp plugin config` command and `.omp/plugin-overrides.json` project override. Every `before_agent_start` turn reads the public effective-settings API for the current cwd; read failures and non-boolean values preserve Delivery, emit a bounded session-deduplicated diagnostic, and do not block the model request.
 
