@@ -107,7 +107,7 @@ The runtime does not fabricate domain error results for panics, transport interr
 | `managed_file` | `invalid_managed_file`, `unsupported_schema`, `representation_mismatch` |
 | `invariant` | `dependency_cycle`, `closed_task_read_only`, `active_descendant`, `active_dependency`, `closed_ancestor` |
 | `conflict` | `target_exists`, `operation_in_progress` |
-| `storage` | `check_incomplete`, `task_discovery_limit_exceeded`, `wal_append_failed`, `partial_commit` |
+| `storage` | `check_incomplete`, `task_discovery_limit_exceeded`, `reference_scan_limit_exceeded`, `wal_append_failed`, `partial_commit` |
 | `compatibility` | `runtime_incompatible`, `component_incompatible` |
 | `internal` | `internal_error` |
 
@@ -223,7 +223,7 @@ exec is a low-frequency administrative entry point:
 
 exec invokes the public command parser directly from argv without using a shell. It rejects search, read, create, update, log, mcp, schema, metadata, gc, install, uninstall, and any other first item.
 
-rename results include the raw old name, the resolved parent Task path when one exists, the old path, the normalized new name, the target path, and every Markdown reference with its line. Full UUIDs, exact Task directories, and exact managed carriers can locate an eligible candidate whose old string name or recognizable generated suffix needs repair. Other validation remains strict. Non-generated child directories remain in place; generated child and top-level paths keep their sequence and update the slug.
+rename results include the raw old name, the resolved parent Task path when one exists, the old path, the normalized new name, the target path, and every Markdown reference with its line. Full UUIDs, exact Task directories, and exact managed carriers can locate an eligible candidate whose old string name or recognizable generated suffix needs repair. Closed Tasks are eligible and keep their status. Other validation remains strict. Non-generated child directories remain in place; generated child and top-level paths keep their sequence and update the slug.
 
 The exec rename path follows the same broken-reference behavior as the CLI. An execution that would move the Task path stops with a conflict error before the first write when references to the old path exist. Pass `--ignore-brokenlinks` in argv to move anyway; reference files stay unchanged, and the result still reports them. Dry-run always succeeds after a valid plan is built.
 

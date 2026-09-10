@@ -128,7 +128,7 @@ New work usually belongs in an open Task with `related_to` pointing to the origi
 
 ### Restrictions while `closed`
 
-A `closed` Task permits `read`, `search`, and `check`. Ordinary metadata changes, WAL append, `rename`, and subtask creation are rejected.
+A `closed` Task permits `read`, `search`, `check`, and `rename`. A rename or repair keeps the status closed. Ordinary metadata changes, WAL append, and subtask creation are rejected.
 
 The runtime writes close and reopen events to WAL. Do not append a duplicate manual entry.
 

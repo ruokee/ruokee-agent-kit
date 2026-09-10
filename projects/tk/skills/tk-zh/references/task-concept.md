@@ -128,7 +128,7 @@ WAL 记录已发生的持久事件，例如决定、纠正、可恢复里程碑�
 
 ### `closed` 状态限制
 
-`closed` 任务允许 `read`、`search` 和 `check`。普通元数据修改、追加 WAL、`rename` 和创建子任务都会拒绝。
+`closed` 任务允许 `read`、`search`、`check` 和 `rename`。改名或修复后仍保持 closed。普通元数据修改、追加 WAL 和创建子任务都会被拒绝。
 
 关闭和重开由运行时写入 WAL。不要再追加内容相同的人工日志。
 

@@ -85,9 +85,13 @@ Representation switching covers split→embed, embed→split, committing configu
 
 Cover name and path updates, unchanged results for repeated identical rename operations, WAL warnings, target conflicts, and reference scanning:
 
-- `git_policy=track` scans Git-tracked project Markdown;
+- `git_policy=track` scans project Markdown from the file system, independent of Git staging state;
 - `ignore` and `none` scan ordinary Markdown under task_root;
 - Bodies in both split and embed participate;
+- Closed Tasks rename and repair while keeping the status;
+- A metadata-only rename reports references without applying the path-move gate, and a no-op request still reports them;
+- A file deleted from the worktree but still present in the Git index does not fail the scan, and untracked files participate;
+- Unreadable reference files fail the command explicitly, and a scan that exceeds its depth or directory limit stops with `reference_scan_limit_exceeded`;
 - References are reported but not modified automatically;
 - Dry-run with references succeeds and returns the complete plan;
 - A path-moving execution with references stops with the stable error code `broken_reference_conflict`, category `conflict`, and exit status 3 before the first write, with `old_path`, normalized `new_name`, absolute `target_path`, and every reference path and line in the details;

@@ -118,7 +118,7 @@ UUIDv7 is the authoritative identity. Paths are locators and may change through 
 
 A normal close requires all descendants and dependency targets to be closed. A forced close bypasses only descendant and dependency checks. It does not bypass authorization, reason, schema, path, Git, or relationship validation.
 
-A closed Task is read-only by default. read, search, and check may still read it.
+A closed Task is read-only by default. read, search, and check may still read it. rename stays available and does not change the status.
 
 ## Creation authorization
 
@@ -245,10 +245,10 @@ rename performs ordinary renaming and repairs an existing string name that is no
 4. Verify that any moved target does not exist and Git policy allows the write.
 5. Scan Markdown references and return the raw old name, resolved parent, old path, target path, and reference list.
 6. Move a generated directory without overwriting. Skip this step for a non-generated child.
-7. Update metadata while preserving the body and all fields except `name`.
+7. Update metadata while preserving the body, the status, and all fields except `name`.
 8. Append WAL.
 
-The runtime does not automatically rewrite references. With `git_policy=track`, it scans all Git-tracked Markdown in the project. With `ignore` or `none`, it scans regular Markdown under `task_root`. Task bodies in both split and embed are included. Managed frontmatter, WAL, and temporary content are excluded.
+The runtime does not automatically rewrite references. With `git_policy=track`, it scans Markdown across the project from the file system, independent of Git staging state. With `ignore` or `none`, it scans regular Markdown under `task_root`. Task bodies in both split and embed are included. Managed frontmatter, WAL, and temporary content are excluded. A scan that exceeds its depth or directory limit fails with `reference_scan_limit_exceeded`.
 
 ## Minimal cleanup manifest
 

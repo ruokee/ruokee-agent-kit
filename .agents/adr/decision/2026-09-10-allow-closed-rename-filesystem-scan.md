@@ -1,16 +1,20 @@
-# ADR decision: Define the tk Task data model with name repair
+# ADR decision: Define the tk Task data model with closed rename and file system reference scanning
 
 Decision owner: Ruokee
-Draft writer: pro-20x/gpt-6-astra
-Reverses: [Define the tk Task data model with carrier discovery](../archived/2026-09-03-define-tk-task-data-model.md)
+Draft writer: deepseek/deepseek-v4.1-flash
+Reverses: [Define the tk Task data model with name repair](../archived/2026-09-08-repair-names-through-tk-rename.md)
 
-English | [中文](./2026-09-08-repair-names-through-tk-rename.zh.md)
+English | [中文](./2026-09-10-allow-closed-rename-filesystem-scan.zh.md)
 
 ## Motivation
 
 The [tk product architecture](./2026-08-21-define-tk-product-architecture.md) makes project files the only authoritative Task state. The runtime therefore needs one exact model for identity, paths, lifecycle, relationships, representations, discovery, writes, migration, and cleanup.
 
 Carrier discovery separates valid Tasks from ordinary materials and damaged managed data. Normal operations require that strict discovery result. rename is also responsible for repairing an existing string name and a recognizable generated directory suffix. Requiring the old name to pass complete validation would prevent the runtime from performing that repair even though UUID remains identity and the path remains a locator.
+
+A closed Task needs the same name maintenance as any other Task. Reopening is a lifecycle change with its own reason and authorization requirements, and it cannot serve as a recovery path because strict loading rejects the damaged old name before the lifecycle branch is reached. A closed Task with a damaged name would otherwise have no public recovery path.
+
+Reference reporting should describe the files a user actually keeps, not the staging state of the working tree. Enumerating candidates from the Git index misses present untracked Markdown, and an index entry whose file is missing from the working tree fails the whole scan before dry-run or execution can proceed.
 
 ## Decision
 
@@ -40,7 +44,7 @@ Discovery order is deterministic. A scan accepts at most 100,000 real directorie
 
 UUIDv7 is authoritative identity. Paths locate Tasks and names describe them. Duplicate IDs remain graph diagnostics and make UUID resolution ambiguous. Relationships remain within one Task root. A Task cannot relate to itself, and `depends_on` cannot form a cycle. Relationships are deduplicated and stored in stable UUID order.
 
-`planning` preserves an early idea, investigation, or plan that the user wants saved. `open` means the Task is being handled. `closed` is readable but otherwise read-only. Closing and reopening require a non-empty reason and current explicit authorization. Normal close also requires closed descendants and dependencies. Force close bypasses only those two checks.
+`planning` preserves an early idea, investigation, or plan that the user wants saved. `open` means the Task is being handled. `closed` is readable and otherwise read-only, except that rename stays available for ordinary renaming and repair without changing the status. Closing and reopening require a non-empty reason and current explicit authorization. Normal close also requires closed descendants and dependencies. Force close bypasses only those two checks.
 
 A strict project requires current explicit authorization to create a top-level Task. A permissive project may create work worth preserving without treating creation as an execution commitment. Creating a planning Task still requires an expressed intent to save the early work.
 
@@ -70,7 +74,7 @@ rename performs ordinary renaming and repairs an existing string name that is no
 
 The repair scan uses the normal representation markers, path boundaries, traversal order, and resource limits. Repairable candidates participate in UUID uniqueness and structural ownership. A damaged-name copy cannot remove UUID ambiguity. A candidate below an invalid enclosing candidate is rejected when parenthood cannot be determined. Other commands retain strict discovery.
 
-rename changes only the Task name and an applicable generated directory, then appends the normal WAL event. It preserves UUID, status, creation time, relationships, `extra`, body bytes, existing WAL, date, sequence, and parent location. A non-generated child keeps its directory. A generated child or top-level Task preserves its sequence and updates the slug path. rename reports the raw old name, resolved parent, old path, target path, and Markdown references. It does not rewrite references. `git_policy=track` scans Git-tracked project Markdown. `ignore` and `none` scan ordinary Markdown under the Task root. Dry-run writes nothing. A path-only repair is a change.
+rename changes only the Task name and an applicable generated directory, then appends the normal WAL event. It preserves UUID, status, creation time, relationships, `extra`, body bytes, existing WAL, date, sequence, and parent location. A non-generated child keeps its directory. A generated child or top-level Task preserves its sequence and updates the slug path. rename reports the raw old name, resolved parent, old path, target path, and Markdown references. It does not rewrite references. `git_policy=track` scans Markdown across the project from the file system, independent of Git staging state. `ignore` and `none` scan ordinary Markdown under the Task root. The walk skips symbolic links, tk-owned runtime paths, and the Git administrative directory, and fails with `reference_scan_limit_exceeded` when it exceeds its depth or directory limit. Dry-run writes nothing. A path-only repair is a change.
 
 `check` validates marked carriers, generated name-path agreement, UUID and direct-child sequence uniqueness, relationships, WAL, activity markers, and cleanup data without modifying content. It reports marked invalid carriers and resolved logical parents. A required I/O failure or discovery limit stops the scan and reports it as incomplete. Manual repair is allowed only when tk cannot express the repair, the Agent describes the exact edit, and the user explicitly authorizes it in the current conversation. The Agent then reruns `check` and records the repair in WAL when the Task is usable.
 
@@ -88,6 +92,12 @@ The complete format and operation details live in the [data model](../../../proj
 
 **Require manual name repair before rename.** This prevents the runtime operation responsible for name repair from loading its target and gives split and embed unequal recovery paths.
 
+**Require reopening before rename.** This keeps the closed read-only rule intact but cannot serve as a recovery path because reopen requires the damaged name to load under strict validation. It also turns name maintenance into a lifecycle transition with reason and authorization requirements that change no lifecycle fact.
+
+**Limit closed rename to damaged-name repair.** This would keep ordinary name corrections rejected for closed Tasks. Distinguishing repair from ordinary rename would add a second classification of the same request while still blocking a legitimate correction, and the maintenance value of a canonical name does not depend on why the old one was wrong.
+
+**Keep Git index enumeration and tolerate missing files.** Skipping entries whose files are gone would remove the failure, but the scan would still miss present untracked Markdown and would still depend on staging state. Querying Git per directory or per path keeps the same dependence for every candidate.
+
 ## Consequences
 
 Task state remains readable with ordinary file tools and portable across interfaces. Changing `subtasks_dir` no longer changes visibility, and imported or reorganized valid child carriers remain usable.
@@ -97,6 +107,10 @@ A fully valid carrier below a Task becomes a Task even when its author intended 
 Recursive discovery reads more directories than configured-path discovery. The fixed depth and directory limits prevent unbounded work, but large or unreadable material trees can make project-wide operations fail explicitly. The absence of a permanent index means discovery, checks, relationship validation, migration, representation switching, and repair planning may use memory proportional to the number of candidates.
 
 rename can recover eligible names without granting permissive loading to read, search, update, lifecycle, migration, or representation switching. Repair planning must maintain a second validation mode limited to old-name and recognizable-suffix defects. Invalid enclosing candidates can make a descendant ineligible because its parent cannot be established safely.
+
+Closed Tasks keep their lifecycle state while rename repairs their names, so name maintenance no longer depends on reopening. References outside the scanned scope, such as other projects, exported documents, or non-Markdown files, are not reported, so a broken external link can stay unnoticed while the Task itself looks stable.
+
+The file system walk sees generated or unrelated Markdown that index enumeration did not. A build artifact that contains the old path string can trigger `broken_reference_conflict` for a legitimate move, and a project whose Markdown tree exceeds the fixed resource limit cannot rename until the tree shrinks.
 
 Ordinary concurrent writes have last-completing-writer behavior. Multi-target failures can leave valid partial results, and callers must inspect completed and uncompleted lists before retrying. A directory move followed by metadata failure is replanned from current managed files after activity-marker cleanup. No hidden continuation state or automatic rollback exists.
 
@@ -110,7 +124,7 @@ Every released schema transition becomes long-lived maintenance code. Supporting
 
 ### 2026-09-05: Rename guards against broken references
 
-A rename that would move a Task path stops with a conflict error before the first persistent write when references to the old path exist. The error details carry the old path, the normalized new name, the absolute target path, and every reference path and line. `--ignore-brokenlinks` permits that move without rewriting references. Dry-run reports the plan and references without writing. The scan boundaries, including tracked project Markdown, ordinary Markdown under the Task root, and split and embed bodies, are unchanged.
+A rename that would move a Task path stops with a conflict error before the first persistent write when references to the old path exist. The error details carry the old path, the normalized new name, the absolute target path, and every reference path and line. `--ignore-brokenlinks` permits that move without rewriting references. Dry-run reports the plan and references without writing. The scan covers project Markdown, ordinary Markdown under the Task root, and split and embed bodies.
 
 ### 2026-09-05: Separate bounded WAL reads from complete inspection
 

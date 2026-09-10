@@ -101,7 +101,7 @@ Agent 可以编辑 `TASK.md` 正文和普通材料。受管元数据必须通过
 - `TASK.md` 只保留当前结果和入口；
 - 需要保留的验证或决定已经记录。
 
-close 和 reopen 都需要非空原因和当前用户确认。closed Task 默认只读。新工作通常创建相关 Task，只有用户明确确认新工作仍属于原 Task 时才重新打开。
+close 和 reopen 都需要非空原因和当前用户确认。closed Task 默认只读，但允许 rename 和修复。新工作通常创建相关 Task，只有用户明确确认新工作仍属于原 Task 时才重新打开。
 
 ## 人工修复 `tk.toml`
 

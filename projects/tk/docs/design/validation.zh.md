@@ -85,9 +85,13 @@
 
 覆盖名称和路径更新、重复相同 rename 返回无变化、WAL 警告、目标冲突和引用扫描：
 
-- `git_policy=track` 扫描 Git 跟踪的项目 Markdown；
+- `git_policy=track` 从文件系统扫描项目 Markdown，不受 Git 暂存状态影响；
 - `ignore` 和 `none` 扫描 task_root 普通 Markdown；
 - split 和 embed 正文均参与；
+- closed Task 可以改名和修复，并保持状态；
+- 仅元数据的 rename 报告引用但不适用路径移动门禁，无变化请求也会报告引用；
+- 工作树中已删除但仍在 Git 索引里的文件不会导致扫描失败，未跟踪文件同样参与；
+- 引用文件不可读时命令显式失败，扫描超过深度或目录上限时以 `reference_scan_limit_exceeded` 停止；
 - 引用只报告，不自动修改；
 - 带引用的 dry-run 成功并返回完整计划；
 - 带引用的路径移动执行在首次写入前以稳定错误码 `broken_reference_conflict`、`conflict` 类别和退出码 3 停止，details 包含 `old_path`、规范化 `new_name`、绝对 `target_path` 和全部引用路径与行号；

@@ -126,7 +126,7 @@ Lifecycle rules:
 - `planning` may move to `open` or directly to `closed` when work will not proceed. No other status moves to `planning`.
 - `open` may close to `closed`; `closed` may reopen to `open`.
 - A Task can close normally only after every descendant and dependency is closed. Use `force` only when the user explicitly asks to bypass that check.
-- A `closed` Task is read-only by default. Related new work usually belongs in a new Task with a relationship.
+- A `closed` Task is read-only by default except for rename and repair. Related new work usually belongs in a new Task with a relationship.
 
 Relationships:
 

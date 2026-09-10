@@ -107,7 +107,7 @@ cwd 选择顺序是请求显式值、Harness 会话目录、运行时进程目�
 | `managed_file` | `invalid_managed_file`、`unsupported_schema`、`representation_mismatch` |
 | `invariant` | `dependency_cycle`、`closed_task_read_only`、`active_descendant`、`active_dependency`、`closed_ancestor` |
 | `conflict` | `target_exists`、`operation_in_progress` |
-| `storage` | `check_incomplete`、`task_discovery_limit_exceeded`、`wal_append_failed`、`partial_commit` |
+| `storage` | `check_incomplete`、`task_discovery_limit_exceeded`、`reference_scan_limit_exceeded`、`wal_append_failed`、`partial_commit` |
 | `compatibility` | `runtime_incompatible`、`component_incompatible` |
 | `internal` | `internal_error` |
 
@@ -223,7 +223,7 @@ exec 是低频管理入口：
 
 exec 直接从 argv 调用公开命令解析器，不经过 shell。它拒绝 search、read、create、update、log、mcp、schema、metadata、gc、install、uninstall 和其他首项。
 
-rename 结果包含原始旧名称、存在时的已解析父 Task 路径、旧路径、规范化后的新名称、目标路径，以及每个 Markdown 引用及其行号。完整 UUID、精确 Task 目录和精确受管载体可以定位旧字符串名称或可识别生成式后缀需要修复的候选；其他校验保持严格。非生成式子 Task 目录保持不变；生成式子 Task 和顶层路径保留序号并更新 slug。
+rename 结果包含原始旧名称、存在时的已解析父 Task 路径、旧路径、规范化后的新名称、目标路径，以及每个 Markdown 引用及其行号。完整 UUID、精确 Task 目录和精确受管载体可以定位旧字符串名称或可识别生成式后缀需要修复的候选；closed Task 同样适用，并保持其状态。其他校验保持严格。非生成式子 Task 目录保持不变；生成式子 Task 和顶层路径保留序号并更新 slug。
 
 exec 的 rename 与 CLI 采用相同的断链处理。执行会移动 Task 路径且存在旧路径引用时，在首次写入前以 conflict 错误停止。在 argv 中传入 `--ignore-brokenlinks` 可以继续移动；引用文件保持原样，结果中仍会报告它们。dry-run 在生成合法计划后始终成功。
 

@@ -118,7 +118,7 @@ UUIDv7 是权威身份。路径是定位符，rename 可以改变路径。名称
 
 普通关闭要求所有后代和依赖目标已关闭。强制关闭只绕过后代和依赖检查，不绕过授权、原因、schema、路径、Git 或关系验证。
 
-closed Task 默认只读。read、search 和 check 仍可读取它。
+closed Task 默认只读。read、search 和 check 仍可读取它。rename 仍可用，且不改变状态。
 
 ## 创建授权
 
@@ -245,10 +245,10 @@ rename 执行普通改名，也修复已有字符串名称不规范、为空、�
 4. 验证需要移动时目标不存在，且 Git 策略允许写入；
 5. 扫描 Markdown 引用，并返回原始旧名称、解析出的父级、旧路径、目标路径和引用列表；
 6. 生成式目录无覆盖移动；非生成式子 Task 跳过本步；
-7. 更新元数据，保留正文及 `name` 之外的全部字段；
+7. 更新元数据，保留正文、状态及 `name` 之外的全部字段；
 8. 追加 WAL。
 
-运行时不自动改写引用。`git_policy=track` 时扫描 Git 跟踪的整个项目 Markdown；`ignore` 或 `none` 时扫描 `task_root` 下的普通 Markdown。split 和 embed 的 Task 正文都在扫描范围内，受管 frontmatter、WAL 和临时内容不参与。
+运行时不自动改写引用。`git_policy=track` 时从文件系统扫描整个项目的 Markdown，不受 Git 暂存状态影响；`ignore` 或 `none` 时扫描 `task_root` 下的普通 Markdown。split 和 embed 的 Task 正文都在扫描范围内，受管 frontmatter、WAL 和临时内容不参与。扫描超过深度或目录上限时以 `reference_scan_limit_exceeded` 失败。
 
 ## 最小清理清单
 

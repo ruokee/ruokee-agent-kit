@@ -1,17 +1,14 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::ffi::OsString;
 use std::fmt::Write as _;
 use std::fs;
-use std::os::unix::ffi::OsStringExt;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use serde::Serialize;
 use serde_json::{Value, json};
 use uuid::Uuid;
 
 use crate::app::{AppWarning, TaskReference};
-use crate::domain::{Status, normalize_name};
+use crate::domain::normalize_name;
 use crate::error::{ErrorCategory, Result, TkError};
 use crate::path::storage_error;
 use crate::project::{self, GitPolicy, MetadataMode, Project};
@@ -119,13 +116,6 @@ pub fn rename(
     actor: &str,
 ) -> Result<RenameResult> {
     let task = resolve_rename_ref(project, task_ref)?;
-    if task.metadata.status == Status::Closed {
-        return Err(TkError::new(
-            "closed_task_read_only",
-            ErrorCategory::Invariant,
-            "Cannot rename a closed Task",
-        ));
-    }
     let plan = build_rename_plan(project, &task, requested_name)?;
     let metadata_changed = plan.old_name != plan.new_name;
     let path_changed = plan.old_path != plan.target_path;
@@ -332,7 +322,9 @@ fn build_rename_plan(
             format!("Rename target already exists: {}", target_path.display()),
         ));
     }
-    let references = scan_markdown_references(project, &task.directory)?;
+    // Strict discovery stops at a damaged name; the repair graph reaches its
+    // descendants so their runtime directories stay out of the exclusion set.
+    let references = scan_markdown_references(project, &task.directory, &graph)?;
     Ok(RenamePlan {
         task_id: task.metadata.id,
         old_name: task.metadata.name.clone(),
@@ -348,6 +340,7 @@ fn build_rename_plan(
 fn scan_markdown_references(
     project: &Project,
     task_directory: &Path,
+    graph: &task_store::TaskGraph,
 ) -> Result<Vec<MarkdownReference>> {
     let relative = task_directory.strip_prefix(&project.root).map_err(|_| {
         TkError::new(
@@ -357,18 +350,21 @@ fn scan_markdown_references(
         )
     })?;
     let needle = relative.to_string_lossy().replace('\\', "/");
-    let paths = match project.config.git_policy {
-        GitPolicy::Track => tracked_markdown(project)?,
-        GitPolicy::Ignore | GitPolicy::None => task_root_markdown(project)?,
-    };
     let embedded_tasks: HashSet<_> = if project.config.metadata_mode == MetadataMode::Embed {
-        task_store::discover_tasks(&project.task_root, MetadataMode::Embed)?
+        graph
             .tasks
-            .into_iter()
-            .map(|task| task.task.directory)
+            .iter()
+            .map(|task| task.task.directory.clone())
             .collect()
     } else {
         HashSet::new()
+    };
+    let runtime_directories = tk_runtime_directories(project, &graph);
+    let paths = match project.config.git_policy {
+        GitPolicy::Track => walk_markdown(&project.root, &runtime_directories)?,
+        GitPolicy::Ignore | GitPolicy::None => {
+            walk_markdown(&project.task_root, &runtime_directories)?
+        }
     };
     let mut references = Vec::new();
     for path in paths {
@@ -379,37 +375,35 @@ fn scan_markdown_references(
     Ok(references)
 }
 
-fn tracked_markdown(project: &Project) -> Result<Vec<PathBuf>> {
-    tracked_markdown_with(project, Path::new("git"))
-}
-
-fn tracked_markdown_with(project: &Project, executable: &Path) -> Result<Vec<PathBuf>> {
-    let mut command = Command::new(executable);
-    command
-        .args(["ls-files", "-z", "--", "*.md"])
-        .current_dir(&project.root);
-    let output = crate::process::output(&mut command, "git ls-files")?;
-    if !output.status.success() {
-        return Err(TkError::new(
-            "git_scan_failed",
-            ErrorCategory::Context,
-            String::from_utf8_lossy(&output.stderr).trim().to_owned(),
-        ));
+fn tk_runtime_directories(project: &Project, graph: &task_store::TaskGraph) -> HashSet<PathBuf> {
+    let mut directories = HashSet::new();
+    directories.insert(project.task_root.join(".tk-tmp"));
+    for directory in graph.tasks.iter().map(|task| &task.task.directory).chain(
+        graph
+            .invalid_candidates
+            .iter()
+            .map(|candidate| &candidate.directory),
+    ) {
+        directories.insert(directory.join("wal"));
     }
-    let mut paths: Vec<_> = output
-        .stdout
-        .split(|byte| *byte == 0)
-        .filter(|bytes| !bytes.is_empty())
-        .map(|bytes| project.root.join(OsString::from_vec(bytes.to_vec())))
-        .collect();
-    paths.sort();
-    Ok(paths)
+    directories
 }
 
-fn task_root_markdown(project: &Project) -> Result<Vec<PathBuf>> {
+const MAX_REFERENCE_SCAN_DEPTH: usize = 256;
+const MAX_REFERENCE_SCAN_DIRECTORIES: usize = 100_000;
+
+fn walk_markdown(root: &Path, runtime_directories: &HashSet<PathBuf>) -> Result<Vec<PathBuf>> {
     let mut paths = Vec::new();
-    let mut pending = vec![project.task_root.clone()];
-    while let Some(directory) = pending.pop() {
+    let mut visited = 0usize;
+    let mut pending = vec![(root.to_path_buf(), 0usize)];
+    while let Some((directory, depth)) = pending.pop() {
+        if depth >= MAX_REFERENCE_SCAN_DEPTH {
+            return Err(scan_limit_error(
+                &directory,
+                "depth",
+                MAX_REFERENCE_SCAN_DEPTH,
+            ));
+        }
         for entry in fs::read_dir(&directory)
             .map_err(|error| storage_error("scan_markdown_references", &directory, error))?
         {
@@ -421,17 +415,39 @@ fn task_root_markdown(project: &Project) -> Result<Vec<PathBuf>> {
             if file_type.is_symlink() {
                 continue;
             }
+            let path = entry.path();
             if file_type.is_dir() {
-                if !matches!(entry.file_name().to_str(), Some("wal" | ".tk-tmp")) {
-                    pending.push(entry.path());
+                if entry.file_name().to_str() == Some(".git") || runtime_directories.contains(&path)
+                {
+                    continue;
                 }
-            } else if entry.path().extension().and_then(|value| value.to_str()) == Some("md") {
-                paths.push(entry.path());
+                visited += 1;
+                if visited > MAX_REFERENCE_SCAN_DIRECTORIES {
+                    return Err(scan_limit_error(
+                        &path,
+                        "directories",
+                        MAX_REFERENCE_SCAN_DIRECTORIES,
+                    ));
+                }
+                pending.push((path, depth + 1));
+            } else if file_type.is_file()
+                && path.extension().and_then(|value| value.to_str()) == Some("md")
+            {
+                paths.push(path);
             }
         }
     }
     paths.sort();
     Ok(paths)
+}
+
+fn scan_limit_error(directory: &Path, dimension: &str, limit: usize) -> TkError {
+    TkError::new(
+        "reference_scan_limit_exceeded",
+        ErrorCategory::Storage,
+        format!("Markdown reference scan exceeded the {dimension} limit of {limit}"),
+    )
+    .with_details(serde_json::json!({"path": directory}))
 }
 
 fn scan_markdown_file(
@@ -1121,27 +1137,6 @@ mod tests {
         fs::remove_dir_all(root).unwrap();
     }
 
-    #[test]
-    fn tracked_markdown_rejects_oversized_git_output() {
-        use std::os::unix::fs::PermissionsExt;
-
-        let root = std::env::temp_dir().join(format!("tk-git-scan-test-{}", Uuid::now_v7()));
-        fs::create_dir(&root).unwrap();
-        let project = crate::project::init(&root, crate::project::InitOptions::default())
-            .unwrap()
-            .project;
-        let fake_git = root.join("git");
-        fs::write(
-            &fake_git,
-            "#!/bin/sh\nwhile :; do printf xxxxxxxxxxxxxxxx; done\n",
-        )
-        .unwrap();
-        fs::set_permissions(&fake_git, fs::Permissions::from_mode(0o755)).unwrap();
-        let error = tracked_markdown_with(&project, &fake_git).unwrap_err();
-        assert_eq!(error.code, "process_output_too_large");
-        fs::remove_dir_all(root).unwrap();
-    }
-
     fn rename_test_project(
         root: &Path,
         metadata_mode: MetadataMode,
@@ -1638,6 +1633,599 @@ mod tests {
                 .name,
             "imported"
         );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    fn closed_task_metadata(name: &str) -> crate::domain::Metadata {
+        let mut metadata = task_metadata(name);
+        metadata.status = crate::domain::Status::Closed;
+        metadata
+    }
+
+    fn rename_closed_task_directory(
+        root: &Path,
+        mode: MetadataMode,
+    ) -> (std::path::PathBuf, crate::domain::Metadata) {
+        let directory = root.join(".tk/2026/08/31-01--source");
+        let metadata = closed_task_metadata("source");
+        task_store::create_task_files(&directory, &metadata, b"source body\n", mode).unwrap();
+        (directory, metadata)
+    }
+
+    #[test]
+    fn rename_repairs_closed_tasks_in_split_and_embed() {
+        for mode in [MetadataMode::Split, MetadataMode::Embed] {
+            let root =
+                std::env::temp_dir().join(format!("tk-rename-closed-repair-{}", Uuid::now_v7()));
+            fs::create_dir(&root).unwrap();
+            let project = rename_test_project(&root, mode, GitPolicy::None);
+            let (directory, metadata) = rename_closed_task_directory(&root, mode);
+            damage_task_name(&directory, mode, "closed name");
+            let carrier = match mode {
+                MetadataMode::Split => directory.join("tk.toml"),
+                MetadataMode::Embed => directory.join("TASK.md"),
+            };
+
+            let preview = rename(
+                &project,
+                &directory.to_string_lossy(),
+                "repaired",
+                true,
+                false,
+                "test:agent",
+            )
+            .unwrap();
+            assert!(preview.changed && !preview.committed);
+            assert!(directory.exists(), "dry-run must not move anything");
+            assert!(
+                fs::read_to_string(&carrier)
+                    .unwrap()
+                    .contains("closed name")
+            );
+            assert!(!directory.join("wal").exists());
+
+            let result = rename(
+                &project,
+                &directory.to_string_lossy(),
+                "repaired",
+                false,
+                false,
+                "test:agent",
+            )
+            .unwrap();
+            let target = project.task_root.join("2026/08/31-01--repaired");
+            assert!(result.changed && result.committed);
+            assert_eq!(result.task.status, crate::domain::Status::Closed);
+            let after = task_store::read_task(&target, mode).unwrap().metadata;
+            assert_eq!(after.name, "repaired");
+            assert_eq!(after.status, crate::domain::Status::Closed);
+            assert_eq!(after.id, metadata.id);
+            assert_eq!(after.created_at, metadata.created_at);
+            assert_eq!(
+                task_store::read_body_bytes(&target, mode).unwrap(),
+                b"source body\n"
+            );
+            assert!(target.join("wal").exists(), "rename appends the WAL event");
+            fs::remove_dir_all(root).unwrap();
+        }
+    }
+
+    #[test]
+    fn rename_renames_closed_task_without_reopening() {
+        let root = std::env::temp_dir().join(format!("tk-rename-closed-plain-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
+        let (directory, metadata) = rename_closed_task_directory(&root, MetadataMode::Split);
+
+        let result = rename(
+            &project,
+            &directory.to_string_lossy(),
+            "renamed",
+            false,
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        let target = project.task_root.join("2026/08/31-01--renamed");
+        assert!(result.changed && result.committed);
+        assert_eq!(result.task.status, crate::domain::Status::Closed);
+        let after = task_store::read_task(&target, MetadataMode::Split)
+            .unwrap()
+            .metadata;
+        assert_eq!(after.name, "renamed");
+        assert_eq!(after.status, crate::domain::Status::Closed);
+        assert_eq!(after.id, metadata.id);
+        assert_eq!(after.created_at, metadata.created_at);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn rename_repairs_closed_generated_suffix() {
+        let root = std::env::temp_dir().join(format!("tk-rename-closed-suffix-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
+        let wrong_path = project.task_root.join("2026/08/31-01--wrong");
+        let metadata = closed_task_metadata("source");
+        task_store::create_task_files(
+            &wrong_path,
+            &metadata,
+            b"source body\n",
+            MetadataMode::Split,
+        )
+        .unwrap();
+
+        let result = rename(
+            &project,
+            &wrong_path.to_string_lossy(),
+            "source",
+            false,
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        let target = project.task_root.join("2026/08/31-01--source");
+        assert!(result.changed && result.committed);
+        assert_eq!(result.plan.old_path, wrong_path);
+        assert_eq!(result.plan.target_path, target);
+        assert_eq!(result.plan.parent_task, None);
+        assert!(!wrong_path.exists());
+        let after = task_store::read_task(&target, MetadataMode::Split)
+            .unwrap()
+            .metadata;
+        assert_eq!(after.id, metadata.id);
+        assert_eq!(after.status, crate::domain::Status::Closed);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn closed_rename_repair_keeps_strict_checks() {
+        let root = std::env::temp_dir().join(format!("tk-rename-closed-target-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
+        let (directory, _) = rename_closed_task_directory(&root, MetadataMode::Split);
+        damage_task_name(&directory, MetadataMode::Split, "closed name");
+        fs::create_dir_all(project.task_root.join("2026/08/31-01--repaired")).unwrap();
+        let error = rename(
+            &project,
+            &directory.to_string_lossy(),
+            "repaired",
+            false,
+            false,
+            "test:agent",
+        )
+        .unwrap_err();
+        assert_eq!(error.code, "rename_target_exists");
+        fs::remove_dir_all(root).unwrap();
+
+        let root = std::env::temp_dir().join(format!("tk-rename-closed-type-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
+        let (directory, _) = rename_closed_task_directory(&root, MetadataMode::Split);
+        let carrier = directory.join("tk.toml");
+        let text = fs::read_to_string(&carrier).unwrap();
+        fs::write(&carrier, text.replace("name = \"source\"", "name = 42")).unwrap();
+        let error = rename(
+            &project,
+            &directory.to_string_lossy(),
+            "repaired",
+            false,
+            false,
+            "test:agent",
+        )
+        .unwrap_err();
+        assert_eq!(error.code, "invalid_task_metadata");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn closed_rename_does_not_widen_update() {
+        let root = std::env::temp_dir().join(format!("tk-rename-closed-update-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
+        let (directory, _) = rename_closed_task_directory(&root, MetadataMode::Split);
+        damage_task_name(&directory, MetadataMode::Split, "closed name");
+        let reopen = |task_ref: &str| {
+            crate::app::update(
+                &project,
+                task_ref,
+                crate::app::UpdateRequest {
+                    lifecycle: Some(crate::app::LifecycleAction::Reopen {
+                        reason: "resume work".into(),
+                        user_confirmed: true,
+                    }),
+                    ..crate::app::UpdateRequest::default()
+                },
+                "test:agent",
+            )
+        };
+        let error = reopen(&directory.to_string_lossy()).unwrap_err();
+        assert_eq!(error.code, "invalid_task_name");
+
+        rename(
+            &project,
+            &directory.to_string_lossy(),
+            "source",
+            false,
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        let target = project.task_root.join("2026/08/31-01--source");
+        let result = reopen(&target.to_string_lossy()).unwrap();
+        assert_eq!(result.task.status, crate::domain::Status::Open);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn reference_scan_ignores_git_staging_state() {
+        let root = std::env::temp_dir().join(format!("tk-rename-staging-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let status = std::process::Command::new("git")
+            .args(["init", "--quiet"])
+            .current_dir(&root)
+            .status()
+            .unwrap();
+        assert!(status.success());
+        let project = rename_test_project(&root, MetadataMode::Embed, GitPolicy::Track);
+        let directory = rename_task_directory(&root, MetadataMode::Embed);
+        let needle = ".tk/2026/08/31-01--source/README";
+        let untracked = write_reference(
+            &root,
+            "notes/untracked.md",
+            &format!("untracked link {needle}\n"),
+        );
+        let staged = write_reference(&root, "notes/staged.md", &format!("staged link {needle}\n"));
+        let missing = write_reference(
+            &root,
+            "notes/missing.md",
+            &format!("missing link {needle}\n"),
+        );
+        let status = std::process::Command::new("git")
+            .args(["add", "notes/staged.md", "notes/missing.md"])
+            .current_dir(&root)
+            .status()
+            .unwrap();
+        assert!(status.success());
+        fs::remove_file(&missing).unwrap();
+
+        let preview = rename(
+            &project,
+            &directory.to_string_lossy(),
+            "target",
+            true,
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        let listed: Vec<_> = preview
+            .plan
+            .references
+            .iter()
+            .map(|reference| (reference.path.clone(), reference.line))
+            .collect();
+        assert_eq!(listed, vec![(staged, 1), (untracked, 1)]);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn reference_scan_includes_ordinary_wal_directories() {
+        let root = std::env::temp_dir().join(format!("tk-rename-plain-wal-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let status = std::process::Command::new("git")
+            .args(["init", "--quiet"])
+            .current_dir(&root)
+            .status()
+            .unwrap();
+        assert!(status.success());
+        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::Track);
+        let directory = rename_task_directory(&root, MetadataMode::Split);
+        let link = write_reference(
+            &root,
+            "docs/wal/links.md",
+            "see .tk/2026/08/31-01--source/TASK.md\n",
+        );
+
+        let preview = rename(
+            &project,
+            &directory.to_string_lossy(),
+            "target",
+            true,
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        let listed: Vec<_> = preview
+            .plan
+            .references
+            .iter()
+            .map(|item| (item.path.clone(), item.line))
+            .collect();
+        assert_eq!(listed, vec![(link, 1)]);
+
+        let error = rename(
+            &project,
+            &directory.to_string_lossy(),
+            "target",
+            false,
+            false,
+            "test:agent",
+        )
+        .unwrap_err();
+        assert_eq!(error.code, "broken_reference_conflict");
+        assert!(
+            directory.exists(),
+            "a blocked rename must not move the Task"
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn reference_scan_skips_task_wal_directories() {
+        let root = std::env::temp_dir().join(format!("tk-rename-task-wal-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
+        let directory = rename_task_directory(&root, MetadataMode::Split);
+        let wal = directory.join("wal");
+        fs::create_dir(&wal).unwrap();
+        fs::write(
+            wal.join("2026-08-31.md"),
+            "see .tk/2026/08/31-01--source/TASK.md\n",
+        )
+        .unwrap();
+
+        let result = rename(
+            &project,
+            &directory.to_string_lossy(),
+            "target",
+            false,
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        assert!(result.plan.references.is_empty());
+        assert!(result.changed && result.committed);
+        let target = root.join(".tk/2026/08/31-01--target");
+        assert!(target.join("wal/2026-08-31.md").exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn reference_scan_skips_descendant_wal_with_damaged_top_level_name() {
+        for mode in [MetadataMode::Split, MetadataMode::Embed] {
+            let root =
+                std::env::temp_dir().join(format!("tk-rename-descendant-wal-{}", Uuid::now_v7()));
+            fs::create_dir(&root).unwrap();
+            let status = std::process::Command::new("git")
+                .args(["init", "--quiet"])
+                .current_dir(&root)
+                .status()
+                .unwrap();
+            assert!(status.success());
+            let project = rename_test_project(&root, mode, GitPolicy::Track);
+            let parent = rename_task_directory(&root, mode);
+            let child = parent.join("01--child");
+            task_store::create_task_files(&child, &task_metadata("child"), b"child body\n", mode)
+                .unwrap();
+            let wal = child.join("wal");
+            fs::create_dir(&wal).unwrap();
+            fs::write(
+                wal.join("2026-08-31.md"),
+                "see .tk/2026/08/31-01--source/TASK.md\n",
+            )
+            .unwrap();
+            damage_task_name(&parent, mode, " source ");
+
+            let preview = rename(
+                &project,
+                &parent.to_string_lossy(),
+                "target",
+                true,
+                false,
+                "test:agent",
+            )
+            .unwrap();
+            assert!(
+                preview.plan.references.is_empty(),
+                "descendant WAL must not count as a reference: {:?}",
+                preview.plan.references
+            );
+
+            let result = rename(
+                &project,
+                &parent.to_string_lossy(),
+                "target",
+                false,
+                false,
+                "test:agent",
+            )
+            .unwrap();
+            assert!(result.changed && result.committed);
+            let target = root.join(".tk/2026/08/31-01--target");
+            assert!(target.join("01--child/wal/2026-08-31.md").exists());
+            fs::remove_dir_all(root).unwrap();
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn reference_scan_skips_special_files() {
+        let root = std::env::temp_dir().join(format!("tk-rename-fifo-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let status = std::process::Command::new("git")
+            .args(["init", "--quiet"])
+            .current_dir(&root)
+            .status()
+            .unwrap();
+        assert!(status.success());
+        rename_test_project(&root, MetadataMode::Split, GitPolicy::Track);
+        let directory = rename_task_directory(&root, MetadataMode::Split);
+        let fifo = root.join("pipe.md");
+        let status = std::process::Command::new("mkfifo")
+            .arg(&fifo)
+            .status()
+            .unwrap();
+        assert!(status.success());
+
+        let paths = walk_markdown(&root, &HashSet::new()).unwrap();
+        assert!(!paths.contains(&fifo));
+
+        let (sender, receiver) = std::sync::mpsc::channel();
+        let thread_root = root.clone();
+        let thread_directory = directory.clone();
+        std::thread::spawn(move || {
+            let project = crate::project::discover(&thread_root).unwrap();
+            let outcome = rename(
+                &project,
+                &thread_directory.to_string_lossy(),
+                "target",
+                true,
+                false,
+                "test:agent",
+            )
+            .map(|result| result.committed)
+            .map_err(|error| error.code);
+            sender.send(outcome).unwrap();
+        });
+        let outcome = receiver
+            .recv_timeout(std::time::Duration::from_secs(10))
+            .expect("rename must not block on special files");
+        assert!(!outcome.unwrap());
+
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn reference_scan_surfaces_read_failures() {
+        let root = std::env::temp_dir().join(format!("tk-rename-scan-read-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
+        let directory = rename_task_directory(&root, MetadataMode::Split);
+        let broken = root.join(".tk/notes/broken.md");
+        fs::create_dir_all(broken.parent().unwrap()).unwrap();
+        fs::write(&broken, [0xff, 0xfe, 0xfd]).unwrap();
+
+        for (dry_run, ignore_brokenlinks) in [(true, false), (false, true)] {
+            let error = rename(
+                &project,
+                &directory.to_string_lossy(),
+                "target",
+                dry_run,
+                ignore_brokenlinks,
+                "test:agent",
+            )
+            .unwrap_err();
+            assert_eq!(error.code, "read_markdown_reference_failed");
+        }
+        assert!(directory.exists(), "scan failures must not move the Task");
+        assert!(!directory.join("wal").exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn markdown_scan_rejects_oversized_depth() {
+        let root = std::env::temp_dir().join(format!("tk-scan-depth-{}", Uuid::now_v7()));
+        let mut nested = root.join("nested");
+        for _ in 0..MAX_REFERENCE_SCAN_DEPTH {
+            nested = nested.join("n");
+        }
+        fs::create_dir_all(&nested).unwrap();
+        let error = walk_markdown(&root, &HashSet::new()).unwrap_err();
+        assert_eq!(error.code, "reference_scan_limit_exceeded");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn metadata_only_rename_reports_references_without_gate() {
+        for closed in [false, true] {
+            let root =
+                std::env::temp_dir().join(format!("tk-rename-metadata-only-{}", Uuid::now_v7()));
+            fs::create_dir(&root).unwrap();
+            let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
+            let parent = project.task_root.join("2026/08/31-01--parent");
+            task_store::create_task_files(
+                &parent,
+                &task_metadata("parent"),
+                b"parent\n",
+                MetadataMode::Split,
+            )
+            .unwrap();
+            let imported = parent.join("materials/imported-task");
+            let mut metadata = task_metadata("source");
+            if closed {
+                metadata.status = crate::domain::Status::Closed;
+            }
+            task_store::create_task_files(&imported, &metadata, b"imported\n", MetadataMode::Split)
+                .unwrap();
+            damage_task_name(&imported, MetadataMode::Split, "bad imported name");
+            write_reference(
+                &root,
+                ".tk/notes/child.md",
+                "points at .tk/2026/08/31-01--parent/materials/imported-task\n",
+            );
+
+            let result = rename(
+                &project,
+                &imported.to_string_lossy(),
+                "source",
+                false,
+                false,
+                "test:agent",
+            )
+            .unwrap();
+            assert!(result.changed && result.committed);
+            assert_eq!(
+                result.plan.target_path, imported,
+                "non-generated child keeps its directory"
+            );
+            assert_eq!(result.plan.references.len(), 1);
+            let after = task_store::read_task(&imported, MetadataMode::Split)
+                .unwrap()
+                .metadata;
+            assert_eq!(after.name, "source");
+            assert_eq!(
+                after.status,
+                if closed {
+                    crate::domain::Status::Closed
+                } else {
+                    crate::domain::Status::Open
+                }
+            );
+            fs::remove_dir_all(root).unwrap();
+        }
+    }
+
+    #[test]
+    fn noop_rename_reports_references_without_writes() {
+        let root = std::env::temp_dir().join(format!("tk-rename-noop-scan-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
+        let directory = rename_task_directory(&root, MetadataMode::Split);
+        write_reference(
+            &root,
+            ".tk/notes/links.md",
+            "see .tk/2026/08/31-01--source/TASK.md\n",
+        );
+        let metadata_before = fs::read(directory.join("tk.toml")).unwrap();
+        let body_before = fs::read(directory.join("TASK.md")).unwrap();
+
+        let result = rename(
+            &project,
+            &directory.to_string_lossy(),
+            "source",
+            false,
+            false,
+            "test:agent",
+        )
+        .unwrap();
+        assert!(!result.changed && !result.committed);
+        assert_eq!(result.plan.references.len(), 1);
+        assert_eq!(result.plan.references[0].line, 1);
+        assert!(!directory.join("wal").exists());
+        assert_eq!(
+            fs::read(directory.join("tk.toml")).unwrap(),
+            metadata_before
+        );
+        assert_eq!(fs::read(directory.join("TASK.md")).unwrap(), body_before);
         fs::remove_dir_all(root).unwrap();
     }
 }

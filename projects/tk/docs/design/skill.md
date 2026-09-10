@@ -101,7 +101,7 @@ Before closing, confirm that:
 - `TASK.md` retains only current results and entry points.
 - Any validation results or decisions that must be preserved have been recorded.
 
-Both close and reopen require a non-empty reason and explicit confirmation from the current user. A closed Task is read-only by default. New work should normally use a related Task. Reopen the original Task only when the user explicitly confirms that the new work still belongs to it.
+Both close and reopen require a non-empty reason and explicit confirmation from the current user. A closed Task is read-only by default except for rename and repair. New work should normally use a related Task. Reopen the original Task only when the user explicitly confirms that the new work still belongs to it.
 
 ## Manually repairing `tk.toml`
 
