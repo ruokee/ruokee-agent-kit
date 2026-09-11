@@ -185,6 +185,19 @@ Real tests must observe the Harness's actual loading result and post-uninstallat
 
 ## Skill and documentation
 
-Skill scenarios cover strict/permissive creation, planning/open selection, Task parsing, catchup, WAL, authorization for manual repair, close/reopen, five material modes, tools routing without direct CLI retry, and CLI-only command use.
+Skill scenarios cover strict/permissive creation, planning/open selection, Task parsing, catchup, WAL, authorization for manual repair, close/reopen, the four material patterns, tools routing without direct CLI retry, and CLI-only command use. The four Skill identities must present the same pattern semantics, and each Skill component stays self-contained.
+
+Across the four patterns, a suggestion follows a signal that has appeared and explains what the pattern adds and what it requires to maintain; the Agent states the choice in `TASK.md` only after the user adopts it. A counterexample only rules out proactive suggestions; an explicit user request to use a pattern is adoption authorization on its own and is never blocked by one.
+
+Material pattern scenarios observe:
+
+- Records: same-day work or a plan to continue later triggers no proactive suggestion; once a second local calendar date holds substantive activity a suggestion is possible. Materials keep the judgments held at the time, later corrections go into subsequent materials rather than rewriting earlier ones, and no past activity or future-dated record is invented. Records, WAL, and `TASK.md` keep their separate roles.
+- Deep research: reading one known document or answering an ordinary API question triggers no proactive suggestion, while work that needs collecting, retaining, or cross-checking external sources can be suggested. Materials tie each key claim to its source and keep source access dates, conflicts between sources, and what remains unverified, alongside the boundaries of the conclusions.
+- Iterative design: a new major redesign starts the next revision, while a common correction stays in the current revision; each revision is self-contained, superseded revisions keep their content, and `TASK.md` exposes one current design entry point.
+- Scratchpad: a brief exchange that needs no retention creates no material; temporary content is retained, stable content moves into ordinary materials, and obsolete content stays distinguishable; without authorization to delete or move materials, no cleanup runs.
+
+Adopting a pattern adds no metadata, schema, `extra`, state, or commands, and does not extend Task creation or lifecycle authorization. An existing project layout may override the default directories. No scenario requires creating empty materials.
+
+Markdown and Rust baseline checks cannot prove Agent behavior on their own; the patterns are confirmed through Harness scenarios with the candidate Skill installed.
 
 Public documentation checks cover language links, semantic correspondence, terminology, and naturalness across the English and Chinese pages. Use existing repository checks and manual review without adding a custom documentation structure checker.

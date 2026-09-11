@@ -78,7 +78,7 @@ When a filename is link text, describe its path from the repository root without
 - Use direct sentences for definitions and requirements.
 - Negative wording is acceptable for data protection, security boundaries, and explicit rejection rules.
 - Remove defensive negatives that add no information. Do not impose mechanical quantity targets.
-- Use the fixed translation pairs `human-readable` / `人类可读`, `managed` / `受管`, `scratchpad` / `临时记事区`, `clean cutover` / `直接切换`, and `supported subcommands` / `支持的子命令`.
+- Use the fixed translation pairs `human-readable` / `人类可读`, `managed` / `受管`, `scratchpad` / `草稿纸`, `clean cutover` / `直接切换`, and `supported subcommands` / `支持的子命令`.
 - Do not add implementation details or general technical terms to the global glossary.
 
 ## Checks

@@ -47,7 +47,7 @@ Harness 是围绕模型、使其能够作为 Agent 运行的软件环境。当�
 - [Skill 语言选择](./2026-09-02-select-tk-skill-language.zh.md)；
 - [Harness 工具集成](./2026-09-02-integrate-tk-tools-with-harnesses.zh.md)；
 - [Harness 组件与自定义根目录 CLI Skill 分发](./2026-09-03-distribute-custom-cli-skills.zh.md)；
-- [文档维护](./2026-08-29-maintain-tk-documentation.zh.md)。
+- [文档与使用模式](./2026-09-11-align-tk-usage-patterns.zh.md)。
 
 ## 考虑过的替代方案
 

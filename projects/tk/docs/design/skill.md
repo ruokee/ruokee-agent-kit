@@ -127,14 +127,24 @@ When user input is genuinely required, explain the effect of each choice clearly
 
 ## Material patterns
 
-The following patterns are non-exhaustive references. Project instructions may extend or override them:
+Four patterns organize ordinary Task materials. They are optional, and a Task may combine any of them or use none. Project instructions may extend or override their default paths.
 
-| Pattern | Appropriate content |
-| --- | --- |
-| scratchpad | A short-term temporary note area that is not a final deliverable |
-| research package | Research that must preserve sources, evidence, conclusion boundaries, and unresolved questions |
-| design revisions | Multiple rounds of superseding designs and an entry point to the current version |
-| review records | Multi-party reviews, disagreements, and resolution outcomes |
-| validation evidence | Reproducible commands, environment details, results, and acceptance judgments |
+| Pattern | Suggest when | Default materials |
+| --- | --- | --- |
+| Records | Substantive investigation, implementation, validation, or decision work has occurred on a second local calendar date | `records/YYYY-MM-DD-topic.md` |
+| Deep research | Work needs collecting, retaining, or cross-checking external sources, or a source list and source materials already exist | `research/report.md`, `research/README.md` |
+| Iterative design | Two or more major redesigns have replaced earlier approaches, an earlier design was discarded as a whole, or the main boundaries keep changing | `revision_<N>/README.md` and materials within that revision |
+| Scratchpad | Unfinished fragments, notes, output, small scripts, or other temporary files need a persistent place | Files and subdirectories under `scratchpad/` |
 
-Material patterns organize ordinary files only. They do not add runtime state.
+Each signal also has its counterexamples: same-day tasks and plans to continue later do not call for Records; reading one known document or answering an ordinary API question does not call for Deep research; incremental additions, wording changes, and ordinary review corrections do not create a new revision; and a brief exchange that needs no retention does not call for a Scratchpad.
+
+Before suggesting a pattern, confirm that its signal has appeared and explain which materials it adds and what maintenance it requires. After the user adopts it, state the choice briefly in the `TASK.md` body and link the existing entry materials; an explicit request to use a pattern is adoption authorization itself. Create materials for work that has already happened: do not prebuild empty directories, invent past activity, create future-dated records, or migrate existing Tasks to match an example.
+
+Maintenance keeps the patterns useful:
+
+- Records keep the context, actions, evidence links, and conclusions held on a date with substantive activity. Preserve earlier judgments, put later corrections in subsequent materials, and keep `TASK.md` pointed at the conclusions that still apply. Records do not replace WAL or a formal decision record.
+- Deep research keeps source provenance and access dates, the evidence behind key claims, conflicts between sources, unverified points, and the limits of its conclusions. `TASK.md` links the report directly.
+- Iterative design keeps each revision self-contained and superseded revisions as they stood; create the next revision only for a new major redesign, and edit the current revision for ordinary corrections. `TASK.md` links only the current revision as the design entry point.
+- Scratchpad content moves into suitable ordinary materials once it stabilizes, and obsolete content stays distinguishable from current facts.
+
+Patterns organize ordinary files only and add no runtime state, metadata, schema fields, or commands. Adopting one grants no permission to delete or move materials, create a Task, or change its lifecycle. Formal decisions follow the project's designated mechanism and location.

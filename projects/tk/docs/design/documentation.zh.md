@@ -78,7 +78,7 @@ ADR 提案位于 `proposal/` 或 `rejected/`，决定位于 `decision/` 或 `arc
 - 定义和要求使用直接句子。
 - 数据保护、安全边界和明确拒绝规则可以使用否定表达。
 - 删除没有新增信息的防御性否定，不设置机械数量指标。
-- 使用 `human-readable` / `人类可读`、`managed` / `受管`、`scratchpad` / `临时记事区`、`clean cutover` / `直接切换` 和 `supported subcommands` / `支持的子命令` 等固定译法。
+- 使用 `human-readable` / `人类可读`、`managed` / `受管`、`scratchpad` / `草稿纸`、`clean cutover` / `直接切换` 和 `supported subcommands` / `支持的子命令` 等固定译法。
 - 不把实现细节和普通技术词塞入全局术语表。
 
 ## 检查

@@ -65,16 +65,15 @@
 
 | 术语 | 中文形式 | 含义 |
 | --- | --- | --- |
-| scratchpad | 临时记事区 | 不作为最终交付的短期普通材料 |
-| research package | 研究材料包 | 保存来源、证据、结论边界和未解决问题的材料模式 |
-| design revisions | 设计修订 | 保存多轮相互替代设计及当前入口的材料模式 |
-| review records | 评审记录 | 保存多方审查、分歧和处理结论的材料模式 |
-| validation evidence | 验证证据 | 保存可重复命令、环境、结果和验收判断的材料模式 |
+| Records | 记录 | 保存有实质活动的本地日期所对应背景、动作、证据和结论的可选材料模式 |
+| Deep research | 深度调研 | 保存来源、关键主张的证据、冲突、结论边界和未解决问题的可选材料模式 |
+| Iterative design | 迭代设计 | 让每轮大幅改版自包含、只把当前版本作为入口的可选材料模式 |
+| Scratchpad | 草稿纸 | 保存仍需留存、尚未整理定稿的临时普通材料的可选材料模式 |
 
 ## 固定中文形式
 
 - managed：受管
-- scratchpad：临时记事区
+- scratchpad：草稿纸
 - human-readable：人类可读
 - clean cutover：直接切换
 - supported subcommands：支持的子命令

@@ -2,12 +2,14 @@
 
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
+Archived: 2026-09-11
+Reversed by: [Align tk usage patterns](../decision/2026-09-11-align-tk-usage-patterns.md)
 
 English | [中文](./2026-08-29-maintain-tk-documentation.zh.md)
 
 ## Motivation
 
-The [tk product architecture](./2026-08-21-define-tk-product-architecture.md) spans Task files, a Rust runtime, CLI, MCP, native tools, four Harnesses, component lifecycle, Skills, and bilingual public documentation. Repeating the same contract on every page would create conflicting sources. Keeping only implementation code would make behavior and rationale difficult to audit.
+The [tk product architecture](../decision/2026-08-21-define-tk-product-architecture.md) spans Task files, a Rust runtime, CLI, MCP, native tools, four Harnesses, component lifecycle, Skills, and bilingual public documentation. Repeating the same contract on every page would create conflicting sources. Keeping only implementation code would make behavior and rationale difficult to audit.
 
 The repository uses English as its default public language and needs complete Chinese material for maintainer review. The two languages must describe the same product without forcing Chinese into sentence-by-sentence translation.
 
@@ -95,4 +97,4 @@ Documentation now covers multiple Harness payloads, two Harness-independent CLI 
 
 ### 2026-09-07: Define component README navigation
 
-The public documentation set includes the component [English README](../../../projects/tk/README.md) and [Chinese README](../../../projects/tk/README.zh.md). They introduce tk and link to the existing guides and design pages without duplicating detailed commands or normative contracts. The repository README pair links to these component entry pages. Public Markdown counterparts use same-directory `name.md` and `name.zh.md` pairs under the [public documentation decision](./2026-09-07-colocate-bilingual-docs.md); topic ownership remains unchanged.
+The public documentation set includes the component [English README](../../../projects/tk/README.md) and [Chinese README](../../../projects/tk/README.zh.md). They introduce tk and link to the existing guides and design pages without duplicating detailed commands or normative contracts. The repository README pair links to these component entry pages. Public Markdown counterparts use same-directory `name.md` and `name.zh.md` pairs under the [public documentation decision](../decision/2026-09-07-colocate-bilingual-docs.md); topic ownership remains unchanged.

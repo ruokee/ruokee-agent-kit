@@ -2,12 +2,14 @@
 
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
+Archived: 2026-09-11
+Reversed by: [统一 tk 使用模式](../decision/2026-09-11-align-tk-usage-patterns.zh.md)
 
 [English](./2026-08-29-maintain-tk-documentation.md) | 中文
 
 ## 动机
 
-[tk 产品架构](./2026-08-21-define-tk-product-architecture.zh.md)包含 Task 文件、Rust 运行时、CLI、MCP、原生工具、四个 Harness、组件生命周期、Skill 和双语公开文档。在每个页面重复同一合同会产生互相冲突的来源。只保留实现代码又会使行为和理由难以审查。
+[tk 产品架构](../decision/2026-08-21-define-tk-product-architecture.zh.md)包含 Task 文件、Rust 运行时、CLI、MCP、原生工具、四个 Harness、组件生命周期、Skill 和双语公开文档。在每个页面重复同一合同会产生互相冲突的来源。只保留实现代码又会使行为和理由难以审查。
 
 仓库以英文作为默认公开语言，同时需要完整中文材料供维护者直接审阅。两种语言必须描述同一个产品，但不能强迫中文逐句机械翻译。
 
@@ -95,4 +97,4 @@ tk 文档现在引用 `decision/` 下的当前 ADR，不再用 `implemented` 状
 
 ### 2026-09-07：定义组件 README 导航
 
-公开文档集合包括组件[英文 README](../../../projects/tk/README.md) 和[中文 README](../../../projects/tk/README.zh.md)。它们介绍 tk 并链接现有指南和设计页面，不重复详细命令或规范性合同。仓库 README 文件对链接到这些组件入口页。公开 Markdown 文档遵循[公开文档决定](./2026-09-07-colocate-bilingual-docs.zh.md)，采用同目录 `name.md` 和 `name.zh.md` 配对；主题归属保持不变。
+公开文档集合包括组件[英文 README](../../../projects/tk/README.md) 和[中文 README](../../../projects/tk/README.zh.md)。它们介绍 tk 并链接现有指南和设计页面，不重复详细命令或规范性合同。仓库 README 文件对链接到这些组件入口页。公开 Markdown 文档遵循[公开文档决定](../decision/2026-09-07-colocate-bilingual-docs.zh.md)，采用同目录 `name.md` 和 `name.zh.md` 配对；主题归属保持不变。

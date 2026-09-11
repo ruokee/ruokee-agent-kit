@@ -32,7 +32,7 @@ Skill 语言变体保留宿主可发现的组件布局。根据 [Skill 打包决
 
 [英文仓库 README](../../../README.md) 和[中文仓库 README](../../../README.zh.md) 提供语义一致的能力索引与开发说明。它们区分用户触发和 Agent 触发的 Skill，并按适用 Harness 对扩展分组。每个 Skill 条目链接基础版本和中文变体，每个扩展条目链接对应语言的组件 README。
 
-组件 README 文件对介绍能力并链接使用和设计文档。详细命令、参数和规范性行为仍由其所属页面维护。tk README 文件对按照 [tk 文档决定](./2026-08-29-maintain-tk-documentation.zh.md)提供这类导航。
+组件 README 文件对介绍能力并链接使用和设计文档。详细命令、参数和规范性行为仍由其所属页面维护。tk README 文件对按照 [tk 文档决定](./2026-09-11-align-tk-usage-patterns.zh.md)提供这类导航。
 
 不维护独立的 Skill 索引页面、重复的语言目录入口页，也不在被取代的路径保留跳转占位文件。页面移动时修复受影响的入站链接和命令示例。使用[文档相对链接](./2026-08-24-use-document-relative-file-links.zh.md)，并保留[组件自包含](./2026-08-24-keep-components-self-contained.zh.md)要求。
 

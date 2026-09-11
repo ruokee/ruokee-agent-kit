@@ -65,16 +65,15 @@ This glossary includes only terms that have a special meaning in tk, require fix
 
 | Term | Chinese form | Meaning |
 | --- | --- | --- |
-| scratchpad | 临时记事区 | Short-lived ordinary material that is not part of the final deliverable. |
-| research package | 研究材料包 | A material pattern that preserves sources, evidence, the boundaries of conclusions, and unresolved questions. |
-| design revisions | 设计修订 | A material pattern that preserves multiple superseding design iterations and the current entry point. |
-| review records | 评审记录 | A material pattern that preserves multi-party reviews, disagreements, and resolution decisions. |
-| validation evidence | 验证证据 | A material pattern that preserves repeatable commands, environments, results, and acceptance decisions. |
+| Records | 记录 | An optional material pattern that preserves the context, actions, evidence, and conclusions of a local date with substantive activity. |
+| Deep research | 深度调研 | An optional material pattern that preserves sources, evidence for key claims, conflicts, the limits of conclusions, and unresolved points. |
+| Iterative design | 迭代设计 | An optional material pattern that keeps each major design revision self-contained and exposes only the current revision as the entry point. |
+| Scratchpad | 草稿纸 | An optional material pattern for temporary ordinary materials that still need retention and are not yet finalized. |
 
 ## Fixed Chinese forms
 
 - managed: 受管
-- scratchpad: 临时记事区
+- scratchpad: 草稿纸
 - human-readable: 人类可读
 - clean cutover: 直接切换
 - supported subcommands: 支持的子命令

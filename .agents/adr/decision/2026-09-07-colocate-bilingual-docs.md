@@ -32,7 +32,7 @@ Skill language variants retain their host-discoverable component layouts. Englis
 
 The [English repository README](../../../README.md) and [Chinese repository README](../../../README.zh.md) provide equivalent capability indexes and development guidance. They distinguish user-invoked and Agent-invoked Skills and group extensions by Harness applicability. Each Skill entry links to its base and Chinese variant; each extension entry links to the corresponding component README.
 
-Component README pairs introduce the capability and link to its usage and design documentation. Detailed commands, parameters, and normative behavior stay on their owning pages. The tk README pair provides this navigation under the [tk documentation decision](./2026-08-29-maintain-tk-documentation.md).
+Component README pairs introduce the capability and link to its usage and design documentation. Detailed commands, parameters, and normative behavior stay on their owning pages. The tk README pair provides this navigation under the [tk documentation decision](./2026-09-11-align-tk-usage-patterns.md).
 
 Do not maintain separate Skill index pages, duplicate language-directory entry pages, or redirect placeholders at replaced paths. Repair affected inbound links and command examples when pages move. Use [document-relative links](./2026-08-24-use-document-relative-file-links.md) and preserve [component self-containment](./2026-08-24-keep-components-self-contained.md).
 
