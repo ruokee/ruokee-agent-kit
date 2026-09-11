@@ -320,7 +320,7 @@ JSON 结果包含：
 
 ```json
 {
-  "runtime_version": "0.1.2",
+  "runtime_version": "0.1.3",
   "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3
