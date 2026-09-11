@@ -93,8 +93,8 @@ tk read <task_ref>
 默认视图是 `summary`：
 
 - `minimal` 返回元数据和受管路径，不读取正文或 WAL；
-- `summary` 返回完整 Task 正文和不含正文的最近 WAL 条目；
-- `detailed` 返回相同的 Task 信息，并增加 WAL 正文。
+- `summary` 返回完整任务正文和不含正文的最近 WAL 条目；
+- `detailed` 返回相同的任务信息，并增加 WAL 正文。
 
 `--wal-max-entries` 和 `--wal-max-length` 适用于 `summary` 和 `detailed`。未提供参数时，summary 使用 5 条和 4000 字节，detailed 使用 50 条和 16000 字节。显式取值范围为 0 到两种视图共用的上限 50 条和 16000 字节。预算之外的条目会被静默省略。需要完整历史时直接读取 `wal/YYYY-MM-DD.md`。
 
@@ -121,7 +121,7 @@ tk create task <name>
 - `--extra` 接受 JSON 对象。
 - CLI 直接创建代表当前用户请求，因此 `--user-confirmed` 默认是 `true`。其他调用入口不得借用这个默认值伪造确认。
 
-tk 运行时在创建 Task 时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。任务需要持久内容时，只在创建完成后单独写入 `TASK.md`。
+tk 运行时在创建任务时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。任务需要持久内容时，只在创建完成后单独写入 `TASK.md`。
 
 命名、授权和任务字段规则见[任务概念](./task-concept.md)与[项目和存储](./project-storage.md)。
 
@@ -320,7 +320,7 @@ JSON 结果包含：
 
 ```json
 {
-  "runtime_version": "0.1.3",
+  "runtime_version": "0.1.4",
   "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3

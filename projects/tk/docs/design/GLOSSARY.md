@@ -8,7 +8,7 @@ This glossary includes only terms that have a special meaning in tk, require fix
 
 | Term | Chinese form | Meaning |
 | --- | --- | --- |
-| Task | Task | A temporary effort within a project that is worth preserving. Creating a Task does not imply a commitment to execute or complete it. |
+| Task | 任务 | A temporary effort within a project that is worth preserving. Creating a Task does not imply a commitment to execute or complete it. |
 | Harness | Harness | The software environment around a model that enables it to operate as an Agent, including loops, prompts, context, tools, permissions, and hooks. |
 | Skill | Skill | Agent behavior instructions and reference materials discoverable by a Harness. |
 | Plugin | Plugin | A self-contained component form loaded through a Harness's native Plugin mechanism. |
@@ -35,7 +35,7 @@ This glossary includes only terms that have a special meaning in tk, require fix
 
 | Term | Chinese form | Meaning |
 | --- | --- | --- |
-| Task root | Task 根目录 | A configured path within a project that stores a top-level Task tree. |
+| Task root | 任务根目录 | A configured path within a project that stores a top-level Task tree. |
 | metadata mode | 元数据模式 | The project-wide choice of `split` or `embed`. |
 | metadata representation | 元数据表示 | The physical representation of metadata in split `tk.toml` or embed frontmatter. |
 | metadata carrier | 元数据载体 | The managed `tk.toml` or embed `TASK.md` that stores Task metadata. |

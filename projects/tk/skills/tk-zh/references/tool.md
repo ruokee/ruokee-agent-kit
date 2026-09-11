@@ -21,7 +21,7 @@ MCP 使用相同逻辑名称并由服务命名空间区分。Harness 不能增�
 
 `search` 要求非空 `query`。`regex` 和 `search_body` 默认 `false`；`status` 默认全部；`extra` 顶层使用 `AND`；`limit` 默认 20，范围 `1..100`。
 
-`read` 默认 `summary`。`minimal` 返回元数据和受管路径，不读取正文或 WAL。`summary` 返回完整 Task 正文和不含正文的最近 WAL 条目，默认最多 5 条、4000 字节。`detailed` 增加 WAL 正文，默认最多 50 条、16000 字节。显式预算可以在 0 到两种视图共用的上限 50 条、16000 字节之间取值。预算之外的条目会被静默省略。
+`read` 默认 `summary`。`minimal` 返回元数据和受管路径，不读取正文或 WAL。`summary` 返回完整任务正文和不含正文的最近 WAL 条目，默认最多 5 条、4000 字节。`detailed` 增加 WAL 正文，默认最多 50 条、16000 字节。显式预算可以在 0 到两种视图共用的上限 50 条、16000 字节之间取值。预算之外的条目会被静默省略。
 
 `create` 使用 `type=task` 或 `type=subtasks`。工具入口的 `user_confirmed` 默认 `false`，必须反映当前授权。`update` 的 `close`、`reopen` 需要非空 `reason` 和当前确认，`force` 只用于 `close`。空更新或净结果无变化返回 `changed=false`。
 

@@ -15,7 +15,7 @@
 - 两份独立 CLI Skill 载荷只包含 `tk-cli` 或 `tk-cli-zh`，不含 Harness 字段；
 - 四个 Skill 身份与 tools 或 CLI 模式、英文或中文准确对应；
 - CLI 载荷不包含 tk 操作注册，tools 载荷包含所选 Harness 集成；
-- 评审记录和 Task 材料不进入产品产物。
+- 评审记录和任务材料不进入产品产物。
 
 ## 数据模型测试
 
@@ -24,18 +24,18 @@
 - schema 1 的严格解码、稳定编码和正文保留；
 - 未知字段、缺失版本、未知版本、错误类型和受限 YAML；
 - 规范顶层发现和后代的模式专用载体标记；
-- 直接位于父 Task 下的子 Task、配置目录下的子 Task 以及普通材料目录下嵌套的子 Task，父级为最近有效祖先；
+- 直接位于父任务下的子任务、配置目录下的子任务以及普通材料目录下嵌套的子任务，父级为最近有效祖先；
 - 带标记无效载体、符号链接、运行时自有路径、发现上限、重复身份和逻辑同级序号；
 - UUIDv7、生成式名称与路径一致性、关系去重、跨根引用和依赖环；
-- 改变 `subtasks_dir` 后的子 Task 编号、不填补空洞和 `99` 耗尽；
-- 非生成式子 Task 重命名不移动目录，生成式重命名保持序号；
+- 改变 `subtasks_dir` 后的子任务编号、不填补空洞和 `99` 耗尽；
+- 非生成式子任务重命名不移动目录，生成式重命名保持序号；
 - planning、open、closed 转换和关闭约束；
 - strict 与 permissive 创建；
-- create 把 `--body` 作为未知 CLI 参数拒绝，并在 create 请求与子 Task item 上把 `body` 作为未知字段拒绝；
-- 运行时在 split 和 embed 模式创建 Task 时写入恰为 `# <规范化名称>` 的初始正文；
-- 子 Task 重试只匹配 create 拥有的字段，正文被改写后重试返回无变更且不产生重复；
+- create 把 `--body` 作为未知 CLI 参数拒绝，并在 create 请求与子任务 item 上把 `body` 作为未知字段拒绝；
+- 运行时在 split 和 embed 模式创建任务时写入恰为 `# <规范化名称>` 的初始正文；
+- 子任务重试只匹配 create 拥有的字段，正文被改写后重试返回无变更且不产生重复；
 - Git `track`、`ignore` 和 `none` 只在写入前预检；
-- 绝对已发现 Task、载体和材料路径反向定位项目；
+- 绝对已发现任务、载体和材料路径反向定位项目；
 - 非 Git 发现的有界祖先检查。
 
 ## 搜索测试
@@ -44,7 +44,7 @@
 
 - 默认包含 planning、open 和 closed；
 - 显式 status 缩小结果；
-- 完整 UUID、明确 Task 路径、材料路径、regex 和 string 的解释顺序；
+- 完整 UUID、明确任务路径、材料路径、regex 和 string 的解释顺序；
 - 查询类型确定后不回退；
 - 最少 8 位 UUID 前缀；
 - 匹配类别、`created_at` 降序和 ID 升序；
@@ -88,7 +88,7 @@
 - `git_policy=track` 从文件系统扫描项目 Markdown，不受 Git 暂存状态影响；
 - `ignore` 和 `none` 扫描 task_root 普通 Markdown；
 - split 和 embed 正文均参与；
-- closed Task 可以改名和修复，并保持状态；
+- closed 任务可以改名和修复，并保持状态；
 - 仅元数据的 rename 报告引用但不适用路径移动门禁，无变化请求也会报告引用；
 - 工作树中已删除但仍在 Git 索引里的文件不会导致扫描失败，未跟踪文件同样参与；
 - 引用文件不可读时命令显式失败，扫描超过深度或目录上限时以 `reference_scan_limit_exceeded` 停止；
@@ -96,7 +96,7 @@
 - 带引用的 dry-run 成功并返回完整计划；
 - 带引用的路径移动执行在首次写入前以稳定错误码 `broken_reference_conflict`、`conflict` 类别和退出码 3 停止，details 包含 `old_path`、规范化 `new_name`、绝对 `target_path` 和全部引用路径与行号；
 - `--ignore-brokenlinks` 让移动完成，引用文件逐字节保持原样，结果中仍包含引用；
-- 无引用的路径移动正常完成。非生成式子 Task 改名不会移动目录，重复相同 rename 返回无变化；这两种情况都不返回 `broken_reference_conflict`。
+- 无引用的路径移动正常完成。非生成式子任务改名不会移动目录，重复相同 rename 返回无变化；这两种情况都不返回 `broken_reference_conflict`。
 
 ## check 和 GC
 
@@ -109,7 +109,7 @@ GC 测试：
 - 已结束进程内容和标记清理；
 - 路径逃逸、symlink、未知清单和无法证明属于 tk 的内容保留；
 - 开发阶段旧清理格式不解析、不迁移；
-- 不修改 Task、WAL、项目配置或 Harness 配置；
+- 不修改任务、WAL、项目配置或 Harness 配置；
 - 删除错误时报告已删除和未删除项。
 
 ## 工具和 CLI
@@ -123,7 +123,7 @@ CLI 测试覆盖：
 - 当前退出码映射；
 - actor 只出现在 update、log 和 rename；
 - search 全部默认状态；
-- init force 不读取 Task 数据；
+- init force 不读取任务数据；
 - Harness install 默认 tools 模式和英文，接受全部模式与语言值，并报告最终 Skill；
 - 自定义根目录 install 要求显式 CLI 模式，并拒绝 tools 模式；
 - install 与 uninstall 必须且只能选择 Harness 或 Skill 根目录；
@@ -185,7 +185,7 @@ Pi 和 OMP 的单元与进程测试覆盖：
 
 ## Skill 和文档
 
-Skill 场景覆盖 strict/permissive 创建、planning/open 选择、Task 解析、catchup、WAL、人工修复授权、close/reopen、四种材料模式、tools 路由不通过直接 CLI 重试，以及 CLI-only 命令使用。四个 Skill 身份必须呈现相同的模式语义，且每个 Skill 组件保持自包含。
+Skill 场景覆盖 strict/permissive 创建、planning/open 选择、任务解析、catchup、WAL、人工修复授权、close/reopen、四种材料模式、tools 路由不通过直接 CLI 重试，以及 CLI-only 命令使用。四个 Skill 身份必须呈现相同的模式语义，且每个 Skill 组件保持自包含。
 
 四种模式共通：建议以已经出现的信号为前提，并说明模式会增加什么、需要维护什么；用户采用后才在 `TASK.md` 中声明。反例只排除主动建议；用户明确请求采用某种模式时该请求本身就是授权，不受反例阻拦。
 
@@ -196,7 +196,7 @@ Skill 场景覆盖 strict/permissive 创建、planning/open 选择、Task 解析
 - 迭代设计：新的大幅改版开启下一轮，普通修正留在当前版本；每轮自包含，被替代的版本保留内容，`TASK.md` 只暴露一个当前设计入口。
 - 草稿纸：无需留存的简短问答不建立材料；临时内容留存，稳定内容整理到普通材料，失效内容保持可区分；没有删除或移动材料的授权时不执行清理。
 
-采用模式不增加元数据、schema、`extra`、状态或命令，也不扩大 Task 创建或生命周期授权。项目已有布局可以覆盖默认目录。任何场景都不要求创建空材料。
+采用模式不增加元数据、schema、`extra`、状态或命令，也不扩大任务创建或生命周期授权。项目已有布局可以覆盖默认目录。任何场景都不要求创建空材料。
 
 Markdown 与 Rust 基线检查不能单独证明 Agent 行为；模式通过安装候选 Skill 后的 Harness 场景核验。
 

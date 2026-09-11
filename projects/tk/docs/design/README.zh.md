@@ -2,14 +2,14 @@
 
 [English](./README.md)
 
-这些页面定义 tk 当前的公开合同，只描述现行行为。评审历史、Task 本地材料和未发布的替代设计不进入公开文档。
+这些页面定义 tk 当前的公开合同，只描述现行行为。评审历史、任务本地材料和未发布的替代设计不进入公开文档。
 
 [用户指南](../guide.zh.md)介绍安装和日常使用。[CLI 参考](./cli-reference.zh.md)统一定义命令语法、选项、默认值和退出状态。
 
 ## 架构与数据
 
-- [系统架构](./system.zh.md)定义产品范围、系统组成、Task 与 Harness 边界和全局不变量。
-- [数据模型与持久化](./data-model.zh.md)定义 Task schema、表示、发现、WAL、写入、迁移、rename、清理和 check 行为。
+- [系统架构](./system.zh.md)定义产品范围、系统组成、任务与 Harness 边界和全局不变量。
+- [数据模型与持久化](./data-model.zh.md)定义任务 schema、表示、发现、WAL、写入、迁移、rename、清理和 check 行为。
 - [运行时架构](./runtime.zh.md)定义分层、进程、请求上下文、失败边界、适配器和版本维度。
 
 ## 接口
@@ -21,7 +21,7 @@
 ## 安装与 Agent 行为
 
 - [安装](./installation.zh.md)定义内嵌组件、安装、更新、干净卸载和兼容性。
-- [Skill 行为](./skill.zh.md)定义 Agent 何时使用 tk、授权、Task 导航、WAL 记录和材料组织。
+- [Skill 行为](./skill.zh.md)定义 Agent 何时使用 tk、授权、任务导航、WAL 记录和材料组织。
 
 ## 维护
 

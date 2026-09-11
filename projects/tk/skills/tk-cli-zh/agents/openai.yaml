@@ -1,4 +1,4 @@
 interface:
   display_name: "tk-cli-zh"
-  short_description: "通过 tk CLI 管理项目中的持久 Task"
-  default_prompt: "使用 $tk-cli-zh 恢复并继续当前项目中的持久 Task。"
+  short_description: "通过 tk CLI 管理项目中的持久任务"
+  default_prompt: "使用 $tk-cli-zh 恢复并继续当前项目中的持久任务。"

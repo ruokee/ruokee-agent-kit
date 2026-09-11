@@ -22,7 +22,7 @@ Linux 运行时仍是位于 `$HOME/.local/bin/tk`、具有 Unix 执行位的一�
 
 每个 Harness 组件项记录 Harness、模式、语言、Skill 身份、`runtime_compat`、载荷路径、文件类型、Unix 权限和摘要。每个 `cli_skills` 条目记录语言、Skill 身份、`runtime_compat`、载荷路径、文件类型、Unix 权限和摘要，不含 Harness 字段。清单在顶层只记录一次 runtime version 和 `source_revision`。组件格式版本 3 负责这套 schema。
 
-tools 载荷包含 `tk` 或 `tk-zh`，以及所选 Harness 集成。Harness CLI 载荷包含 `tk-cli` 或 `tk-cli-zh`，以及该 Harness 加载 Skill 所需的原生 manifest。与 Harness 无关的 CLI 载荷只包含所选自包含 Skill。载荷不包含 runtime 副本、其他组件文件、评审记录、Task 材料或产品源码。
+tools 载荷包含 `tk` 或 `tk-zh`，以及所选 Harness 集成。Harness CLI 载荷包含 `tk-cli` 或 `tk-cli-zh`，以及该 Harness 加载 Skill 所需的原生 manifest。与 Harness 无关的 CLI 载荷只包含所选自包含 Skill。载荷不包含 runtime 副本、其他组件文件、评审记录、任务材料或产品源码。
 
 ### 公开生命周期
 

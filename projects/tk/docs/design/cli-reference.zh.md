@@ -74,9 +74,9 @@ tk search <query>
 
 | 参数 | 默认值 | 合同 |
 | --- | --- | --- |
-| `<query>` | 必填 | UUID、Task 路径、材料路径、名称或文本 |
+| `<query>` | 必填 | UUID、任务路径、材料路径、名称或文本 |
 | `--regex` | false | 显式把普通文本解释为 Rust 正则表达式 |
-| `--search-body` | false | 文本或正则匹配时包含 Task 正文 |
+| `--search-body` | false | 文本或正则匹配时包含任务正文 |
 | `--status` | 全部状态 | 可重复；非空集合缩小结果 |
 | `--extra` | `{}` | JSON 对象，顶层条目以 AND 组合 |
 | `--limit` | 20 | 1 到 100 |
@@ -99,9 +99,9 @@ tk read <task_ref>
   [global-options]
 ```
 
-默认视图是 `summary`。`minimal` 返回元数据和受管路径，不读取 Task 正文或 WAL。`summary` 返回完整 Task 正文和不含正文的最近 WAL 条目。`detailed` 增加 WAL 条目正文。
+默认视图是 `summary`。`minimal` 返回元数据和受管路径，不读取任务正文或 WAL。`summary` 返回完整任务正文和不含正文的最近 WAL 条目。`detailed` 增加 WAL 条目正文。
 
-WAL 预算适用于 `summary` 和 `detailed`。未提供参数时，`summary` 使用 5 条和 4000 字节，`detailed` 使用 50 条和 16000 字节。调用方可以调低任一预算，也可以把 summary 请求调高到两种视图共用的上限 50 条和 16000 字节。返回结果静默省略所选预算之外的更早条目。精确引用与预算规则见[工具 API](./tool-api.zh.md#精确-task-引用)。
+WAL 预算适用于 `summary` 和 `detailed`。未提供参数时，`summary` 使用 5 条和 4000 字节，`detailed` 使用 50 条和 16000 字节。调用方可以调低任一预算，也可以把 summary 请求调高到两种视图共用的上限 50 条和 16000 字节。返回结果静默省略所选预算之外的更早条目。精确引用与预算规则见[工具 API](./tool-api.zh.md#精确任务引用)。
 
 ## `tk create task`
 
@@ -117,7 +117,7 @@ tk create task <name>
 
 默认状态是 open。CLI 直接创建表示用户当前明确请求，因此 `--user-confirmed` 默认为 true。调用方不得用该默认值伪造其他传输中的用户确认。
 
-运行时在创建 Task 时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。create 不接受正文输入；任务需要持久内容时，在创建完成后单独写入 `TASK.md`。
+运行时在创建任务时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。create 不接受正文输入；任务需要持久内容时，在创建完成后单独写入 `TASK.md`。
 
 ## `tk create subtask`
 
@@ -128,7 +128,7 @@ tk create subtask <parent_ref>
   [global-options]
 ```
 
-每个 item 包含 `name` 及可选的 `status`、`created_at`、关系和 `extra`。item 不接受正文；每个创建的 Task 都以生成的规范化名称标题开头。一次接受 1 到 50 项。批次全部预检后按输入顺序创建。直接通过 CLI 创建时，`--user-confirmed` 默认为 true。其他传输必须传入当前授权状态，创建 planning 子 Task 需要确认。
+每个 item 包含 `name` 及可选的 `status`、`created_at`、关系和 `extra`。item 不接受正文；每个创建的任务都以生成的规范化名称标题开头。一次接受 1 到 50 项。批次全部预检后按输入顺序创建。直接通过 CLI 创建时，`--user-confirmed` 默认为 true。其他传输必须传入当前授权状态，创建 planning 子任务需要确认。
 
 ## `tk update`
 
@@ -153,7 +153,7 @@ tk log <task_ref> --message <text>
   [global-options]
 ```
 
-message 是非空单行文本。actor 默认为 `cli`。closed Task 拒绝日志写入。
+message 是非空单行文本。actor 默认为 `cli`。closed 任务拒绝日志写入。
 
 ## `tk init`
 
@@ -166,7 +166,7 @@ tk init
   [--force] [global-options]
 ```
 
-普通 init 拒绝已初始化项目。`--force` 使用显式值和默认值重写稀疏项目配置，即使原配置无法解析。它不读取或修改 Task 数据。
+普通 init 拒绝已初始化项目。`--force` 使用显式值和默认值重写稀疏项目配置，即使原配置无法解析。它不读取或修改任务数据。
 
 ## `tk check`
 
@@ -176,7 +176,7 @@ tk check [global-options]
 
 无问题时退出 0。完整读取后发现阻塞诊断时返回 `check_failed` 并退出 3。必要 I/O 失败时立即返回 `check_incomplete` 并退出 4，不继续扫描。
 
-check 不修复文件。损坏的 `tk.toml` 只有在 tk 无法表达修复、Agent 已说明具体编辑且用户当前明确授权后，才允许人工修复。修复后再次运行 check，并在 Task 可用时记录 WAL。
+check 不修复文件。损坏的 `tk.toml` 只有在 tk 无法表达修复、Agent 已说明具体编辑且用户当前明确授权后，才允许人工修复。修复后再次运行 check，并在任务可用时记录 WAL。
 
 ## `tk rename`
 
@@ -186,9 +186,9 @@ tk rename <task_ref> <name>
   [global-options]
 ```
 
-rename 只修改 Task 本身，closed Task 同样适用且保持其状态。它也修复已有字符串名称不规范、为空、规范化后为空或过宽的问题，以及与元数据不一致但结构可识别的生成式后缀。普通发现因旧名称拒绝目标时，完整 UUID、精确 Task 目录和精确受管载体仍可定位符合条件的修复对象。其他元数据、身份、路径、生命周期、策略和冲突校验保持严格。生成式子 Task 和顶层 Task 的 slug 改变时移动目录，非生成式子 Task 保持目录不变。dry-run 和执行都返回原始旧名称、解析出的父级和 Markdown 引用，不改写引用。名称及其适用路径已经匹配时，重复请求返回无变化。actor 默认为 `cli`。
+rename 只修改任务本身，closed 任务同样适用且保持其状态。它也修复已有字符串名称不规范、为空、规范化后为空或过宽的问题，以及与元数据不一致但结构可识别的生成式后缀。普通发现因旧名称拒绝目标时，完整 UUID、精确任务目录和精确受管载体仍可定位符合条件的修复对象。其他元数据、身份、路径、生命周期、策略和冲突校验保持严格。生成式子任务和顶层任务的 slug 改变时移动目录，非生成式子任务保持目录不变。dry-run 和执行都返回原始旧名称、解析出的父级和 Markdown 引用，不改写引用。名称及其适用路径已经匹配时，重复请求返回无变化。actor 默认为 `cli`。
 
-dry-run 文本显示 `Old path:`、规范化名称 `New name:` 和绝对目标路径 `Target path:`。每个执行结果都显示目标路径，无变化的结果先输出 `No changes` 再输出 `Target path:`。存在旧路径引用时，文本追加 `References to the old path:` 列表，每个引用以 `path:line` 表示；没有引用时不输出该列表。dry-run 在生成合法计划后始终成功。执行会移动 Task 路径且存在旧路径引用时，在首次写入前以稳定错误码 `broken_reference_conflict`（`conflict` 类别、退出码 3）停止；错误显示目标路径和每个引用及其行号。`--ignore-brokenlinks` 允许此次移动继续进行。引用文件保持原样，结果中仍会报告它们。
+dry-run 文本显示 `Old path:`、规范化名称 `New name:` 和绝对目标路径 `Target path:`。每个执行结果都显示目标路径，无变化的结果先输出 `No changes` 再输出 `Target path:`。存在旧路径引用时，文本追加 `References to the old path:` 列表，每个引用以 `path:line` 表示；没有引用时不输出该列表。dry-run 在生成合法计划后始终成功。执行会移动任务路径且存在旧路径引用时，在首次写入前以稳定错误码 `broken_reference_conflict`（`conflict` 类别、退出码 3）停止；错误显示目标路径和每个引用及其行号。`--ignore-brokenlinks` 允许此次移动继续进行。引用文件保持原样，结果中仍会报告它们。
 
 ## `tk gc`
 
@@ -196,7 +196,7 @@ dry-run 文本显示 `Old path:`、规范化名称 `New name:` 和绝对目标�
 tk gc [--dry-run] [global-options]
 ```
 
-GC 清理操作进程退出后留下的 tk 临时路径和活动操作标记。它不继续、回滚或完成 Task、迁移、rename 或组件操作。遇到删除 I/O 错误时停止并列出已删除和未删除路径。
+GC 清理操作进程退出后留下的 tk 临时路径和活动操作标记。它不继续、回滚或完成任务、迁移、rename 或组件操作。遇到删除 I/O 错误时停止并列出已删除和未删除路径。
 
 ## `tk schema generate`
 
@@ -216,7 +216,7 @@ tk metadata migrate
   [global-options]
 ```
 
-未指定 file 时选择当前项目全部已发现载体。指定值必须是当前项目中属于已发现 Task 的受管 `tk.toml` 或 embed `TASK.md`，不接受目录、Task ID、材料路径或 glob。
+未指定 file 时选择当前项目全部已发现载体。指定值必须是当前项目中属于已发现任务的受管 `tk.toml` 或 embed `TASK.md`，不接受目录、任务 ID、材料路径或 glob。
 
 迁移只向前执行正式发布的逐级转换。全部目标预检后按确定顺序提交。失败结果列出完成和未完成文件，不提供降级、回滚或续跑状态。
 
@@ -227,7 +227,7 @@ tk metadata switch --to <split|embed>
   [--dry-run] [global-options]
 ```
 
-命令切换项目中的全部已发现 Task。全部 Task 预检后按确定顺序提交，最后更新项目配置。失败结果列出完成和未完成 Task。
+命令切换项目中的全部已发现任务。全部任务预检后按确定顺序提交，最后更新项目配置。失败结果列出完成和未完成任务。
 
 ## `tk mcp`
 
@@ -283,7 +283,7 @@ tk <command> <subcommand> --help
 
 ```json
 {
-  "runtime_version": "0.1.3",
+  "runtime_version": "0.1.4",
   "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3

@@ -8,7 +8,7 @@
 
 | 术语 | 中文形式 | 含义 |
 | --- | --- | --- |
-| Task | Task | 值得持久保存的项目内临时性努力，不要求创建时已经承诺执行或完成 |
+| Task | 任务 | 值得持久保存的项目内临时性努力，不要求创建时已经承诺执行或完成 |
 | Harness | Harness | 围绕模型、使模型能够作为 Agent 运行的软件环境，包括循环、提示、上下文、工具、权限和 hooks |
 | Skill | Skill | Harness 可发现的 Agent 行为说明和参考材料 |
 | Plugin | Plugin | 由 Harness 原生 Plugin 机制加载的自包含组件形式 |
@@ -26,28 +26,28 @@
 | protocol tool name | 协议工具名称 | MCP 命名空间内的工具名称 |
 | native tool name | 原生工具名称 | Pi 或 OMP 注册的 `tk_*` 工具名称 |
 | schema type | schema 类型 | 生成工具合同时选择的 `mcp` 或 `native` |
-| exact resolution | 精确解析 | 不使用搜索排名，把完整引用解析为恰好一个 Task |
+| exact resolution | 精确解析 | 不使用搜索排名，把完整引用解析为恰好一个任务 |
 | actor | 发起者 | WAL 的调用归因信息，不表示身份、授权或任务分配 |
 | result envelope | 统一结果 | 包含 `ok`、`data`、`warnings` 或 `error` 的结构化结果 |
 | error code | 错误码 | 用于机器分支的稳定 `code` 值 |
 
-## Task 数据
+## 任务数据
 
 | 术语 | 中文形式 | 含义 |
 | --- | --- | --- |
-| Task root | Task 根目录 | 一个项目内保存顶层 Task 树的配置路径 |
+| Task root | 任务根目录 | 一个项目内保存顶层任务树的配置路径 |
 | metadata mode | 元数据模式 | 项目统一选择的 `split` 或 `embed` |
 | metadata representation | 元数据表示 | 元数据在 split `tk.toml` 或 embed frontmatter 中的物理表达 |
-| metadata carrier | 元数据载体 | 保存 Task 元数据的受管 `tk.toml` 或 embed `TASK.md` |
+| metadata carrier | 元数据载体 | 保存任务元数据的受管 `tk.toml` 或 embed `TASK.md` |
 | frontmatter | frontmatter | embed `TASK.md` 开头的受限 YAML 元数据块 |
 | managed file | 受管文件 | tk 对格式和变更规则具有规范权的项目文件 |
-| material | 材料 | 支持 Task 的普通文件，不由运行时建立索引 |
+| material | 材料 | 支持任务的普通文件，不由运行时建立索引 |
 | lifecycle | 生命周期 | planning、open 和 closed 的含义及转换规则 |
 | relation | 关系 | `depends_on` 或 `related_to` |
 | WAL | WAL | 按日保存的普通、仅追加 Markdown 活动记录 |
 | schema migration | schema 迁移 | 从一个正式发布的元数据版本逐级向前转换 |
 | representation switch | 表示切换 | 在整个项目范围内转换 split 和 embed |
-| rename | 重命名 | 修改 Task 自身名称、目录和元数据，并报告外部引用 |
+| rename | 重命名 | 修改任务自身名称、目录和元数据，并报告外部引用 |
 
 ## 操作和维护
 

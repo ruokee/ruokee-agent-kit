@@ -32,7 +32,7 @@ peer dependency 与运行时激活不以特定 OMP 版本为条件。固定的 d
 
 ### 配置 `renderDelivery`
 
-在 `omp.settings` 中将 `renderDelivery` 声明为 boolean，默认值为 `true`。每个受覆盖 turn 都通过公开的 `getPluginSettings(packageName, ctx.cwd)` API 读取当前 `ctx.cwd` 的有效值。只有确切的 boolean `false` 才省略完整的末尾 `# Delivery` 章节，包括 Task scope、Completion、Evidence 和 Pausing。`true` 或未配置时保留该章节。
+在 `omp.settings` 中将 `renderDelivery` 声明为 boolean，默认值为 `true`。每个受覆盖 turn 都通过公开的 `getPluginSettings(packageName, ctx.cwd)` API 读取当前 `ctx.cwd` 的有效值。只有确切的 boolean `false` 才省略完整的末尾 `# Delivery` 章节，包括任务 scope、Completion、Evidence 和 Pausing。`true` 或未配置时保留该章节。
 
 设置读取失败或值不是 boolean 时使用 `true`，按会话及原因去重报告有界设置诊断，并让请求继续。不得直接解析 OMP 配置文件，也不得增加另一套配置来源。
 

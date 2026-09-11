@@ -10,13 +10,13 @@ Reverses: [集成 tk 与 Harness](../archived/2026-08-28-integrate-tk-with-harne
 
 Codex、Claude Code、Pi 和 OMP 使用不同的注册与加载 API，但需要共享一套逻辑操作合同。集成必须在注册前拒绝不兼容运行时，也不能在 tk 加载失败时终止所在的 Agent 会话。
 
-tools 模式还需要为已覆盖的 Task 操作确定唯一入口。逻辑操作被拒绝或失败后直接通过 CLI 重试会绕过所选集成，也可能用不同传输行为重复写请求。
+tools 模式还需要为已覆盖的任务操作确定唯一入口。逻辑操作被拒绝或失败后直接通过 CLI 重试会绕过所选集成，也可能用不同传输行为重复写请求。
 
 ## 决定
 
 tk 定义六项与传输无关的逻辑操作：search、read、create、update、log 和 exec。MCP 在 `tk` 命名空间暴露这些操作。Pi 和 OMP 注册 `tk_search`、`tk_read`、`tk_create`、`tk_update`、`tk_log` 和 `tk_exec`。
 
-Rust 从同一组请求类型生成 MCP 和原生 JSON schema。Harness 适配器只处理上下文与传输映射，不重复 Task 验证、存储规则、搜索排序、迁移、安装或语义版本范围解析。
+Rust 从同一组请求类型生成 MCP 和原生 JSON schema。Harness 适配器只处理上下文与传输映射，不重复任务验证、存储规则、搜索排序、迁移、安装或语义版本范围解析。
 
 `tk` 和 `tk-zh` tools Skill 对已覆盖请求使用逻辑 search、read、create、update 和 log。逻辑操作缺失、拒绝请求或执行失败时，Agent 报告集成或传输故障，不通过直接 CLI 重试。exec 保持受控的公开 CLI 代理，只支持 version、init、check 和 rename。
 

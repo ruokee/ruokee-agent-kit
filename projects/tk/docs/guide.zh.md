@@ -2,9 +2,9 @@
 
 [English](./guide.md)
 
-tk 使用普通项目文件保存持久 Task，并通过 CLI、MCP 服务器以及 Pi 和 OMP 原生工具执行同一套规则。
+tk 使用普通项目文件保存持久任务，并通过 CLI、MCP 服务器以及 Pi 和 OMP 原生工具执行同一套规则。
 
-Task 是值得持久保存的项目内临时性努力。创建 Task 不代表已经承诺执行或完成。
+任务是值得持久保存的项目内临时性努力。创建任务不代表已经承诺执行或完成。
 
 ## 安装运行时
 
@@ -66,17 +66,17 @@ tk install --mode cli --skill-root .agents/skills --language zh --dry-run --outp
 tk init
 ```
 
-默认使用 `.tk` 作为 Task 根目录，顶层创建采用 strict，元数据使用 split，不执行 Git 策略检查。只需传入与默认值不同的选项：
+默认使用 `.tk` 作为任务根目录，顶层创建采用 strict，元数据使用 split，不执行 Git 策略检查。只需传入与默认值不同的选项：
 
 ```sh
 tk init --creation-policy permissive --metadata-mode embed
 ```
 
-旧配置无法解析时，`init --force` 仍会根据本次显式参数和默认值重写项目配置。它不读取或修改 Task 数据。
+旧配置无法解析时，`init --force` 仍会根据本次显式参数和默认值重写项目配置。它不读取或修改任务数据。
 
-## 创建和查找 Task
+## 创建和查找任务
 
-创建顶层 Task：
+创建顶层任务：
 
 ```sh
 tk create task "调查启动延迟"
@@ -84,7 +84,7 @@ tk create task "调查启动延迟"
 
 CLI 创建本身就是用户明确操作，因此 strict 项目把它视为已确认。Agent 通过 MCP 或原生工具创建时，必须传入当前对话中真实的授权状态。
 
-tk 创建 Task 时，运行时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。创建完成后可用普通文件工具扩展正文；create 命令和 create 工具不接受正文输入。
+tk 创建任务时，运行时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。创建完成后可用普通文件工具扩展正文；create 命令和 create 工具不接受正文输入。
 
 search 默认包含 planning、open 和 closed：
 
@@ -95,7 +95,7 @@ tk search ./notes/benchmark.md
 tk search 'startup|cold' --regex --search-body --output json
 ```
 
-使用唯一 Task 引用读取：
+使用唯一任务引用读取：
 
 ```sh
 tk read <task_ref>
@@ -104,9 +104,9 @@ tk read <task_ref> --view detailed --wal-max-entries 50 --wal-max-length 16000
 
 名称、UUID 前缀、文本和材料路径属于 search 输入，不是精确引用。read 和 update 应使用 search 返回的完整引用。
 
-## 处理 Task
+## 处理任务
 
-在同一个父 Task 下创建子工作项：
+在同一个父任务下创建子工作项：
 
 ```sh
 tk create subtask <parent_ref> \
@@ -153,16 +153,16 @@ tk metadata switch --to embed --dry-run
 tk metadata switch --to embed
 ```
 
-重命名 Task 并查看引用，但不自动改写引用：
+重命名任务并查看引用，但不自动改写引用：
 
 ```sh
 tk rename <task_ref> "新名称" --dry-run
 tk rename <task_ref> "新名称"
 ```
 
-移动 Task 路径的 rename 在存在旧路径引用时以退出码 3 停止。更新报告中的引用后，再重新执行 rename。如果明确接受断链风险并继续移动，加上 `--ignore-brokenlinks`。
+移动任务路径的 rename 在存在旧路径引用时以退出码 3 停止。更新报告中的引用后，再重新执行 rename。如果明确接受断链风险并继续移动，加上 `--ignore-brokenlinks`。
 
-同一命令也能修复 split 和 embed 中符合范围的旧字符串名称及可识别生成式后缀不一致问题。使用完整 UUID、精确 Task 目录或精确受管载体；其他受管数据校验保持严格。closed Task 同样可以改名或修复，并保持其状态。
+同一命令也能修复 split 和 embed 中符合范围的旧字符串名称及可识别生成式后缀不一致问题。使用完整 UUID、精确任务目录或精确受管载体；其他受管数据校验保持严格。closed 任务同样可以改名或修复，并保持其状态。
 
 清理已结束 tk 进程留下的临时内容：
 
@@ -171,7 +171,7 @@ tk gc --dry-run
 tk gc
 ```
 
-GC 只删除已登记的 tk 临时路径，不继续、回滚或修复 Task、迁移、rename 或组件操作。
+GC 只删除已登记的 tk 临时路径，不继续、回滚或修复任务、迁移、rename 或组件操作。
 
 多目标命令失败时会报告已完成项和未完成项。发起新的完整命令前，先 read 或 check 当前状态。tk 不保留续跑令牌，也不维护自动回滚状态。
 

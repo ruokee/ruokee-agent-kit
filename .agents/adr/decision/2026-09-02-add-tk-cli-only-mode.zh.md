@@ -7,13 +7,13 @@ Draft writer: OMP GPT-5.6 Sol, Ruokee
 
 ## 动机
 
-同一份 Skill 同时教授逻辑操作和公开 CLI 时，Agent 可以用两条合法路径完成同一项 Task 操作。后续选择可能跟随先前调用，而不是当前安装的集成合同。
+同一份 Skill 同时教授逻辑操作和公开 CLI 时，Agent 可以用两条合法路径完成同一项任务操作。后续选择可能跟随先前调用，而不是当前安装的集成合同。
 
-部分安装还需要 Task 指导，但不需要操作注册或适配器上下文。这个需求应由独立 Skill 身份表达，而不是在 tools Skill 中加入条件化说明。
+部分安装还需要任务指导，但不需要操作注册或适配器上下文。这个需求应由独立 Skill 身份表达，而不是在 tools Skill 中加入条件化说明。
 
 ## 决定
 
-tk 通过自包含的 `tk-cli` 和 `tk-cli-zh` Skill 提供纯 CLI 模式。这两份 Skill 的所有 Task 操作都使用公开 `tk` CLI。
+tk 通过自包含的 `tk-cli` 和 `tk-cli-zh` Skill 提供纯 CLI 模式。这两份 Skill 的所有任务操作都使用公开 `tk` CLI。
 
 纯 CLI Skill 正文不包含逻辑操作名称、发现说明、入口比较、工具失败处理、回退行为，也不假定另一种入口不存在。每份 Skill 都包含本语言使用所需的完整现行 CLI 指导。
 
