@@ -103,13 +103,9 @@ export function activate(
 ): void {
   const loggerWarn = (message: string) => pi.logger.warn(message);
 
-  // Session-level dedup: one tracker for the whole activation. The sink
-  // is re-resolved at report time so the channel matches the session the
-  // failing turn ran in (interactive notify vs file logger).
-  let currentSink: () => DiagnosticSink = () => ({ report: loggerWarn });
-  const tracker = new DiagnosticTracker(SCOPE, {
-    report: (message: string) => currentSink().report(message),
-  });
+  // Preserve deduplication when returning to a session. Each turn gets its
+  // own sink so an overlapping turn cannot redirect another's diagnostic.
+  const seenBySession: Record<string, Set<string>> = Object.create(null);
 
   // Activation-time failures still register the turn handler: the session
   // channel is only known from the event context, and the diagnostic is
@@ -123,7 +119,8 @@ export function activate(
   const readSettings = host.getPluginSettings ?? getPublicPluginSettings;
 
   pi.on("before_agent_start", async (event: BeforeAgentStartEvent, ctx: ExtensionContext) => {
-    currentSink = () => sinkFor(ctx, loggerWarn);
+    const seen = (seenBySession[ctx.sessionManager.getSessionId()] ??= new Set<string>());
+    const tracker = new DiagnosticTracker(SCOPE, sinkFor(ctx, loggerWarn), seen);
     if (fatal) {
       tracker.report(fatal.reason, fatal.target);
       return undefined;

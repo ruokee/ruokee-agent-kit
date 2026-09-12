@@ -30,6 +30,8 @@ Host 在 `session_start` 读取一个文件：
 
 `agentDir` 使用 `@oh-my-pi/pi-coding-agent` 导出的 `getAgentDir()` 取得，因此配置跟随当前 OMP profile。不支持热加载，修改在下一个 OMP 会话生效。
 
+在同一进程中新建、恢复或分叉会话时会重新读取配置。旧 Host 完成停止后，新 Host 才绑定数据源并挂载 Widget。关闭会话也会中断尚未完成的 Provider 启动。
+
 完整示例：
 
 ```yaml

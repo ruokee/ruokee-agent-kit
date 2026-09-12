@@ -22,13 +22,13 @@
  * resolver from the env before the factory runs.
  */
 
-import { afterAll, describe, test, expect } from "bun:test";
+import { afterAll, describe, test, expect, spyOn } from "bun:test";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { registerProvider, type ProviderInstanceContext } from "../src/provider-api.ts";
 import { resetProviderRegistryForTests } from "../src/registry.ts";
-import { resetSnapshotStoreForTests } from "../src/snapshot-store.ts";
+import { getSnapshotStore, resetSnapshotStoreForTests } from "../src/snapshot-store.ts";
 import factory from "../src/extension.ts";
 
 // One agent dir per test file: the pi dirs module caches the agent dir on
@@ -202,6 +202,12 @@ class ExtensionHarness {
   async emitStart(): Promise<void> {
     for (const handler of this.handlers["session_start"] ?? []) {
       await handler({}, this.#ctx);
+    }
+  }
+
+  async emitSwitch(reason: "new" | "resume" | "fork"): Promise<void> {
+    for (const handler of this.handlers["session_switch"] ?? []) {
+      await handler({ type: "session_switch", reason, previousSessionFile: "/tmp/previous-session.jsonl" }, this.#ctx);
     }
   }
 
@@ -518,4 +524,145 @@ describe("extension entry lifecycle", () => {
       h.dispose();
     }
   });
+
+  test("new, resumed, and forked sessions reload configuration without leaking hosts", async () => {
+    resetProviderRegistryForTests();
+    resetSnapshotStoreForTests();
+    let starts = 0;
+    let stops = 0;
+    registerProvider({
+      id: "session-probe",
+      contractVersion: 1,
+      describe: () => ({}),
+      create: (context) => ({
+        start: () => {
+          context.publish({ spans: [{ text: `instance-${++starts}` }] });
+        },
+        stop: () => {
+          stops++;
+        },
+      }),
+    });
+    const probeConfig = "version: 1\nstatuses:\n  - id: session-probe\n";
+    const h = new ExtensionHarness(probeConfig);
+    const line = () => {
+      // The harness captures the real in-process Host widget.
+      const component = h.mountWidget() as { render(width: number): string[] };
+      return component.render(120).join("");
+    };
+    try {
+      await h.activate();
+      await h.emitStart();
+      expect(line()).toContain("instance-1");
+      writeFileSync(path.join(h.agentDir, "omp-status-bar.yml"), "version: 1\nstatuses:\n  - id: context\n");
+      await h.emitSwitch("new");
+      expect(line()).toContain("ctx 42%");
+      expect(stops).toBe(1);
+      expect(h.intervals.filter((timer) => !timer.clearCalled)).toHaveLength(1);
+      writeFileSync(path.join(h.agentDir, "omp-status-bar.yml"), probeConfig);
+      await h.emitSwitch("resume");
+      expect(line()).toContain("instance-2");
+      expect(h.intervals.every((timer) => timer.clearCalled)).toBe(true);
+      await h.emitSwitch("fork");
+      expect(line()).toContain("instance-3");
+      expect(h.widgetFactories).toHaveLength(1);
+      await h.emitShutdown();
+      expect(stops).toBe(3);
+      expect(h.widgetFactories).toHaveLength(0);
+    } finally {
+      await h.emitShutdown();
+      h.dispose();
+    }
+  });
+
+  test("serializes switching and shutdown behind a slow provider stop", async () => {
+    resetProviderRegistryForTests();
+    resetSnapshotStoreForTests();
+    let release!: () => void;
+    let signalStopping!: () => void;
+    const blocked = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const stopping = new Promise<void>((resolve) => {
+      signalStopping = resolve;
+    });
+    registerProvider({
+      id: "slow-session-stop",
+      contractVersion: 1,
+      describe: () => ({}),
+      create: () => ({
+        start() {},
+        async stop() {
+          signalStopping();
+          await blocked;
+        },
+      }),
+    });
+    const h = new ExtensionHarness("version: 1\nstatuses:\n  - id: slow-session-stop\n");
+    const unbind = spyOn(getSnapshotStore(), "unbind");
+    try {
+      await h.activate();
+      await h.emitStart();
+      unbind.mockClear();
+      writeFileSync(path.join(h.agentDir, "omp-status-bar.yml"), "version: 1\nstatuses:\n  - id: context\n");
+      const switching = h.emitSwitch("new");
+      const shutdown = h.emitShutdown();
+      await stopping;
+      expect(unbind).not.toHaveBeenCalled();
+      expect(h.widgetFactories).toHaveLength(1);
+      release();
+      await Promise.all([switching, shutdown]);
+      expect(unbind).toHaveBeenCalledTimes(1);
+      expect(h.widgetFactories).toHaveLength(0);
+      expect(h.intervals.every((timer) => timer.clearCalled)).toBe(true);
+      await h.emitStart();
+      h.setMetrics(71, 5000, 0.1);
+      for (const timer of h.intervals.filter((timer) => !timer.clearCalled)) timer.callback();
+      const component = h.mountWidget() as { render(width: number): string[] };
+      expect(component.render(120).join("")).toContain("ctx 71%");
+      expect(h.widgetFactories).toHaveLength(1);
+    } finally {
+      release();
+      await h.emitShutdown();
+      unbind.mockRestore();
+      h.dispose();
+    }
+  });
+});
+
+test("shutdown interrupts an unfinished provider start", async () => {
+  resetProviderRegistryForTests();
+  resetSnapshotStoreForTests();
+  let signalStarted!: () => void;
+  const started = new Promise<void>((resolve) => {
+    signalStarted = resolve;
+  });
+  let stopped = false;
+  registerProvider({
+    id: "blocked-session-start",
+    contractVersion: 1,
+    describe: () => ({}),
+    create: () => ({
+      start() {
+        signalStarted();
+        return new Promise<void>(() => {});
+      },
+      stop() {
+        stopped = true;
+      },
+    }),
+  });
+  const h = new ExtensionHarness("version: 1\nstatuses:\n  - id: blocked-session-start\n");
+  try {
+    await h.activate();
+    const starting = h.emitStart();
+    await started;
+    await h.emitShutdown();
+    await starting;
+    expect(stopped).toBe(true);
+    expect(h.widgetFactories).toHaveLength(0);
+  } finally {
+    await h.emitShutdown();
+    h.dispose();
+  }
 });

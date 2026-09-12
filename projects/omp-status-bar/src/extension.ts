@@ -6,7 +6,7 @@
  * second activation of this package (or a third party that already owns a
  * builtin id) cannot leave a partial batch.
  *
- * Flow on `session_start`:
+ * Flow on `session_start` and `session_switch`, after the previous Host stops:
  * 1. Bind the data sources (usage statistics, context usage, model,
  *    compaction settings) to the shared snapshot store.
  * 2. Create the Host with an environment backed by this extension context.
@@ -30,6 +30,19 @@ export default function statusBarController(pi: ExtensionAPI): void {
 
   /** One Host per extension module per session. */
   let host: StatusBarHost | undefined;
+  // A timed-out event may still be finishing its teardown. Keep later
+  // mounts behind it so old cleanup cannot unbind a successor's sources.
+  let lifecycle = Promise.resolve();
+  let generation = 0;
+  function transition(ctx?: ExtensionContext): Promise<void> {
+    const requested = ++generation;
+    // Stop eagerly so a provider still starting can observe shutdown.
+    const pending = Promise.all([lifecycle, stopSession()]).then(async () => {
+      if (ctx !== undefined && generation === requested) await startSession(ctx);
+    });
+    lifecycle = pending.catch(() => {});
+    return pending;
+  }
 
   /** Read the compaction settings group; undefined when Settings is unavailable. */
   function readCompactionSettings(): CompactionSettingsShape | undefined {
@@ -41,7 +54,7 @@ export default function statusBarController(pi: ExtensionAPI): void {
       return undefined;
     }
   }
-  pi.on("session_start", (_event, ctx: ExtensionContext) => {
+  async function startSession(ctx: ExtensionContext): Promise<void> {
     bindSessionSources({
       getUsageStatistics: () => ctx.sessionManager.getUsageStatistics(),
       getContextUsage: () => ctx.getContextUsage(),
@@ -74,9 +87,9 @@ export default function statusBarController(pi: ExtensionAPI): void {
     });
     host = next;
     return next.start();
-  });
+  }
 
-  pi.on("session_shutdown", async () => {
+  async function stopSession(): Promise<void> {
     const current = host;
     host = undefined;
     // Contract order: stop providers / clear the shared sampler timer /
@@ -88,8 +101,10 @@ export default function statusBarController(pi: ExtensionAPI): void {
       } finally {
         unbindSessionSources();
       }
-    } else {
-      unbindSessionSources();
     }
-  });
+  }
+
+  pi.on("session_start", (_event, ctx) => transition(ctx));
+  pi.on("session_switch", (_event, ctx) => transition(ctx));
+  pi.on("session_shutdown", () => transition());
 }

@@ -12,9 +12,15 @@ const TEST_CWD = "/tmp/omp-system-prompt-test";
 
 type Command = { name: string; description?: string; source: string };
 type Notify = (message: string, level: string) => void;
+interface TestContext {
+  cwd: string;
+  hasUI: boolean;
+  ui: { notify: Notify };
+  sessionManager: { getSessionId(): string };
+}
 type Handler = (
   event: { systemPrompt: string[] },
-  ctx: { cwd: string; hasUI: boolean; ui: { notify: Notify } },
+  ctx: TestContext,
 ) => Promise<{ systemPrompt?: string[] } | undefined>;
 
 const noSettings: PluginSettingsReader = async () => ({});
@@ -23,8 +29,8 @@ function host(importMetaUrl = ENTRY_URL, getPluginSettings: PluginSettingsReader
   return { importMetaUrl, getPluginSettings };
 }
 
-function context(hasUI = false, notify: Notify = () => {}): { cwd: string; hasUI: boolean; ui: { notify: Notify } } {
-  return { cwd: TEST_CWD, hasUI, ui: { notify } };
+function context(hasUI = false, notify: Notify = () => {}, sessionId = "session-1"): TestContext {
+  return { cwd: TEST_CWD, hasUI, ui: { notify }, sessionManager: { getSessionId: () => sessionId } };
 }
 
 test("loads the template from encoded installation paths", () => {
@@ -389,4 +395,97 @@ test("reports a corrupt template file through the interactive sink", async () =>
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+test("deduplicates each diagnostic within its session across new, resume, and fork identities", async () => {
+  for (const scenario of ["template", "settings", "structure", "skills", "unexpected"]) {
+    const notifications: string[] = [];
+    const warnings: string[] = [];
+    const handlers: Handler[] = [];
+    const pi = {
+      logger: { warn: (message: string) => warnings.push(message) },
+      on: (_event: string, handler: Handler) => handlers.push(handler),
+      getCommands: () => {
+        if (scenario === "unexpected") throw new Error("private failure");
+        return [];
+      },
+    };
+    const readSettings: PluginSettingsReader =
+      scenario === "settings"
+        ? async () => {
+            throw new Error("private settings");
+          }
+        : noSettings;
+    activate(
+      pi as never,
+      host(ENTRY_URL, readSettings),
+      scenario === "template" ? null : readFileSync(TEMPLATE_PATH, "utf8"),
+    );
+    const event = {
+      systemPrompt:
+        scenario === "structure"
+          ? ["custom", renderProject()]
+          : [
+              renderMain({ skills: scenario === "skills" ? [{ name: "alpha", description: "Skill" }] : [] }),
+              renderProject(),
+            ],
+    };
+    const handler = handlers[0]!;
+    const first = context(true, (message) => notifications.push(message), "first");
+    await handler(event, first);
+    await handler(event, first);
+    expect(notifications).toHaveLength(1);
+    await handler(event, context(false, undefined, "second"));
+    await handler(event, context(false, undefined, "second"));
+    expect(warnings).toHaveLength(1);
+    await handler(event, first);
+    expect(notifications).toHaveLength(1);
+    await handler(event, context(false, undefined, "fork"));
+    expect(warnings).toHaveLength(2);
+    expect(warnings.join(" ")).not.toContain("private");
+  }
+});
+
+test("overlapping turns keep their own diagnostic channels", async () => {
+  const notifications: string[] = [];
+  const warnings: string[] = [];
+  const handlers: Handler[] = [];
+  let release!: () => void;
+  let signalStarted!: () => void;
+  const blocked = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const started = new Promise<void>((resolve) => {
+    signalStarted = resolve;
+  });
+  let reads = 0;
+  const readSettings: PluginSettingsReader = async () => {
+    if (++reads === 1) {
+      signalStarted();
+      await blocked;
+    }
+    return { renderDelivery: "invalid" };
+  };
+  const pi = {
+    logger: { warn: (message: string) => warnings.push(message) },
+    on: (_event: string, handler: Handler) => handlers.push(handler),
+    getCommands: () => [],
+  };
+  activate(pi as never, host(ENTRY_URL, readSettings));
+  const event = { systemPrompt: [renderMain({ skills: [] }), renderProject()] };
+  const handler = handlers[0]!;
+  const first = handler(
+    event,
+    context(true, (message) => notifications.push(message), "first"),
+  );
+  try {
+    await started;
+    await handler(event, context(false, undefined, "second"));
+  } finally {
+    release();
+    await first;
+  }
+  expect(notifications).toHaveLength(1);
+  expect(warnings).toHaveLength(1);
+  expect(notifications[0]).toContain("renderDelivery setting ignored");
 });

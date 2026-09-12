@@ -60,6 +60,8 @@ Unexpected exception fallback covers errors thrown by the normal per-turn settin
 
 Activation-time template failures follow the same channel contract. A missing or unreadable template (`template-unavailable`) still registers the turn handler, leaves the first turn's input unchanged, and reports once through the session channel: `ctx.ui.notify` in interactive sessions, the OMP file logger otherwise.
 
+Diagnostics use the public session ID for deduplication, including in-memory sessions. New and forked sessions have separate histories; resuming an already visited session retains its history for this activation. Each turn keeps its own notification or logging channel, even when turns overlap.
+
 The extension does not inspect the OMP version to decide whether to activate, transform, warn, or fall back. Host-rendered event blocks are the only source of retained runtime content; the extension does not independently load skills, rules, tools, or devices.
 
 ## Coverage boundaries
@@ -95,7 +97,7 @@ OMP runs `before_agent_start` handlers in extension installation order, and each
 
 ### Verified scope
 
-Component checks run in the component directory: `bun run typecheck` and `bun test` (91 tests, 475 assertions). Tests render inputs at test time from the locked host fixture and cover native tool lists, inline catalogs, Code Mode, fixed-section condition branches, misplaced condition-line rejection, one-pass slot filling, fixed-region rejection, structural boundaries, encoded installation paths, byte preservation, block order, PROJECT footer variants, Skill description normalization, hidden ordered candidates, both Delivery shapes and transitions, child collection and message rules in both shapes, settings failures, unexpected turn-processing exceptions, and bounded diagnostics. The coordination assertions verify rendered instructions; they do not establish actual parent-child scheduling or message behavior.
+Component checks run in the component directory: `bun run typecheck` and `bun test` (93 tests, 503 assertions). Tests render inputs at test time from the locked host fixture and cover native tool lists, inline catalogs, Code Mode, fixed-section condition branches, misplaced condition-line rejection, one-pass slot filling, fixed-region rejection, structural boundaries, encoded installation paths, byte preservation, block order, PROJECT footer variants, Skill description normalization, hidden ordered candidates, both Delivery shapes and transitions, child collection and message rules in both shapes, settings failures, unexpected turn-processing exceptions, and bounded diagnostics. The coordination assertions verify rendered instructions; they do not establish actual parent-child scheduling or message behavior.
 
 Container checks ran in disposable Podman containers without host-directory mounts. The containers were removed after the checks.
 

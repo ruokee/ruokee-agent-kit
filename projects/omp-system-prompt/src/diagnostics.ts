@@ -4,8 +4,8 @@
  * A diagnostic carries a bounded reason and target description; it never
  * contains prompt bodies, private paths, or session context. The same
  * (scope, kind, reason, target) tuple is reported once per session; a changed
- * kind, reason, or target may report again. One tracker instance spans the
- * whole OMP session; the extension creates it at activation, not per turn.
+ * kind, reason, or target may report again. Trackers for different turns
+ * share the same seen set only when their session IDs match.
  */
 
 export interface Diagnostic {
@@ -19,11 +19,10 @@ export interface DiagnosticSink {
 }
 
 export class DiagnosticTracker {
-  private readonly seen = new Set<string>();
-
   constructor(
     private readonly scope: string,
     private readonly sink: DiagnosticSink,
+    private readonly seen = new Set<string>(),
   ) {}
 
   report(reason: string, target: string): void {

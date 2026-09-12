@@ -30,6 +30,8 @@ The Host reads one file at `session_start`:
 
 `agentDir` comes from `getAgentDir()` in `@oh-my-pi/pi-coding-agent`, so the file follows the active OMP profile. Hot reload does not happen; edits apply on the next OMP session.
 
+Creating, resuming, or forking a session in the same process reloads the configuration. The previous Host stops before the new Host binds its data sources and mounts its widget. Shutdown also interrupts an unfinished provider start.
+
 Full example:
 
 ```yaml

@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-system-prompt",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "OMP extension replacing the default system prompt's fixed policy with maintainer-owned text while preserving runtime content",
   "license": "MIT",
   "type": "module",
