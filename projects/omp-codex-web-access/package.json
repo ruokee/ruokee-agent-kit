@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-codex-web-access",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "OMP extension letting OMP use a forwarded Codex subscription for web search and page extraction",
   "license": "MIT",
   "type": "module",
