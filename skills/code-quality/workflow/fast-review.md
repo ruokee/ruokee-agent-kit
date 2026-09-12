@@ -11,7 +11,7 @@ Default mode. A quick, high-signal self-check after development or on a small di
 ## Preconditions
 
 - Read-only. Do not modify code.
-- Have a concrete target: a diff, a file, or a named set of files. If the scope is a whole repository or unclear, ask the user to narrow it or treat the request as a full review.
+- Have a concrete target: a diff, a file, or a named set of files. If the scope is a whole repository or unclear, ask the user to narrow it or explicitly request a full review. Enter full review only after that explicit request.
 
 ## Steps
 

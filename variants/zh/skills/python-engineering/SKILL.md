@@ -18,7 +18,7 @@ description: 当需要评估或改善 Python 工程实践时使用，涵盖项�
 | 模式 | 触发条件 | 阅读文档 |
 | --- | --- | --- |
 | 快速审查（Fast Review） | 日常自检、小型 diff、PR 审查的默认模式 | `./workflow/fast-review.md` |
-| 完整审查（Full Review） | 用户明确说"full review"、"complete review"、"systematic review" | `./workflow/full-review.md` |
+| 完整审查（Full Review） | 用户明确说"full review"、"complete review"、"systematic review"或"architecture review" | `./workflow/full-review.md` |
 | 分析（Analysis） | 用户要求讨论、头脑风暴、设计对比、机制分析、重构计划 | `./workflow/analysis.md` |
 
 只读约束：当用户说"do not modify"、"read-only"、"just analyze"或"survey"时，不要运行任何写入文件的命令。优先使用 `rg`、`git ls-files`、`git show`、`find`、`wc`、`nl`。避免使用 `uv run`、`pytest`、`ruff check --fix`、`pre-commit run` 或任何会创建 `.venv`、缓存或修改源代码的命令。

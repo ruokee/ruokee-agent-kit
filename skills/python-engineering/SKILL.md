@@ -18,7 +18,7 @@ Three modes are available. Default to fast review.
 | Mode | Trigger | Read |
 | --- | --- | --- |
 | Fast review | Default for daily self-check, small diff, PR review | `./workflow/fast-review.md` |
-| Full review | User explicitly says "full review", "complete review", "systematic review" | `./workflow/full-review.md` |
+| Full review | User explicitly says "full review", "complete review", "systematic review", or "architecture review" | `./workflow/full-review.md` |
 | Analysis | User asks for discussion, brainstorm, design comparison, mechanism analysis, refactoring plan | `./workflow/analysis.md` |
 
 Read-only constraint: when the user says "do not modify", "read-only", "just analyze", or "survey", do not run any command that writes files. Prefer `rg`, `git ls-files`, `git show`, `find`, `wc`, `nl`. Avoid `uv run`, `pytest`, `ruff check --fix`, `pre-commit run`, or any command that creates `.venv`, cache, or modifies source.
