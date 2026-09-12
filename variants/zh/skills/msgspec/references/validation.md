@@ -237,6 +237,43 @@ print(user.age)  # 200
 
 **直接构造时的验证。**在 `__post_init__` 中显式实现不变量检查。不要在该钩子中重新编码并解码同一个 Struct。
 
+## 验证测试
+
+约束测试同时覆盖允许的边界值与边界外的值。为错误类型、缺失必填字段、空字符串和不允许的 `null` 增加负例。断言异常类型和必要的字段路径，避免绑定完整错误消息的措辞。
+
+```python
+from typing import Annotated
+
+import msgspec
+import pytest
+
+
+class User(msgspec.Struct):
+    name: Annotated[str, msgspec.Meta(min_length=1)]
+    age: Annotated[int, msgspec.Meta(ge=0, le=150)]
+
+
+@pytest.mark.parametrize("age", [0, 150])
+def test_age_boundaries(age):
+    user = msgspec.convert({"name": "Alice", "age": age}, type=User)
+    assert user.age == age
+
+
+@pytest.mark.parametrize("payload", [
+    b'{"name":"Alice","age":-1}',
+    b'{"name":"Alice","age":151}',
+    b'{"name":"Alice","age":"thirty"}',
+    b'{"name":"","age":30}',
+    b'{"age":30}',
+    b'{"name":null,"age":30}',
+])
+def test_invalid_user(payload):
+    with pytest.raises(msgspec.ValidationError):
+        msgspec.json.decode(payload, type=User)
+```
+
+将往返测试与这些负例一起执行，避免测试只证明有效数据可以编码，却没有证明无效输入会被拒绝。完整往返示例见[测试建议](./best-practices.md#9-测试)。
+
 ## 最佳实践
 
 更多最佳实践和常见陷阱参见[最佳实践与常见陷阱](./best-practices.md)。

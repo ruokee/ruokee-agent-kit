@@ -272,7 +272,41 @@ msgspec.json.encode(Event(name="test", custom=CustomType(x=1)))
 # TypeError: Encoding objects of type CustomType is unsupported
 ```
 
-## 9. 其他建议
+## 9. 测试
+
+测试类型化序列化往返与验证失败，包含默认值、可选字段和约束边界。使用解码或 `msgspec.convert` 触发类型与 `Meta` 约束；直接构造 Struct 不能代替验证测试。以下示例需要开发依赖 `pytest`。
+
+```python
+from typing import Annotated
+
+import msgspec
+import pytest
+
+
+class User(msgspec.Struct):
+    name: Annotated[str, msgspec.Meta(min_length=1)]
+    age: Annotated[int, msgspec.Meta(ge=0, le=150)]
+    email: str | None = None
+
+
+def test_user_roundtrip():
+    original = User(name="Alice", age=30)
+    encoded = msgspec.json.encode(original)
+    decoded = msgspec.json.decode(encoded, type=User)
+    assert decoded == original
+    assert decoded.email is None
+
+
+def test_user_validation():
+    with pytest.raises(msgspec.ValidationError):
+        msgspec.json.decode(b'{"name":"","age":30}', type=User)
+    with pytest.raises(msgspec.ValidationError):
+        msgspec.convert({"name": "Alice", "age": 151}, type=User)
+```
+
+更多负例与边界用例见[验证测试](./validation.md#验证测试)。自定义 Hook 或 `__post_init__` 涉及业务不变量时，也应分别测试成功与失败路径。
+
+## 10. 其他建议
 
 ### 可选字段
 

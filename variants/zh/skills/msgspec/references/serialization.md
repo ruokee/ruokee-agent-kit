@@ -172,7 +172,7 @@ decoder = msgspec.json.Decoder(type=Project, dec_hook=dec_hook)
 
 ## 流式处理
 
-对于大型数据集，可以使用流式编码和解码：
+JSONL 可以按文件逐行读取，每行必须包含一个完整的 JSON 值；复用同一个解码器处理各行。下面的循环按记录处理数据，不会把整个文件一次性加载到内存。
 
 ```python
 import msgspec
@@ -185,6 +185,8 @@ with open("users.jsonl", "rb") as f:
         user = decoder.decode(line)
         # 处理每个用户...
 ```
+
+该方式不适用于单个大型 JSON 数组。`msgspec.json.Decoder.decode` 接收完整消息，解码到 `list[User]` 会构造完整列表；把数组任意拆成若干字节块后分别解码不能替代增量解析。数据超过可用内存时，应改用 JSONL 等可分帧格式或适合该输入的增量解析器。`decode_lines` 对已经读入的 JSONL 缓冲区返回完整结果列表，也不能代替上述逐行循环。
 
 ## 错误处理
 
