@@ -336,8 +336,17 @@ async function runEnvelope(
   const result = await adapter.run(runtime, args, cwd, signal);
   enforceResult(result, signal);
   const value = parseJson(result);
-  if (!isObject(value) || result.code !== 0 || value.ok !== true) {
-    throw new Error(JSON.stringify(isObject(value) ? value.error : value));
+  const validSuccess = isObject(value) && value.ok === true && "data" in value && result.code === 0;
+  const validFailure =
+    isObject(value) &&
+    value.ok === false &&
+    [2, 3, 4, 5, 130].includes(result.code) &&
+    isObject(value.error) &&
+    typeof value.error.code === "string" &&
+    typeof value.error.category === "string" &&
+    typeof value.error.message === "string";
+  if (!validSuccess && !validFailure) {
+    throw new Error(`tk returned an invalid result envelope (exit code ${result.code})`);
   }
   return value as RuntimeEnvelope;
 }

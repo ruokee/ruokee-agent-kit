@@ -7,6 +7,7 @@ import {
   registerTkTools as registerPiTools,
   runBoundedProcess as runPiProcess,
   type RegisteredTool as PiTool,
+  type ProcessResult,
 } from "../pi/common.ts";
 import {
   registerTkTools as registerOmpTools,
@@ -299,3 +300,138 @@ describe("OMP native adapter", () => {
     ]);
   });
 });
+
+for (const harness of ["pi", "omp"] as const) {
+  describe(`${harness} result boundaries`, () => {
+    async function toolsReturning(result: ProcessResult) {
+      await installFakeRuntime();
+      const tools: Array<PiTool | OmpTool> = [];
+      const adapter = {
+        wrapSchema: (schema: Record<string, unknown>) => schema,
+        async run(_command: string, args: string[]) {
+          if (args[0] === "--version") return success({ runtime_version: "0.1.0" });
+          if (args[0] === "schema") return success(contract(harness));
+          return result;
+        },
+        registerTool: (tool: PiTool | OmpTool) => {
+          tools.push(tool);
+        },
+      };
+      if (harness === "pi") await registerPiTools({ ...adapter, harnessName: "pi" });
+      else await registerOmpTools({ ...adapter, harnessName: "omp" });
+      return tools;
+    }
+
+    test("preserves success, warnings, and structured domain failures", async () => {
+      const result = success({});
+      const tools = await toolsReturning(result);
+      const read = tools.find((tool) => tool.name === "tk_read")!;
+      const cases = [
+        { code: 0, envelope: { ok: true, data: { found: true } } },
+        {
+          code: 0,
+          envelope: {
+            ok: true,
+            data: { committed: true },
+            warnings: [{ code: "wal_append_failed", message: "WAL unavailable", details: { task_ref: "task" } }],
+          },
+        },
+        {
+          code: 3,
+          envelope: {
+            ok: false,
+            error: {
+              code: "task_not_found",
+              category: "resolution",
+              message: "Task not found",
+              details: { task_ref: "task" },
+            },
+          },
+        },
+        {
+          code: 3,
+          envelope: {
+            ok: false,
+            error: {
+              code: "creation_confirmation_required",
+              category: "policy",
+              message: "Confirmation required",
+            },
+          },
+        },
+        {
+          code: 4,
+          envelope: {
+            ok: false,
+            error: {
+              code: "partial_commit",
+              category: "storage",
+              message: "Some targets committed",
+              details: {
+                committed: true,
+                completed: ["first"],
+                uncompleted: ["second"],
+                original_error: { code: "io_error", category: "storage", message: "Write failed" },
+              },
+            },
+          },
+        },
+        {
+          code: 2,
+          envelope: { ok: false, error: { code: "invalid_request", category: "request", message: "Invalid input" } },
+        },
+        {
+          code: 5,
+          envelope: { ok: false, error: { code: "project_not_found", category: "environment", message: "No project" } },
+        },
+        {
+          code: 130,
+          envelope: { ok: false, error: { code: "cancelled", category: "cancelled", message: "Cancelled by runtime" } },
+        },
+      ];
+      for (const { code, envelope } of cases) {
+        Object.assign(result, success(envelope), { code });
+        const output = await read.execute({ task_ref: "task" }, undefined, { cwd: temporaryHome! });
+        expect(output.details).toEqual(envelope);
+        expect(JSON.parse(output.content[0]!.text)).toEqual(envelope);
+      }
+    });
+
+    test("rejects protocol failures, cancelled commands, and oversized output", async () => {
+      const result = success({});
+      const tools = await toolsReturning(result);
+      const read = tools.find((tool) => tool.name === "tk_read")!;
+      const failures = [
+        { ...success("not JSON"), code: 2 },
+        { ...success({ ok: true, data: {} }), code: 2 },
+        success({ ok: false, error: { code: "failure", category: "internal", message: "Failure", details: {} } }),
+        { ...success({ ok: false, error: "failure" }), code: 2 },
+        { ...success({ ok: false, error: { code: "failure" } }), code: 2 },
+        { ...success({ ok: false, error: { code: "failure", category: "internal", message: "Panic" } }), code: 101 },
+        success({ ok: true }),
+        { ...success({ ok: true, data: {} }), killed: true },
+        success("x".repeat(1024 * 1024 + 1)),
+      ];
+      for (const failure of failures) {
+        Object.assign(result, failure);
+        await expect(read.execute({ task_ref: "task" }, undefined, { cwd: temporaryHome! })).rejects.toThrow();
+      }
+      Object.assign(result, success({ ok: true, data: {} }));
+      const controller = new AbortController();
+      controller.abort();
+      await expect(read.execute({ task_ref: "task" }, controller.signal, { cwd: temporaryHome! })).rejects.toThrow(
+        "cancelled",
+      );
+    });
+
+    test("keeps tk_exec raw output and nonzero exit behavior", async () => {
+      const result = { ...success("raw stdout"), stderr: "raw stderr" };
+      const tools = await toolsReturning(result);
+      const exec = tools.find((tool) => tool.name === "tk_exec")!;
+      const output = await exec.execute({ argv: ["check"] }, undefined, { cwd: temporaryHome! });
+      expect(output.details).toEqual({ ok: true, data: { exit_code: 0, stdout: "raw stdout", stderr: "raw stderr" } });
+      result.code = 2;
+      await expect(exec.execute({ argv: ["check"] }, undefined, { cwd: temporaryHome! })).rejects.toThrow("raw stderr");
+    });
+  });
+}

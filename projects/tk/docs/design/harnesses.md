@@ -104,6 +104,8 @@ The adapter performs each call in this order:
 
 The adapter does not implement Task validation, name normalization, authorization, path resolution, migration, GC, compatibility-range parsing, or installation logic.
 
+For ordinary native tools, both successful results and valid domain failures are returned verbatim in the text content and structured `details`. A domain failure's nonzero CLI exit code does not turn its error envelope into an exception. Invalid envelopes, unexpected exit codes, process failures, and adapter cancellation remain exceptions. `tk_exec` keeps its separate raw stdout/stderr contract.
+
 ## Build-time assembly
 
 Cargo builds use Rust assembly logic to generate multiple Harness component payloads and two Harness-independent CLI Skill payloads, one deterministic `tar.zst` archive, and one manifest. The Harness selections span four Harnesses, two modes, and two languages. Identical inputs must produce identical paths, file bytes, archive bytes, and manifests.

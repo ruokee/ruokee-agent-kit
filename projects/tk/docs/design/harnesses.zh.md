@@ -104,6 +104,8 @@ Pi 和 OMP 使用 `tk schema generate --type native --harness <pi|omp>` 的生�
 
 适配器不实现任务验证、名称规范化、授权、路径解析、迁移、GC、兼容范围解析或安装逻辑。
 
+普通原生工具将成功结果和合法领域失败完整保留在文本内容及结构化 `details` 中。领域失败的非零 CLI 退出码不会把错误结果转换成异常。无效结果、非预期退出码、进程故障和适配器取消仍抛出异常。`tk_exec` 保持独立的原始 stdout/stderr 合同。
+
 ## 构建时组装
 
 Cargo 构建使用 Rust 组装逻辑生成多份 Harness 组件载荷、两份与 Harness 无关的 CLI Skill 载荷、一个确定性 `tar.zst` 归档和一份清单。Harness 选择覆盖四个 Harness、两种模式和两种语言。相同输入必须产生相同路径、文件字节、归档字节和清单。
