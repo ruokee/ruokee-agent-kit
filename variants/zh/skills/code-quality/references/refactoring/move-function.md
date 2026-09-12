@@ -23,7 +23,7 @@ class AccountType:
 
 ## 移动的时机信号
 
-- **依恋情结（Feature Envy）。** 最清晰的信号：一个函数使用另一个对象的数据多于使用自己的。[feature-envy.md](./feature-envy.md) 中该坏味的修复方法通常是移动函数：将行为迁移到它渴望的数据所在的对象上。这遵循了 GRASP 信息专家的思想：将行为放在信息所在的地方（[`variants/zh/skills/code-quality/references/design-principles/grasp.md`](../design-principles/grasp.md)）。
+- **依恋情结（Feature Envy）。** 最清晰的信号：一个函数使用另一个对象的数据多于使用自己的。[feature-envy.md](./feature-envy.md) 中该坏味的修复方法通常是移动函数：将行为迁移到它渴望的数据所在的对象上。这遵循了 GRASP 信息专家的思想：将行为放在信息所在的地方（[`skills/code-quality/references/design-principles/grasp.md`](../design-principles/grasp.md)）。
 - **耦合方向。** 当模块 A 中的一个函数严重依赖模块 B 但几乎不依赖自己的模块时，依赖箭头与代码的位置相悖。将函数移动到 B 可以理顺依赖图并减少耦合。
 - **共变更。** 当一个函数始终与另一个模块中的代码一起变更时，你总是在同一个提交中编辑它们，它们可能属于一起。这是 [shotgun-surgery.md](./shotgun-surgery.md) 指向合并的信号。
 

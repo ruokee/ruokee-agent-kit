@@ -23,7 +23,7 @@ def print_owing(invoice):
 
 - **一个连贯的阶段。** 一个执行更大序列中一个可识别步骤的代码块：验证输入、计算总计、格式化输出。提取每个阶段将一堵代码墙转化为可读的摘要。这配合拆分阶段（Split Phase）使用。
 - **一个命名的概念。** 一个具有领域含义的条件或计算，值得命名：`is_overdue(invoice)` 比原始的日期比较更易读，并且名称变得可搜索。
-- **一个策略。** 可能变化或复用的逻辑，评分规则、重试策略，作为可以传递或交换的函数受益。参见 `variants/zh/skills/code-quality/references/design-patterns` 中的策略模式（Strategy）。
+- **一个策略。** 可能变化或复用的逻辑，评分规则、重试策略，作为可以传递或交换的函数受益。参见 `skills/code-quality/references/design-patterns` 中的策略模式（Strategy）。
 - **混合的抽象层级。** 当高层意图和底层机制并排放置时，提取机制能恢复调用方中一致的层级。
 
 ## 命名提取的函数

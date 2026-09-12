@@ -13,7 +13,7 @@
 ## 步骤（Steps）
 
 1. 理解设计问题及其上下文：预期会发生什么变更、当前痛点是什么、存在哪些约束。如果缺少关键事实，请向用户提问。
-2. 读取与主题相关的参考文档（`variants/zh/skills/code-quality/references/design-principles`、`design-patterns/`、`refactoring/`、`programming-paradigms/`），使讨论使用项目真实的词汇。
+2. 读取与主题相关的参考文档（`skills/code-quality/references/design-principles`、`design-patterns/`、`refactoring/`、`programming-paradigms/`），使讨论使用项目真实的词汇。
 3. 呈现选项及其权衡。大多数设计问题有多个合理的答案；展示现实可行的方案及其在变更成本、可读性和复杂性方面的代价。
 4. 在原则、模式和范式真正适用的地方，以此框架展开讨论，但仅在模式所管理的变化点确实存在时才引用它。
 5. 收敛。针对*当前*上下文推荐一个选项并解释原因，或提出一个聚焦的澄清问题。不要仅仅罗列选项。
