@@ -73,7 +73,3 @@ Registry 使用带版本的 `Symbol.for()` key，第三方 Extension 即使解�
 ## 另见
 
 - [Provider 开发指南](./provider-dev.zh.md)提供一个可运行的第三方 Provider 示例。
-
-## 许可证
-
-MIT。参见仓库 [LICENSE](../../../LICENSE)。

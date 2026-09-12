@@ -73,7 +73,3 @@ Register during extension activation, before OMP emits `session_start`. OMP acti
 ## Testing your provider
 
 The Host normalizes, composes, and truncates; you can unit-test `describe` and the published fragments directly with Bun. For a visual check, add your id to `statuses` in `<agentDir>/omp-status-bar.yml` and start an OMP session with a UI.
-
-## License
-
-MIT. See the repository [LICENSE](../../../LICENSE).

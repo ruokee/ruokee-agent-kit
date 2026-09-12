@@ -34,3 +34,7 @@ bun test
 ```
 
 Runtime imports are limited to three peer dependencies: `@oh-my-pi/pi-coding-agent`, `@oh-my-pi/pi-agent-core`, and `@oh-my-pi/pi-tui`.
+
+## License
+
+This component is licensed under the [MIT License](./LICENSE).

@@ -73,7 +73,3 @@ export default function exampleStatusProvider(pi: ExtensionAPI): void {
 ## 测试你的 Provider
 
 标准化、组合和截断都由 Host 完成；`describe` 和发布的片段可以直接用 Bun 做单元测试。要看真实效果，把你的 ID 加进 `<agentDir>/omp-status-bar.yml` 的 `statuses`，然后启动一个带 UI 的 OMP 会话。
-
-## 许可证
-
-MIT。参见仓库 [LICENSE](../../../LICENSE)。

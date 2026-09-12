@@ -34,3 +34,7 @@ bun test
 ```
 
 运行时导入只限三个对等依赖：`@oh-my-pi/pi-coding-agent`、`@oh-my-pi/pi-agent-core` 和 `@oh-my-pi/pi-tui`。
+
+## 许可证
+
+本组件使用 [MIT 许可证](./LICENSE)。

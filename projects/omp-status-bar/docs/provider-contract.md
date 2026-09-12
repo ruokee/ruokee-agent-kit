@@ -73,7 +73,3 @@ The registry uses a versioned `Symbol.for()` key, so a third-party extension tha
 ## See also
 
 - [Provider development guide](./provider-dev.md) for a working third-party provider.
-
-## License
-
-MIT. See the repository [LICENSE](../../../LICENSE).

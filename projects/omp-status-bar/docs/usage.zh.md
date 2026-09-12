@@ -247,7 +247,3 @@ speculationBand = [start, threshold)
 - 状态栏与 OMP 原生 status line 共存，无闪烁或布局跳动。
 
 在针对具体发布提交运行并检查过该会话之前，Widget 的实际显示行为视为未验证。
-
-## 许可证
-
-MIT。参见仓库 [LICENSE](../../../LICENSE)。

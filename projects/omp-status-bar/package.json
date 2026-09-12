@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-status-bar",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Persistent status bar widget for Oh My Pi: one Host composes sanitized structured provider fragments into a belowEditor row, with a versioned provider registration API for third-party extensions",
   "license": "MIT",
   "type": "module",

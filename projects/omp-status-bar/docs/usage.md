@@ -247,7 +247,3 @@ The automated suite runs headless and cannot see the terminal. Before a release 
 - the bar coexists with OMP's native status line without flicker or layout shifts.
 
 Until that session has been run and reviewed for the exact release commit, the widget's on-screen behavior is unverified.
-
-## License
-
-MIT. See the repository [LICENSE](../../../LICENSE).
