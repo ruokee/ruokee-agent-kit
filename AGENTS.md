@@ -52,8 +52,10 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 ## Validation
 
 - Install the Git hooks with `pnpm hooks:install`.
-- Run `pnpm check` before requesting review. This runs the Markdown check, Rust formatting check, and Rust tests.
-- Add component-specific checks beside a Skill or tool when its implementation requires more than the repository baseline.
+- Install root and component dependencies as described in [README.md](./README.md#check-prerequisites) before running checks.
+- Run `pnpm check` from the repository root before requesting review. It runs the Markdown check, tk Rust formatting and tests, all three OMP components' TypeScript checks and tests, and tk native adapter tests sequentially. It stops at the first failure with a nonzero exit status.
+- Use `pnpm check:base` for targeted Markdown and Rust checks; it does not cover component checks. Check commands do not install dependencies or format source files.
+- Keep component-specific checks beside their component and update the root aggregate when required automated checks change. Automated success does not replace required real-model or interactive UI validation.
 
 ## Git workflow
 

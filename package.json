@@ -8,7 +8,8 @@
     "hooks:install": "simple-git-hooks",
     "cargo:fmt:check": "cargo fmt --manifest-path projects/tk/Cargo.toml -- --check",
     "cargo:test": "cargo test --manifest-path projects/tk/Cargo.toml",
-    "check": "pnpm docs:lint && pnpm cargo:fmt:check && pnpm cargo:test"
+    "check:base": "pnpm docs:lint && pnpm cargo:fmt:check && pnpm cargo:test",
+    "check": "pnpm check:base && pnpm --dir projects/omp-status-bar run typecheck && pnpm --dir projects/omp-status-bar run test && pnpm --dir projects/omp-system-prompt run typecheck && pnpm --dir projects/omp-system-prompt run test && pnpm --dir projects/omp-codex-web-access run typecheck && pnpm --dir projects/omp-codex-web-access run test && bun test projects/tk/adapter-tests"
   },
   "devDependencies": {
     "lint-staged": "^16.4.0",

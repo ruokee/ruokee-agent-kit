@@ -69,11 +69,38 @@ Ordinary public documentation uses same-directory `name.md` and `name.zh.md` pai
 
 Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/README.md).
 
+### Check prerequisites
+
+Use the pnpm version declared in [package.json](./package.json), a Rust toolchain with `rustfmt` and the [tk build prerequisites](./projects/tk/README.md), and Bun compatible with the component lockfiles. After the root dependency and hook setup above, install locked dependencies in each OMP component directory:
+
+```bash
+(cd projects/omp-status-bar && bun install --frozen-lockfile)
+(cd projects/omp-system-prompt && bun install --frozen-lockfile)
+(cd projects/omp-codex-web-access && bun install --frozen-lockfile)
+```
+
+### Check coverage
+
+Run `pnpm check` from the repository root before requesting review. It executes these checks sequentially:
+
+1. Markdown formatting, tk Rust formatting, and Rust tests through `pnpm check:base`.
+2. TypeScript checks and tests for [omp-status-bar](./projects/omp-status-bar/package.json).
+3. TypeScript checks and tests for [omp-system-prompt](./projects/omp-system-prompt/package.json).
+4. TypeScript checks and tests for [omp-codex-web-access](./projects/omp-codex-web-access/package.json).
+5. tk native adapter tests with `bun test projects/tk/adapter-tests`.
+
+The first failed command stops the sequence and returns a nonzero exit status. Missing executables or dependencies also fail the check. Commands and component output identify the failing step. Checks do not install dependencies or format source files; builds and tests can create their normal generated and temporary files.
+
+`pnpm check:base` covers only Markdown and Rust for targeted work. Component checks can also run independently through their existing scripts. Automated success does not establish real-model behavior or interactive UI correctness; follow the relevant component's scenario and release validation requirements as well. The [repository check decision](./.agents/adr/decision/2026-09-12-unify-repository-checks.md) defines the complete contract.
+
 ### Common commands
 
 ```bash
-# Run all checks
+# Run complete automated checks from the repository root
 pnpm check
+
+# Run only the Markdown and Rust baseline
+pnpm check:base
 
 # Format or check all Markdown files
 pnpm docs:format

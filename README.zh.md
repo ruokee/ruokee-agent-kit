@@ -69,11 +69,38 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 
 长期仓库决定通过双语 [ADRs](./.agents/adr/README.zh.md) 记录。
 
+### 检查前置条件
+
+使用 [package.json](./package.json) 声明的 pnpm 版本、包含 `rustfmt` 且满足 [tk 构建前提](./projects/tk/README.zh.md)的 Rust 工具链，以及兼容组件锁文件的 Bun。完成上述根依赖与钩子安装后，分别安装 OMP 组件的锁定依赖：
+
+```bash
+(cd projects/omp-status-bar && bun install --frozen-lockfile)
+(cd projects/omp-system-prompt && bun install --frozen-lockfile)
+(cd projects/omp-codex-web-access && bun install --frozen-lockfile)
+```
+
+### 检查范围
+
+请求审查前，在仓库根目录运行 `pnpm check`。该命令依次执行：
+
+1. 通过 `pnpm check:base` 执行 Markdown 格式检查、tk Rust 格式检查和 Rust 测试。
+2. [omp-status-bar](./projects/omp-status-bar/package.json) 的 TypeScript 检查和测试。
+3. [omp-system-prompt](./projects/omp-system-prompt/package.json) 的 TypeScript 检查和测试。
+4. [omp-codex-web-access](./projects/omp-codex-web-access/package.json) 的 TypeScript 检查和测试。
+5. 通过 `bun test projects/tk/adapter-tests` 执行 tk 原生适配器测试。
+
+首次命令失败即停止执行，并返回非零状态。缺失可执行文件或依赖也会使检查失败。命令及组件输出可以定位失败步骤。检查不安装依赖或格式化源码；构建和测试可以创建自身正常使用的生成文件与临时文件。
+
+`pnpm check:base` 只覆盖 Markdown 与 Rust，适用于局部工作。组件检查也可通过各自已有脚本独立执行。自动化成功不能证明真实模型行为或交互界面正确性，仍须遵循相关组件的场景及发布验证要求。[仓库检查决定](./.agents/adr/decision/2026-09-12-unify-repository-checks.zh.md)定义完整契约。
+
 ### 常用命令
 
 ```bash
-# 运行全部检查
+# 在仓库根目录运行完整自动化检查
 pnpm check
+
+# 仅运行 Markdown 与 Rust 基础检查
+pnpm check:base
 
 # 格式化或检查全部 Markdown 文件
 pnpm docs:format
