@@ -83,3 +83,9 @@ The extension attempts normal transformation whenever OMP loads it and the requi
 Text recognition is not a provenance or security boundary. A later host may preserve recognizable syntax while changing API or section semantics. Real-host verification establishes only the observed behavior. Public documentation must identify the exercised fixture and each observation's scope precisely; it must not turn evidence into a supported-version table or exact compatibility promise.
 
 Structural coverage and fail-open behavior are load-bearing: changes to recognized host structure, retained runtime sections, Skill matching, Delivery boundaries, or coverage paths require matching component checks and, where provider behavior matters, a real-host observation before release.
+
+## Changes
+
+### 2026-09-14: Append model-scoped prompt rules
+
+The component also appends user-authored rule documents that match the turn's model. It reads `model-prompts` under the user and project agent directories and appends one block per matching file after the array the replacement step produced; a replacement failure still lets the append step extend the incoming host array. The replacement contract above stays unchanged, and the capability is recorded in [Add model-scoped prompt rules to the system prompt extension](./2026-09-14-add-model-prompt-rules.md).

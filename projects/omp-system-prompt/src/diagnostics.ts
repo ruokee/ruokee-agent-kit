@@ -52,6 +52,33 @@ export class DiagnosticTracker {
     );
   }
 
+  reportRuleSkipped(reason: string, source: string): void {
+    this.reportOnce(
+      "model-prompt-rules",
+      reason,
+      source,
+      `omp-system-prompt: model prompt rule skipped (reason: ${reason}; source: ${source}). Other rule files and the rest of the prompt are unaffected.`,
+    );
+  }
+
+  reportRuleDirectoryUnreadable(scope: string): void {
+    this.reportOnce(
+      "model-prompt-rules",
+      "directory-unreadable",
+      scope,
+      `omp-system-prompt: model prompt directory unreadable (scope: ${scope}). No rules were read from it; the other directory and the rest of the prompt are unaffected.`,
+    );
+  }
+
+  reportRuleFailure(reason: string, target: string): void {
+    this.reportOnce(
+      "model-prompt-rules-failure",
+      reason,
+      target,
+      `omp-system-prompt: model prompt rules NOT applied (reason: ${reason}; target: ${target}). The turn continues with the prompt this step received.`,
+    );
+  }
+
   private reportOnce(kind: string, reason: string, target: string, message: string): void {
     const key = `${this.scope}|${kind}|${reason}|${target}`;
     if (this.seen.has(key)) return;

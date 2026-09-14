@@ -2,7 +2,7 @@
 
 [中文](./README.zh.md)
 
-This OMP extension replaces the fixed policy text in OMP's default system prompt with maintained English text. It preserves recognized host-rendered runtime sections in their semantic positions. OMP re-renders the system prompt each turn and hands the block array to `before_agent_start`; the extension transforms that input, never a startup snapshot.
+This OMP extension replaces the fixed policy text in OMP's default system prompt with maintained English text, and appends user-authored rule documents for the model in use. It preserves recognized host-rendered runtime sections in their semantic positions. OMP re-renders the system prompt each turn and hands the block array to `before_agent_start`; the extension transforms that input, never a startup snapshot.
 
 ## How it works
 
@@ -50,6 +50,48 @@ If no unique correspondence exists, the extension keeps the complete isolated `<
 
 A missing or supported empty Skill catalog needs no metadata and stays absent or empty. The extension never adds Skills from the command list. If the Skill outer boundary cannot be isolated, the failure remains structural and the whole input is preserved. A local Skill fallback reports `Skill catalog formatting skipped`; it does not claim that the system prompt replacement failed.
 
+## Model prompt rules
+
+The same extension appends user-authored prompt text for the model in use. Each covered turn reads `model-prompts` under the user agent directory (`getAgentDir()`, the active profile's agent directory) and under the project agent directory (`getProjectAgentDir(cwd)`, that is `<cwd>/.omp`). Only direct children count: a missing directory is empty, subdirectories are ignored, and no ancestor directory or resource root is searched. Rule files are direct regular files whose name ends in a lowercase `.md` and does not start with a dot, ordered by name in JavaScript string order, with the user directory first.
+
+A rule document is Markdown with a `---` frontmatter block:
+
+```markdown
+---
+match:
+  - exact: pro-20x/gpt-5.6-luna
+  - model: gpt-5.6-sol
+  - contains: gpt-5.6
+  - regex: ^pro-20x/gpt-5\.6
+---
+
+Text appended to the system prompt.
+```
+
+`match` is required and non-empty. Each entry carries exactly one key, and entries are alternatives:
+
+- `exact` compares the whole `provider/id` string.
+- `model` compares the bare model id.
+- `contains` tests a substring of `provider/id`.
+- `regex` tests the whole `provider/id` against a JavaScript regular expression compiled without flags.
+
+Matching is case-sensitive and textual. The keys take the model id literally, so a role alias, an alternate or routed id, and a thinking-level suffix match only when the id already contains that text; no alias, family, glob, or `name` key exists. Other frontmatter keys are ignored and never injected. The body after the closing delimiter is what gets appended, byte-for-byte, including its own headings, blank lines, and CRLF endings.
+
+Each matching file contributes one block, appended after the prompt the turn already has: after this extension's replaced prompt when the replacement applied, and after the incoming host prompt when it did not. The host stores the combined array as that turn's system prompt, so the rules survive a mid-turn rebuild and the next turn starts from the host's base prompt without accumulation. Files are read again on every turn, so an edit takes effect on the next turn.
+
+An invalid document is skipped without affecting the others, and the first failure wins. A missing or malformed delimiter pair (`frontmatter-missing`), unparsable YAML (`frontmatter-invalid`), a missing or mistyped `match` (`match-missing`), an empty array (`match-empty`), an entry that is not a single-key object (`entry-shape`), an unknown key (`entry-key`), a non-string or blank value (`entry-value`), an uncompilable pattern (`regex-invalid`), and a blank body (`body-blank`) each skip that one file. A file read failure reports `file-unreadable`; an unreadable directory reports `directory-unreadable` and skips only that directory. Each skip reports one bounded diagnostic per session naming the affected source as `<scope>/<file name>`, without rule text or the resolved directory. A turn with no matching document, and a turn without a current model, appends nothing.
+
+### Upstream re-check
+
+Upstream [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) proposes host-level model-scoped instructions (`modelInstructions`). When the host ships that mechanism, or an equivalent model-to-prompt capability, re-check this component before changing it:
+
+- the matching dimensions the host covers, such as exact `provider/model` keys, bare model ids, substring matching, and regular expressions;
+- how host-provided text composes with a replaced or customized system prompt: replacement or append, and where the text lands in the block order;
+- refresh timing: per agent turn, per provider request, on model switch, on temporary switch, and on fallback;
+- rule discovery conventions: directories, user and project precedence, and file order.
+
+Then decide whether model-scoped prompt text still belongs in this component, should keep only the parts the host leaves out, or should be dropped, and record the outcome alongside the matching version change.
+
 ## Fallback behavior
 
 Processing has two scopes. Structural fallback applies when the template is missing or malformed, the default main block or PROJECT footer is missing or duplicated, the fixed PROJECT critical tail cannot be proven at its structural position, a section is out of order, unexpected structure or non-blank content appears in a checked region, or a Skill outer boundary is not reliable. The extension leaves the incoming array untouched for that turn and reports a bounded replacement failure without prompt bodies, Skill names, or private paths. Once the outer structures are valid, Skill metadata failure affects only the Skill catalog; static policy, runtime sections, and PROJECT changes continue, with a separate deduplicated diagnostic.
@@ -76,18 +118,7 @@ Ephemeral side requests such as `/btw` do not independently run the hook; they s
 
 Device notifications: when an `xd://` device mounts mid-session, OMP suppresses a notice for a device the delivered base catalog already lists. A replaced prompt drops that base catalog, so the device is announced again even though the owned `### Mounted devices` slot lists it. The extension does not maintain separate device state, so it accepts the duplicate notice.
 
-The override lasts one agent turn, not one provider request. A host rebuild during a turn preserves it, so a transformed catalog describes turn-start assembly until the next turn. Earlier extension blocks remain intact, and later handlers can overwrite this result; the extension does not reorder other extensions or claim final-provider precedence.
-
-## Upstream re-check
-
-Upstream [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) proposes host-level model-scoped instructions (`modelInstructions`). When the host ships that mechanism, or an equivalent model-to-prompt capability, re-check this component before changing it:
-
-- the matching dimensions the host covers, such as exact `provider/model` keys, bare model ids, substring matching, and regular expressions;
-- how host-provided text composes with a replaced or customized system prompt: replacement or append, and where the text lands in the block order;
-- refresh timing: per agent turn, per provider request, on model switch, on temporary switch, and on fallback;
-- rule discovery conventions: directories, user and project precedence, and file order.
-
-Then decide whether model-scoped prompt text still belongs in this component, should keep only the parts the host leaves out, or should be dropped, and record the outcome here with the matching version change.
+The override lasts one agent turn, not one provider request. A host rebuild during a turn preserves it, so a transformed catalog describes turn-start assembly until the next turn. Appended rule blocks are part of that same turn-scoped prompt. Earlier extension blocks remain intact, and later handlers can overwrite this result; the extension does not reorder other extensions or claim final-provider precedence.
 
 ## Installation
 
@@ -108,7 +139,7 @@ OMP runs `before_agent_start` handlers in extension installation order, and each
 
 ### Verified scope
 
-Component checks run in the component directory: `bun run typecheck` and `bun test` (93 tests, 503 assertions). Tests render inputs at test time from the locked host fixture and cover native tool lists, inline catalogs, Code Mode, fixed-section condition branches, misplaced condition-line rejection, one-pass slot filling, fixed-region rejection, structural boundaries, encoded installation paths, byte preservation, block order, PROJECT footer variants, Skill description normalization, hidden ordered candidates, both Delivery shapes and transitions, child collection and message rules in both shapes, settings failures, unexpected turn-processing exceptions, and bounded diagnostics. The coordination assertions verify rendered instructions; they do not establish actual parent-child scheduling or message behavior.
+Component checks run in the component directory: `bun run typecheck` and `bun test` (116 tests, 643 assertions). Tests render inputs at test time from the locked host fixture and cover native tool lists, inline catalogs, Code Mode, fixed-section condition branches, misplaced condition-line rejection, one-pass slot filling, fixed-region rejection, structural boundaries, encoded installation paths, byte preservation, block order, PROJECT footer variants, Skill description normalization, hidden ordered candidates, both Delivery shapes and transitions, child collection and message rules in both shapes, settings failures, unexpected turn-processing exceptions, and bounded diagnostics. The rule coverage adds every matching dimension, the accepted and rejected document shapes, delimiter and byte-preservation rules, discovery order and filtering, read-failure isolation, the append step after the replacement result, the model fallback, and the default rule directories. The coordination assertions verify rendered instructions; they do not establish actual parent-child scheduling or message behavior.
 
 Container checks ran in disposable Podman containers without host-directory mounts. The containers were removed after the checks.
 
@@ -135,7 +166,7 @@ bun run typecheck
 bun test
 ```
 
-The runtime imports are limited to one unrestricted peer dependency: `@oh-my-pi/pi-coding-agent`. Tests pin direct dev dependencies on `@oh-my-pi/pi-coding-agent`, `@oh-my-pi/pi-ai`, and `@oh-my-pi/pi-utils` to keep the host fixture reproducible; dev dependency versions do not restrict installation or activation.
+The runtime imports are limited to two unrestricted peer dependencies: `@oh-my-pi/pi-coding-agent` for extension APIs and `@oh-my-pi/pi-utils` for the profile-aware agent directory helpers. Tests pin direct dev dependencies on `@oh-my-pi/pi-coding-agent`, `@oh-my-pi/pi-ai`, and `@oh-my-pi/pi-utils` to keep the host fixture reproducible; dev dependency versions do not restrict installation or activation.
 
 ## License
 

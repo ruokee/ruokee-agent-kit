@@ -1,7 +1,7 @@
 {
   "name": "@ruokee/omp-system-prompt",
-  "version": "0.1.2",
-  "description": "OMP extension replacing the default system prompt's fixed policy with maintainer-owned text while preserving runtime content",
+  "version": "0.2.0",
+  "description": "OMP extension replacing the default system prompt's fixed policy with maintainer-owned text, plus model-scoped rule documents appended per turn",
   "license": "MIT",
   "type": "module",
   "keywords": [
@@ -21,7 +21,8 @@
     }
   },
   "peerDependencies": {
-    "@oh-my-pi/pi-coding-agent": "*"
+    "@oh-my-pi/pi-coding-agent": "*",
+    "@oh-my-pi/pi-utils": "*"
   },
   "devDependencies": {
     "@oh-my-pi/pi-coding-agent": "18.1.11",
