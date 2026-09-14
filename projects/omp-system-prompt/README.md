@@ -78,6 +78,17 @@ Device notifications: when an `xd://` device mounts mid-session, OMP suppresses 
 
 The override lasts one agent turn, not one provider request. A host rebuild during a turn preserves it, so a transformed catalog describes turn-start assembly until the next turn. Earlier extension blocks remain intact, and later handlers can overwrite this result; the extension does not reorder other extensions or claim final-provider precedence.
 
+## Upstream re-check
+
+Upstream [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) proposes host-level model-scoped instructions (`modelInstructions`). When the host ships that mechanism, or an equivalent model-to-prompt capability, re-check this component before changing it:
+
+- the matching dimensions the host covers, such as exact `provider/model` keys, bare model ids, substring matching, and regular expressions;
+- how host-provided text composes with a replaced or customized system prompt: replacement or append, and where the text lands in the block order;
+- refresh timing: per agent turn, per provider request, on model switch, on temporary switch, and on fallback;
+- rule discovery conventions: directories, user and project precedence, and file order.
+
+Then decide whether model-scoped prompt text still belongs in this component, should keep only the parts the host leaves out, or should be dropped, and record the outcome here with the matching version change.
+
 ## Installation
 
 The package has not been published. After cloning the GitHub repository, install its locked dependencies and install the package into OMP:
