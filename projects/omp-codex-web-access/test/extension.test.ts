@@ -1,17 +1,20 @@
 /**
  * Extension activation and execution-chain tests.
  *
- * Tests substitute the public settings getter at the extension seam. No real
- * OMP user settings or project settings are read. The suite covers the
- * session_start activation barrier, one-snapshot registration, native setting
- * validation failures, legacy YAML isolation, and the existing model-backed
- * execution and cancellation behavior.
+ * Most tests substitute the public settings getter and model registry at the
+ * extension seam. The cache regression uses OMP's real ModelRegistry with an
+ * isolated config and SQLite cache. The suite covers the session_start
+ * activation barrier, one-snapshot registration, native setting validation
+ * failures, legacy YAML isolation, and the model-backed execution path.
  */
 
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtempSync, rmSync } from "node:fs";
+import { Database } from "bun:sqlite";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
+import { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
 import { activate as installExtension, PACKAGE_NAME, type PluginSettingsReader } from "../src/extension.ts";
 
 const originalFetch = globalThis.fetch;
@@ -113,9 +116,28 @@ const model = {
   provider: "test-provider",
 };
 
+type HeaderResolver = (
+  signal?: AbortSignal,
+) => Record<string, string> | undefined | Promise<Record<string, string> | undefined>;
+
+interface ContextOptions {
+  modelHeaders?: HeaderResolver;
+  providerHeaders?: HeaderResolver;
+}
+
 /** Stub extension context with a resolvable model and recorded calls. */
-function context(registered: typeof model | undefined, key: string | undefined = "registry-secret") {
-  const calls = { getApiKey: 0, resolve: [] as string[], getApiKeySignals: [] as (AbortSignal | undefined)[] };
+function context(
+  registered: typeof model | undefined,
+  key: string | undefined = "registry-secret",
+  options: ContextOptions = {},
+) {
+  const calls = {
+    getApiKey: 0,
+    getApiKeySignals: [] as (AbortSignal | undefined)[],
+    getProviderHeaders: [] as string[],
+    resolve: [] as string[],
+    resolveModelHeaderSignals: [] as (AbortSignal | undefined)[],
+  };
   return {
     calls,
     value: {
@@ -126,13 +148,18 @@ function context(registered: typeof model | undefined, key: string | undefined =
         },
       },
       modelRegistry: {
-        async getApiKey(_model: unknown, _sessionId: unknown, options?: { signal?: AbortSignal }) {
+        async getApiKey(_model: unknown, _sessionId: unknown, apiKeyOptions?: { signal?: AbortSignal }) {
           calls.getApiKey += 1;
-          calls.getApiKeySignals.push(options?.signal);
+          calls.getApiKeySignals.push(apiKeyOptions?.signal);
           return key;
         },
-        getProviderHeaders() {
-          return { "x-provider": "configured" };
+        async getProviderHeaders(provider: string) {
+          calls.getProviderHeaders.push(provider);
+          return options.providerHeaders ? await options.providerHeaders() : { "x-provider": "configured" };
+        },
+        async resolveModelHeaders(_model: unknown, signal?: AbortSignal) {
+          calls.resolveModelHeaderSignals.push(signal);
+          return options.modelHeaders ? await options.modelHeaders(signal) : { "x-model": "resolved" };
         },
       },
     },
@@ -331,8 +358,10 @@ describe("tool execution chain", () => {
     const [tool] = harness.tools;
     if (!tool) throw new Error("codex_web_search was not registered");
     let body: Record<string, unknown> = {};
+    let headers = new Headers();
     installFetch(async (_input, init) => {
       body = JSON.parse(String(init?.body));
+      headers = new Headers(init?.headers);
       return Response.json({ output_text: "Found it" });
     });
     const ctx = context(model);
@@ -341,7 +370,234 @@ describe("tool execution chain", () => {
     expect(result.content[0]?.text).toBe("Found it");
     expect(ctx.calls.resolve).toEqual(["test-provider/gpt-test"]);
     expect(ctx.calls.getApiKey).toBe(1);
+    expect(ctx.calls.getProviderHeaders).toEqual(["test-provider"]);
+    expect(ctx.calls.resolveModelHeaderSignals).toEqual([undefined]);
+    expect(headers.get("x-provider")).toBe("configured");
+    expect(headers.get("x-model")).toBe("resolved");
     expect(body.input).toBe("needle");
+  });
+
+  test("materializes changing registry headers once per tool call", async () => {
+    const harness = activate(async () => ({ model: "test-provider/gpt-test" }));
+    await start(harness);
+    const [tool] = harness.tools;
+    if (!tool) throw new Error("codex_web_search was not registered");
+    let providerRevision = 0;
+    let modelRevision = 0;
+    const requests: Array<Record<string, string | null>> = [];
+    installFetch(async (_input, init) => {
+      const headers = new Headers(init?.headers);
+      requests.push({
+        authorization: headers.get("authorization"),
+        model: headers.get("x-model-revision"),
+        provider: headers.get("x-provider-revision"),
+        shared: headers.get("x-shared"),
+      });
+      return Response.json({ output_text: "Found it" });
+    });
+    const ctx = context(model, "registry-secret", {
+      providerHeaders: async () => ({
+        "X-Shared": "provider",
+        "x-provider-revision": String(++providerRevision),
+      }),
+      modelHeaders: async () => ({
+        "x-model-revision": String(++modelRevision),
+        "x-shared": "model",
+      }),
+    });
+
+    await tool.execute("first", { query: "one" }, undefined, undefined, ctx.value);
+    await tool.execute("second", { query: "two" }, undefined, undefined, ctx.value);
+
+    expect(requests).toEqual([
+      { authorization: "Bearer registry-secret", model: "1", provider: "1", shared: "model" },
+      { authorization: "Bearer registry-secret", model: "2", provider: "2", shared: "model" },
+    ]);
+    expect(ctx.calls.getProviderHeaders).toEqual(["test-provider", "test-provider"]);
+    expect(ctx.calls.resolveModelHeaderSignals).toEqual([undefined, undefined]);
+  });
+
+  test("restores omitted cached headers through the real ModelRegistry before sending", async () => {
+    const root = mkdtempSync(path.join(tmpdir(), "codex-web-registry-cache-"));
+    const modelsPath = path.join(root, "models.yml");
+    const cacheDbPath = path.join(root, "models.db");
+    writeFileSync(
+      modelsPath,
+      JSON.stringify({
+        providers: {
+          "test-provider": {
+            api: "openai-responses",
+            apiKey: "registry-secret",
+            authHeader: true,
+            baseUrl: "https://example.test/v1",
+            discovery: { injectV1: false, type: "openai-models-list" },
+            headers: { "x-provider": "provider", "x-shared": "provider" },
+            modelOverrides: {
+              "gpt-test": { headers: { "x-model": "model", "x-shared": "model" } },
+            },
+          },
+        },
+      }),
+    );
+    const authStorage = await AuthStorage.create(":memory:");
+    try {
+      const discoveryUrls: string[] = [];
+      const writerRegistry = new ModelRegistry(authStorage, modelsPath, {
+        cacheDbPath,
+        fetch: async (input) => {
+          const url = String(input);
+          discoveryUrls.push(url);
+          if (url !== "https://example.test/v1/models") return new Response("not found", { status: 404 });
+          return Response.json({ data: [{ id: "gpt-test" }] });
+        },
+      });
+      await writerRegistry.refresh("online");
+      expect(discoveryUrls.filter((url) => url === "https://example.test/v1/models")).toHaveLength(1);
+
+      const cache = new Database(cacheDbPath, { readonly: true });
+      const row = cache
+        .query<{ header_omitted_model_ids: string; models: string }, [string]>(
+          "SELECT header_omitted_model_ids, models FROM model_cache WHERE provider_id = ?",
+        )
+        .get("test-provider:openai-models-list-bare-context-v3");
+      cache.close();
+      if (!row) throw new Error("ModelRegistry did not persist the discovery cache");
+      const cachedModel = (JSON.parse(row.models) as Array<Record<string, unknown>>).find(
+        (entry) => entry.id === "gpt-test",
+      );
+      expect(cachedModel).toBeDefined();
+      expect(Object.hasOwn(cachedModel ?? {}, "headers")).toBe(false);
+      expect(Object.hasOwn(cachedModel ?? {}, "resolveHeaders")).toBe(false);
+      expect(JSON.parse(row.header_omitted_model_ids)).toContain("gpt-test");
+
+      let reloadNetworkRequests = 0;
+      const restoredRegistry = new ModelRegistry(authStorage, modelsPath, {
+        cacheDbPath,
+        fetch: async () => {
+          reloadNetworkRequests += 1;
+          throw new Error("cache reload must not access the network");
+        },
+      });
+      const restoredModel = restoredRegistry.find("test-provider", "gpt-test");
+      if (!restoredModel) throw new Error("ModelRegistry did not restore the cached model");
+      expect(reloadNetworkRequests).toBe(0);
+      expect(await restoredRegistry.resolveModelHeaders(restoredModel)).toMatchObject({
+        Authorization: "Bearer registry-secret",
+        "x-model": "model",
+        "x-provider": "provider",
+        "x-shared": "model",
+      });
+
+      const harness = activate(async () => ({ model: "test-provider/gpt-test" }));
+      await start(harness, root);
+      const [tool] = harness.tools;
+      if (!tool) throw new Error("codex_web_search was not registered");
+      let body: Record<string, unknown> = {};
+      let headers = new Headers();
+      installFetch(async (_input, init) => {
+        body = JSON.parse(String(init?.body));
+        headers = new Headers(init?.headers);
+        return Response.json({ output_text: "Found it" });
+      });
+
+      const result = await tool.execute("cache-restore", { query: "needle" }, undefined, undefined, {
+        models: { resolve: () => restoredModel },
+        modelRegistry: restoredRegistry,
+      });
+      expect(result.isError).toBeUndefined();
+      expect(result.content[0]?.text).toBe("Found it");
+      expect(body.input).toBe("needle");
+      expect(headers.get("authorization")).toBe("Bearer registry-secret");
+      expect(headers.get("x-provider")).toBe("provider");
+      expect(headers.get("x-model")).toBe("model");
+      expect(headers.get("x-shared")).toBe("model");
+      expect(headers.get("content-type")).toBe("application/json");
+      expect(headers.get("accept")).toBe("text/event-stream");
+      expect(reloadNetworkRequests).toBe(0);
+    } finally {
+      authStorage.close();
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("sanitizes header resolver failures before sending a request", async () => {
+    const harness = activate(async () => ({ model: "test-provider/gpt-test" }));
+    await start(harness);
+    const [tool] = harness.tools;
+    if (!tool) throw new Error("codex_web_search was not registered");
+    let fetched = false;
+    installFetch(async () => {
+      fetched = true;
+      return Response.json({ output_text: "unexpected" });
+    });
+
+    const providerFailure = await tool.execute(
+      "provider",
+      { query: "one" },
+      undefined,
+      undefined,
+      context(model, "credential-secret", {
+        providerHeaders: async () => {
+          throw new Error("provider-header-secret");
+        },
+      }).value,
+    );
+    expect(providerFailure.isError).toBe(true);
+    expect(providerFailure.content[0]?.text).toContain("failed to resolve headers for provider test-provider");
+    expect(providerFailure.content[0]?.text).not.toContain("provider-header-secret");
+    expect(providerFailure.content[0]?.text).not.toContain("credential-secret");
+
+    const modelFailure = await tool.execute(
+      "model",
+      { query: "two" },
+      undefined,
+      undefined,
+      context(model, "credential-secret", {
+        modelHeaders: async () => {
+          throw new Error("model-header-secret");
+        },
+      }).value,
+    );
+    expect(modelFailure.isError).toBe(true);
+    expect(modelFailure.content[0]?.text).toContain("failed to resolve headers for model test-provider/gpt-test");
+    expect(modelFailure.content[0]?.text).not.toContain("model-header-secret");
+    expect(modelFailure.content[0]?.text).not.toContain("credential-secret");
+    expect(fetched).toBe(false);
+  });
+
+  test("redacts invalid provider, model, and credential header values", async () => {
+    const harness = activate(async () => ({ model: "test-provider/gpt-test" }));
+    await start(harness);
+    const [tool] = harness.tools;
+    if (!tool) throw new Error("codex_web_search was not registered");
+    let requests = 0;
+    installFetch(async () => {
+      requests += 1;
+      return Response.json({ output_text: "unexpected" });
+    });
+    const marker = "SYNTHETIC-HEADER";
+    const cases = [
+      context(model, "credential", {
+        providerHeaders: async () => ({ Authorization: `${marker}-PROVIDER\nBAD` }),
+      }).value,
+      context(model, "credential", {
+        modelHeaders: async () => ({ Authorization: `${marker}-MODEL\nBAD` }),
+      }).value,
+      context(model, `${marker}-CREDENTIAL\nBAD`, {
+        providerHeaders: async () => ({ "x-provider": "configured" }),
+        modelHeaders: async () => ({ "x-model": "resolved" }),
+      }).value,
+    ];
+
+    for (const ctx of cases) {
+      const result = await tool.execute("invalid-header", { query: "x" }, undefined, undefined, ctx);
+      expect(result.isError).toBe(true);
+      expect(result.content[0]?.text).toContain("invalid Responses request headers");
+      expect(result.content[0]?.text).not.toContain(marker);
+      expect(result.details.error).toBe("invalid Responses request headers");
+      expect(result.details.error).not.toContain(marker);
+    }
+    expect(requests).toBe(0);
   });
 
   test("fetch passes the URL and extraction prompt to Responses", async () => {
@@ -427,15 +683,73 @@ describe("tool execution chain", () => {
     expect(result.content[0]?.text).toMatch(/no credential available/);
   });
 
-  test("propagates the abort signal to credential lookup and HTTP request", async () => {
+  test("stops a pre-cancelled request before credential or header lookup", async () => {
     const harness = activate(async () => ({ model: "test-provider/gpt-test" }));
     await start(harness);
     const [tool] = harness.tools;
     if (!tool) throw new Error("codex_web_search was not registered");
     const controller = new AbortController();
+    controller.abort(new DOMException("pre-cancelled", "AbortError"));
+    let fetched = false;
+    installFetch(async () => {
+      fetched = true;
+      return Response.json({ output_text: "unexpected" });
+    });
+    const ctx = context(model);
+
+    const result = await tool.execute("call", { query: "x" }, controller.signal, undefined, ctx.value);
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0]?.text).toMatch(/pre-cancelled/);
+    expect(ctx.calls.getApiKey).toBe(0);
+    expect(ctx.calls.getProviderHeaders).toEqual([]);
+    expect(ctx.calls.resolveModelHeaderSignals).toEqual([]);
+    expect(fetched).toBe(false);
+  });
+
+  test("stops after an unabortable provider header lookup finishes", async () => {
+    const harness = activate(async () => ({ model: "test-provider/gpt-test" }));
+    await start(harness);
+    const [tool] = harness.tools;
+    if (!tool) throw new Error("codex_web_search was not registered");
+    const controller = new AbortController();
+    const providerStarted = Promise.withResolvers<void>();
+    const providerHeaders = Promise.withResolvers<Record<string, string> | undefined>();
+    let fetched = false;
+    installFetch(async () => {
+      fetched = true;
+      return Response.json({ output_text: "unexpected" });
+    });
+    const ctx = context(model, "registry-secret", {
+      providerHeaders: () => {
+        providerStarted.resolve();
+        return providerHeaders.promise;
+      },
+    });
+    const request = tool.execute("call", { query: "x" }, controller.signal, undefined, ctx.value);
+    await providerStarted.promise;
+    controller.abort(new DOMException("cancelled during provider headers", "AbortError"));
+    providerHeaders.resolve({ "x-provider": "late" });
+
+    const result = await request;
+    expect(result.isError).toBe(true);
+    expect(result.content[0]?.text).toMatch(/cancelled during provider headers/);
+    expect(ctx.calls.getProviderHeaders).toEqual(["test-provider"]);
+    expect(ctx.calls.resolveModelHeaderSignals).toEqual([]);
+    expect(fetched).toBe(false);
+  });
+
+  test("passes the abort signal to credential, model headers, and HTTP", async () => {
+    const harness = activate(async () => ({ model: "test-provider/gpt-test" }));
+    await start(harness);
+    const [tool] = harness.tools;
+    if (!tool) throw new Error("codex_web_search was not registered");
+    const controller = new AbortController();
+    const fetchStarted = Promise.withResolvers<void>();
     let httpSignal: AbortSignal | undefined;
     installFetch(async (_input, init) => {
       httpSignal = init?.signal ?? undefined;
+      fetchStarted.resolve();
       const { promise, reject } = Promise.withResolvers<Response>();
       const signal = init?.signal;
       if (signal?.aborted) {
@@ -447,11 +761,14 @@ describe("tool execution chain", () => {
     });
     const ctx = context(model);
     const request = tool.execute("call", { query: "x" }, controller.signal, undefined, ctx.value);
+    await fetchStarted.promise;
     controller.abort(new DOMException("cancelled", "AbortError"));
+
     const result = await request;
     expect(result.isError).toBe(true);
     expect(result.content[0]?.text).toMatch(/cancel/i);
-    expect(ctx.calls.getApiKeySignals[0]).toBe(controller.signal);
+    expect(ctx.calls.getApiKeySignals).toEqual([controller.signal]);
+    expect(ctx.calls.resolveModelHeaderSignals).toEqual([controller.signal]);
     expect(httpSignal).toBe(controller.signal);
   });
 });

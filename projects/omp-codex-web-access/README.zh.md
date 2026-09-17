@@ -24,7 +24,7 @@ bun install
 omp install "$(pwd)" --scope user
 ```
 
-`omp install` 是 `omp plugin install` 的别名；`omp plugin link "$(pwd)" --scope user` 效果相同。OMP 会读取 `package.json` 中的 `omp.extensions` 并加载 `src/extension.ts`，不需要手动设置扩展路径。支持的 OMP 范围为 `>=18.1.8 <19`。
+`omp install` 是 `omp plugin install` 的别名；`omp plugin link "$(pwd)" --scope user` 效果相同。OMP 会读取 `package.json` 中的 `omp.extensions` 并加载 `src/extension.ts`，不需要手动设置扩展路径。支持的 OMP 范围为 `>=18.2.3 <19`，因为扩展使用了 OMP 18.2.3 引入的异步模型 Header API。
 
 ## 配置
 
@@ -109,6 +109,8 @@ OMP 模式会在第一次 prompt 前等待扩展初始化。直接 OMP SDK 调�
 两个工具均通过配置模型的 `openai-responses` API 使用原生网页搜索，所选模型必须支持该能力。原生设置保存模型选择器，不保存凭据。模型键缺失、显式为空的原生 `model` 字符串、模型未登记或缺少凭据时，工具调用会返回明确错误。
 
 两个工具共用同一请求与响应实现：回答正文、引用收集、Responses 错误处理，以及 JSON 和 SSE 响应支持。页面提取在任何模型、凭据或网络动作之前验证 URL 协议为 HTTP 或 HTTPS；网页访问由模型完成，扩展不直接抓取目标 URL。
+
+每次 HTTP 请求前，扩展都会等待 Provider headers 和模型的完整配置 Header 链，不缓存任何一次解析结果。Header 名称按大小写不敏感方式合并，模型 Header 覆盖 Provider Header，已有的 `Authorization` 优先于 API key 补充值。凭据查找、模型 Header 解析和 HTTP 请求使用工具调用的取消信号。Provider Header API 没有 signal 参数，因此扩展会在该查找前后检查取消状态，取消后不会继续发送 HTTP 请求。Header 解析失败时返回有界工具错误，不暴露 Header 值或凭据。
 
 ## 开发
 

@@ -24,7 +24,7 @@ bun install
 omp install "$(pwd)" --scope user
 ```
 
-`omp install` is an alias of `omp plugin install`; `omp plugin link "$(pwd)" --scope user` works the same. OMP reads `omp.extensions` from `package.json` and loads `src/extension.ts`; no manual extension-path setting is required. The supported OMP range is `>=18.1.8 <19`.
+`omp install` is an alias of `omp plugin install`; `omp plugin link "$(pwd)" --scope user` works the same. OMP reads `omp.extensions` from `package.json` and loads `src/extension.ts`; no manual extension-path setting is required. The supported OMP range is `>=18.2.3 <19` because the extension uses the asynchronous model Header APIs introduced in OMP 18.2.3.
 
 ## Configuration
 
@@ -109,6 +109,8 @@ An old YAML file by itself has no effect. Transfer the values to native settings
 Both tools use the configured model through the `openai-responses` API with native web search, so the selected model must support it. The native settings carry a model selector, not credentials. A missing model key, an explicitly empty native `model` string, an unregistered model, or a missing credential produces a clear tool error when the tool is called.
 
 The two tools share one request and response implementation: answer text, citation collection, Responses error handling, and JSON and SSE response support. Page extraction validates that the URL protocol is HTTP or HTTPS before any model, credential, or network work; the model performs the web access, and the extension does not fetch the target URL itself.
+
+Before each HTTP request, the extension awaits Provider headers and the model's complete configured Header chain. It does not cache either result. Model headers override Provider headers with case-insensitive names, and an existing `Authorization` value takes precedence over the API key fallback. Credential lookup, model Header resolution, and HTTP receive the tool's cancellation signal. The Provider Header API has no signal parameter, so the extension checks cancellation before and after that lookup and does not send the HTTP request after cancellation. Header resolution errors return bounded tool errors without exposing Header values or credentials.
 
 ## Development
 

@@ -1,12 +1,13 @@
 /**
- * Shared execution path for both tools: resolve the configured model, fetch
- * its credential, POST to the Responses endpoint, and format the answer.
+ * Shared execution path for both tools: resolve the configured model,
+ * materialize its credential and headers, POST to the Responses endpoint,
+ * and format the answer.
  *
  * The model selector comes from the native OMP plugin settings (not an
- * environment variable). Credential resolution and the HTTP request both receive the
- * caller's abort signal, so a cancelled tool call stops pending work. Every
- * failure becomes a tool-level error result; nothing throws past the tool
- * boundary.
+ * environment variable). Credential, model-header, and HTTP work receive the
+ * caller's abort signal. Provider headers cannot receive it, so cancellation
+ * is checked immediately before and after that lookup. Every failure becomes
+ * a tool-level error result; nothing throws past the tool boundary.
  */
 
 import type { ExtensionContext } from "@oh-my-pi/pi-coding-agent";
@@ -20,8 +21,9 @@ export interface ExecuteWebAccessResult {
 
 /**
  * Run one model-backed request. `prompt` is the full input text sent to the
- * Responses endpoint; both tools build it from their parameters. The model
- * resolved by OMP flows through to `runResponsesWeb` unchanged.
+ * Responses endpoint; both tools build it from their parameters. OMP resolves
+ * credentials and configured headers before the transport receives a plain
+ * request snapshot.
  */
 export async function executeWebAccess(
   prompt: string,
@@ -37,13 +39,38 @@ export async function executeWebAccess(
     }
     const model = ctx.models.resolve(selector);
     if (!model) throw new Error(`model ${selector} is not registered or authenticated in OMP`);
+    signal?.throwIfAborted();
     const apiKey = await ctx.modelRegistry.getApiKey(model, undefined, { signal });
+    signal?.throwIfAborted();
     if (!apiKey || apiKey === "N/A") throw new Error(`no credential available for provider ${model.provider}`);
+    let providerHeaders: Record<string, string> | undefined;
+    try {
+      providerHeaders = await ctx.modelRegistry.getProviderHeaders(model.provider);
+    } catch {
+      signal?.throwIfAborted();
+      throw new Error(`failed to resolve headers for provider ${model.provider}`);
+    }
+    signal?.throwIfAborted();
+    let modelHeaders: Record<string, string> | undefined;
+    try {
+      modelHeaders = await ctx.modelRegistry.resolveModelHeaders(model, signal);
+    } catch {
+      signal?.throwIfAborted();
+      throw new Error(`failed to resolve headers for model ${model.provider}/${model.id}`);
+    }
+    signal?.throwIfAborted();
+    const requestModel: ResponsesModel = {
+      api: model.api,
+      baseUrl: model.baseUrl,
+      headers: modelHeaders,
+      id: model.id,
+      provider: model.provider,
+    };
     const result = await runResponsesWeb({
       apiKey,
       input: prompt,
-      model,
-      providerHeaders: ctx.modelRegistry.getProviderHeaders(model.provider),
+      model: requestModel,
+      providerHeaders,
       signal,
     });
     return {

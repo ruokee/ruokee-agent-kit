@@ -18,7 +18,7 @@ omp plugin link "$(pwd)" --scope user
 
 OMP reads `omp.extensions` from `package.json` and loads `src/extension.ts`; no manual extension-path setting is required.
 
-The supported OMP range is `>=18.1.8 <19`. The automated development baseline is OMP 18.1.8, and the real TUI smoke test covers OMP 18.1.10.
+The supported OMP range is `>=18.1.8 <19`. Automated type checks and tests cover both OMP 18.1.8 and 18.2.3. Real TUI validation covers OMP 18.2.3.
 
 ## Configuration
 
@@ -242,10 +242,14 @@ Builtin providers expose no `refreshMs` option; the fixed cadence is internal an
 
 ## Release gate
 
-The automated suite runs headless and cannot see the terminal. Before a release is tagged, a real OMP TUI session must be started on the target OMP version with this extension enabled, and must confirm:
+The automated suite runs headless and cannot prove terminal layout. Before a release is tagged, start a real OMP TUI session on the target OMP version with this extension enabled and confirm:
 
 - the status bar renders one persistent row below the editor;
 - token metrics and context usage update while a request runs;
-- the bar coexists with OMP's native status line without flicker or layout shifts.
+- the row survives live width changes and truncates within the available columns;
+- the row coexists with OMP's native status line, terminal-title spinner, and subagent cards without flicker or layout shifts;
+- session switches and shutdowns leave no duplicate widget or timer behind.
 
-Until that session has been run and reviewed for the exact release commit, the widget's on-screen behavior is unverified.
+OMP 18.2.3 compatibility was validated with the component's locked dependencies and the `pro-20x/gpt-5.6-luna` model. The TUI run exercised live terminal widths from 48 to 100 columns, request-time metric updates, a session switch, SGR mouse input, a subagent task card, terminal-title spinner frames, and clean shutdown. A temporary validation override lowered the recent-token cutoff so manual `/compact` exercised remote compaction; OMP reported `remote-compacted · 20K→19K`, and the row remained mounted and updated afterward. The existing runtime code and public provider contract required no change, so version `0.1.3` and the `>=18.1.8 <19` peer range remain valid.
+
+This evidence applies to the documented component source. Repeat the real TUI checks after a later source change that can affect rendering or lifecycle behavior.

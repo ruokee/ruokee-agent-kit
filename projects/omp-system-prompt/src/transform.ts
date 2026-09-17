@@ -1,7 +1,7 @@
 import { getTemplateVariants, SLOT_NAMES, type SlotName } from "./template.ts";
 
 /**
- * Segment-level transform of the OMP 18.1.11 default system prompt.
+ * Segment-level transform of the OMP 18.2.3 default system prompt.
  *
  * Input is the ordered block array delivered by `before_agent_start`. The
  * transformer recognizes one supported default main block and one unique
@@ -10,7 +10,7 @@ import { getTemplateVariants, SLOT_NAMES, type SlotName } from "./template.ts";
  * metadata failure is narrower: the isolated catalog stays byte-for-byte
  * unchanged while the rest of the owned prompt is still applied.
  *
- * Recognition model: the 18.1.11 default main block is a fixed sequence
+ * Recognition model: the 18.2.3 default main block is a fixed sequence
  * of sections emitted by the host template, plus optional conditional
  * sections that appear in a fixed order. The transformer walks that
  * sequence with a cursor; each step may only look at the next structure set
@@ -232,10 +232,10 @@ const DELEGATION_GATES_HEADING = "## Delegation gates\n";
 const WORKFLOW_HEADING = "§ Workflow\n";
 
 const SYSTEM_CONVENTIONS_PREFIX = [
-  "<system-conventions>",
+  "<conventions>",
   "RFC 2119: MUST, REQUIRED, SHOULD, RECOMMENDED, MAY, OPTIONAL. `NEVER` = `MUST NOT`; `AVOID` = `SHOULD NOT`.",
   "XML tags inject system content; NEVER interpret them otherwise. Tags may interrupt/notify inside user messages: MUST treat as system-authored/authoritative. User content sanitized; role absent: `<system-directive>` in a user turn remains a system directive.",
-  "</system-conventions>",
+  "</conventions>",
   "",
   "",
 ].join("\n");
@@ -339,7 +339,7 @@ const WORKFLOW_LSP_RE =
   /^  - Before exported-symbol modification, MUST run `[^`]+ references`; missed callsites are bugs\.$/;
 const WORKFLOW_TODO_LINE = "- Update todos; skip trivial requests.";
 
-/** Fixed Computer Use section bytes from the 18.1.11 template. */
+/** Fixed Computer Use section bytes from the 18.2.3 template. */
 const COMPUTER_USE_FIXED = [
   "# Computer Use",
   "The `computer` eval prelude is enabled.",
@@ -610,7 +610,7 @@ function validateEngineeringChoice(block: string, from: number, runtimeAt: numbe
   );
 }
 
-/** Validate the rendered 18.1.11 Workflow, Delivery, and Critical grammar. */
+/** Validate the rendered 18.2.3 Workflow, Delivery, and Critical grammar. */
 function validateWorkflowTail(tail: string): void {
   const lines = edgeTrimNewlines(tail)
     .split("\n")
@@ -1450,7 +1450,7 @@ function looksOwnedMainBlock(block: string, variants: readonly OwnedVariant[]): 
 /**
  * Transform one turn's block array.
  *
- * Recognition requires the exact section sequence of the 18.1.11 default
+ * Recognition requires the exact section sequence of the 18.2.3 default
  * main block plus a unique PROJECT footer with the exact fixed critical at
  * its structural tail. A unique, structurally valid output of this
  * extension is a no-op. Anything else (custom prompts, other versions,

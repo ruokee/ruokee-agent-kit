@@ -187,6 +187,13 @@ describe("static contract", () => {
     expect(output).toContain("- `artifact://<id>`: content");
   });
 
+  test("accepts Internal URLs when Skill URI access is disabled", () => {
+    const output = expectSuccess(transform(renderMain({ tools: ["read"], hasSkillUriAccess: false }))).blocks[1] ?? "";
+
+    expect(output).not.toContain("- `skill://<name>`: instructions");
+    expect(output).toContain("- `artifact://<id>`: content");
+  });
+
   test("keeps only the owned Agent coordination paragraphs", () => {
     const output =
       expectSuccess(transform(renderMain({ tools: ["read", "task"], task: true, maxConcurrency: 4, taskIrc: true })))
@@ -294,7 +301,7 @@ describe("Delivery setting", () => {
   });
 });
 
-describe("18.1.11 runtime shapes", () => {
+describe("18.2.3 runtime shapes", () => {
   test("native tool list retains all enabled runtime sections verbatim", () => {
     const skills = [
       { name: "unslop", description: "Cut AI tells from any writing." },
@@ -729,8 +736,8 @@ describe("bounded parsing", () => {
       "unknown-section",
     ],
     [
-      "unexpected system-conventions prefix line",
-      baseMain.replace("</system-conventions>", "unexpected prefix line\n</system-conventions>"),
+      "unexpected conventions prefix line",
+      baseMain.replace("</conventions>", "unexpected prefix line\n</conventions>"),
       "unknown-section",
     ],
     [

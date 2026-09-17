@@ -9,8 +9,8 @@
  */
 
 /**
- * The model fields this transport reads. OMP's `Model` satisfies this
- * structurally, so resolved models flow through without copying.
+ * Plain model fields needed by the transport after OMP has materialized the
+ * configured header chain for this request.
  */
 export interface ResponsesModel {
   api: string;
@@ -213,11 +213,16 @@ export async function runResponsesWeb(options: RunResponsesOptions): Promise<Res
   if (!baseUrl) throw new Error(`model ${options.model.provider}/${options.model.id} has no base URL`);
   if (!options.apiKey) throw new Error(`no credential available for provider ${options.model.provider}`);
 
-  const headers = new Headers(options.providerHeaders);
-  for (const [name, value] of Object.entries(options.model.headers ?? {})) headers.set(name, value);
-  setHeaderIfMissing(headers, "authorization", `Bearer ${options.apiKey}`);
-  setHeaderIfMissing(headers, "content-type", "application/json");
-  setHeaderIfMissing(headers, "accept", "text/event-stream");
+  let headers: Headers;
+  try {
+    headers = new Headers(options.providerHeaders);
+    for (const [name, value] of Object.entries(options.model.headers ?? {})) headers.set(name, value);
+    setHeaderIfMissing(headers, "authorization", `Bearer ${options.apiKey}`);
+    setHeaderIfMissing(headers, "content-type", "application/json");
+    setHeaderIfMissing(headers, "accept", "text/event-stream");
+  } catch {
+    throw new Error("invalid Responses request headers");
+  }
 
   const response = await (options.fetch ?? fetch)(`${baseUrl}/responses`, {
     method: "POST",

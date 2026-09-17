@@ -105,6 +105,34 @@ describe("runResponsesWeb", () => {
     );
   });
 
+  test("merges headers case-insensitively with model values taking precedence", async () => {
+    let requestHeaders = new Headers();
+    installFetch(async (_input, init) => {
+      requestHeaders = new Headers(init?.headers);
+      return Response.json({ output_text: "ok" });
+    });
+
+    await runResponsesWeb({
+      apiKey: "api-key-must-not-win",
+      input: "x",
+      model: {
+        ...model,
+        headers: {
+          ...model.headers,
+          authorization: "Model token",
+          "x-shared": "model",
+        },
+      },
+      providerHeaders: {
+        Authorization: "Provider token",
+        "X-Shared": "provider",
+      },
+    });
+
+    expect(requestHeaders.get("authorization")).toBe("Model token");
+    expect(requestHeaders.get("x-shared")).toBe("model");
+  });
+
   test("accepts a non-streaming Responses payload", async () => {
     installFetch(async () =>
       Response.json({

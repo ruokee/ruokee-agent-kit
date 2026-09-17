@@ -8,11 +8,11 @@
 
 OMP 将系统提示词装配为多个块：默认主块、可选的 Computer Safety 与活动仓库块，以及 PROJECT 页脚。每一轮中，扩展通过 `before_agent_start` 事件拿到当前块数组，然后：
 
-- 依据 `§ Role` 身份行识别恰好一个默认主块，并识别恰好一个结构有效的 PROJECT 页脚；其余块按原位置逐字节保留。
+- 依据 `<conventions>` 前缀与 `§ Role` 身份行识别恰好一个默认主块，并识别恰好一个结构有效的 PROJECT 页脚；其余块按原位置逐字节保留。
 - 用扩展自有模板重建主块。七个槽位分别接收宿主渲染的工具目录、动态 `xd://` 设备文档、Internal URLs、Skills、always-apply 规则、领域规则和运行时模式协议。自有模板把工具目录放在 `### Tool inventory` 下，把设备目录放在 `### Mounted devices` 下。
 - 将 Computer Use、Scratchpad、Tool I/O 动态行、包含自动 QA 的 Specialized Tools 和 AST 放入 runtime-modes 槽位；删除宿主固定的 Tool Policy、Exploration、Workflow、Delivery 和 Critical 策略文本前，按照已识别的提示词结构校验必需行、条件行及其渲染顺序。自有末尾 `# Delivery` 章节按 `renderDelivery` 决定保留或省略。
 - 将保留的 OMP 运行时区段 `# Computer Use`、`§ Scratchpad`、`# Tool I/O`、`# Specialized Tools` 和 `# AST` 统一为标题与正文之间恰好两个 LF。若 OMP 在 `Specialized Tools` 相邻列表项之间注入空行，扩展会删除该区段内所有此类间隔；不会全局压缩空白，也不会改写自有静态正文、代码块或任意宿主内容。自有主块不保留末尾 LF，因此 OMP 使用 `systemPrompt.join("\n\n")` 时，`# Project snapshot` 前恰好只有两个 LF。
-- 校验宿主 Internal URLs 区段，丢弃固定的 `Most FS/bash tools auto-resolve these to FS paths.` 引导句，只保留 URI 条目。
+- 校验宿主 Internal URLs 区段，包括 `skill://` 条目的有无条件分支，丢弃固定的 `Most FS/bash tools auto-resolve these to FS paths.` 引导句，只保留 URI 条目。
 - 校验完整的宿主 Delegation 区段后将其删除。自有的 `# Agent coordination` 章节提供下文所述的协调规则；已渲染的并发上限和额外的 `hub` 通信提示不会进入任何自有槽位。宿主按其设置执行并发限制。
 - 在完整 Skill 命令元数据与目录对应时，把 Skill 目录 description 归一化为单行，见下文。
 - 只改写 PROJECT 外层内容：外层标题改为 `# Project snapshot`，替换加载说明，并在结构位置删除字节精确的固定 `<critical>` 尾部。上下文文件正文、路径列表、工作区内容、附加根目录和追加的提示词字节逐字节保留。
@@ -139,7 +139,11 @@ OMP 按扩展安装顺序运行 `before_agent_start` 处理器，每个处理器
 
 ### 已验证范围
 
-组件检查在组件目录运行 `bun run typecheck` 与 `bun test`（116 项测试、643 个断言）。测试运行时从锁定的宿主 fixture 渲染输入，覆盖原生工具列表、内联工具目录、Code Mode、固定区段的条件分支、条件行错位拒绝、单次槽位填充、固定区域拒绝、结构边界、编码安装路径、逐字节保留、块顺序、PROJECT 页脚变体、Skill description 归一化、隐藏有序候选、两种 Delivery 形态及切换、两种形态中的子代理结果收集与消息规则、设置失败、意外 turn 处理异常与有界诊断。规则部分补充了全部匹配维度、可接受与不可接受的文档形态、分隔行与逐字节保留规则、发现顺序与过滤、读取失败隔离、替换结果之后的追加步骤、模型回退以及默认规则目录。协调规则断言验证渲染后的指令，不能证明实际的父子调度或消息行为。
+组件检查在组件目录运行 `bun run typecheck` 与 `bun test`（117 项测试、647 个断言）。测试运行时从锁定的 OMP 18.2.3 宿主 fixture 渲染输入，覆盖 `hasSkillUriAccess` 的两个分支、原生工具列表、内联工具目录、Code Mode、固定区段的条件分支、条件行错位拒绝、单次槽位填充、固定区域拒绝、结构边界、编码安装路径、逐字节保留、块顺序、PROJECT 页脚变体、Skill description 归一化、隐藏有序候选、两种 Delivery 形态及切换、两种形态中的子代理结果收集与消息规则、设置失败、意外 turn 处理异常与有界诊断。规则部分补充了全部匹配维度、可接受与不可接受的文档形态、分隔行与逐字节保留规则、发现顺序与过滤、读取失败隔离、替换结果之后的追加步骤、模型回退以及默认规则目录。协调规则断言验证渲染后的指令，不能证明实际的父子调度或消息行为。
+
+`<conventions>` 前缀首次出现在 OMP 18.1.21。独立 fixture 检查渲染了未经修改的 18.1.21 主模板与 PROJECT 模板，并确认两种 Delivery 形态均可完成替换。这些 fixture 版本只是测试证据，不构成支持版本表。peer dependencies 保持不限制版本，运行时不检查宿主版本。
+
+下列真实宿主与容器观察均采集于 OMP 18.1.11，并保留该版本范围；它们不是 OMP 18.2.3 的真实宿主证据。
 
 容器检查使用不挂载宿主目录的一次性 Podman 容器。检查结束后删除容器。
 
@@ -166,7 +170,7 @@ bun run typecheck
 bun test
 ```
 
-运行时只导入两个不限制版本的 peer dependency：`@oh-my-pi/pi-coding-agent` 提供扩展 API，`@oh-my-pi/pi-utils` 提供感知 profile 的 agent 目录辅助函数。测试固定 `@oh-my-pi/pi-coding-agent`、`@oh-my-pi/pi-ai` 与 `@oh-my-pi/pi-utils` 的直接 dev dependency，以便复现宿主 fixture；dev dependency 版本不限制安装或激活。
+运行时只导入两个不限制版本的 peer dependency：`@oh-my-pi/pi-coding-agent` 提供扩展 API，`@oh-my-pi/pi-utils` 提供感知 profile 的 agent 目录辅助函数。测试将 `@oh-my-pi/pi-coding-agent`、`@oh-my-pi/pi-ai` 与 `@oh-my-pi/pi-utils` 的直接 dev dependency 固定为 18.2.3，以便复现宿主 fixture；dev dependency 版本不限制安装或激活。
 
 ## 许可
 

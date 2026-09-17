@@ -1,5 +1,5 @@
 /**
- * Test-only fixtures that render the installed 18.1.11 host templates.
+ * Test-only fixtures that render the installed OMP 18.2.3 host templates.
  *
  * Both test files share these helpers so extension-level checks exercise the
  * same recognized default main block and PROJECT footer as transform checks.
@@ -51,6 +51,7 @@ export type MainOptions = {
   reactions?: boolean;
   personality?: string;
   browser?: boolean;
+  hasSkillUriAccess?: boolean;
 };
 
 export function renderMain(options: MainOptions = {}): string {
@@ -115,6 +116,7 @@ export function renderMain(options: MainOptions = {}): string {
     reactions: options.reactions ?? false,
     personality: options.personality ?? "",
     browserEnabled: options.browser ?? false,
+    hasSkillUriAccess: options.hasSkillUriAccess ?? true,
     includeWorkspaceTree: false,
     workspaceTree: { rendered: "", truncated: false },
     additionalWorkspaceRoots: [],
