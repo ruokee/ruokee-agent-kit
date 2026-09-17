@@ -52,12 +52,16 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 
 The project follows [Trunk-Based Development](https://trunkbaseddevelopment.com/). `main` is the only long-lived branch. Start work on a short-lived branch from current `main`, use English Conventional Commit messages, and merge into `main` through squash merge after explicit authorization.
 
-Before development, install the Git pre-commit hook:
+Commit messages use the Conventional Commits types, and scope is optional. A message that carries a scope uses one of `skills`, `extensions`, `adr`, or `repo`; a change that spans two areas carries no scope.
+
+Before development, install the Git hooks:
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm hooks:install
 ```
+
+The hooks format staged files before each commit and check the commit message. A message that breaks the type or scope rules stops the commit and prints the violated rule.
 
 ### Repository layout
 

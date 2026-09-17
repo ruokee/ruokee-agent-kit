@@ -52,12 +52,16 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 
 项目遵循 [Trunk-Based](https://trunkbaseddevelopment.com/) 开发模式。`main` 是唯一长期分支。所有工作都从当前 `main` 创建短期分支，使用英文 Conventional Commit 消息，并在明确授权后通过 squash merge 进入 `main`。
 
-开始开发之前，先确保安装了 git pre-commit hook：
+提交信息使用 Conventional Commits 类型，scope 可选。带 scope 的信息使用 `skills`、`extensions`、`adr`、`repo` 之一；跨越两个区域的改动不带 scope。
+
+开始开发之前，先确保安装了 Git 钩子：
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm hooks:install
 ```
+
+钩子在每次提交前格式化暂存文件，并校验提交信息。信息不符合类型或 scope 规则时会阻止提交，并打印违反的规则。
 
 ### 仓库布局
 

@@ -51,7 +51,7 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 
 ## Validation
 
-- Install the Git hooks with `pnpm hooks:install`.
+- Install the Git hooks with `pnpm hooks:install`. It sets up the pre-commit formatting stage and the commit-msg message check.
 - Install root and component dependencies as described in [README.md](./README.md#check-prerequisites) before running checks.
 - Run `pnpm check` from the repository root before requesting review. It runs the Markdown check, tk Rust formatting and tests, all three OMP components' TypeScript checks and tests, and tk native adapter tests sequentially. It stops at the first failure with a nonzero exit status.
 - Use `pnpm check:base` for targeted Markdown and Rust checks; it does not cover component checks. Check commands do not install dependencies or format source files.
@@ -62,7 +62,7 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 - Use trunk-based development. `main` is the only long-lived branch.
 - Develop each feature, fix, or documentation change on a short-lived branch created from current `main`. Do not modify `main` directly.
 - Commit each atomic task to its branch by default. Stage only files that belong to the current task.
-- Write commit messages in English and follow the Conventional Commits specification.
+- Write commit messages in English and follow the Conventional Commits specification. Types come from the standard set, and the optional scope is one of `skills`, `extensions`, `adr`, or `repo`; a change that spans two areas carries no scope. The commit-msg hook rejects a message that breaks these rules.
 - Let `git commit` run the quality hooks. If hooks modify task files, review and restage them before retrying the commit.
 - Use `git commit --amend` only to edit a commit message. Never use amend to add, remove, or replace committed file changes.
 - Before requesting review, commit the task changes and leave the related working tree clean.

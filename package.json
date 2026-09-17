@@ -12,6 +12,8 @@
     "check": "pnpm check:base && pnpm --dir projects/omp-status-bar run typecheck && pnpm --dir projects/omp-status-bar run test && pnpm --dir projects/omp-system-prompt run typecheck && pnpm --dir projects/omp-system-prompt run test && pnpm --dir projects/omp-codex-web-access run typecheck && pnpm --dir projects/omp-codex-web-access run test && bun test projects/tk/adapter-tests"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
     "lint-staged": "^16.4.0",
     "prettier": "^3.9.6",
     "prettier-plugin-markdown-table-layout": "github:ruokee/prettier-plugin-markdown-table-layout#v0.1.1",
@@ -19,7 +21,8 @@
     "simple-git-hooks": "^2.14.0"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm exec lint-staged"
+    "pre-commit": "pnpm exec lint-staged",
+    "commit-msg": "pnpm exec commitlint --edit \"$1\" || { echo; echo \"The commit was stopped by the message check. Edit the message file and commit again:\"; echo \"  ${EDITOR:-vi} $1\"; echo \"  Use -F \\\"$1\\\" in place of the old message option (-m), and keep other options such as --amend.\"; exit 1; }"
   },
   "lint-staged": {
     "*": "prettier --write --log-level warn --ignore-unknown"
