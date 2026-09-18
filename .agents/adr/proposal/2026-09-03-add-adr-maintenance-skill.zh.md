@@ -1,6 +1,6 @@
 # ADR 提案：添加 ADR 维护 Skill
 
-Decision owner: Ruokee
+Draft owner: Ruokee
 Draft writer: Mind (OMP GPT-5.6 Sol)
 
 [English](./2026-09-03-add-adr-maintenance-skill.md) | 中文

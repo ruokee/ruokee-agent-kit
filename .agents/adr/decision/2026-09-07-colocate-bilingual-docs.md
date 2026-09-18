@@ -1,7 +1,7 @@
 # ADR decision: Colocate English and Chinese public documentation
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-6 Astra
+Decision writer: OMP GPT-6 Astra
 Reverses: [Maintain English and Chinese public documentation](../archived/2026-08-20-maintain-bilingual-public-documentation.md)
 
 English | [中文](./2026-09-07-colocate-bilingual-docs.zh.md)

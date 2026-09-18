@@ -1,7 +1,7 @@
 # ADR 决定：使用名称修复定义 tk Task 数据模型
 
 Decision owner: Ruokee
-Draft writer: pro-20x/gpt-6-astra
+Decision writer: pro-20x/gpt-6-astra
 Archived: 2026-09-10
 Reversed by: [使用 closed 改名与文件系统引用扫描定义 tk Task 数据模型](../decision/2026-09-10-allow-closed-rename-filesystem-scan.zh.md)
 Reverses: [使用载体发现定义 tk Task 数据模型](./2026-09-03-define-tk-task-data-model.zh.md)

@@ -1,7 +1,7 @@
 # ADR 决定：OMP 状态栏使用常驻 Widget
 
 Decision owner: Ruokee
-Draft writer: OMP GLM-5.3 Flash
+Decision writer: OMP GLM-5.3 Flash
 
 [English](./2026-09-05-use-omp-status-bar-widget.md) | 中文
 

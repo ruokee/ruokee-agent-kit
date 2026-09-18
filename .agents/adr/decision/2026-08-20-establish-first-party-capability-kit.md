@@ -1,7 +1,7 @@
 # ADR decision: Establish a first-party Agent capability kit
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 
 English | [中文](./2026-08-20-establish-first-party-capability-kit.zh.md)
 

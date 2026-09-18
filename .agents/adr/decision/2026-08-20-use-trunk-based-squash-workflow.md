@@ -1,7 +1,7 @@
 # ADR decision: Use short-lived branches and squash into main
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 
 English | [中文](./2026-08-20-use-trunk-based-squash-workflow.zh.md)
 

@@ -1,7 +1,7 @@
 # ADR 决定：使用载体发现定义 tk Task 数据模型
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-08
 Reversed by: [使用名称修复定义 tk Task 数据模型](./2026-09-08-repair-names-through-tk-rename.zh.md)
 Reverses: [定义 tk Task 数据模型](./2026-08-28-define-tk-task-data-model.zh.md)

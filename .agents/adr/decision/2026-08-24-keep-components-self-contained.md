@@ -1,7 +1,7 @@
 # ADR decision: Keep distributable components self-contained
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 
 English | [中文](./2026-08-24-keep-components-self-contained.zh.md)
 

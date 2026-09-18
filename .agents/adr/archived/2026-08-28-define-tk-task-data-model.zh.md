@@ -1,7 +1,7 @@
 # ADR 决定：定义 tk Task 数据模型
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-03
 Reversed by: [使用载体发现定义 tk Task 数据模型](./2026-09-03-define-tk-task-data-model.zh.md)
 

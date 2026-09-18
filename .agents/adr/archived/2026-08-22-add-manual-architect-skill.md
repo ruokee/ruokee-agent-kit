@@ -1,7 +1,7 @@
 # ADR decision: Add a manually invoked architect Skill
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-18
 Reversed by: [Allow model invocation of architect](../decision/2026-09-18-make-architect-model-invoked.md)
 

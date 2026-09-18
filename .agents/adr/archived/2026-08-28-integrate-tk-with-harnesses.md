@@ -1,7 +1,7 @@
 # ADR decision: Integrate tk with Harnesses
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-02
 Reversed by: [Integrate tk tools with Harnesses](../decision/2026-09-02-integrate-tk-tools-with-harnesses.md)
 

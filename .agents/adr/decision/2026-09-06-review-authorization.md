@@ -1,7 +1,7 @@
 # ADR decision: Review authorization
 
 Decision owner: Ruokee
-Draft writer: OMP
+Decision writer: OMP
 
 English | [中文](./2026-09-06-review-authorization.zh.md)
 

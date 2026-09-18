@@ -1,7 +1,7 @@
 # ADR 决定：添加手动启用的 architect Skill
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-18
 Reversed by: [允许模型调用 architect](../decision/2026-09-18-make-architect-model-invoked.zh.md)
 

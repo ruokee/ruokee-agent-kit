@@ -1,7 +1,7 @@
 # ADR decision: Use Motivation as the opening section
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 
 English | [中文](./2026-08-22-use-motivation-heading-in-adrs.zh.md)
 

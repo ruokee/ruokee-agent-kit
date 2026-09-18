@@ -1,7 +1,7 @@
 # ADR decision: Add the user-invoked grill-me Skill
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-6 Astra
+Decision writer: OMP GPT-6 Astra
 
 English | [中文](./2026-09-06-add-grill-me-skill.zh.md)
 

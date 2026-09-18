@@ -1,7 +1,7 @@
 # ADR decision: Integrate Skill language selection into tk install
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol, Ruokee
+Decision writer: OMP GPT-5.6 Sol, Ruokee
 
 English | [中文](./2026-09-02-select-tk-skill-language.zh.md)
 

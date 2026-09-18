@@ -1,7 +1,7 @@
 # ADR decision: Add the Agent Note mechanism
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-02
 Reversed by: [Establish the ADR mechanism](../decision/2026-09-02-establish-adr-mechanism.md)
 

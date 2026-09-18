@@ -1,7 +1,7 @@
 # ADR 决定：定义 tk 运行时与 CLI
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 
 [English](./2026-08-28-define-tk-runtime-and-cli.md) | 中文
 

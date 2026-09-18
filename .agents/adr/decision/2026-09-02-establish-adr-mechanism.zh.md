@@ -1,7 +1,7 @@
 # ADR 决定：建立 ADR 机制
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Reverses: [添加 Agent Note 机制](../archived/2026-08-22-add-agent-notes.zh.md)
 
 [English](./2026-09-02-establish-adr-mechanism.md) | 中文
@@ -42,7 +42,7 @@ Reverses: [添加 Agent Note 机制](../archived/2026-08-22-add-agent-notes.zh.m
 
 英文决定使用 `# ADR decision: <title>`，中文决定使用 `# ADR 决定：<标题>`。正文包含 `Motivation`、`Decision`、`Alternatives considered` 和 `Consequences`。归档决定保留该格式，修复关系链接和事实链接后冻结。
 
-两类文件都保留 `Decision owner` 和 `Draft writer`。owner 是负责维护者，draft writer 记录最初起草者，后续维护时不改变。关系和生命周期元数据位于 `Draft writer` 之后、双向语言链接之前。路径、命令、API 名称、元数据字段和代码标识符在两种语言中都保留仓库原有拼写。
+提案记录 `Draft owner` 和 `Draft writer`，决定记录 `Decision owner` 和 `Decision writer`。owner 是负责维护者，writer 记录最初起草者，后续维护时不改变。关系和生命周期元数据位于起草者字段之后、双向语言链接之前。路径、命令、API 名称、元数据字段和代码标识符在两种语言中都保留仓库原有拼写。
 
 `Motivation` 或 `动机` 是第一个必需正文章节，并准确说明考虑或采用这项选择的具体理由。描述性的三级标题可以整理必需章节，但不能替换必需的二级标题。
 

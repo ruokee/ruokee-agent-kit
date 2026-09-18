@@ -1,7 +1,7 @@
 # ADR 决定：维护中英文公开文档
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-07
 Reversed by: [同目录维护中英文公开文档](../decision/2026-09-07-colocate-bilingual-docs.zh.md)
 

@@ -1,7 +1,7 @@
 # ADR 决定：使用动机作为起始章节
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 
 [English](./2026-08-22-use-motivation-heading-in-adrs.md) | 中文
 

@@ -1,7 +1,7 @@
 # ADR 决定：使用 closed 改名与文件系统引用扫描定义 tk 任务数据模型
 
 Decision owner: Ruokee
-Draft writer: deepseek/deepseek-v4.1-flash
+Decision writer: deepseek/deepseek-v4.1-flash
 Reverses: [使用名称修复定义 tk 任务数据模型](../archived/2026-09-08-repair-names-through-tk-rename.zh.md)
 
 [English](./2026-09-10-allow-closed-rename-filesystem-scan.md) | 中文

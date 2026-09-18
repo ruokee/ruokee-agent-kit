@@ -1,7 +1,7 @@
 # ADR decision: Add model-scoped prompt rules to the system prompt extension
 
 Decision owner: Ruokee
-Draft writer: deepseek/deepseek-v4.1-flash
+Decision writer: deepseek/deepseek-v4.1-flash
 
 English | [中文](./2026-09-14-add-model-prompt-rules.zh.md)
 

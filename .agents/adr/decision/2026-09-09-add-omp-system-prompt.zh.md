@@ -1,7 +1,7 @@
 # ADR 决定：添加 OMP 系统提示词扩展
 
 Decision owner: Ruokee
-Draft writer: OMP
+Decision writer: OMP
 Reverses: [添加 OMP 系统提示词扩展](../archived/2026-09-07-add-omp-system-prompt.zh.md)
 
 [English](./2026-09-09-add-omp-system-prompt.md) | 中文

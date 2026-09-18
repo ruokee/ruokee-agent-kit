@@ -46,7 +46,7 @@ yyyy-mm-dd-topic-title.zh.md
 
 作者可以从任一语言开始，但两份文件必须在同一变更中补齐。语义冲突会阻止合入，直到维护者解决该冲突。路径、命令、API 名称、元数据字段名和代码标识符保留仓库原有拼写。
 
-在完整元数据块后紧接着放置双向语言链接。文件对中的 `Decision owner` 和 `Draft writer` 必须一致。`Decision owner` 记录负责维护者，`Draft writer` 记录最初起草者，后续维护时不改变。`Reverses`、`Archived` 和 `Reversed by` 等关系与生命周期字段位于 `Draft writer` 之后、语言链接之前。
+在完整元数据块后紧接着放置双向语言链接。文件对中的负责人字段与起草者字段必须一致：提案为 `Draft owner` 和 `Draft writer`，决定为 `Decision owner` 和 `Decision writer`。负责人字段记录负责维护者，起草者字段记录最初起草者，后续维护时不改变。`Reverses`、`Archived` 和 `Reversed by` 等关系与生命周期字段位于起草者字段之后、语言链接之前。
 
 ## 提案格式
 
@@ -59,7 +59,7 @@ yyyy-mm-dd-topic-title.zh.md
 ```markdown
 # ADR proposal: <title>
 
-Decision owner: <name>
+Draft owner: <name>
 Draft writer: <writer>
 
 English | [中文](./<filename>.zh.md)
@@ -70,7 +70,7 @@ English | [中文](./<filename>.zh.md)
 ```markdown
 # ADR 提案：<标题>
 
-Decision owner: <name>
+Draft owner: <name>
 Draft writer: <writer>
 
 [English](./<filename>.md) | 中文
@@ -108,7 +108,7 @@ Draft writer: <writer>
 # ADR decision: <title>
 
 Decision owner: <name>
-Draft writer: <writer>
+Decision writer: <writer>
 
 English | [中文](./<filename>.zh.md)
 ```
@@ -119,7 +119,7 @@ English | [中文](./<filename>.zh.md)
 # ADR 决定：<标题>
 
 Decision owner: <name>
-Draft writer: <writer>
+Decision writer: <writer>
 
 [English](./<filename>.md) | 中文
 ```

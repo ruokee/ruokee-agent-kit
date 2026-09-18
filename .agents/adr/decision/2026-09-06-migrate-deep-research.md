@@ -1,7 +1,7 @@
 # ADR decision: Provide the deep-research Skill
 
 Decision owner: Ruokee
-Draft writer: OMP
+Decision writer: OMP
 
 English | [中文](./2026-09-06-migrate-deep-research.zh.md)
 

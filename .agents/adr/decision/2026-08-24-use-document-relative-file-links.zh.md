@@ -1,7 +1,7 @@
 # ADR 决定：文件路径使用文档相对链接
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 
 [English](./2026-08-24-use-document-relative-file-links.md) | 中文
 

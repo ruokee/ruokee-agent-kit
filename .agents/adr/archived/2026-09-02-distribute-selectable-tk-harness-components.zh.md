@@ -1,7 +1,7 @@
 # ADR 决定：分发可选择的 tk Harness 组件
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol, Ruokee
+Decision writer: OMP GPT-5.6 Sol, Ruokee
 Reverses: [分发 tk 运行时与 Harness 组件](../archived/2026-08-28-distribute-tk-runtime-components.zh.md)
 Archived: 2026-09-03
 Reversed by: [分发 Harness 组件与自定义根目录 CLI Skill](../decision/2026-09-03-distribute-custom-cli-skills.zh.md)

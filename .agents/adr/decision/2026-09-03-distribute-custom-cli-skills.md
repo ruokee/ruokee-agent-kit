@@ -1,7 +1,7 @@
 # ADR decision: Distribute Harness components and custom CLI Skills
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol, Ruokee
+Decision writer: OMP GPT-5.6 Sol, Ruokee
 Reverses: [Distribute selectable tk Harness components](../archived/2026-09-02-distribute-selectable-tk-harness-components.md)
 
 English | [中文](./2026-09-03-distribute-custom-cli-skills.zh.md)

@@ -1,7 +1,7 @@
 # ADR decision: Package Skills as self-contained language variants
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 
 English | [中文](./2026-08-20-package-self-contained-skill-variants.zh.md)
 

@@ -1,7 +1,7 @@
 # ADR decision: Add an OMP system prompt extension
 
 Decision owner: Ruokee
-Draft writer: OMP
+Decision writer: OMP
 Archived: 2026-09-09
 Reversed by: [Add an OMP system prompt extension](../decision/2026-09-09-add-omp-system-prompt.md)
 

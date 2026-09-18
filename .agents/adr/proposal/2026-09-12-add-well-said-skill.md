@@ -1,6 +1,6 @@
 # ADR proposal: Add the well-said writing Skill
 
-Decision owner: Ruokee
+Draft owner: Ruokee
 Draft writer: OMP GPT-6 Astra
 
 English | [中文](./2026-09-12-add-well-said-skill.zh.md)

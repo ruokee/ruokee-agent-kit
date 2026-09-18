@@ -1,7 +1,7 @@
 # ADR decision: Distribute the tk runtime and Harness components
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-02
 Reversed by: [Distribute selectable tk Harness components](./2026-09-02-distribute-selectable-tk-harness-components.md)
 

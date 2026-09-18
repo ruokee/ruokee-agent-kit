@@ -1,7 +1,7 @@
 # ADR decision: Establish the ADR mechanism
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Reverses: [Add the Agent Note mechanism](../archived/2026-08-22-add-agent-notes.md)
 
 English | [中文](./2026-09-02-establish-adr-mechanism.zh.md)
@@ -42,7 +42,7 @@ A proposal uses `# ADR proposal: <title>` in English and `# ADR 提案：<标题
 
 A decision uses `# ADR decision: <title>` in English and `# ADR 决定：<标题>` in Chinese. Its body contains `Motivation`, `Decision`, `Alternatives considered`, and `Consequences`. An archived decision retains this format and freezes after relationship and factual link repairs.
 
-Both types retain `Decision owner` and `Draft writer`. The owner is the accountable maintainer. The draft writer records the original writer and does not change during later maintenance. Relationship and lifecycle metadata follows `Draft writer` and precedes the reciprocal language links. Paths, commands, API names, metadata fields, and code identifiers retain their repository spelling in both languages.
+A proposal records `Draft owner` and `Draft writer`; a decision records `Decision owner` and `Decision writer`. The owner is the accountable maintainer, and the writer records the original writer and does not change during later maintenance. Relationship and lifecycle metadata follows the writer field and precedes the reciprocal language links. Paths, commands, API names, metadata fields, and code identifiers retain their repository spelling in both languages.
 
 `Motivation` is the first required body section and states the concrete reason for considering or adopting the choice. Descriptive level-three headings may organize a required section but never replace required level-two headings.
 

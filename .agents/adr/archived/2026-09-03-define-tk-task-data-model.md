@@ -1,7 +1,7 @@
 # ADR decision: Define the tk Task data model with carrier discovery
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-08
 Reversed by: [Define the tk Task data model with rename repair](./2026-09-08-repair-names-through-tk-rename.md)
 Reverses: [Define the tk Task data model](./2026-08-28-define-tk-task-data-model.md)

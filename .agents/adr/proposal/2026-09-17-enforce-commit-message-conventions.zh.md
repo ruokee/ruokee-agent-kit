@@ -1,6 +1,6 @@
 # ADR 提案：强制执行提交信息规范
 
-Decision owner: Ruokee
+Draft owner: Ruokee
 Draft writer: deepseek/deepseek-v4.1-flash
 
 [English](./2026-09-17-enforce-commit-message-conventions.md) | 中文

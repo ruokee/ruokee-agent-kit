@@ -1,7 +1,7 @@
 # ADR 决定：建立第一方 Agent 能力工具集
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 
 [English](./2026-08-20-establish-first-party-capability-kit.md) | 中文
 

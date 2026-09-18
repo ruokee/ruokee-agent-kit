@@ -1,7 +1,7 @@
 # ADR decision: Use a persistent widget for the OMP status bar
 
 Decision owner: Ruokee
-Draft writer: OMP GLM-5.3 Flash
+Decision writer: OMP GLM-5.3 Flash
 
 English | [中文](./2026-09-05-use-omp-status-bar-widget.zh.md)
 

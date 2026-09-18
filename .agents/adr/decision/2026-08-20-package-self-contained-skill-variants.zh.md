@@ -1,7 +1,7 @@
 # ADR 决定：将 Skill 打包为自包含语言变体
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 
 [English](./2026-08-20-package-self-contained-skill-variants.md) | 中文
 

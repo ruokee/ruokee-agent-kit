@@ -1,7 +1,7 @@
 # ADR 决定：统一仓库检查入口
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-6 Astra
+Decision writer: OMP GPT-6 Astra
 
 [English](./2026-09-12-unify-repository-checks.md) | 中文
 

@@ -1,6 +1,6 @@
 # ADR proposal: Enforce commit message conventions
 
-Decision owner: Ruokee
+Draft owner: Ruokee
 Draft writer: deepseek/deepseek-v4.1-flash
 
 English | [中文](./2026-09-17-enforce-commit-message-conventions.zh.md)

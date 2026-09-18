@@ -1,7 +1,7 @@
 # ADR decision: Define the tk Task data model with name repair
 
 Decision owner: Ruokee
-Draft writer: pro-20x/gpt-6-astra
+Decision writer: pro-20x/gpt-6-astra
 Archived: 2026-09-10
 Reversed by: [Define the tk Task data model with closed rename and file system reference scanning](../decision/2026-09-10-allow-closed-rename-filesystem-scan.md)
 Reverses: [Define the tk Task data model with carrier discovery](./2026-09-03-define-tk-task-data-model.md)

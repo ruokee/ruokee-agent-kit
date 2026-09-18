@@ -1,7 +1,7 @@
 # ADR 决定：使用短期分支并 squash 合入 main
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 
 [English](./2026-08-20-use-trunk-based-squash-workflow.md) | 中文
 

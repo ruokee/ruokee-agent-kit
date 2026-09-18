@@ -1,7 +1,7 @@
 # ADR 决定：为系统提示词扩展增加模型级规则
 
 Decision owner: Ruokee
-Draft writer: deepseek/deepseek-v4.1-flash
+Decision writer: deepseek/deepseek-v4.1-flash
 
 [English](./2026-09-14-add-model-prompt-rules.md) | 中文
 

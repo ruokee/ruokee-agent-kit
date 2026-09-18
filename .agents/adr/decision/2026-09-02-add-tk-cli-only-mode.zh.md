@@ -1,7 +1,7 @@
 # ADR 决定：新增 tk 纯 CLI 模式
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol, Ruokee
+Decision writer: OMP GPT-5.6 Sol, Ruokee
 
 [English](./2026-09-02-add-tk-cli-only-mode.md) | 中文
 

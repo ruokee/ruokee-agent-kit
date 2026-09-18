@@ -1,7 +1,7 @@
 # ADR decision: Unify repository checks
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-6 Astra
+Decision writer: OMP GPT-6 Astra
 
 English | [中文](./2026-09-12-unify-repository-checks.zh.md)
 

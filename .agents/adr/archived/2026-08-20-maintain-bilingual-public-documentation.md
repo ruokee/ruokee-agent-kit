@@ -1,7 +1,7 @@
 # ADR decision: Maintain English and Chinese public documentation
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-07
 Reversed by: [Colocate English and Chinese public documentation](../decision/2026-09-07-colocate-bilingual-docs.md)
 

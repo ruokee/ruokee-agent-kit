@@ -1,7 +1,7 @@
 # ADR 决定：保持可分发组件自包含
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 
 [English](./2026-08-24-keep-components-self-contained.md) | 中文
 

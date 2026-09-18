@@ -1,7 +1,7 @@
 # ADR 决定：分发 Harness 组件与自定义根目录 CLI Skill
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol, Ruokee
+Decision writer: OMP GPT-5.6 Sol, Ruokee
 Reverses: [分发可选择的 tk Harness 组件](../archived/2026-09-02-distribute-selectable-tk-harness-components.zh.md)
 
 [English](./2026-09-03-distribute-custom-cli-skills.md) | 中文

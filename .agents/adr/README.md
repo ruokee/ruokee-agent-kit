@@ -46,7 +46,7 @@ The unsuffixed file is English and the default public link. The `.zh.md` file is
 
 Authors may begin in either language, but both files must be complete in the same change. A semantic conflict blocks merge until the maintainer resolves it. Paths, commands, API names, metadata field names, and code identifiers retain their repository spelling.
 
-Place reciprocal language links immediately below the complete metadata block. Keep `Decision owner` and `Draft writer` identical across the pair. `Decision owner` names the accountable maintainer. `Draft writer` records the original writer and does not change during later maintenance. Put relationship and lifecycle fields such as `Reverses`, `Archived`, and `Reversed by` after `Draft writer` and before the language links.
+Place reciprocal language links immediately below the complete metadata block. Keep the owner and writer fields identical across the pair. A proposal names them `Draft owner` and `Draft writer`; a decision names them `Decision owner` and `Decision writer`. The owner field names the accountable maintainer, and the writer field records the original writer, which does not change during later maintenance. Put relationship and lifecycle fields such as `Reverses`, `Archived`, and `Reversed by` after the writer field and before the language links.
 
 ## Proposal format
 
@@ -59,7 +59,7 @@ English header:
 ```markdown
 # ADR proposal: <title>
 
-Decision owner: <name>
+Draft owner: <name>
 Draft writer: <writer>
 
 English | [中文](./<filename>.zh.md)
@@ -70,7 +70,7 @@ Chinese header:
 ```markdown
 # ADR 提案：<标题>
 
-Decision owner: <name>
+Draft owner: <name>
 Draft writer: <writer>
 
 [English](./<filename>.md) | 中文
@@ -108,7 +108,7 @@ English header:
 # ADR decision: <title>
 
 Decision owner: <name>
-Draft writer: <writer>
+Decision writer: <writer>
 
 English | [中文](./<filename>.zh.md)
 ```
@@ -119,7 +119,7 @@ Chinese header:
 # ADR 决定：<标题>
 
 Decision owner: <name>
-Draft writer: <writer>
+Decision writer: <writer>
 
 [English](./<filename>.md) | 中文
 ```

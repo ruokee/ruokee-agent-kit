@@ -1,7 +1,7 @@
 # ADR 决定：Codex 网页访问使用原生插件设置
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-6 Astra
+Decision writer: OMP GPT-6 Astra
 Reverses: [ADR 决定：添加 OMP Codex 网页访问组件](../archived/2026-09-06-add-omp-codex-web-access.zh.md)
 
 [English](./2026-09-10-use-codex-web-plugin-settings.md) | 中文

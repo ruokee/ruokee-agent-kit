@@ -1,7 +1,7 @@
 # ADR decision: Use native plugin settings for Codex web access
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-6 Astra
+Decision writer: OMP GPT-6 Astra
 Reverses: [ADR decision: Add OMP Codex web access](../archived/2026-09-06-add-omp-codex-web-access.md)
 
 English | [中文](./2026-09-10-use-codex-web-plugin-settings.zh.md)

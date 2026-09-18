@@ -1,7 +1,7 @@
 # ADR 决定：添加 Agent Note 机制
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-02
 Reversed by: [建立 ADR 机制](../decision/2026-09-02-establish-adr-mechanism.zh.md)
 

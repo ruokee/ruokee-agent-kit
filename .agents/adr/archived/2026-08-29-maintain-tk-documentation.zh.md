@@ -1,7 +1,7 @@
 # ADR 决定：维护 tk 文档
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-11
 Reversed by: [统一 tk 使用模式](../decision/2026-09-11-align-tk-usage-patterns.zh.md)
 

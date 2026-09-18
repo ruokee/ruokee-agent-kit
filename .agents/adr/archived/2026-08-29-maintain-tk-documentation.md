@@ -1,7 +1,7 @@
 # ADR decision: Maintain tk documentation
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-5.6 Sol
+Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-11
 Reversed by: [Align tk usage patterns](../decision/2026-09-11-align-tk-usage-patterns.md)
 

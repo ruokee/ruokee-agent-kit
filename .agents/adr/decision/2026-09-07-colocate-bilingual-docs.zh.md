@@ -1,7 +1,7 @@
 # ADR 决定：同目录维护中英文公开文档
 
 Decision owner: Ruokee
-Draft writer: OMP GPT-6 Astra
+Decision writer: OMP GPT-6 Astra
 Reverses: [维护中英文公开文档](../archived/2026-08-20-maintain-bilingual-public-documentation.zh.md)
 
 [English](./2026-09-07-colocate-bilingual-docs.md) | 中文
