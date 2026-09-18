@@ -1,7 +1,6 @@
 ---
 name: architect
-description: Use when architecture work or system design is needed, covering system-level analysis, design, review, technology selection, and evolution.
-disable-model-invocation: true
+description: Use for system-level architecture analysis, design, review, technology selection, or evolution across module, service, or deployment boundaries, especially system boundaries, data and state ownership, quality attributes, failure, scale, or long-term change. Do not use for single-module design, concrete implementation, code-level review, product behavior, priority ranking, general discussion, or a mention of architecture alone.
 ---
 
 # Architecture

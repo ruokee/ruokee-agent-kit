@@ -53,7 +53,7 @@ Keep the first release to one `SKILL.md` in each language component. The procedu
 
 **Add a checker before a Skill.** The current mechanism decision deferred both. A checker can enforce stable mechanical invariants, but the observed maintenance work depended on classifying changes, finding decision ownership, judging whether alternatives were real, and comparing bilingual meaning. Those are not established mechanical checks.
 
-**Require manual invocation.** The [architect Skill decision](../decision/2026-08-22-add-manual-architect-skill.md) established manual invocation for work that a person must deliberately choose. Direct ADR operations and project rules that require ADR review provide narrower activation signals. Requiring users to remember a separate invocation would allow the maintenance procedure to be skipped when it is most relevant.
+**Require manual invocation.** This would make ADR maintenance available only when a user explicitly names the Skill. Direct ADR operations and project rules that require ADR review provide narrower activation signals. Requiring users to remember a separate invocation would allow the maintenance procedure to be skipped when it is most relevant.
 
 ## Acceptance criteria
 

@@ -2,6 +2,8 @@
 
 Decision owner: Ruokee
 Draft writer: OMP GPT-5.6 Sol
+Archived: 2026-09-18
+Reversed by: [Allow model invocation of architect](../decision/2026-09-18-make-architect-model-invoked.md)
 
 English | [中文](./2026-08-22-add-manual-architect-skill.zh.md)
 

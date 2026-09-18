@@ -9,7 +9,7 @@ English | [中文](./2026-09-06-add-grill-me-skill.zh.md)
 
 Ruokee needs a questioning capability that turns an incomplete idea or an existing plan into shared understanding and an action-ready specification. `grill-me` discovers requirements and preferences, resolves checkable facts, and clarifies the choices needed before action.
 
-Sustained questioning is a deliberate interaction mode. Ordinary discussion, planning, and review must not activate it automatically. Its invocation contract follows the [architect decision](./2026-08-22-add-manual-architect-skill.md).
+Sustained questioning is a deliberate interaction mode. Ordinary discussion, planning, and review must not activate it automatically. Both language variants enforce user invocation through their own `SKILL.md` and `agents/openai.yaml` configuration.
 
 ## Decision
 
@@ -41,7 +41,7 @@ policy:
 
 The user must explicitly invoke the Skill through the host's Skill invocation mechanism. Discussing the Skill itself is not an invocation. A natural-language request to examine a plan deeply or ask questions does not authorize automatic activation.
 
-The description states applicability and coverage. Invocation policy belongs in configuration, following architect's convention.
+The description states applicability and coverage. Invocation policy belongs to `grill-me`'s own configuration.
 
 ### Behavior
 

@@ -39,7 +39,7 @@ Skill 不增加文件修改权限。审阅请求在未获编辑授权时保持�
 
 unslop 的来源链包括 [Cursor plugins 的 unslop](https://github.com/cursor/plugins/blob/main/pstack/skills/unslop/SKILL.md)。纳入并分发复制内容前，确定具体来源版本及本地补充内容，核实适用许可，保留所需署名和通知。能力主体归属与来源使用义务分别判断，来源核查尚待完成。
 
-[architect Skill](../decision/2026-08-22-add-manual-architect-skill.zh.md#参考资料与改写) 已有相同实践：它使用外部架构仓库作为主题地图和内容来源，同时保持独立编写的 Skill 主体。改写来源材料是 architect 的具体选择，不是取得第一方身份的通用前提。
+[architect Skill](../decision/2026-09-18-make-architect-model-invoked.zh.md#参考资料与改写) 已有相同实践：它使用外部架构仓库作为主题地图和内容来源，同时保持独立编写的 Skill 主体。改写来源材料是 architect 的具体选择，不是取得第一方身份的通用前提。
 
 在 [AGENTS.md](../../../AGENTS.md) 和第一方能力决定的 `Changes` 下明确这一通用归属原则。澄清内容边界措辞，避免把第一方能力中的第三方材料引用或复用等同于引入第三方能力、fork 或镜像。保留对这些第三方能力的禁止，以及来源署名与许可义务。为 well-said 的能力契约建立独立决定，并从该更新建立链接。
 
