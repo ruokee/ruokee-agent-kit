@@ -13,6 +13,12 @@ const MAX_FRONTMATTER_BYTES: usize = 1024 * 1024;
 const MAX_DISCOVERY_DEPTH: usize = 256;
 const MAX_DISCOVERY_DIRECTORIES: usize = 100_000;
 
+#[cfg(test)]
+thread_local! {
+    pub(crate) static DISCOVERY_CALLS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+    pub(crate) static TASK_READS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum MetadataValidation {
     Strict,
@@ -82,6 +88,8 @@ fn read_task_with_validation(
     mode: MetadataMode,
     validation: MetadataValidation,
 ) -> Result<StoredTask> {
+    #[cfg(test)]
+    TASK_READS.set(TASK_READS.get() + 1);
     let metadata = match mode {
         MetadataMode::Split => read_split_metadata(directory, validation)?,
         MetadataMode::Embed => {
@@ -277,6 +285,8 @@ fn child_slug(value: &str) -> Option<&str> {
 }
 
 pub fn discover_tasks(root: &Path, mode: MetadataMode) -> Result<TaskGraph> {
+    #[cfg(test)]
+    DISCOVERY_CALLS.set(DISCOVERY_CALLS.get() + 1);
     discover_tasks_with_validation(root, mode, MetadataValidation::Strict)
 }
 

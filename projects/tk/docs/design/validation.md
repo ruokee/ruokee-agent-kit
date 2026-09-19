@@ -30,6 +30,8 @@ Cover split and embed:
 - Child sequence allocation after `subtasks_dir` changes, gap preservation, and exhaustion at `99`;
 - Non-generated child rename without a directory move and generated rename with a stable sequence;
 - planning, open, and closed transitions and closing constraints;
+- Combined relationship and close updates validate candidate dependencies, preserve metadata and WAL on rejection, and retain force-close authorization and relationship checks;
+- One update reuses one discovery graph for relationship references, close or reopen checks, and candidate relationship validation;
 - Strict and permissive creation;
 - create rejects `--body` as an unknown CLI argument and rejects `body` as an unknown field in create requests and child Task items;
 - The runtime writes an initial body of exactly `# <normalized-name>` for both split and embed creation;

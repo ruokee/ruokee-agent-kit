@@ -472,7 +472,9 @@ pub fn update(
     request: UpdateRequest,
     actor: &str,
 ) -> Result<MutationResult> {
-    let task = resolve_ref(project, task_ref)?;
+    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    let task_index = resolve_ref_index_in_graph(project, task_ref, &graph)?;
+    let task = &graph.tasks[task_index].task;
     if task.metadata.status == Status::Closed
         && !matches!(request.lifecycle, Some(LifecycleAction::Reopen { .. }))
     {
@@ -484,11 +486,11 @@ pub fn update(
     validate_update_input(&request)?;
 
     let add_depends_on =
-        resolve_relation_additions(project, &request.add_depends_on, task.metadata.id)?;
-    let remove_depends_on = resolve_relation_removals(project, &request.remove_depends_on)?;
+        resolve_relation_additions(project, &graph, &request.add_depends_on, task.metadata.id)?;
+    let remove_depends_on = resolve_relation_removals(project, &graph, &request.remove_depends_on)?;
     let add_related_to =
-        resolve_relation_additions(project, &request.add_related_to, task.metadata.id)?;
-    let remove_related_to = resolve_relation_removals(project, &request.remove_related_to)?;
+        resolve_relation_additions(project, &graph, &request.add_related_to, task.metadata.id)?;
+    let remove_related_to = resolve_relation_removals(project, &graph, &request.remove_related_to)?;
     if intersects(&add_depends_on, &remove_depends_on)
         || intersects(&add_related_to, &remove_related_to)
     {
@@ -522,7 +524,7 @@ pub fn update(
         }) => {
             require_lifecycle_authorization("close", &reason, user_confirmed)?;
             if !force {
-                ensure_closeable(project, &task)?;
+                ensure_closeable(&graph, task_index, &changed)?;
             }
             changed = changed.transition(Status::Closed)?;
             Some(format!("Closed Task: {reason}"))
@@ -532,20 +534,20 @@ pub fn update(
             user_confirmed,
         }) => {
             require_lifecycle_authorization("reopen", &reason, user_confirmed)?;
-            ensure_reopenable(project, &task)?;
+            ensure_reopenable(&graph, task_index)?;
             changed = changed.transition(Status::Open)?;
             Some(format!("Reopened Task: {reason}"))
         }
     };
 
     changed.validate()?;
-    validate_relation_graph(project, &changed)?;
+    validate_relation_graph_in_tasks(&graph, &changed)?;
     if changed == original {
         return Ok(MutationResult {
             changed: false,
             committed: false,
             partial: false,
-            task: task_reference(&task),
+            task: task_reference(task),
             warnings: vec![],
         });
     }
@@ -570,7 +572,7 @@ pub fn update(
             id: changed.id,
             name: changed.name,
             status: changed.status,
-            task_dir: task.directory,
+            task_dir: task.directory.clone(),
         },
         warnings,
     })
@@ -611,19 +613,29 @@ pub(crate) fn resolve_ref_in_graph(
     task_ref: &str,
     mut graph: task_store::TaskGraph,
 ) -> Result<StoredTask> {
+    let index = resolve_ref_index_in_graph(project, task_ref, &graph)?;
+    Ok(graph.tasks.swap_remove(index).task)
+}
+
+fn resolve_ref_index_in_graph(
+    project: &Project,
+    task_ref: &str,
+    graph: &task_store::TaskGraph,
+) -> Result<usize> {
     if let Ok(id) = Uuid::parse_str(task_ref) {
         let matches: Vec<_> = graph
             .tasks
-            .into_iter()
-            .filter(|task| task.task.metadata.id == id)
-            .map(|task| task.task)
+            .iter()
+            .enumerate()
+            .filter(|(_, task)| task.task.metadata.id == id)
+            .map(|(index, _)| index)
             .collect();
         return match matches.len() {
             0 => Err(resolution_error(
                 "task_not_found",
                 format!("No Task has ID {id}"),
             )),
-            1 => Ok(matches.into_iter().next().unwrap()),
+            1 => Ok(matches[0]),
             _ => Err(resolution_error(
                 "duplicate_task_id",
                 format!("More than one Task has ID {id}"),
@@ -673,14 +685,14 @@ pub(crate) fn resolve_ref_in_graph(
         ));
     }
     if let Some(index) = graph.task_index(&directory) {
-        return Ok(graph.tasks.swap_remove(index).task);
+        return Ok(index);
     }
     if let Some(index) = graph
         .invalid_candidates
         .iter()
         .position(|candidate| candidate.directory == directory)
     {
-        return Err(graph.invalid_candidates.swap_remove(index).error);
+        return Err(graph.invalid_candidates[index].error.clone());
     }
     Err(resolution_error(
         "task_not_found",
@@ -1157,12 +1169,16 @@ fn validate_update_input(request: &UpdateRequest) -> Result<()> {
 
 fn resolve_relation_additions(
     project: &Project,
+    graph: &task_store::TaskGraph,
     refs: &[String],
     self_id: Uuid,
 ) -> Result<BTreeSet<Uuid>> {
     let mut ids = BTreeSet::new();
     for task_ref in refs {
-        let id = resolve_ref(project, task_ref)?.metadata.id;
+        let id = graph.tasks[resolve_ref_index_in_graph(project, task_ref, graph)?]
+            .task
+            .metadata
+            .id;
         if id == self_id {
             return Err(TkError::invariant(
                 "self_relation",
@@ -1174,12 +1190,21 @@ fn resolve_relation_additions(
     Ok(ids)
 }
 
-fn resolve_relation_removals(project: &Project, refs: &[String]) -> Result<BTreeSet<Uuid>> {
+fn resolve_relation_removals(
+    project: &Project,
+    graph: &task_store::TaskGraph,
+    refs: &[String],
+) -> Result<BTreeSet<Uuid>> {
     let mut ids = BTreeSet::new();
     for task_ref in refs {
         let id = match Uuid::parse_str(task_ref) {
             Ok(id) => id,
-            Err(_) => resolve_ref(project, task_ref)?.metadata.id,
+            Err(_) => {
+                graph.tasks[resolve_ref_index_in_graph(project, task_ref, graph)?]
+                    .task
+                    .metadata
+                    .id
+            }
         };
         ids.insert(id);
     }
@@ -1218,15 +1243,11 @@ fn require_lifecycle_authorization(action: &str, reason: &str, confirmed: bool) 
     Ok(())
 }
 
-fn ensure_closeable(project: &Project, task: &StoredTask) -> Result<()> {
-    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
-    let task_index = graph.task_index(&task.directory).ok_or_else(|| {
-        TkError::new(
-            "task_discovery_changed",
-            ErrorCategory::Conflict,
-            "Task disappeared before lifecycle validation",
-        )
-    })?;
+fn ensure_closeable(
+    graph: &task_store::TaskGraph,
+    task_index: usize,
+    updated: &Metadata,
+) -> Result<()> {
     let status_by_id: HashMap<_, _> = graph
         .tasks
         .iter()
@@ -1242,8 +1263,7 @@ fn ensure_closeable(project: &Project, task: &StoredTask) -> Result<()> {
         })
         .map(|(_, candidate)| candidate.task.metadata.id)
         .collect();
-    let open_dependencies: Vec<_> = task
-        .metadata
+    let open_dependencies: Vec<_> = updated
         .depends_on
         .iter()
         .copied()
@@ -1262,15 +1282,7 @@ fn ensure_closeable(project: &Project, task: &StoredTask) -> Result<()> {
     Ok(())
 }
 
-fn ensure_reopenable(project: &Project, task: &StoredTask) -> Result<()> {
-    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
-    let task_index = graph.task_index(&task.directory).ok_or_else(|| {
-        TkError::new(
-            "task_discovery_changed",
-            ErrorCategory::Conflict,
-            "Task disappeared before lifecycle validation",
-        )
-    })?;
+fn ensure_reopenable(graph: &task_store::TaskGraph, task_index: usize) -> Result<()> {
     let mut ancestor = graph.tasks[task_index].parent;
     while let Some(index) = ancestor {
         let candidate = &graph.tasks[index];
@@ -1286,11 +1298,6 @@ fn ensure_reopenable(project: &Project, task: &StoredTask) -> Result<()> {
         ancestor = candidate.parent;
     }
     Ok(())
-}
-
-fn validate_relation_graph(project: &Project, updated: &Metadata) -> Result<()> {
-    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
-    validate_relation_graph_in_tasks(&graph, updated)
 }
 
 pub(crate) fn validate_relation_graph_in_tasks(
@@ -2103,6 +2110,126 @@ mod tests {
     }
 
     #[test]
+    fn combined_close_validates_candidate_dependencies() {
+        for mode in [MetadataMode::Split, MetadataMode::Embed] {
+            for (initial_dependency, force, confirmed, expected_error) in [
+                (false, false, true, Some("task_not_closeable")),
+                (true, false, true, None),
+                (false, true, true, None),
+                (false, true, false, Some("lifecycle_confirmation_required")),
+            ] {
+                let root = std::env::temp_dir().join(format!("tk-update-test-{}", Uuid::now_v7()));
+                fs::create_dir(&root).unwrap();
+                let project = init(
+                    &root,
+                    InitOptions {
+                        metadata_mode: Some(mode),
+                        ..InitOptions::default()
+                    },
+                )
+                .unwrap()
+                .project;
+                let dependency = create(
+                    &project,
+                    CreateRequest::Task {
+                        input: top_input("dependency"),
+                        user_confirmed: true,
+                    },
+                )
+                .unwrap()
+                .created
+                .remove(0);
+                let mut input = top_input("consumer");
+                if initial_dependency {
+                    input.depends_on.push(dependency.id.to_string());
+                }
+                let task = create(
+                    &project,
+                    CreateRequest::Task {
+                        input,
+                        user_confirmed: true,
+                    },
+                )
+                .unwrap()
+                .created
+                .remove(0);
+                let before = task_store::read_task(&task.task_dir, mode)
+                    .unwrap()
+                    .metadata;
+                let body = task_store::read_body_bytes(&task.task_dir, mode).unwrap();
+                let reference = dependency.task_dir.join("TASK.md").display().to_string();
+                let scans_before = task_store::DISCOVERY_CALLS.get();
+                let reads_before = task_store::TASK_READS.get();
+                let result = update(
+                    &project,
+                    &task.id.to_string(),
+                    UpdateRequest {
+                        add_depends_on: if initial_dependency {
+                            vec![]
+                        } else {
+                            vec![reference.clone()]
+                        },
+                        remove_depends_on: if initial_dependency {
+                            vec![reference]
+                        } else {
+                            vec![]
+                        },
+                        set_extra: BTreeMap::from([("verified".into(), Value::Bool(true))]),
+                        lifecycle: Some(LifecycleAction::Close {
+                            reason: "verified".into(),
+                            force,
+                            user_confirmed: confirmed,
+                        }),
+                        ..UpdateRequest::default()
+                    },
+                    "test",
+                );
+                assert_eq!(
+                    (
+                        task_store::DISCOVERY_CALLS.get() - scans_before,
+                        task_store::TASK_READS.get() - reads_before
+                    ),
+                    (1, 2)
+                );
+                let after = task_store::read_task(&task.task_dir, mode)
+                    .unwrap()
+                    .metadata;
+                if let Some(code) = expected_error {
+                    assert_eq!(result.unwrap_err().code, code);
+                    assert_eq!(after, before);
+                    assert!(!task.task_dir.join("wal").exists());
+                } else {
+                    assert!(result.unwrap().committed);
+                    assert_eq!(after.status, Status::Closed);
+                    assert_eq!(
+                        after.depends_on,
+                        if initial_dependency {
+                            vec![]
+                        } else {
+                            vec![dependency.id]
+                        }
+                    );
+                    assert_eq!(after.extra.get("verified"), Some(&Value::Bool(true)));
+                    assert_eq!(
+                        read(&project, &task.id.to_string(), ReadView::Detailed, 20, 2000)
+                            .unwrap()
+                            .wal
+                            .unwrap()
+                            .entries
+                            .len(),
+                        1
+                    );
+                }
+                assert_eq!(
+                    task_store::read_body_bytes(&task.task_dir, mode).unwrap(),
+                    body
+                );
+                fs::remove_dir_all(root).unwrap();
+            }
+        }
+    }
+
+    #[test]
     fn rejects_dependency_cycles() {
         let (root, project) = temp_project();
         let first = create(
@@ -2135,18 +2262,32 @@ mod tests {
             "test:agent",
         )
         .unwrap();
-        assert!(
-            update(
+        for lifecycle in [
+            None,
+            Some(LifecycleAction::Close {
+                reason: "forced".into(),
+                force: true,
+                user_confirmed: true,
+            }),
+        ] {
+            let error = update(
                 &project,
                 &second.id.to_string(),
                 UpdateRequest {
                     add_depends_on: vec![first.id.to_string()],
+                    lifecycle,
                     ..UpdateRequest::default()
                 },
                 "test:agent",
             )
-            .is_err()
-        );
+            .unwrap_err();
+            assert_eq!(error.code, "dependency_cycle");
+            let stored =
+                task_store::read_task(&second.task_dir, project.config.metadata_mode).unwrap();
+            assert_eq!(stored.metadata.status, Status::Open);
+            assert!(stored.metadata.depends_on.is_empty());
+            assert!(!second.task_dir.join("wal").exists());
+        }
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -2203,6 +2344,7 @@ mod tests {
             "test",
         )
         .unwrap();
+        let scans_before = task_store::DISCOVERY_CALLS.get();
         let reopened = update(
             &project,
             &child.id.to_string(),
@@ -2216,7 +2358,50 @@ mod tests {
             "test",
         )
         .unwrap();
+        assert_eq!(task_store::DISCOVERY_CALLS.get() - scans_before, 1);
         assert_eq!(reopened.task.status, Status::Open);
+        update(
+            &project,
+            &parent.id.to_string(),
+            UpdateRequest {
+                lifecycle: Some(LifecycleAction::Close {
+                    reason: "forced parent close".into(),
+                    force: true,
+                    user_confirmed: true,
+                }),
+                ..UpdateRequest::default()
+            },
+            "test",
+        )
+        .unwrap();
+        update(
+            &project,
+            &child.id.to_string(),
+            UpdateRequest {
+                lifecycle: Some(LifecycleAction::Close {
+                    reason: "done".into(),
+                    force: false,
+                    user_confirmed: true,
+                }),
+                ..UpdateRequest::default()
+            },
+            "test",
+        )
+        .unwrap();
+        let error = update(
+            &project,
+            &child.id.to_string(),
+            UpdateRequest {
+                lifecycle: Some(LifecycleAction::Reopen {
+                    reason: "continue".into(),
+                    user_confirmed: true,
+                }),
+                ..UpdateRequest::default()
+            },
+            "test",
+        )
+        .unwrap_err();
+        assert_eq!(error.code, "closed_ancestor");
         fs::remove_dir_all(root).unwrap();
     }
 

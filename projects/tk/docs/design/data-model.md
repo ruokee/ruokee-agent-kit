@@ -118,6 +118,10 @@ UUIDv7 is the authoritative identity. Paths are locators and may change through 
 
 A normal close requires all descendants and dependency targets to be closed. A forced close bypasses only descendant and dependency checks. It does not bypass authorization, reason, schema, path, Git, or relationship validation.
 
+When an update combines relationship changes with a lifecycle action, validation uses the candidate metadata after those changes. Adding an open dependency blocks normal close; removing the last open dependency permits close if the remaining checks pass. A rejected update writes neither metadata nor a lifecycle WAL entry.
+
+An update builds one strict Task graph and reuses it to resolve the target and relationship references, check lifecycle constraints, and validate candidate relationships. The graph lasts only for that request; it does not synchronize concurrent writers.
+
 A closed Task is read-only by default. read, search, and check may still read it. rename stays available and does not change the status.
 
 ## Creation authorization

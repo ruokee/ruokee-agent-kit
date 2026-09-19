@@ -4,7 +4,7 @@ use thiserror::Error;
 
 pub type Result<T, E = TkError> = std::result::Result<T, E>;
 
-#[derive(Debug, Error, Serialize)]
+#[derive(Debug, Clone, Error, Serialize)]
 #[error("{message}")]
 pub struct TkError {
     pub code: String,
