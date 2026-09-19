@@ -18,6 +18,7 @@
 import { type ExtensionAPI, type ExtensionContext } from "@oh-my-pi/pi-coding-agent";
 import { getPluginSettings as getPublicPluginSettings } from "@oh-my-pi/pi-coding-agent/extensibility/plugins";
 import { parseCodexWebAccessSettings, type CodexWebAccessConfig, type ConfigProblem, type ToolName } from "./config.ts";
+import { WebAccessError } from "./errors.ts";
 import { executeWebAccess, toolError } from "./execute.ts";
 
 export const PACKAGE_NAME = "@ruokee/omp-codex-web-access";
@@ -66,10 +67,10 @@ function requireHttpUrl(url: string): void {
   try {
     parsed = new URL(url);
   } catch {
-    throw new Error(`url must be an absolute HTTP(S) URL, got: ${url}`);
+    throw new WebAccessError("invalid_url");
   }
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-    throw new Error(`url must use the http or https protocol, got: ${parsed.protocol}`);
+    throw new WebAccessError("invalid_url");
   }
 }
 
@@ -118,7 +119,7 @@ function registerConfiguredTools(pi: ExtensionAPI, config: CodexWebAccessConfig)
           try {
             requireHttpUrl(url);
           } catch (error) {
-            return toolError(error instanceof Error ? error.message : String(error));
+            return toolError(error, signal);
           }
           const request = prompt?.trim() || "Extract the page's main information accurately.";
           const promptText = `Read this specific page and answer only from it: ${url}\n\nTask: ${request}\nCite the page URL in the answer.`;

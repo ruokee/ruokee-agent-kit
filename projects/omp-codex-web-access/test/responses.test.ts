@@ -47,6 +47,8 @@ describe("runResponsesWeb", () => {
       requestBody = JSON.parse(String(init?.body));
       requestHeaders = new Headers(init?.headers);
       return sse([
+        { type: "response.created", response: { status: "in_progress", error: null } },
+        { type: "response.in_progress", response: { status: "in_progress", error: null } },
         { type: "response.output_text.delta", delta: "Result " },
         { type: "response.output_text.delta", delta: "text" },
         {
@@ -162,8 +164,8 @@ describe("runResponsesWeb", () => {
         output_text: "partial answer",
       }),
     );
-    expect(runResponsesWeb({ apiKey: "secret", input: "x", model })).rejects.toThrow(
-      /Responses error: max_output_tokens/,
+    await expect(runResponsesWeb({ apiKey: "secret", input: "x", model })).rejects.toThrow(
+      /Responses response incomplete/,
     );
   });
 
@@ -181,11 +183,11 @@ describe("runResponsesWeb", () => {
   });
 
   for (const [name, response, expected] of [
-    ["HTTP errors", new Response("upstream denied", { status: 401 }), /Responses HTTP 401: upstream denied/],
+    ["HTTP errors", new Response("upstream denied", { status: 401 }), /Responses HTTP 401$/],
     [
       "Responses errors",
       sse([{ type: "response.failed", response: { error: { message: "upstream failed" } } }]),
-      /Responses error: upstream failed/,
+      /Responses request failed$/,
     ],
     [
       "bad SSE",
@@ -212,25 +214,80 @@ describe("runResponsesWeb", () => {
     );
   });
 
-  test("returns and cancels the reader when a completion event arrives before HTTP EOF", async () => {
-    let cancelled = false;
-    const body = new ReadableStream<Uint8Array>({
-      start(controller) {
-        controller.enqueue(
-          new TextEncoder().encode(
-            'data: {"type":"response.output_text.delta","delta":"complete"}\n\ndata: {"type":"response.completed","response":{}}\n\n',
-          ),
-        );
-      },
-      cancel() {
-        cancelled = true;
-      },
+  for (const cleanupFails of [false, true]) {
+    test(`returns completed output even when reader cleanup rejects: ${cleanupFails}`, async () => {
+      let cancelled = false;
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(
+            new TextEncoder().encode(
+              'data: {"type":"response.output_text.delta","delta":"complete"}\n\ndata: {"type":"response.completed","response":{}}\n\n',
+            ),
+          );
+        },
+        cancel() {
+          cancelled = true;
+          if (cleanupFails) throw new Error("cleanup-private-diagnostic");
+        },
+      });
+      installFetch(async () => new Response(body, { headers: { "content-type": "text/event-stream" } }));
+      const result = await runResponsesWeb({ apiKey: "secret", input: "x", model });
+      expect(result.text).toBe("complete");
+      expect(cancelled).toBe(true);
+      expect(body.locked).toBe(false);
     });
-    installFetch(async () => new Response(body, { headers: { "content-type": "text/event-stream" } }));
-    const result = await runResponsesWeb({ apiKey: "secret", input: "x", model });
-    expect(result.text).toBe("complete");
-    expect(cancelled).toBe(true);
-  });
+
+    test(`cancels an unread HTTP error body even when cleanup rejects: ${cleanupFails}`, async () => {
+      let cancelled = false;
+      let pulls = 0;
+      const body = new ReadableStream<Uint8Array>(
+        {
+          pull(controller) {
+            pulls += 1;
+            controller.enqueue(new Uint8Array(1024 * 1024));
+            controller.close();
+          },
+          cancel() {
+            cancelled = true;
+            if (cleanupFails) throw new Error("cleanup-private-diagnostic");
+          },
+        },
+        { highWaterMark: 0 },
+      );
+      installFetch(async () => new Response(body, { status: 503 }));
+      await expect(runResponsesWeb({ apiKey: "secret", input: "x", model })).rejects.toThrow(/Responses HTTP 503/);
+      expect(cancelled).toBe(true);
+      expect(pulls).toBe(0);
+      expect(body.locked).toBe(false);
+    });
+  }
+
+  for (const [name, block] of [
+    ["invalid line", "private-diagnostic\n\n"],
+    ["invalid JSON", "data: {invalid-json}\n\n"],
+    ["protocol failure", 'data: {"type":"response.failed","response":{"error":{"message":"private-diagnostic"}}}\n\n'],
+  ]) {
+    for (const cleanupFails of [false, true]) {
+      test(`cancels and releases SSE after ${name}, cleanup rejects: ${cleanupFails}`, async () => {
+        let cancelled = false;
+        const body = new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode(block));
+          },
+          cancel() {
+            cancelled = true;
+            if (cleanupFails) throw new Error("cleanup-private-diagnostic");
+          },
+        });
+        installFetch(async () => new Response(body, { headers: { "content-type": "text/event-stream" } }));
+        const failure = await runResponsesWeb({ apiKey: "secret", input: "x", model }).catch((error: unknown) => error);
+        expect(failure).toBeInstanceOf(Error);
+        expect((failure as Error).message).not.toContain("private-diagnostic");
+        expect(cancelled).toBe(true);
+        expect(body.locked).toBe(false);
+      });
+    }
+  }
 
   test("passes cancellation to the HTTP request", async () => {
     const controller = new AbortController();

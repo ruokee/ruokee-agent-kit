@@ -11,11 +11,19 @@
  */
 
 import type { ExtensionContext } from "@oh-my-pi/pi-coding-agent";
+import { WebAccessError, type WebAccessErrorCode } from "./errors.ts";
 import { formatResponsesWebResult, runResponsesWeb, type ResponsesModel } from "./responses.ts";
 
 export interface ExecuteWebAccessResult {
   content: [{ type: "text"; text: string }];
-  details: { error?: string; model?: string; sources?: string[]; text?: string };
+  details: {
+    error?: string;
+    code?: WebAccessErrorCode;
+    status?: number;
+    model?: string;
+    sources?: string[];
+    text?: string;
+  };
   isError?: boolean;
 }
 
@@ -32,31 +40,36 @@ export async function executeWebAccess(
   ctx: ExtensionContext,
 ): Promise<ExecuteWebAccessResult> {
   try {
-    if (!selector.trim()) {
-      throw new Error(
-        "No model configured for codex_web_search/codex_web_fetch: set the native `model` plugin setting to `provider/model-id`",
-      );
+    signal?.throwIfAborted();
+    if (!selector.trim()) throw new WebAccessError("model_not_configured");
+    let model;
+    try {
+      model = ctx.models.resolve(selector);
+    } catch {
+      throw new WebAccessError("model_resolution_failed");
     }
-    const model = ctx.models.resolve(selector);
-    if (!model) throw new Error(`model ${selector} is not registered or authenticated in OMP`);
+    if (!model) throw new WebAccessError("model_unavailable");
     signal?.throwIfAborted();
-    const apiKey = await ctx.modelRegistry.getApiKey(model, undefined, { signal });
+    let apiKey;
+    try {
+      apiKey = await ctx.modelRegistry.getApiKey(model, undefined, { signal });
+    } catch {
+      throw new WebAccessError("credential_resolution_failed");
+    }
     signal?.throwIfAborted();
-    if (!apiKey || apiKey === "N/A") throw new Error(`no credential available for provider ${model.provider}`);
+    if (!apiKey || apiKey === "N/A") throw new WebAccessError("credential_unavailable");
     let providerHeaders: Record<string, string> | undefined;
     try {
       providerHeaders = await ctx.modelRegistry.getProviderHeaders(model.provider);
     } catch {
-      signal?.throwIfAborted();
-      throw new Error(`failed to resolve headers for provider ${model.provider}`);
+      throw new WebAccessError("provider_headers_failed");
     }
     signal?.throwIfAborted();
     let modelHeaders: Record<string, string> | undefined;
     try {
       modelHeaders = await ctx.modelRegistry.resolveModelHeaders(model, signal);
     } catch {
-      signal?.throwIfAborted();
-      throw new Error(`failed to resolve headers for model ${model.provider}/${model.id}`);
+      throw new WebAccessError("model_headers_failed");
     }
     signal?.throwIfAborted();
     const requestModel: ResponsesModel = {
@@ -78,15 +91,23 @@ export async function executeWebAccess(
       details: { model: result.model, sources: result.sources, text: result.text },
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return toolError(message);
+    return toolError(error, signal);
   }
 }
 /** The single error-result shape every tool failure returns. */
-export function toolError(message: string): ExecuteWebAccessResult {
+export function toolError(error: unknown, signal?: AbortSignal): ExecuteWebAccessResult {
+  const failure = signal?.aborted
+    ? new WebAccessError("cancelled")
+    : error instanceof WebAccessError
+      ? new WebAccessError(error.code, error.status)
+      : new WebAccessError("request_failed");
   return {
-    content: [{ type: "text", text: `Codex web access request failed: ${message}` }],
-    details: { error: message },
+    content: [{ type: "text", text: `Codex web access request failed: ${failure.message}` }],
+    details: {
+      error: failure.message,
+      code: failure.code,
+      ...(failure.status === undefined ? {} : { status: failure.status }),
+    },
     isError: true,
   };
 }

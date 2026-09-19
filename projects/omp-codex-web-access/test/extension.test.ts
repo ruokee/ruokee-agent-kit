@@ -520,6 +520,119 @@ describe("tool execution chain", () => {
     }
   });
 
+  test("bounds errors from both tools without exposing remote or local diagnostic text", async () => {
+    const marker = "SYNTHETIC-SENSITIVE-DIAGNOSTIC";
+    const diagnostic = `${marker}\nAuthorization: Bearer ${marker}\n${"x".repeat(100_000)}`;
+    const harness = activate(async () => ({ model: "test-provider/gpt-test" }));
+    await start(harness);
+    const cases: Array<[string, () => Promise<Response>]> = [
+      [
+        "http_error",
+        async () => new Response(diagnostic, { status: 503, statusText: marker, headers: { "x-request-id": marker } }),
+      ],
+      ["response_failed", async () => Response.json({ error: { message: diagnostic } })],
+      [
+        "response_incomplete",
+        async () =>
+          Response.json({ status: "incomplete", incomplete_details: { reason: diagnostic }, output_text: marker }),
+      ],
+      ["unexpected_response_status", async () => Response.json({ status: diagnostic, output_text: marker })],
+      [
+        "response_failed",
+        async () =>
+          new Response(`data: ${JSON.stringify({ type: "error", message: diagnostic })}\n\n`, {
+            headers: { "content-type": "text/event-stream" },
+          }),
+      ],
+      [
+        "response_incomplete",
+        async () =>
+          new Response(
+            `data: ${JSON.stringify({ type: "response.incomplete", response: { incomplete_details: { reason: diagnostic } } })}\n\n`,
+            { headers: { "content-type": "text/event-stream" } },
+          ),
+      ],
+      [
+        "response_failed",
+        async () =>
+          new Response(
+            `data: ${JSON.stringify({ type: "response.completed", response: { status: "failed", error: { message: diagnostic }, output_text: marker } })}\n\n`,
+            { headers: { "content-type": "text/event-stream" } },
+          ),
+      ],
+      [
+        "response_failed",
+        async () =>
+          new Response(
+            `data: ${JSON.stringify({ type: "response.failed", response: { error: { message: diagnostic } } })}\n\n`,
+            { headers: { "content-type": "text/event-stream" } },
+          ),
+      ],
+      ["invalid_json", async () => new Response(diagnostic)],
+      [
+        "invalid_sse_json",
+        async () =>
+          new Response(`data: ${diagnostic.replaceAll("\n", "")}\n\n`, {
+            headers: { "content-type": "text/event-stream" },
+          }),
+      ],
+      [
+        "invalid_sse_line",
+        async () => new Response(`${diagnostic}\n\n`, { headers: { "content-type": "text/event-stream" } }),
+      ],
+      [
+        "request_failed",
+        async () => {
+          throw new Error(diagnostic);
+        },
+      ],
+      [
+        "request_failed",
+        async () => {
+          throw {
+            message: diagnostic,
+            toString() {
+              throw new Error(marker);
+            },
+          };
+        },
+      ],
+    ];
+    for (const tool of harness.tools) {
+      const params = tool.name === "codex_web_search" ? { query: "x" } : { url: "https://example.test" };
+      for (const [code, stub] of cases) {
+        installFetch(stub);
+        const result = await tool.execute("safe-error", params, undefined, undefined, context(model).value);
+        expect(result.isError).toBe(true);
+        expect(result.details.code).toBe(code);
+        expect(JSON.stringify(result)).not.toContain(marker);
+        expect(JSON.stringify(result).length).toBeLessThan(512);
+        expect(result.details.status).toBe(code === "http_error" ? 503 : undefined);
+      }
+      installFetch(async () => {
+        throw new Error("must not fetch");
+      });
+      const ctx = context(model).value;
+      ctx.modelRegistry.getApiKey = async () => {
+        throw new Error(diagnostic);
+      };
+      const credentialFailure = await tool.execute("credential", params, undefined, undefined, ctx);
+      expect(credentialFailure.details.code).toBe("credential_resolution_failed");
+      expect(JSON.stringify(credentialFailure)).not.toContain(marker);
+      ctx.models.resolve = () => {
+        throw diagnostic;
+      };
+      const modelFailure = await tool.execute("model", params, undefined, undefined, ctx);
+      expect(modelFailure.details.code).toBe("model_resolution_failed");
+      expect(JSON.stringify(modelFailure)).not.toContain(marker);
+      const controller = new AbortController();
+      controller.abort(new Error(diagnostic));
+      const cancelled = await tool.execute("cancelled", params, controller.signal, undefined, context(model).value);
+      expect(cancelled.details.code).toBe("cancelled");
+      expect(JSON.stringify(cancelled)).not.toContain(marker);
+    }
+  });
+
   test("sanitizes header resolver failures before sending a request", async () => {
     const harness = activate(async () => ({ model: "test-provider/gpt-test" }));
     await start(harness);
@@ -543,7 +656,7 @@ describe("tool execution chain", () => {
       }).value,
     );
     expect(providerFailure.isError).toBe(true);
-    expect(providerFailure.content[0]?.text).toContain("failed to resolve headers for provider test-provider");
+    expect(providerFailure.content[0]?.text).toContain("failed to resolve headers for provider");
     expect(providerFailure.content[0]?.text).not.toContain("provider-header-secret");
     expect(providerFailure.content[0]?.text).not.toContain("credential-secret");
 
@@ -559,7 +672,7 @@ describe("tool execution chain", () => {
       }).value,
     );
     expect(modelFailure.isError).toBe(true);
-    expect(modelFailure.content[0]?.text).toContain("failed to resolve headers for model test-provider/gpt-test");
+    expect(modelFailure.content[0]?.text).toContain("failed to resolve headers for model");
     expect(modelFailure.content[0]?.text).not.toContain("model-header-secret");
     expect(modelFailure.content[0]?.text).not.toContain("credential-secret");
     expect(fetched).toBe(false);
@@ -633,10 +746,13 @@ describe("tool execution chain", () => {
       return Response.json({ output_text: "x" });
     });
     const ctx = context(model);
-    for (const url of ["file:///etc/passwd", "ftp://example.com/doc", "not a url"]) {
+    for (const url of ["file:///etc/passwd", "ftp://example.com/doc", `SYNTHETIC-URL-SECRET${"x".repeat(100_000)}`]) {
       const result = await tool.execute("call", { url }, undefined, undefined, ctx.value);
       expect(result.isError).toBe(true);
       expect(result.content[0]?.text).toMatch(/http/i);
+      expect(result.details.code).toBe("invalid_url");
+      expect(JSON.stringify(result)).not.toContain("SYNTHETIC-URL-SECRET");
+      expect(JSON.stringify(result).length).toBeLessThan(512);
     }
     expect(ctx.calls.resolve).toEqual([]);
     expect(fetched).toBe(false);
@@ -700,7 +816,9 @@ describe("tool execution chain", () => {
     const result = await tool.execute("call", { query: "x" }, controller.signal, undefined, ctx.value);
 
     expect(result.isError).toBe(true);
-    expect(result.content[0]?.text).toMatch(/pre-cancelled/);
+    expect(result.details.code).toBe("cancelled");
+    expect(result.content[0]?.text).toContain("request cancelled");
+    expect(JSON.stringify(result)).not.toContain("pre-cancelled");
     expect(ctx.calls.getApiKey).toBe(0);
     expect(ctx.calls.getProviderHeaders).toEqual([]);
     expect(ctx.calls.resolveModelHeaderSignals).toEqual([]);
@@ -733,7 +851,8 @@ describe("tool execution chain", () => {
 
     const result = await request;
     expect(result.isError).toBe(true);
-    expect(result.content[0]?.text).toMatch(/cancelled during provider headers/);
+    expect(result.details.code).toBe("cancelled");
+    expect(JSON.stringify(result)).not.toContain("cancelled during provider headers");
     expect(ctx.calls.getProviderHeaders).toEqual(["test-provider"]);
     expect(ctx.calls.resolveModelHeaderSignals).toEqual([]);
     expect(fetched).toBe(false);

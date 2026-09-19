@@ -8,6 +8,8 @@
  * statuses) surface as thrown errors. No Codex CLI is launched.
  */
 
+import { WebAccessError } from "./errors.ts";
+
 /**
  * Plain model fields needed by the transport after OMP has materialized the
  * configured header chain for this request.
@@ -32,13 +34,6 @@ interface RunResponsesOptions {
   model: ResponsesModel;
   providerHeaders?: Record<string, string>;
   signal?: AbortSignal;
-}
-
-function errorMessage(value: unknown): string | undefined {
-  if (typeof value === "string" && value.trim()) return value;
-  if (!value || typeof value !== "object") return undefined;
-  const record = value as Record<string, unknown>;
-  return errorMessage(record.message) ?? errorMessage(record.error) ?? errorMessage(record.reason);
 }
 
 /** Depth-first collection of `url_citation` URLs, deduplicated via Set. */
@@ -74,39 +69,39 @@ function responseText(value: unknown): string {
 }
 
 /** First Responses protocol error in a payload, or undefined when healthy. */
-function responseError(payload: unknown): string | undefined {
+function responseError(payload: unknown): WebAccessError | undefined {
   if (!payload || typeof payload !== "object") return undefined;
   const record = payload as Record<string, unknown>;
-  const type = typeof record.type === "string" ? record.type : "";
-  if (type === "error") return errorMessage(record.error) ?? errorMessage(record) ?? "unknown Responses error";
-  if (type === "response.failed") {
-    return errorMessage((record.response as Record<string, unknown> | undefined)?.error) ?? "response failed";
+  if (record.type === "response.incomplete" || record.status === "incomplete") {
+    return new WebAccessError("response_incomplete");
   }
-  if (type === "response.incomplete") {
-    return (
-      errorMessage((record.response as Record<string, unknown> | undefined)?.incomplete_details) ??
-      "response incomplete"
-    );
+  if (
+    record.type === "error" ||
+    record.type === "response.failed" ||
+    record.error != null ||
+    record.status === "failed"
+  ) {
+    return new WebAccessError("response_failed");
   }
   if (typeof record.status === "string" && record.status !== "completed") {
-    return errorMessage(record.error) ?? errorMessage(record.incomplete_details) ?? `response status ${record.status}`;
+    return new WebAccessError("unexpected_response_status");
   }
-  return errorMessage(record.error);
+  return record.type === "response.completed" ? responseError(record.response) : undefined;
 }
 
 function parseJsonResponse(raw: string): Omit<ResponsesWebResult, "model"> {
   let payload: unknown;
   try {
     payload = JSON.parse(raw);
-  } catch (error) {
-    throw new Error(`invalid Responses JSON: ${errorMessage(error) ?? String(error)}`);
+  } catch {
+    throw new WebAccessError("invalid_json");
   }
   const failure = responseError(payload);
-  if (failure) throw new Error(`Responses error: ${failure}`);
+  if (failure) throw failure;
   const sources = new Set<string>();
   collectCitations(payload, sources);
   const text = responseText(payload).trim();
-  if (!text) throw new Error("Responses returned no text");
+  if (!text) throw new WebAccessError("empty_output");
   return { text, sources: [...sources] };
 }
 
@@ -125,7 +120,7 @@ function processSseBlock(block: string, state: SseState): void {
   for (const line of block.split(/\r?\n/)) {
     if (!line || line.startsWith(":")) continue;
     if (line.startsWith("event:")) continue;
-    if (!line.startsWith("data:")) throw new Error(`invalid Responses SSE line: ${line}`);
+    if (!line.startsWith("data:")) throw new WebAccessError("invalid_sse_line");
     data.push(line.slice(5).trimStart());
   }
   if (!data.length) return;
@@ -138,11 +133,11 @@ function processSseBlock(block: string, state: SseState): void {
   let payload: unknown;
   try {
     payload = JSON.parse(encoded);
-  } catch (error) {
-    throw new Error(`invalid Responses SSE JSON: ${errorMessage(error) ?? String(error)}`);
+  } catch {
+    throw new WebAccessError("invalid_sse_json");
   }
   const failure = responseError(payload);
-  if (failure) throw new Error(`Responses error: ${failure}`);
+  if (failure) throw failure;
   collectCitations(payload, state.sources);
   if (!payload || typeof payload !== "object") return;
   const record = payload as Record<string, unknown>;
@@ -155,16 +150,16 @@ function processSseBlock(block: string, state: SseState): void {
 }
 
 function finishSseResponse(state: SseState): Omit<ResponsesWebResult, "model"> {
-  if (!state.sawData) throw new Error("Responses SSE contained no data events");
-  if (!state.complete) throw new Error("Responses SSE ended before a completion event");
+  if (!state.sawData) throw new WebAccessError("missing_events");
+  if (!state.complete) throw new WebAccessError("missing_completion");
   const text = (state.deltas.length ? state.deltas.join("") : state.finalText).trim();
-  if (!text) throw new Error("Responses returned no text");
+  if (!text) throw new WebAccessError("empty_output");
   return { text, sources: [...state.sources] };
 }
 
 /** Consume an SSE body until a completion event, canceling the reader early. */
 async function parseSseResponse(body: ReadableStream<Uint8Array> | null): Promise<Omit<ResponsesWebResult, "model">> {
-  if (!body) throw new Error("Responses SSE had no response body");
+  if (!body) throw new WebAccessError("missing_body");
   const reader = body.getReader();
   const decoder = new TextDecoder();
   const state: SseState = { complete: false, deltas: [], finalText: "", sawData: false, sources: new Set() };
@@ -188,8 +183,13 @@ async function parseSseResponse(body: ReadableStream<Uint8Array> | null): Promis
       }
     }
   } finally {
-    if (state.complete) await reader.cancel();
-    reader.releaseLock();
+    try {
+      await reader.cancel();
+    } catch {
+      // Cleanup failures must not replace the response outcome.
+    } finally {
+      reader.releaseLock();
+    }
   }
   return finishSseResponse(state);
 }
@@ -205,13 +205,11 @@ function setHeaderIfMissing(headers: Headers, name: string, value: string): void
  */
 export async function runResponsesWeb(options: RunResponsesOptions): Promise<ResponsesWebResult> {
   if (options.model.api !== "openai-responses") {
-    throw new Error(
-      `model ${options.model.provider}/${options.model.id} uses ${options.model.api}; expected openai-responses`,
-    );
+    throw new WebAccessError("unsupported_api");
   }
   const baseUrl = options.model.baseUrl.trim().replace(/\/+$/, "");
-  if (!baseUrl) throw new Error(`model ${options.model.provider}/${options.model.id} has no base URL`);
-  if (!options.apiKey) throw new Error(`no credential available for provider ${options.model.provider}`);
+  if (!baseUrl) throw new WebAccessError("missing_base_url");
+  if (!options.apiKey) throw new WebAccessError("credential_unavailable");
 
   let headers: Headers;
   try {
@@ -221,7 +219,7 @@ export async function runResponsesWeb(options: RunResponsesOptions): Promise<Res
     setHeaderIfMissing(headers, "content-type", "application/json");
     setHeaderIfMissing(headers, "accept", "text/event-stream");
   } catch {
-    throw new Error("invalid Responses request headers");
+    throw new WebAccessError("invalid_headers");
   }
 
   const response = await (options.fetch ?? fetch)(`${baseUrl}/responses`, {
@@ -237,8 +235,12 @@ export async function runResponsesWeb(options: RunResponsesOptions): Promise<Res
     signal: options.signal,
   });
   if (!response.ok) {
-    const raw = await response.text();
-    throw new Error(`Responses HTTP ${response.status}: ${raw.trim() || response.statusText}`);
+    try {
+      await response.body?.cancel();
+    } catch {
+      // Preserve the HTTP status even if the unread body cannot be cancelled.
+    }
+    throw new WebAccessError("http_error", response.status);
   }
   const parsed = response.headers.get("content-type")?.includes("text/event-stream")
     ? await parseSseResponse(response.body)

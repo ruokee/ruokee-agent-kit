@@ -112,6 +112,10 @@ The two tools share one request and response implementation: answer text, citati
 
 Before each HTTP request, the extension awaits Provider headers and the model's complete configured Header chain. It does not cache either result. Model headers override Provider headers with case-insensitive names, and an existing `Authorization` value takes precedence over the API key fallback. Credential lookup, model Header resolution, and HTTP receive the tool's cancellation signal. The Provider Header API has no signal parameter, so the extension checks cancellation before and after that lookup and does not send the HTTP request after cancellation. Header resolution errors return bounded tool errors without exposing Header values or credentials.
 
+Tool failures return `isError: true`, a fixed diagnostic in `content` and `details.error`, and a local error category in `details.code`. HTTP failures also include the numeric `details.status`. Remote error bodies, status text, request headers and IDs, parser messages, credential exceptions, and cancellation reasons are excluded from both output fields and are not logged. Unknown exceptions use `request_failed`; an aborted tool signal uses `cancelled`. Successful answer text and citations retain their existing behavior.
+
+Non-success HTTP bodies are cancelled without reading them. SSE readers are cancelled and released after completion or failure. A cleanup error does not replace the original outcome. JSON and SSE protocol errors use fixed messages without quoting the response payload.
+
 ## Development
 
 ```bash

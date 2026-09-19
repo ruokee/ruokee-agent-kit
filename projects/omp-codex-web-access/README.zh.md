@@ -112,6 +112,10 @@ OMP 模式会在第一次 prompt 前等待扩展初始化。直接 OMP SDK 调�
 
 每次 HTTP 请求前，扩展都会等待 Provider headers 和模型的完整配置 Header 链，不缓存任何一次解析结果。Header 名称按大小写不敏感方式合并，模型 Header 覆盖 Provider Header，已有的 `Authorization` 优先于 API key 补充值。凭据查找、模型 Header 解析和 HTTP 请求使用工具调用的取消信号。Provider Header API 没有 signal 参数，因此扩展会在该查找前后检查取消状态，取消后不会继续发送 HTTP 请求。Header 解析失败时返回有界工具错误，不暴露 Header 值或凭据。
 
+工具失败时返回 `isError: true`，在 `content` 和 `details.error` 中给出固定诊断，并在 `details.code` 中给出本地错误类别。HTTP 失败还会提供数值型的 `details.status`。两个输出字段均不包含远端错误正文、状态文本、请求 Header 和 ID、解析器消息、凭据异常原文及取消原因，这些内容也不会写入日志。未知异常归为 `request_failed`；工具信号已取消时归为 `cancelled`。成功返回的回答正文和引用保持原有行为。
+
+非成功 HTTP 响应的正文直接取消，不读取。SSE 读取器在完成或失败后都会取消并释放；清理错误不会替代原有结果。JSON 和 SSE 协议错误采用固定消息，不引用响应原文。
+
 ## 开发
 
 ```bash
