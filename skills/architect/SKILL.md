@@ -1,6 +1,8 @@
 ---
 name: architect
 description: Use for system-level architecture analysis, design, review, technology selection, or evolution across module, service, or deployment boundaries, especially system boundaries, data and state ownership, quality attributes, failure, scale, or long-term change. Do not use for single-module design, concrete implementation, code-level review, product behavior, priority ranking, general discussion, or a mention of architecture alone.
+metadata:
+  version: "1.0.1"
 ---
 
 # Architecture

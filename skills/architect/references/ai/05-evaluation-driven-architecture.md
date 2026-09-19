@@ -1,12 +1,12 @@
 # Evaluation-Driven Architecture
 
-Non-deterministic output cannot be asserted verbatim; its quality distribution can only be measured: eval-set scoring plus statistical gates against regression. Use for quantifying and gatekeeping "good enough" in LLM-bearing systems.
+Turn "good enough" in an LLM system into criteria you can check. Use exact checks for explicit contracts, and representative cases with semantic scoring where several answers can be valid. Match evaluation effort to failure costs. For a small tool, a repeatable comparison beats waiting forever for an evaluation platform.
 
 ## Verbatim assertion cannot cover non-deterministic output
 
-Traditional assertion stands on determinism: `assert summarize(x) == "the expected sentence"`—binary right-or-wrong, precisely assertable. The LLM pulls that ground away: change the temperature, the model version, or the context, and two outputs differ verbatim while both count as correct—an `assert ==` inevitably false-alarms. Note this does not retire traditional testing: the deterministic parts of the system (refund idempotency, state machines, authentication) have unique right answers and stay with asserts; eval governs only the quality distribution of non-deterministic output.
+`assert summarize(x) == "the expected sentence"` looks reassuring, but an open-ended summary can make it a trap for valid paraphrases. Sampling, model versions, and context change the wording; both answers may mean the same thing, yet a literal comparison reports a bug. Use semantic criteria such as factual accuracy and coverage of key points. Keep precision where it belongs: output formats, allowed values, authorization, refund idempotency, and state transitions can retain their assertion and contract tests. A model's freedom to rephrase does not extend to the refund amount.
 
-Worse is **silent regression**: upgrade the model or change one line of system prompt, and answers to some question class quietly worsen—no test turns red; you learn from user complaints. The shift: from "asserting one item correct" to "measuring a quality distribution"—no longer asking whether this one answer is right, but whether the overall quality score over a batch of representative inputs is good enough and has not regressed versus the last version.
+Harder to spot is **silent regression**. Upgrade the model or change one line of system prompt, and ordinary answers become smoother while a class of refund-policy answers starts going wrong. Existing deterministic tests may stay green; a user complaint may arrive first. Compare the same representative cases before and after the change. Look at the overall quality distribution, individual failures, and high-risk categories. A higher average does not cancel out an unauthorized payment.
 
 ## The eval trio
 
@@ -22,13 +22,13 @@ Worse is **silent regression**: upgrade the model or change one line of system p
 
 Practice: rules first where rules can judge; LLM-as-judge for the subjective; regular human sampling to calibrate the judge—never blindly trust the model judge; it is also a model that errs (with a preference for long answers, for instance).
 
-**Gates**: running evals is not enough; wire them into CI. Before swapping models, changing prompts, or changing retrieval strategy, CI runs the evals automatically and judges by the statistical conditions below—guarding precisely against silent regression. "Block on any total score below baseline" is too crude: one total can mask regression in a high-risk category, and one randomly low run may be noise. At minimum define:
+**Gates.** Evaluation results need to affect release decisions. Filing a pretty report after the run does not stop regression. For frequent releases or consequential use, wire suitable evaluations into CI; a small, low-risk tool can start with a short, repeatable local comparison. Set release criteria before inspecting candidate scores. Do not move the pass mark after the exam. A drop from 0.82 to 0.81 in one run may be noise, while an increased total can still hide a high-risk failure. When using statistical quality gates:
 
-- Fix model/prompt/data versions and decoding parameters, so the change under test is the only variable;
-- Hard thresholds on high-risk categories (money, safety, core business), regardless of the total;
+- Record model, prompt, data, and decoding settings; hold unrelated factors fixed and identify the intended change;
+- Set hard criteria for high-risk behavior such as unauthorized payments; do not average those failures away;
 - Tolerance bands, not single lines, on overall metrics;
 - Repeat runs with averaged scores or paired comparison for components with randomness (sampling temperature, LLM judge);
-- Report effect size and confidence intervals, separating real regression from run variance;
+- Report effect size and uncertainty where the sample supports them; otherwise state the evidence limit and gather more cases before claiming a regression;
 - Calibrate the LLM judge against a human-labeled set and monitor its bias (e.g., the long-answer preference).
 
 ## Start small, from real failures
@@ -43,7 +43,7 @@ Do not wait for the perfect eval set; get the loop running with a rough one firs
 
 ## Eval does not replace traditional testing; it adds a layer
 
-The deterministic parts of an AI system still use traditional tests: refund idempotency, state machines, authentication, API contracts—unique right answers, `assert ==` still valid. Eval governs only the quality distribution of non-deterministic output. The two coexist, each covering its span.
+Keep traditional tests for deterministic behavior and add semantic evaluation for open-ended quality. A refund recommendation needs judgment about policy fit and reasoning. Execution needs explicit assertions and contract tests for authorization, the amount, and executing a repeated request only once. The same business path can need both. Adding an LLM is no reason to march the existing tests out of the building.
 
 The design of caging uncertainty away from side effects pays off again here: the deterministic parts can still be tested with deterministic means.
 
@@ -55,7 +55,7 @@ Treating eval as an architectural component means weighing its costs like any co
 - **Judges err.** LLM-as-judge is non-deterministic and biased; calibrate with human sampling and never treat its score as gospel.
 - **Overfitting and aging.** Tuning against a fixed eval set for long optimizes for the test; out-of-set samples may not benefit; when the business changes, the old eval set goes stale. Keep it updated—an outdated eval is worse than none.
 
-Eval is the AI system's quality fitness function: what it is to answer quality, fitness functions are to architecture boundaries—turning what you care about into an automated check that fails and blocks CI. The only difference: architecture boundaries can be asserted exactly; answer quality can only be seen as a distribution. Write "good enough" into the eval and wire it into the gate, and only then dare you upgrade models and iterate prompts freely—otherwise every upgrade is a blind bet that nothing got worse.
+Eval can act as an AI system's quality fitness function, turning the answer quality you care about into recorded checks that can fail and affect release. When changing a model or prompt, comparable cases and inspectable failures beat betting blindly that nothing got worse. Set gates by risk and sample evidence, investigate meaningful regressions, and keep the failed cases. Passing one exam does not mean knowing every answer. Unseen inputs still call for production observation and new cases.
 
 ## Relationship to other documents
 

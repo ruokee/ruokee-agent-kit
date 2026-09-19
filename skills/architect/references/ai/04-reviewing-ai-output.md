@@ -4,9 +4,9 @@ Reviewing for the omissions specific to AI output: non-determinism backstops, ve
 
 ## Why AI output needs its own review class
 
-AI is not incapable of writing robust code; it defaults to not writing it: it optimizes for running, delivering the happy path; its training data holds far more demos than production-grade code; it does not know your non-functional needs and constraints—you never said "must survive the sale" or "money must never be wrong", so of course it does not consider them.
+AI can write robust code or deliver a prototype with a smooth demo and brittle failure paths. The model, context, and task all affect the result. Missing timeouts, duplicate refunds, and unauthorized reads need evidence in the actual design, code, and tests; they cannot be deduced from "AI wrote it". One successful run establishes one successful run. Production traffic has not read the demo script.
 
-Reviewing AI output differs in focus from reviewing human code: humans forget edge cases; AI **systematically, every single time** ignores the non-functional requirements you did not spell out. So the most effective counter is not reading more carefully but mechanically walking the same checklist every time—because what it misses each time is basically the same batch.
+Failure consequences set the review priorities. A refund path needs authorization and idempotency checks even if the prompt never mentioned them; mentioning them is no reason to skip acceptance either. A checklist helps reviewers revisit easy-to-miss questions, but do not assume AI always misses the same things. Identify the path, the missing behavior, and what happens when it fails, so the finding gives someone a concrete repair to make.
 
 The full checklists for general dimensions are not expanded here; route by signal:
 
@@ -37,13 +37,13 @@ Below, only the AI-specific items.
 
 ## Pick checks by quality attribute
 
-Walking the full checklist item by item is its own over-engineering. First ask what accident-prone things this code or design touches: touches money—check consistency; high concurrency—check resilience; uses a large model—the AI-specific table above is mandatory. Review is a questioning template, not a checkbox ritual—where the AI cannot answer, or answers sheepishly, is exactly where it buried the mine for you.
+Walking the entire checklist item by item is its own over-engineering. First ask what accident-prone things the code or design touches. Money needs consistency and authorization checks, external calls need timeout and failure handling, and model use needs the applicable quality, permission, and injection checks. A read-only summarizer does not need a refund transaction system. Use the checklist as a question template, not a box-ticking ceremony. Answers need files, tests, or runtime evidence; "fully considered" is not evidence.
 
 ## Feed the checklist back for AI self-review; humans make the final judgment
 
-Write the checklist into the prompt or AGENTS.md and have the AI check itself item by item after producing. An AI that makes happy-path errors, when explicitly asked to verify item by item, often catches most of its own mechanical omissions (missing timeouts, missing idempotency) on its own.
+Put applicable checks in the prompt, or in project rules that truly need to persist, and ask AI to check its output against concrete files, tests, and runtime observations. "Which line sets the timeout?" and "Where is the duplicate-request test?" are more useful than asking it to declare the design robust. Self-review may catch a missing timeout or idempotency check, but it may also reuse the original mistaken assumptions. Verify consequential claims independently. Stamping your own certificate harder does not add evidence.
 
-But humans make the final judgment, especially where money and security are concerned: AI self-review catches a forgotten timeout but cannot judge "is this eventual consistency actually acceptable here"—that needs business context and tradeoffs. Judgment cannot be outsourced. Review is the step that turns a looks-like-it-runs prototype into a production system that holds up—AI accelerated the writing, not the reviewing.
+The accountable reviewer makes the final acceptance judgment, especially for money and security. A model can analyze whether eventual consistency is acceptable here and describe latency, duplicate-execution, and reconciliation costs. It cannot invent the business's missing tolerance limits or approve risk on the owner's behalf. "AI has reviewed itself" cannot take over that judgment; required human approval stays required. Save some of the time gained from faster writing for verification, rather than spending all of it on more code.
 
 ## Relationship to other documents
 

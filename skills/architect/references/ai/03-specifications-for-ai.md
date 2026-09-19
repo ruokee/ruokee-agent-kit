@@ -2,11 +2,11 @@
 
 Writing architectural constraints into persistent forms that load automatically when the runtime supports it and that machines can enforce. Use for holding architectural boundaries in AI-assisted development (vibe coding, agent coding): decision records, AGENTS.md-style rule files, and the layered placement of fitness functions.
 
-## Judgment not written down equals none
+## Give constraints a life beyond the chat
 
-The code may come from AI, but the specifications, constraints, and acceptance criteria are human—so how do you hand them to the AI? Saying "remember to add idempotency" in chat does not work: remembered this turn, forgotten next turn after context compression; a new session starts from zero; a new colleague knows nothing at all.
+AI can produce the code; someone still has to make the specifications, constraints, and acceptance criteria clear. Say "remember idempotency on refunds" in chat, and it is in this round's context. Will it survive compression? Will the next session or colleague know it was said? Put constraints that must survive those transitions in the project's maintained records, then load them through runtime support or explicit caller injection. They need an address with a longer lease than the chat window.
 
-Worse, AI defaults to the happy path: unless you explicitly write that refunds must be idempotent and double-charges prevented, it will not, producing code whose demo runs and whose production explodes. Constraints that are verbal, one-off, and memory-dependent amount to nonexistence in AI collaboration. Architectural constraints must land in persistent forms, auto-loaded when the runtime supports and is configured for it (otherwise injected explicitly by the caller), and ideally machine-enforceable.
+For example, refund requests carry an idempotency key, repeated requests return the original result, and execution requires authorization. Write those requirements down, then check them against implementation and tests. AI may infer a requirement you omitted or miss one you emphasized; mutual understanding is not an acceptance test. Turn precisely testable invariants into checks. See [Reviewing AI output](./04-reviewing-ai-output.md) for the review method.
 
 ## The specification pyramid
 
@@ -18,7 +18,7 @@ Constraints layer by enforceability, harder and more unavoidable further down:
 | AGENTS.md-style rule files | Standing rules at the project root | Do / do not | AI (auto-loaded when the runtime supports and is configured) |
 | Fitness functions / lint / CI | Automated tests | Red lines (violations block) | Machines |
 
-Each layer governs its own span; none can be dropped: some constraints can only be understood by humans (why dual-write was chosen back then)—decision record; some can be stated in natural language for the AI to keep respecting (refunds must be idempotent)—AGENTS.md; some can be verified precisely by machines (the domain layer must not import the web layer)—CI check. **Whatever can sink one layer lower must not stop on the upper layer**—documents rely on self-discipline; CI enforces.
+Each layer has a job. Why dual-write was chosen and what it trades away belongs in the decision record. A recurring instruction such as refund idempotency belongs in the rule file. The rule against the domain layer importing the web layer belongs in a dependency check. A small tool may not need all three; maintaining the documents should not become its largest engineering effort. Let machines handle important, repeated checks when the maintenance cost is justified. Documents explain why; automated checks turn red on violations. Both earn their keep.
 
 ## Writing a good rule file
 
@@ -55,11 +55,11 @@ Five disciplines:
 
 1. **Specific enough to execute.** Not "mind security", but "all external input is validated before storage; user content is untrusted input (prompt injection included)".
 2. **Carry the why.** Give reasons like an ADR—only when AI and humans know the reason will they refrain from deleting a rule that looks redundant.
-3. **Give counter-examples (❌).** Stating what is forbidden works better than stating what should be done; this is exactly where you plug the AI's happy-path default.
+3. **Give counter-examples.** Pair an easily misapplied rule with a concrete mistake. "Refunds must be safe" leaves too much open; "the model calls the payment API directly, bypassing authorization" exposes the boundary. Explain what breaks.
 4. **Short and sharp.** A rule file is standing context cost, billed by the token. Write the few highest-frequency, most-violated rules; do not write a novel.
 5. **Evolve with the code.** An outdated rule is worse than none (it actively misleads the AI); when the rule changes, change it.
 
-Every "chose A, gave up B" tradeoff made in design, every decision record written, whatever you want the AI to keep respecting, should be distilled into a rule-file entry. AGENTS.md is the architecture boundary written for the AI.
+When design chooses A over B, keep the tradeoff in the decision record. Distill recurring, actionable constraints into the rule file and link to that rationale. AGENTS.md states the boundaries the AI must respect while working; detailed arguments stay in their primary document. Stuffing the entire decision history into standing context charges you by the token for every small question, while duplicate copies drift into competing accounts.
 
 ## If a machine can enforce it, do not settle for a document
 
@@ -69,15 +69,15 @@ The pyramid's bottom layer is the hardest. Constraints sort by machine-verifiabi
 | --- | --- |
 | Domain layer decoupled from the framework | CI dependency check blocks on violation |
 | Refund interface requires idempotency | Rule in the rule file; contract test fails on a missing idempotency key |
-| Model calls must go through the abstraction layer | Dependency check blocks on direct provider connections |
+| A project has adopted a shared model boundary | Dependency check rejects calls that bypass the adopted boundary |
 | p99 ceiling of 200ms | Performance test fails on breach |
 | Why RAG instead of fine-tuning | Decision record (human-readable only, not machine-verifiable) |
 
-The AI faithfully executes the constraints you write down, and faithfully ignores the ones you do not. Turn reminder-dependent constraints into red-light-guaranteed ones—the CI gate does not care whether the code was committed by a human or an AI; it blocks equally.
+Turn constraints that depend on reminders into checks that turn red. CI does not care whether a human or AI wrote the code; it blocks the violations it covers either way. But a green run only means the written checks passed. Missing tests do not raise their hands. Review still has to trace uncovered behavior and verify the assumptions behind each check.
 
 ## Specification is architecture
 
-In the AI era, writing constraints clearly, where the AI can read them, is not documentation chore-work; it is core architecture work itself. **The constraints you write = the boundaries of AI output. Write them vaguely, and the AI decides for you in the vague places, always picking the easiest happy path.** The architect's judgment, through the interface of specification, becomes the behavioral constraint on AI.
+Writing constraints clearly and putting them where AI can read them is part of architecture work. "Refunds must be safe" leaves too much blank; "check authorization first, execute once per idempotency key" gives implementation and acceptance a shared basis. Ambiguity leaves choices open. Letting the model silently fill those blanks can bury an unmade business decision in code. Identify those choices, have the responsible owner decide, and guard the verifiable parts with checks.
 
 ## Relationship to other documents
 
