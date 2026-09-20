@@ -133,6 +133,19 @@ omp install "$(pwd)" --scope user
 
 `omp install` is an alias of `omp plugin install`; `omp plugin link "$(pwd)" --scope user` works the same. OMP reads `omp.extensions` from `package.json` and loads `src/extension.ts`.
 
+### Updating
+
+The registration points at this checkout, so the installation keeps reading the package and its dependencies from that directory. Update it from the repository root:
+
+```bash
+cd /path/to/ruokee-agent-kit
+git pull
+cd projects/omp-system-prompt
+bun install --frozen-lockfile
+```
+
+Restart OMP afterwards: a running process keeps the extension code it loaded at startup, and starting another session in the same process does not reload it. Prompt rule documents are read again on every turn, so editing those files needs no restart.
+
 ### Extension order
 
 OMP runs `before_agent_start` handlers in extension installation order, and each handler receives the previous handler's output as its input. This extension reads whatever array it receives, so extensions installed after it see the owned main block instead of the default one; extensions that expect the stock host main block must run before it.

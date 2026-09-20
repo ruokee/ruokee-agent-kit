@@ -133,6 +133,19 @@ omp install "$(pwd)" --scope user
 
 `omp install` 是 `omp plugin install` 的别名；`omp plugin link "$(pwd)" --scope user` 效果相同。OMP 从 `package.json` 的 `omp.extensions` 读取扩展声明并加载 `src/extension.ts`。
 
+### 更新
+
+注册指向这个检出目录，安装会一直从该目录读取 Package 及其依赖。请在仓库根目录更新：
+
+```bash
+cd /path/to/ruokee-agent-kit
+git pull
+cd projects/omp-system-prompt
+bun install --frozen-lockfile
+```
+
+之后重启 OMP：运行中的进程会继续使用启动时加载的扩展代码，在同一进程中新建会话不会重新加载。提示词规则文档每轮都会重新读取，修改这些文件不需要重启。
+
 ### 扩展顺序
 
 OMP 按扩展安装顺序运行 `before_agent_start` 处理器，每个处理器拿到的输入都是上一个处理器的输出。本扩展读取它收到的任意数组，因此安装在本扩展之后的扩展看到的是自有主块而非默认主块；期望宿主原始主块的扩展必须安装在本扩展之前。

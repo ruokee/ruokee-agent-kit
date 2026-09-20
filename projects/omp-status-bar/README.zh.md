@@ -25,6 +25,19 @@ omp plugin link "$(pwd)" --scope user
 
 按照[使用与配置](./docs/usage.zh.md)在当前 OMP agent 目录创建 `omp-status-bar.yml`，再启动新的 OMP 会话。Package 不会热加载配置修改。
 
+### 更新
+
+`omp plugin link` 注册的是这个检出目录，安装会一直从该目录加载 Package 及其依赖。请保留该目录，并在仓库根目录更新：
+
+```bash
+cd /path/to/ruokee-agent-kit
+git pull
+cd projects/omp-status-bar
+bun install --frozen-lockfile
+```
+
+之后重启 OMP：运行中的进程会继续使用启动时加载的扩展代码，在同一进程中新建会话不会重新加载。
+
 ## 开发
 
 ```bash

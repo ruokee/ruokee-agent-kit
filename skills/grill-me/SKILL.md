@@ -2,6 +2,8 @@
 name: grill-me
 description: Turn an incomplete idea or existing plan into shared understanding and an action-ready specification through sustained, evidence-first questioning. Discover goals, scenarios, preferences, and assumptions; keep a durable record and global question numbering; work by dependency; report qualitative readiness.
 disable-model-invocation: true
+metadata:
+  version: "1.0.0"
 ---
 
 # Grill Me

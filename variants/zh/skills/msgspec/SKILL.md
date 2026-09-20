@@ -1,6 +1,8 @@
 ---
 name: msgspec
 description: 当需要定义结构体、进行数据验证和处理序列化时使用，涵盖 msgspec Struct 字段与选项、约束和类型化转换、编码与解码、标签联合及自定义钩子。
+metadata:
+  version: "1.0.0"
 ---
 
 # msgspec

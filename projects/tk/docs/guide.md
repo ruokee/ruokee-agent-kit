@@ -16,6 +16,17 @@ $HOME/.local/bin/tk
 
 The file must be a regular executable. Harness component commands do not install, update, or remove the runtime.
 
+This is the source-build path for the runtime. Build the executable from a local clone and put it at that path:
+
+```sh
+cd /path/to/ruokee-agent-kit
+cargo build --release --manifest-path projects/tk/Cargo.toml
+mkdir -p "$HOME/.local/bin"
+install -m 755 projects/tk/target/release/tk "$HOME/.local/bin/tk"
+```
+
+Each component installed by `tk install` comes from payloads embedded in the executable that ran the command, so a newer component becomes available only after this file is replaced. Update the runtime first, then run `tk install` again with the new executable to update components.
+
 Confirm the runtime contract:
 
 ```sh

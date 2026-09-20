@@ -2,6 +2,8 @@
 name: grill-me
 description: 通过持续、证据优先的提问，将不完整想法或已有方案收敛为共同理解和可行动规格。发现目标、场景、偏好和假设，维护长期记录和全局问题编号，按依赖推进，并报告定性就绪度。
 disable-model-invocation: true
+metadata:
+  version: "1.0.0"
 ---
 
 # Grill Me

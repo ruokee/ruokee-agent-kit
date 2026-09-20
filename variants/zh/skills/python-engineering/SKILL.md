@@ -1,6 +1,8 @@
 ---
 name: python-engineering
 description: 当需要评估或改善 Python 工程实践时使用，涵盖项目结构、依赖与版本策略、类型注解、测试、语言特性、标准库机制和工具链。
+metadata:
+  version: "1.0.0"
 ---
 
 # Python 工程（Python Engineering）

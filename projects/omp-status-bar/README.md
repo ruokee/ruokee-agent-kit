@@ -25,6 +25,19 @@ omp plugin link "$(pwd)" --scope user
 
 Create `omp-status-bar.yml` in the active OMP agent directory as described in [Usage and configuration](./docs/usage.md), then start a new OMP session. The package does not hot-reload configuration changes.
 
+### Updating
+
+`omp plugin link` registers this checkout, so the installation keeps loading the package and its dependencies from that directory. Keep the directory in place, and update it from the repository root:
+
+```bash
+cd /path/to/ruokee-agent-kit
+git pull
+cd projects/omp-status-bar
+bun install --frozen-lockfile
+```
+
+Restart OMP afterwards: a running process keeps the extension code it loaded at startup, and starting another session in the same process does not reload it.
+
 ## Development
 
 ```bash

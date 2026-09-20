@@ -12,6 +12,23 @@ tk 是一个持久化任务管理工具。它把任务进度、共识和支撑�
 
 运行时负责任务规则和持久化。Harness 组件提供操作入口，不实现第二套规则。
 
+## 运行时与组件
+
+运行时是一个可执行文件，固定在用户级路径 `$HOME/.local/bin/tk`。Harness 组件和独立 CLI Skill 与它分离：`tk install` 把它们写入 Harness 或 Skill 根目录，它们沿用运行时的规则。
+
+`tk install` 只读取执行该命令的可执行文件中内嵌的 payload。拉取更新的仓库内容既不会替换已安装的可执行文件，也不会改变组件；旧的可执行文件也无法安装更新的组件。因此更新分两步：
+
+```sh
+cd /path/to/ruokee-agent-kit
+git pull
+cargo build --release --manifest-path projects/tk/Cargo.toml
+mkdir -p "$HOME/.local/bin"
+install -m 755 projects/tk/target/release/tk "$HOME/.local/bin/tk"
+tk install --harness omp --mode cli --language zh
+```
+
+再次执行与当前状态一致的 `tk install` 会返回 `no_change`。组件生命周期见[安装](./docs/design/installation.zh.md)，运行时的安装、组件选择和卸载见[用户指南](./docs/guide.zh.md)。
+
 ## 开始使用
 
 从[用户指南](./docs/guide.zh.md)开始，安装运行时和组件、初始化项目，再创建或继续一个任务。运行时与 Harness 组件分开安装。

@@ -140,6 +140,19 @@ omp install "$(pwd)" --scope user
 
 `omp install` 是 `omp plugin install` 的别名，`omp plugin link "$(pwd)" --scope user` 注册同一个目录。OMP 会读取 `package.json` 中的 `omp.extensions` 并加载 `src/extension.ts`，不需要手动设置扩展路径。
 
+### 更新
+
+注册指向这个检出目录，安装会一直从该目录读取包及其依赖。请在仓库根目录更新：
+
+```bash
+cd /path/to/ruokee-agent-kit
+git pull
+cd projects/omp-context-pin
+bun install --frozen-lockfile
+```
+
+之后重启 OMP：运行中的进程会继续使用启动时加载的扩展代码，在同一进程中新建会话不会重新加载。固定正文存放在宿主的会话日志中而非这个检出目录，更新既不会改变也不会清除它们。
+
 ## 开发
 
 ```bash

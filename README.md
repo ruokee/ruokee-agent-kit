@@ -47,6 +47,36 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 - **[omp-system-prompt](./projects/omp-system-prompt/README.md)** replaces the fixed policy text of OMP's default system prompt with a maintained English text while keeping dynamic runtime segments, falling back to the host prompt unchanged when recognition fails.
 - **[omp-context-pin](./projects/omp-context-pin/README.md)** keeps a small set of pinned text entries present word for word in every ordinary model request on the current session branch, and restores them after each committed compaction.
 
+## Install
+
+Skill installation is separate from the development setup below and needs neither the development dependencies nor a build. Extensions and the tk runtime are built and installed from their own directories, as their READMEs describe.
+
+### Choose a capability
+
+| What you need | Component |
+| --- | --- |
+| Code and test quality analysis | [code-quality](./skills/code-quality/SKILL.md) |
+| Python engineering practice | [python-engineering](./skills/python-engineering/SKILL.md) |
+| `msgspec` structs, validation, and serialization | [msgspec](./skills/msgspec/SKILL.md) |
+| Architecture judgment across system boundaries | [architect](./skills/architect/SKILL.md) |
+| Research with collected and verified sources | [deep-research](./skills/deep-research/SKILL.md) |
+| Requirements clarified through question rounds | [grill-me](./skills/grill-me/SKILL.md), explicit invocation |
+| Task state across sessions and Agents | [tk](./projects/tk/README.md), with its own runtime |
+| Changes to an OMP interface or behavior | the OMP extensions below |
+
+### Ordinary Skills
+
+An ordinary Skill is a directory that holds `SKILL.md` and, when it needs them, its own references and workflows. Installing copies that complete directory into the Skill root your Harness loads, for example `$HOME/.omp/agent/skills` for user-level OMP Skills.
+
+Follow [Installing Skills](./docs/installation.md) for the language choice, the Skill root, and the check, install, update, and uninstall commands. Chinese variants of the same Skills live under `variants/zh/skills/`.
+
+### Extensions
+
+Extensions have their own installation and update instructions. Follow the linked component README; the root README does not repeat them.
+
+- [tk](./projects/tk/README.md) is a task runtime with components for several Harnesses. The runtime is installed separately from the components.
+- [omp-status-bar](./projects/omp-status-bar/README.md), [omp-system-prompt](./projects/omp-system-prompt/README.md), [omp-codex-web-access](./projects/omp-codex-web-access/README.md), and [omp-context-pin](./projects/omp-context-pin/README.md) are OMP extensions. Each README states its host and configuration requirements.
+
 ## Development
 
 ### Git
@@ -95,6 +125,7 @@ Run `pnpm check` from the repository root before requesting review. It executes 
 4. TypeScript checks and tests for [omp-codex-web-access](./projects/omp-codex-web-access/package.json).
 5. TypeScript checks and tests for [omp-context-pin](./projects/omp-context-pin/package.json).
 6. tk native adapter tests with `bun test projects/tk/adapter-tests`.
+7. Skill lifecycle tests with `sh scripts/tests/skills.sh` through `pnpm check:skills`.
 
 The first failed command stops the sequence and returns a nonzero exit status. Missing executables or dependencies also fail the check. Commands and component output identify the failing step. Checks do not install dependencies or format source files; builds and tests can create their normal generated and temporary files.
 
@@ -108,6 +139,9 @@ pnpm check
 
 # Run only the Markdown and Rust baseline
 pnpm check:base
+
+# Run only the Skill lifecycle tests
+pnpm check:skills
 
 # Format or check all Markdown files
 pnpm docs:format

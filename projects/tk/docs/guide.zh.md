@@ -16,6 +16,17 @@ $HOME/.local/bin/tk
 
 该路径必须是具有执行位的常规文件。Harness 组件命令不安装、更新或删除运行时。
 
+运行时通过本地克隆构建获得。请从本地克隆构建可执行文件并放到该路径：
+
+```sh
+cd /path/to/ruokee-agent-kit
+cargo build --release --manifest-path projects/tk/Cargo.toml
+mkdir -p "$HOME/.local/bin"
+install -m 755 projects/tk/target/release/tk "$HOME/.local/bin/tk"
+```
+
+`tk install` 安装的每个组件都来自执行该命令的可执行文件中内嵌的 payload，因此只有替换该文件之后，更新的组件才可用。请先更新运行时，再用新的可执行文件重新执行 `tk install` 更新组件。
+
 确认运行时合同：
 
 ```sh

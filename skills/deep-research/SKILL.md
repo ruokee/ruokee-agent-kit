@@ -1,6 +1,8 @@
 ---
 name: deep-research
 description: Use for structured evidence-first deep research when the user asks for deep research, broad research surveys, source-backed reports, or research packages that need source collection, cross-validation, claim boundaries, unresolved questions, and sub-agent parallelization.
+metadata:
+  version: "1.0.0"
 ---
 
 # Deep Research

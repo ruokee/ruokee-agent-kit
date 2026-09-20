@@ -140,6 +140,19 @@ omp install "$(pwd)" --scope user
 
 `omp install` is an alias of `omp plugin install`, and `omp plugin link "$(pwd)" --scope user` registers the same directory. OMP reads `omp.extensions` from `package.json` and loads `src/extension.ts`; no manual extension-path setting is required.
 
+### Updating
+
+The registration points at this checkout, so the installation keeps reading the package and its dependencies from that directory. Update it from the repository root:
+
+```bash
+cd /path/to/ruokee-agent-kit
+git pull
+cd projects/omp-context-pin
+bun install --frozen-lockfile
+```
+
+Restart OMP afterwards: a running process keeps the extension code it loaded at startup, and starting another session in the same process does not reload it. Pins belong to the session journal of the host rather than to this checkout, so an update neither changes nor clears them.
+
 ## Development
 
 ```bash

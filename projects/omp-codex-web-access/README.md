@@ -24,7 +24,20 @@ bun install
 omp install "$(pwd)" --scope user
 ```
 
-`omp install` is an alias of `omp plugin install`; `omp plugin link "$(pwd)" --scope user` works the same. OMP reads `omp.extensions` from `package.json` and loads `src/extension.ts`; no manual extension-path setting is required. The supported OMP range is `>=18.2.3 <19` because the extension uses the asynchronous model Header APIs introduced in OMP 18.2.3.
+`omp install` is an alias of `omp plugin install`; `omp plugin link "$(pwd)" --scope user` works the same. OMP reads `omp.extensions` from `package.json` and loads `src/extension.ts`, so no extension path needs to be set by hand. The supported OMP range is `>=18.2.3 <19`, because the extension uses the asynchronous model header API introduced in OMP 18.2.3.
+
+### Updating
+
+The registration points at this checkout, so the installation keeps reading the package and its locked dependencies from that directory. Update it from the repository root:
+
+```bash
+cd /path/to/ruokee-agent-kit
+git pull
+cd projects/omp-codex-web-access
+bun install --frozen-lockfile
+```
+
+Restart OMP afterwards: a running process keeps the extension code it loaded at startup, and starting another session in the same process does not reload it. Settings are read on the first `session_start` of an activation, so a restart is also what picks up a settings file change made outside the OMP CLI.
 
 ## Configuration
 

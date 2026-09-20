@@ -26,6 +26,19 @@ omp install "$(pwd)" --scope user
 
 `omp install` 是 `omp plugin install` 的别名；`omp plugin link "$(pwd)" --scope user` 效果相同。OMP 会读取 `package.json` 中的 `omp.extensions` 并加载 `src/extension.ts`，不需要手动设置扩展路径。支持的 OMP 范围为 `>=18.2.3 <19`，因为扩展使用了 OMP 18.2.3 引入的异步模型 Header API。
 
+### 更新
+
+注册指向这个检出目录，安装会一直从该目录读取包及其锁定依赖。请在仓库根目录更新：
+
+```bash
+cd /path/to/ruokee-agent-kit
+git pull
+cd projects/omp-codex-web-access
+bun install --frozen-lockfile
+```
+
+之后重启 OMP：运行中的进程会继续使用启动时加载的扩展代码，在同一进程中新建会话不会重新加载。设置在激活后的首次 `session_start` 读取，因此在 OMP CLI 之外修改设置文件同样需要重启才能生效。
+
 ## 配置
 
 扩展使用 OMP 的原生插件设置。用户级设置通过 OMP 插件 CLI 写入；项目设置从 `.omp/plugin-overrides.json` 读取，并在当前项目中覆盖同名的用户级值。

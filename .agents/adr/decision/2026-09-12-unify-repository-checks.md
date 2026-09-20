@@ -25,6 +25,7 @@ A Markdown and Rust check alone cannot detect failures in the TypeScript extensi
 | 4 | [projects/omp-codex-web-access/package.json](../../../projects/omp-codex-web-access/package.json) | `pnpm --dir projects/omp-codex-web-access run typecheck`, then `pnpm --dir projects/omp-codex-web-access run test` |
 | 5 | [projects/omp-context-pin/package.json](../../../projects/omp-context-pin/package.json) | `pnpm --dir projects/omp-context-pin run typecheck`, then `pnpm --dir projects/omp-context-pin run test` |
 | 6 | [projects/tk/adapter-tests/common.test.ts](../../../projects/tk/adapter-tests/common.test.ts) | `bun test projects/tk/adapter-tests` |
+| 7 | [scripts/skills.sh](../../../scripts/skills.sh) | `sh scripts/tests/skills.sh` through `pnpm check:skills` |
 
 The root package scripts list explicit commands joined with `&&` and reuse component scripts for local checks. Targets are explicit rather than recursively discovered throughout the repository. Adding or changing a component's required automated checks includes updating the root entry point in the same change.
 
@@ -61,3 +62,7 @@ The complete check needs every component dependency tree and takes longer than t
 ### 2026-09-15: Cover the omp-context-pin component checks
 
 The aggregate also runs `pnpm --dir projects/omp-context-pin run typecheck` and `run test` as order 5, before the native tk adapter, which becomes order 6. The table lists the covered components in execution order and the surrounding text does not count them.
+
+### 2026-09-20: Cover the Skill lifecycle tests
+
+The aggregate also runs `pnpm check:skills`, which executes `sh scripts/tests/skills.sh`, as order 7 after the native tk adapter. The tests exercise the [scripts/skills.sh](../../../scripts/skills.sh) installation, update, and uninstall commands through synthetic fixture repositories, and require only a POSIX shell, `diff`, and common system file tools; the step installs no dependencies. The tests also cover the refusal boundaries and unreadable trees, which are reported as failures rather than as differences or matches.
