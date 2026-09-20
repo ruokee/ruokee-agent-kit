@@ -1,4 +1,7 @@
 pnpm-lock.yaml
 
 .worktrees/
+
+# tk keeps its write-ahead log append-only and agent-unwritable.
+.tk/**/wal/
 tmp/
