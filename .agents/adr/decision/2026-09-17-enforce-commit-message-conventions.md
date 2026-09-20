@@ -1,25 +1,23 @@
-# ADR proposal: Enforce commit message conventions
+# ADR decision: Enforce commit message conventions
 
-Draft owner: Ruokee
-Draft writer: deepseek/deepseek-v4.1-flash
+Decision owner: Ruokee
+Decision writer: deepseek/deepseek-v4.1-flash
 
 English | [中文](./2026-09-17-enforce-commit-message-conventions.zh.md)
 
 ## Motivation
 
-Repository guidance requires English Conventional Commits messages, and nothing checks them. The pre-commit hook only formats staged files through Prettier, so the type, the scope, and the shape of the header rest on the author's memory.
+Repository guidance requires English Conventional Commits messages, and the type, the scope, and the shape of the header are checked mechanically rather than left to memory. The pre-commit hook formats staged files through Prettier, and the `commit-msg` stage reads the message file itself.
 
-The current history shows what that costs. Scope values include both `skill` and `skills`, several component names, and one-off labels such as `package`, `ai`, and `system-prompt`. The same kind of change carries different scopes in different commits, and there is no list to check a new message against.
+Author memory alone produced inconsistent scopes: `skill` and `skills` for the same area, component names, and one-off labels such as `package`, `ai`, and `system-prompt`, with the same kind of change carrying different scopes in different commits. A scope list and an enforcement mechanism are needed together. A list alone stops working as soon as a new label looks reasonable, and enforcement alone rejects messages without telling the author which values are acceptable.
 
-A scope list and an enforcement mechanism are needed together. A list alone stops working as soon as a new label looks reasonable, and enforcement alone rejects messages without telling the author which values are acceptable.
-
-## Proposal
+## Decision
 
 ### Enforcement point
 
 Add a `commit-msg` entry to the existing `simple-git-hooks` configuration. It runs commitlint against the message file. Root `devDependencies` add `@commitlint/cli` and `@commitlint/config-conventional`, and the rules live in a root `commitlint.config.mjs`. `pnpm hooks:install` stays the single installation step, and an existing checkout runs it once to pick up the new hook stage.
 
-A violation at error level stops the commit. Commitlint prints the violated rules, and the hook command adds the command that opens the message file for editing. A warning prints and lets the commit through; the default preset classifies a missing blank line before the body or the footer as a warning, and this proposal keeps that level.
+A violation at error level stops the commit. Commitlint prints the violated rules, and the hook command adds the command that opens the message file for editing. A warning prints and lets the commit through; the default preset classifies a missing blank line before the body or the footer as a warning, and this decision keeps that level.
 
 When a commit is blocked, the message file keeps its content, and the author repeats the original operation, so a blocked `git commit --amend` is retried as an amend rather than as a new commit. The command takes the path from Git, since a linked worktree keeps its message file under the main repository's `.git/worktrees/` directory.
 
@@ -40,7 +38,7 @@ Scopes are optional. When a message carries one, it must be exactly one of the f
 
 The set is enforced by one local rule registered in `commitlint.config.mjs` that compares the parsed scope against the list. The built-in `scope-enum` rule cannot carry this policy alone: it splits the scope on `/`, `\`, and `,`, so `feat(skills/adr)`, `feat(skills,adr)`, and `feat(skills\adr)` all pass it, and the built-in rules hold no pattern rule for scope naming. The local rule rejects unknown values, upper-case letters, hyphens, underscores, and multi-area scopes in one place, and it passes a message without a scope, which commitlint parses as a `null` scope.
 
-The remaining rules keep their `config-conventional` defaults. That choice carries constraints beyond the type and scope policy: a subject that opens with a capital letter or ends with a full stop is rejected, and body and footer lines are limited to 100 characters. Three of the 128 commits on `main` exceed that limit and would fail the check.
+The remaining rules keep their `config-conventional` defaults. That choice carries constraints beyond the type and scope policy: a subject that opens with a capital letter or ends with a full stop is rejected, and body and footer lines are limited to 100 characters.
 
 ### Documentation
 
@@ -53,21 +51,9 @@ The Git sections of [AGENTS.md](../../../AGENTS.md), [README.md](../../../README
 - Give every Skill and component its own scope. This was considered when defining the scope set. It names the changed unit precisely, but every new Skill and component requires a list edit, and a forgotten edit blocks commits until someone updates the configuration.
 - Keep the requirement human-enforced. This was considered when deciding whether to add a check at all. It leaves the toolchain untouched, and it leaves inconsistent scope use in place.
 
-## Acceptance criteria
+## Consequences
 
-The fixed messages below are checked through the installed hook in each environment during implementation, and the results are recorded with the implementation change.
-
-1. After `pnpm hooks:install`, the hook is exercised in a regular checkout and in a linked worktree: an error-level violation blocks `git commit`, prints the violated rules and the command that opens the message file, and a retry through the original operation, including `git commit --amend`, goes through once the message is fixed. A warning prints and the commit goes through.
-2. Messages that use `skills`, `extensions`, `adr`, or `repo`, and messages with no scope, commit normally.
-3. A check over fixed messages covers both outcomes: `feat(skills): add guidance`, `docs(repo): document the check`, and `feat(repo)!: drop the legacy flag` pass, while `feat(skill): add guidance`, `feat(Skills): add guidance`, `feat(skill-name): add guidance`, `feat(skills/adr): update both areas`, `chore(package): update tooling`, and `docs(ai): update guidance` are rejected.
-4. The default ignore patterns hold: `fixup! feat(skills): add guidance`, `Revert "previous change"`, `Merge branch 'main'`, and `v1.2.3` skip the check entirely.
-5. The Git sections of [AGENTS.md](../../../AGENTS.md), [README.md](../../../README.md), and [README.zh.md](../../../README.zh.md) name the scope set, the commit-msg check, and both hook stages in the installation step.
-6. `pnpm check` still passes, and the hook adds no dependency outside the root pnpm project.
-
-## Risks
-
-A squash merge performed on the hosting service never passes through the check, and the repository has no CI job, so a message the rules reject can still enter the history. The scopes recorded there stay unreliable for searching history.
-
-Scopes describe areas of the repository, not a single component. The check reads the message alone and cannot tell whether the chosen scope matches the files in the commit, so different authors may still classify the same two-area change differently, which reproduces the inconsistency the rules aim to remove.
-
-An author who finds no scope that fits can select an unrelated one, leaving a message that passes the check while naming the wrong area. Bypassing the hook removes the rule's effect for that author entirely.
+- A squash merge performed on the hosting service never passes through the check, and the repository runs no CI job, so a message the rules reject can still enter the history. The scopes recorded there stay unreliable for searching history.
+- Scopes describe areas of the repository rather than a single component. The check reads the message alone and cannot tell whether the chosen scope matches the files in the commit, so different authors may still classify the same two-area change differently.
+- An author who finds no fitting scope can select an unrelated one, leaving a message that passes the check while naming the wrong area. Bypassing the hook removes the rule's effect for that author entirely.
+- The check adds no dependency outside the root pnpm project, and `pnpm check` is unaffected.
