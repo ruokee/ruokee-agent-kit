@@ -45,6 +45,7 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 - **[omp-status-bar](./projects/omp-status-bar/README.md)** adds an OMP status bar with extra context information, including current session context usage as a number rather than the native percentage, total tokens, input tokens, cached tokens, output tokens, cache-hit rate, and speculative-compaction indicators.
 - **[omp-codex-web-access](./projects/omp-codex-web-access/README.md)** lets OMP use a Codex subscription through a forwarding Provider for web search and page extraction.
 - **[omp-system-prompt](./projects/omp-system-prompt/README.md)** replaces the fixed policy text of OMP's default system prompt with a maintained English text while keeping dynamic runtime segments, falling back to the host prompt unchanged when recognition fails.
+- **[omp-context-pin](./projects/omp-context-pin/README.md)** keeps a small set of pinned text entries present word for word in every ordinary model request on the current session branch, and restores them after each committed compaction.
 
 ## Development
 
@@ -81,6 +82,7 @@ Use the pnpm version declared in [package.json](./package.json), a Rust toolchai
 (cd projects/omp-status-bar && bun install --frozen-lockfile)
 (cd projects/omp-system-prompt && bun install --frozen-lockfile)
 (cd projects/omp-codex-web-access && bun install --frozen-lockfile)
+(cd projects/omp-context-pin && bun install --frozen-lockfile)
 ```
 
 ### Check coverage
@@ -91,7 +93,8 @@ Run `pnpm check` from the repository root before requesting review. It executes 
 2. TypeScript checks and tests for [omp-status-bar](./projects/omp-status-bar/package.json).
 3. TypeScript checks and tests for [omp-system-prompt](./projects/omp-system-prompt/package.json).
 4. TypeScript checks and tests for [omp-codex-web-access](./projects/omp-codex-web-access/package.json).
-5. tk native adapter tests with `bun test projects/tk/adapter-tests`.
+5. TypeScript checks and tests for [omp-context-pin](./projects/omp-context-pin/package.json).
+6. tk native adapter tests with `bun test projects/tk/adapter-tests`.
 
 The first failed command stops the sequence and returns a nonzero exit status. Missing executables or dependencies also fail the check. Commands and component output identify the failing step. Checks do not install dependencies or format source files; builds and tests can create their normal generated and temporary files.
 

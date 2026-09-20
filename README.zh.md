@@ -45,6 +45,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 - **[omp-status-bar](./projects/omp-status-bar/README.zh.md)**：OMP 状态栏拓展，提供额外的上下文信息显示，包括当前会话上下文（数值而非原生提供的百分比）、总 Token、输入 Token、缓存 Token、输出 Token、缓存命中率和投机压缩指示。
 - **[omp-codex-web-access](./projects/omp-codex-web-access/README.zh.md)**：让 OMP 支持通过转发 Provider 使用 Codex 订阅，接入网页搜索与页面提取工具。
 - **[omp-system-prompt](./projects/omp-system-prompt/README.zh.md)**：将 OMP 默认系统提示词中的固定策略文本替换为维护的英文文本，同时保留动态运行时段落；识别失败时原样回退到宿主提示词。
+- **[omp-context-pin](./projects/omp-context-pin/README.zh.md)**：让少量固定条目在当前会话分支的每次普通模型请求中原样出现，并在每次提交后的压缩之后恢复这些条目。
 
 ## 开发
 
@@ -81,6 +82,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 (cd projects/omp-status-bar && bun install --frozen-lockfile)
 (cd projects/omp-system-prompt && bun install --frozen-lockfile)
 (cd projects/omp-codex-web-access && bun install --frozen-lockfile)
+(cd projects/omp-context-pin && bun install --frozen-lockfile)
 ```
 
 ### 检查范围
@@ -91,7 +93,8 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 2. [omp-status-bar](./projects/omp-status-bar/package.json) 的 TypeScript 检查和测试。
 3. [omp-system-prompt](./projects/omp-system-prompt/package.json) 的 TypeScript 检查和测试。
 4. [omp-codex-web-access](./projects/omp-codex-web-access/package.json) 的 TypeScript 检查和测试。
-5. 通过 `bun test projects/tk/adapter-tests` 执行 tk 原生适配器测试。
+5. [omp-context-pin](./projects/omp-context-pin/package.json) 的 TypeScript 检查和测试。
+6. 通过 `bun test projects/tk/adapter-tests` 执行 tk 原生适配器测试。
 
 首次命令失败即停止执行，并返回非零状态。缺失可执行文件或依赖也会使检查失败。命令及组件输出可以定位失败步骤。检查不安装依赖或格式化源码；构建和测试可以创建自身正常使用的生成文件与临时文件。
 

@@ -9,7 +9,7 @@
     "cargo:fmt:check": "cargo fmt --manifest-path projects/tk/Cargo.toml -- --check",
     "cargo:test": "cargo test --manifest-path projects/tk/Cargo.toml",
     "check:base": "pnpm docs:lint && pnpm cargo:fmt:check && pnpm cargo:test",
-    "check": "pnpm check:base && pnpm --dir projects/omp-status-bar run typecheck && pnpm --dir projects/omp-status-bar run test && pnpm --dir projects/omp-system-prompt run typecheck && pnpm --dir projects/omp-system-prompt run test && pnpm --dir projects/omp-codex-web-access run typecheck && pnpm --dir projects/omp-codex-web-access run test && bun test projects/tk/adapter-tests"
+    "check": "pnpm check:base && pnpm --dir projects/omp-status-bar run typecheck && pnpm --dir projects/omp-status-bar run test && pnpm --dir projects/omp-system-prompt run typecheck && pnpm --dir projects/omp-system-prompt run test && pnpm --dir projects/omp-codex-web-access run typecheck && pnpm --dir projects/omp-codex-web-access run test && pnpm --dir projects/omp-context-pin run typecheck && pnpm --dir projects/omp-context-pin run test && bun test projects/tk/adapter-tests"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.2",

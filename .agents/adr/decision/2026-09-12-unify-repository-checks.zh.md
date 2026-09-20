@@ -7,7 +7,7 @@ Decision writer: OMP GPT-6 Astra
 
 ## 动机
 
-仓库验证涉及 Markdown 格式、tk Rust 代码、三个独立打包的 OMP 拓展，以及 tk 原生适配器。根 [package.json](../../../package.json) 与组件脚本需要一个完整入口，使仓库检查成功能够覆盖全部已有自动化检查。
+仓库验证涉及 Markdown 格式、tk Rust 代码、各个独立打包的 OMP 拓展，以及 tk 原生适配器。根 [package.json](../../../package.json) 与组件脚本需要一个完整入口，使仓库检查成功能够覆盖全部已有自动化检查。
 
 仅执行 Markdown 与 Rust 检查，无法发现 TypeScript 拓展或原生适配器的失败。明确列出组件目标并可靠地传递失败，为开发者提供一致的完整检查。
 
@@ -23,7 +23,8 @@ Decision writer: OMP GPT-6 Astra
 | 2 | [projects/omp-status-bar/package.json](../../../projects/omp-status-bar/package.json) | 先执行 `pnpm --dir projects/omp-status-bar run typecheck`，再执行 `pnpm --dir projects/omp-status-bar run test` |
 | 3 | [projects/omp-system-prompt/package.json](../../../projects/omp-system-prompt/package.json) | 先执行 `pnpm --dir projects/omp-system-prompt run typecheck`，再执行 `pnpm --dir projects/omp-system-prompt run test` |
 | 4 | [projects/omp-codex-web-access/package.json](../../../projects/omp-codex-web-access/package.json) | 先执行 `pnpm --dir projects/omp-codex-web-access run typecheck`，再执行 `pnpm --dir projects/omp-codex-web-access run test` |
-| 5 | [projects/tk/adapter-tests/common.test.ts](../../../projects/tk/adapter-tests/common.test.ts) | `bun test projects/tk/adapter-tests` |
+| 5 | [projects/omp-context-pin/package.json](../../../projects/omp-context-pin/package.json) | 先执行 `pnpm --dir projects/omp-context-pin run typecheck`，再执行 `pnpm --dir projects/omp-context-pin run test` |
+| 6 | [projects/tk/adapter-tests/common.test.ts](../../../projects/tk/adapter-tests/common.test.ts) | `bun test projects/tk/adapter-tests` |
 
 根包脚本明确列出命令，通过 `&&` 连接，并复用组件脚本执行局部检查。入口明确选择目标，不递归扫描整个仓库来发现测试。新增或调整组件必需的自动化检查时，同步更新根入口。
 
@@ -33,7 +34,7 @@ Decision writer: OMP GPT-6 Astra
 
 使用根 `packageManager` 声明的 pnpm 版本、包含 `rustfmt` 且满足 tk 构建前提的 Rust 工具链，以及能够安装已提交组件锁文件并运行测试的 Bun。
 
-依赖安装是显式步骤：在根目录运行 `pnpm install --frozen-lockfile`，在三个 OMP 组件目录中分别运行 `bun install --frozen-lockfile`。各组件保留独立依赖树。聚合入口不增加依赖安装或自动格式化源码步骤。构建和测试可以创建自身正常使用的生成文件与临时文件。
+依赖安装是显式步骤：在根目录运行 `pnpm install --frozen-lockfile`，在每个 OMP 组件目录中分别运行 `bun install --frozen-lockfile`。各组件保留独立依赖树。聚合入口不增加依赖安装或自动格式化源码步骤。构建和测试可以创建自身正常使用的生成文件与临时文件。
 
 检查按顺序执行。输出每条命令及足以识别组件的上下文，保留子命令输出，并在首次失败时停止。任一检查失败、必需可执行文件缺失或依赖缺失，都使聚合入口以非零状态退出。前面的检查成功不能掩盖后续失败。
 
@@ -53,4 +54,10 @@ Decision writer: OMP GPT-6 Astra
 
 一个根命令即可报告全部必需的自动化检查是否通过。检查成功时，受 Git 管理的源码及配置文件保持不变；构建和测试可以创建自身正常使用的生成文件与临时文件。
 
-完整检查需要三个组件的依赖树，耗时也高于基础检查。即使只修改文档，缺失依赖或组件 fixture 失败也可能阻塞交付。明确的准备说明和基础入口支持局部诊断，请求审查前仍须执行完整检查。
+完整检查需要每个组件的依赖树，耗时也高于基础检查。即使只修改文档，缺失依赖或组件 fixture 失败也可能阻塞交付。明确的准备说明和基础入口支持局部诊断，请求审查前仍须执行完整检查。
+
+## 变更
+
+### 2026-09-15：纳入 omp-context-pin 组件检查
+
+聚合入口增加 `pnpm --dir projects/omp-context-pin run typecheck` 与 `run test`，排在原生 tk 适配器之前，适配器顺延为第 6 项。覆盖表按执行顺序列出受检组件，正文不写死组件数量。
