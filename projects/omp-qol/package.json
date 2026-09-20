@@ -1,0 +1,145 @@
+{
+  "name": "@ruokee/omp-qol",
+  "version": "0.1.2",
+  "description": "OMP extension adjusting hub waiting, model-error recovery, and the experimental remote compaction deadline",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "omp-package",
+    "quality-of-life"
+  ],
+  "omp": {
+    "extensions": [
+      "./src/extension.ts"
+    ],
+    "settings": {
+      "enabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Master switch. When false, no module changes OMP behavior."
+      },
+      "waitEnabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Wrap the hub tool so one call keeps waiting across empty native windows."
+      },
+      "waitContinueEmptyWindows": {
+        "type": "boolean",
+        "default": true,
+        "description": "Continue inside one hub wait call when the native window came back empty."
+      },
+      "waitJobsSeconds": {
+        "type": "number",
+        "default": 1200,
+        "min": 0.05,
+        "max": 3600,
+        "description": "Default total wait deadline in seconds for job or mixed hub waits."
+      },
+      "waitMessagesSeconds": {
+        "type": "number",
+        "default": 1200,
+        "min": 0.05,
+        "max": 3600,
+        "description": "Default total wait deadline in seconds for a pure message hub wait."
+      },
+      "waitProcessSeconds": {
+        "type": "number",
+        "default": 1200,
+        "min": 0.05,
+        "max": 3600,
+        "description": "Default timeout in seconds for a named-process hub wait."
+      },
+      "recoveryEnabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Request a bounded continuation turn after eligible model errors."
+      },
+      "recoveryMode": {
+        "type": "enum",
+        "values": [
+          "knownTransient",
+          "unclassified"
+        ],
+        "default": "knownTransient",
+        "description": "Error scope eligible for recovery: classified transient and timeout errors, or also unclassified errors."
+      },
+      "recoveryMaxAttempts": {
+        "type": "number",
+        "default": 8,
+        "min": 1,
+        "max": 8,
+        "step": 1,
+        "description": "Consecutive continuations requested for one failure chain."
+      },
+      "recoveryBackoffBaseMs": {
+        "type": "number",
+        "default": 1000,
+        "min": 1,
+        "max": 10000,
+        "step": 1,
+        "description": "Delay before the first continuation in milliseconds."
+      },
+      "recoveryBackoffMaxMs": {
+        "type": "number",
+        "default": 8000,
+        "min": 1,
+        "max": 10000,
+        "step": 1,
+        "description": "Upper bound for the continuation delay in milliseconds."
+      },
+      "recoveryNotify": {
+        "type": "boolean",
+        "default": true,
+        "description": "Show a warning line for each requested continuation."
+      },
+      "compactionTimeoutEnabled": {
+        "type": "boolean",
+        "default": false,
+        "description": "Install the experimental process-wide AbortSignal.timeout adjustment. Off by default."
+      },
+      "compactionTimeoutMs": {
+        "type": "number",
+        "default": 900000,
+        "min": 300001,
+        "max": 3600000,
+        "step": 1,
+        "description": "Deadline in milliseconds applied to one matching timeout call."
+      },
+      "compactionTimeoutFloorMs": {
+        "type": "number",
+        "default": 300000,
+        "min": 300000,
+        "max": 3600000,
+        "step": 1,
+        "description": "Lowest timeout value the experiment raises. Expert setting; only a numeric filter."
+      },
+      "compactionWindowGuardMs": {
+        "type": "number",
+        "default": 3600000,
+        "min": 1,
+        "max": 14400000,
+        "step": 1,
+        "description": "Longest lifetime in milliseconds of one compaction window."
+      },
+      "compactionTimeoutNotify": {
+        "type": "boolean",
+        "default": true,
+        "description": "Show a warning line when the experiment rewrites a deadline."
+      }
+    }
+  },
+  "peerDependencies": {
+    "@oh-my-pi/pi-ai": ">=18.2.4 <19",
+    "@oh-my-pi/pi-coding-agent": ">=18.2.4 <19"
+  },
+  "devDependencies": {
+    "@oh-my-pi/pi-ai": "18.2.4",
+    "@oh-my-pi/pi-coding-agent": "18.2.4",
+    "@types/bun": "^1.3.14",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p ."
+  }
+}

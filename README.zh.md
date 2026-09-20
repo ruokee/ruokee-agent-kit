@@ -46,6 +46,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 - **[omp-codex-web-access](./projects/omp-codex-web-access/README.zh.md)**：让 OMP 支持通过转发 Provider 使用 Codex 订阅，接入网页搜索与页面提取工具。
 - **[omp-system-prompt](./projects/omp-system-prompt/README.zh.md)**：将 OMP 默认系统提示词中的固定策略文本替换为维护的英文文本，同时保留动态运行时段落；识别失败时原样回退到宿主提示词。
 - **[omp-context-pin](./projects/omp-context-pin/README.zh.md)**：让少量固定条目在当前会话分支的每次普通模型请求中原样出现，并在每次提交后的压缩之后恢复这些条目。
+- **[omp-qol](./projects/omp-qol/README.zh.md)**：提供三项可独立开关的调整：在总期限内持续等待的 hub 等待、可续跑模型错误后的受限续跑，以及实验性的单个压缩期限延长。
 
 ## 安装
 
@@ -75,7 +76,7 @@ Skill 安装与下方的开发环境准备相互独立，不需要开发依赖�
 拓展各自提供安装与更新说明，请按组件 README 操作，根 README 不重复这些步骤。
 
 - [tk](./projects/tk/README.zh.md) 是跨多个 Harness 提供组件的任务运行时。运行时与组件分别安装。
-- [omp-status-bar](./projects/omp-status-bar/README.zh.md)、[omp-system-prompt](./projects/omp-system-prompt/README.zh.md)、[omp-codex-web-access](./projects/omp-codex-web-access/README.zh.md) 和 [omp-context-pin](./projects/omp-context-pin/README.zh.md) 是 OMP 拓展。各自 README 说明宿主与配置要求。
+- [omp-status-bar](./projects/omp-status-bar/README.zh.md)、[omp-system-prompt](./projects/omp-system-prompt/README.zh.md)、[omp-codex-web-access](./projects/omp-codex-web-access/README.zh.md)、[omp-context-pin](./projects/omp-context-pin/README.zh.md) 和 [omp-qol](./projects/omp-qol/README.zh.md) 是 OMP 拓展。各自 README 说明宿主与配置要求。
 
 ## 开发
 
@@ -113,6 +114,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 (cd projects/omp-system-prompt && bun install --frozen-lockfile)
 (cd projects/omp-codex-web-access && bun install --frozen-lockfile)
 (cd projects/omp-context-pin && bun install --frozen-lockfile)
+(cd projects/omp-qol && bun install --frozen-lockfile)
 ```
 
 ### 检查范围
@@ -124,8 +126,9 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 3. [omp-system-prompt](./projects/omp-system-prompt/package.json) 的 TypeScript 检查和测试。
 4. [omp-codex-web-access](./projects/omp-codex-web-access/package.json) 的 TypeScript 检查和测试。
 5. [omp-context-pin](./projects/omp-context-pin/package.json) 的 TypeScript 检查和测试。
-6. 通过 `bun test projects/tk/adapter-tests` 执行 tk 原生适配器测试。
-7. 通过 `pnpm check:skills` 执行 `sh scripts/tests/skills.sh`，运行 Skill 生命周期测试。
+6. [omp-qol](./projects/omp-qol/package.json) 的 TypeScript 检查和测试。
+7. 通过 `bun test projects/tk/adapter-tests` 执行 tk 原生适配器测试。
+8. 通过 `pnpm check:skills` 执行 `sh scripts/tests/skills.sh`，运行 Skill 生命周期测试。
 
 首次命令失败即停止执行，并返回非零状态。缺失可执行文件或依赖也会使检查失败。命令及组件输出可以定位失败步骤。检查不安装依赖或格式化源码；构建和测试可以创建自身正常使用的生成文件与临时文件。
 

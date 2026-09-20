@@ -46,6 +46,7 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 - **[omp-codex-web-access](./projects/omp-codex-web-access/README.md)** lets OMP use a Codex subscription through a forwarding Provider for web search and page extraction.
 - **[omp-system-prompt](./projects/omp-system-prompt/README.md)** replaces the fixed policy text of OMP's default system prompt with a maintained English text while keeping dynamic runtime segments, falling back to the host prompt unchanged when recognition fails.
 - **[omp-context-pin](./projects/omp-context-pin/README.md)** keeps a small set of pinned text entries present word for word in every ordinary model request on the current session branch, and restores them after each committed compaction.
+- **[omp-qol](./projects/omp-qol/README.md)** carries three independently switchable adjustments: hub waits that continue to a total deadline, a bounded continuation turn after an eligible model error, and an experimental extension of one compaction deadline.
 
 ## Install
 
@@ -75,7 +76,7 @@ Follow [Installing Skills](./docs/installation.md) for the language choice, the 
 Extensions have their own installation and update instructions. Follow the linked component README; the root README does not repeat them.
 
 - [tk](./projects/tk/README.md) is a task runtime with components for several Harnesses. The runtime is installed separately from the components.
-- [omp-status-bar](./projects/omp-status-bar/README.md), [omp-system-prompt](./projects/omp-system-prompt/README.md), [omp-codex-web-access](./projects/omp-codex-web-access/README.md), and [omp-context-pin](./projects/omp-context-pin/README.md) are OMP extensions. Each README states its host and configuration requirements.
+- [omp-status-bar](./projects/omp-status-bar/README.md), [omp-system-prompt](./projects/omp-system-prompt/README.md), [omp-codex-web-access](./projects/omp-codex-web-access/README.md), [omp-context-pin](./projects/omp-context-pin/README.md), and [omp-qol](./projects/omp-qol/README.md) are OMP extensions. Each README states its host and configuration requirements.
 
 ## Development
 
@@ -113,6 +114,7 @@ Use the pnpm version declared in [package.json](./package.json), a Rust toolchai
 (cd projects/omp-system-prompt && bun install --frozen-lockfile)
 (cd projects/omp-codex-web-access && bun install --frozen-lockfile)
 (cd projects/omp-context-pin && bun install --frozen-lockfile)
+(cd projects/omp-qol && bun install --frozen-lockfile)
 ```
 
 ### Check coverage
@@ -124,8 +126,9 @@ Run `pnpm check` from the repository root before requesting review. It executes 
 3. TypeScript checks and tests for [omp-system-prompt](./projects/omp-system-prompt/package.json).
 4. TypeScript checks and tests for [omp-codex-web-access](./projects/omp-codex-web-access/package.json).
 5. TypeScript checks and tests for [omp-context-pin](./projects/omp-context-pin/package.json).
-6. tk native adapter tests with `bun test projects/tk/adapter-tests`.
-7. Skill lifecycle tests with `sh scripts/tests/skills.sh` through `pnpm check:skills`.
+6. TypeScript checks and tests for [omp-qol](./projects/omp-qol/package.json).
+7. tk native adapter tests with `bun test projects/tk/adapter-tests`.
+8. Skill lifecycle tests with `sh scripts/tests/skills.sh` through `pnpm check:skills`.
 
 The first failed command stops the sequence and returns a nonzero exit status. Missing executables or dependencies also fail the check. Commands and component output identify the failing step. Checks do not install dependencies or format source files; builds and tests can create their normal generated and temporary files.
 
