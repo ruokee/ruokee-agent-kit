@@ -224,6 +224,8 @@ speculationBand = [start, threshold)
 
 存在 TICO 或 H 订阅时，每个 tick 最多调用一次 `getUsageStatistics()`。`getContextUsage()`、模型和压缩设置只在 `context` 有订阅时读取。只配置第三方 Provider 时不启动内部数据源。
 
+同一进程只持有一组绑定数据源。`session_start` 会为当前处于前台的会话重新绑定，`session_shutdown` 再释放。无 UI 的会话两件事都不做，因此同一进程内的子代理会话不会改绑它所共享的 UI 会话数据源。
+
 快照只在字段变化时增加 revision。Provider 只在自己的标准化 fragment 变化时发布；`indicating` 的闪烁相位变化也算 fragment 变化。
 
 最后一个内置 Provider 停止时清除共享 interval。第三方 Provider 通过公开 Provider context 使用自己的 OMP 托管 timer。
@@ -232,7 +234,7 @@ speculationBand = [start, threshold)
 
 ## 失败行为
 
-- 只有 `ctx.hasUI` 为真时才读取配置、启动内置数据源并挂载 Widget。
+- 只有 `ctx.hasUI` 为真时才读取配置、启动内置数据源并挂载 Widget。无 UI 的会话不绑定任何数据源，也不持有清理状态，因此不会替换、采样或解绑 UI 会话绑定的内容。
 - 一个配置项创建一个 Provider 实例；`create()` 或 `start()` 失败只停用并清理该实例。
 - 所有 interval 和 timeout 都通过 OMP 托管 timer 创建。
 - Provider callback、发布、启动和停止的错误不会终止 OMP 会话。

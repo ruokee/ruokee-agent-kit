@@ -224,6 +224,8 @@ When the first builtin provider starts, the internal sources sample immediately 
 
 With TICO or H subscribers, each tick calls `getUsageStatistics()` at most once. `getContextUsage()`, the model, and the compaction settings are read only while `context` has subscribers. Third-party-only configs start no internal sources.
 
+One process holds one bound source set. `session_start` binds the sources of the session that is now in front and `session_shutdown` releases them. A session without UI skips both, so a subagent session in the same process never rebinds the sources of the UI session it shares them with.
+
 Snapshots bump their revision only when a field changes. Providers publish only when their normalized fragment changes; the blink phase of `indicating` also counts as a fragment change.
 
 The shared interval clears when the last builtin provider stops. Third-party providers use their own OMP-managed timers through the public provider context.
@@ -232,7 +234,7 @@ Builtin providers expose no `refreshMs` option; the fixed cadence is internal an
 
 ## Failure behavior
 
-- The config, builtin sources, and widget only start when `ctx.hasUI` is true.
+- The config, builtin sources, and widget only start when `ctx.hasUI` is true. A session without UI binds nothing and holds no teardown state, so it cannot replace, sample, or unbind what the UI session bound.
 - One config entry creates one provider instance; failures in `create()` or `start()` deactivate and clean up that instance only.
 - Every interval and timeout goes through OMP-managed timers.
 - Provider callback, publish, start, and stop errors never end the OMP session.

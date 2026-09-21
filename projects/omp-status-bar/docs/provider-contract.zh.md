@@ -66,6 +66,8 @@ Provider 不输出 separator，不调用 OMP UI，也不获取 Widget 或 theme�
 
 Registry 使用带版本的 `Symbol.for()` key，第三方 Extension 即使解析到自己安装的 Package 副本，也注册到同一个进程级 Registry。重复 ID 和不兼容合同版本在注册时拒绝；Host 创建实例前再次校验。
 
+六个内置 Provider 与其他 Provider 走同一个注册函数。由于同一进程会为每个会话激活本 Extension，Extension 注册前先预检自己的 ID：此前由本 Package 注册过的 ID 通过定义上的标记识别，保留最先注册的定义，不再重复注册。第三方占用了某个内置 ID 时，仍在六个内置 ID 全部注册之前整体失败。该标记是本 Package 的内部约定，不是注册合同的一部分。
+
 ## 实例上下文
 
 `options` 是配置条目里原始的 `options` 映射。`config` 是你的 `describe()` 对这些 options 返回的对象，原样回传。`setInterval`、`setTimeout` 和 `clearTimer` 走 OMP 托管 timer，shutdown 之后全部失效。

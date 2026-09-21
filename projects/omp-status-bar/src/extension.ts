@@ -2,20 +2,31 @@
  * OMP extension entry: binds the live session to the status bar Host.
  *
  * Flow on activation: register the six builtin providers into the
- * process-level registry. Registration is preflighted atomically, so a
- * second activation of this package (or a third party that already owns a
- * builtin id) cannot leave a partial batch.
+ * process-level registry. Registration is preflighted atomically, so a third
+ * party that already owns a builtin id cannot leave a partial batch. Ids this
+ * package registered earlier in the process are its own: a later activation,
+ * including one from another copy of this package, keeps those definitions and
+ * registers nothing.
  *
  * Flow on `session_start` and `session_switch`, after the previous Host stops:
- * 1. Bind the data sources (usage statistics, context usage, model,
+ * 1. Return immediately when the session has no UI: it can mount no widget, and
+ *    the bound sources belong to the UI session that shares this process.
+ * 2. Bind the data sources (usage statistics, context usage, model,
  *    compaction settings) to the shared snapshot store.
- * 2. Create the Host with an environment backed by this extension context.
- * 3. Start the Host (config read + provider creation + widget mount).
+ * 3. Create the Host with an environment backed by this extension context, and
+ *    start it (config read + provider creation + widget mount).
  *
  * On `session_shutdown` the Host stops first: providers stop, the shared
  * sampler interval is cleared, and the widget unmounts; only then are the
  * data sources unbound. A `finally` guarantees the unbind even if a stop
- * throws.
+ * throws. Teardown touches only what this activation bound, so a session that
+ * never bound sources leaves the store and the widget of the UI session alone.
+ *
+ * One process holds one bound source set, and `session_start` rebinds it for
+ * the session that is now in front. OMP binds this extension per session and
+ * calls the factory again; some paths reuse a prepared factory instead of
+ * loading the module again, so a later activation may run without a fresh
+ * module evaluation.
  */
 
 import { join as joinPath } from "node:path";
@@ -55,6 +66,10 @@ export default function statusBarController(pi: ExtensionAPI): void {
     }
   }
   async function startSession(ctx: ExtensionContext): Promise<void> {
+    // A session without UI mounts nothing and owns no teardown state. Binding
+    // here would replace the sources of the UI session that shares this
+    // process, and this activation's later shutdown would then unbind them.
+    if (!ctx.hasUI) return;
     bindSessionSources({
       getUsageStatistics: () => ctx.sessionManager.getUsageStatistics(),
       getContextUsage: () => ctx.getContextUsage(),

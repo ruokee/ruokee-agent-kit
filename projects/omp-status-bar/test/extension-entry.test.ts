@@ -26,8 +26,10 @@ import { afterAll, describe, test, expect, spyOn } from "bun:test";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { registerProvider, type ProviderInstanceContext } from "../src/provider-api.ts";
-import { resetProviderRegistryForTests } from "../src/registry.ts";
+import { registerProvider } from "../src/provider-api.ts";
+import type { ProviderDefinition, ProviderInstanceContext } from "../src/provider-api.ts";
+import { registerBuiltinProviders } from "../src/providers/bundled.ts";
+import { getProviderRegistry, resetProviderRegistryForTests } from "../src/registry.ts";
 import { getSnapshotStore, resetSnapshotStoreForTests } from "../src/snapshot-store.ts";
 import factory from "../src/extension.ts";
 
@@ -66,6 +68,8 @@ class ExtensionHarness {
   readonly handlers: Record<string, Handler[]> = {};
   readonly widgetFactories: ((tui: unknown, theme: unknown) => unknown)[] = [];
   readonly agentDir: string;
+  /** UI capability of the session this harness drives. */
+  readonly hasUI: boolean;
   /** The TUI instance the factory last received; repaint requests land here. */
   readonly repaints: unknown[] = [];
   #ctx?: unknown;
@@ -78,9 +82,13 @@ class ExtensionHarness {
   /** Counts reads of the compaction group through the injected namespace. */
   settingsGroupReads = 0;
 
-  constructor(configYaml: string) {
+  constructor(configYaml: string, options: { hasUI?: boolean; totalTokens?: number } = {}) {
     this.agentDir = AGENT_DIR;
     writeFileSync(path.join(this.agentDir, "omp-status-bar.yml"), configYaml);
+    this.hasUI = options.hasUI ?? true;
+    if (options.totalTokens !== undefined) {
+      this.setMetrics(this.#metrics.percent, options.totalTokens, this.#metrics.cost);
+    }
   }
 
   /** Invoke the extension factory once, capturing the event handlers. */
@@ -93,7 +101,7 @@ class ExtensionHarness {
     dirs.refreshDirsFromEnv();
     const harness = this;
     const ctx = {
-      hasUI: true,
+      hasUI: this.hasUI,
       ui: {
         setWidget: (key: string, factory: unknown, options?: unknown) => {
           void key;
@@ -494,6 +502,99 @@ describe("extension entry lifecycle", () => {
     } finally {
       h.dispose();
     }
+  });
+
+  test("a second activation in the same process keeps the builtins and mounts its own widget", async () => {
+    resetProviderRegistryForTests();
+    resetSnapshotStoreForTests();
+    const config = "version: 1\nstatuses:\n  - id: total\n";
+    const first = new ExtensionHarness(config);
+    const second = new ExtensionHarness(config);
+    try {
+      await first.activate();
+      await first.emitStart();
+      const registered = getProviderRegistry().ids().sort();
+
+      // OMP activates the extension again for a subagent session: the ids the
+      // first activation registered belong to this package, not to a third
+      // party, so the second activation registers nothing and still mounts.
+      await expect(second.activate()).resolves.toBeUndefined();
+      expect(getProviderRegistry().ids().sort()).toEqual(registered);
+      await second.emitStart();
+      expect(second.widgetFactories.length).toBe(1);
+    } finally {
+      await first.emitShutdown();
+      await second.emitShutdown();
+      first.dispose();
+      second.dispose();
+    }
+  });
+
+  test("a session without UI binds no sources and leaves the UI session running", async () => {
+    resetProviderRegistryForTests();
+    resetSnapshotStoreForTests();
+    const config = "version: 1\nstatuses:\n  - id: total\n";
+    // Same factory, same process: one UI session in front with one subagent
+    // session without UI behind it. The two carry different data so a
+    // cross-wire is visible in the sampled values.
+    const main = new ExtensionHarness(config);
+    const child = new ExtensionHarness(config, { hasUI: false, totalTokens: 1_000 });
+    const store = getSnapshotStore();
+    const listener = () => {};
+    try {
+      main.setMetrics(42, 500, 0.4);
+      await main.activate();
+      await main.emitStart();
+      expect(main.widgetFactories.length).toBe(1);
+      store.retainStats(listener);
+      expect(store.sample().stats?.input).toBe(400);
+
+      // The child session shares the process. Its activation, events, and
+      // shutdown must leave the UI session's sources, sampler, and widget
+      // exactly as they were.
+      await child.activate();
+      await child.emitStart();
+      expect(child.widgetFactories.length).toBe(0);
+      expect(child.intervals.length).toBe(0);
+      expect(store.sample().stats?.input).toBe(400);
+      main.setMetrics(42, 700, 0.4);
+      expect(store.sample().stats?.input).toBe(560);
+
+      await child.emitSwitch("resume");
+      expect(store.sample().stats?.input).toBe(560);
+
+      // Shutdown must not unbind sources this activation never bound.
+      await child.emitShutdown();
+      expect(store.sample().stats?.input).toBe(560);
+      main.setMetrics(42, 900, 0.4);
+      expect(store.sample().stats?.input).toBe(720);
+      expect(main.widgetFactories.length).toBe(1);
+      expect(child.diagnostics).toEqual([]);
+    } finally {
+      store.releaseStats(listener);
+      await main.emitShutdown();
+      main.dispose();
+      child.dispose();
+    }
+  });
+
+  test("a builtin id another copy of this package registered is not a conflict", () => {
+    resetProviderRegistryForTests();
+    // Another copy of this package registers first: its module identity is its
+    // own, and only the package-scoped mark identifies the definition as this
+    // package's own registration.
+    const fromAnotherCopy: ProviderDefinition = {
+      id: "total",
+      contractVersion: 1,
+      describe: () => ({}),
+      create: () => ({ start() {}, stop() {} }),
+    };
+    Object.defineProperty(fromAnotherCopy, Symbol.for("@ruokee/omp-status-bar/builtin-provider/v1"), { value: true });
+    registerProvider(fromAnotherCopy);
+
+    registerBuiltinProviders();
+    expect(getProviderRegistry().get("total")).toBe(fromAnotherCopy);
+    expect(getProviderRegistry().ids().sort()).toEqual(["cache", "cache-hit", "context", "input", "output", "total"]);
   });
 
   test("a bad entry followed by a start-failing entry reports the original indexes", async () => {

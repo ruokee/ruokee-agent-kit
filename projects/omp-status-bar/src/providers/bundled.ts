@@ -209,6 +209,21 @@ const contextProvider: ProviderDefinition = {
   },
 };
 
+/**
+ * Marks a builtin definition as this package's own.
+ *
+ * The provider registry lives on `globalThis`, so every copy of this package
+ * shares one store, and OMP calls this factory again for a later session. Both
+ * make a later activation meet the six ids as already registered. The mark is
+ * what separates that earlier registration by this package from a third
+ * party's definition, which still fails activation.
+ *
+ * The mark is a component-internal convention, not proof of origin or of
+ * version compatibility: a definition carrying it is treated as this
+ * package's own registration whatever copy wrote it.
+ */
+const BUILTIN_MARK = Symbol.for("@ruokee/omp-status-bar/builtin-provider/v1");
+
 export const BUILTIN_PROVIDERS: readonly ProviderDefinition[] = [
   tokenMetricProvider("total"),
   tokenMetricProvider("input"),
@@ -220,18 +235,29 @@ export const BUILTIN_PROVIDERS: readonly ProviderDefinition[] = [
 
 /**
  * Register all six builtin providers atomically: every id is preflighted
- * against the registry before anything is registered, so a single conflict
- * (a third party already claimed a builtin id) leaves no partial batch and
- * no builtin overrides third-party content.
+ * against the registry before anything is registered, so a third party that
+ * already owns a builtin id leaves no partial batch and no builtin overrides
+ * third-party content.
+ *
+ * A builtin id this package registered earlier in the process is not a
+ * conflict. OMP binds an extension once per session, so a later session calls
+ * this factory again against the same process-wide registry, and a second copy
+ * of this package registers into that registry too. Those ids keep the
+ * definitions that registered first, and nothing is registered again for them.
  */
 export function registerBuiltinProviders(): void {
   const registry = getProviderRegistry();
   for (const definition of BUILTIN_PROVIDERS) {
-    if (registry.get(definition.id) !== undefined) {
+    const existing = registry.get(definition.id);
+    const ownEarlierRegistration =
+      existing !== undefined && (existing as unknown as Record<symbol, unknown>)[BUILTIN_MARK] === true;
+    if (existing !== undefined && !ownEarlierRegistration) {
       throw new Error(`Cannot register built-in provider "${definition.id}": the id is already registered`);
     }
   }
   for (const definition of BUILTIN_PROVIDERS) {
+    if (registry.get(definition.id) !== undefined) continue;
+    Object.defineProperty(definition, BUILTIN_MARK, { value: true, enumerable: false });
     registerProvider(definition);
   }
 }
