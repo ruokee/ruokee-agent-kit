@@ -443,6 +443,171 @@ describe("compaction window lifecycle", () => {
   });
 });
 
+describe("compaction serial method fallback", () => {
+  const COMMITTED = { fromExtension: false, compactionEntry: {} };
+
+  test("keeps the window through the host's per-method retry on one signal", async () => {
+    // OMP runs the next compaction method on the same controller when one fails,
+    // and each attempt emits `session_before_compact` and `session.compacting`
+    // again. The fallback is one operation, not two overlapping rounds.
+    const setup = installPatch();
+    const abort = new AbortController();
+    await setup.emit("session_before_compact", { signal: abort.signal });
+    await setup.emit("session.compacting", { sessionId: "session-a", messages: [] });
+    const window = setup.registry.window;
+    AbortSignal.timeout(300_000);
+    expect(setup.calls).toEqual([900_000]);
+
+    await setup.emit("session_before_compact", { signal: abort.signal });
+    await setup.emit("session.compacting", { sessionId: "session-a", messages: [] });
+
+    expect(setup.registry.disabledReason).toBeUndefined();
+    expect(setup.registry.window).toBe(window);
+    expect(setup.registry.window?.kind).toBe("manual");
+    expect(setup.registry.window?.sessionId).toBe("session-a");
+    expect(setup.timers.scheduled).toEqual([3_600_000]);
+    expect(setup.notices()).toHaveLength(1);
+    AbortSignal.timeout(300_000);
+    expect(setup.calls).toEqual([900_000, 900_000]);
+
+    await setup.emit("session_compact", COMMITTED);
+    expect(setup.registry.window).toBeUndefined();
+    AbortSignal.timeout(300_000);
+    expect(setup.calls).toEqual([900_000, 900_000, 300_000]);
+
+    // The next compaction is a new operation with its own signal.
+    await setup.emit("session_before_compact", { signal: new AbortController().signal });
+    AbortSignal.timeout(300_000);
+    expect(setup.calls).toEqual([900_000, 900_000, 300_000, 900_000]);
+  });
+
+  /** The ways a window can already be open when the first before-compact lands. */
+  const openers: Array<{ name: string; open: (setup: PatchSetup) => Promise<void> }> = [
+    { name: "the first event", open: async () => undefined },
+    {
+      name: "an auto round",
+      open: async (setup) => {
+        await setup.emit("auto_compaction_start", REMOTE_START);
+      },
+    },
+    {
+      name: "a compacting notice",
+      open: async (setup) => {
+        await setup.emit("session.compacting", { sessionId: "session-a", messages: [] });
+      },
+    },
+  ];
+
+  for (const opener of openers) {
+    test(`keeps a window opened by ${opener.name} through a repeated signal`, async () => {
+      const setup = installPatch();
+      await opener.open(setup);
+      const abort = new AbortController();
+      await setup.emit("session_before_compact", { signal: abort.signal });
+      const window = setup.registry.window;
+      await setup.emit("session_before_compact", { signal: abort.signal });
+
+      expect(setup.registry.disabledReason).toBeUndefined();
+      expect(setup.registry.window).toBe(window);
+      AbortSignal.timeout(300_000);
+      expect(setup.calls).toEqual([900_000]);
+    });
+
+    test(`stops rewriting when a different live signal enters a window opened by ${opener.name}`, async () => {
+      const setup = installPatch();
+      await opener.open(setup);
+      await setup.emit("session_before_compact", { signal: new AbortController().signal });
+      await setup.emit("session_before_compact", { signal: new AbortController().signal });
+
+      expect(setup.registry.disabledReason).toBe("overlapping-round");
+      expect(setup.statuses).toEqual([{ status: "incompatible", reason: "overlapping-round" }]);
+      expect(AbortSignal.timeout).toBe(setup.registry.original);
+      AbortSignal.timeout(300_000);
+      expect(setup.calls).toEqual([300_000]);
+    });
+  }
+
+  test("re-binds nothing and keeps the notice state and guard lease of the first event", async () => {
+    const setup = installPatch();
+    const abort = new AbortController();
+    await setup.emit("session_before_compact", { signal: abort.signal });
+    const window = setup.registry.window;
+    const guardDeadline = window?.guardDeadline;
+    const cleanup = setup.registry.cleanup;
+    expect(cleanup).toBeDefined();
+    AbortSignal.timeout(300_000);
+
+    // Time passes before the same signal arrives again, so a window that was
+    // re-created or re-leased here would end at a later deadline than the original.
+    setup.clock.advance(1_000);
+    await setup.emit("session_before_compact", { signal: abort.signal });
+
+    // The same window and the same binding: a repeated event adds no timer, no
+    // listener, and no second binding of the signal.
+    expect(setup.registry.window).toBe(window);
+    expect(setup.registry.window?.guardDeadline).toBe(guardDeadline);
+    expect(setup.registry.cleanup).toBe(cleanup);
+    expect(setup.timers.scheduled).toEqual([3_600_000]);
+
+    // The notice state is the state of the first event: the second matching call
+    // rewrites the deadline and does not announce the window again.
+    AbortSignal.timeout(300_000);
+    expect(setup.calls).toEqual([900_000, 900_000]);
+    expect(setup.notices()).toHaveLength(1);
+
+    // The original lease still ends the rewrite at the deadline it was opened
+    // with, without the scheduled guard timer firing.
+    setup.clock.advance(3_599_000);
+    AbortSignal.timeout(300_000);
+    expect(setup.calls).toEqual([900_000, 900_000, 300_000]);
+    expect(setup.registry.window).toBeUndefined();
+  });
+
+  test("keeps the cancel binding of the first event across a repeated signal", async () => {
+    const setup = installPatch();
+    const abort = new AbortController();
+    await setup.emit("session_before_compact", { signal: abort.signal });
+    await setup.emit("session_before_compact", { signal: abort.signal });
+
+    abort.abort();
+    expect(setup.registry.window).toBeUndefined();
+    AbortSignal.timeout(300_000);
+    expect(setup.calls).toEqual([300_000]);
+  });
+
+  test("does not remember a signal after its window closed", async () => {
+    const setup = installPatch();
+    const previous = new AbortController();
+    await setup.emit("session_before_compact", { signal: previous.signal });
+    await setup.emit("session_before_compact", { signal: previous.signal });
+    await setup.emit("session_compact", COMMITTED);
+
+    const current = new AbortController();
+    await setup.emit("session_before_compact", { signal: current.signal });
+    const window = setup.registry.window;
+    previous.abort();
+    expect(setup.registry.window).toBe(window);
+    AbortSignal.timeout(300_000);
+    expect(setup.calls).toEqual([900_000]);
+  });
+
+  test("still stops an auto round that starts again while it is open", async () => {
+    const setup = installPatch();
+    const abort = new AbortController();
+    await setup.emit("auto_compaction_start", REMOTE_START);
+    await setup.emit("session_before_compact", { signal: abort.signal });
+    await setup.emit("session_before_compact", { signal: abort.signal });
+    expect(setup.registry.disabledReason).toBeUndefined();
+
+    await setup.emit("auto_compaction_start", REMOTE_START);
+    expect(setup.registry.disabledReason).toBe("overlapping-round");
+    expect(AbortSignal.timeout).toBe(setup.registry.original);
+    await setup.emit("auto_compaction_end", { action: "remote", result: undefined, aborted: false, willRetry: false });
+    AbortSignal.timeout(300_000);
+    expect(setup.calls).toEqual([300_000]);
+  });
+});
+
 describe("compaction conflicts", () => {
   test("refuses a known earlier patch", () => {
     globalSlots()[LEGACY_KEY] = true;

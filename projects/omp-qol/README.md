@@ -76,7 +76,7 @@ Settings are read once per activation. Restart OMP after a change: a running pro
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.1.2
+@ruokee/omp-qol 0.1.3
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -93,7 +93,7 @@ Each adjustment lists its own limits in [Adjustments](./docs/adjustments.md). Th
 
 - **Wait.** The wrapper acts only when the session exposes a builtin `hub` tool whose description carries the native wait-window sentence and whose parameters are a schema. It forwards the approval class, the interruptible flag, and the schema of that tool, and it adds no new operation. A wait that ends at its deadline leaves background jobs and processes running.
 - **Recovery.** The fixed exclusion list wins over the configured mode, continuations are capped at 8, and the host counts them as well. One failure chain can span several agent runs, so the count follows the chain rather than one submitted prompt, and the chain ends on a turn that settles on its own, on an error outside the configured scope, and on a cancelled pass. A turn is re-run, so a tool call from the failed turn can run again. Long waits run inside the 30 s handler budget the host gives one `session_stop` handler.
-- **Compaction.** The experiment replaces `AbortSignal.timeout` for the whole process, so every caller that passes a matching timeout in a window gets the longer deadline, not only the compaction request. It can only lengthen a deadline and never shorten one. A window that overlaps another window, belongs to another session, or arrives in an order the extension does not recognize disables the experiment for that process and reports why. Registering the `session_before_compact` hook also turns off speculative compaction in OMP `18.2.4`, so an enabled experiment can make a compaction wait in the foreground; with the default off, no handler is registered. A second activation in the same process stops the installed patch instead of sharing it, and an activation whose settings could not be read or were rejected stops it too, without enabling a module.
+- **Compaction.** The experiment replaces `AbortSignal.timeout` for the whole process, so every caller that passes a matching timeout in a window gets the longer deadline, not only the compaction request. It can only lengthen a deadline and never shorten one. A window that overlaps another window, belongs to another session, or arrives in an order the extension does not recognize disables the experiment for that process and reports why. One compaction operation that falls back to its next method keeps the same signal, and the extension treats a repeat of that signal as the same operation instead of an overlap; a second live signal inside one window still disables the experiment. Registering the `session_before_compact` hook also turns off speculative compaction in OMP `18.2.4`, so an enabled experiment can make a compaction wait in the foreground; with the default off, no handler is registered. A second activation in the same process stops the installed patch instead of sharing it, and an activation whose settings could not be read or were rejected stops it too, without enabling a module.
 
 ## Compatibility
 

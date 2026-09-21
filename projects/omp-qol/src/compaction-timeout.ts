@@ -55,6 +55,12 @@ interface CompactionWindow {
   guardDeadline: number;
   /** One notice per window. */
   notified: boolean;
+  /**
+   * The live `session_before_compact` signal this window is bound to. The host
+   * re-emits that event on the same controller when one compaction method fails
+   * and the next one runs, so the signal object identifies one operation.
+   */
+  signal: AbortSignal | undefined;
 }
 
 /** Process-global state of the one installed patch. */
@@ -340,7 +346,7 @@ export function createCompactionInstaller(deps: CompactionPatchDeps = REAL_DEPS)
         windowGeneration += 1;
         const generation = windowGeneration;
         const guardDeadline = registry.now() + settings.guardMs;
-        registry.window = { kind, generation, sessionId, guardDeadline, notified: false };
+        registry.window = { kind, generation, sessionId, guardDeadline, notified: false, signal: undefined };
         const cancelTimer = deps.setTimer(() => {
           if (registry.window?.generation === generation) closeWindow(registry);
         }, settings.guardMs);
@@ -374,13 +380,15 @@ export function createCompactionInstaller(deps: CompactionPatchDeps = REAL_DEPS)
      *
      * The window may already be open, for example because an auto round or
      * `session.compacting` opened it, so the signal is attached to whatever
-     * window is current instead of only to a freshly created one. A listener
-     * left over from an earlier window must never close a later one, hence the
-     * generation check inside the abort handler.
+     * window is current instead of only to a freshly created one. One window
+     * holds one binding: a later event carrying the same signal never reaches
+     * this function. A listener left over from an earlier window must never
+     * close a later one, hence the generation check inside the abort handler.
      */
     const bindWindowSignal = (signal: AbortSignal): void => {
       const window = registry.window;
       if (window === undefined) return;
+      window.signal = signal;
       const generation = window.generation;
       const previousCleanup = registry.cleanup;
       const onAbort = (): void => {
@@ -399,6 +407,16 @@ export function createCompactionInstaller(deps: CompactionPatchDeps = REAL_DEPS)
         // A cancelled before-compact hook ends the window that is open, whether
         // this event created it or an earlier one did.
         closeWindow(registry);
+        return;
+      }
+      const bound = liveWindow(registry)?.signal;
+      if (bound !== undefined) {
+        // The window already belongs to one compaction operation. The same
+        // signal is that operation again: a repeated event, or the next method
+        // of a serial fallback. It keeps the window, its kind, generation,
+        // guard lease, notice state, and cancel binding. A different live
+        // signal is a second operation inside one window.
+        if (bound !== event.signal) disablePatch(registry, "overlapping-round");
         return;
       }
       openWindow("manual");
