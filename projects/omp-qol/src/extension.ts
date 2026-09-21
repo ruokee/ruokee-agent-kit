@@ -15,11 +15,16 @@
  * process-wide state that the unusable settings cannot account for. A fault
  * inside one module's keys disables that module only, and a module that cannot
  * register reports `incompatible` without touching its siblings.
+ *
+ * The `/qol` compaction line is resolved from the process registry when the
+ * command runs, so a patch that stops after this activation is reflected in
+ * every session of the process.
  */
 
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "@oh-my-pi/pi-coding-agent";
 import { getPluginSettings as getPublicPluginSettings } from "@oh-my-pi/pi-coding-agent/extensibility/plugins";
 import {
+  compactionStatusFromRegistry,
   installCompactionModule,
   NATIVE_COMPACTION_TIMEOUT_MS,
   stopForeignCompactionPatch,
@@ -36,7 +41,7 @@ import {
 import { installWaitModule } from "./wait.ts";
 
 export const PACKAGE_NAME = "@ruokee/omp-qol";
-export const PACKAGE_VERSION = "0.1.3";
+export const PACKAGE_VERSION = "0.2.0";
 export const COMMAND_NAME = "qol";
 
 let activationSequence = 0;
@@ -150,8 +155,16 @@ function describeModule(id: ModuleId, state: ModuleState, settings: QolSettings 
   return `${head} — enabled=${compaction.enabled} timeoutMs=${compaction.timeoutMs} floorMs=${compaction.floorMs} windowGuardMs=${compaction.guardMs} notify=${compaction.notify}${floorNote}`;
 }
 
-/** Render the read-only status text. It never lists values outside the settings schema. */
-export function describeState(state: QolState, version = PACKAGE_VERSION): string {
+/**
+ * Render the read-only status text. It never lists values outside the settings
+ * schema. `resolveModule` may replace a recorded module state with one read from
+ * the process when the text is built.
+ */
+export function describeState(
+  state: QolState,
+  version = PACKAGE_VERSION,
+  resolveModule?: (id: ModuleId, recorded: ModuleState) => ModuleState,
+): string {
   const lines: string[] = [`${PACKAGE_NAME} ${version}`];
   lines.push(`activation cwd: ${state.cwd ?? "not activated in this process"}`);
   lines.push(`refresh: restart OMP; settings are read once per activation`);
@@ -160,7 +173,10 @@ export function describeState(state: QolState, version = PACKAGE_VERSION): strin
       ? `settings: ok`
       : `settings: rejected${state.global.reason === undefined ? "" : ` (${state.global.reason})`}; every module keeps native behavior`,
   );
-  for (const id of MODULE_IDS) lines.push(describeModule(id, state.modules[id], state.settings));
+  for (const id of MODULE_IDS) {
+    const recorded = state.modules[id];
+    lines.push(describeModule(id, resolveModule?.(id, recorded) ?? recorded, state.settings));
+  }
   if (state.problems.length > 0) {
     const scopes = ["global", ...MODULE_IDS] as const;
     const rendered = scopes
@@ -301,17 +317,27 @@ export function activate(pi: ExtensionAPI, readSettings: PluginSettingsReader = 
     await activation;
   });
 
+  /**
+   * Render the status text. The compaction line is read from the process
+   * registry here, so a stop that another activation caused, or that this one
+   * caused after activation, shows up in every session of the process.
+   */
+  const renderState = (): string =>
+    describeState(state, PACKAGE_VERSION, (id, recorded) =>
+      id === "compaction" ? compactionStatusFromRegistry(runtimeId, recorded) : recorded,
+    );
+
   pi.registerCommand(COMMAND_NAME, {
     description: "Show the effective omp-qol module states and values (read-only)",
     handler: async (_args: string, ctx: ExtensionCommandContext) => {
-      ctx.ui.notify(describeState(state), "info");
+      ctx.ui.notify(renderState(), "info");
     },
   });
 
   return {
     state,
     activated: () => activation,
-    describe: () => describeState(state),
+    describe: renderState,
   };
 }
 

@@ -646,19 +646,50 @@ describe("compaction conflicts", () => {
     expect(attemptInstall().state).toEqual({ status: "incompatible", reason: "registry-unrecognized" });
   });
 
-  test("stops the installed patch when a second activation enters the process", () => {
+  test("keeps the installed patch for a second activation with the same version and settings", async () => {
     const first = installPatch();
-    const second = attemptInstall({ runtimeId: "@ruokee/omp-qol#second-activation" });
-    expect(second.state).toEqual({ status: "incompatible", reason: "runtime-conflict" });
-    expect(first.registry.disabledReason).toBe("runtime-conflict");
-    expect(first.statuses).toEqual([{ status: "incompatible", reason: "runtime-conflict" }]);
-    expect(first.reports).toEqual([
-      "compaction:runtime-conflict: compaction patch stopped rewriting: runtime-conflict",
-    ]);
-    expect(AbortSignal.timeout).toBe(first.registry.original);
+    // A subagent may run in another directory under the same settings.
+    const second = attemptInstall({ runtimeId: "@ruokee/omp-qol#second-activation", cwd: "/tmp/other-project" });
+
+    expect(second.state).toEqual({ status: "incompatible", reason: "patch-owned-elsewhere" });
+    // Keeping the patch is not a conflict: nothing stops and nothing is reported.
+    expect(first.registry.disabledReason).toBeUndefined();
+    expect(second.reports).toEqual([]);
+    expect(first.statuses).toEqual([]);
+    expect(AbortSignal.timeout).toBe(first.registry.wrapper);
+    // The second activation registers no window events, so the window stays with
+    // the activation that installed the patch.
+    expect(second.harness.handlers.get("auto_compaction_start")).toBeUndefined();
+    expect(second.harness.handlers.get("session_shutdown")).toBeUndefined();
+
+    // Outside the owner's window the deadline is the native one.
     AbortSignal.timeout(300_000);
     expect(first.calls).toEqual([300_000]);
+    // Inside the window the process-wide rewrite reaches the keeping activation too.
+    await first.emit("auto_compaction_start", REMOTE_START);
+    AbortSignal.timeout(300_000);
+    expect(first.calls).toEqual([300_000, 900_000]);
+  });
+
+  test("stops the installed patch when a second activation carries another settings snapshot", () => {
+    const first = installPatch();
+    const second = attemptInstall({
+      runtimeId: "@ruokee/omp-qol#other-settings",
+      raw: { compactionTimeoutMs: 600_000 },
+    });
+    expect(second.state).toEqual({ status: "incompatible", reason: "runtime-conflict" });
+    expect(first.registry.disabledReason).toBe("runtime-conflict");
+    expect(AbortSignal.timeout).toBe(first.registry.original);
     expect(second.reports[0] ?? "").toContain("owned the process patch");
+  });
+
+  test("stops the installed patch when a second activation carries another package version", () => {
+    const first = installPatch();
+    first.registry.packageVersion = "0.0.1";
+    const second = attemptInstall({ runtimeId: "@ruokee/omp-qol#other-version" });
+    expect(second.state).toEqual({ status: "incompatible", reason: "runtime-conflict" });
+    expect(first.registry.disabledReason).toBe("runtime-conflict");
+    expect(AbortSignal.timeout).toBe(first.registry.original);
   });
 
   test("stops the installed patch for a second activation whatever its own switch says", () => {
@@ -703,16 +734,18 @@ describe("compaction conflicts", () => {
     expect(AbortSignal.timeout).toBe(first.registry.original);
   });
 
-  test("keeps a patch that a stopped activation already released", () => {
+  test("leaves a stopped patch stopped for a later matching activation", async () => {
     const first = installPatch();
-    const second = attemptInstall({ runtimeId: "@ruokee/omp-qol#second-activation" });
-    expect(second.state).toEqual({ status: "incompatible", reason: "runtime-conflict" });
-    const third = attemptInstall({ runtimeId: "@ruokee/omp-qol#third-activation" });
-    expect(third.state).toEqual({ status: "incompatible", reason: "runtime-conflict" });
-    expect(first.registry.disabledReason).toBe("runtime-conflict");
-    expect(first.reports).toHaveLength(1);
-    AbortSignal.timeout(300_000);
-    expect(first.calls).toEqual([300_000]);
+    await first.emit("auto_compaction_start", REMOTE_START);
+    await first.emit("auto_compaction_start", REMOTE_START);
+    expect(first.registry.disabledReason).toBe("overlapping-round");
+
+    // A later activation that matches the recorded settings installs nothing:
+    // the registry keeps the reason the patch stopped with.
+    const later = attemptInstall({ runtimeId: "@ruokee/omp-qol#later-activation" });
+    expect(later.state).toEqual({ status: "incompatible", reason: "overlapping-round" });
+    expect(compactionPatchRegistry()).toBe(first.registry);
+    expect(AbortSignal.timeout).toBe(first.registry.original);
   });
 
   test("refuses to adopt a wrapper somebody else installed", () => {
@@ -768,12 +801,85 @@ describe("compaction conflicts", () => {
   });
 });
 
+describe("compaction owner exit", () => {
+  test("releases the patch, closes the window, and leaves the terminal state", async () => {
+    const setup = installPatch();
+    await setup.emit("auto_compaction_start", REMOTE_START);
+    AbortSignal.timeout(300_000);
+    expect(setup.calls).toEqual([900_000]);
+
+    await setup.emit("session_shutdown", {});
+    expect(setup.registry.window).toBeUndefined();
+    expect(setup.registry.disabledReason).toBe("owner-stopped");
+    expect(AbortSignal.timeout).toBe(setup.registry.original);
+
+    AbortSignal.timeout(300_000);
+    expect(setup.calls).toEqual([900_000, 300_000]);
+  });
+
+  test("leaves another extension's replacement in place", async () => {
+    const setup = installPatch();
+    const thirdParty = (milliseconds: number): AbortSignal => NATIVE_TIMEOUT(milliseconds);
+    AbortSignal.timeout = thirdParty;
+
+    await setup.emit("session_shutdown", {});
+    expect(AbortSignal.timeout).toBe(thirdParty);
+    expect(setup.registry.disabledReason).toBe("owner-stopped");
+  });
+
+  test("reports the terminal state to a later matching activation and installs nothing", async () => {
+    const owner = installPatch();
+    await owner.emit("session_shutdown", {});
+
+    const later = attemptInstall({ runtimeId: "@ruokee/omp-qol#later-activation" });
+    expect(later.state).toEqual({ status: "incompatible", reason: "owner-stopped" });
+    expect(later.reports[0] ?? "").toContain("stopped rewriting earlier");
+    expect(compactionPatchRegistry()).toBe(owner.registry);
+  });
+
+  test("keeps serving a new session after a session switch and closes only the window", async () => {
+    const setup = installPatch();
+    await setup.emit("auto_compaction_start", REMOTE_START);
+    await setup.emit("session_switch", {});
+    expect(setup.registry.window).toBeUndefined();
+    expect(setup.registry.disabledReason).toBeUndefined();
+
+    AbortSignal.timeout(300_000);
+    expect(setup.calls).toEqual([300_000]);
+    await setup.emit("auto_compaction_start", REMOTE_START);
+    AbortSignal.timeout(300_000);
+    expect(setup.calls).toEqual([300_000, 900_000]);
+  });
+
+  test("keeps the owner's window when a keeping activation shuts down", async () => {
+    const owner = installPatch();
+    const keeping = attemptInstall({ runtimeId: "@ruokee/omp-qol#keeping-activation" });
+    expect(keeping.state).toEqual({ status: "incompatible", reason: "patch-owned-elsewhere" });
+
+    await owner.emit("auto_compaction_start", REMOTE_START);
+    await keeping.emit("session_shutdown", {});
+
+    expect(owner.registry.window?.kind).toBe("auto");
+    expect(owner.registry.disabledReason).toBeUndefined();
+    AbortSignal.timeout(300_000);
+    expect(owner.calls).toEqual([900_000]);
+  });
+});
+
 describe("compaction activation", () => {
   async function activated(rawSettings: Record<string, unknown>): Promise<{ harness: Harness; state: QolState }> {
     const harness = createHarness();
     const runtime = activate(harness.pi, async () => rawSettings);
     await harness.emit("session_start", { type: "session_start" }, harness.context());
     return { harness, state: runtime.state };
+  }
+
+  /** The text `/qol` prints through the harness. */
+  async function qolText(harness: Harness): Promise<string> {
+    const command = harness.commands.get("qol");
+    if (command === undefined) throw new Error("expected the registered /qol command");
+    await command.handler("", harness.context() as ExtensionContext);
+    return harness.notifications.at(-1)?.message ?? "";
   }
 
   test("installs through activation only when the switch is on", async () => {
@@ -842,20 +948,74 @@ describe("compaction activation", () => {
     return calls;
   }
 
-  test("stops the installed patch when a second activation loads in the same process", async () => {
+  test("keeps the installed patch for a second activation and reports from the registry", async () => {
     const first = await activated({ compactionTimeoutEnabled: true });
     expect(first.state.modules.compaction).toEqual({ status: "enabled" });
     const installed = installedRegistry();
 
     const second = await activated({ compactionTimeoutEnabled: true });
-    expect(second.state.modules.compaction).toEqual({ status: "incompatible", reason: "runtime-conflict" });
-    expect(first.state.modules.compaction).toEqual({ status: "incompatible", reason: "runtime-conflict" });
-    expect(installed.disabledReason).toBe("runtime-conflict");
+    expect(second.state.modules.compaction).toEqual({ status: "incompatible", reason: "patch-owned-elsewhere" });
+    expect(installed.disabledReason).toBeUndefined();
+    expect(AbortSignal.timeout).toBe(installed.wrapper);
+    expect(second.harness.warnings.filter((warning) => warning.includes("compaction"))).toEqual([]);
+
+    // `/qol` reads the process registry in both sessions.
+    expect(await qolText(first.harness)).toContain("compaction: enabled");
+    expect(await qolText(second.harness)).toContain("compaction: incompatible (patch-owned-elsewhere)");
+
+    // The owner's session ends and leaves the terminal state behind.
+    await first.harness.emit("session_shutdown", { type: "session_shutdown" }, first.harness.context());
+    expect(installed.disabledReason).toBe("owner-stopped");
     expect(AbortSignal.timeout).toBe(installed.original);
-    AbortSignal.timeout(300_000);
-    // The process keeps the restored original once the first activation stopped.
-    expect(AbortSignal.timeout).toBe(installed.original);
-    expect(first.harness.warnings.some((warning) => warning.includes("stopped rewriting"))).toBe(true);
+    expect(await qolText(first.harness)).toContain("compaction: incompatible (owner-stopped)");
+    expect(await qolText(second.harness)).toContain("compaction: incompatible (owner-stopped)");
+
+    // A later matching activation reports the same state and installs no patch.
+    const third = await activated({ compactionTimeoutEnabled: true });
+    expect(third.state.modules.compaction).toEqual({ status: "incompatible", reason: "owner-stopped" });
+    expect(compactionPatchRegistry()).toBe(installed);
+    expect(await qolText(third.harness)).toContain("compaction: incompatible (owner-stopped)");
+  });
+
+  test("keeps its own refusal when the registry layout is not this version's", async () => {
+    await activated({ compactionTimeoutEnabled: true });
+    // A layout this version never writes, reached through a slot whose fields
+    // still look familiar. Nothing about it says how its owner treats windows.
+    installedRegistry().schema = COMPACTION_REGISTRY_SCHEMA + 1;
+
+    const second = await activated({ compactionTimeoutEnabled: true });
+    expect(second.state.modules.compaction).toEqual({ status: "incompatible", reason: "registry-unrecognized" });
+    expect(await qolText(second.harness)).toContain("compaction: incompatible (registry-unrecognized)");
+  });
+
+  test("reports a refused window registration instead of an enabled patch", async () => {
+    const harness = createHarness();
+    harness.pi.on = new Proxy(harness.pi.on, {
+      apply(target, thisArg, args) {
+        if (args[0] === "auto_compaction_start") throw new Error("registration refused");
+        return Reflect.apply(target, thisArg, args);
+      },
+    });
+    const runtime = activate(harness.pi, async () => ({
+      waitEnabled: false,
+      recoveryEnabled: false,
+      compactionTimeoutEnabled: true,
+    }));
+    await harness.emit("session_start", { type: "session_start" }, harness.context());
+
+    expect(runtime.state.modules.compaction).toEqual({ status: "incompatible", reason: "registration-error" });
+    // No event would open a window, and none would release the patch.
+    expect(harness.handlers.has("auto_compaction_start")).toBe(false);
+    expect(harness.handlers.has("session_shutdown")).toBe(false);
+    expect(AbortSignal.timeout).toBe(NATIVE_TIMEOUT);
+    expect(installedRegistry().disabledReason).toBe("registration-error");
+    expect(await qolText(harness)).toContain("compaction: incompatible (registration-error)");
+
+    // The failure is terminal for the process: a later matching activation
+    // reports it instead of installing a patch nothing drives.
+    const later = await activated({ compactionTimeoutEnabled: true });
+    expect(later.state.modules.compaction).toEqual({ status: "incompatible", reason: "registration-error" });
+    expect(AbortSignal.timeout).toBe(NATIVE_TIMEOUT);
   });
 
   test("stops the installed patch from an activation the master switch keeps off", async () => {

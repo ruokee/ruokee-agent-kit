@@ -8,6 +8,17 @@
  * retries, fallbacks, and cancellation stay in place; only the deadline number
  * changes.
  *
+ * One activation owns the process patch. A later activation that asks for the
+ * same package version and the same settings keeps it and reports
+ * `patch-owned-elsewhere`; it registers no window events, so the window stays
+ * with the activation that installed it. A second activation that contradicts
+ * those settings stops the patch instead. When the owning activation's session
+ * ends, the patch is released and the registry keeps an `owner-stopped`
+ * terminal state that no later activation installs over; the adjustment returns
+ * with a restarted OMP. An activation whose window registrations the runtime
+ * refuses gives the patch up the same way: the native function comes back and
+ * the refusal is what later activations and `/qol` report.
+ *
  * The rewrite is a process-level numeric match, not a request-level hook. While
  * a window is open, any other call whose deadline falls in
  * `[floorMs, timeoutMs)` is extended too — a tool or transport timeout that
@@ -66,7 +77,7 @@ interface CompactionWindow {
 /** Process-global state of the one installed patch. */
 export interface CompactionPatchRegistry {
   schema: number;
-  /** Activation that installed the patch; a second one never shares it. */
+  /** Activation that installed the patch; only its events open windows. */
   runtimeId: string;
   /** Package version that installed it, for conflict diagnostics. */
   packageVersion: string;
@@ -79,7 +90,10 @@ export interface CompactionPatchRegistry {
   /** Settings snapshot the installed patch was built from. */
   settings: CompactionSettings;
   window: CompactionWindow | undefined;
-  /** Set once this module stopped rewriting; the reason stays for `/qol`. */
+  /**
+   * Set once this module stopped rewriting, including the `owner-stopped`
+   * terminal state the owner leaves behind; the reason stays for `/qol`.
+   */
   disabledReason: string | undefined;
   /** Releases the guard timer and the window's abort listener. */
   cleanup: (() => void) | undefined;
@@ -119,10 +133,48 @@ function sameCompactionSettings(left: CompactionSettings, right: CompactionSetti
   );
 }
 
+/**
+ * Whether an activation that did not install the patch may keep it.
+ *
+ * The adjustment it asks for must be the installed one: the master switch and
+ * this module's switches usable, the same package version, the same settings
+ * snapshot, and a patch that is still this module's own and rewriting. The
+ * recorded cwd stays diagnostic, because a subagent may run in another
+ * directory under the same settings.
+ */
+function keepsInstalledPatch(
+  context: ModuleContext,
+  settings: CompactionSettings,
+  existing: CompactionPatchRegistry,
+): boolean {
+  return (
+    context.off === undefined &&
+    settings.enabled &&
+    existing.packageVersion === PACKAGE_VERSION &&
+    existing.disabledReason === undefined &&
+    currentTimeout() === existing.wrapper &&
+    sameCompactionSettings(existing.settings, settings)
+  );
+}
+
 /** The installed patch, or undefined when this process has none. */
 export function compactionPatchRegistry(): CompactionPatchRegistry | undefined {
   const value = slots()[REGISTRY_KEY];
   return isRegistry(value) ? value : undefined;
+}
+
+/**
+ * The installed patch, only when its registry layout is the one this version
+ * writes.
+ *
+ * Recognition stops at the same boundary as the install path. A slot that
+ * merely has the expected fields says nothing about how its owner treats
+ * windows, deadlines, or settings, so no caller may describe it as this
+ * version's patch; a caller with its own refusal keeps that refusal instead.
+ */
+function recognizedRegistry(): CompactionPatchRegistry | undefined {
+  const registry = compactionPatchRegistry();
+  return registry !== undefined && registry.schema === COMPACTION_REGISTRY_SCHEMA ? registry : undefined;
 }
 
 function currentTimeout(): TimeoutFn {
@@ -195,9 +247,8 @@ function disablePatch(registry: CompactionPatchRegistry, reason: string): void {
  * Returns the patch it stopped, for the caller's diagnostic.
  */
 export function stopForeignCompactionPatch(runtimeId: string): CompactionPatchRegistry | undefined {
-  const slot = slots()[REGISTRY_KEY];
-  if (!isRegistry(slot) || slot.schema !== COMPACTION_REGISTRY_SCHEMA) return undefined;
-  if (slot.runtimeId === runtimeId) return undefined;
+  const slot = recognizedRegistry();
+  if (slot === undefined || slot.runtimeId === runtimeId) return undefined;
   disablePatch(slot, "runtime-conflict");
   return slot;
 }
@@ -208,7 +259,7 @@ const nativeTimeout: TimeoutFn = AbortSignal.timeout.bind(AbortSignal);
 /** Replacement installed on `AbortSignal.timeout` while this module owns it. */
 function createWrapper(): TimeoutFn {
   return function compactionAwareTimeout(milliseconds: number): AbortSignal {
-    const registry = compactionPatchRegistry();
+    const registry = recognizedRegistry();
     if (registry === undefined || registry.disabledReason !== undefined) return nativeTimeout(milliseconds);
     const passThrough = (value: number): AbortSignal => registry.original.call(AbortSignal, value);
     if (liveWindow(registry) === undefined) return passThrough(milliseconds);
@@ -261,19 +312,27 @@ export function createCompactionInstaller(deps: CompactionPatchDeps = REAL_DEPS)
       return refuse("legacy-patch", "another compaction deadline patch already replaced AbortSignal.timeout");
     }
     const slot = slots()[REGISTRY_KEY];
-    if (slot !== undefined && !isRegistry(slot)) {
+    const existing = recognizedRegistry();
+    if (slot !== undefined && existing === undefined) {
       // Somebody wrote this slot in a layout this version does not know; it is
       // never taken over, and no second wrapper is stacked on top of it.
       return refuse("registry-unrecognized", "the process patch registry was not written by this version");
     }
-    const existing = isRegistry(slot) ? slot : undefined;
     if (existing !== undefined) {
-      if (existing.schema !== COMPACTION_REGISTRY_SCHEMA) {
-        return refuse("registry-unrecognized", "the process patch registry was not written by this version");
-      }
       if (existing.runtimeId !== context.runtimeId) {
-        // A second activation owns the process patch. It stops rewriting there,
-        // and this activation installs nothing: one patch per process.
+        // A patch that already stopped keeps its reason: there is nothing left to
+        // stop, and that reason is what later activations and `/qol` report.
+        if (existing.disabledReason !== undefined && context.off === undefined) {
+          return refuse(existing.disabledReason, "the patch stopped rewriting earlier in this process");
+        }
+        // A second activation that asks for the installed adjustment keeps the
+        // patch. The window stays with the activation whose events open it, so
+        // this one reports ownership instead of a state it cannot drive.
+        if (keepsInstalledPatch(context, settings, existing)) {
+          return { status: "incompatible", reason: "patch-owned-elsewhere" };
+        }
+        // Every other second activation stops the patch rather than sharing or
+        // overriding it, and reports the reasons this module already reports.
         disablePatch(existing, "runtime-conflict");
         const conflict = `another omp-qol runtime (${existing.packageVersion} at ${existing.cwd}) owned the process patch; it stopped rewriting`;
         if (context.off !== undefined) {
@@ -426,30 +485,65 @@ export function createCompactionInstaller(deps: CompactionPatchDeps = REAL_DEPS)
     slots()[REGISTRY_KEY] = registry;
     AbortSignal.timeout = registry.wrapper;
 
-    context.pi.on("auto_compaction_start", (event: AutoCompactionStartEvent) => {
-      if (event.action === "remote") openWindow("auto");
-    });
-    context.pi.on("auto_compaction_end", () => {
-      closeWindow(registry);
-    });
-    context.pi.on("session_before_compact", (event: SessionBeforeCompactEvent) => {
-      openManualWindow(event);
-    });
-    context.pi.on("session.compacting", (event: SessionCompactingEvent) => {
-      openWindow("compacting", event.sessionId);
-    });
-    context.pi.on("session_compact", () => {
-      closeWindow(registry);
-    });
-    context.pi.on("session_switch", () => {
-      closeWindow(registry);
-    });
-    context.pi.on("session_shutdown", () => {
-      closeWindow(registry);
-    });
+    try {
+      context.pi.on("auto_compaction_start", (event: AutoCompactionStartEvent) => {
+        if (event.action === "remote") openWindow("auto");
+      });
+      context.pi.on("auto_compaction_end", () => {
+        closeWindow(registry);
+      });
+      context.pi.on("session_before_compact", (event: SessionBeforeCompactEvent) => {
+        openManualWindow(event);
+      });
+      context.pi.on("session.compacting", (event: SessionCompactingEvent) => {
+        openWindow("compacting", event.sessionId);
+      });
+      context.pi.on("session_compact", () => {
+        closeWindow(registry);
+      });
+      context.pi.on("session_switch", () => {
+        closeWindow(registry);
+      });
+      context.pi.on("session_shutdown", () => {
+        // The owner leaving ends the process patch. The window closes, the native
+        // function comes back while the global is still this module's wrapper, and
+        // the registry keeps a bounded `owner-stopped` terminal state. Later
+        // activations install no new patch, so the adjustment returns only with a
+        // restarted OMP. A session that merely keeps the patch never reaches this
+        // handler: it registered no window events and no release.
+        releasePatch(registry, "owner-stopped");
+      });
+    } catch {
+      // Registration is part of the installation: without it nothing opens a
+      // window and nothing releases the patch. The patch is given up rather
+      // than reported as enabled, so the native function comes back and the
+      // registry keeps the failure for later activations and `/qol`.
+      releasePatch(registry, "registration-error");
+      return refuse("registration-error", "the runtime rejected a window event registration");
+    }
 
     return { status: "enabled" };
   };
 }
 
 export const installCompactionModule = createCompactionInstaller();
+
+/**
+ * Compaction state `/qol` reports when the command runs.
+ *
+ * A patch this version installed and can read decides the line, not the result
+ * one activation recorded: a patch another activation owns, a patch that
+ * stopped later in the process, and a wrapper another extension replaced all
+ * show up here. Without such a patch the recorded state stands, so an
+ * activation that installed nothing, refused a foreign layout, or failed while
+ * registering its window events still explains itself.
+ */
+export function compactionStatusFromRegistry(runtimeId: string, recorded: ModuleState): ModuleState {
+  const registry = recognizedRegistry();
+  if (registry === undefined) return recorded;
+  if (registry.disabledReason !== undefined) return { status: "incompatible", reason: registry.disabledReason };
+  if (currentTimeout() !== registry.wrapper) return { status: "incompatible", reason: "patch-overwritten" };
+  return registry.runtimeId === runtimeId
+    ? { status: "enabled" }
+    : { status: "incompatible", reason: "patch-owned-elsewhere" };
+}
