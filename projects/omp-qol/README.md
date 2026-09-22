@@ -106,7 +106,7 @@ Each adjustment lists its own limits in [Adjustments](./docs/adjustments.md). Th
 
 ## Compatibility
 
-The package declares the peer range `>=18.2.4 <19` in `package.json`. Automated checks run against OMP `18.2.4` (`can1357/oh-my-pi` at `1c0303b1f2ec515cbf4b44a9a49d68a029531aac`, tag `v18.2.4`), which is the baseline each adjustment documents. The range is metadata: it carries no runtime check and no claim about every version in it. Each adjustment reads the host interface it needs and stays inactive with a reason when the interface is missing or unrecognizable, so a later host version degrades to native behavior instead of failing.
+The package declares the peer range `>=18.2.4 <19` in `package.json`. Automated checks run against OMP `18.2.8`; each adjustment documents its own source baseline, currently OMP `18.2.4` (`can1357/oh-my-pi` at `1c0303b1f2ec515cbf4b44a9a49d68a029531aac`, tag `v18.2.4`). The range is metadata: it carries no runtime check and no claim about every version in it. Each adjustment reads the host interface it needs and stays inactive with a reason when the interface is missing or unrecognizable, so a later host version degrades to native behavior instead of failing.
 
 `docs/adjustments.md` records, per adjustment, which verification ran and which items remain unverified.
 

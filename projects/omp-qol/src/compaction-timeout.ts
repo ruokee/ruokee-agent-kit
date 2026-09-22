@@ -1,12 +1,15 @@
 /**
  * Experimental compaction-deadline module.
  *
- * OMP 18.2.4 creates the deadline of one compaction request through a global
- * call, `AbortSignal.timeout(300_000)`. While a compaction window is open, this
- * module replaces that global function so one compaction request may run longer
- * than the built-in five minutes. The native compaction protocol, results,
- * retries, fallbacks, and cancellation stay in place; only the deadline number
- * changes.
+ * OMP 18.2.8 creates the deadline of one compaction request through a global
+ * call, `AbortSignal.timeout(300_000)`. Two constants carry that value:
+ * `packages/agent/src/compaction/compaction-v2-streaming.ts:48` for the
+ * streaming path and `packages/agent/src/compaction/openai.ts:74` for the
+ * remote path, and each passes it to `AbortSignal.timeout` at its own call site
+ * (`:254` and `:239`). While a compaction window is open, this module replaces
+ * that global function so one compaction request may run longer than the
+ * built-in five minutes. The native compaction protocol, results, retries,
+ * fallbacks, and cancellation stay in place; only the deadline number changes.
  *
  * One activation owns the process patch. A later activation that asks for the
  * same package version and the same settings keeps it and reports

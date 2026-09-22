@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import { BUILTIN_COMPOSER_SHAPES } from "@oh-my-pi/pi-coding-agent/config/settings-schema";
+import { BUILTIN_COMPOSER_SHAPES } from "@oh-my-pi/pi-tui/overlays/composer-shape-registry";
 import { composeLine, createStatusBarWidget } from "../src/widget.ts";
 import type { SeparatorValue } from "../src/config.ts";
 import { BUILTIN_PROVIDERS } from "../src/providers/bundled.ts";

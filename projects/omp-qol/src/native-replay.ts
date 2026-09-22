@@ -1,13 +1,14 @@
 /**
  * Native-history replay module.
  *
- * OMP 18.2.4 answers "replay the provider items this session carries, or
+ * OMP 18.2.8 answers "replay the provider items this session carries, or
  * re-encode the conversation locally" from one flag on the provider session
- * state of an `openai-responses` provider: `openai-responses.ts:1194` reads
+ * state of an `openai-responses` provider:
+ * `packages/ai/src/providers/openai-responses.ts:1194` reads
  * `providerSessionState?.nativeHistoryReplayWarmed ?? true`. The state is built
- * with the flag false (`openai-responses.ts:237`), turns it true only after a
- * successful request that produced replayable items (`openai-responses.ts:899`),
- * and lives in a map the session owns (`agent-session.ts:881`). Every new
+ * with the flag false (`:237`), turns it true only after a successful request
+ * that produced replayable items (`:899`), and lives in a map the session owns
+ * (`packages/coding-agent/src/session/agent-session.ts:873`). Every new
  * process therefore sends its first request in the local re-encode form, while
  * the process that wrote the session ended with replayed native items: the two
  * forms differ from the first re-encoded item on, so a prompt cache over the
@@ -15,7 +16,7 @@
  *
  * This module decides the flag as the host creates the state. It wraps the
  * `Map.prototype.set` the host stores that state with, recognizes the host's own
- * write by the state key prefix (`openai-responses.ts:168`, `:256`) and by the
+ * write by the state key prefix (`:168`, `:256`) and by the
  * flag on the value, and forwards every other call to the function it replaced,
  * including invalid input.
  *
@@ -40,8 +41,9 @@ export const NATIVE_REPLAY_REGISTRY_SCHEMA = 1;
 
 /**
  * Provider session state keys the host writes for an `openai-responses`
- * provider. `openai-responses.ts:256` builds the key as this prefix plus the
- * provider name, so the prefix is what identifies the host's own write.
+ * provider. `packages/ai/src/providers/openai-responses.ts:256` builds the key
+ * as this prefix plus the provider name, so the prefix is what identifies the
+ * host's own write.
  */
 export const RESPONSES_STATE_KEY_PREFIX = "openai-responses:";
 

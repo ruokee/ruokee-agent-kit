@@ -22,7 +22,8 @@ import { StatusBarHost, type HostEnvironment, type WidgetFactory } from "../src/
 import { registerProvider, type ProviderDefinition } from "../src/provider-api.ts";
 import { resetProviderRegistryForTests } from "../src/registry.ts";
 import { resetSnapshotStoreForTests } from "../src/snapshot-store.ts";
-import { BUILTIN_COMPOSER_SHAPES } from "@oh-my-pi/pi-coding-agent/config/settings-schema";
+import { BUILTIN_COMPOSER_SHAPES } from "@oh-my-pi/pi-tui/overlays/composer-shape-registry";
+import { statusLineHost } from "@oh-my-pi/pi-coding-agent/modes/status-line-host";
 import { STATUS_LINE_PRESETS } from "@oh-my-pi/pi-coding-agent";
 
 const SHAPES = BUILTIN_COMPOSER_SHAPES.map((shape) => shape.value);
@@ -157,7 +158,7 @@ describe("shape × preset cross product", () => {
         // exactly as the real UI does; every shape/preset pair must produce
         // visible content. It renders without any input from the Widget;
         // the two coexist.
-        const statusLine = new StatusLineComponent(fakeSession());
+        const statusLine = new StatusLineComponent(fakeSession(), statusLineHost);
         try {
           statusLine.setComposerStyle(getComposerStyle(shape));
           statusLine.updateSettings({ preset });
@@ -215,7 +216,7 @@ describe("shape × preset cross product", () => {
       // The extension-owned shape drives the native status line exactly
       // like a builtin shape (through the same preview pipeline), while
       // the Widget row renders independently.
-      const statusLine = new StatusLineComponent(fakeSession());
+      const statusLine = new StatusLineComponent(fakeSession(), statusLineHost);
       try {
         statusLine.setComposerStyle(getComposerStyle("ompsb-ext-shape"));
         const preview = statusLine.getPreviewLines(120, getComposerStyle("ompsb-ext-shape"));
