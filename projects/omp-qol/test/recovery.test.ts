@@ -132,19 +132,84 @@ describe("recovery classification", () => {
     }
   });
 
-  test("stays native for a bare provider error unless unclassified recovery is on", () => {
+  test("stays native for a status-carrying error with no verdict", () => {
     const unparsed = assistantMessage({ errorStatus: 500, errorMessage: "boom" });
-    const silent = assistantMessage({});
     expect(evaluateRecoveryMessage(unparsed, "knownTransient")).toEqual({
       retry: false,
       reason: "not-known-transient",
     });
-    expect(evaluateRecoveryMessage(silent, "knownTransient")).toEqual({
-      retry: false,
-      reason: "not-known-transient",
-    });
     expect(evaluateRecoveryMessage(unparsed, "unclassified")).toEqual({ retry: true, reason: "unclassified" });
-    expect(evaluateRecoveryMessage(silent, "unclassified")).toEqual({ retry: true, reason: "unclassified" });
+  });
+
+  test("recovers a statusless error with no verdict in the default scope", () => {
+    const silent = assistantMessage({});
+    const textOnly = assistantMessage({ errorMessage: "relay closed the stream" });
+    for (const message of [silent, textOnly]) {
+      expect(evaluateRecoveryMessage(message, "knownTransient")).toEqual({
+        retry: true,
+        reason: "statusless-unclassified",
+      });
+      expect(evaluateRecoveryMessage(message, "unclassified")).toEqual({ retry: true, reason: "unclassified" });
+    }
+  });
+
+  test("recovers a turn the host marked as interrupted mid-stream", () => {
+    // The shape OMP 18.2.4 recorded for a relay whose websocket closed with code
+    // 1012 while a tool call was streaming: no status, no verdict, the mark.
+    const interrupted = assistantMessage({
+      api: "openai-responses",
+      provider: "relay",
+      errorId: 0,
+      errorMessage: "1012: websocket closed before terminal event (code 1012)",
+      stopDetails: {
+        type: "stream_interrupted_after_content",
+        category: null,
+        explanation: "1012: websocket closed before terminal event (code 1012)",
+      },
+    });
+    expect(evaluateRecoveryMessage(interrupted, "knownTransient")).toEqual({
+      retry: true,
+      reason: "stream-interrupted",
+    });
+    expect(evaluateRecoveryMessage(interrupted, "unclassified")).toEqual({ retry: true, reason: "unclassified" });
+
+    // The mark alone carries the case: a status or a verdict does not remove it.
+    const withStatus = assistantMessage({
+      errorStatus: 500,
+      errorMessage: "relay closed the stream",
+      stopDetails: { type: "stream_interrupted_after_content" },
+    });
+    expect(evaluateRecoveryMessage(withStatus, "knownTransient")).toEqual({
+      retry: true,
+      reason: "stream-interrupted",
+    });
+
+    const withVerdict = assistantMessage({
+      errorId: create(Flag.EmptyResponse),
+      stopDetails: { type: "stream_interrupted_after_content" },
+    });
+    expect(evaluateRecoveryMessage(withVerdict, "knownTransient")).toEqual({
+      retry: true,
+      reason: "stream-interrupted",
+    });
+    // `unclassified` keeps its own definition and gains nothing from the mark.
+    expect(evaluateRecoveryMessage(withVerdict, "unclassified").retry).toBe(false);
+  });
+
+  test("keeps the exclusion list and the terminal status rule ahead of the mark", () => {
+    const marked = (overrides: Partial<RecoveryErrorInput>): RecoveryErrorInput =>
+      assistantMessage({ stopDetails: { type: "stream_interrupted_after_content" }, ...overrides });
+
+    expect(evaluateRecoveryMessage(marked({ errorId: create(Flag.UsageLimit) }), "knownTransient")).toEqual({
+      retry: false,
+      reason: "usage-limit",
+    });
+    expect(
+      evaluateRecoveryMessage(marked({ errorId: create(Flag.Transient | Flag.UserInterrupt) }), "knownTransient"),
+    ).toEqual({ retry: false, reason: "user-interrupt" });
+    expect(
+      evaluateRecoveryMessage(marked({ errorStatus: 404, errorMessage: "404 not found" }), "knownTransient"),
+    ).toEqual({ retry: false, reason: "terminal-client-status" });
   });
 
   test("never recovers a terminal client status, even with transient wording", () => {
@@ -284,6 +349,20 @@ describe("recovery chain", () => {
     });
     expect(await handle(switched, { turnId: 1 })).toBeUndefined();
     expect(switched.controller.chain.attempts).toBe(0);
+  });
+
+  test("continues a turn the host marked as interrupted mid-stream", async () => {
+    const helper = controllableRecovery({ backoffBaseMs: 100 });
+    const result = await handle(helper, {
+      error: assistantMessage({
+        errorId: 0,
+        errorMessage: "1012: websocket closed before terminal event (code 1012)",
+        stopDetails: { type: "stream_interrupted_after_content" },
+      }),
+    });
+    expect(result).toEqual({ continue: true, additionalContext: RECOVERY_CONTINUATION_CONTEXT });
+    expect(helper.sleeps).toEqual([100]);
+    expect(helper.notes).toEqual(["Recovering after an upstream error: attempt 1, waiting 100 ms"]);
   });
 
   test("stays native when the settle pass is already aborted", async () => {

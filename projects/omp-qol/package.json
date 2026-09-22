@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "OMP extension adjusting hub waiting, model-error recovery, and the experimental remote compaction deadline",
   "license": "MIT",
   "type": "module",

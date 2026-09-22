@@ -3,9 +3,12 @@
  *
  * When a main-agent turn settles with an assistant error that is a known
  * transient transport or timeout failure, the module asks the host for one more
- * model turn with a fixed continuation context. It never resends a request,
- * re-runs a tool, edits the journal, or switches providers: it only asks for a
- * turn, and the host's own continuation cap still applies.
+ * model turn with a fixed continuation context. Two further cases count as
+ * interrupted work in the default scope: the host's own mark for a stream that
+ * died with a tool call in flight, and an error that carries neither an HTTP
+ * status nor a classifier verdict. The module never resends a request, re-runs
+ * a tool, edits the journal, or switches providers: it only asks for a turn,
+ * and the host's own continuation cap still applies.
  */
 
 import type { Api } from "@oh-my-pi/pi-ai";
@@ -39,6 +42,25 @@ const SAFETY_EXCLUSIONS: ReadonlyArray<readonly [Flag, string]> = [
   [Flag.MalformedFunctionCall, "deterministic-tool-json"],
 ];
 
+/**
+ * Value the host writes into `stopDetails.type` when a provider error cut a
+ * turn short after content or tool arguments had already streamed
+ * (`STREAM_INTERRUPTED_AFTER_CONTENT_STOP_DETAIL` in `@oh-my-pi/pi-agent-core`).
+ * The value is compared rather than imported, so a host that renames or drops
+ * it simply matches nothing and the error keeps its native outcome.
+ */
+const STREAM_INTERRUPTED_AFTER_CONTENT = "stream_interrupted_after_content";
+
+/**
+ * The stop details the host attaches to a settled message. The module reads the
+ * `type` only; the host owns the vocabulary.
+ */
+export interface RecoveryStopDetails {
+  type?: string;
+  category?: string | null;
+  explanation?: string | null;
+}
+
 /** The assistant-error fields a recovery decision reads. */
 export interface RecoveryErrorInput {
   api?: Api;
@@ -48,6 +70,7 @@ export interface RecoveryErrorInput {
   errorMessage?: string;
   errorClassificationMessage?: string;
   errorStatus?: number;
+  stopDetails?: RecoveryStopDetails | null;
 }
 
 /** Outcome of classifying one final assistant error. */
@@ -116,6 +139,21 @@ export function evaluateRecoveryMessage(message: RecoveryErrorInput, mode: Recov
 
   // Stream-drop wording needs no separate text check: the classifier that owns
   // it sets `Flag.Transient` for exactly the phrases this module would match.
+  //
+  // Two interruptions the classifier leaves unmarked count as interrupted work
+  // in the default scope: the host's own mark for a stream that died with a
+  // tool call in flight, and an error carrying neither a status nor a verdict.
+  // Both read host structure, never provider text, and the exclusions and the
+  // terminal-status rule above still win over either. `unclassified` keeps its
+  // own definition and gains nothing here.
+  if (mode === "knownTransient") {
+    if (message.stopDetails?.type === STREAM_INTERRUPTED_AFTER_CONTENT) {
+      return { retry: true, reason: "stream-interrupted" };
+    }
+    if (status === undefined && (id === 0 || !is(id, Flag.Class))) {
+      return { retry: true, reason: "statusless-unclassified" };
+    }
+  }
 
   // `unclassified` widens to errors carrying no classification at all — an
   // unparsed status or no signal whatsoever — and never to a classified kind.

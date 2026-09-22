@@ -88,9 +88,9 @@
 
 ### 为什么需要调整
 
-502、提前关闭流的网关，或服务端超时，都可能超出重试预算。在途工作随之停止，继续工作要用户发一条消息，模型也失去任务中的位置。
+502、提前关闭流的网关，或服务端超时，都可能超出重试预算。在途工作随之停止，继续工作要用户发一条消息，模型也失去任务中的位置。并非每次这类中断都带有分类结论：工具调用已经开始流式输出后流被切断时，宿主记录为轮次被中断；也有些错误既没有 HTTP 状态，也没有分类器认识的措辞。
 
-判断所需的信息宿主已经具备：它用 `classifyMessage` 与 `Transient`、`Timeout` 等标记对错误分类（[`packages/ai/src/error/flags.ts:20`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/error/flags.ts#L20)、[`flags.ts:787`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/error/flags.ts#L787)），并暴露状态码判定（[`packages/ai/src/error/retryable.ts:20`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/error/retryable.ts#L20)）。错误之后的轮次级续跑既没有设置也没有其他公开入口，因此该调整使用宿主提供的 stop hook。
+判断所需的信息宿主已经具备：它用 `classifyMessage` 与 `Transient`、`Timeout` 等标记对错误分类（[`packages/ai/src/error/flags.ts:20`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/error/flags.ts#L20)、[`flags.ts:787`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/error/flags.ts#L787)），并暴露状态码判定（[`packages/ai/src/error/retryable.ts:20`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/error/retryable.ts#L20)）。错误之后的轮次级续跑既没有设置也没有其他公开入口，因此该调整使用宿主提供的 stop hook。宿主自带的补救分支针对流提前关闭、停滞或重置，都以可重试的 id 为前提，因此 `errorId: 0` 的错误同样落在这些分支之外。
 
 ### 介入位置
 
@@ -99,7 +99,7 @@
 1. 结束信号已经中止时直接返回。
 2. 从 `last_assistant_message`，或从 `messages` 末尾取出最后一条 assistant 消息；它不是 `stopReason: "error"` 的 assistant 消息时返回。
 3. 用宿主分类器对消息的副本分类并读取结果。模块自身不匹配任何错误文本；副本保证宿主消息不被改动。
-4. 按模式判定：`knownTransient` 接受带 `Transient` 或 `Timeout` 的错误；`unclassified` 另外接受错误 id 为 `0` 或位于宿主类别掩码之外的错误。
+4. 按模式判定：`knownTransient` 接受带 `Transient` 或 `Timeout` 的错误、宿主标记为流中途中断的错误（`stopDetails.type === "stream_interrupted_after_content"`），以及没有 HTTP 状态且 id 为 `0` 或位于宿主类别掩码之外的错误；`unclassified` 另外接受错误 id 为 `0` 或位于宿主类别掩码之外的错误。
 5. 两种模式都排除固定清单：内容拦截、用户中断、中止、静默中止、认证失败、OAuth 过期、用量上限、账户策略、上下文溢出、请求体被拒、语法拒绝、不支持的模式、思考循环、过期 responses 条目、确定性工具 JSON，以及除 408 与 429 之外的 4xx 客户端状态。
 6. 应用链规则：`stop_hook_active === false` 的事件开启新链，因此只重置计数器；同一 agent 运行内同一 `turn_id` 的重复事件被忽略；会话切换结束链；达到 `recoveryMaxAttempts` 的链不再续跑。
 7. 每一次不属于可恢复错误的结束都终止链：自行正常结束的轮次、配置范围之外的错误、信号已经中止的结束，以及被信号取消的等待。只有本模块请求的续跑才延续链，因此由其他 stop hook 延续的宿主周期从零开始，不会继承已用尽的预算。
@@ -128,14 +128,14 @@
 
 - 模块需要带 `stop_hook_active`、`turn_id`、`last_assistant_message` 与续跑结果字段的 `session_stop`，以及公开的错误分类器。宿主对子代理跳过该钩子，因此恢复不会作用于子代理。
 - 安全排除优先于配置的模式：拒绝、配额上限或用户中断无法通过配置变成续跑。
-- 调整依赖 `stopReason: "error"` 标记失败轮次，以及宿主分类器的判定。两者都是宿主行为，可能变化；测试从已安装包读取它们，宿主升级后需重新核对。
+- 调整依赖 `stopReason: "error"` 标记失败轮次、宿主分类器的判定，以及两个宿主细节：表示中断的 `stopDetails.type` 标记，和无 HTTP 状态这一条件。这些都是宿主行为，可能变化。测试从已安装包读取分类器和标记的形态；标记按值比较而非导入，因此宿主改名只会收窄接受的集合，不会直接失效。宿主升级后需重新核对。
 - 续跑可能重复副作用。宿主与本模块都不保证重复执行是幂等的。
 - 当宿主提供在可续跑错误后继续轮次的设置，或允许 stop hook 拥有自己的重试预算时，该调整不再必要。
 
 ### 版本与验证
 
 - **源码基线**：OMP `18.2.4`，提交 `1c0303b1f2ec515cbf4b44a9a49d68a029531aac`，源码位置如上。
-- **自动检查**：OMP `18.2.4`，`bun test` 与 `tsc --noEmit`，以记录宿主替代真实宿主。覆盖两种模式的分类矩阵、排除优先级、链与退避计算、同一轮次的重复事件、连续多次运行都首个轮次失败、等待期间开始新运行、被取消的等待、会话切换、跨运行的次数上限、正常结束与不可恢复错误终止链、被取消的结束、终止后仍保留的已处理轮次标记、固定续跑文本，以及按配置注册与否。错误分类器使用已安装的 `@oh-my-pi/pi-ai` 代码，不是替身。
+- **自动检查**：OMP `18.2.4`，`bun test` 与 `tsc --noEmit`，以记录宿主替代真实宿主。覆盖两种模式的分类矩阵、带或不带状态与判定结论的中断标记、无状态条件、排除清单与终止性状态优先于标记、被标记轮次的续跑、排除优先级、链与退避计算、同一轮次的重复事件、连续多次运行都首个轮次失败、等待期间开始新运行、被取消的等待、会话切换、跨运行的次数上限、正常结束与不可恢复错误终止链、被取消的结束、终止后仍保留的已处理轮次标记、固定续跑文本，以及按配置注册与否。错误分类器使用已安装的 `@oh-my-pi/pi-ai` 代码，不是替身。
 - **真实 OMP CLI**：**未验证**。计划场景：CLI 会话对模型请求路径做受控故障注入，观察到轮次以流错误结束，并在转录中看到续跑、其延迟与上限。故障注入尚未搭建，也没有替代方案：直接调用处理器不能作为真实轮次恢复的证据。
 - **上游变化**：stop hook 与续跑上限随 `c93774f892`（2026-06-17，"implement session stop hook semantics"）引入；`/reset` 语义在 `a418920ec1`（2026-08-03）改变，因此 reset 之后的链重置依赖宿主的 `stop_hook_active` 而不只依赖计数器。当前"重试预算耗尽"的措辞来自 `f6c5a43a1f`（2026-08-06）；模块按错误分类而不是匹配该措辞。
 

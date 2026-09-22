@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
 Archived: 2026-09-21
-Reversed by: [新增可配置的 OMP 体验调整](../decision/2026-09-21-reuse-a-matching-compaction-patch.zh.md)
+Reversed by: [新增可配置的 OMP 体验调整](../archived/2026-09-21-reuse-a-matching-compaction-patch.zh.md)
 
 [English](./2026-09-20-add-omp-qol.md) | 中文
 

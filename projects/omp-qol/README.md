@@ -11,7 +11,7 @@ The extension performs no work of its own. Jobs, messages, processes, turns, and
 | Adjustment | Default | Effect |
 | --- | --- | --- |
 | [Continuing hub waits](./docs/adjustments.md#continuing-hub-waits) | on | One `hub` `wait` call keeps waiting while the native window carries nothing new, up to 20 minutes by default, instead of handing the model an empty frame every 5 seconds. |
-| [Continuing after a transient model error](./docs/adjustments.md#continuing-after-a-transient-model-error) | on | A turn that ended with an eligible upstream error continues in the same session after 1 s and again with a doubling delay up to 8 s, at most 8 continuation turns per failure chain. |
+| [Continuing after a transient model error](./docs/adjustments.md#continuing-after-a-transient-model-error) | on | A turn that ended with an eligible upstream error continues in the same session after 1 s and again with a doubling delay up to 8 s, at most 8 continuation turns per failure chain. Eligible covers classifier-flagged transient and timeout failures, turns the host marked as interrupted mid-stream, and errors carrying neither a status nor a classification. |
 | [Extending one compaction deadline](./docs/adjustments.md#extending-one-compaction-deadline) | **off** | Within one compaction window, a matching `AbortSignal.timeout` call gets a longer deadline, so a remote compaction that needs more than the native 5 minutes is not cut off. Process-wide and experimental. |
 
 On their own, the adjustments do not touch the model, the request body, the tool schema, the history, or the session file. The recovery adjustment starts a turn, and the wait adjustment repeats a call the model already made; both spend provider quota when the model runs.
@@ -48,7 +48,7 @@ Settings are read once per activation. Restart OMP after a change: a running pro
 | Key | Default | Accepted | Effect |
 | --- | --- | --- | --- |
 | `recoveryEnabled` | `true` | boolean | Register the `session_stop` handler. |
-| `recoveryMode` | `knownTransient` | `knownTransient`, `unclassified` | Error scope that is eligible: errors the host classifies as transient or timeout, or every error that carries no classification and is not one of the excluded kinds. |
+| `recoveryMode` | `knownTransient` | `knownTransient`, `unclassified` | Error scope that is eligible. `knownTransient` accepts errors the host classifies as transient or timeout, an error the host marked as interrupted mid-stream, or an error with neither an HTTP status nor a classification. `unclassified` accepts every error that carries no classification and is not one of the excluded kinds. |
 | `recoveryMaxAttempts` | `8` | integer `1`–`8` | Continuation turns requested for one failure chain. |
 | `recoveryBackoffBaseMs` | `1000` | integer `1`–`10000` | Delay before the first continuation. |
 | `recoveryBackoffMaxMs` | `8000` | integer above `recoveryBackoffBaseMs`, up to `10000` | Upper bound of the doubling delay. |
@@ -76,7 +76,7 @@ Settings are read once per activation. Restart OMP after a change: a running pro
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.2.0
+@ruokee/omp-qol 0.2.1
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -92,7 +92,7 @@ compaction: disabled (compaction-disabled) — enabled=false timeoutMs=900000 fl
 Each adjustment lists its own limits in [Adjustments](./docs/adjustments.md). The short version:
 
 - **Wait.** The wrapper acts only when the session exposes a builtin `hub` tool whose description carries the native wait-window sentence and whose parameters are a schema. It forwards the approval class, the interruptible flag, and the schema of that tool, and it adds no new operation. A wait that ends at its deadline leaves background jobs and processes running.
-- **Recovery.** The fixed exclusion list wins over the configured mode, continuations are capped at 8, and the host counts them as well. One failure chain can span several agent runs, so the count follows the chain rather than one submitted prompt, and the chain ends on a turn that settles on its own, on an error outside the configured scope, and on a cancelled pass. A turn is re-run, so a tool call from the failed turn can run again. Long waits run inside the 30 s handler budget the host gives one `session_stop` handler.
+- **Recovery.** The fixed exclusion list wins over the configured mode, continuations are capped at 8, and the host counts them as well. One failure chain can span several agent runs, so the count follows the chain rather than one submitted prompt, and the chain ends on a turn that settles on its own, on an error outside the configured scope, and on a cancelled pass. A turn is re-run, so a tool call from the failed turn can run again. Long waits run inside the 30 s handler budget the host gives one `session_stop` handler. The interruption mark and the statusless condition are host details without a compatibility promise, so a host release can silently narrow or widen the accepted set.
 - **Compaction.** The experiment replaces `AbortSignal.timeout` for the whole process, so every caller that passes a matching timeout in a window gets the longer deadline, not only the compaction request. It can only lengthen a deadline and never shorten one. A window that overlaps another window, belongs to another session, or arrives in an order the extension does not recognize disables the experiment for that process and reports why. One compaction operation that falls back to its next method keeps the same signal, and the extension treats a repeat of that signal as the same operation instead of an overlap; a second live signal inside one window still disables the experiment. Registering the `session_before_compact` hook also turns off speculative compaction in OMP `18.2.4`, so an enabled experiment can make a compaction wait in the foreground; with the default off, no handler is registered. A second activation in the same process keeps the installed patch when it carries the same package version and the same settings snapshot, and reports `incompatible` with `patch-owned-elsewhere`; it registers no window events, so only the activation that installed the patch opens windows, and that session's compaction runs on the native timeout while the window is closed. A second activation with another snapshot or another version, with the master switch or this module's switch off, or with invalid keys stops the installed patch instead, and an activation whose settings could not be read or were rejected stops it too, without enabling a module. When the activation that installed the patch ends its session, the patch stops rewriting and the process keeps the native deadline until OMP restarts; `/qol` reports `compaction: incompatible (owner-stopped)` from then on.
 
 ## Compatibility

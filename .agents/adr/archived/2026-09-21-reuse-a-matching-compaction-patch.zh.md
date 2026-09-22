@@ -3,6 +3,8 @@
 Decision owner: Ruokee
 Decision writer: deepseek/deepseek-v4.1-flash
 Reverses: [新增可配置的 OMP 体验调整](../archived/2026-09-20-add-omp-qol.zh.md)
+Archived: 2026-09-22
+Reversed by: [新增可配置的 OMP 体验调整](../decision/2026-09-22-recover-interrupted-turns.zh.md)
 
 [English](./2026-09-21-reuse-a-matching-compaction-patch.md) | 中文
 
