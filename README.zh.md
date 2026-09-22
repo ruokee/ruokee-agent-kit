@@ -31,6 +31,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 - **[python-engineering](./skills/python-engineering/SKILL.md)**：涵盖 Python 项目结构、版本与依赖策略、类型注解、测试、标准库选择、工具链和 Python 专项代码审查。 [中文变体](./variants/zh/skills/python-engineering/SKILL.md)
 - **[msgspec](./skills/msgspec/SKILL.md)**：使用 `msgspec` 进行结构体定义、类型验证、序列化与反序列化。 [中文变体](./variants/zh/skills/msgspec/SKILL.md)
 - **[deep-research](./skills/deep-research/SKILL.md)**：指导结构化、证据优先的研究，涵盖广泛探索、定向研究、来源验证和综合分析，包括来源采集、论断分类、未解决问题记录和子 Agent 并行研究，默认产出报告及支撑文档。 [中文变体](./variants/zh/skills/deep-research/SKILL.md)
+- **[well-said](./skills/well-said/SKILL.md)**：在撰写、编辑或审阅用户可见自然语言时应用，包括 Agent 之间的委派、交接和评审消息。综合清理文风、可见的写作会话残留和不必要的自我证明，同时保留原意、作者声音与字面材料。也支持显式调用。 [中文变体](./variants/zh/skills/well-said/SKILL.md)
 
 ### 拓展
 

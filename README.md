@@ -31,6 +31,7 @@ These are the Skills I use in my daily work.
 - **[python-engineering](./skills/python-engineering/SKILL.md)** covers Python project structure, version and dependency policy, typing, testing, standard-library choices, tooling, and Python-specific code review. [Chinese variant](./variants/zh/skills/python-engineering/SKILL.md)
 - **[msgspec](./skills/msgspec/SKILL.md)** covers struct definitions, type validation, serialization, and deserialization with `msgspec`. [Chinese variant](./variants/zh/skills/msgspec/SKILL.md)
 - **[deep-research](./skills/deep-research/SKILL.md)** guides structured, evidence-first research through broad exploration, targeted research, source verification, and synthesis. It includes source collection, claim classification, unresolved-question records, and parallel sub-agent research, producing a report and supporting documents by default. [Chinese variant](./variants/zh/skills/deep-research/SKILL.md)
+- **[well-said](./skills/well-said/SKILL.md)** applies while writing, editing, or reviewing user-visible prose, including delegation, handoff, and review messages between agents. It combines style cleanup, visible writing-session cleanup, and reducing unnecessary self-justification while preserving meaning, author voice, and literal material. Explicit invocation is also supported. [Chinese variant](./variants/zh/skills/well-said/SKILL.md)
 
 ### Extensions
 

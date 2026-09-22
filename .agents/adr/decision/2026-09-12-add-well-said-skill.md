@@ -1,7 +1,7 @@
-# ADR proposal: Add the well-said writing Skill
+# ADR decision: Add the well-said writing Skill
 
-Draft owner: Ruokee
-Draft writer: OMP GPT-6 Astra
+Decision owner: Ruokee
+Decision writer: OMP GPT-6 Astra
 
 English | [中文](./2026-09-12-add-well-said-skill.zh.md)
 
@@ -13,11 +13,11 @@ The goal is writing that feels like a person expressing a considered thought, wi
 
 These concerns need one maintainable Skill with shared preservation rules. Provide its complete writing guidance in one file so that ordinary drafting does not depend on recognizing a problem before retrieving the rules that explain it. Style, session residue, and self-justification can occur together and need to be handled together.
 
-## Proposal
+## Decision
 
 ### Capability and scope
 
-Add a first-party Skill named `well-said`. The name uses familiar words and fits everyday requests such as "Use well-said to check this text."
+Provide a first-party Skill named `well-said`. The name uses familiar words and fits everyday requests such as "Use well-said to check this text."
 
 Apply it whenever the Agent writes, edits, or reviews user-visible natural language, including replies, reports, documentation, and code comments. Support explicit invocation as well as Agent activation from that scope. Apply the rules while drafting, not only as a cleanup pass after writing.
 
@@ -27,21 +27,21 @@ The Skill grants no additional file-editing authority. A review request remains 
 
 ### Component layout and content ownership
 
-The English component lives at `skills/well-said/`; its complete Chinese variant lives at `variants/zh/skills/well-said/`. Each provides all writing rules, preservation boundaries, and necessary examples in one `SKILL.md`, organized into readable sections.
+The English component is [skills/well-said/SKILL.md](../../../skills/well-said/SKILL.md); its complete Chinese variant is [variants/zh/skills/well-said/SKILL.md](../../../variants/zh/skills/well-said/SKILL.md). Each provides all writing rules, preservation boundaries, and necessary examples in one `SKILL.md`, organized into readable sections.
 
 Keep the required content complete, including the retained unslop material. Do not prebuild specialist reference files. Consider extracting substantial, infrequently used supplementary material only when the actual content and loading measurements justify it; ordinary writing must remain supported by the complete rules in `SKILL.md`.
 
-Follow the [self-contained component decision](../decision/2026-08-24-keep-components-self-contained.md). Each language component includes its own rules and examples, with internal references resolving inside that component. Installed-path examples use `skills/well-said/` in both languages. The component must work without another Skill, personal instructions, private research, or the source repository.
+Follow the [self-contained component decision](./2026-08-24-keep-components-self-contained.md). Each language component includes its own rules and examples, with internal references resolving inside that component. Installed-path examples use `skills/well-said/` in both languages. The component must work without another Skill, personal instructions, private research, or the source repository.
 
-Apply the [first-party capability decision](../decision/2026-08-20-establish-first-party-capability-kit.md) by identifying the capability that is the subject of development and maintenance. A first-party capability may cite, quote, or adapt third-party content. Whether it is a fork depends on whether the third-party capability itself is that subject, rather than on the presence or amount of reused content alone.
+Apply the [first-party capability decision](./2026-08-20-establish-first-party-capability-kit.md) by identifying the capability that is the subject of development and maintenance. A first-party capability may cite, quote, or adapt third-party content. Whether it is a fork depends on whether the third-party capability itself is that subject, rather than on the presence or amount of reused content alone.
 
 `well-said` is the independently designed and maintained capability, with its own purpose, organization, activation rules, and preservation boundaries. unslop supplies external material for its style section. Preserve most of the source wording, examples, and useful organization in `SKILL.md`, with necessary integration changes and additions. The reused material retains its original authorship.
 
-The unslop source lineage includes [Cursor plugins' unslop](https://github.com/cursor/plugins/blob/main/pstack/skills/unslop/SKILL.md). Before incorporating and distributing copied content, identify the exact source revision and local additions, verify the applicable license, and retain required attribution and notices. Capability ownership and source-use obligations are separate questions; the source checks remain to be completed.
+The retained unslop wording comes from [Cursor plugins / pstack](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/skills/unslop/SKILL.md), revision `99559f2f52047978602ef365589275831e76af07`, with a local Chinese-jargon category and corresponding renumbering. The source carries the [pstack MIT license](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/LICENSE), copyright Lauren Tan, 2026. Each language component includes the source attribution and full notice in its own `SKILL.md`. Capability ownership and source-use obligations are separate questions; verify provenance, permission, attribution, and notices for any further reused material before distribution.
 
-The [architect Skill](../decision/2026-09-18-make-architect-model-invoked.md#sources-and-adaptation) provides an existing example: it uses an external architecture repository as a topic map and source material while remaining an independently authored Skill. Its choice to rewrite that material is specific to architect; rewriting is not a general prerequisite for first-party status.
+The [architect Skill](./2026-09-18-make-architect-model-invoked.md#sources-and-adaptation) provides an existing example: it uses an external architecture repository as a topic map and source material while remaining an independently authored Skill. Its choice to rewrite that material is specific to architect; rewriting is not a general prerequisite for first-party status.
 
-State this general ownership principle in [AGENTS.md](../../../AGENTS.md) and under `Changes` in the first-party capability decision. Clarify the content-boundary wording so that references to or reuse of third-party material within a first-party capability are not treated as importing a third-party capability, fork, or mirror. Retain the prohibition on those third-party capabilities and the source attribution and license obligations. Record well-said's capability contract in its own decision and link it from that update.
+The general ownership principle appears in [AGENTS.md](../../../AGENTS.md) and under `Changes` in the first-party capability decision, which links to this contract. References to or reuse of third-party material within a first-party capability do not themselves import a third-party capability, fork, or mirror. The prohibition on those third-party capabilities and the source attribution and license obligations remain binding.
 
 Develop the leakage section from the maintainer's existing writing-session cleanup rules, expressed as standalone guidance. Other examples may inform its preservation boundaries without importing their host or repository procedures. Write the proof-posture section around the concrete behavior described below. Consolidate shared rules and keep all sections consistent.
 
@@ -53,7 +53,7 @@ Place the scope, shared preservation rules, essential prohibitions, and brief se
 - Let facts, observations, judgments, and useful actions carry the text. Put necessary reasons and sources beside the claims they support.
 - Remove empty compliance assurances, generic self-protection, repeated verification commentary, filler, jargon, and mechanical phrasing. Preserve the author's actual tone, observations, and judgments.
 - Preserve facts, numbers, conditions, negation, obligations, uncertainty, sources, and causal strength. Do not invent experiences, positions, measurements, or actors to make text feel human or concrete.
-- Leave already clear text alone. Deliver the requested article, answer, diagnosis, or edit without adding an unsolicited cleanup report. Keep useful completion information, real blockers, and requested explanations.
+- Prefer returning already clear text unchanged. Deliver the requested article, answer, diagnosis, or edit without adding an unsolicited cleanup report. Keep useful completion information, real blockers, and requested explanations.
 
 Keep unslop's explicit prohibitions binding. State the essential punctuation rules directly: do not use em dashes, do not replace the same parenthetical construction with parentheses, en dashes, or hyphens, and replace curly quotes with straight quotes. Keep their detailed rules and examples in the same file. Literal-material protection continues to apply.
 
@@ -79,17 +79,9 @@ Allow structural changes within the authorized scope, including reordering parag
 
 Review the result against the original information and current request. In particular, do not turn an untested environment into an unsupported environment, an obligation into completed behavior, or a hypothetical design into an existing capability. Preserve concrete unknowns and investigate meaningful contradictions rather than polishing them away.
 
-Add the Skill to the English and Chinese capability indexes when implemented. Version the two language components consistently under the repository's version policy. The component remains a Skill with guidance and examples; it does not require a detector, scoring service, editing script, or Plugin wrapper.
+The English and Chinese capability indexes describe the same scope and activation behavior. Both language components carry a matching semantic version in the `SKILL.md` body. Update them together under the repository's version policy without adding a package manifest. The component remains a Skill with guidance and examples; it does not require a detector, scoring service, editing script, or Plugin wrapper.
 
-## Alternatives considered
-
-- Keep general style cleanup in the existing unslop Skill and add a separate leakage Skill. This was considered when choosing the capability boundary. It separates the rules that must jointly preserve meaning and does not provide the chosen unified writing behavior.
-- Keep a short core and three specialist guides loaded on demand. This was considered when comparing file layouts. It can reduce context use when substantial specialist material is rarely needed, but adds signal recognition, file retrieval, and combined-guide handling. The complete single file avoids those dependencies for everyday writing; actual context savings and behavioral differences have not been measured.
-- Put only navigation in the entry point and require the full unslop guide for every user-visible output. This was considered when deciding how to expose binding prohibitions. It requires additional reading while leaving the entry point unable to provide the unified writing rules on its own.
-- Soften unslop's explicit prohibitions into defaults with stylistic exceptions. This was considered when choosing rule strength. The chosen writing preference retains the prohibitions while protecting literal material and meaning.
-- Restrict edits to local wording and ask before structural changes. This was considered when choosing editing scope. It would add confirmation for authorized restructuring that proof-posture cleanup can require.
-
-## Acceptance criteria
+### Validation requirements
 
 1. Both language components are complete and semantically aligned. Each `SKILL.md` contains all writing rules, preservation boundaries, and necessary examples, without requiring specialist reference files. Internal references resolve within each component; the public indexes describe the same scope and activation behavior.
 2. The source categories, visible-session cleanup, proof-posture guidance, essential prohibitions, and preservation boundaries are covered by rules and examples in that file. Source revision, reuse permission, attribution, and notices are verified before copied content is distributed.
@@ -102,7 +94,15 @@ Add the Skill to the English and Chinese capability indexes when implemented. Ve
 9. Run the repository's required automated checks. Report real-model results and remaining limitations separately; do not infer effectiveness for untested models, texts, or environments.
 10. Repository guidance and the first-party capability decision distinguish capability ownership from third-party source use. The distinction applies generally, including to architect and well-said, and does not infer fork status from reused content alone. Reused material retains its provenance and satisfies its applicable license and attribution requirements.
 
-## Risks
+## Alternatives considered
+
+- Keep general style cleanup in the existing unslop Skill and add a separate leakage Skill. This was considered when choosing the capability boundary. It separates the rules that must jointly preserve meaning and does not provide the chosen unified writing behavior.
+- Keep a short core and three specialist guides loaded on demand. This was considered when comparing file layouts. It can reduce context use when substantial specialist material is rarely needed, but adds signal recognition, file retrieval, and combined-guide handling. The complete single file avoids those dependencies for everyday writing; actual context savings and behavioral differences have not been measured.
+- Put only navigation in the entry point and require the full unslop guide for every user-visible output. This was considered when deciding how to expose binding prohibitions. It requires additional reading while leaving the entry point unable to provide the unified writing rules on its own.
+- Soften unslop's explicit prohibitions into defaults with stylistic exceptions. This was considered when choosing rule strength. The chosen writing preference retains the prohibitions while protecting literal material and meaning.
+- Restrict edits to local wording and ask before structural changes. This was considered when choosing editing scope. It would add confirmation for authorized restructuring that proof-posture cleanup can require.
+
+## Consequences
 
 Overaggressive cleanup can erase qualifications, migration obligations, evidence, useful history, or author voice, producing fluent but misleading text. Shared preservation rules and paired keep/change cases must constrain every section.
 
@@ -115,3 +115,15 @@ Rules within the Skill and existing writing instructions can overlap or conflict
 Tuning rules to familiar examples can improve those examples without helping new writing. Fresh-input tests and regression checks are needed to expose that failure.
 
 Copying source text without verifying its provenance and license can omit required attribution or distribute material without permission. The ownership of the new component does not resolve those obligations.
+
+## Changes
+
+### 2026-09-14: Agent handoff messages in scope
+
+The writing scope explicitly includes natural-language messages between agents: delegation, task handoff, and review feedback. These messages are written for the agent that will act on them and for whoever reads them later.
+
+- Pass the task, materials, authorization and scope limits, the actual state that affects continued work, and acceptance criteria. A short message needs only the items that change what the receiver does.
+- Omit the sender's retries, waits, batch scheduling, and context-reorganization narration unless they change the receiver's next action.
+- Keep blockers, missing permissions, unverified or partial writes, unmet dependencies, and information needed to avoid duplicate side effects; do not present an unfinished or unknown state as complete.
+
+This addition concretizes the existing reader-perspective and session-residue rules. It adds no scheduling mechanism, detector, scoring service, or file-editing authority.

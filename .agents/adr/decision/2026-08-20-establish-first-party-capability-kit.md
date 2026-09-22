@@ -32,3 +32,11 @@ The repository remains `ruokee-agent-kit` and stays independent from `ruokee-ski
 Skills, Plugins, extensions, executables, variants, and host packages may use formats that match their actual behavior. New top-level structure appears only with a real component, so the repository does not prebuild empty categories.
 
 `kit` is broad and common. The README and repository rules must keep the ownership and content boundary explicit. That breadth is not permission to add unrelated tooling. First-party support belongs here only when a repository capability needs it for development, installation, distribution, documentation, or validation.
+
+## Changes
+
+### 2026-09-12: Capability ownership and source use
+
+Identify the capability that is the subject of development and maintenance. A first-party capability may cite, quote, or adapt third-party material. Fork status depends on whether the third-party capability itself is that subject, not on the presence or amount of reused content alone. Third-party capabilities, forks, and upstream mirrors remain outside the repository.
+
+Reused material retains its source authorship and must satisfy the applicable license and attribution requirements. These obligations are separate from capability ownership. The principle applies to both [architect](./2026-09-18-make-architect-model-invoked.md#sources-and-adaptation) and [well-said](./2026-09-12-add-well-said-skill.md). architect's choice to rewrite source material is specific to that capability; rewriting is not a general prerequisite for first-party status.

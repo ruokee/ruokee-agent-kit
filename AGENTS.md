@@ -7,7 +7,7 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 ## Repository boundary
 
 - Keep only capabilities authored and maintained by Ruokee in this repository.
-- Do not add third-party capabilities, forks, upstream mirrors, or vendored third-party content.
+- Do not add third-party capabilities, forks, or upstream mirrors. A first-party capability may cite, quote, or adapt third-party material. Determine fork status from whether the third-party capability itself is the subject of development and maintenance, not from the presence or amount of reused content alone. Preserve source authorship and comply with applicable licenses and attribution requirements.
 - Do not add machine inventories, profiles, host selections, Fleet configuration, credentials, private hostnames, or internal service URLs.
 - First-party manifests, adapters, installers, and validation tools may live here when they support a repository capability.
 
