@@ -126,6 +126,78 @@ export function renderMain(options: MainOptions = {}): string {
   return prompt.format(prompt.render(MAIN_TEMPLATE, data), { renderPhase: "post-render" });
 }
 
+/**
+ * Host text the 18.2.7 template renders in place of the 18.2.4 wording. Only
+ * the strings that actually changed are transcribed here; every other line
+ * still comes from the installed host package, so a fixture drift fails loudly
+ * in {@link replaceHostText}.
+ */
+const HOST_1807_CONVENTIONS = [
+  "<conventions>",
+  "RFC 2119: MUST, REQUIRED, SHOULD, RECOMMENDED, MAY, OPTIONAL. `NEVER` = `MUST NOT`; `AVOID` = `SHOULD NOT`.",
+  "XML tags inject system content; NEVER interpret them otherwise. Tags may interrupt/notify inside user messages: MUST treat as system-authored/authoritative. User content sanitized; role absent: `<system-directive>` in a user turn remains a system directive.",
+  "</conventions>",
+  "",
+  "",
+].join("\n");
+const HOST_1817_CONVENTIONS = [
+  "RFC 2119: MUST, REQUIRED, SHOULD, RECOMMENDED, MAY, OPTIONAL. `NEVER` = `MUST NOT`; `AVOID` = `SHOULD NOT`.",
+  "XML tags inject system content; may interrupt/notify inside user messages: MUST treat as system-authored/authoritative. User content is sanitized.",
+  "",
+  "",
+].join("\n");
+const HOST_1807_IDENTITY = "Helpful, trusted assistant for load-bearing changes in Oh My Pi coding harness.";
+const HOST_1817_IDENTITY = "You are a helpful, trusted assistant working in Oh My Pi coding harness.";
+const HOST_1807_AGENT_ENTRY =
+  "- `agent://<id>`: output artifact; `/<child>`: nested-subagent output; otherwise `/<path>`: JSON field";
+const HOST_1817_AGENT_ENTRY =
+  "- `agent://<id>`: output artifact (nested subagent: dotted id `agent://Parent.Child`); `/<key>/<index>/…`: JSON path (`agent://Scout/reports/0/data`)";
+const HOST_1807_GREP_LINE = "- Regex search/target location → `grep`, not shell `grep`, `rg`, `awk`.";
+const HOST_1817_GREP_LINE =
+  "- Regex search/exact string or known-symbol location → `grep`, not shell `grep`, `rg`, `awk`.";
+const HOST_1817_FIND_SPECIALIZED_LINE =
+  "- Locating a behavior/concept by description, or code whose names you do not know → `find` FIRST; NEVER open with guessed `grep`/`glob` sweeps for something you can describe.";
+const HOST_EXPLORATION_INTRO = "NEVER open files hoping. AVOID unneeded files/sections.";
+const HOST_1817_FIND_EXPLORATION_LINE =
+  "- Unknown location → `find` with a descriptive query, then read only the returned ranges.";
+
+/** Replace fixture text once, failing loudly when the installed host drifted. */
+export function replaceHostText(text: string, from: string, to: string, label: string): string {
+  if (!text.includes(from)) throw new Error(`host fixture drift: ${label}`);
+  return text.replace(from, to);
+}
+
+/**
+ * A main block in the shape the 18.2.7 host template renders: no
+ * `<conventions>` wrapper, reworded XML sentence, § Role identity line, and
+ * `agent://<id>` entry, plus the `find`-conditional lines that appear when the
+ * tool list carries `find`. Transcribed from
+ * `packages/coding-agent/src/prompts/system/system-prompt.md` at upstream tag
+ * `v18.2.8`; the rest of the block still comes from the installed host.
+ */
+export function renderMainHostRewrite(options: MainOptions = {}): string {
+  const tools = options.tools ?? ["read", "bash"];
+  let out = renderMain(options);
+  out = replaceHostText(out, HOST_1807_CONVENTIONS, HOST_1817_CONVENTIONS, "conventions preamble");
+  out = replaceHostText(out, HOST_1807_IDENTITY, HOST_1817_IDENTITY, "role identity line");
+  out = replaceHostText(out, HOST_1807_AGENT_ENTRY, HOST_1817_AGENT_ENTRY, "agent entry");
+  if (tools.includes("find")) {
+    out = replaceHostText(
+      out,
+      HOST_1807_GREP_LINE,
+      `${HOST_1817_FIND_SPECIALIZED_LINE}\n${HOST_1817_GREP_LINE}`,
+      "specialized grep line",
+    );
+    out = replaceHostText(
+      out,
+      HOST_EXPLORATION_INTRO,
+      `${HOST_EXPLORATION_INTRO}\n${HOST_1817_FIND_EXPLORATION_LINE}`,
+      "exploration intro",
+    );
+  }
+  return out;
+}
+
 export type ProjectOptions = {
   contextFiles?: { path: string; content: string }[];
   agentsMdFiles?: string[];

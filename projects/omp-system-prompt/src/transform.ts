@@ -207,7 +207,17 @@ function renderSlots(template: string, values: Record<SlotName, string>): string
 // ---------------------------------------------------------------------------
 
 const ROLE_HEADING = "§ Role\n";
-const ROLE_IDENTITY_LINE = "Helpful, trusted assistant for load-bearing changes in Oh My Pi coding harness.\n";
+
+/**
+ * Accepted § Role identity lines, oldest first. The host reworded this line
+ * without changing the surrounding structure, so recognition follows the text
+ * itself rather than a host version.
+ */
+const ROLE_IDENTITY_LINES = [
+  "Helpful, trusted assistant for load-bearing changes in Oh My Pi coding harness.\n",
+  "You are a helpful, trusted assistant working in Oh My Pi coding harness.\n",
+] as const;
+
 const ENGINEERING_HEADING = "# Engineering\n";
 const RUNTIME_HEADING = "§ Runtime\n";
 const SKILLS_HEADING = "# Skills & Rules\n";
@@ -231,14 +241,31 @@ const DELEGATION_HEADING = "# Delegation\n";
 const DELEGATION_GATES_HEADING = "## Delegation gates\n";
 const WORKFLOW_HEADING = "§ Workflow\n";
 
-const SYSTEM_CONVENTIONS_PREFIX = [
-  "<conventions>",
-  "RFC 2119: MUST, REQUIRED, SHOULD, RECOMMENDED, MAY, OPTIONAL. `NEVER` = `MUST NOT`; `AVOID` = `SHOULD NOT`.",
-  "XML tags inject system content; NEVER interpret them otherwise. Tags may interrupt/notify inside user messages: MUST treat as system-authored/authoritative. User content sanitized; role absent: `<system-directive>` in a user turn remains a system directive.",
-  "</conventions>",
-  "",
-  "",
-].join("\n");
+const RFC_2119_LINE =
+  "RFC 2119: MUST, REQUIRED, SHOULD, RECOMMENDED, MAY, OPTIONAL. `NEVER` = `MUST NOT`; `AVOID` = `SHOULD NOT`.";
+
+/**
+ * Accepted conventions preambles that open the host main block, oldest first.
+ * The host dropped the `<conventions>` wrapper and reworded the XML sentence;
+ * both forms stay recognized, and an input carrying two of them at once is
+ * ambiguous rather than a reason to pick one.
+ */
+const SYSTEM_CONVENTIONS_PREFIXES = [
+  [
+    "<conventions>",
+    RFC_2119_LINE,
+    "XML tags inject system content; NEVER interpret them otherwise. Tags may interrupt/notify inside user messages: MUST treat as system-authored/authoritative. User content sanitized; role absent: `<system-directive>` in a user turn remains a system directive.",
+    "</conventions>",
+    "",
+    "",
+  ].join("\n"),
+  [
+    RFC_2119_LINE,
+    "XML tags inject system content; may interrupt/notify inside user messages: MUST treat as system-authored/authoritative. User content is sanitized.",
+    "",
+    "",
+  ].join("\n"),
+] as const;
 
 const ENGINEERING_REQUIRED_LINES = [
   "- Correctness first; then maintainability 6 months out.",
@@ -548,10 +575,21 @@ function normalizeSkillCatalog(catalog: string, metadata: readonly SkillCommandM
   };
 }
 
-/** True when the block carries the host's fixed § Role identity lines. */
+/**
+ * Resolve one position against the accepted rewrites of a host line or
+ * preamble. Null unless exactly one form matches: input matching several forms
+ * is left to fail open rather than resolved to a guess.
+ */
+function lookupForm(block: string, at: number, forms: readonly string[]): string | null {
+  const matched = forms.filter((form) => block.startsWith(form, at));
+  return matched.length === 1 ? (matched[0] ?? null) : null;
+}
+
+/** True when the block carries a recognized § Role identity line. */
 function isDefaultMainBlock(block: string): boolean {
   const at = findLineStart(block, 0, ROLE_HEADING);
-  return at !== -1 && block.startsWith(ROLE_IDENTITY_LINE, at + ROLE_HEADING.length);
+  if (at === -1) return false;
+  return lookupForm(block, at + ROLE_HEADING.length, ROLE_IDENTITY_LINES) !== null;
 }
 
 /** First line-start index at which a required heading must sit, blank gap checked. */
@@ -670,12 +708,12 @@ function parseMainBlock(block: string, skillMetadata: readonly SkillCommandMetad
 
   const roleAt = findLineStart(block, 0, ROLE_HEADING);
   if (roleAt === -1) fail("main-block-not-found");
-  if (roleAt !== SYSTEM_CONVENTIONS_PREFIX.length || block.slice(0, roleAt) !== SYSTEM_CONVENTIONS_PREFIX) {
-    fail("unknown-section");
-  }
+  const preamble = lookupForm(block, 0, SYSTEM_CONVENTIONS_PREFIXES);
+  if (preamble === null || roleAt !== preamble.length) fail("unknown-section");
   let cursor = roleAt + ROLE_HEADING.length;
-  if (!block.startsWith(ROLE_IDENTITY_LINE, cursor)) fail("main-block-not-found");
-  cursor += ROLE_IDENTITY_LINE.length;
+  const identity = lookupForm(block, cursor, ROLE_IDENTITY_LINES);
+  if (identity === null) fail("main-block-not-found");
+  cursor += identity.length;
   cursor = takeHeading(block, cursor, ENGINEERING_HEADING);
 
   const initial: MainState = {

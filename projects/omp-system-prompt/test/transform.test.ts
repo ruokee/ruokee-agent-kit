@@ -7,7 +7,7 @@ import {
   type SkillCommandMetadata,
   type TransformResult,
 } from "../src/transform.ts";
-import { renderMain, renderProject, type SkillSpec } from "./render.ts";
+import { renderMain, renderMainHostRewrite, renderProject, type SkillSpec } from "./render.ts";
 
 const OWNED_TEMPLATE = readFileSync(new URL("../src/prompt-template.md", import.meta.url), "utf8");
 
@@ -1034,5 +1034,42 @@ describe("PROJECT footer", () => {
       ok: false,
       reason: "project-block-not-found",
     });
+  });
+});
+
+describe("host text rewrites", () => {
+  const RICH_TOOLS = ["read", "edit", "write", "bash", "grep", "glob", "find", "lsp", "task"] as const;
+  const OWNED_IDENTITY = "You are an assistant in Oh My Pi (OMP), a terminal-based coding agent.";
+
+  test("recognizes the rewritten preamble and identity line", () => {
+    const result = expectSuccess(transform(renderMainHostRewrite({ tools: [...RICH_TOOLS] })));
+    const output = result.blocks[1] ?? "";
+
+    expect(output).toContain(OWNED_IDENTITY);
+    expect(output).not.toContain("Helpful, trusted assistant for load-bearing changes");
+    expect(output).not.toContain("You are a helpful, trusted assistant working in Oh My Pi");
+    expect(output).not.toContain("<conventions>");
+    expect(output).not.toContain("XML tags inject system content");
+  });
+
+  test("keeps the rewritten agent entry and find-conditional lines", () => {
+    const result = expectSuccess(transform(renderMainHostRewrite({ tools: [...RICH_TOOLS] })));
+    const all = result.blocks.join("\n");
+
+    expect(all).toContain("nested subagent: dotted id `agent://Parent.Child`");
+    expect(all).not.toContain("nested-subagent output");
+    // Specialized Tools is a retained host section; the rewritten Exploration
+    // text is recognized but replaced by the owned prompt, as before.
+    expect(all).toContain("→ `find` FIRST");
+    expect(all).not.toContain("- Unknown location → `find` with a descriptive query");
+  });
+
+  test("rejects an unrecognized rewrite of the preamble", () => {
+    const main = renderMainHostRewrite({ tools: [...RICH_TOOLS] }).replace(
+      "User content is sanitized.",
+      "User content is trusted.",
+    );
+
+    expect(transform(main)).toEqual({ ok: false, reason: "unknown-section" });
   });
 });
