@@ -206,6 +206,64 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 - **真实 OMP CLI**：OMP `18.2.4`、high thinking 的 `pro-20x/gpt-5.6-luna` 与 `omp-qol 0.1.3` 在同一进程中完成了两次手动远端到本地的回退。该运行关闭 V2 流式压缩，加载不带探针的生产入口，临时排除三个旧 QoL 扩展，保留其他已安装扩展。两次远端失败均回退并提交 soft compaction；`/qol` 均保持 `compaction: enabled`，第二次操作再次报告期限改写，两次操作后的普通模型响应均成功。这验证了串行回退兼容性，不代表 V1 成功压缩或上游自然慢请求已经通过。要证明该调整对慢上游的收益，仍需真实远端请求持续超过 `300000 ms` 后成功，且后续普通模型请求仍可用。仅有 `900000` 日志不能证明这一收益。实验保持默认关闭。
 - **上游变化**：远端看门狗随 `8b8651529d`（2026-06-13）引入，V2 流式压缩随 `102d6d54ad`（2026-06-28）引入并复制了该看门狗及其常量。两者都早于基线；基线之后改变五分钟限制且已定位的提交：无。
 
+## 恢复会话时沿用原生历史
+
+### 原生行为
+
+`openai-responses` 提供方为每个会话与提供方保留一个状态对象。`OpenAIResponsesProviderSessionState` 声明了 `nativeHistoryReplayWarmed`（[`packages/ai/src/providers/openai-responses.ts:204`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/providers/openai-responses.ts#L204)），工厂以 `false` 创建该标志（[`openai-responses.ts:237`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/providers/openai-responses.ts#L237)），`close()` 又将其清回 `false`（[`openai-responses.ts:241`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/providers/openai-responses.ts#L241)）。该状态存放在会话的提供方状态表里（[`packages/coding-agent/src/session/agent-session.ts:881`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/coding-agent/src/session/agent-session.ts#L881)，在 [`agent-session.ts:1779`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/coding-agent/src/session/agent-session.ts#L1779) 交给 agent），键为 `` `openai-responses:<provider>` ``（[`openai-responses.ts:168`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/providers/openai-responses.ts#L168)，拼接与写入见 [`openai-responses.ts:256`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/providers/openai-responses.ts#L256) 与 [`openai-responses.ts:260`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/providers/openai-responses.ts#L260)）。
+
+该标志决定会话中已存历史如何序列化。单次请求只读取一次（[`openai-responses.ts:1194`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/providers/openai-responses.ts#L1194)），并作为 `nativeHistory.replay` 与 `includeThinkingSignatures` 传给载荷构建器（[`openai-responses.ts:1206`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/providers/openai-responses.ts#L1206)）。为 `false` 时，会话携带的消息按通用内容重建，而不是沿用已存的原生条目：对话相同，条目不同，也不含思考签名。产生过可重放助手条目的响应会把它置为 `true`（[`openai-responses.ts:899`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/providers/openai-responses.ts#L899)），因此完成过至少一次请求的进程会从第二次请求起沿用原生条目。
+
+该状态属于单个进程，且不会被恢复。因此恢复的会话对每个提供方读到的都是 `false`，而写下该会话的进程结束在 `true`，其最后一次请求发送的是原生条目。两种形式从第一个被重建的条目起描述同一段对话，因此基于上一个进程末尾提示建立的提示缓存无法服务恢复进程的第一次请求。尚未携带任何已存条目的会话（即新会话）没有可重放的内容，两种方式没有差别。
+
+### 为什么需要调整
+
+这个守卫是有意为之。它随 [`8013be90c9`](https://github.com/can1357/oh-my-pi/commit/8013be90c9)（2026-03-21，"guard resumed OpenAI Responses replay (fixes #488)"）引入，目的是让恢复的会话不至于重放本进程从未产生过的原生条目。它的代价落在恢复本身：即使上一个进程的条目正是服务端所期望的形式，恢复进程的第一次请求仍会重建，于是在静态前缀之外由服务端缓存的部分需要重新写入。
+
+按同一次会话、开与关该调整的配对运行测得单次恢复的代价（`omp 18.2.4`、`pro-20x/gpt-5.6-luna`）：重建的第一次请求报告 `17,920` 缓存命中与 `2,971` 未命中输入 token，重放的第一次请求则为 `19,968` 命中与 `1,002` 未命中。线上形式解释了差异：重放的请求开头四个条目与上一个进程最后一次请求逐字节相同（含 reasoning 条目），而重建的请求丢掉了该条目。两种情况下该会话随后的请求都是热的。
+
+### 介入位置
+
+扩展用包装替换 `Map.prototype.set`，并保留对原生函数的引用；宿主正是通过这个写入来存放标志所属的状态。
+
+- 包装以两个条件同时成立来识别宿主自身的写入：字符串键以 `openai-responses:` 开头，且值的 `nativeHistoryReplayWarmed` 恰为 `false`。它把收到的值上该字段置为 `true`，然后以同样参数调用原生函数，因此宿主的调用返回它期望的 map。
+- 其他调用一律原样转发：其他提供方的键（`openai-codex-responses:`、`anthropic-messages:`、`openai-completions:`）、非字符串的键、不是对象的值，以及标志缺失、为 `true` 或不是布尔值的值。
+- 包装在整个进程内生效，它包装的表就是会话持有的表。激活在 `session_start` 读取设置，早于同一会话中第一次创建提供方状态；包装的改写次数是判断宿主是否仍在驱动它的依据。
+- 安装通过全局 symbol 中的注册表在进程级生效，注册表记录激活身份、包版本、激活时的 cwd 与已改写的状态写入次数。
+- 一个进程只有一个包装，其效果不取决于创建状态的会话。因此模块开启的第二次激活会保留该包装，并以当前次数把模块报告为 `enabled`，而不是再持有一个副本；本模块开关或总开关关闭的第二次激活释放包装并报告 `disabled`。释放只在当前安装的函数仍是本模块包装时还原被替换的函数。
+- 设置无法读取或整体被拒绝的激活不安装任何东西、不开启任何模块，但会以 `runtime-conflict` 停止其他激活安装且可识别的包装，与压缩实验停止其补丁的方式一致。
+- 出现以下情况时模块拒绝安装并通过日志与 `/qol` 报告原因：注册表槽位中的布局本版本无法读取（`registry-unrecognized`）、其他扩展替换了包装之下的函数（`patch-overwritten`）、运行时完全没有接受该包装（`install-failed`）。被拒绝的安装不发布注册表，也不改动它看到的函数。
+- 包装没有窗口、没有租期，也不订阅任何事件。安装它的激活结束后包装仍然安装，这正是同一进程后续激活中的恢复会话能够以原生重放开始的原因。
+- `/qol` 在命令运行时从进程注册表解析重放行并打印改写次数，因此会话开始之后才停止的包装会在该进程的每个会话中报告。
+
+### 配置
+
+`replayEnabled`（默认开启），默认值与取值见 README。
+
+### 副作用与取消
+
+- 包装位于进程内每次 `Map` 写入的路径上。它把字符串键与前缀比较、读取一个字段，其余原样转发；本机基准测试每轮 `2,000,000` 次字符串键写入、共五轮，原生中位数 `150.2` ms，包装后 `154.1` ms，约合每次调用 2 ns。
+- 发生变化的就是宿主传入的那个值，因此标志落在宿主自己的状态对象上；不产生副本，也不写入会话文件。
+- 该调整的前提：上一个进程为本会话存下的原生条目对响应恢复请求的服务端仍可重放。这也是上一个进程结束时已经作出的假设，守卫只是不让后续进程继续沿用，并没有证明它不成立。若会话携带的条目被服务端拒绝，标志为 `true` 时第一次请求会失败，而原生路径会重建并继续。配对测量中的交替运行对同一段历史反复重建与重放，均未出现服务端错误。
+- 受影响的是恢复后的第一次请求。进程中随后的请求两种方式都是重放，未携带已存条目的会话也不受影响。
+- 关闭该调整：将 `replayEnabled` 设为 `false` 并重启 OMP，或不再加载扩展。包装不写磁盘，进程结束后不残留。
+
+### 适用条件与边界
+
+- 该调整只覆盖 `openai-responses` 的提供方状态。`openai-codex-responses` 使用自己的状态键与规则（[`packages/ai/src/providers/openai-codex-responses.ts:1114`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/providers/openai-codex-responses.ts#L1114)），Anthropic 与 completions 的状态不受影响。
+- 它依赖三个宿主细节：`openai-responses:` 键前缀、`nativeHistoryReplayWarmed` 字段，以及状态通过会话交给提供方的 map 上的 `Map.prototype.set` 存放。宿主改名键或字段，或不经 map 写入直接构造状态，包装会静默失效而不会报错；`/qol` 中的改写次数是唯一的信号。
+- 在宿主自身的定义里该标志属于部署范围：账户级重置有意保留它（[`openai-responses.ts:312`](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/ai/src/providers/openai-responses.ts#L312) 及其上方注释）。该调整让恢复进程沿用其自身进程若一直存活本会作出的同一决定。
+- 它只设置一个标志，不做其他事。不构建、不过滤、不清洗条目；已变热的状态重放什么，发送的就是什么。
+- 收益随可重放区域的大小出现。可重放条目不足约 `500` token 的轮次在恢复后两组都命中 `17,920`，因此短会话即使请求形态不同，也量不到差别。
+- 未验证：带 `store` 与 `previous_response_id` 链式调用的官方 OpenAI 端点、`openai-codex-responses`、`/clear` 之后恢复的会话、交互式接管，以及压缩后的状态重建。宿主不经 map 写入而重建的状态不在包装覆盖范围内。
+
+### 版本与验证
+
+- **源码基线**：OMP `18.2.4`，提交 `1c0303b1f2ec515cbf4b44a9a49d68a029531aac`，源码位置如上。
+- **自动检查**：OMP `18.2.4`，`bun test` 与 `tsc --noEmit`，注入原型访问器，并以记录函数代替进程自身的 `set`。覆盖改写（键命中且值未变热、被修改的是传入的值、转发的调用、计数）与转发矩阵（其他提供方前缀、数字键、symbol 键、不是对象的值、标志缺失或为 true 的值）、每进程一个包装（第二次激活保留并以计数报告 `enabled`，且不再写入第二个包装）、释放（本模块开关关闭、总开关关闭、键无效、激活期间总开关关闭）、已停止的包装仍可调用但不改写、`stopForeignNativeReplayPatch` 只对其他激活还原被替换的函数并报告 `runtime-conflict`、各类拒绝（`registry-unrecognized`、`patch-overwritten` 保留外来函数不动、`install-failed` 不发布注册表）、`/qol` 对已安装、已释放、已被替换、以及本版本无法读取的注册表的行，以及默认配置下安装包装、设置 getter 失败时停止包装的激活路径。
+- **真实 OMP CLI**：OMP `18.2.4`、high thinking 的 `pro-20x/gpt-5.6-luna`，工作目录为仅存放被测会话的临时目录；每组先开新会话，再用 `-c` 恢复。两组加载同一份 `wait` 与 `recovery` 源码，只有本模块不同：已发布的 `0.2.1` 扩展不含重放模块，开发中的 `0.3.0` 扩展安装它。恢复后的第一次请求在开启模块时命中 `19,968`、未命中 `1,002`，关闭时命中 `17,920`、未命中 `2,971`；两者请求体的差异见上文，而 `tools` 与 `instructions` 摘要相同。读取进程注册表的观察者报告 `installed=true`、`schema=1`、`packageVersion=0.3.0`，首条请求构建前 `rewrites=1`，会话退出时包装仍在原位。同一扩展的交互式会话中，`/qol` 打印 `replay: enabled (rewrites=0) — enabled=true`。未验证：官方 OpenAI 端点、codex responses、`/clear`、交互式接管、压缩后的状态重建，以及服务端拒绝的历史。
+- **上游变化**：该标志与其守卫随 `8013be90c9`（2026-03-21）一同引入。基线之后改变该标志或其读取处的提交：无。
+
 ## 上游提交索引
 
 | 提交 | 日期 | 变更 | 对应调整项 |
@@ -217,5 +275,6 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 | [`f6c5a43a1f`](https://github.com/can1357/oh-my-pi/commit/f6c5a43a1f) | 2026-08-06 | 处理订阅额度耗尽导致的重试预算耗尽及其措辞。 | 上游错误后续跑 |
 | [`8b8651529d`](https://github.com/can1357/oh-my-pi/commit/8b8651529d) | 2026-06-13 | 用五分钟请求超时修复挂起的远端压缩请求。 | 延长单个压缩期限 |
 | [`102d6d54ad`](https://github.com/can1357/oh-my-pi/commit/102d6d54ad) | 2026-06-28 | 实现带独立看门狗的 V2 流式远端压缩。 | 延长单个压缩期限 |
+| [`8013be90c9`](https://github.com/can1357/oh-my-pi/commit/8013be90c9) | 2026-03-21 | 用每进程的变热标志守卫恢复会话的 OpenAI Responses 重放。 | 恢复会话时沿用原生历史 |
 
 日期为提交日期。这些提交通过在现行路径的文件历史中搜索上文提到的标识符定位；某行为没有列出提交，表示没有检索到。

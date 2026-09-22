@@ -1,5 +1,5 @@
 /**
- * Extension entry: one activation snapshot, three independently controlled
+ * Extension entry: one activation snapshot, four independently controlled
  * modules, and the read-only `/qol` status command.
  *
  * The factory registers lifecycle handlers and the command; it writes no global
@@ -10,15 +10,15 @@
  *
  * A settings read that fails, a root that is not an object, an unknown key, or a
  * wrong master-switch type keeps every module on native behavior; no module is
- * installed with a default value. Such an activation still stops a compaction
- * patch another activation left in the process, because that patch owns
- * process-wide state that the unusable settings cannot account for. A fault
- * inside one module's keys disables that module only, and a module that cannot
- * register reports `incompatible` without touching its siblings.
+ * installed with a default value. Such an activation still stops the compaction
+ * patch and the native-replay wrapper another activation left in the process,
+ * because both own process-wide state that the unusable settings cannot account
+ * for. A fault inside one module's keys disables that module only, and a module
+ * that cannot register reports `incompatible` without touching its siblings.
  *
- * The `/qol` compaction line is resolved from the process registry when the
- * command runs, so a patch that stops after this activation is reflected in
- * every session of the process.
+ * The `/qol` compaction and replay lines are resolved from their process
+ * registries when the command runs, so a patch or wrapper that stops after this
+ * activation is reflected in every session of the process.
  */
 
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "@oh-my-pi/pi-coding-agent";
@@ -31,6 +31,11 @@ import {
 } from "./compaction-timeout.ts";
 import { installRecoveryModule } from "./recovery.ts";
 import {
+  installNativeReplayModule,
+  nativeReplayStatusFromRegistry,
+  stopForeignNativeReplayPatch,
+} from "./native-replay.ts";
+import {
   describeProblems,
   MODULE_IDS,
   parseQolSettings,
@@ -41,7 +46,7 @@ import {
 import { installWaitModule } from "./wait.ts";
 
 export const PACKAGE_NAME = "@ruokee/omp-qol";
-export const PACKAGE_VERSION = "0.2.1";
+export const PACKAGE_VERSION = "0.3.0";
 export const COMMAND_NAME = "qol";
 
 let activationSequence = 0;
@@ -74,10 +79,12 @@ export type PluginSettingsReader = (packageName: string, cwd: string) => Promise
  */
 export type ModuleStatus = "pending" | "enabled" | "disabled" | "invalid" | "incompatible" | "unavailable";
 
-/** Module status with a bounded reason code. */
+/** Module status with a bounded reason code and an optional measured detail. */
 export interface ModuleState {
   status: ModuleStatus;
   reason?: string;
+  /** One measured value of the installed adjustment, such as a rewrite count. */
+  detail?: string;
 }
 
 /** Everything `/qol` reports and every module reads. */
@@ -130,14 +137,16 @@ function createInitialState(): QolState {
 
 /**
  * Modules consulted even while the master switch or their own keys keep them
- * off. The compaction experiment owns a process-wide patch, so every activation
- * must be able to see and stop a patch that its own configuration contradicts.
+ * off. The compaction experiment and the native-replay adjustment each own a
+ * process-wide patch, so every activation must be able to see and stop one that
+ * its own configuration contradicts.
  */
-const CONSULTED_WHILE_OFF: ReadonlySet<ModuleId> = new Set<ModuleId>(["compaction"]);
+const CONSULTED_WHILE_OFF: ReadonlySet<ModuleId> = new Set<ModuleId>(["compaction", "replay"]);
 
 /** One line per module: status, reason, and the effective values of that module. */
 function describeModule(id: ModuleId, state: ModuleState, settings: QolSettings | undefined): string {
-  const head = `${id}: ${state.status}${state.reason === undefined ? "" : ` (${state.reason})`}`;
+  const detail = state.detail === undefined ? "" : ` (${state.detail})`;
+  const head = `${id}: ${state.status}${state.reason === undefined ? "" : ` (${state.reason})`}${detail}`;
   if (settings === undefined) return head;
   if (id === "wait") {
     const wait = settings.wait;
@@ -146,6 +155,10 @@ function describeModule(id: ModuleId, state: ModuleState, settings: QolSettings 
   if (id === "recovery") {
     const recovery = settings.recovery;
     return `${head} — enabled=${recovery.enabled} mode=${recovery.mode} maxAttempts=${recovery.maxAttempts} backoffBaseMs=${recovery.backoffBaseMs} backoffMaxMs=${recovery.backoffMaxMs} notify=${recovery.notify}`;
+  }
+  if (id === "replay") {
+    const replay = settings.replay;
+    return `${head} — enabled=${replay.enabled}`;
   }
   const compaction = settings.compaction;
   const floorNote =
@@ -225,17 +238,26 @@ export function activate(pi: ExtensionAPI, readSettings: PluginSettingsReader = 
    *
    * The settings failures below install no module and turn none on, so nothing
    * runs with a default-enabled value. They still must not leave a patch from an
-   * earlier activation rewriting deadlines under settings this activation could
-   * not read: that patch owns process-wide state, and this activation is the one
-   * that now knows the settings are unusable.
+   * earlier activation rewriting deadlines, or a wrapper rewriting provider
+   * state, under settings this activation could not read: those own process-wide
+   * state, and this activation is the one that now knows the settings are
+   * unusable.
    */
   const stopPatchFromUnusableSettings = (): void => {
     const stopped = stopForeignCompactionPatch(runtimeId);
-    if (stopped === undefined) return;
-    report(
-      "compaction:runtime-conflict",
-      `compaction patch stopped rewriting: this activation has no usable settings and stopped the patch of another omp-qol runtime (${stopped.packageVersion} at ${stopped.cwd})`,
-    );
+    if (stopped !== undefined) {
+      report(
+        "compaction:runtime-conflict",
+        `compaction patch stopped rewriting: this activation has no usable settings and stopped the patch of another omp-qol runtime (${stopped.packageVersion} at ${stopped.cwd})`,
+      );
+    }
+    const stoppedReplay = stopForeignNativeReplayPatch(runtimeId);
+    if (stoppedReplay !== undefined) {
+      report(
+        "replay:runtime-conflict",
+        `native replay stopped rewriting: this activation has no usable settings and stopped the wrapper of another omp-qol runtime (${stoppedReplay.packageVersion} at ${stoppedReplay.cwd})`,
+      );
+    }
   };
 
   const installModule = (id: ModuleId, install: (context: ModuleContext) => ModuleState): ModuleState => {
@@ -308,6 +330,7 @@ export function activate(pi: ExtensionAPI, readSettings: PluginSettingsReader = 
     state.modules.wait = installModule("wait", installWaitModule);
     state.modules.recovery = installModule("recovery", installRecoveryModule);
     state.modules.compaction = installModule("compaction", installCompactionModule);
+    state.modules.replay = installModule("replay", installNativeReplayModule);
   };
 
   pi.on("session_start", async (_event, ctx) => {
@@ -318,14 +341,16 @@ export function activate(pi: ExtensionAPI, readSettings: PluginSettingsReader = 
   });
 
   /**
-   * Render the status text. The compaction line is read from the process
-   * registry here, so a stop that another activation caused, or that this one
-   * caused after activation, shows up in every session of the process.
+   * Render the status text. The compaction and replay lines are read from the
+   * process registries here, so a stop that another activation caused, or that
+   * this one caused after activation, shows up in every session of the process.
    */
   const renderState = (): string =>
-    describeState(state, PACKAGE_VERSION, (id, recorded) =>
-      id === "compaction" ? compactionStatusFromRegistry(runtimeId, recorded) : recorded,
-    );
+    describeState(state, PACKAGE_VERSION, (id, recorded) => {
+      if (id === "compaction") return compactionStatusFromRegistry(runtimeId, recorded);
+      if (id === "replay") return nativeReplayStatusFromRegistry(recorded);
+      return recorded;
+    });
 
   pi.registerCommand(COMMAND_NAME, {
     description: "Show the effective omp-qol module states and values (read-only)",
@@ -341,7 +366,7 @@ export function activate(pi: ExtensionAPI, readSettings: PluginSettingsReader = 
   };
 }
 
-/** Module installers, filled in by the wait, recovery, and compaction modules. */
+/** Module installers, filled in by the wait, recovery, compaction, and replay modules. */
 export default function ompQolExtension(pi: ExtensionAPI): void {
   activate(pi);
 }

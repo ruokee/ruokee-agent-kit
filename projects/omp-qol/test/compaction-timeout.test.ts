@@ -25,7 +25,7 @@ import {
   type QolState,
 } from "../src/extension.ts";
 import { parseQolSettings, type QolSettings } from "../src/settings.ts";
-import { createHarness, moduleContext, TEST_RUNTIME_ID, type Harness } from "./host.ts";
+import { createHarness, moduleContext, resetNativeReplay, TEST_RUNTIME_ID, type Harness } from "./host.ts";
 
 const NATIVE_TIMEOUT = AbortSignal.timeout;
 const REGISTRY_KEY = Symbol.for("ruokee.omp-qol.compaction-timeout.registry");
@@ -44,6 +44,7 @@ function resetPatch(): void {
 
 afterEach(() => {
   resetPatch();
+  resetNativeReplay();
   globalSlots()[LEGACY_KEY] = undefined;
 });
 
@@ -1055,7 +1056,9 @@ describe("compaction activation", () => {
     AbortSignal.timeout(300_000);
     expect(calls).toEqual([900_000, 300_000]);
     expect(first.state.modules.compaction).toEqual({ status: "incompatible", reason: "runtime-conflict" });
-    expect(second.harness.warnings.filter((warning) => warning.includes("has no usable settings"))).toHaveLength(1);
+    expect(
+      second.harness.warnings.filter((warning) => warning.includes("compaction patch stopped rewriting")),
+    ).toHaveLength(1);
   });
 
   test("stops the installed patch when the settings root is not an object", async () => {

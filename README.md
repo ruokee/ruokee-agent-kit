@@ -46,7 +46,7 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 - **[omp-codex-web-access](./projects/omp-codex-web-access/README.md)** lets OMP use a Codex subscription through a forwarding Provider for web search and page extraction.
 - **[omp-system-prompt](./projects/omp-system-prompt/README.md)** replaces the fixed policy text of OMP's default system prompt with a maintained English text while keeping dynamic runtime segments, falling back to the host prompt unchanged when recognition fails.
 - **[omp-context-pin](./projects/omp-context-pin/README.md)** keeps a small set of pinned text entries present word for word in every ordinary model request on the current session branch, and restores them after each committed compaction.
-- **[omp-qol](./projects/omp-qol/README.md)** carries three independently switchable adjustments: hub waits that continue to a total deadline, a bounded continuation turn after an eligible model error, and an experimental extension of one compaction deadline.
+- **[omp-qol](./projects/omp-qol/README.md)** carries four independently switchable adjustments: hub waits that continue to a total deadline, a bounded continuation turn after an eligible model error, an experimental extension of one compaction deadline, and a process-wide wrapper that keeps a resumed session's first request on the provider's native history.
 
 ## Install
 

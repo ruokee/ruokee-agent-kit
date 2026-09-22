@@ -19,6 +19,26 @@ import type { ModuleId, QolSettings } from "../src/settings.ts";
 /** Runtime identity a test activation uses unless it exercises conflicts. */
 export const TEST_RUNTIME_ID = "@ruokee/omp-qol#test-runtime";
 
+/** `Map.prototype.set` as the process had it before any test ran. */
+const NATIVE_MAP_SET = Map.prototype.set;
+
+/** Component-owned slot the replay module keeps its registry in. */
+const REPLAY_REGISTRY_KEY = Symbol.for("ruokee.omp-qol.native-replay.registry");
+
+/**
+ * Restore the process state the replay module owns.
+ *
+ * An activation installs the module's wrapper on `Map.prototype.set` and keeps
+ * it for the rest of the process, as the host does. A test file that activates
+ * the extension calls this between cases, so each case starts with the prototype
+ * and the registry slot a fresh process has; without it, the next activation to
+ * read unusable settings would stop the wrapper the previous case installed.
+ */
+export function resetNativeReplay(): void {
+  Map.prototype.set = NATIVE_MAP_SET;
+  (globalThis as unknown as Record<symbol, unknown>)[REPLAY_REGISTRY_KEY] = undefined;
+}
+
 /** Fields a test sets when it drives one module installer directly. */
 export interface ModuleContextOptions {
   pi: ExtensionAPI;

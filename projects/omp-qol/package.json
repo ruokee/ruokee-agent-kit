@@ -1,7 +1,7 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.2.1",
-  "description": "OMP extension adjusting hub waiting, model-error recovery, and the experimental remote compaction deadline",
+  "version": "0.3.0",
+  "description": "OMP extension adjusting hub waiting, model-error recovery, native-history replay, and the experimental remote compaction deadline",
   "license": "MIT",
   "type": "module",
   "keywords": [
@@ -125,6 +125,11 @@
         "type": "boolean",
         "default": true,
         "description": "Show a warning line when the experiment rewrites a deadline."
+      },
+      "replayEnabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Install the process-wide adjustment that keeps a resumed session replaying its native provider items. On by default."
       }
     }
   },

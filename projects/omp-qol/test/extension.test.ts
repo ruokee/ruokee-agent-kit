@@ -7,16 +7,19 @@
  * Timing is driven by a release gate, not by a sleep.
  */
 
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { ExtensionContext } from "@oh-my-pi/pi-coding-agent";
 import { activate, COMMAND_NAME, describeState, PACKAGE_NAME, PACKAGE_VERSION } from "../src/extension.ts";
 import type { FieldProblem, QolSettings } from "../src/settings.ts";
 import { parseQolSettings } from "../src/settings.ts";
-import { createHarness, type Harness } from "./host.ts";
+import { createHarness, resetNativeReplay, type Harness } from "./host.ts";
 
 type SessionHandler = (event: unknown, ctx: ExtensionContext) => Promise<void>;
+
+/** Activation installs the process-wide replay wrapper; each case starts fresh. */
+afterEach(resetNativeReplay);
 
 function sessionStartOf(harness: Harness): SessionHandler {
   const handler = harness.handlers.get("session_start")?.[0];
@@ -104,10 +107,50 @@ describe("activation", () => {
     await sessionStartOf(harness)({}, harness.context());
 
     expect(runtime.state.settings?.enabled).toBe(false);
-    for (const id of ["wait", "recovery", "compaction"] as const) {
+    for (const id of ["wait", "recovery", "compaction", "replay"] as const) {
       expect(runtime.state.modules[id]).toEqual({ status: "disabled", reason: "master-disabled" });
     }
     expect(harness.tools).toEqual([]);
+  });
+
+  test("installs the replay wrapper and reports it with its rewrite count", async () => {
+    const harness = createHarness();
+    const { read } = gatedReader({});
+    const runtime = activate(harness.pi, read);
+    await sessionStartOf(harness)({}, harness.context());
+
+    const state = { nativeHistoryReplayWarmed: false };
+    new Map<unknown, unknown>().set("openai-responses:pro-20x", state);
+    expect(state.nativeHistoryReplayWarmed).toBe(true);
+    expect(runtime.state.modules.replay).toEqual({ status: "enabled", detail: "rewrites=0" });
+
+    const line = runtime
+      .describe()
+      .split("\n")
+      .find((entry) => entry.startsWith("replay: "));
+    expect(line).toContain("enabled (rewrites=1)");
+    expect(line).toContain("enabled=true");
+  });
+
+  test("stops the replay wrapper an earlier activation installed when the settings cannot be read", async () => {
+    const first = createHarness();
+    const { read: readFirst } = gatedReader({});
+    activate(first.pi, readFirst);
+    await sessionStartOf(first)({}, first.context());
+    const installed = Map.prototype.set;
+
+    const second = createHarness();
+    const { read: readSecond } = gatedReader(new Error("settings store unavailable"));
+    const runtime = activate(second.pi, readSecond);
+    await sessionStartOf(second)({}, second.context());
+
+    expect(runtime.state.modules.replay).toEqual({ status: "disabled", reason: "settings-reader-failed" });
+    expect(Map.prototype.set).not.toBe(installed);
+    expect(second.warnings.some((warning) => warning.includes("native replay stopped rewriting"))).toBe(true);
+
+    const state = { nativeHistoryReplayWarmed: false };
+    new Map<unknown, unknown>().set("openai-responses:pro-20x", state);
+    expect(state.nativeHistoryReplayWarmed).toBe(false);
   });
 
   test("one invalid module leaves the others registerable", async () => {
@@ -154,6 +197,7 @@ describe("the /qol command", () => {
     expect(text).toContain("wait: ");
     expect(text).toContain("recovery: ");
     expect(text).toContain("compaction: ");
+    expect(text).toContain("replay: ");
     expect(text).toContain("enabled=false timeoutMs=900000");
     expect(text).not.toContain("user:");
     expect(text).not.toContain("project:");
@@ -166,7 +210,12 @@ describe("the /qol command", () => {
       settings: undefined,
       problems: [],
       global: { status: "ok" },
-      modules: { wait: { status: "pending" }, recovery: { status: "pending" }, compaction: { status: "pending" } },
+      modules: {
+        wait: { status: "pending" },
+        recovery: { status: "pending" },
+        compaction: { status: "pending" },
+        replay: { status: "pending" },
+      },
     });
     expect(text).toContain("wait: pending");
     expect(text).toContain("not activated in this process");
@@ -179,7 +228,12 @@ describe("the /qol command", () => {
       settings: undefined,
       problems,
       global: { status: "ok" },
-      modules: { wait: { status: "enabled" }, recovery: { status: "disabled" }, compaction: { status: "invalid" } },
+      modules: {
+        wait: { status: "enabled" },
+        recovery: { status: "disabled" },
+        compaction: { status: "invalid" },
+        replay: { status: "disabled" },
+      },
     });
     expect(text).toContain("problems: compaction.compactionTimeoutMs=integer");
   });
@@ -202,7 +256,12 @@ describe("the /qol command", () => {
       settings: defaultSettings(),
       problems: [],
       global: { status: "ok" },
-      modules: { wait: { status: "enabled" }, recovery: { status: "enabled" }, compaction: { status: "enabled" } },
+      modules: {
+        wait: { status: "enabled" },
+        recovery: { status: "enabled" },
+        compaction: { status: "enabled" },
+        replay: { status: "enabled" },
+      },
     });
     expect(defaults).not.toContain("no longer matches");
   });

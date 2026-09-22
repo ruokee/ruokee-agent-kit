@@ -69,6 +69,7 @@ describe("manifest and runtime defaults", () => {
       guardMs: 3600000,
       notify: true,
     });
+    expect(settings.replay).toEqual({ enabled: true });
   });
 
   test("accepted values include every boundary of the documented ranges", () => {
@@ -90,6 +91,7 @@ describe("manifest and runtime defaults", () => {
       compactionTimeoutMs: COMPACTION_TIMEOUT_MAX_MS,
       compactionWindowGuardMs: COMPACTION_GUARD_MAX_MS,
       compactionTimeoutNotify: false,
+      replayEnabled: false,
     });
     expect(problems).toEqual([]);
     expect(settings.enabled).toBe(false);
@@ -120,6 +122,7 @@ describe("rejected values", () => {
     ["guard below the timeout", { compactionWindowGuardMs: 800_000 }, "compactionWindowGuardMs=range"],
     ["guard above the maintenance bound", { compactionWindowGuardMs: 14_400_001 }, "compactionWindowGuardMs=range"],
     ["fractional timeout", { compactionTimeoutMs: 900_000.5 }, "compactionTimeoutMs=integer"],
+    ["a non-boolean replay switch", { replayEnabled: "on" }, "replayEnabled=type"],
   ];
 
   for (const [label, raw, expected] of cases) {
@@ -147,7 +150,7 @@ describe("rejected values", () => {
     const { invalidModules, problems } = parse({ waitJobsSeconds: -1, compactionTimeoutMs: 1.5 });
     expect(invalidModules).toEqual(["wait", "compaction"]);
     expect(problems.map((problem) => problem.module)).toEqual(["wait", "compaction"]);
-    expect(MODULE_IDS).toEqual(["wait", "recovery", "compaction"]);
+    expect(MODULE_IDS).toEqual(["wait", "recovery", "compaction", "replay"]);
   });
 });
 

@@ -2,7 +2,7 @@
 
 [中文](./README.zh.md)
 
-Three independently switchable adjustments to OMP behavior in one extension: a hub `wait` that keeps waiting to a total deadline, a bounded continuation turn after an eligible model error, and an experimental extension of one compaction deadline. [Adjustments](./docs/adjustments.md) states, per adjustment, the OMP source it attaches to, the host version it is written against, its limits, and what has been verified.
+Four independently switchable adjustments to OMP behavior in one extension: a hub `wait` that keeps waiting to a total deadline, a bounded continuation turn after an eligible model error, an experimental extension of one compaction deadline, and a process-wide wrapper that keeps a resumed session's first request on the provider's native history. [Adjustments](./docs/adjustments.md) states, per adjustment, the OMP source it attaches to, the host version it is written against, its limits, and what has been verified.
 
 The extension performs no work of its own. Jobs, messages, processes, turns, and compaction stay with OMP; the extension changes when an existing mechanism stops and delegates everything else unchanged. Every adjustment can be switched off, and an adjustment that finds the host different from the version it is written against stays inactive and reports the reason.
 
@@ -13,8 +13,9 @@ The extension performs no work of its own. Jobs, messages, processes, turns, and
 | [Continuing hub waits](./docs/adjustments.md#continuing-hub-waits) | on | One `hub` `wait` call keeps waiting while the native window carries nothing new, up to 20 minutes by default, instead of handing the model an empty frame every 5 seconds. |
 | [Continuing after a transient model error](./docs/adjustments.md#continuing-after-a-transient-model-error) | on | A turn that ended with an eligible upstream error continues in the same session after 1 s and again with a doubling delay up to 8 s, at most 8 continuation turns per failure chain. Eligible covers classifier-flagged transient and timeout failures, turns the host marked as interrupted mid-stream, and errors carrying neither a status nor a classification. |
 | [Extending one compaction deadline](./docs/adjustments.md#extending-one-compaction-deadline) | **off** | Within one compaction window, a matching `AbortSignal.timeout` call gets a longer deadline, so a remote compaction that needs more than the native 5 minutes is not cut off. Process-wide and experimental. |
+| [Replaying native history in a resumed session](./docs/adjustments.md#replaying-native-history-in-a-resumed-session) | on | A resumed session's first request replays the native provider items the previous process ended with, instead of rebuilding the conversation from its generic content, so a prompt cache over that form can serve it. Process-wide, one flag, no body rewrite. |
 
-On their own, the adjustments do not touch the model, the request body, the tool schema, the history, or the session file. The recovery adjustment starts a turn, and the wait adjustment repeats a call the model already made; both spend provider quota when the model runs.
+Except for the serialization the replay adjustment decides, the adjustments do not touch the model, the request body, the tool schema, the history, or the session file: that one changes which stored items one request carries, not the conversation they describe. The recovery adjustment starts a turn, and the wait adjustment repeats a call the model already made; both spend provider quota when the model runs.
 
 ## Configuration
 
@@ -64,6 +65,12 @@ Settings are read once per activation. Restart OMP after a change: a running pro
 | `compactionWindowGuardMs` | `3600000` | integer from `compactionTimeoutMs` up to `14400000` | Longest lifetime of one compaction window, counted from the event that opened it. |
 | `compactionTimeoutNotify` | `true` | boolean | Show a warning line the first time a window rewrites a deadline. |
 
+### Replay
+
+| Key | Default | Accepted | Effect |
+| --- | --- | --- | --- |
+| `replayEnabled` | `true` | boolean | Install the process-wide wrapper that keeps a resumed session's first request on the provider's native history. On by default; the adjustment is inert for a session that carries no stored items. |
+
 ### Validation
 
 - A key that is absent takes its default.
@@ -76,13 +83,14 @@ Settings are read once per activation. Restart OMP after a change: a running pro
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.2.1
+@ruokee/omp-qol 0.3.0
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
 wait: enabled — enabled=true continueEmptyWindows=true jobsSeconds=1200 messagesSeconds=1200 processSeconds=1200
 recovery: enabled — enabled=true mode=knownTransient maxAttempts=8 backoffBaseMs=1000 backoffMaxMs=8000 notify=true
 compaction: disabled (compaction-disabled) — enabled=false timeoutMs=900000 floorMs=300000 windowGuardMs=3600000 notify=true
+replay: enabled (rewrites=0) — enabled=true
 ```
 
 `pending` means no session has started in this process. `disabled`, `invalid`, `incompatible`, and `unavailable` each carry a reason code, and `problems:` lists the rejected keys when the settings object was accepted only in part. A rejected settings object replaces every module line with the reason and ends the report with the keys that rejected it.
@@ -94,6 +102,7 @@ Each adjustment lists its own limits in [Adjustments](./docs/adjustments.md). Th
 - **Wait.** The wrapper acts only when the session exposes a builtin `hub` tool whose description carries the native wait-window sentence and whose parameters are a schema. It forwards the approval class, the interruptible flag, and the schema of that tool, and it adds no new operation. A wait that ends at its deadline leaves background jobs and processes running.
 - **Recovery.** The fixed exclusion list wins over the configured mode, continuations are capped at 8, and the host counts them as well. One failure chain can span several agent runs, so the count follows the chain rather than one submitted prompt, and the chain ends on a turn that settles on its own, on an error outside the configured scope, and on a cancelled pass. A turn is re-run, so a tool call from the failed turn can run again. Long waits run inside the 30 s handler budget the host gives one `session_stop` handler. The interruption mark and the statusless condition are host details without a compatibility promise, so a host release can silently narrow or widen the accepted set.
 - **Compaction.** The experiment replaces `AbortSignal.timeout` for the whole process, so every caller that passes a matching timeout in a window gets the longer deadline, not only the compaction request. It can only lengthen a deadline and never shorten one. A window that overlaps another window, belongs to another session, or arrives in an order the extension does not recognize disables the experiment for that process and reports why. One compaction operation that falls back to its next method keeps the same signal, and the extension treats a repeat of that signal as the same operation instead of an overlap; a second live signal inside one window still disables the experiment. Registering the `session_before_compact` hook also turns off speculative compaction in OMP `18.2.4`, so an enabled experiment can make a compaction wait in the foreground; with the default off, no handler is registered. A second activation in the same process keeps the installed patch when it carries the same package version and the same settings snapshot, and reports `incompatible` with `patch-owned-elsewhere`; it registers no window events, so only the activation that installed the patch opens windows, and that session's compaction runs on the native timeout while the window is closed. A second activation with another snapshot or another version, with the master switch or this module's switch off, or with invalid keys stops the installed patch instead, and an activation whose settings could not be read or were rejected stops it too, without enabling a module. When the activation that installed the patch ends its session, the patch stops rewriting and the process keeps the native deadline until OMP restarts; `/qol` reports `compaction: incompatible (owner-stopped)` from then on.
+- **Replay.** The wrapper replaces `Map.prototype.set` for the whole process and inspects every write, measured at about 2 ns per string-keyed call. It decides one host flag: the first request of a resumed session replays the items the previous process stored, which assumes the endpoint that answers it can still replay them, the assumption the previous process ended on. A session carrying items that endpoint rejects would fail that request, where the native path rebuilds and proceeds. It covers `openai-responses` provider states only; codex responses, Anthropic, and completions keep their own rules. It depends on the `openai-responses:` state key prefix, on the `nativeHistoryReplayWarmed` field, and on the state being stored through a `Map` write, so a host that renames either or builds the state another way makes it inert without failing, and the rewrite count in `/qol` is the only signal. The wrapper holds no window and no subscription, stays installed after the activation that installed it ends, and comes out only when an activation's effective settings keep it off, when an activation has no usable settings at all, or when the process ends.
 
 ## Compatibility
 
@@ -139,7 +148,7 @@ bun run typecheck
 bun test
 ```
 
-The test suite replaces the host with a small recording host and keeps the package boundaries real: the settings getter from the installed `@oh-my-pi/pi-coding-agent`, the error classifier from the installed `@oh-my-pi/pi-ai`, and `AbortSignal.timeout` in both its native and patched form. It covers activation and validation, the wait deadline loop and empty-window recognition, the recovery classification matrix and continuation chain, and the compaction install order, window lifecycle, and restore path.
+The test suite replaces the host with a small recording host and keeps the package boundaries real: the settings getter from the installed `@oh-my-pi/pi-coding-agent`, the error classifier from the installed `@oh-my-pi/pi-ai`, and `AbortSignal.timeout` and `Map.prototype.set` in both their native and patched form. It covers activation and validation, the wait deadline loop and empty-window recognition, the recovery classification matrix and continuation chain, the compaction install order, window lifecycle, and restore path, and the replay wrapper's rewrite and forwarding matrix, ownership and release paths, refusals, and `/qol` line.
 
 ## License
 
