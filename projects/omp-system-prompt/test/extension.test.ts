@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 import { getAgentDir } from "@oh-my-pi/pi-utils";
 import { activate, type PluginSettingsReader } from "../src/extension.ts";
 import type { RuleFileSystem, RuleRoots } from "../src/rules.ts";
-import { renderMain, renderProject } from "./render.ts";
+import { renderMain, renderMainLegacy, renderProject } from "./render.ts";
 import { treeFileSystem, type RuleTree } from "./rule-tree.ts";
 
 const TEMPLATE_PATH = new URL("../src/prompt-template.md", import.meta.url);
@@ -259,6 +259,28 @@ test("uses the default true behavior when renderDelivery is unset", async () => 
   activate(pi as never, host());
   const result = await handlers[0]!({ systemPrompt: ["before", renderMain(), renderProject(), "after"] }, context());
   expect(result?.systemPrompt?.[1]).toContain("# Delivery\n");
+});
+
+test("replaces the pre-18.2.7 host wording as well", async () => {
+  const handlers: Handler[] = [];
+  const warnings: string[] = [];
+  const pi = {
+    logger: { warn: (message: string) => warnings.push(message) },
+    on: (_event: string, handler: Handler) => handlers.push(handler),
+    getCommands: () => [] as Command[],
+  };
+
+  activate(pi as never, host());
+  const result = await handlers[0]!(
+    { systemPrompt: ["before", renderMainLegacy(), renderProject(), "after"] },
+    context(),
+  );
+  const main = result?.systemPrompt?.[1] ?? "";
+
+  expect(main).toContain("You are an assistant in Oh My Pi (OMP), a terminal-based coding agent.");
+  expect(main).not.toContain("<conventions>");
+  expect(main).not.toContain("Helpful, trusted assistant for load-bearing changes");
+  expect(warnings.every((message) => !message.includes("replacement NOT applied"))).toBe(true);
 });
 
 test("fails open on settings errors and invalid values with session deduplication", async () => {

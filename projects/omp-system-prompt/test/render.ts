@@ -1,5 +1,5 @@
 /**
- * Test-only fixtures that render the installed OMP 18.2.3 host templates.
+ * Test-only fixtures that render the installed OMP 18.2.8 host templates.
  *
  * Both test files share these helpers so extension-level checks exercise the
  * same recognized default main block and PROJECT footer as transform checks.
@@ -29,6 +29,13 @@ export type SkillSpec = { name: string; description: string };
 
 export type MainOptions = {
   tools?: readonly string[];
+  /**
+   * Tool names the template's `{{#has tools …}}` conditionals see, when they
+   * should differ from the tool list the rest of the data carries. Used to
+   * render the `find`-conditional lines so {@link renderMainLegacy} can delete
+   * them.
+   */
+  gateTools?: readonly string[];
   toolDefinitions?: Record<string, ToolDefinition>;
   inlineCatalog?: boolean;
   skills?: SkillSpec[];
@@ -56,9 +63,10 @@ export type MainOptions = {
 
 export function renderMain(options: MainOptions = {}): string {
   const names = options.tools ?? ["read", "bash"];
+  const gates = options.gateTools ?? names;
   const definitions = options.toolDefinitions ?? {};
   const devices = options.devices ?? [];
-  const tools = [...new Set([...names, ...devices.map((device) => device.name)])];
+  const tools = [...new Set([...gates, ...devices.map((device) => device.name)])];
   const toolInfo = names.map((name) => {
     const definition = definitions[name];
     return { name: definition?.wireName ?? name, label: definition?.label ?? null };
@@ -76,7 +84,7 @@ export function renderMain(options: MainOptions = {}): string {
       )
     : "";
   const toolRefs = Object.fromEntries(
-    [...names, ...devices.map((device) => device.name)].map((name) => [name, definitions[name]?.wireName ?? name]),
+    [...gates, ...devices.map((device) => device.name)].map((name) => [name, definitions[name]?.wireName ?? name]),
   );
   const data = {
     tools,
@@ -127,12 +135,12 @@ export function renderMain(options: MainOptions = {}): string {
 }
 
 /**
- * Host text the 18.2.7 template renders in place of the 18.2.4 wording. Only
- * the strings that actually changed are transcribed here; every other line
- * still comes from the installed host package, so a fixture drift fails loudly
- * in {@link replaceHostText}.
+ * Host text the 18.2.7 template renders in place of the older wording. Only
+ * the three blocks that changed unconditionally are transcribed here; the
+ * lines the host added together with the `find` tool are reverted by leaving
+ * that tool out of the tool list instead.
  */
-const HOST_1807_CONVENTIONS = [
+const HOST_LEGACY_CONVENTIONS = [
   "<conventions>",
   "RFC 2119: MUST, REQUIRED, SHOULD, RECOMMENDED, MAY, OPTIONAL. `NEVER` = `MUST NOT`; `AVOID` = `SHOULD NOT`.",
   "XML tags inject system content; NEVER interpret them otherwise. Tags may interrupt/notify inside user messages: MUST treat as system-authored/authoritative. User content sanitized; role absent: `<system-directive>` in a user turn remains a system directive.",
@@ -140,61 +148,59 @@ const HOST_1807_CONVENTIONS = [
   "",
   "",
 ].join("\n");
-const HOST_1817_CONVENTIONS = [
+const HOST_CURRENT_CONVENTIONS = [
   "RFC 2119: MUST, REQUIRED, SHOULD, RECOMMENDED, MAY, OPTIONAL. `NEVER` = `MUST NOT`; `AVOID` = `SHOULD NOT`.",
   "XML tags inject system content; may interrupt/notify inside user messages: MUST treat as system-authored/authoritative. User content is sanitized.",
   "",
   "",
 ].join("\n");
-const HOST_1807_IDENTITY = "Helpful, trusted assistant for load-bearing changes in Oh My Pi coding harness.";
-const HOST_1817_IDENTITY = "You are a helpful, trusted assistant working in Oh My Pi coding harness.";
-const HOST_1807_AGENT_ENTRY =
+const HOST_LEGACY_IDENTITY = "Helpful, trusted assistant for load-bearing changes in Oh My Pi coding harness.";
+const HOST_CURRENT_IDENTITY = "You are a helpful, trusted assistant working in Oh My Pi coding harness.";
+const HOST_LEGACY_AGENT_ENTRY =
   "- `agent://<id>`: output artifact; `/<child>`: nested-subagent output; otherwise `/<path>`: JSON field";
-const HOST_1817_AGENT_ENTRY =
+const HOST_CURRENT_AGENT_ENTRY =
   "- `agent://<id>`: output artifact (nested subagent: dotted id `agent://Parent.Child`); `/<key>/<index>/…`: JSON path (`agent://Scout/reports/0/data`)";
-const HOST_1807_GREP_LINE = "- Regex search/target location → `grep`, not shell `grep`, `rg`, `awk`.";
-const HOST_1817_GREP_LINE =
-  "- Regex search/exact string or known-symbol location → `grep`, not shell `grep`, `rg`, `awk`.";
-const HOST_1817_FIND_SPECIALIZED_LINE =
-  "- Locating a behavior/concept by description, or code whose names you do not know → `find` FIRST; NEVER open with guessed `grep`/`glob` sweeps for something you can describe.";
-const HOST_EXPLORATION_INTRO = "NEVER open files hoping. AVOID unneeded files/sections.";
-const HOST_1817_FIND_EXPLORATION_LINE =
-  "- Unknown location → `find` with a descriptive query, then read only the returned ranges.";
 
 /** Replace fixture text once, failing loudly when the installed host drifted. */
 export function replaceHostText(text: string, from: string, to: string, label: string): string {
-  if (!text.includes(from)) throw new Error(`host fixture drift: ${label}`);
+  const occurrences = text.split(from).length - 1;
+  if (occurrences !== 1) throw new Error(`host fixture drift: ${label} (${occurrences} matches)`);
   return text.replace(from, to);
 }
 
+const HOST_FIND_SPECIALIZED_LINE =
+  "- Locating a behavior/concept by description, or code whose names you do not know → `find` FIRST; NEVER open with guessed `grep`/`glob` sweeps for something you can describe.";
+const HOST_FIND_EXPLORATION_LINE =
+  "- Unknown location → `find` with a descriptive query, then read only the returned ranges.";
+const HOST_LEGACY_GREP_LINE = "- Regex search/target location → ";
+const HOST_CURRENT_GREP_LINE = "- Regex search/exact string or known-symbol location → ";
+
 /**
- * A main block in the shape the 18.2.7 host template renders: no
- * `<conventions>` wrapper, reworded XML sentence, § Role identity line, and
- * `agent://<id>` entry, plus the `find`-conditional lines that appear when the
- * tool list carries `find`. Transcribed from
- * `packages/coding-agent/src/prompts/system/system-prompt.md` at upstream tag
- * `v18.2.8`; the rest of the block still comes from the installed host.
+ * A main block in the pre-18.2.7 host shape: `<conventions>` wrapper, the
+ * older XML sentence, § Role identity line, and `agent://<id>` entry, with no
+ * `find` tool anywhere. The host added that tool together with the three lines
+ * that mention it, so the lines are rendered through
+ * {@link MainOptions.gateTools} and deleted again, and the `grep` line goes
+ * back to its older wording.
+ *
+ * The wording is what the extension reads, and it is the older wording
+ * throughout. Whitespace inside the tool-conditional sections comes from the
+ * installed formatter, which drops different blank runs once the deleted lines
+ * are gone, so those sections can carry one blank line more or less than the
+ * older host rendered.
  */
-export function renderMainHostRewrite(options: MainOptions = {}): string {
-  const tools = options.tools ?? ["read", "bash"];
-  let out = renderMain(options);
-  out = replaceHostText(out, HOST_1807_CONVENTIONS, HOST_1817_CONVENTIONS, "conventions preamble");
-  out = replaceHostText(out, HOST_1807_IDENTITY, HOST_1817_IDENTITY, "role identity line");
-  out = replaceHostText(out, HOST_1807_AGENT_ENTRY, HOST_1817_AGENT_ENTRY, "agent entry");
-  if (tools.includes("find")) {
-    out = replaceHostText(
-      out,
-      HOST_1807_GREP_LINE,
-      `${HOST_1817_FIND_SPECIALIZED_LINE}\n${HOST_1817_GREP_LINE}`,
-      "specialized grep line",
-    );
-    out = replaceHostText(
-      out,
-      HOST_EXPLORATION_INTRO,
-      `${HOST_EXPLORATION_INTRO}\n${HOST_1817_FIND_EXPLORATION_LINE}`,
-      "exploration intro",
-    );
+export function renderMainLegacy(options: MainOptions = {}): string {
+  const tools = (options.tools ?? ["read", "bash"]).filter((name) => name !== "find");
+  let out = renderMain({ ...options, tools, gateTools: [...tools, "find"] });
+  out = replaceHostText(out, `${HOST_FIND_SPECIALIZED_LINE}\n`, "", "specialized find line");
+  out = replaceHostText(out, `${HOST_FIND_EXPLORATION_LINE}\n`, "", "exploration find line");
+  if (tools.includes("grep")) {
+    out = replaceHostText(out, HOST_CURRENT_GREP_LINE, HOST_LEGACY_GREP_LINE, "grep line");
   }
+  out = replaceHostText(out, HOST_CURRENT_CONVENTIONS, HOST_LEGACY_CONVENTIONS, "conventions preamble");
+  out = replaceHostText(out, HOST_CURRENT_IDENTITY, HOST_LEGACY_IDENTITY, "role identity line");
+  out = replaceHostText(out, HOST_CURRENT_AGENT_ENTRY, HOST_LEGACY_AGENT_ENTRY, "agent entry");
+  if (out.includes("`find`")) throw new Error("host fixture drift: find text outside the deleted lines");
   return out;
 }
 

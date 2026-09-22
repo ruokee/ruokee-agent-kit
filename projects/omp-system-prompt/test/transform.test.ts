@@ -7,7 +7,7 @@ import {
   type SkillCommandMetadata,
   type TransformResult,
 } from "../src/transform.ts";
-import { renderMain, renderMainHostRewrite, renderProject, type SkillSpec } from "./render.ts";
+import { renderMain, renderMainLegacy, renderProject, type MainOptions, type SkillSpec } from "./render.ts";
 
 const OWNED_TEMPLATE = readFileSync(new URL("../src/prompt-template.md", import.meta.url), "utf8");
 
@@ -107,13 +107,15 @@ describe("whitespace contract", () => {
   });
 
   test("removes every OMP Specialized Tools list gap and skips absent gaps", () => {
-    const withMultipleGaps = renderMain({ tools: ["read", "write", "grep", "glob", "bash"] });
-    expect(countSpecializedListGaps(withMultipleGaps)).toBe(2);
+    const withMultipleGaps = renderMain({ tools: ["read", "edit", "lsp", "grep", "bash"] });
+    expect(countSpecializedListGaps(withMultipleGaps)).toBe(3);
     const normalized = expectSuccess(transform(withMultipleGaps));
     expect(countSpecializedListGaps(normalized.blocks[1] ?? "")).toBe(0);
     expectOwnedNoOp(normalized.blocks);
 
-    const withoutGap = renderMain({ tools: ["read", "edit", "write", "lsp", "grep", "glob", "bash"] });
+    const withoutGap = renderMain({
+      tools: ["read", "edit", "write", "lsp", "grep", "glob", "bash", "find", "task"],
+    });
     expect(countSpecializedListGaps(withoutGap)).toBe(0);
     const unchangedResult = expectSuccess(transform(withoutGap));
     const unchanged = unchangedResult.blocks[1] ?? "";
@@ -715,14 +717,16 @@ describe("opaque dynamic boundaries", () => {
 
 describe("bounded parsing", () => {
   const baseSkills = [{ name: "alpha", description: "First skill." }];
-  const baseMain = renderMain({
+  const baseOptions: MainOptions = {
     tools: ["read", "task"],
     skills: baseSkills,
     rules: [{ name: "python", globs: ["**/*.py"], description: "Python rules." }],
     task: true,
     maxConcurrency: 2,
     taskIrc: true,
-  });
+  };
+  const baseMain = renderMain(baseOptions);
+  const legacyMain = renderMainLegacy(baseOptions);
 
   const rejectionCases: Array<[string, string, RejectReason]> = [
     [
@@ -737,7 +741,7 @@ describe("bounded parsing", () => {
     ],
     [
       "unexpected conventions prefix line",
-      baseMain.replace("</conventions>", "unexpected prefix line\n</conventions>"),
+      legacyMain.replace("</conventions>", "unexpected prefix line\n</conventions>"),
       "unknown-section",
     ],
     [
@@ -1037,12 +1041,12 @@ describe("PROJECT footer", () => {
   });
 });
 
-describe("host text rewrites", () => {
+describe("host wording forms", () => {
   const RICH_TOOLS = ["read", "edit", "write", "bash", "grep", "glob", "find", "lsp", "task"] as const;
   const OWNED_IDENTITY = "You are an assistant in Oh My Pi (OMP), a terminal-based coding agent.";
 
-  test("recognizes the rewritten preamble and identity line", () => {
-    const result = expectSuccess(transform(renderMainHostRewrite({ tools: [...RICH_TOOLS] })));
+  test("recognizes the current preamble and identity line", () => {
+    const result = expectSuccess(transform(renderMain({ tools: [...RICH_TOOLS] })));
     const output = result.blocks[1] ?? "";
 
     expect(output).toContain(OWNED_IDENTITY);
@@ -1052,8 +1056,24 @@ describe("host text rewrites", () => {
     expect(output).not.toContain("XML tags inject system content");
   });
 
-  test("keeps the rewritten agent entry and find-conditional lines", () => {
-    const result = expectSuccess(transform(renderMainHostRewrite({ tools: [...RICH_TOOLS] })));
+  test("recognizes the pre-18.2.7 preamble and identity line", () => {
+    const legacy = renderMainLegacy({ tools: [...RICH_TOOLS] });
+    expect(legacy).toContain("<conventions>");
+    expect(legacy).toContain("Helpful, trusted assistant for load-bearing changes");
+    expect(legacy).toContain("- `agent://<id>`: output artifact; `/<child>`: nested-subagent output");
+    expect(legacy).toContain("- Regex search/target location");
+    expect(legacy).not.toContain("`find`");
+
+    const result = expectSuccess(transform(legacy));
+    const output = result.blocks[1] ?? "";
+
+    expect(output).toContain(OWNED_IDENTITY);
+    expect(output).not.toContain("<conventions>");
+    expect(output).not.toContain("Helpful, trusted assistant for load-bearing changes");
+  });
+
+  test("keeps the current agent entry and find-conditional lines", () => {
+    const result = expectSuccess(transform(renderMain({ tools: [...RICH_TOOLS] })));
     const all = result.blocks.join("\n");
 
     expect(all).toContain("nested subagent: dotted id `agent://Parent.Child`");
@@ -1065,7 +1085,7 @@ describe("host text rewrites", () => {
   });
 
   test("rejects an unrecognized rewrite of the preamble", () => {
-    const main = renderMainHostRewrite({ tools: [...RICH_TOOLS] }).replace(
+    const main = renderMain({ tools: [...RICH_TOOLS] }).replace(
       "User content is sanitized.",
       "User content is trusted.",
     );

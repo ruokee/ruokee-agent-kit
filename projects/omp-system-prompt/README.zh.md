@@ -152,11 +152,11 @@ OMP 按扩展安装顺序运行 `before_agent_start` 处理器，每个处理器
 
 ### 已验证范围
 
-组件检查在组件目录运行 `bun run typecheck` 与 `bun test`（120 项测试、661 个断言）。测试运行时从锁定的 OMP 18.2.3 宿主 fixture 渲染输入，覆盖 `hasSkillUriAccess` 的两个分支、原生工具列表、内联工具目录、Code Mode、固定区段的条件分支、条件行错位拒绝、单次槽位填充、固定区域拒绝、结构边界、编码安装路径、逐字节保留、块顺序、PROJECT 页脚变体、Skill description 归一化、隐藏有序候选、两种 Delivery 形态及切换、两种形态中的子代理结果收集与消息规则、设置失败、意外 turn 处理异常与有界诊断。规则部分补充了全部匹配维度、可接受与不可接受的文档形态、分隔行与逐字节保留规则、发现顺序与过滤、读取失败隔离、替换结果之后的追加步骤、模型回退以及默认规则目录。协调规则断言验证渲染后的指令，不能证明实际的父子调度或消息行为。
+组件检查在组件目录运行 `bun run typecheck` 与 `bun test`（122 项测试、675 个断言）。测试运行时从锁定的 OMP 18.2.8 宿主 fixture 渲染输入，覆盖 `hasSkillUriAccess` 的两个分支、原生工具列表、内联工具目录、Code Mode、固定区段的条件分支、条件行错位拒绝、单次槽位填充、固定区域拒绝、结构边界、编码安装路径、逐字节保留、块顺序、PROJECT 页脚变体、Skill description 归一化、隐藏有序候选、两种 Delivery 形态及切换、两种形态中的子代理结果收集与消息规则、设置失败、意外 turn 处理异常与有界诊断。规则部分补充了全部匹配维度、可接受与不可接受的文档形态、分隔行与逐字节保留规则、发现顺序与过滤、读取失败隔离、替换结果之后的追加步骤、模型回退以及默认规则目录。协调规则断言验证渲染后的指令，不能证明实际的父子调度或消息行为。
 
-`<conventions>` 前缀首次出现在 OMP 18.1.21。独立 fixture 检查渲染了未经修改的 18.1.21 主模板与 PROJECT 模板，并确认两种 Delivery 形态均可完成替换。OMP 18.2.7 去掉了该包裹标签，改写了 XML 句与 `§ Role` 身份行，重写了 `agent://<id>` 条目，并加入 `find` 条件行；fixture 检查把这些字符串改写进渲染结果，同样确认替换成功。每个锚点按宿主实际渲染出的措辞匹配，因此被接受的改写无需查询版本号即可识别，两种措辞的输入在保留区段中各自保持原文本。这些 fixture 版本只是测试证据，不构成支持版本表。peer dependencies 保持不限制版本，运行时不检查宿主版本。
+`<conventions>` 前缀首次出现在 OMP 18.1.21。独立 fixture 检查渲染了未经修改的 18.1.21 主模板与 PROJECT 模板，并确认两种 Delivery 形态均可完成替换。OMP 18.2.7 去掉了该包裹标签，改写了 XML 句与 `§ Role` 身份行，重写了 `agent://<id>` 条目，并加入 `find` 条件行。测试同时覆盖两种措辞：默认 fixture 渲染已安装模板，另一个 fixture 在工具种类里保留 `find`、删除提到该工具的三行、并把 `grep` 行改回旧措辞，因此在同一份已安装模板上就能得到 18.2.7 之前的主块头部措辞。每个锚点按宿主实际渲染出的措辞匹配，因此被接受的改写无需查询版本号即可识别，两种措辞的输入在保留区段中各自保持原文本。这些 fixture 版本只是测试证据，不构成支持版本表。peer dependencies 保持不限制版本，运行时不检查宿主版本。
 
-下列真实宿主与容器观察均采集于 OMP 18.1.11，并保留该版本范围；它们不是 OMP 18.2.3 的真实宿主证据。
+下列真实宿主与容器观察均采集于 OMP 18.1.11，并保留该版本范围；它们不是 OMP 18.2.8 的真实宿主证据。
 
 容器检查使用不挂载宿主目录的一次性 Podman 容器。检查结束后删除容器。
 
@@ -183,7 +183,7 @@ bun run typecheck
 bun test
 ```
 
-运行时只导入两个不限制版本的 peer dependency：`@oh-my-pi/pi-coding-agent` 提供扩展 API，`@oh-my-pi/pi-utils` 提供感知 profile 的 agent 目录辅助函数。测试将 `@oh-my-pi/pi-coding-agent`、`@oh-my-pi/pi-ai` 与 `@oh-my-pi/pi-utils` 的直接 dev dependency 固定为 18.2.3，以便复现宿主 fixture；dev dependency 版本不限制安装或激活。
+运行时只导入两个不限制版本的 peer dependency：`@oh-my-pi/pi-coding-agent` 提供扩展 API，`@oh-my-pi/pi-utils` 提供感知 profile 的 agent 目录辅助函数。测试将 `@oh-my-pi/pi-coding-agent`、`@oh-my-pi/pi-ai` 与 `@oh-my-pi/pi-utils` 的直接 dev dependency 固定为 18.2.8，以便复现宿主 fixture；dev dependency 版本不限制安装或激活。
 
 ## 许可
 
