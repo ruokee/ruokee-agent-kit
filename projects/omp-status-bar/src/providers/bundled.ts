@@ -42,6 +42,10 @@ const LABELS = {
 type LabelMode = keyof typeof LABELS;
 type MetricKey = keyof (typeof LABELS)["compact"];
 
+/** Decimal places the cache-hit percentage shows when unset, and the accepted maximum. */
+const DEFAULT_DECIMAL_PLACES = 1;
+const MAX_DECIMAL_PLACES = 2;
+
 /**
  * Reject any option key outside the allowlist; a provider accepting only
  * its documented keys keeps typos from being silently ignored.
@@ -53,15 +57,27 @@ function rejectUnknownOptions(options: Record<string, unknown>, allowed: readonl
   }
 }
 
-/** Read and validate the `label` option; anything else invalidates the entry. */
-function readLabel(options: Record<string, unknown>): LabelMode {
-  rejectUnknownOptions(options, ["label"]);
+/** Read and validate the `label` option against the metric's option allowlist. */
+function readLabel(options: Record<string, unknown>, allowed: readonly string[] = ["label"]): LabelMode {
+  rejectUnknownOptions(options, allowed);
   const raw = options.label;
   if (raw === undefined) {
     return "compact";
   }
   if (raw !== "compact" && raw !== "word") {
     throw new Error("`label` must be `compact` or `word`");
+  }
+  return raw;
+}
+
+/** Read and validate the `decimalPlaces` option; an unset option uses the default. */
+function readDecimalPlaces(options: Record<string, unknown>): number {
+  const raw = options.decimalPlaces;
+  if (raw === undefined) {
+    return DEFAULT_DECIMAL_PLACES;
+  }
+  if (typeof raw !== "number" || !Number.isInteger(raw) || raw < 0 || raw > MAX_DECIMAL_PLACES) {
+    throw new Error(`\`decimalPlaces\` must be an integer from 0 to ${MAX_DECIMAL_PLACES}`);
   }
   return raw;
 }
@@ -133,7 +149,14 @@ function tokenMetricProvider(metric: "total" | "input" | "cache" | "output" | "c
   return {
     id: metric,
     contractVersion: 1,
-    describe: (options) => ({ label: readLabel(options as Record<string, unknown>) }),
+    describe: (options) => {
+      const opts = options as Record<string, unknown>;
+      const label = readLabel(opts, metric === "cache-hit" ? ["label", "decimalPlaces"] : ["label"]);
+      if (metric !== "cache-hit") {
+        return { label };
+      }
+      return { label, decimalPlaces: readDecimalPlaces(opts) };
+    },
     create: (context) => {
       const store = getSnapshotStore();
       return makeTickerInstance(context, store, "stats", () => {
@@ -156,7 +179,8 @@ function tokenMetricProvider(metric: "total" | "input" | "cache" | "output" | "c
           if (denominator <= 0) {
             return { spans: [] };
           }
-          const hit = Math.round((100 * cacheRead) / denominator);
+          const decimalPlaces = (context.config.decimalPlaces as number | undefined) ?? DEFAULT_DECIMAL_PLACES;
+          const hit = ((100 * cacheRead) / denominator).toFixed(decimalPlaces);
           return { spans: [metricSpan(LABELS[labelMode].cacheHit, `${hit}%`, "cacheHit")] };
         }
         const value = metric === "total" ? total : metric === "input" ? input : metric === "cache" ? cacheRead : output;

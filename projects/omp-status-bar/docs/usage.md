@@ -106,11 +106,11 @@ T, I, C, and O render through the shared decimal token formatter:
 5. Scaled values at or above `99.95` show an integer.
 6. At `999.5` the value promotes to the next unit, so `1000K` never appears.
 
-H shows a percentage rounded to an integer, such as `H 82%` or `Hit 82%`. When `I + C` is zero, the provider publishes nothing.
+`H` shows a percentage with one decimal place by default, including trailing zeroes, such as `H 82.0%` or `Hit 82.0%`. When `I + C` is zero, the provider publishes nothing.
 
 ### Label options
 
-`total`, `input`, `cache`, `output`, and `cache-hit` accept one option:
+`total`, `input`, `cache`, `output`, and `cache-hit` accept a `label` option. `cache-hit` also accepts `decimalPlaces`.
 
 ```yaml
 options:
@@ -123,6 +123,17 @@ options:
 | `word` | `Total` | `Input` | `Cache` | `Output` | `Hit` |
 
 Labels apply per instance, so mixing is allowed. The widget never downgrades `word` to `compact` on a narrow terminal.
+
+### Cache-hit precision
+
+`cache-hit` accepts a `decimalPlaces` option:
+
+```yaml
+options:
+  decimalPlaces: 2
+```
+
+It must be an integer from `0` to `2`. The default is `1`, and the provider renders exactly that many decimal places, including trailing zeroes. Set it to `0` to show an integer, such as `Hit 82%`. The range stops at `2` because `0.01` percentage points is the finest value a status-bar percentage can usefully carry.
 
 ### Fixed colors
 

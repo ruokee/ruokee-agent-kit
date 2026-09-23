@@ -112,3 +112,7 @@ Package 与 OMP 公开的 Widget、上下文用量和压缩解析 API 在 18.x �
 ### 2026-09-05
 
 `context` Provider 的 `absolute` 模式只用共享 formatter 显示当前 token 数。context window 仍用于数据校验和投机区间计算，但 Widget 不显示它。
+
+### 2026-09-23
+
+`cache-hit` Provider 新增 `options.decimalPlaces` option，细化它的百分比取整规则：默认保留一位小数，设为 `0` 时显示整数。该 option 只对 `cache-hit` 生效；取值范围与渲染示例由使用文档维护。

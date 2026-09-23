@@ -36,7 +36,7 @@ describe("builtin metric colors", () => {
     try {
       for (const [id, text, rgb] of [
         ["cache", "Cache 80", "175;135;255"],
-        ["cache-hit", "Hit 80%", "135;135;175"],
+        ["cache-hit", "Hit 80.0%", "135;135;175"],
       ] as const) {
         const provider = BUILTIN_PROVIDERS.find((provider) => provider.id === id)!;
         const widget = createStatusBarWidget();
@@ -56,6 +56,53 @@ describe("builtin metric colors", () => {
           await instance.stop();
         }
       }
+    } finally {
+      resetSnapshotStoreForTests();
+    }
+  });
+});
+
+describe("cache-hit precision", () => {
+  test("renders the configured decimal places and rejects values outside 0 to 2", async () => {
+    resetSnapshotStoreForTests();
+    const store = getSnapshotStore();
+    store.bind({
+      getUsageStatistics: () => ({ input: 2, cacheWrite: 0, cacheRead: 1, output: 0 }),
+      getContextUsage: () => undefined,
+      getModel: () => undefined,
+      getCompactionSettings: () => undefined,
+    });
+    store.attachTimers({ setInterval: () => 1, clearTimeout: () => {} });
+    const provider = BUILTIN_PROVIDERS.find((provider) => provider.id === "cache-hit")!;
+    try {
+      for (const { options, expected } of [
+        { options: {}, expected: "H 33.3%" },
+        { options: { decimalPlaces: 2 }, expected: "H 33.33%" },
+        { options: { decimalPlaces: 0 }, expected: "H 33%" },
+        { options: { label: "word", decimalPlaces: 2 }, expected: "Hit 33.33%" },
+      ]) {
+        const published: ProviderFragment[] = [];
+        const instance = provider.create({
+          options,
+          config: provider.describe(options),
+          publish: (fragment) => published.push(fragment),
+          setInterval: () => 1,
+          setTimeout: () => 2,
+          clearTimer: () => {},
+        });
+        try {
+          await instance.start();
+          expect(published[published.length - 1]?.spans[0]?.text).toBe(expected);
+        } finally {
+          await instance.stop();
+        }
+      }
+      expect(() => provider.describe({ decimalPlaces: -1 })).toThrow("decimalPlaces");
+      expect(() => provider.describe({ decimalPlaces: 1.5 })).toThrow("decimalPlaces");
+      expect(() => provider.describe({ decimalPlaces: 3 })).toThrow("decimalPlaces");
+      expect(() => provider.describe({ decimalPlaces: "2" })).toThrow("decimalPlaces");
+      const totalProvider = BUILTIN_PROVIDERS.find((provider) => provider.id === "total")!;
+      expect(() => totalProvider.describe({ decimalPlaces: 2 })).toThrow(/unknown option/);
     } finally {
       resetSnapshotStoreForTests();
     }

@@ -112,3 +112,7 @@ The implementation removes both the earlier status bar proposal pair and this de
 ### 2026-09-05
 
 The `context` provider's `absolute` mode renders only the current token count with the shared formatter. The context window remains an internal input for validation and speculation-band calculation, but the widget does not display it.
+
+### 2026-09-23
+
+The `cache-hit` provider gains an `options.decimalPlaces` option that refines its rounded-percentage rule: one decimal place by default, `0` for an integer. The option applies to `cache-hit` only; the usage documentation carries the accepted range and the rendering examples.

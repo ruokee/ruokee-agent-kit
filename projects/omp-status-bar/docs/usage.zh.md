@@ -106,11 +106,11 @@ T、I、C、O 使用共享的十进制 token formatter：
 5. 缩放值不小于 `99.95` 时显示整数。
 6. 缩放值达到 `999.5` 时提升到下一个单位，避免出现 `1000K`。
 
-H 显示百分比并四舍五入到整数，例如 `H 82%` 或 `Hit 82%`。当 `I + C` 为零时，该 Provider 不发布片段。
+H 默认保留一位小数，末尾补零，例如 `H 82.0%` 或 `Hit 82.0%`。当 `I + C` 为零时，该 Provider 不发布片段。
 
 ### 标签 option
 
-`total`、`input`、`cache`、`output`、`cache-hit` 接受一个 option：
+`total`、`input`、`cache`、`output` 和 `cache-hit` 接受 `label` option。`cache-hit` 还接受 `decimalPlaces`。
 
 ```yaml
 options:
@@ -123,6 +123,17 @@ options:
 | `word` | `Total` | `Input` | `Cache` | `Output` | `Hit` |
 
 标签按 Provider 实例生效，允许混用。Widget 不会因为终端变窄把 `word` 降级成 `compact`。
+
+### 缓存命中率精度
+
+`cache-hit` 接受 `decimalPlaces` option：
+
+```yaml
+options:
+  decimalPlaces: 2
+```
+
+该值必须是 `0` 到 `2` 的整数。默认值为 `1`，Provider 按该位数渲染百分比，末尾补零。设为 `0` 时不显示小数，例如 `Hit 82%`。上限取 `2`，因为 `0.01` 个百分点已经是状态栏百分比能有效传达的最细粒度。
 
 ### 固定配色
 
