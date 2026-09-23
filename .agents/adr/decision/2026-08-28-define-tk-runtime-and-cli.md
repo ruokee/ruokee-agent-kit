@@ -7,7 +7,7 @@ English | [中文](./2026-08-28-define-tk-runtime-and-cli.zh.md)
 
 ## Motivation
 
-The [tk product architecture](./2026-08-21-define-tk-product-architecture.md) exposes the same Task behavior through a human CLI, stdio MCP, and native Harness tools. A single runtime must own request orchestration, domain rules, persistence, output, cancellation, and resource limits so that interfaces do not become separate implementations.
+One runtime must own request orchestration, domain rules, persistence, output, cancellation, and resource limits so that the human CLI, stdio MCP, and native Harness tools exposed by the [tk product architecture](./2026-08-21-define-tk-product-architecture.md) do not become separate implementations of the same Task behavior.
 
 The runtime also needs a stable command boundary for scripts and adapters. It must report expected failures structurally without hiding transport failures, operating-system errors, or partial commits.
 

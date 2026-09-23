@@ -7,9 +7,7 @@ English | [中文](./2026-09-12-unify-repository-checks.zh.md)
 
 ## Motivation
 
-Repository verification spans Markdown formatting, tk Rust code, the packaged OMP extensions, and the native tk adapter. The root [package.json](../../../package.json) and component scripts need one complete entry point so a successful repository check covers all existing automation.
-
-A Markdown and Rust check alone cannot detect failures in the TypeScript extensions or native adapter. Explicit component targets and reliable failure propagation give contributors a consistent complete check.
+One complete repository check must cover all existing automation: Markdown formatting, tk Rust code, the packaged OMP extensions, and the native tk adapter. A Markdown and Rust check alone cannot detect failures in the TypeScript extensions or the native adapter, so the root [package.json](../../../package.json) and component scripts need one entry point built from explicit component targets and reliable failure propagation, giving contributors a consistent complete check.
 
 ## Decision
 

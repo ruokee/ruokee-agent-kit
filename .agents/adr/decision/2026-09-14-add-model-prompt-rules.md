@@ -7,13 +7,13 @@ English | [中文](./2026-09-14-add-model-prompt-rules.zh.md)
 
 ## Motivation
 
-Models differ in how they follow instructions. A maintainer may want one model to state assumptions before editing and another to answer briefly, without editing extension source, host files, or a distribution.
+Models differ in how they follow instructions, and `@ruokee/omp-system-prompt` should let a maintainer give different instructions to different models by writing user-authored Markdown rule documents, without editing extension source, host files, or a distribution. A maintainer may want one model to state assumptions before editing and another to answer briefly.
+
+## Analysis
 
 OMP has no model-scoped instruction mechanism at the [checked revision](https://github.com/can1357/oh-my-pi/commit/61b1b8aef634334eaf1412afd003a763e1d1b9c1). Upstream [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) requests one as model-scoped `modelInstructions`. The public `before_agent_start` event exposes the rendered `systemPrompt: string[]` and accepts a replacement array for the current turn ([event](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/types.ts#L752-L768), [result](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/types.ts#L1149-L1153)), and `ctx.model` supplies the current `Model`, including its provider and id ([context](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/types.ts#L476-L480)). An OMP extension can therefore select prompt text by model without patching OMP.
 
 `@ruokee/omp-system-prompt` already transforms that same array to replace fixed policy. A second component would add a second transformation to the same turn input, with the visible result depending on installation order ([chaining](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/runner.ts#L1715-L1725)). One component applies both in a fixed internal order instead.
-
-The requested form is user-authored Markdown. A frontmatter block carries matching metadata, which is not injected, and the body carries the injected text.
 
 ## Decision
 
@@ -79,8 +79,6 @@ The outcome decides whether the local capability stays, covers only what the hos
 Component checks cover the four matching keys with positive and negative cases, alternative semantics within one file, ids containing `/`, case sensitivity, the difference between `exact` and `model`, rule validation and BOM handling, body fidelity for LF, CRLF, indentation, HTML comments, and trailing newlines, ordering across both directories regardless of read completion order, missing directories, the combination with the replacement step in both failure directions, and the non-accumulation of appended blocks across turns.
 
 Real-host checks record the exercised OMP release, the models, and the observed provider-facing request. A handler return value is not provider evidence. They confirm that appended text reaches the request, that frontmatter never does, that a model switch re-matches against the new model, that host blocks and dynamic content survive, that no appended text is duplicated across consecutive turns or after a mid-turn prompt rebuild, and that ordinary subagent turns inherit the rules while restricted-tool and plan-mode subagents do not run the hook. Cases the available model configuration cannot trigger, such as automatic fallback, are recorded as unverified instead of inferred.
-
-The append step holds no cache and reads both directories per covered turn. Directories are small by design and the read is bounded to direct children.
 
 ## Alternatives considered
 

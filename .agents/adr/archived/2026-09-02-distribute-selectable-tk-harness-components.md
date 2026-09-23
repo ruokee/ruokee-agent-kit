@@ -10,9 +10,7 @@ English | [中文](./2026-09-02-distribute-selectable-tk-harness-components.zh.m
 
 ## Motivation
 
-Runtime installation and Harness integration have separate ownership. Component installation must remain deterministic, offline, inspectable, and reversible without a second installation database.
-
-Each Harness now needs selectable tools or CLI mode and English or Chinese Skill content. Packaging and lifecycle behavior must treat those dimensions as one explicit component selection.
+Component packaging and lifecycle must treat each Harness's tools or CLI mode and English or Chinese Skill content as one explicit component selection, because every Harness now needs those two choices. Runtime installation and Harness integration have separate ownership. Component installation must remain deterministic, offline, inspectable, and reversible without a second installation database.
 
 ## Decision
 

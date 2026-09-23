@@ -7,7 +7,7 @@ Decision writer: OMP GPT-5.6 Sol
 
 ## 动机
 
-Skill、Extension、Plugin 和 Package 作为独立组件安装和分发。一个组件指向另一个组件的仓库相对链接可能在源码树中有效，但只安装前者时就会失效。它还会形成一项未声明的要求，两个组件必须使用相互兼容的版本。
+一个组件指向另一个组件的仓库相对链接，可能在源码树中有效，但只安装前者时就会失效。Skill、Extension、Plugin 和 Package 作为独立组件安装和分发，这类链接还会形成一项未声明的要求，两个组件必须使用相互兼容的版本。
 
 Python 专项代码质量内容的迁移直接暴露了这个问题。`python-engineering` 反向链接了 `code-quality` 拥有的文件，导致安装后的 Skill 无法自包含。指向仓库支持文件的链接也有相同问题。
 

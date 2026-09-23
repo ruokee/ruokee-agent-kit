@@ -7,7 +7,7 @@ Decision writer: OMP GPT-5.6 Sol
 
 ## 动机
 
-来源仓库把 Skill、Plugin manifest、marketplace 元数据、Package 文档和语言覆盖层放在一起。照搬这种布局会让宿主可发现的 Skill 依赖仓库打包细节。
+打包后的 Skill 必须保持自包含，能被 Agent Harness 发现，不依赖仓库的打包细节。来源仓库把 Skill、Plugin manifest、marketplace 元数据、Package 文档和语言覆盖层放在一起，照搬这种布局就会让 Skill 依赖这些打包细节。
 
 语言 variant 还会产生另一项歧义。源码路径需要标识所选 variant，但安装后的 Skill 必须使用 Agent Harness 预期的路径。链接如果带有仅在源码中存在的 variant 前缀，安装后就会失效。
 

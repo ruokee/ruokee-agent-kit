@@ -8,7 +8,7 @@ English | [中文](./2026-09-02-integrate-tk-tools-with-harnesses.zh.md)
 
 ## Motivation
 
-Codex, Claude Code, Pi, and OMP expose different registration and loading APIs but need one logical operation contract. The integration must reject incompatible runtimes before registration and must not terminate the surrounding Agent session when tk cannot load.
+Integrating tk with Codex, Claude Code, Pi, and OMP requires one logical operation contract, because these Harnesses expose different registration and loading APIs. The integration must reject incompatible runtimes before registration and must not terminate the surrounding Agent session when tk cannot load.
 
 Tools mode also needs one unambiguous route for covered Task operations. Direct CLI retry after a logical refusal or failure would bypass the selected integration and can repeat a write with different transport behavior.
 

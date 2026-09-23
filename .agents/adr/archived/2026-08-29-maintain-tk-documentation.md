@@ -9,7 +9,7 @@ English | [中文](./2026-08-29-maintain-tk-documentation.zh.md)
 
 ## Motivation
 
-The [tk product architecture](../decision/2026-08-21-define-tk-product-architecture.md) spans Task files, a Rust runtime, CLI, MCP, native tools, four Harnesses, component lifecycle, Skills, and bilingual public documentation. Repeating the same contract on every page would create conflicting sources. Keeping only implementation code would make behavior and rationale difficult to audit.
+This decision defines how tk documentation is maintained across the material that the [tk product architecture](../decision/2026-08-21-define-tk-product-architecture.md) spans: Task files, a Rust runtime, CLI, MCP, native tools, four Harnesses, component lifecycle, Skills, and bilingual public documentation. Repeating the same contract on every page would create conflicting sources. Keeping only implementation code would make behavior and rationale difficult to audit.
 
 The repository uses English as its default public language and needs complete Chinese material for maintainer review. The two languages must describe the same product without forcing Chinese into sentence-by-sentence translation.
 

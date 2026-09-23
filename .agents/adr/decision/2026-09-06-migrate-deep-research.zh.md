@@ -7,9 +7,7 @@ Decision writer: OMP
 
 ## 动机
 
-`deep-research` 提供结构化、证据优先的研究流程，用于广泛调研和有来源依据的报告。其行为由研究指令定义，不需要 Plugin 运行时。
-
-Ruokee Agent Kit 需要以自包含 Skill 的形式提供这项能力，并保持中英文变体语义一致。
+Ruokee Agent Kit 需要以自包含 Skill 的形式提供 `deep-research` 能力，并保持中英文变体语义一致。`deep-research` 提供结构化、证据优先的研究流程，用于广泛调研和有来源依据的报告；其行为由研究指令定义，不需要 Plugin 运行时。
 
 ## 决定
 
@@ -31,4 +29,4 @@ Ruokee Agent Kit 需要以自包含 Skill 的形式提供这项能力，并保�
 
 两种变体均使用 `name: deep-research`，`description` 字段含义等价，说明何时使用该 Skill。两者的研究要求保持语义一致。翻译遗漏证据要求或改变研究停止条件，可能导致行为差异，因此应对照审查中英文指令。
 
-保持两份仓库 README 中的能力索引链接有效，并运行 `pnpm check` 验证仓库。
+保持两份仓库 README 中的能力索引链接有效，并通过[统一仓库检查决定](./2026-09-12-unify-repository-checks.zh.md)定义的仓库检查。

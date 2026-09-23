@@ -9,9 +9,7 @@ English | [中文](./2026-08-20-maintain-bilingual-public-documentation.zh.md)
 
 ## Motivation
 
-The repository is public and uses English for code and its default documentation, while Ruokee reviews technical decisions and usage details in Chinese. English-only documentation would remove that audit path. Mixing both languages in every file would double routine reading and make navigation noisy.
-
-The project needs one language policy for user-facing documentation rather than a special exception for the root README.
+The project needs one language policy for user-facing documentation, rather than a special exception for the root README, because the repository is public and uses English for code and its default documentation while Ruokee reviews technical decisions and usage details in Chinese. English-only documentation would remove that audit path. Mixing both languages in every file would double routine reading and make navigation noisy.
 
 ## Decision
 
@@ -21,7 +19,7 @@ Keep reciprocal language links between corresponding English and Chinese entry p
 
 Review both language versions in the same change. Require semantic agreement, not sentence-by-sentence or byte-for-byte translation. Chinese may use a more natural explanation as long as it preserves the same behavior, limits, and instructions.
 
-Do not require translations for every internal implementation note, comment, generated file, or maintainer-only artifact. The paired policy applies to public behavior and usage documentation. ADRs use the stricter paired format defined by [Establish the ADR mechanism](../decision/2026-09-02-establish-adr-mechanism.md).
+Do not require translations for every internal implementation note, comment, generated file, or maintainer-only artifact. The paired policy applies to public behavior and usage documentation. ADRs use the stricter paired format defined by [Establish the ADR mechanism](./2026-09-02-establish-adr-mechanism.md).
 
 ## Alternatives considered
 
@@ -41,4 +39,4 @@ Some public documents have no obvious counterpart. A change defines the pair whe
 
 ### 2026-09-02: Apply the ADR pair format
 
-ADRs use the stricter English and Chinese pair format defined by [Establish the ADR mechanism](../decision/2026-09-02-establish-adr-mechanism.md). Both files remain semantically authoritative and move together.
+ADRs use the stricter English and Chinese pair format defined by [Establish the ADR mechanism](./2026-09-02-establish-adr-mechanism.md). Both files remain semantically authoritative and move together.

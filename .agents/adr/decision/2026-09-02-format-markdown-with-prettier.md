@@ -7,7 +7,7 @@ English | [中文](./2026-09-02-format-markdown-with-prettier.zh.md)
 
 ## Motivation
 
-Prettier provides deterministic formatting for Markdown structures such as paragraphs, headings, lists, block quotes, links, code blocks, and tables. Without one repository formatter, authors and editors can produce different layouts, while basic whitespace checks cannot enforce a common result.
+Without a single repository formatter for Markdown, authors and editors can produce different layouts and basic whitespace checks cannot enforce a common result. Prettier provides deterministic formatting for Markdown structures such as paragraphs, headings, lists, block quotes, links, code blocks, and tables.
 
 Prettier normally pads table cells to align each source column. That padding makes raw Markdown harder to scan and increases the amount of text an Agent must process. The repository also needs consistent spacing between Chinese text and Latin letters or numbers.
 

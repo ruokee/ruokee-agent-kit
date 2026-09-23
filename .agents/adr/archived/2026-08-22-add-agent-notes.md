@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-02
-Reversed by: [Establish the ADR mechanism](../decision/2026-09-02-establish-adr-mechanism.md)
+Reversed by: [Establish the ADR mechanism](./2026-09-02-establish-adr-mechanism.md)
 
 English | [中文](./2026-08-22-add-agent-notes.zh.md)
 

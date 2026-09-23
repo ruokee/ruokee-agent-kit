@@ -8,7 +8,7 @@ English | [中文](./2026-09-10-use-codex-web-plugin-settings.zh.md)
 
 ## Motivation
 
-OMP's built-in `web_search` supports Codex subscriptions supplied directly to OMP, but it cannot use a Codex subscription exposed through a forwarding Provider. The Codex Harness supports this arrangement. OMP therefore needs web search and page extraction tools that run the forwarding Provider's `openai-responses` model registered in OMP and coexist with OMP's built-in tools. Users need independent control over each tool's availability and whether its schema is presented at the top level or discovered through `xd://`.
+`omp-codex-web-access` provides web search and page extraction through a forwarding Provider's Codex subscription, configured through OMP's native plugin settings. OMP's built-in `web_search` supports Codex subscriptions supplied directly to OMP but cannot use this forwarding arrangement, which the Codex Harness supports. The extension runs the forwarding Provider's `openai-responses` model registered in OMP and coexists with OMP's built-in tools. Users need independent control over each tool's availability and whether its schema is presented at the top level or discovered through `xd://`.
 
 The component also needs one OMP configuration contract that supports user values and project overrides. Native plugin settings provide that contract through OMP's CLI and public settings getter while keeping model credentials in OMP's existing model registry and credential APIs.
 
@@ -66,7 +66,7 @@ The registration API is called after configuration validation, but a registratio
 
 ### Migration and presentation
 
-The extension does not read, import, delete, or rewrite `omp-codex-web-access.yml`, including any fallback behavior. Existing users transfer values manually using the mapping above. The old YAML file is not automatically deleted. After migration, restart the OMP process so the extension activates again and reads the native values. Creating or switching a session in the same process does not refresh the snapshot. If the old YAML file is the only configuration, it has no effect and the native defaults apply, including an empty model selector.
+The extension does not read, import, delete, or rewrite `omp-codex-web-access.yml`, including any fallback behavior. Existing users transfer values manually using the mapping above. The old YAML file is not automatically deleted. After migration, restart the OMP process so the extension activates again and reads the native values. If the old YAML file is the only configuration, it has no effect and the native defaults apply, including an empty model selector.
 
 Each tool has independent enablement and presentation:
 

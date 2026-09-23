@@ -8,11 +8,13 @@ English | [中文](./2026-09-11-align-tk-usage-patterns.zh.md)
 
 ## Motivation
 
-Material patterns need an explicit suggestion signal, an adoption step, and a defined maintenance duty, so an Agent and a user reach the same understanding of what a pattern adds and what it requires. Public documentation needs the same clarity about which page owns which contract, and both languages must describe that contract identically.
+tk needs one shared protocol for suggesting, adopting, and maintaining its four built-in usage patterns, and one ownership and bilingual consistency rule for the public pages that describe them, so that an Agent and a user reach the same understanding of what a pattern adds, what it requires, and which page owns which contract.
 
-The [Skill pattern reference](../../../projects/tk/skills/tk/references/patterns.md) and the [Skill design](../../../projects/tk/docs/design/skill.md) state the four patterns. This decision fixes the shared protocol for suggesting, adopting, and maintaining them, and the ownership and bilingual consistency rules for the public pages that describe them.
+The [Skill pattern reference](../../../projects/tk/skills/tk/references/patterns.md) and the [Skill design](../../../projects/tk/docs/design/skill.md) state the four patterns. This decision fixes that shared protocol and those ownership rules, and restates every still-effective rule of the [archived documentation decision](../archived/2026-08-29-maintain-tk-documentation.md) that governs the public documentation set and its maintenance.
 
-The [archived documentation decision](../archived/2026-08-29-maintain-tk-documentation.md) fixes the Chinese form of `scratchpad` as `临时记事区`, which conflicts with `草稿纸` as the pattern's Chinese name. This decision therefore restates every still-effective rule of that decision that governs the public documentation set and its maintenance.
+## Analysis
+
+The [archived documentation decision](../archived/2026-08-29-maintain-tk-documentation.md) fixes the Chinese form of `scratchpad` as `临时记事区`, which conflicts with `草稿纸` as the pattern's Chinese name.
 
 ## Decision
 

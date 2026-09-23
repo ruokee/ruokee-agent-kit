@@ -8,11 +8,13 @@ Reverses: [维护 tk 文档](../archived/2026-08-29-maintain-tk-documentation.zh
 
 ## 动机
 
-材料模式需要明确的建议信号、采用步骤和固定的维护职责，使 Agent 和用户对模式会增加什么、需要维护什么形成一致理解。公开文档同样需要明确每项合同由哪个页面负责，并要求两种语言描述同一套合同。
+tk 需要一套共同规则来建议、采用和维护四种内置使用模式，并需要为描述这些模式的公开页面明确归属与双语一致要求，使 Agent 和用户对模式会增加什么、需要维护什么，以及每项合同由哪个页面负责，形成一致理解。
 
-[Skill 模式参考](../../../projects/tk/skills/tk-zh/references/patterns.md)与 [Skill 设计](../../../projects/tk/docs/design/skill.zh.md)给出四种模式。本决定确定建议、采用和维护这些模式的共同规则，以及描述这些模式的公开页面的归属与双语一致规则。
+[Skill 模式参考](../../../projects/tk/skills/tk-zh/references/patterns.md)与 [Skill 设计](../../../projects/tk/docs/design/skill.zh.md)给出四种模式。本决定确定上述共同规则与归属规则，并重述[已归档的文档维护决定](../archived/2026-08-29-maintain-tk-documentation.zh.md)中所有仍然有效、覆盖公开文档集合及其维护方式的规则。
 
-[已归档的文档维护决定](../archived/2026-08-29-maintain-tk-documentation.zh.md)将 `scratchpad` 固定译为“临时记事区”，与“草稿纸”作为模式中文名称冲突。本决定因此重述该决定中所有仍然有效的规则，覆盖公开文档集合及其维护方式。
+## 分析
+
+[已归档的文档维护决定](../archived/2026-08-29-maintain-tk-documentation.zh.md)将 `scratchpad` 固定译为“临时记事区”，与“草稿纸”作为模式中文名称冲突。
 
 ## 决定
 

@@ -9,7 +9,7 @@ English | [中文](./2026-08-28-integrate-tk-with-harnesses.zh.md)
 
 ## Motivation
 
-The [tk product architecture](../decision/2026-08-21-define-tk-product-architecture.md) supports Codex, Claude Code, Pi, and OMP without moving Task semantics into Harness-specific code. These Harnesses expose different component, MCP, extension, Package, tool registration, and loading interfaces. They still need one logical tool set and one request and result contract.
+tk exposes one logical tool set and one request and result contract to Codex, Claude Code, Pi, and OMP without moving Task semantics into Harness-specific code. The [tk product architecture](../decision/2026-08-21-define-tk-product-architecture.md) supports those four Harnesses, which expose different component, MCP, extension, Package, tool registration, and loading interfaces.
 
 A failed integration must not terminate the surrounding Agent session. At the same time, an adapter must reject an incompatible runtime or incomplete schema before it exposes tools that cannot honor the public contract.
 

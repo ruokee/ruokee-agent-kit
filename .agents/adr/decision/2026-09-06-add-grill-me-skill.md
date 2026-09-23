@@ -71,9 +71,9 @@ The Skill is available as two independently usable language components. Invocati
 1. Both self-contained language components use the `grill-me` identifier and `Grill Me` display name and contain no dependency on another component.
 2. Both set `disable-model-invocation: true` and `policy.allow_implicit_invocation: false`. Descriptions do not permit automatic activation for deep-review requests.
 3. The two variants implement the behavior listed above and agree semantically. Skill indexes describe the same role and manual invocation condition.
-4. For each host covered by validation, verify that ordinary planning, a deep-review request without explicit invocation, and discussion of the Skill itself do not load it. Verify that explicit invocation does load it.
-5. Exercise both an incomplete idea and an existing plan after explicit invocation. Check research-before-questioning, question limits and numbering, record continuity, correction of an upstream answer, early termination, and the prohibition on unauthorized implementation. Record the hosts and scenarios tested, results, and limitations.
-6. Run the repository checks.
+4. For each host covered by validation, the Skill loads only on explicit invocation: ordinary planning, a deep-review request without explicit invocation, and discussion of the Skill itself do not load it, while explicit invocation does.
+5. Explicit invocation supports both an incomplete idea and an existing plan, including research before questioning, question limits and numbering, record continuity, correction of an upstream answer, early termination, and the prohibition on unauthorized implementation. Behavioral evidence records the hosts and scenarios tested, results, and limitations.
+6. Repository checks must pass.
 
 ### Risks
 

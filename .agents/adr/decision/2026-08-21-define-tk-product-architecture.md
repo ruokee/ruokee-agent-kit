@@ -7,7 +7,7 @@ English | [中文](./2026-08-21-define-tk-product-architecture.zh.md)
 
 ## Motivation
 
-Agent work can outlive one conversation, model context, or Harness session. It needs a durable project-local record for the current objective, relationships, materials, decisions, and work history. Conversation history, branches, Issues, todo lists, and Harness state do not provide one representation that remains available across Codex, Claude Code, Pi, OMP, and direct CLI use.
+Agent work can outlive one conversation, model context, or Harness session, so tk needs a durable project-local record for the current objective, relationships, materials, decisions, and work history. Conversation history, branches, Issues, todo lists, and Harness state do not provide one representation that remains available across Codex, Claude Code, Pi, OMP, and direct CLI use.
 
 The record must remain inspectable as ordinary files. It must not turn the repository into a workflow service, Agent orchestrator, global task database, or session store.
 

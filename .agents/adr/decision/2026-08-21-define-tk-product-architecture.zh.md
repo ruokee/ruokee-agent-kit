@@ -7,7 +7,7 @@ Decision writer: OMP GPT-5.6 Sol
 
 ## 动机
 
-Agent 工作可能跨越多次对话、模型上下文或 Harness 会话，因此需要一份位于项目本地的持久记录，保存当前目标、关系、材料、决定和工作历史。对话历史、分支、Issues、待办列表和 Harness 状态都无法提供一种可在 Codex、Claude Code、Pi、OMP 和直接 CLI 使用之间延续的统一表示。
+Agent 工作可能跨越多次对话、模型上下文或 Harness 会话，因此 tk 需要一份位于项目本地的持久记录，保存当前目标、关系、材料、决定和工作历史。对话历史、分支、Issues、待办列表和 Harness 状态都无法提供一种可在 Codex、Claude Code、Pi、OMP 和直接 CLI 使用之间延续的统一表示。
 
 这份记录必须以普通文件形式保持可检查。它不能把仓库变成工作流服务、Agent 编排器、全局任务数据库或会话存储。
 

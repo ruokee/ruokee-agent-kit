@@ -7,7 +7,7 @@ English | [中文](./2026-09-02-select-tk-skill-language.zh.md)
 
 ## Motivation
 
-A manually installed Chinese Skill sits outside the Harness component lifecycle. Users must install and switch it separately, and tk cannot report or update the selected language as part of the component state.
+`tk install` must select the Skill language so that a Chinese Skill uses the Harness component lifecycle rather than a separate manual install. A manually installed Chinese Skill sits outside that lifecycle: users must install and switch it separately, and tk cannot report or update the selected language as part of the component state.
 
 Mode and language are independent choices. Their command contract should express both dimensions without requiring users to memorize four Skill names.
 

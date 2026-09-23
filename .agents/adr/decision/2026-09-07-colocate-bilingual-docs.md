@@ -8,9 +8,9 @@ English | [中文](./2026-09-07-colocate-bilingual-docs.zh.md)
 
 ## Motivation
 
-The repository is public and uses English for code and default documentation, while Ruokee uses Chinese to review technical decisions and usage details. Separate language files keep each version independently readable without mixing both languages throughout every page.
+The repository keeps English and Chinese public documentation in same-directory pairs so each version is independently readable and its counterpart stays beside the same component or topic. The repository is public and uses English for code and default documentation, while Ruokee uses Chinese to review technical decisions and usage details.
 
-Keeping counterparts in the same directory makes their paths predictable and keeps documentation beside its component or topic. Repository and component entry pages need clear responsibilities so readers can discover capabilities and reach their detailed documentation without competing indexes or duplicated contracts.
+Repository and component entry pages also need clear responsibilities so readers can discover capabilities and reach their detailed documentation without competing indexes or duplicated contracts.
 
 ## Decision
 
@@ -22,7 +22,7 @@ Keep reciprocal language links. Each document must make sense on its own. Update
 
 Internal implementation notes, comments, generated files, and maintainer-only artifacts require translation only when their audience needs it. Define a real file pair when public behavior or usage first requires Chinese documentation; do not create empty language placeholders.
 
-ADRs use the stricter paired format defined by [Establish the ADR mechanism](./2026-09-02-establish-adr-mechanism.md). Both files remain semantically authoritative and move together, with the existing metadata and lifecycle rules.
+ADRs use the stricter paired format defined by [the ADR mechanism decision](./2026-09-23-clarify-adr-content-boundaries.md). Both files remain semantically authoritative and move together, with the existing metadata and lifecycle rules.
 
 ### Skill packaging
 

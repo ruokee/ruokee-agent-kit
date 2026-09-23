@@ -8,9 +8,9 @@ English | [中文](./2026-09-18-make-architect-model-invoked.zh.md)
 
 ## Motivation
 
-The repository provides a first-party `architect` Skill for system-level architecture analysis, design, review, technology selection, and evolution. Its reference navigation, evidence requirements, and output contract help the Agent reason from project facts about boundaries, data and state, quality attributes, failure, scale, and long-term change.
+A task can clearly require system-level architecture work without naming the `architect` Skill, and requiring the user to remember the Skill name can leave the Agent doing that work without the repository's architecture guidance. The repository provides a first-party `architect` Skill for system-level architecture analysis, design, review, technology selection, and evolution, whose reference navigation, evidence requirements, and output contract help the Agent reason from project facts about boundaries, data and state, quality attributes, failure, scale, and long-term change.
 
-A task can clearly require that work without naming the Skill. Requiring the user to remember the Skill name can leave the Agent doing architecture work without the repository's architecture guidance. The Agent should load architect when the task supplies clear system-level signals, while explicit user invocation remains available and ordinary engineering or product work stays outside its activation scope.
+The Agent should load architect when the task supplies clear system-level signals, while explicit user invocation remains available and ordinary engineering or product work stays outside its activation scope.
 
 ## Decision
 

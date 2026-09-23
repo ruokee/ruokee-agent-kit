@@ -10,7 +10,7 @@ English | [中文](./2026-09-03-define-tk-task-data-model.zh.md)
 
 ## Motivation
 
-The [tk product architecture](../decision/2026-08-21-define-tk-product-architecture.md) makes project files the only authoritative Task state. The runtime therefore needs one exact model for identity, paths, lifecycle, relationships, representations, discovery, writes, migration, and cleanup.
+This decision records the complete tk Task data model for identity, paths, lifecycle, relationships, representations, discovery, writes, migration, and cleanup, with carrier discovery replacing configured-path child lookup. The [tk product architecture](../decision/2026-08-21-define-tk-product-architecture.md) makes project files the only authoritative Task state.
 
 The earlier model used `subtasks_dir` for both child creation and discovery. That made a placement preference part of Task visibility. Changing the setting, importing a valid child, or placing a child below ordinary materials could hide valid managed data. Creation still needs one predictable destination and numbering rule, while discovery must recognize existing valid carriers without treating ordinary Markdown as Tasks.
 

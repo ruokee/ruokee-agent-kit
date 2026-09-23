@@ -7,9 +7,7 @@ Decision writer: OMP GPT-5.6 Sol
 
 ## 动机
 
-早期名称 `ruokee-skills` 只描述 Skill，但实际工作已经包含 Plugin、Package、Extension、可执行项目、安装器、宿主适配和验证支持。直接重命名旧仓库还会继承混合结构，以及不属于新公开项目的内容。
-
-新仓库需要稳定的身份、所有权规则和内容模型，不能强迫每种 Agent 能力都伪装成 Skill。
+Ruokee 面向原创 Agent 能力的公开仓库需要稳定的身份、所有权规则和内容模型，不能强迫每种 Agent 能力都伪装成 Skill。早期名称 `ruokee-skills` 只描述 Skill，但实际工作已经包含 Plugin、Package、Extension、可执行项目、安装器、宿主适配和验证支持。直接重命名旧仓库还会继承混合结构，以及不属于新公开项目的内容。
 
 ## 决定
 

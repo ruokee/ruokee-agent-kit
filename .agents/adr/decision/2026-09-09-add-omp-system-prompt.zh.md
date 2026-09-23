@@ -10,6 +10,8 @@ Reverses: [添加 OMP 系统提示词扩展](../archived/2026-09-07-add-omp-syst
 
 `@ruokee/omp-system-prompt` 替换 OMP 已渲染系统提示词中的固定策略，同时保留选定的运行时内容。公开的 `before_agent_start` 事件提供当前 `systemPrompt: string[]`，公开扩展 API 提供有效插件设置与 Skill 命令元数据。因此可以实现自包含扩展，不修改 OMP，也不复制其私有提示词装配器。
 
+## 分析
+
 peer dependency 与运行时激活不以特定 OMP 版本为条件。固定的 dev dependency 提供可复现的测试 fixture，其版本号并不决定兼容性。转换器在返回替换前会检查完整目标结构，这些检查才是兼容边界。
 
 ## 决定

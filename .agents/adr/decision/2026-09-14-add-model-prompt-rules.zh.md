@@ -7,13 +7,13 @@ Decision writer: deepseek/deepseek-v4.1-flash
 
 ## 动机
 
-各模型遵循指令的方式并不相同。维护者可能希望某个模型在改动前先说明自己的假设，而另一个模型直接给出简短回答，同时不必修改扩展源码、宿主文件或分发包。
+各模型遵循指令的方式并不相同，`@ruokee/omp-system-prompt` 应让维护者通过用户自有的 Markdown 规则文档为不同模型设置各自的指令，同时不必修改扩展源码、宿主文件或分发包；例如某个模型在改动前先说明自己的假设，另一个直接给出简短回答。
+
+## 分析
 
 在[已核对的修订](https://github.com/can1357/oh-my-pi/commit/61b1b8aef634334eaf1412afd003a763e1d1b9c1)中，OMP 没有模型级指令机制。上游 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) 要求提供模型级 `modelInstructions`。公开的 `before_agent_start` 事件暴露已渲染的 `systemPrompt: string[]`，并接受用于当前 turn 的替换数组（[event](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/types.ts#L752-L768)、[result](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/types.ts#L1149-L1153)），`ctx.model` 提供当前 `Model`，包括其 provider 和 id（[context](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/types.ts#L476-L480)）。因此 OMP 扩展无需修改 OMP 即可按模型选择提示词文本。
 
 `@ruokee/omp-system-prompt` 已经变换同一个数组以替换固定策略。另建一个组件会对同一 turn 输入叠加第二次变换，可见结果取决于安装顺序（[chaining](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/runner.ts#L1715-L1725)）。由同一个组件按固定的内部顺序完成两项工作可以避免该依赖。
-
-所需形式是用户自有的 Markdown。frontmatter 块承载匹配元数据，该部分不注入；正文承载注入文本。
 
 ## 决定
 
@@ -79,8 +79,6 @@ Decision writer: deepseek/deepseek-v4.1-flash
 组件检查覆盖四个匹配键的正反用例、单文件内的多条目替代语义、包含 `/` 的 id、大小写敏感、`exact` 与 `model` 的差别、规则校验与 BOM 处理、LF、CRLF、缩进、HTML 注释与末尾换行的正文保真、跨两个目录且不受读取完成顺序影响的排序、目录缺失、与替换步骤的组合及两个方向的失败、以及追加块跨 turn 不累积。
 
 真实宿主检查记录所用 OMP 版本、所用模型和观察到的 Provider-facing 请求。处理器返回值本身不构成 Provider 证据。检查确认追加文本进入请求、frontmatter 从不进入、切换模型后按新模型重新匹配、宿主块与动态内容保留、连续 turn 以及轮中重建后追加文本不重复，以及普通子 Agent turn 继承规则，而受限工具与 plan-mode 子 Agent 不运行该钩子。当前模型配置无法触发的场景（例如自动回退）记为未验证，而不是推断结论。
-
-追加步骤不保存缓存，每个受覆盖的 turn 读取两个目录。目录按设计保持很小，读取范围限于直接子项。
 
 ## 考虑过的替代方案
 

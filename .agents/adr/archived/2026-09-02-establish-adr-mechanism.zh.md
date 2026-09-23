@@ -2,7 +2,9 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
-Reverses: [添加 Agent Note 机制](../archived/2026-08-22-add-agent-notes.zh.md)
+Reverses: [添加 Agent Note 机制](./2026-08-22-add-agent-notes.zh.md)
+Archived: 2026-09-23
+Reversed by: [明确 ADR 机制与内容边界](../decision/2026-09-23-clarify-adr-content-boundaries.zh.md)
 
 [English](./2026-09-02-establish-adr-mechanism.md) | 中文
 

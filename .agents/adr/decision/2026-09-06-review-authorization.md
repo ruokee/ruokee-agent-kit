@@ -7,7 +7,7 @@ English | [中文](./2026-09-06-review-authorization.zh.md)
 
 ## Motivation
 
-Cross-file, dependency, and architectural recommendations are part of a full review. Describing a change does not apply it, and maintaining an authorized report does not change the reviewed files.
+A full review needs to report cross-file, dependency, and architectural recommendations without separate approval. Describing a change does not apply it, and maintaining an authorized report does not change the reviewed files.
 
 ## Decision
 

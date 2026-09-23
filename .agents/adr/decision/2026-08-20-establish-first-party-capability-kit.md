@@ -7,9 +7,7 @@ English | [中文](./2026-08-20-establish-first-party-capability-kit.zh.md)
 
 ## Motivation
 
-The earlier `ruokee-skills` name described only Skills, while the work already included Plugins, packages, extensions, executables, installers, host adapters, and validation support. Renaming that repository in place would also carry forward a mixed structure and content that did not belong to the new public project.
-
-The new repository needs a stable identity, an ownership rule, and a content model that does not force every Agent capability to pretend to be a Skill.
+Ruokee's public repository for original Agent capabilities needs a stable identity, an ownership rule, and a content model that does not force every Agent capability to pretend to be a Skill. The earlier `ruokee-skills` name described only Skills, while the work already included Plugins, packages, extensions, executables, installers, host adapters, and validation support. Renaming that repository in place would also carry forward a mixed structure and content that did not belong to the new public project.
 
 ## Decision
 

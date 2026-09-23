@@ -9,7 +9,7 @@ English | [中文](./2026-09-06-add-omp-codex-web-access.zh.md)
 
 ## Motivation
 
-OMP's built-in `web_search` supports Codex subscriptions supplied directly to OMP, but it cannot use a Codex subscription exposed through a third-party forwarding Provider. The Codex Harness supports this arrangement. OMP therefore needs web search and page extraction tools that run the forwarding Provider's `openai-responses` model registered in OMP and coexist with its built-in tools. Users also need to choose independently whether each tool is available and whether its schema is presented directly to the model or discovered through `xd://`.
+OMP needs its own web search and page extraction tools to use a Codex subscription exposed through a third-party forwarding Provider, because the built-in `web_search` only supports subscriptions supplied directly to OMP. The Codex Harness supports this forwarding arrangement, and the new tools run on the forwarding Provider's `openai-responses` model registered in OMP while coexisting with the built-in tools. Users also need to choose independently whether each tool is available and whether its schema is presented directly to the model or discovered through `xd://`.
 
 ## Decision
 

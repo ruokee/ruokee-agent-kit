@@ -86,7 +86,7 @@ The body uses these required sections:
 ## Risks
 ```
 
-The Chinese body uses `## 动机`, `## 提议`, `## 考虑过的替代方案`, `## 验收标准`, and `## 风险`.
+The Chinese body uses `## 动机`, `## 提议`, `## 考虑过的替代方案`, `## 验收标准`, and `## 风险`. The English file may add an optional `## Analysis` section, and the Chinese file an optional `## 分析` section, immediately after the motivation section.
 
 Merge an approved proposal to `main` as a dedicated change before implementation begins. Implementation starts from the resulting `main` on a new short-lived branch. One proposal may create several decisions, reverse several decisions, or do both.
 
@@ -133,15 +133,17 @@ The body uses these required sections:
 ## Consequences
 ```
 
-The Chinese body uses `## 动机`, `## 决定`, `## 考虑过的替代方案`, and `## 结果`.
+The Chinese body uses `## 动机`, `## 决定`, `## 考虑过的替代方案`, and `## 结果`. The English file may add an optional `## Analysis` section, and the Chinese file an optional `## 分析` section, immediately after the motivation section.
 
 ### Update decision
 
-When new content does not conflict with a current decision, append it under a final `## Changes` or `## 变更` section. Record each update under a dated level-three heading. Link a new decision when the added content deserves its own ADR.
+When new content does not conflict with a current decision, append it under a final `## Changes` or `## 变更` section. Record each update under a dated level-three heading. Link a new decision when the added content deserves its own ADR. Purely editorial maintenance creates no new choice and does not require a reversal.
 
 ### Reverse decision
 
-Do not rewrite a current decision to express a conflicting choice. Create a proposal that names every decision to reverse. After implementation, combine each old decision's still-effective rules with the accepted proposal into a complete new decision.
+Do not rewrite a current decision to express a conflicting choice. Create a proposal that names every decision to reverse and identifies the effective clause, the proposed choice, and why both cannot hold. Code size, an added feature, another host dependency, or a renamed file is not sufficient evidence by itself.
+
+After implementation, combine each old decision's still-effective rules with the accepted proposal into a complete new decision. The successor preserves the still-effective rules within the decision's scope; it does not reproduce the component's implementation specification.
 
 Add `Reverses` to the new decision's header metadata block and `Reversed by` to each archived decision's header metadata block. Move both old-language files to `archived/` in the same change.
 
@@ -151,7 +153,29 @@ An archived decision keeps the decision format, adds `Archived: YYYY-MM-DD` to i
 
 ## Authoring rules
 
-`## Motivation` opens both document types and states the concrete reason for considering or adopting the choice.
+### Opening the ADR
+
+`## Motivation` opens both document types and states the concrete reason for considering or adopting the choice. Its first sentence identifies the subject and the concrete problem, intended change, or goal without relying on the title, links, or later text. A wanted capability need not be framed as a defect. A reversal proposal opens with the change it proposes, and a successor decision describes the complete choice it records.
+
+The English file may add an optional `## Analysis` section, and the Chinese file an optional `## 分析` section, immediately after the motivation section and before `## Proposal`/`## 提议` or `## Decision`/`## 决定`. Omit it when there is no substantive analysis. Analysis records only observations, evidence, constraints, reasoning, and uncertainties that affect the choice. It is not an implementation plan or a copy of research notes, and it neither repeats the motivation section nor the alternatives section.
+
+### Necessary contract and implementation material
+
+An ADR records a coherent durable choice, its reasons, necessary boundaries and ownership, important public promises, and significant compatibility, safety, cost, and failure consequences. Include a technical detail only when omitting it would prevent the reader from understanding the choice or a material tradeoff, or would lose a contract that must be preserved, and use only the necessary fragment. Configuration authority, immutable identity, and process-wide side effects may be essential even when described with concrete identifiers.
+
+Full API and configuration tables, schemas, command references, and maintained inventories belong in their owning public documentation. Internal function names, algorithm steps, file-by-file edits, execution plans, test commands, and validation logs belong in implementation documentation, code, tests, or task materials. Acceptance criteria describe observable outcomes rather than test procedures. An ADR links accessible public contracts and must not cite ignored task materials as public authority.
+
+Relocating a binding clause does not cancel it. Keep its meaning and an accessible reference, and retain enough original detail in a historical record to explain the choice at that time; a link to changing current documentation cannot replace the historical contract.
+
+### Closed constraints and defensive rules
+
+Distinguish an intentionally closed protocol, ownership rule, or safety boundary from examples and a growing inventory. Prefer a link to the owning inventory over a fixed count or exhaustive file tree, and state the protected boundary and reason when a closed set or prohibition is necessary.
+
+A present scope limit or an option not needed for an initial release is not automatically a permanent prohibition; describe that distinction when writing the decision. Do not retroactively downgrade an existing prohibition to escape it, or add speculative abstractions and configuration solely to make the wording extensible.
+
+Defensive rules must address the actual operation and harm. Ordinary validation, repair, lifecycle changes, and repeated activation may need different preconditions; preserve identity, permission, and side-effect protections instead of replacing them with blanket restrictions unrelated to the protected boundary.
+
+### Reviewing alternatives and risks
 
 When reviewing `## Alternatives considered` and `## Risks`, require the ADR to identify the requirement discussion or analysis in which each alternative became a real option and to name the harmful outcome of each risk. Delete unsupported or misclassified entries instead of rewriting them to sound plausible.
 
@@ -182,5 +206,7 @@ If no entry meets these rules, write only `None` in the English section and only
 The maintainer owns proposal approval, rejection, and decision archival. An Agent may draft and implement ADR changes within an authorized change, but must not make those lifecycle decisions without explicit approval.
 
 Move both language files together and repair inbound links in the same change. Keep current decisions accurate when factual paths, names, or verification entry points move. Never use factual maintenance to reverse a decision.
+
+Archived decisions freeze after relationship and factual link repairs, and rejected proposals freeze after factual link repairs. The [ADR mechanism decision](./decision/2026-09-23-clarify-adr-content-boundaries.md) records a one-time exception for the English and Chinese ADR pairs present when that cleanup began, which allowed structural and wording edits that preserve every recorded choice, reason, constraint, uncertainty, historical capability scope, authorship, date, and reversal relationship. That exception does not unfreeze any record and grants no continuing permission to edit frozen material.
 
 The first version uses review, repository search, and Git history rather than a dedicated Skill, classification system, archive manifest, or custom checker. Add a mechanical check only after repeated maintenance or an observed failure identifies a concrete invariant.

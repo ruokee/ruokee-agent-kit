@@ -7,9 +7,7 @@ Decision writer: OMP GPT-6 Astra
 
 ## 动机
 
-仓库验证涉及 Markdown 格式、tk Rust 代码、各个独立打包的 OMP 拓展，以及 tk 原生适配器。根 [package.json](../../../package.json) 与组件脚本需要一个完整入口，使仓库检查成功能够覆盖全部已有自动化检查。
-
-仅执行 Markdown 与 Rust 检查，无法发现 TypeScript 拓展或原生适配器的失败。明确列出组件目标并可靠地传递失败，为开发者提供一致的完整检查。
+仓库的一次完整检查必须覆盖全部已有自动化：Markdown 格式、tk Rust 代码、各个独立打包的 OMP 拓展，以及 tk 原生适配器。仅执行 Markdown 与 Rust 检查无法发现 TypeScript 拓展或原生适配器的失败，因此根 [package.json](../../../package.json) 与组件脚本需要一个由明确组件目标和可靠失败传递构成的完整入口，为开发者提供一致的完整检查。
 
 ## 决定
 

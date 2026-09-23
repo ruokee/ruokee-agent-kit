@@ -8,7 +8,7 @@ Reverses: [集成 tk 与 Harness](../archived/2026-08-28-integrate-tk-with-harne
 
 ## 动机
 
-Codex、Claude Code、Pi 和 OMP 使用不同的注册与加载 API，但需要共享一套逻辑操作合同。集成必须在注册前拒绝不兼容运行时，也不能在 tk 加载失败时终止所在的 Agent 会话。
+在 Codex、Claude Code、Pi 和 OMP 中集成 tk 需要一套统一的逻辑操作合同，因为这些 Harness 的注册与加载 API 各不相同。集成必须在注册前拒绝不兼容运行时，也不能在 tk 加载失败时终止所在的 Agent 会话。
 
 tools 模式还需要为已覆盖的任务操作确定唯一入口。逻辑操作被拒绝或失败后直接通过 CLI 重试会绕过所选集成，也可能用不同传输行为重复写请求。
 

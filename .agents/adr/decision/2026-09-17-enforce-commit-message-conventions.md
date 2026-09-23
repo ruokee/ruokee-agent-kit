@@ -7,9 +7,9 @@ English | [中文](./2026-09-17-enforce-commit-message-conventions.zh.md)
 
 ## Motivation
 
-Repository guidance requires English Conventional Commits messages, and the type, the scope, and the shape of the header are checked mechanically rather than left to memory. The pre-commit hook formats staged files through Prettier, and the `commit-msg` stage reads the message file itself.
+Git commit scopes in this repository were inconsistent when left to author memory: `skill` and `skills` for the same area, component names, and one-off labels such as `package`, `ai`, and `system-prompt`, with the same kind of change carrying different scopes in different commits. A scope list and an enforcement mechanism are needed together. A list alone stops working as soon as a new label looks reasonable, and enforcement alone rejects messages without telling the author which values are acceptable.
 
-Author memory alone produced inconsistent scopes: `skill` and `skills` for the same area, component names, and one-off labels such as `package`, `ai`, and `system-prompt`, with the same kind of change carrying different scopes in different commits. A scope list and an enforcement mechanism are needed together. A list alone stops working as soon as a new label looks reasonable, and enforcement alone rejects messages without telling the author which values are acceptable.
+Repository guidance requires English Conventional Commits messages, and the type, the scope, and the shape of the header are checked mechanically rather than left to memory. The pre-commit hook formats staged files through Prettier, and the `commit-msg` stage reads the message file itself.
 
 ## Decision
 

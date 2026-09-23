@@ -7,7 +7,7 @@ English | [中文](./2026-08-24-keep-components-self-contained.zh.md)
 
 ## Motivation
 
-Skills, Extensions, Plugins, and Packages are installed and distributed as separate components. A repository-relative link from one component to another may work in the source tree while failing when only the first component is installed. It also creates an undeclared requirement for both components to use compatible revisions.
+A repository-relative link from one distributable component to another may work in the source tree while failing when only the first component is installed. Skills, Extensions, Plugins, and Packages are installed and distributed as separate components, so such a link also creates an undeclared requirement for both to use compatible revisions.
 
 The Python-specific code-quality migration exposed this problem directly. `python-engineering` linked back to files owned by `code-quality`, so the installed Skill was not self-contained. Similar links to repository support files have the same failure mode.
 

@@ -9,7 +9,7 @@ Reversed by: [集成 tk 工具与 Harness](../decision/2026-09-02-integrate-tk-t
 
 ## 动机
 
-[tk 产品架构](../decision/2026-08-21-define-tk-product-architecture.zh.md)支持 Codex、Claude Code、Pi 和 OMP，同时不把 Task 语义移入 Harness 专用代码。这些 Harness 使用不同的组件、MCP、extension、Package、工具注册和加载接口，但仍需要共享一套逻辑工具、请求和结果合同。
+tk 向 Codex、Claude Code、Pi 和 OMP 暴露同一套逻辑工具、请求和结果合同，同时不把 Task 语义移入 Harness 专用代码。[tk 产品架构](../decision/2026-08-21-define-tk-product-architecture.zh.md)支持这四个 Harness，而它们使用不同的组件、MCP、extension、Package、工具注册和加载接口。
 
 集成失败不能终止所在的 Agent 会话。适配器也必须在暴露工具前拒绝不兼容运行时或不完整 schema，避免注册无法履行公开合同的工具。
 

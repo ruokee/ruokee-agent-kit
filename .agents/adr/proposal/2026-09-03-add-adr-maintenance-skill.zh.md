@@ -7,7 +7,9 @@ Draft writer: Mind (OMP GPT-5.6 Sol)
 
 ## 动机
 
-[ADR 机制决定](../decision/2026-09-02-establish-adr-mechanism.zh.md)在机制仍随实际使用发生变化时，选择依靠评审、仓库搜索和 Git 历史，而不增加专用 Skill。
+本提案请求维护者批准一项专用的、由模型自动调用的 ADR 维护 Skill。
+
+[当前 ADR 机制决定](../decision/2026-09-23-clarify-adr-content-boundaries.zh.md)在机制仍随实际使用发生变化时，选择依靠评审、仓库搜索和 Git 历史，而不增加专用 Skill。
 
 建立当前机制与随后细化编写规则时，都需要作出机械检查无法替代的判断。
 
@@ -43,7 +45,7 @@ Skill 提供分类、维护和审查步骤，不得内置本仓库的固定路�
 
 ### 决定替换与打包
 
-本提案与当前 ADR 机制决定中不增加专用 ADR Skill 的选择冲突。如果提案获准并完成实现，将反转[建立 ADR 机制](../decision/2026-09-02-establish-adr-mechanism.zh.md)。替代决定必须保留原决定中仍然有效的全部规则，并增加 Skill 的职责。
+本提案与当前 ADR 机制决定中不增加专用 ADR Skill 的选择冲突。如果提案获准并完成实现，将反转[明确 ADR 机制与内容边界](../decision/2026-09-23-clarify-adr-content-boundaries.zh.md)。替代决定必须保留原决定中仍然有效的全部规则，并增加 Skill 的职责。
 
 第一版的每种语言组件只包含一个 `SKILL.md`。这套步骤很短，需要作为整体使用，因此不增加 `agents/`、`workflows/`、`references/`、示例或术语表。实现时在中英文能力索引中记录这项 Skill。
 

@@ -7,7 +7,9 @@ English | [中文](./2026-09-03-add-adr-maintenance-skill.zh.md)
 
 ## Motivation
 
-The [ADR mechanism decision](../decision/2026-09-02-establish-adr-mechanism.md) chose review, repository search, and Git history instead of a dedicated Skill while the mechanism was still changing through use.
+This proposal asks the maintainer to approve a dedicated, model-invoked ADR maintenance Skill.
+
+The [current ADR mechanism decision](../decision/2026-09-23-clarify-adr-content-boundaries.md) chose review, repository search, and Git history instead of a dedicated Skill while the mechanism was still changing through use.
 
 Establishing the current mechanism and later refining its authoring rules both required judgment that mechanical checks cannot supply.
 
@@ -43,7 +45,7 @@ Complete independent work before requesting approval for a maintainer-owned life
 
 ### Decision replacement and packaging
 
-This proposal conflicts with the current ADR mechanism decision's choice not to add a dedicated ADR Skill. If accepted and implemented, it will reverse [Establish the ADR mechanism](../decision/2026-09-02-establish-adr-mechanism.md). The replacement decision must preserve all still-effective mechanism rules and add the Skill's role.
+This proposal conflicts with the current ADR mechanism decision's choice not to add a dedicated ADR Skill. If accepted and implemented, it will reverse [Clarify the ADR mechanism and content boundaries](../decision/2026-09-23-clarify-adr-content-boundaries.md). The replacement decision must preserve all still-effective mechanism rules and add the Skill's role.
 
 Keep the first release to one `SKILL.md` in each language component. The procedure is short and used as a whole, so no `agents/`, `workflows/`, `references/`, examples, or glossary are needed. Document the Skill in the English and Chinese capability indexes during implementation.
 

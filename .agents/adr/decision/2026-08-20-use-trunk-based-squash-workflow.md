@@ -7,9 +7,7 @@ English | [中文](./2026-08-20-use-trunk-based-squash-workflow.zh.md)
 
 ## Motivation
 
-Repository initialization, Skill imports, documentation changes, and later capability work produce different numbers of intermediate commits. If every working commit becomes public history, review context and local experimentation become permanent maintenance cost.
-
-The repository needs one long-lived branch and a predictable rule for turning a reviewed task branch into public history.
+The repository needs one long-lived branch and a predictable rule for turning a reviewed task branch into public history. Repository initialization, Skill imports, documentation changes, and later capability work produce different numbers of intermediate commits, and publishing every one of them would turn review context and local experimentation into permanent maintenance cost.
 
 ## Decision
 

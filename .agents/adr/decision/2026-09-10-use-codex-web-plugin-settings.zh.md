@@ -8,7 +8,7 @@ Reverses: [ADR 决定：添加 OMP Codex 网页访问组件](../archived/2026-09
 
 ## 动机
 
-OMP 内置的 `web_search` 支持直接向 OMP 提供 Codex 订阅，但无法使用第三方转发 Provider 暴露的 Codex 订阅。Codex Harness 支持这种调用方式。因此，OMP 需要一组网页搜索和页面提取工具，通过转发 Provider 在 OMP 中登记的 `openai-responses` 模型运行，并与 OMP 内置工具共存。用户需要分别控制每个工具是否可用，以及工具参数定义是直接呈现给模型，还是通过 `xd://` 发现。
+`omp-codex-web-access` 通过转发 Provider 的 Codex 订阅提供网页搜索和页面提取，并使用 OMP 原生插件设置进行配置。OMP 内置的 `web_search` 支持直接向 OMP 提供 Codex 订阅，但无法使用这种 Codex Harness 已支持的转发方式。扩展通过转发 Provider 在 OMP 中登记的 `openai-responses` 模型运行，并与 OMP 内置工具共存。用户需要分别控制每个工具是否可用，以及工具参数定义是直接呈现给模型，还是通过 `xd://` 发现。
 
 该组件还需要一套 OMP 配置合同，同时支持用户值和项目覆盖。原生插件设置通过 OMP CLI 和公开设置 getter 提供这套合同，并继续使用 OMP 现有的模型登记与凭据 API 保存模型凭据。
 
@@ -66,7 +66,7 @@ factory 只安装 `session_start` 处理器。加载 factory 时不读取设置�
 
 ### 迁移与呈现
 
-扩展不读取、导入、删除或重写 `omp-codex-web-access.yml`，也不保留任何回退行为。现有用户按照上述映射手工转移值。旧 YAML 文件不会自动删除。迁移后必须重启 OMP 进程，让扩展重新激活并读取原生值。同一进程中新建或切换 session 不会刷新设置快照。如果旧 YAML 是唯一配置来源，它不会产生任何效果，原生默认值生效，包括空模型选择器。
+扩展不读取、导入、删除或重写 `omp-codex-web-access.yml`，也不保留任何回退行为。现有用户按照上述映射手工转移值。旧 YAML 文件不会自动删除。迁移后必须重启 OMP 进程，让扩展重新激活并读取原生值。如果旧 YAML 是唯一配置来源，它不会产生任何效果，原生默认值生效，包括空模型选择器。
 
 每个工具独立控制启用状态和呈现方式：
 

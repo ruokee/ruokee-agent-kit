@@ -10,6 +10,8 @@ English | [中文](./2026-09-09-add-omp-system-prompt.zh.md)
 
 `@ruokee/omp-system-prompt` replaces fixed policy in OMP's rendered system prompt while preserving selected runtime content. The public `before_agent_start` event provides the current `systemPrompt: string[]`, and public extension APIs provide effective plugin settings and Skill command metadata. This permits a self-contained extension without patching OMP or copying its private prompt builders.
 
+## Analysis
+
 The peer dependency and runtime activation are not tied to a specific OMP release. Pinned dev dependencies provide a reproducible test fixture; their versions do not define compatibility. The transformer checks the full target structure before it returns a replacement. Those checks are the compatibility boundary.
 
 ## Decision

@@ -9,7 +9,7 @@ Reversed by: [ADR 决定：Codex 网页访问使用原生插件设置](../decisi
 
 ## 动机
 
-OMP 内置的 `web_search` 支持直接向 OMP 提供 Codex 订阅，但无法使用第三方转发 Provider 暴露的 Codex 订阅。Codex Harness 支持这种调用方式。因此，OMP 需要一组网页搜索和页面提取工具，通过转发 Provider 在 OMP 中登记的 `openai-responses` 模型运行，并与内置工具共存。用户还需要分别控制每个工具是否可用，以及工具参数定义是直接提供给模型，还是通过 `xd://` 按需发现。
+OMP 需要自己的网页搜索和页面提取工具来使用第三方转发 Provider 暴露的 Codex 订阅，因为内置的 `web_search` 只支持直接向 OMP 提供的订阅。Codex Harness 支持这种转发方式；新工具通过转发 Provider 在 OMP 中登记的 `openai-responses` 模型运行，并与内置工具共存。用户还需要分别控制每个工具是否可用，以及工具参数定义是直接提供给模型，还是通过 `xd://` 按需发现。
 
 ## 决定
 

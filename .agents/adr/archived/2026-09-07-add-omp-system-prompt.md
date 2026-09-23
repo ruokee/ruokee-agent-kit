@@ -9,7 +9,9 @@ English | [中文](./2026-09-07-add-omp-system-prompt.zh.md)
 
 ## Motivation
 
-OMP's default system prompt combines runtime capabilities with engineering preferences, delegation policy, personality, a fixed workflow, and unconditional continuation requirements. A maintainer-owned prompt should describe the runtime and an honest delivery contract while leaving working methods and engineering choices to applicable user and project rules.
+OMP needs a maintainer-owned system prompt that describes the runtime and an honest delivery contract while leaving working methods and engineering choices to applicable user or project rules; its default prompt combines runtime capabilities with engineering preferences, delegation policy, personality, a fixed workflow, and unconditional continuation requirements.
+
+## Analysis
 
 A static `SYSTEM.md` does not preserve the default assembly contract. In OMP 18.1.11, the custom wrapper retains some context and resource information but omits the default tool inventory, internal-resource catalog, and device documentation. Its inserted text is not recursively rendered as a template.
 

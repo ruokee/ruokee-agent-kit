@@ -10,9 +10,9 @@ English | [中文](./2026-09-08-repair-names-through-tk-rename.zh.md)
 
 ## Motivation
 
-The [tk product architecture](../decision/2026-08-21-define-tk-product-architecture.md) makes project files the only authoritative Task state. The runtime therefore needs one exact model for identity, paths, lifecycle, relationships, representations, discovery, writes, migration, and cleanup.
+This decision records the complete tk Task data model with carrier discovery, extended so that rename repairs an existing string name and a recognizable generated directory suffix. The [tk product architecture](../decision/2026-08-21-define-tk-product-architecture.md) makes project files the only authoritative Task state.
 
-Carrier discovery separates valid Tasks from ordinary materials and damaged managed data. Normal operations require that strict discovery result. rename is also responsible for repairing an existing string name and a recognizable generated directory suffix. Requiring the old name to pass complete validation would prevent the runtime from performing that repair even though UUID remains identity and the path remains a locator.
+Carrier discovery separates valid Tasks from ordinary materials and damaged managed data, and normal operations require that strict discovery result. Requiring the old name to pass complete validation would prevent the runtime from performing that repair even though UUID remains identity and the path remains a locator.
 
 ## Decision
 

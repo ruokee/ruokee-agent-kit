@@ -9,7 +9,7 @@ English | [中文](./2026-08-28-distribute-tk-runtime-components.zh.md)
 
 ## Motivation
 
-The [tk product architecture](../decision/2026-08-21-define-tk-product-architecture.md) has one user-level runtime and self-contained components for Codex, Claude Code, Pi, and OMP. Runtime installation and Harness integration have different ownership. The executable must be installed before a component can use it, while component installation must remain deterministic, offline, inspectable, and reversible without maintaining a second installation database.
+tk distributes one user-level runtime plus one self-contained component for each of Codex, Claude Code, Pi, and OMP, with runtime installation and Harness integration under separate ownership. The [tk product architecture](../decision/2026-08-21-define-tk-product-architecture.md) defines that runtime and those components. The executable must be installed before a component can use it, while component installation must remain deterministic, offline, inspectable, and reversible without maintaining a second installation database.
 
 Harness targets and official lifecycle APIs differ. Distribution still needs one result boundary for installation, update, no change, clean uninstall, and partial failure.
 

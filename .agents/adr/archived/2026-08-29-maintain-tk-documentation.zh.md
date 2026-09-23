@@ -9,7 +9,7 @@ Reversed by: [统一 tk 使用模式](../decision/2026-09-11-align-tk-usage-patt
 
 ## 动机
 
-[tk 产品架构](../decision/2026-08-21-define-tk-product-architecture.zh.md)包含 Task 文件、Rust 运行时、CLI、MCP、原生工具、四个 Harness、组件生命周期、Skill 和双语公开文档。在每个页面重复同一合同会产生互相冲突的来源。只保留实现代码又会使行为和理由难以审查。
+本决定定义 tk 文档的维护方式，覆盖 [tk 产品架构](../decision/2026-08-21-define-tk-product-architecture.zh.md)所涉及的材料：Task 文件、Rust 运行时、CLI、MCP、原生工具、四个 Harness、组件生命周期、Skill 和双语公开文档。在每个页面重复同一合同会产生互相冲突的来源。只保留实现代码又会使行为和理由难以审查。
 
 仓库以英文作为默认公开语言，同时需要完整中文材料供维护者直接审阅。两种语言必须描述同一个产品，但不能强迫中文逐句机械翻译。
 

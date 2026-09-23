@@ -7,9 +7,9 @@ Decision writer: deepseek/deepseek-v4.1-flash
 
 ## 动机
 
-仓库指引要求提交信息使用英文并遵循 Conventional Commits，类型、scope 和 header 形式由机制校验，而不是全凭作者记忆。pre-commit 钩子通过 Prettier 格式化暂存文件，`commit-msg` 阶段读取的则是提交信息本身。
+仓库 Git 提交的 scope 在仅靠作者记忆时使用并不一致：`skill` 与 `skills` 指向同一区域，还有若干组件名，以及 `package`、`ai`、`system-prompt` 这类一次性标签，同类改动在不同提交里用了不同 scope。scope 列表和校验机制需要一起引入。只有列表时，一旦出现看似合理的标签，列表就会失效；只有校验时，提交会被拒绝，但不会告诉作者哪些取值可用。
 
-仅靠作者记忆时，scope 使用并不一致：`skill` 与 `skills` 指向同一区域，还有若干组件名，以及 `package`、`ai`、`system-prompt` 这类一次性标签，同类改动在不同提交里用了不同 scope。scope 列表和校验机制需要一起引入：只有列表时，一旦出现看似合理的标签，列表就会失效；只有校验时，提交会被拒绝，但不会告诉作者哪些取值可用。
+仓库指引要求提交信息使用英文并遵循 Conventional Commits，类型、scope 和 header 形式由机制校验，而不是全凭作者记忆。pre-commit 钩子通过 Prettier 格式化暂存文件，`commit-msg` 阶段读取的则是提交信息本身。
 
 ## 决定
 

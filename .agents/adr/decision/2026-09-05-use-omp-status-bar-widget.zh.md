@@ -7,7 +7,11 @@ Decision writer: OMP GLM-5.3 Flash
 
 ## 动机
 
-先前的 `2026-09-04-add-omp-status-bar-project` 提案选择了原生 `ctx.ui.setStatus()` 扩展状态通道配合纯文本 Provider 片段，外观控制交给 OMP 原生 statusline 设置。确认后的指标设计不再适合该通道：内置指标带有固定的按指标配色；context 指标增加一个弱化字形，在上下文位于投机区间时闪烁；组合后的整行需要在终端宽度处截断且不能切断颜色序列。公开的 `setStatus()` 合同每个 key 只接受一个字符串，没有 theme、没有结构化 span、也没有 `render(width)` 生命周期。原生 ANSI 序列加反复 `setStatus()` 更新可以近似一部分，但那会把样式变成 Host 和 Provider 之间的转义序列协议，宽度截断也要解析任意 Provider 输出。
+第一方 `@ruokee/omp-status-bar` 包需要为每个指标配上各自固定的颜色，显示一个在上下文位于投机区间时闪烁的弱化 context 字形，并在终端宽度处截断组合行且不切断颜色序列。纯文本扩展状态通道无法承载这些。
+
+## 分析
+
+先前的 `2026-09-04-add-omp-status-bar-project` 提案选择了原生 `ctx.ui.setStatus()` 扩展状态通道配合纯文本 Provider 片段，外观控制交给 OMP 原生 statusline 设置，但确认后的指标设计不再适合该通道。公开的 `setStatus()` 合同每个 key 只接受一个字符串，没有 theme、没有结构化 span、也没有 `render(width)` 生命周期。原生 ANSI 序列加反复 `setStatus()` 更新可以近似一部分，但那会把样式变成 Host 和 Provider 之间的转义序列协议，宽度截断也要解析任意 Provider 输出。
 
 确认后的产品范围同样变化。通用的 `tokens` 指标拆分为独立的按指标 Provider，新增缓存命中率，context 指标增加投机区间估计，separator 收紧为封闭的四值集合。金额显示作为明确的产品边界被排除。这个排除只覆盖金额相关功能；并不意味着所有与 OMP 原生功能重叠的指标都必须去掉。
 
@@ -85,7 +89,7 @@ context Provider 的文本配有一个字形，表示上下文大概进入了 OM
 
 [英文和中文公开文档决定](./2026-09-07-colocate-bilingual-docs.zh.md)适用，Package 本地使用文档互相链接。Package 文档覆盖安装、启停、配置 schema、内置 Provider ID 和 options、按条目失败行为、Widget 位置、投机估计及其限制，以及验证过的 OMP 兼容范围。Provider 编写文档定义公开导入路径、注册时机、合同版本、冲突行为、生命周期上下文，以及如何安装和选用独立打包的 Provider。
 
-直接 `@oh-my-pi/*` 导入以 `>=18.1.8 <19` 范围声明对等依赖；Package 面向 OMP 18.x 并记录验证过的版本。行为测试覆盖配置解析和按条目降级、片段清理和无效片段隔离、有序组合、宽度截断、可控时钟下的投机状态机、来自独立加载夹具扩展的注册（无共享模块身份），以及无残留 timer 或 Widget 的清理。渲染检查枚举目标版本的内置 Composer shape 和 statusline preset，并包含一个扩展注册的 shape，全部走同一个 Widget 路径。自动化测试全部无头运行，看不到终端：确认 Widget 出现在编辑器下方并与原生 statusline 共存的真实 OMP TUI 会话是发布要求，按发布提交运行并评审后才可打标签，不进入单元测试套件。
+直接 `@oh-my-pi/*` 导入以 `>=18.1.8 <19` 范围声明对等依赖；Package 面向 OMP 18.x 并记录验证过的版本。行为测试覆盖配置解析与按条目降级、片段清理与无效片段隔离、有序组合与宽度截断、投机状态机的时序、来自独立加载且无共享模块身份的扩展的注册、无残留 timer 或 Widget 的清理，以及目标版本内置 Composer shape 与 statusline preset 加一个扩展注册的 shape，全部走同一个 Widget 路径。自动化测试全部无头运行，看不到终端：确认 Widget 出现在编辑器下方并与原生 statusline 共存的真实 OMP TUI 会话是发布要求，按发布提交运行并评审后才可打标签，不进入单元测试套件。
 
 ## 考虑过的替代方案
 

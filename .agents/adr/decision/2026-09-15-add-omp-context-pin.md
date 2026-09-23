@@ -7,7 +7,9 @@ English | [中文](./2026-09-15-add-omp-context-pin.zh.md)
 
 ## Motivation
 
-Sessions that run long enough to compact need a small set of details kept word for word: an agreed interface, a file map, a command whose exact form matters. Compaction summarizes history, and a summary can shorten or reword that material. Asking the model to reproduce text after the fact is unreliable in the same way.
+The first-party `omp-context-pin` extension keeps a small set of details word for word across compaction: an agreed interface, a file map, a command whose exact form matters. Compaction summarizes history, and a summary can shorten or reword that material; asking the model to reproduce text after the fact is unreliable in the same way.
+
+## Analysis
 
 OMP's experimental `context_notes` keeps one note body per branch and restores it along the current path. It provides whole-note replacement rather than per-entry operations, and context building injects the newest note at the start of the message array. Editing that block changes an early part of the request and shortens its reusable prefix. Entry-level Pin operations need a different placement strategy.
 
@@ -135,7 +137,6 @@ Verification compares provider-facing effective context, including the preceding
 - Let a confirmation in the `/ctx-pin` dialog write state directly. Considered while choosing when a user operation becomes effective, and used in an early candidate. The receipt is immediate, but the operation takes effect before the message reaches the host, so a queued, edited, or withdrawn message can leave a change the user never sent, and the running turn never receives it as steering.
 - Parse a natural language request into Pin operations inside the extension. Considered when asking how an ordinary message could manage Pins without depending on the model. It would need a command syntax, a precedence rule against ordinary prose, and its own error path, while the tool already gives the Agent the operation, so the request is left to the model.
 - Start a model turn to make the host save the session. Considered while working around the session file boundary for an initial fresh session. It spends a turn the user did not ask for on a host responsibility, and it still returns no confirmation that the write happened.
-
 - Keep the generated UUID strings as entry and operation identities. Considered while revisiting the identity format. No observed model failure was caused by a UUID, so the reason to change is readability and context cost: an integer is easier to read, easier to pick from a list, and shorter in every message that carries it.
 - Append an identity marker to the confirmed message. Considered while simplifying the message shape, and used in earlier candidates. The marker kept an operation number and a scope token inside the message, so the extension never had to match text, but it also made the message differ from the words the user wrote, asked the user to keep a tag they had not written, and left a delete statement that read like machine output. Matching the consumed message against the text the extension handed to the host keeps the message readable and editable, and a submission whose text is not held is not accepted.
 - Keep the stored `title` as the list label. Considered while changing how entries are presented. A title can drift from the body it labels, while an integer id plus a summary derived from the body already distinguishes entries, so the field is removed and no de-duplication rule for repeated titles is needed.

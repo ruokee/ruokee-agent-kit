@@ -20,7 +20,7 @@ Decision writer: OMP GPT-5.6 Sol
 
 `Motivation` 记录为什么要考虑这项决定。内容可以说明已经观察到的问题、需求、希望获得的能力或其他具体变更理由。名称变得中性，不代表可以含糊地说明理由。
 
-[`.agents/adr/README.md`](../README.md) 和 [`.agents/adr/README.zh.md`](../README.zh.md) 的固定格式示例与编写规则使用新标题，相邻规则明确说明动机可以包含问题、需求和希望增加的内容。当前的 [ADR 机制决定](./2026-09-02-establish-adr-mechanism.zh.md) 将该标题同时用于提案和决定。
+[`.agents/adr/README.md`](../README.md) 和 [`.agents/adr/README.zh.md`](../README.zh.md) 的固定格式示例与编写规则使用新标题，相邻规则明确说明动机可以包含问题、需求和希望增加的内容。当前的 [ADR 机制决定](./2026-09-23-clarify-adr-content-boundaries.zh.md) 将该标题同时用于提案和决定。
 
 所有当前提案和决定模板都以 `动机` 开头。Git 历史修订可以保留对旧 `问题` 标题的引用。
 
@@ -45,3 +45,7 @@ Decision writer: OMP GPT-5.6 Sol
 ### 2026-09-02：将动机用于两类 ADR
 
 相互独立的提案和决定模板都以 `动机` 作为第一个必需正文章节。
+
+### 2026-09-23：要求开头可独立理解并允许可选分析
+
+[机制决定](./2026-09-23-clarify-adr-content-boundaries.zh.md)对这一规则作出无冲突的细化。`动机` 的首句必须说明对象及具体问题、拟作出的变更或目标，不依赖标题、链接或后文才能理解；可选的 `## 分析` 章节可以紧接 `动机`。

@@ -20,7 +20,7 @@ The first required body heading in every ADR template is `## Motivation` in Engl
 
 `Motivation` records why the decision is being considered. Its content may describe an observed problem, a requirement, a desired capability, or another concrete reason for change. It does not weaken the expectation that the section state the reason precisely.
 
-The fixed-format examples and authoring rules in [`.agents/adr/README.md`](../README.md) and [`.agents/adr/README.zh.md`](../README.zh.md) use the new heading, and the surrounding rules define motivation broadly enough to include problems, requirements, and desired additions. The current [ADR mechanism decision](./2026-09-02-establish-adr-mechanism.md) applies the heading to both proposals and decisions.
+The fixed-format examples and authoring rules in [`.agents/adr/README.md`](../README.md) and [`.agents/adr/README.zh.md`](../README.zh.md) use the new heading, and the surrounding rules define motivation broadly enough to include problems, requirements, and desired additions. The current [ADR mechanism decision](./2026-09-23-clarify-adr-content-boundaries.md) applies the heading to both proposals and decisions.
 
 Every current proposal and decision template opens with `Motivation`. Historical Git revisions may retain references to the earlier `Problem` heading.
 
@@ -45,3 +45,7 @@ The English and Chinese documentation describe the same rule.
 ### 2026-09-02: Apply Motivation to both ADR types
 
 The separate proposal and decision templates both keep `Motivation` as their first required body section.
+
+### 2026-09-23: Require an independently understandable opening and allow optional analysis
+
+The [mechanism decision](./2026-09-23-clarify-adr-content-boundaries.md) refines this rule without conflict. The first sentence of `Motivation` identifies the subject and the concrete problem, intended change, or goal without relying on the title, links, or later text, and an optional `## Analysis` section may follow `Motivation`.

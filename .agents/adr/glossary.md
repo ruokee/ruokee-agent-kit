@@ -12,12 +12,12 @@ Corresponding Chinese term: `提案`. An ADR that describes a change for review 
 
 ## decision
 
-Corresponding Chinese term: `决定`. An ADR that records a complete current choice, its rationale, considered alternatives, and consequences.
+Corresponding Chinese term: `决定`. An ADR that records a complete current choice, its rationale, considered alternatives, necessary boundaries and contracts, and consequences.
 
 ## Update decision
 
-Corresponding Chinese term: `更新决定`. Add non-conflicting content to a current decision under `Changes` without archiving it.
+Corresponding Chinese term: `更新决定`. Add non-conflicting content to a current decision under `Changes` without archiving it; a conflicting choice requires a reversal instead.
 
 ## Reverse decision
 
-Corresponding Chinese term: `反转决定`. Create a complete new decision from the old decision's still-effective rules and the accepted change, then archive the old decision and link both directions.
+Corresponding Chinese term: `反转决定`. Create a complete new decision from the old decision's still-effective rules and an accepted proposal that names the conflicting clause, then archive the old decision and link both directions.
