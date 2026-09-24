@@ -2,6 +2,8 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GLM-5.3 Flash
+Archived: 2026-09-24
+Reversed by: [Use a persistent widget for the OMP status bar](../decision/2026-09-24-use-omp-status-bar-widget.md)
 
 English | [中文](./2026-09-05-use-omp-status-bar-widget.zh.md)
 
@@ -21,7 +23,7 @@ The earlier proposal's still-valid architecture carries over: one self-contained
 
 ### Keep one self-contained package with a Host and providers
 
-`projects/omp-status-bar/` is one first-party, self-contained OMP Plugin Package. The [first-party capability kit decision](./2026-08-20-establish-first-party-capability-kit.md) permits a real capability to use `projects/`, and the [self-contained component decision](./2026-08-24-keep-components-self-contained.md) requires every distributable component to remain independent. The `package.json` declares the native extension entry through `omp.extensions`, and the package uses only public upstream OMP APIs without containing, patching, or requiring a local fork.
+`projects/omp-status-bar/` is one first-party, self-contained OMP Plugin Package. The [first-party capability kit decision](../decision/2026-08-20-establish-first-party-capability-kit.md) permits a real capability to use `projects/`, and the [self-contained component decision](../decision/2026-08-24-keep-components-self-contained.md) requires every distributable component to remain independent. The `package.json` declares the native extension entry through `omp.extensions`, and the package uses only public upstream OMP APIs without containing, patching, or requiring a local fork.
 
 The implementation splits into a status Host and registered status providers. Provider registration is a supported package API through the `package.json#exports` entry `@ruokee/omp-status-bar/provider`. Registration uses a versioned process-wide registry keyed through `Symbol.for()`, so an extension that resolves its own copy of the package still registers into the same registry, and registration does not depend on extension load order. The registry rejects duplicate provider IDs and incompatible contract versions at registration time. Before creating each instance, the Host resolves the configured ID from the registry and validates its contract version again.
 
@@ -87,7 +89,7 @@ The indication is explicitly approximate. The extension cannot observe whether O
 
 ### Keep implementation evidence with the project
 
-The [English and Chinese public documentation decision](./2026-09-07-colocate-bilingual-docs.md) applies with package-local usage documents and reciprocal language links. Package documentation covers installation, enablement, the configuration schema, the built-in provider IDs and options, per-entry failure behavior, the widget placement, the speculation estimate and its limits, and the verified OMP compatibility range. Provider authoring documentation defines the public import path, registration phase, contract versioning, collision behavior, lifecycle context, and how to install and select an independently packaged provider.
+The [English and Chinese public documentation decision](../decision/2026-09-07-colocate-bilingual-docs.md) applies with package-local usage documents and reciprocal language links. Package documentation covers installation, enablement, the configuration schema, the built-in provider IDs and options, per-entry failure behavior, the widget placement, the speculation estimate and its limits, and the verified OMP compatibility range. Provider authoring documentation defines the public import path, registration phase, contract versioning, collision behavior, lifecycle context, and how to install and select an independently packaged provider.
 
 The direct `@oh-my-pi/*` imports declare peer dependencies with the range `>=18.1.8 <19`; the package targets OMP 18.x and records the verified versions. Behavioral tests cover configuration parsing and per-entry degradation, fragment sanitization and invalid-fragment isolation, ordered composition and width truncation, the speculation state machine's timing, registration from a separately loaded extension without shared module identity, cleanup without residual timers or widgets, and the target version's built-in Composer shapes and statusline presets with an extension-registered shape, all through the same widget path. The automated suite is headless and cannot see the terminal: a real OMP TUI session that confirms the widget appears below the editor alongside the native statusline is a release requirement, run and reviewed per release commit before tagging, not inside the unit suite.
 

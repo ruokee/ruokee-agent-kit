@@ -66,7 +66,7 @@ Providers never emit separators, never call OMP UI APIs, and never touch the wid
 
 The registry uses a versioned `Symbol.for()` key, so a third-party extension that resolves its own copy of this package still registers into the same process-wide registry. Duplicate ids and incompatible contract versions are rejected at registration time; the Host re-checks before creating instances.
 
-The six builtin providers register through the same function as everyone else. Because one process activates this extension for each session, the extension preflights its own ids before registering: an id it registered earlier is recognized by a mark it put on that definition, and the definition that registered first stays in place while nothing is registered again. A third party that owns a builtin id still fails activation before any of the six registers. The mark is an internal convention of this package and is not part of the registration contract.
+The builtin providers register through the same function as everyone else. Because one process activates this extension for each session, the extension preflights its own ids before registering: an id it registered earlier is recognized by a mark it put on that definition, and the definition that registered first stays in place while nothing is registered again. A third party that owns a builtin id still fails activation before any builtin id registers. The mark is an internal convention of this package and is not part of the registration contract.
 
 ## Instance context
 

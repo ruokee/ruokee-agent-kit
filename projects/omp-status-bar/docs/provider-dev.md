@@ -64,7 +64,7 @@ Register during extension activation, before OMP emits `session_start`. OMP acti
 
 ## Rules
 
-- Ids use the form `example.counter`: a short owner prefix plus a name. Do not use the six builtin ids.
+- Ids use the form `example.counter`: a short owner prefix plus a name. Do not use a builtin id.
 - Never emit separators, ANSI escapes, or control characters; the Host strips them and collapses space runs.
 - Validate options in `describe`, not `create`; a `create` failure still only kills this entry but happens later.
 - Do not call OMP UI APIs or touch widgets; the Host owns rendering.

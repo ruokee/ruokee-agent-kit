@@ -2,7 +2,7 @@
 
 [English](./usage.md)
 
-一个常驻的 OMP 状态栏扩展：一个 `belowEditor` Widget Host 加六个内置 Provider，显示 token 指标、缓存命中率和上下文用量，并带投机压缩区间指示。
+一个常驻的 OMP 状态栏扩展：一个 `belowEditor` Widget Host 加内置 Provider，显示 token 指标、缓存命中率、带投机压缩区间指示的上下文用量，以及本次会话已回答的模型请求次数。
 
 属于 [projects/omp-status-bar](../README.zh.md)，作者为 Ruokee。
 
@@ -18,7 +18,7 @@ omp plugin link "$(pwd)" --scope user
 
 OMP 会读取 `package.json` 中的 `omp.extensions` 并加载 `src/extension.ts`，不需要手动设置 Extension 路径。
 
-支持的 OMP 范围为 `>=18.1.8 <19`。自动化类型检查和测试同时覆盖 OMP 18.1.8 与 18.2.3，真实 TUI 验证覆盖 OMP 18.2.3。
+支持的 OMP 范围为 `>=18.1.8 <19`。自动化检查针对 OMP 18.2.8 运行，`bun test` 与 `tsc --noEmit` 均通过。随包交付的源码也能在 OMP 18.1.8 和 18.2.3 下通过类型检查，在这两个版本上除 `cross-product.test.ts` 和 `render.test.ts` 外的测试文件全部通过，这两个文件导入了 OMP 内部的 Composer shape 与 statusline host 模块。真实 TUI 验证覆盖 OMP 18.2.3 与 18.2.8。
 
 ## 配置
 
@@ -53,6 +53,7 @@ statuses:
   - id: context
     options:
       mode: percent
+  - id: turn
 ```
 
 ### 顶层字段
@@ -83,7 +84,7 @@ statuses:
 
 ## 内置 Provider
 
-内置 ID 固定为 `total`、`input`、`cache`、`output`、`cache-hit`、`context`。不保留旧的 `tokens` 或 `cost` ID，也不提供别名。
+内置 ID：`total`、`input`、`cache`、`output`、`cache-hit`、`context`、`turn`。不保留旧的 `tokens` 或 `cost` ID，也不提供别名。
 
 ### 指标公式
 
@@ -146,6 +147,24 @@ options:
 | `cache` | `#af87ff` |
 | `output` | `#ff5faf` |
 | `cache-hit` | `#8787af` |
+| `turn` | `#87d7af` |
+
+## turn Provider
+
+`turn` 显示本次会话中有多少次模型请求得到了成功响应。它不接受任何 option：出现任何 option key 都会使该条目失效。
+
+```yaml
+statuses:
+  - id: turn
+```
+
+数值为会话累计值，但始终跟随会话当前持有的分支。绑定会话时按该分支上已经成功结束的 assistant 响应计数，此后每次成功响应使数值前进；沿会话树导航或新建分支时会按新的前台分支重新取值，回退到较早的位置会让数值下降。恢复会话或切换会话则继续前台的会话计数，而不是从零开始。
+
+只有成功的响应才使数值前进。失败的请求、被中断的响应，以及在模型调用前就被拦下的请求都不改变它。
+
+Provider 把固定标签 `Turn`、一个空格和数值渲染为同一个 `#87d7af` 颜色的 span。有轮次进行中时数值使用强调样式，其余情况使用弱化样式。数值为零时不发布内容。
+
+`turn` 跟随会话的轮次生命周期，不读取依赖快照的内置 Provider：它不读取用量或上下文数据，也不注册 timer。因此只配置 `turn` 的会话不启动内部数据源。
 
 ## context Provider
 
@@ -231,15 +250,15 @@ speculationBand = [start, threshold)
 
 ## 数据刷新
 
-第一个内置 Provider 启动时，内部数据源立即采样，并启动一个共享的 OMP 托管 interval，每 `600 ms` 采样一次。所有已配置的内置 Provider 读取同一个不可变快照；T、I、C、O、H 不会各自调用 `getUsageStatistics()` 造成每 tick 五次调用。
+第一个依赖快照的内置 Provider 启动时，内部数据源立即采样，并启动一个共享的 OMP 托管 interval，每 `600 ms` 采样一次。依赖快照的内置 Provider 读取同一个不可变快照；T、I、C、O、H 不会各自调用 `getUsageStatistics()` 造成每 tick 五次调用。`turn` 由事件驱动：它不读取数据源，不注册 timer，也不会启动共享 interval。
 
-存在 TICO 或 H 订阅时，每个 tick 最多调用一次 `getUsageStatistics()`。`getContextUsage()`、模型和压缩设置只在 `context` 有订阅时读取。只配置第三方 Provider 时不启动内部数据源。
+存在 TICO 或 H 订阅时，每个 tick 最多调用一次 `getUsageStatistics()`。`getContextUsage()`、模型和压缩设置只在 `context` 有订阅时读取。只配置第三方 Provider 或只配置 `turn` 时不启动内部数据源。
 
-同一进程只持有一组绑定数据源。`session_start` 会为当前处于前台的会话重新绑定，`session_shutdown` 再释放。无 UI 的会话两件事都不做，因此同一进程内的子代理会话不会改绑它所共享的 UI 会话数据源。
+同一进程只持有一组绑定数据源。`session_start` 会为当前处于前台的会话重新绑定，`session_shutdown` 再释放。无 UI 的会话两件事都不做，因此同一进程内的子代理会话不会改绑它所共享的 UI 会话数据源。轮次计数遵循同一条规则：无 UI 的会话忽略自己的轮次事件，不会改变前台会话的数值。
 
 快照只在字段变化时增加 revision。Provider 只在自己的标准化 fragment 变化时发布；`indicating` 的闪烁相位变化也算 fragment 变化。
 
-最后一个内置 Provider 停止时清除共享 interval。第三方 Provider 通过公开 Provider context 使用自己的 OMP 托管 timer。
+最后一个依赖快照的内置 Provider 停止时清除共享 interval。第三方 Provider 通过公开 Provider context 使用自己的 OMP 托管 timer。
 
 第一方 Provider 不公开 `refreshMs` option；固定采样周期是内部实现，不属于 schema version 1。
 
@@ -259,10 +278,13 @@ speculationBand = [start, threshold)
 
 - 状态栏在编辑器下方渲染一行持久显示；
 - 请求运行期间 token 指标和上下文用量持续更新；
+- 轮次计数对每次已回答的请求前进一次，轮次之间保持变暗，失败或被中断的请求不改变数值，恢复会话后继续原有计数，树回退或新建分支后跟随新的前台分支；
 - 实时调整终端宽度后仍保持单行，并在可用列宽内截断；
 - 状态栏与 OMP 原生 status line、终端标题 spinner 和子代理卡片共存，无闪烁或布局跳动；
 - 切换会话和退出后不留下重复 Widget 或 timer。
 
-OMP 18.2.3 兼容性使用组件锁定依赖与 `pro-20x/gpt-5.6-luna` 模型完成验证。真实 TUI 覆盖了 48 到 100 列的实时宽度调整、请求期间指标更新、会话切换、SGR 鼠标输入、子代理 Task 卡片、终端标题 spinner 帧和正常退出。验证时通过临时覆盖降低 recent-token 保留阈值，使手动 `/compact` 执行远端压缩；OMP 显示 `remote-compacted · 20K→19K`，状态栏在压缩后仍保持挂载并更新。本次无需修改运行时代码或公开 Provider 合同，因此组件版本维持 `0.1.3`，对等依赖范围维持 `>=18.1.8 <19`。
+OMP 18.2.3 兼容性使用组件锁定依赖与 `pro-20x/gpt-5.6-luna` 模型完成验证。真实 TUI 覆盖了 48 到 100 列的实时宽度调整、请求期间指标更新、会话切换、SGR 鼠标输入、子代理 Task 卡片、终端标题 spinner 帧和正常退出。验证时通过临时覆盖降低 recent-token 保留阈值，使手动 `/compact` 执行远端压缩；OMP 显示 `remote-compacted · 20K→19K`，状态栏在压缩后仍保持挂载并更新。本次无需修改运行时代码或公开 Provider 合同，`>=18.1.8 <19` 对等依赖范围保持不变。
+
+轮次计数在 OMP 18.2.8 上使用组件锁定依赖与 `pro-20x/gpt-6-luna` 模型完成验证，运行在带独立状态栏配置的临时 OMP profile 下。状态栏在 token 和上下文读数之后渲染 `Turn`，数值对每次已回答的模型请求前进一次，工具运行期间保持在前一个数值，被中断的请求不改变它，恢复会话后在发出新请求之前就显示分支历史，子代理运行也不会改变前台会话的数值。用 `/tree` 回退到更早的条目、或从更早的消息新建分支后，数值都降到当时前台分支的计数，下一次已回答请求再从新数值前进。本次验证中，数值在请求之间显示为弱化样式，请求运行期间使用强调样式。
 
 这些证据适用于本文档对应的组件源码。后续若修改可能影响渲染或生命周期的源码，需要重新执行真实 TUI 检查。

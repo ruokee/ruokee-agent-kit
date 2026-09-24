@@ -2,7 +2,7 @@
 
 [中文](./usage.zh.md)
 
-A persistent OMP status bar extension: one `belowEditor` widget host plus six builtin providers showing token metrics, cache hit rate, and context usage with a speculative-compaction band indicator.
+A persistent OMP status bar extension: one `belowEditor` widget host plus builtin providers for token metrics, cache hit rate, context usage with a speculative-compaction band indicator, and the count of model requests the session has answered.
 
 Part of [projects/omp-status-bar](../README.md). Written by Ruokee.
 
@@ -18,7 +18,7 @@ omp plugin link "$(pwd)" --scope user
 
 OMP reads `omp.extensions` from `package.json` and loads `src/extension.ts`; no manual extension-path setting is required.
 
-The supported OMP range is `>=18.1.8 <19`. Automated type checks and tests cover both OMP 18.1.8 and 18.2.3. Real TUI validation covers OMP 18.2.3.
+The supported OMP range is `>=18.1.8 <19`. Automated checks run on OMP 18.2.8, where `bun test` and `tsc --noEmit` pass. The shipped source also type checks against OMP 18.1.8 and 18.2.3, and on those versions every test file passes except `cross-product.test.ts` and `render.test.ts`, which import OMP's internal composer-shape and statusline-host modules. Real TUI validation covers OMP 18.2.3 and 18.2.8.
 
 ## Configuration
 
@@ -53,6 +53,7 @@ statuses:
   - id: context
     options:
       mode: percent
+  - id: turn
 ```
 
 ### Top-level fields
@@ -83,7 +84,7 @@ Each `statuses` entry needs a non-empty string `id` and optional `options` mappi
 
 ## Builtin providers
 
-Six ids: `total`, `input`, `cache`, `output`, `cache-hit`, `context`. No legacy `tokens` or `cost` ids and no aliases.
+Builtin ids: `total`, `input`, `cache`, `output`, `cache-hit`, `context`, `turn`. No legacy `tokens` or `cost` ids and no aliases.
 
 ### Metric formulas
 
@@ -146,6 +147,24 @@ The label, the following space, and the number share one color span. These color
 | `cache` | `#af87ff` |
 | `output` | `#ff5faf` |
 | `cache-hit` | `#8787af` |
+| `turn` | `#87d7af` |
+
+## Turn provider
+
+`turn` shows how many model requests the current session answered successfully. It accepts no options: any option key invalidates that entry.
+
+```yaml
+statuses:
+  - id: turn
+```
+
+The value is session-cumulative, but it always follows the branch the session currently holds. Binding a session counts the assistant responses that already ended successfully on that branch, each later successful response advances the value, and navigating the session tree or branching re-seeds it from the branch now in front, so a rewind to an earlier point lowers it. A resume or a session switch therefore continues the count of the session in front instead of restarting at zero.
+
+Only a successful response advances the value. A failed request, an interrupted response, and a request stopped before the model call leave it unchanged.
+
+The provider renders the fixed label `Turn`, a space, and the number as one span in `#87d7af`. While a turn is running the value is emphasized; otherwise it is dimmed. While the value is zero the provider publishes nothing.
+
+`turn` follows the session's turn lifecycle instead of the snapshot-backed builtin providers: it reads no usage or context data and schedules no timer. A config that contains only `turn` therefore starts no internal sources.
 
 ## Context provider
 
@@ -231,15 +250,15 @@ Emphasized frames use `#5fafaf`. Dimmed frames use the same color with `dim: tru
 
 ## Data refresh
 
-When the first builtin provider starts, the internal sources sample immediately and a shared OMP-managed interval ticks every `600 ms`. All configured builtin providers read the same immutable snapshot; T, I, C, O, and H never trigger five separate `getUsageStatistics()` calls per tick.
+When the first snapshot-backed builtin provider starts, the internal sources sample immediately and a shared OMP-managed interval ticks every `600 ms`. The snapshot-backed builtin providers read the same immutable snapshot; T, I, C, O, and H never trigger five separate `getUsageStatistics()` calls per tick. `turn` is event-driven instead: it reads no source, schedules no timer, and never starts the shared interval.
 
-With TICO or H subscribers, each tick calls `getUsageStatistics()` at most once. `getContextUsage()`, the model, and the compaction settings are read only while `context` has subscribers. Third-party-only configs start no internal sources.
+With TICO or H subscribers, each tick calls `getUsageStatistics()` at most once. `getContextUsage()`, the model, and the compaction settings are read only while `context` has subscribers. Third-party-only configs and configs holding only `turn` start no internal sources.
 
-One process holds one bound source set. `session_start` binds the sources of the session that is now in front and `session_shutdown` releases them. A session without UI skips both, so a subagent session in the same process never rebinds the sources of the UI session it shares them with.
+One process holds one bound source set. `session_start` binds the sources of the session that is now in front and `session_shutdown` releases them. A session without UI skips both, so a subagent session in the same process never rebinds the sources of the UI session it shares them with. The turn count follows the same rule: a session without UI ignores its turn events and never moves the value of the session in front.
 
 Snapshots bump their revision only when a field changes. Providers publish only when their normalized fragment changes; the blink phase of `indicating` also counts as a fragment change.
 
-The shared interval clears when the last builtin provider stops. Third-party providers use their own OMP-managed timers through the public provider context.
+The shared interval clears when the last snapshot-backed builtin provider stops. Third-party providers use their own OMP-managed timers through the public provider context.
 
 Builtin providers expose no `refreshMs` option; the fixed cadence is internal and not part of schema version 1.
 
@@ -259,10 +278,13 @@ The automated suite runs headless and cannot prove terminal layout. Before a rel
 
 - the status bar renders one persistent row below the editor;
 - token metrics and context usage update while a request runs;
+- the turn count advances once per answered request, stays dimmed between turns, leaves the value unchanged for a failed or interrupted request, keeps the resumed session's count, and follows the branch in front after a tree rewind or a new branch;
 - the row survives live width changes and truncates within the available columns;
 - the row coexists with OMP's native status line, terminal-title spinner, and subagent cards without flicker or layout shifts;
 - session switches and shutdowns leave no duplicate widget or timer behind.
 
-OMP 18.2.3 compatibility was validated with the component's locked dependencies and the `pro-20x/gpt-5.6-luna` model. The TUI run exercised live terminal widths from 48 to 100 columns, request-time metric updates, a session switch, SGR mouse input, a subagent task card, terminal-title spinner frames, and clean shutdown. A temporary validation override lowered the recent-token cutoff so manual `/compact` exercised remote compaction; OMP reported `remote-compacted · 20K→19K`, and the row remained mounted and updated afterward. The existing runtime code and public provider contract required no change, so version `0.1.3` and the `>=18.1.8 <19` peer range remain valid.
+OMP 18.2.3 compatibility was validated with the component's locked dependencies and the `pro-20x/gpt-5.6-luna` model. The TUI run exercised live terminal widths from 48 to 100 columns, request-time metric updates, a session switch, SGR mouse input, a subagent task card, terminal-title spinner frames, and clean shutdown. A temporary validation override lowered the recent-token cutoff so manual `/compact` exercised remote compaction; OMP reported `remote-compacted · 20K→19K`, and the row remained mounted and updated afterward. The existing runtime code and public provider contract required no change, and the `>=18.1.8 <19` peer range stayed as it was.
+
+The turn metric was validated on OMP 18.2.8 with the component's locked dependencies and the `pro-20x/gpt-6-luna` model, run under a temporary OMP profile with its own status bar configuration. The row rendered `Turn` after the token and context readings, the value advanced once per answered model request and held at its previous value while a tool ran, an interrupted request left it unchanged, a resumed session showed the branch history before any new request, and a subagent run did not move the value of the session in front. A `/tree` rewind to an earlier entry and a branch created from an earlier message each dropped the value to the count of the branch then in front, and in both cases the next answered request advanced it from there. In that run the value rendered dimmed between requests and emphasized while a request was running.
 
 This evidence applies to the documented component source. Repeat the real TUI checks after a later source change that can affect rendering or lifecycle behavior.

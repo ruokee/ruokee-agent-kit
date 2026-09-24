@@ -64,7 +64,7 @@ export default function exampleStatusProvider(pi: ExtensionAPI): void {
 
 ## 规则
 
-- ID 使用 `example.counter` 形式：短所有者前缀加名称。不要使用六个内置 ID。
+- ID 使用 `example.counter` 形式：短所有者前缀加名称。不要使用内置 ID。
 - 不要输出 separator、ANSI escape 或控制字符；Host 会剥离它们并合并连续空格。
 - 在 `describe` 里校验 options，而不是 `create`；`create` 失败同样只影响当前条目，但发生得更晚。
 - 不要调用 OMP UI API，也不要操作 Widget；渲染由 Host 负责。

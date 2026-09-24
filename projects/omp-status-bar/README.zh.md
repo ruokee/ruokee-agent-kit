@@ -2,7 +2,7 @@
 
 [English](./README.md)
 
-一个常驻的 OMP 状态栏：一个 `belowEditor` Widget Host 加六个内置 Provider，分别显示总 token、输入 token、缓存读取 token、输出 token、缓存命中率和上下文用量，并带投机压缩区间指示。
+一个常驻的 OMP 状态栏：一个 `belowEditor` Widget Host 加内置 Provider，显示总 token、输入 token、缓存读取 token、输出 token、缓存命中率、带投机压缩区间指示的上下文用量，以及本次会话已回答的模型请求次数。
 
 第三方扩展通过 `@ruokee/omp-status-bar/provider` 的公开合同添加 Provider。
 

@@ -2,7 +2,7 @@
 
 [中文](./README.zh.md)
 
-A persistent OMP status bar: one `belowEditor` widget host plus six builtin providers for total, input, cache-read, and output tokens, cache hit rate, and context usage with a speculative-compaction band indicator.
+A persistent OMP status bar: one `belowEditor` widget host plus builtin providers for total, input, cache-read, and output tokens, cache hit rate, context usage with a speculative-compaction band indicator, and the number of model requests the session has answered.
 
 Third-party extensions add providers through the public contract at `@ruokee/omp-status-bar/provider`.
 

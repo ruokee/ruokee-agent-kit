@@ -1,7 +1,7 @@
 /**
  * OMP extension entry: binds the live session to the status bar Host.
  *
- * Flow on activation: register the six builtin providers into the
+ * Flow on activation: register the builtin providers into the
  * process-level registry. Registration is preflighted atomically, so a third
  * party that already owns a builtin id cannot leave a partial batch. Ids this
  * package registered earlier in the process are its own: a later activation,
@@ -10,17 +10,30 @@
  *
  * Flow on `session_start` and `session_switch`, after the previous Host stops:
  * 1. Return immediately when the session has no UI: it can mount no widget, and
- *    the bound sources belong to the UI session that shares this process.
- * 2. Bind the data sources (usage statistics, context usage, model,
- *    compaction settings) to the shared snapshot store.
+ *    the bound sources and turn state belong to the UI session that shares this
+ *    process.
+ * 2. Seed the turn state from the branch the session now holds, and bind the
+ *    data sources (usage statistics, context usage, model, compaction settings)
+ *    to the shared snapshot store.
  * 3. Create the Host with an environment backed by this extension context, and
  *    start it (config read + provider creation + widget mount).
  *
+ * The turn lifecycle of the UI session writes the turn state: `turn_start`
+ * marks a turn in flight, `turn_end` advances the count when the response
+ * ended successfully and clears the mark otherwise, and `agent_end` clears the
+ * mark for a run that never reached `turn_end`. `session_tree` and
+ * `session_branch` replace the branch the session holds without replacing the
+ * session manager, so both re-seed the count from the branch now in front.
+ * Events from a session without UI are ignored: a child session in the same
+ * process runs this extension too, and its turns must not move the UI
+ * session's value.
+ *
  * On `session_shutdown` the Host stops first: providers stop, the shared
  * sampler interval is cleared, and the widget unmounts; only then are the
- * data sources unbound. A `finally` guarantees the unbind even if a stop
- * throws. Teardown touches only what this activation bound, so a session that
- * never bound sources leaves the store and the widget of the UI session alone.
+ * data sources unbound and the turn state cleared. A `finally` guarantees the
+ * teardown even if a stop throws. Teardown touches only what this activation
+ * bound, so a session that never bound sources leaves the store and the widget
+ * of the UI session alone.
  *
  * One process holds one bound source set, and `session_start` rebinds it for
  * the session that is now in front. OMP binds this extension per session and
@@ -34,7 +47,18 @@ import type { ExtensionAPI, ExtensionContext } from "@oh-my-pi/pi-coding-agent";
 import { StatusBarHost, type HostEnvironment } from "./host.ts";
 import { registerBuiltinProviders } from "./providers/bundled.ts";
 import { bindSessionSources, unbindSessionSources, type CompactionSettingsShape } from "./snapshot-store.ts";
+import { countSuccessfulResponses, getTurnSample, setTurnSample, SUCCESSFUL_STOP_REASONS } from "./turn-state.ts";
 import { getAgentDir } from "./agent-dir.ts";
+
+/**
+ * Seed the turn state from the branch the session holds now. The session
+ * manager object survives tree navigation and branching, so a later event
+ * reads the branch in front through the context it receives.
+ */
+function reseedTurnCount(ctx: ExtensionContext): void {
+  if (!ctx.hasUI) return;
+  setTurnSample({ count: countSuccessfulResponses(ctx.sessionManager.getBranch()), active: false });
+}
 
 export default function statusBarController(pi: ExtensionAPI): void {
   registerBuiltinProviders();
@@ -70,6 +94,10 @@ export default function statusBarController(pi: ExtensionAPI): void {
     // here would replace the sources of the UI session that shares this
     // process, and this activation's later shutdown would then unbind them.
     if (!ctx.hasUI) return;
+    // The count follows the branch this session holds: seed it before the
+    // Host starts, so the first publish shows the history of that branch
+    // instead of an empty row.
+    reseedTurnCount(ctx);
     bindSessionSources({
       getUsageStatistics: () => ctx.sessionManager.getUsageStatistics(),
       getContextUsage: () => ctx.getContextUsage(),
@@ -115,11 +143,38 @@ export default function statusBarController(pi: ExtensionAPI): void {
         await current.shutdown();
       } finally {
         unbindSessionSources();
+        setTurnSample(undefined);
       }
     }
   }
 
+  // Turn lifecycle of the UI session. A turn counts once, at `turn_end`, and
+  // only when the response ended successfully; `agent_end` covers a run that
+  // stopped before any `turn_end` so a stale in-flight mark cannot dim the
+  // value forever.
+  pi.on("turn_start", (_event, ctx) => {
+    if (!ctx.hasUI) return;
+    setTurnSample({ count: getTurnSample()?.count ?? 0, active: true });
+  });
+  pi.on("turn_end", (event, ctx) => {
+    if (!ctx.hasUI) return;
+    const message = event.message;
+    const count = getTurnSample()?.count ?? 0;
+    const answered = message.role === "assistant" && SUCCESSFUL_STOP_REASONS[message.stopReason] === true;
+    setTurnSample({ count: answered ? count + 1 : count, active: false });
+  });
+  pi.on("agent_end", (_event, ctx) => {
+    if (!ctx.hasUI) return;
+    const current = getTurnSample();
+    if (current?.active) setTurnSample({ count: current.count, active: false });
+  });
   pi.on("session_start", (_event, ctx) => transition(ctx));
   pi.on("session_switch", (_event, ctx) => transition(ctx));
+  // Navigating the session tree or branching replaces the branch under the
+  // same session manager: the count follows the branch now in front instead of
+  // keeping the total of the one it replaced. The Host and its sources stay
+  // bound, because the session manager they read through is unchanged.
+  pi.on("session_tree", (_event, ctx) => reseedTurnCount(ctx));
+  pi.on("session_branch", (_event, ctx) => reseedTurnCount(ctx));
   pi.on("session_shutdown", () => transition());
 }

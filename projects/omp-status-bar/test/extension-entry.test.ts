@@ -31,6 +31,7 @@ import type { ProviderDefinition, ProviderInstanceContext } from "../src/provide
 import { registerBuiltinProviders } from "../src/providers/bundled.ts";
 import { getProviderRegistry, resetProviderRegistryForTests } from "../src/registry.ts";
 import { getSnapshotStore, resetSnapshotStoreForTests } from "../src/snapshot-store.ts";
+import { getTurnSample, resetTurnStateForTests, type BranchEntryLike } from "../src/turn-state.ts";
 import factory from "../src/extension.ts";
 
 // One agent dir per test file: the pi dirs module caches the agent dir on
@@ -81,6 +82,8 @@ class ExtensionHarness {
   settingsGroup: Record<string, unknown> | undefined = undefined;
   /** Counts reads of the compaction group through the injected namespace. */
   settingsGroupReads = 0;
+  /** Branch the session binding counts; set before emitStart/emitSwitch to seed history. */
+  branch: BranchEntryLike[] = [];
 
   constructor(configYaml: string, options: { hasUI?: boolean; totalTokens?: number } = {}) {
     this.agentDir = AGENT_DIR;
@@ -142,6 +145,7 @@ class ExtensionHarness {
             cost: this.#metrics.cost,
           };
         },
+        getBranch: () => this.branch,
       },
       setInterval: (callback: () => void) => {
         const record: IntervalRecord = { callback, cleared: false };
@@ -222,6 +226,30 @@ class ExtensionHarness {
   async emitShutdown(): Promise<void> {
     for (const handler of this.handlers["session_shutdown"] ?? []) {
       await handler({}, this.#ctx);
+    }
+  }
+
+  /** Emit one turn lifecycle event the way OMP does for the bound session. */
+  async emitTurn(event: "turn_start" | "agent_end" | "turn_end", stopReason?: string): Promise<void> {
+    const payload =
+      event === "turn_end"
+        ? { type: event, turnIndex: 0, message: { role: "assistant", stopReason }, toolResults: [] }
+        : event === "turn_start"
+          ? { type: event, turnIndex: 0, timestamp: 0 }
+          : { type: event, messages: [] };
+    for (const handler of this.handlers[event] ?? []) {
+      await handler(payload, this.#ctx);
+    }
+  }
+
+  /** Emit a tree navigation or a branch the way OMP does for the bound session. */
+  async emitBranchChange(event: "session_tree" | "session_branch"): Promise<void> {
+    const payload =
+      event === "session_tree"
+        ? { type: event, newLeafId: "leaf-2", oldLeafId: "leaf-1", summaryEntry: undefined }
+        : { type: event, previousSessionFile: "/tmp/previous-session.jsonl" };
+    for (const handler of this.handlers[event] ?? []) {
+      await handler(payload, this.#ctx);
     }
   }
 
@@ -491,7 +519,7 @@ describe("extension entry lifecycle", () => {
         create: () => ({ start() {}, stop() {} }),
       });
       await expect(h.activate()).rejects.toThrow(/already registered/);
-      // No partial batch: none of the six builtin ids landed, and the
+      // No partial batch: none of the builtin ids landed, and the
       // third party still owns its id.
       expect(getProviderRegistry().has("total")).toBe(false);
       expect(getProviderRegistry().has("input")).toBe(false);
@@ -594,7 +622,15 @@ describe("extension entry lifecycle", () => {
 
     registerBuiltinProviders();
     expect(getProviderRegistry().get("total")).toBe(fromAnotherCopy);
-    expect(getProviderRegistry().ids().sort()).toEqual(["cache", "cache-hit", "context", "input", "output", "total"]);
+    expect(getProviderRegistry().ids().sort()).toEqual([
+      "cache",
+      "cache-hit",
+      "context",
+      "input",
+      "output",
+      "total",
+      "turn",
+    ]);
   });
 
   test("a bad entry followed by a start-failing entry reports the original indexes", async () => {
@@ -766,4 +802,166 @@ test("shutdown interrupts an unfinished provider start", async () => {
     await h.emitShutdown();
     h.dispose();
   }
+});
+
+describe("turn metric", () => {
+  const config = "version: 1\nstatuses:\n  - id: turn\n";
+
+  test("seeds from the branch history and counts only successful responses", async () => {
+    resetProviderRegistryForTests();
+    resetSnapshotStoreForTests();
+    resetTurnStateForTests();
+    const h = new ExtensionHarness(config);
+    try {
+      // The branch holds one answered response, one failed one, and one user
+      // message: only the answered response is part of the starting value.
+      h.branch = [
+        { type: "message", message: { role: "user" } },
+        { type: "message", message: { role: "assistant", stopReason: "stop" } },
+        { type: "message", message: { role: "assistant", stopReason: "error" } },
+      ];
+      await h.activate();
+      await h.emitStart();
+      const component = h.mountWidget() as { render(width: number): string[] };
+      expect(component.render(120).join("")).toContain("Turn 1");
+      expect(getTurnSample()).toEqual({ count: 1, active: false });
+
+      // A running turn keeps the count and stops dimming the value.
+      await h.emitTurn("turn_start");
+      expect(getTurnSample()).toEqual({ count: 1, active: true });
+      expect(component.render(120).join("")).not.toContain("\x1b[2mTurn");
+
+      for (const stopReason of ["stop", "length", "toolUse"]) {
+        await h.emitTurn("turn_start");
+        await h.emitTurn("turn_end", stopReason);
+      }
+      expect(getTurnSample()).toEqual({ count: 4, active: false });
+      expect(component.render(120).join("")).toContain("Turn 4");
+
+      for (const stopReason of ["error", "aborted"]) {
+        await h.emitTurn("turn_start");
+        await h.emitTurn("turn_end", stopReason);
+      }
+      expect(getTurnSample()).toEqual({ count: 4, active: false });
+
+      // A run that ends without a `turn_end` clears the in-flight mark too.
+      await h.emitTurn("turn_start");
+      await h.emitTurn("agent_end");
+      expect(getTurnSample()).toEqual({ count: 4, active: false });
+
+      await h.emitShutdown();
+      expect(getTurnSample()).toBeUndefined();
+    } finally {
+      h.dispose();
+      resetTurnStateForTests();
+    }
+  });
+
+  test("a resumed session re-seeds the count from the branch it now holds", async () => {
+    resetProviderRegistryForTests();
+    resetSnapshotStoreForTests();
+    resetTurnStateForTests();
+    const h = new ExtensionHarness(config);
+    try {
+      h.branch = [
+        { type: "message", message: { role: "assistant", stopReason: "stop" } },
+        { type: "message", message: { role: "assistant", stopReason: "stop" } },
+      ];
+      await h.activate();
+      await h.emitStart();
+      expect(getTurnSample()).toEqual({ count: 2, active: false });
+
+      // Resuming feeds the branch that is in front now, so the value follows
+      // that history instead of the previous session's total.
+      h.branch = [{ type: "message", message: { role: "assistant", stopReason: "stop" } }];
+      await h.emitSwitch("resume");
+      expect(getTurnSample()).toEqual({ count: 1, active: false });
+      const component = h.mountWidget() as { render(width: number): string[] };
+      expect(component.render(120).join("")).toContain("Turn 1");
+    } finally {
+      await h.emitShutdown();
+      h.dispose();
+      resetTurnStateForTests();
+    }
+  });
+
+  test("tree navigation and branching re-seed the count without remounting the widget", async () => {
+    resetProviderRegistryForTests();
+    resetSnapshotStoreForTests();
+    resetTurnStateForTests();
+    const h = new ExtensionHarness(config);
+    try {
+      h.branch = [
+        { type: "message", message: { role: "assistant", stopReason: "stop" } },
+        { type: "message", message: { role: "assistant", stopReason: "stop" } },
+        { type: "message", message: { role: "assistant", stopReason: "stop" } },
+      ];
+      await h.activate();
+      await h.emitStart();
+      expect(getTurnSample()).toEqual({ count: 3, active: false });
+
+      // Rewinding to an earlier leaf of the same session feeds a shorter
+      // branch, and the next answered response continues from that history
+      // instead of the value the abandoned trail had reached.
+      h.branch = [{ type: "message", message: { role: "assistant", stopReason: "stop" } }];
+      await h.emitBranchChange("session_tree");
+      expect(getTurnSample()).toEqual({ count: 1, active: false });
+      const component = h.mountWidget() as { render(width: number): string[] };
+      expect(component.render(120).join("")).toContain("Turn 1");
+      await h.emitTurn("turn_start");
+      await h.emitTurn("turn_end", "stop");
+      expect(getTurnSample()).toEqual({ count: 2, active: false });
+
+      // A branch starts a new session trail, so its own history is the value.
+      h.branch = Array.from({ length: 4 }, () => ({
+        type: "message",
+        message: { role: "assistant", stopReason: "stop" },
+      }));
+      await h.emitBranchChange("session_branch");
+      expect(getTurnSample()).toEqual({ count: 4, active: false });
+      // The session manager they read through is the one that changed, so the
+      // Host stays mounted instead of restarting.
+      expect(h.widgetFactories).toHaveLength(1);
+    } finally {
+      await h.emitShutdown();
+      h.dispose();
+      resetTurnStateForTests();
+    }
+  });
+
+  test("a session without UI never moves the bound session's count", async () => {
+    resetProviderRegistryForTests();
+    resetSnapshotStoreForTests();
+    resetTurnStateForTests();
+    const main = new ExtensionHarness(config);
+    const child = new ExtensionHarness(config, { hasUI: false });
+    try {
+      main.branch = [{ type: "message", message: { role: "assistant", stopReason: "stop" } }];
+      await main.activate();
+      await main.emitStart();
+      expect(getTurnSample()).toEqual({ count: 1, active: false });
+
+      child.branch = [
+        { type: "message", message: { role: "assistant", stopReason: "stop" } },
+        { type: "message", message: { role: "assistant", stopReason: "stop" } },
+        { type: "message", message: { role: "assistant", stopReason: "stop" } },
+      ];
+      await child.activate();
+      await child.emitStart();
+      await child.emitTurn("turn_start");
+      await child.emitTurn("turn_end", "stop");
+      await child.emitTurn("agent_end");
+      await child.emitBranchChange("session_tree");
+      await child.emitBranchChange("session_branch");
+      expect(getTurnSample()).toEqual({ count: 1, active: false });
+
+      await child.emitShutdown();
+      expect(getTurnSample()).toEqual({ count: 1, active: false });
+    } finally {
+      await main.emitShutdown();
+      main.dispose();
+      child.dispose();
+      resetTurnStateForTests();
+    }
+  });
 });

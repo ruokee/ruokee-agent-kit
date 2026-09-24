@@ -1,10 +1,13 @@
 /**
  * First-party providers bundled with the status bar Host.
  *
- * All six read the session-scoped shared snapshot (`src/snapshot.ts`), so one
- * 600 ms sampler feeds every instance and `getUsageStatistics()` is called at
- * most once per tick. Providers never touch OMP UI; they publish structured
- * fragments only.
+ * The metric providers (`total`, `input`, `cache`, `output`, `cache-hit`, and
+ * `context`) read the session-scoped shared snapshot (`src/snapshot.ts`), so
+ * one 600 ms sampler feeds every instance and `getUsageStatistics()` is called
+ * at most once per tick. The `turn` provider reads the turn state
+ * (`src/turn-state.ts`) instead: that state is event-driven, and configuring
+ * only `turn` starts no sampler. Providers never touch OMP UI; they publish
+ * structured fragments only.
  *
  * Token metrics (`total`, `input`, `cache`, `output`, `cache-hit`) share the
  * TICO accounting:
@@ -22,6 +25,7 @@ import { formatTokenCount } from "../format.ts";
 import { composeContextFragment } from "../context-fragment.ts";
 import { getSnapshotStore } from "../snapshot-store.ts";
 import type { SnapshotStore } from "../snapshot.ts";
+import { getTurnSample, subscribeTurn } from "../turn-state.ts";
 import { SpeculationMachine, type SpeculationState } from "../speculation.ts";
 
 /** Colors are fixed per provider; not user-configurable. */
@@ -31,6 +35,7 @@ const COLORS = {
   cache: "#af87ff",
   output: "#ff5faf",
   cacheHit: "#8787af",
+  turn: "#87d7af",
 } as const;
 
 /** Label text per metric and label mode. */
@@ -234,12 +239,51 @@ const contextProvider: ProviderDefinition = {
 };
 
 /**
+ * Turn provider: how many model requests the session answered successfully.
+ *
+ * The count and the in-flight flag come from the turn lifecycle the extension
+ * records, so this provider reads no session source and schedules no timer.
+ * Nothing visible so far, or a count of zero, withdraws the content; the
+ * value is dimmed whenever no turn is running.
+ */
+const turnProvider: ProviderDefinition = {
+  id: "turn",
+  contractVersion: 1,
+  describe: (options) => {
+    rejectUnknownOptions(options as Record<string, unknown>, []);
+    return {};
+  },
+  create: (context) => {
+    let release: (() => void) | undefined;
+    const publish = (): void => {
+      const sample = getTurnSample();
+      if (sample === undefined || sample.count <= 0) {
+        context.publish({ spans: [] });
+        return;
+      }
+      const span = metricSpan("Turn", String(sample.count), "turn");
+      context.publish({ spans: [sample.active ? span : { ...span, dim: true }] });
+    };
+    return {
+      start: () => {
+        release = subscribeTurn(publish);
+        publish();
+      },
+      stop: () => {
+        release?.();
+        release = undefined;
+      },
+    };
+  },
+};
+
+/**
  * Marks a builtin definition as this package's own.
  *
  * The provider registry lives on `globalThis`, so every copy of this package
  * shares one store, and OMP calls this factory again for a later session. Both
- * make a later activation meet the six ids as already registered. The mark is
- * what separates that earlier registration by this package from a third
+ * make a later activation meet the builtin ids as already registered. The mark
+ * is what separates that earlier registration by this package from a third
  * party's definition, which still fails activation.
  *
  * The mark is a component-internal convention, not proof of origin or of
@@ -255,10 +299,11 @@ export const BUILTIN_PROVIDERS: readonly ProviderDefinition[] = [
   tokenMetricProvider("output"),
   tokenMetricProvider("cache-hit"),
   contextProvider,
+  turnProvider,
 ];
 
 /**
- * Register all six builtin providers atomically: every id is preflighted
+ * Register the builtin providers atomically: every id is preflighted
  * against the registry before anything is registered, so a third party that
  * already owns a builtin id leaves no partial batch and no builtin overrides
  * third-party content.
