@@ -13,6 +13,14 @@ This OMP extension lets OMP use a Codex subscription through a forwarding Provid
 
 `codex_web_search` answers a search query. `codex_web_fetch` reads one specific HTTP(S) URL and extracts information from it. The extraction is model-assisted: it may summarize or clean page content, and it is not raw HTML or a verbatim page snapshot. Callers who need an exact copy should fetch the page directly. Both tools use OMP's `read` approval tier and pass cancellation to the request. The extension registers only these two names and does not change OMP's built-in search or fetch settings.
 
+## Compatibility
+
+The minimum maintained OMP version is `18.2.8`, with no upper maintenance bound. This section states the maintenance commitment, not an installation, activation, or run condition: a host below the bound is not blocked and may still run the package, without gaining a maintenance commitment below it, and having no upper bound does not mean that every later release works or has been verified.
+
+The package declares `@oh-my-pi/pi-coding-agent` as an unrestricted host peer (`*`). That declaration names the host package the component imports; it carries no maintenance range, no runtime check, and no claim about any host version. The same package stays pinned as a development dependency at `18.2.8` for reproducible checks, which is not a declaration either.
+
+The automated type check and the test suite run against OMP `18.2.8`. OMP `18.2.3` introduced the asynchronous model header API the extension calls, and real OMP TUI runs on that version exercised both tools successfully. Those runs cover the component as implemented at that time rather than the current source, and no real CLI run on `18.2.8` exists.
+
 ## Installation
 
 The package has not been published. After cloning the GitHub repository, install its locked dependencies and install the package into OMP:
@@ -24,7 +32,7 @@ bun install
 omp install "$(pwd)" --scope user
 ```
 
-`omp install` is an alias of `omp plugin install`; `omp plugin link "$(pwd)" --scope user` works the same. OMP reads `omp.extensions` from `package.json` and loads `src/extension.ts`, so no extension path needs to be set by hand. The supported OMP range is `>=18.2.3 <19`, because the extension uses the asynchronous model header API introduced in OMP 18.2.3.
+`omp install` is an alias of `omp plugin install`; `omp plugin link "$(pwd)" --scope user` works the same. OMP reads `omp.extensions` from `package.json` and loads `src/extension.ts`, so no extension path needs to be set by hand.
 
 ### Updating
 

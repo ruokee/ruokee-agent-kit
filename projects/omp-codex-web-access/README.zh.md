@@ -13,6 +13,14 @@
 
 `codex_web_search` 回答搜索查询。`codex_web_fetch` 读取指定的 HTTP(S) 页面并从中提取信息。提取结果由模型辅助生成：可能总结或清理页面内容，不是原始 HTML，也不是逐字页面快照。需要原文精确副本的调用方应直接抓取页面。两个工具均使用 OMP 的 `read` 审批级别，并将取消信号传递给请求。扩展包只注册这两个名称，不修改 OMP 内置搜索或抓取工具的设置。
 
+## 兼容性
+
+最低维护宿主为 OMP `18.2.8`，没有维护上限。本节说明维护承诺，而不是安装、激活或运行条件：低于下限的宿主不会被阻止，仍可能运行本包，但不会因此获得下限以下的维护承诺；没有上限也不表示之后的每个版本都可用或已验证。
+
+包的 peer 以无限制的范围 `*` 声明 `@oh-my-pi/pi-coding-agent`。该声明只列出组件导入的宿主包，不构成维护范围，不带运行时检查，也不表示任何宿主版本可用。同一个包作为开发依赖仍锁定 `18.2.8`，用于可重复的检查，它同样不是维护声明。
+
+自动类型检查与测试套件针对 OMP `18.2.8` 运行。扩展调用的异步模型 Header API 由 OMP `18.2.3` 引入，该版本上有真实 OMP TUI 运行且两个工具都成功执行；这些运行覆盖的是当时的实现，不是当前源码，`18.2.8` 上也没有真实 CLI 运行记录。
+
 ## 安装
 
 包尚未发布。检出 GitHub 仓库后，安装锁定版本的依赖，再把包安装到 OMP：
@@ -24,7 +32,7 @@ bun install
 omp install "$(pwd)" --scope user
 ```
 
-`omp install` 是 `omp plugin install` 的别名；`omp plugin link "$(pwd)" --scope user` 效果相同。OMP 会读取 `package.json` 中的 `omp.extensions` 并加载 `src/extension.ts`，不需要手动设置扩展路径。支持的 OMP 范围为 `>=18.2.3 <19`，因为扩展使用了 OMP 18.2.3 引入的异步模型 Header API。
+`omp install` 是 `omp plugin install` 的别名；`omp plugin link "$(pwd)" --scope user` 效果相同。OMP 会读取 `package.json` 中的 `omp.extensions` 并加载 `src/extension.ts`，不需要手动设置扩展路径。
 
 ### 更新
 
