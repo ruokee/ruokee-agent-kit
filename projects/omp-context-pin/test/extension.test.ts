@@ -79,22 +79,13 @@ describe("inspectRuntime", () => {
     expect(inspectRuntime("omp" as unknown as ExtensionAPI)).toEqual({ missing: ["pi"] });
   });
 
-  test("reports a host version outside the declared range", () => {
-    expect(inspectRuntime(createRuntime({ pi: { VERSION: "19.0.0" } }).api)).toEqual({
-      missing: [],
-      unsupportedVersion: "19.0.0",
-    });
-  });
-
-  test("caps a long reported version", () => {
-    const hostile = `19.0.0-${"x".repeat(500)}`;
-    const problem = inspectRuntime(createRuntime({ pi: { VERSION: hostile } }).api);
-    expect(problem?.unsupportedVersion).toStartWith("19.0.0");
-    expect(problem?.unsupportedVersion?.length).toBeLessThan(64);
-  });
-
-  test("falls back to capability checks when the version cannot be read", () => {
-    expect(inspectRuntime(createRuntime({ pi: { VERSION: "main" } }).api)).toBeUndefined();
+  test("does not read the reported host version as a compatibility condition", () => {
+    // A version string carries no claim about what a host can do, so a runtime
+    // that carries every required member is accepted whatever it reports.
+    for (const version of ["18.1.8", "17.9.0", "19.0.0", `19.0.0-${"x".repeat(500)}`, "main", undefined]) {
+      expect(inspectRuntime(createRuntime({ pi: { VERSION: version } }).api)).toBeUndefined();
+    }
+    // A host that reports no version object at all is accepted the same way.
     expect(inspectRuntime(createRuntime({ pi: undefined }).api)).toBeUndefined();
   });
 });
@@ -106,28 +97,33 @@ describe("activate", () => {
     expect(host.warnings).toEqual([]);
   });
 
-  test("warns once and registers nothing on an unsupported runtime", () => {
+  test("warns once and registers nothing on an incomplete runtime", () => {
     const { api, warnings, calls } = createRuntime({ registerTool: undefined, registerCommand: undefined });
     activate(api);
     expect(warnings).toHaveLength(1);
     expect(warnings[0]).toContain(PACKAGE_NAME);
+    expect(warnings[0]).toContain("incomplete OMP runtime");
     expect(warnings[0]).toContain("registerTool, registerCommand");
     expect(calls).toEqual([]);
   });
 
-  test("names an unsupported host version", () => {
-    const { api, warnings, calls } = createRuntime({ pi: { VERSION: "19.0.0" } });
-    activate(api);
-    expect(warnings).toHaveLength(1);
-    expect(warnings[0]).toContain("unsupported host version: 19.0.0");
-    expect(calls).toEqual([]);
+  test("registers independently of the reported host version", () => {
+    // Changing only the reported version does not change registration.
+    for (const version of ["17.9.0", "19.0.0", `19.0.0-${"x".repeat(500)}`, "main"]) {
+      const host = fakeHost({ version });
+      activate(host.pi);
+      expect(host.warnings).toEqual([]);
+      expect(host.tools.has(TOOL_NAME)).toBe(true);
+      expect(host.commands.has(COMMAND_NAME)).toBe(true);
+    }
   });
 
-  test("keeps the warning bounded for a long host version", () => {
-    const { api, warnings } = createRuntime({ pi: { VERSION: `19.0.0-${"x".repeat(500)}` } });
+  test("still registers nothing when a required member is missing", () => {
+    const { api, warnings, calls } = createRuntime({ pi: { VERSION: "19.0.0" }, registerTool: undefined });
     activate(api);
     expect(warnings).toHaveLength(1);
-    expect(warnings[0]?.length).toBeLessThan(200);
+    expect(warnings[0]).toContain("missing: registerTool");
+    expect(calls).toEqual([]);
   });
 
   test("does not throw when the host exposes no usable logger", () => {

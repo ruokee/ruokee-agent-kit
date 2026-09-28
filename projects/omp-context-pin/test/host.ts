@@ -189,6 +189,7 @@ export interface FakeHostOptions {
   ui?: FakeUI;
   hasUI?: boolean;
   sessionId?: () => string;
+  /** The version this host reports, which no registration decision reads. */
   version?: string | undefined;
   /**
    * Whether a delivered message reaches the journal at once. The real host
@@ -308,7 +309,7 @@ export function fakeHost(options: FakeHostOptions = {}): FakeHost {
   const pi = {
     zod,
     logger: { warn: (message: string) => warnings.push(message) },
-    pi: { VERSION: options.version === undefined ? "18.1.8" : options.version },
+    pi: { VERSION: options.version === undefined ? "18.2.8" : options.version },
     on: (event: string, handler: (event: unknown, ctx: ExtensionContext) => unknown) => {
       const list = handlers.get(event) ?? [];
       list.push(handler);

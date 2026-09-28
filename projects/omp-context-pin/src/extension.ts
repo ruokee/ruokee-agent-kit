@@ -2,9 +2,11 @@
  * OMP extension entry for context pin.
  *
  * The factory inspects the runtime before anything is registered, using public
- * API information only. An unsupported host keeps its session and receives one
- * bounded diagnostic instead of a half-registered extension, and peer metadata
- * alone is not treated as a runtime compatibility check.
+ * API information only. A host that lacks a required API member keeps its
+ * session and receives one bounded diagnostic instead of a half-registered
+ * extension. The reported version does not decide eligibility. Passing the
+ * required-member check lets activation enter the registration flow; it does
+ * not prove that every host behavior is compatible.
  *
  * On a supported host the factory registers the `ctx_pin` tool, the `/ctx-pin`
  * command and the request hook. Reads and writes always use the newest session
@@ -29,7 +31,6 @@ import {
   projectMessages,
   unprojectedChanges,
 } from "./delivery.ts";
-import { classifyHostVersion } from "./host-version.ts";
 import { IdentityAllocator, scanIdentities, type IdentityAllocation } from "./identity.ts";
 import { type SessionReader, readJournal, readSession } from "./journal.ts";
 import {
@@ -60,21 +61,15 @@ const REQUIRED_API_FUNCTIONS = [
 /** Members of `pi.zod.z` the tool's parameter schema calls. */
 const REQUIRED_ZOD_MEMBERS = ["object", "enum", "string", "number"] as const;
 
-/** Longest host version string echoed in a diagnostic. */
-const MAX_REPORTED_VERSION = 32;
-
 /** Runtime condition that prevents registration. */
 export interface RuntimeProblem {
   /** Missing public API members, in declaration order. */
   missing: string[];
-  /** Host version outside the declared peer range, when the host reports one. */
-  unsupportedVersion?: string;
 }
 
 interface RuntimeMembers {
   zod?: { z?: Record<string, unknown> };
   logger?: { warn?: unknown };
-  pi?: { VERSION?: unknown };
 }
 
 interface Logger {
@@ -100,21 +95,7 @@ export function inspectRuntime(pi: ExtensionAPI): RuntimeProblem | undefined {
   }
   if (typeof api.logger?.warn !== "function") missing.push("logger.warn");
 
-  const version = typeof api.pi?.VERSION === "string" ? api.pi.VERSION : undefined;
-  const unsupportedVersion =
-    version !== undefined && classifyHostVersion(version) === "unsupported"
-      ? version.slice(0, MAX_REPORTED_VERSION)
-      : undefined;
-
-  if (missing.length === 0 && unsupportedVersion === undefined) return undefined;
-  return unsupportedVersion === undefined ? { missing } : { missing, unsupportedVersion };
-}
-
-function describeProblem(problem: RuntimeProblem): string {
-  const parts: string[] = [];
-  if (problem.missing.length > 0) parts.push(`missing: ${problem.missing.join(", ")}`);
-  if (problem.unsupportedVersion !== undefined) parts.push(`unsupported host version: ${problem.unsupportedVersion}`);
-  return parts.join("; ");
+  return missing.length === 0 ? undefined : { missing };
 }
 
 /** Newest session context the extension has seen. */
@@ -417,7 +398,9 @@ export function activate(pi: ExtensionAPI): void {
   if (problem !== undefined) {
     const logger = usableLogger(pi);
     if (logger === undefined) return; // The host exposes no way to report the problem.
-    logger.warn(`${PACKAGE_NAME}: unsupported OMP runtime, registering nothing (${describeProblem(problem)})`);
+    logger.warn(
+      `${PACKAGE_NAME}: incomplete OMP runtime, registering nothing (missing: ${problem.missing.join(", ")})`,
+    );
     return;
   }
 

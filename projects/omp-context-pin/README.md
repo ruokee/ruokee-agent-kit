@@ -125,7 +125,15 @@ Pins live in the session journal of the host. The extension can append records t
 
 ## Compatibility
 
-The package declares the peer range `>=18.1.8 <19` in `package.json`. The automated type check and the test suite run against the host version `18.2.8`; the interactive runs of the component used `18.1.16`. The range is metadata: it carries no runtime check and no claim about every version in it. Before registering anything, each activation inspects the host's public version and API surface, including the user message API a confirmed write is submitted through, the session entries used to restore the numbering, and the schema builders the tool uses. An activation that finds a problem registers nothing and, when the host exposes a usable logger, logs one bounded warning that describes the problem; without a usable logger it registers nothing and cannot report the problem. A message the host restores is not read as an operation: only a submission this process recorded is applied.
+The minimum maintained OMP version is `18.1.8`, with no upper maintenance bound. This section defines the maintenance commitment, not an installation or runtime requirement. Earlier hosts may run the component but carry no maintenance commitment. The declaration does not guarantee that later releases remain compatible or mean that every version at or above the minimum has been tested.
+
+The package declares `@oh-my-pi/pi-coding-agent` and `@oh-my-pi/pi-tui` as unrestricted host peers (`*`). These declarations name host dependencies; they do not define a maintenance range or guarantee compatibility with every host version.
+
+The automated type check and the test suite run against host version `18.2.8`. The interactive runs of the component used `18.1.16`; a real OMP CLI `18.2.8` session loaded this extension, registered its tool and command, and completed one read/write check. These observations cover only the versions and scenarios tested.
+
+Before registering anything, each activation checks the host's public API: the functions this component calls to register its tool and command, observe events, append its records, and deliver messages, the schema builders the tool uses, and the logger that reports a diagnostic. The reported version takes no part in refusing a host: one that passes the required-member check enters the registration flow. An activation that finds a missing member registers nothing and, when the host provides a usable logger, logs one bounded warning that names it; without a usable logger it registers nothing and cannot report the problem.
+
+A capability an operation needs later is checked where that operation runs: a host whose session manager cannot show every entry of the session refuses the write and hands out no number. A message the host restores is not read as an operation: only a submission this process recorded is applied.
 
 ## Installation
 
