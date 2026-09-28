@@ -1093,3 +1093,53 @@ describe("host wording forms", () => {
     expect(transform(main)).toEqual({ ok: false, reason: "unknown-section" });
   });
 });
+
+describe("original 18.1.21 templates", () => {
+  const fixture = (name: string): string =>
+    readFileSync(new URL(`./fixtures/omp-18.1.21/${name}`, import.meta.url), "utf8");
+  const HOST_MAIN_18_1_21 = fixture("system-prompt.txt");
+  const HOST_PROJECT_18_1_21 = fixture("project-prompt.txt");
+  const OWNED_IDENTITY = "You are an assistant in Oh My Pi (OMP), a terminal-based coding agent.";
+  const skills: SkillSpec[] = [{ name: "alpha", description: "First skill." }];
+  const mainOptions: MainOptions = {
+    tools: ["read", "bash", "task"],
+    skills,
+    rules: [{ name: "python", globs: ["**/*.py"], description: "Python rules." }],
+    task: true,
+    maxConcurrency: 2,
+  };
+  const main = renderMain(mainOptions, HOST_MAIN_18_1_21);
+  const project = renderProject({ append: "Fixture project context." }, HOST_PROJECT_18_1_21);
+  const extra = "independent middle block";
+
+  test("renders the published 18.1.21 template shape", () => {
+    expect(main.startsWith("<conventions>\n")).toBe(true);
+    expect(main).toContain("Helpful, trusted assistant for load-bearing changes in Oh My Pi coding harness.");
+    expect(main).not.toContain("`find`");
+    expect(project).toContain("<critical>");
+    expect(project).toContain("<workstation>");
+  });
+
+  test.each([true, false])("transforms the original templates with renderDelivery=%s", (renderDelivery) => {
+    const result = expectSuccess(transform(main, { skills, project, extras: [extra], renderDelivery }));
+    const owned = result.blocks[1] ?? "";
+    const snapshot = result.blocks[3] ?? "";
+
+    expect(result.blocks[0]).toBe("before");
+    expect(result.blocks[2]).toBe(extra);
+    expect(result.blocks[4]).toBe("after");
+    expect(owned).toContain(OWNED_IDENTITY);
+    expect(owned).not.toContain("<conventions>");
+    expect(owned).not.toContain("Helpful, trusted assistant for load-bearing changes");
+    expect(owned.includes("# Delivery\n")).toBe(renderDelivery);
+    expect(owned).toContain("`read`");
+    expect(owned).toContain("- alpha: First skill.");
+    expect(owned).toContain("Python rules.");
+    expect(snapshot).toContain("# Project snapshot");
+    expect(snapshot).toContain("Fixture project context.");
+    expect(snapshot).not.toContain(PROJECT_CRITICAL_EXACT);
+
+    const second = transformSystemPrompt(result.blocks, OWNED_TEMPLATE, metadata(skills), renderDelivery);
+    expect(second).toEqual({ ok: true, blocks: result.blocks, changed: false });
+  });
+});

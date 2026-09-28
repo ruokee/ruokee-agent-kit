@@ -3,6 +3,9 @@
  *
  * Both test files share these helpers so extension-level checks exercise the
  * same recognized default main block and PROJECT footer as transform checks.
+ * The optional `template` argument of {@link renderMain} and
+ * {@link renderProject} renders a stored template instead, which the
+ * original-18.1.21 regression in `transform.test.ts` uses.
  */
 
 import { renderToolInventory } from "@oh-my-pi/pi-ai/dialect";
@@ -61,7 +64,11 @@ export type MainOptions = {
   hasSkillUriAccess?: boolean;
 };
 
-export function renderMain(options: MainOptions = {}): string {
+/**
+ * Render a main block. `template` defaults to the installed 18.2.8 template;
+ * the original-template regression passes the stored 18.1.21 template.
+ */
+export function renderMain(options: MainOptions = {}, template: string = MAIN_TEMPLATE): string {
   const names = options.tools ?? ["read", "bash"];
   const gates = options.gateTools ?? names;
   const definitions = options.toolDefinitions ?? {};
@@ -131,7 +138,7 @@ export function renderMain(options: MainOptions = {}): string {
     contextFiles: [],
     agentsMdSearch: { files: [] },
   };
-  return prompt.format(prompt.render(MAIN_TEMPLATE, data), { renderPhase: "post-render" });
+  return prompt.format(prompt.render(template, data), { renderPhase: "post-render" });
 }
 
 /**
@@ -212,7 +219,8 @@ export type ProjectOptions = {
   append?: string;
 };
 
-export function renderProject(options: ProjectOptions = {}): string {
+/** Render a PROJECT footer; `template` defaults to the installed 18.2.8 template. */
+export function renderProject(options: ProjectOptions = {}, template: string = PROJECT_TEMPLATE): string {
   const contextFiles = options.contextFiles ?? [
     { path: "AGENTS.md", content: "Use plain English.\n\n# Conventions\nSecond section." },
     { path: "src/.agents.md", content: "- keep it terse" },
@@ -232,5 +240,5 @@ export function renderProject(options: ProjectOptions = {}): string {
     tools: ["read", "bash"],
     toolRefs: { read: "read", bash: "bash", glob: "glob" },
   };
-  return prompt.format(prompt.render(PROJECT_TEMPLATE, data), { renderPhase: "post-render" });
+  return prompt.format(prompt.render(template, data), { renderPhase: "post-render" });
 }
