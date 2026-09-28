@@ -35,3 +35,9 @@ The current contract lives in [Harness integration](../../../projects/tk/docs/de
 All tools-mode Harnesses share the same requests, schemas, domain rules, and unified results. Adapters remain thin but must enforce compatibility, resource limits, context mapping, cancellation, load isolation, and transport failure reporting.
 
 A native registration failure can leave an accepted prefix. This is a Harness API boundary, not a transaction guarantee.
+
+## Changes
+
+### 2026-09-28: Host maintenance declaration independent of the runtime protocol
+
+The component's maintenance declaration follows [Adapt first-party host components to host upgrades](./2026-09-28-adapt-components-to-host-upgrades.md) and is independent of the contracts above: the runtime protocol and its `runtime_compat` check, the CLI, driver, and native tool contracts, the component format, and the zero-registration boundary after a failed preflight keep their meanings. Nothing here changes a clause or a protocol.

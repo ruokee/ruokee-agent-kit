@@ -36,3 +36,9 @@ Each component can be installed, versioned, and read without another repository 
 Related components may repeat a small amount of guidance. Keep that material specific to each component instead of mirroring whole documents. When content moves between components, move the necessary explanation and remove the old cross-boundary reference in the same change.
 
 Repository-level documentation remains the place for comparisons, composition guidance, and relationships between components. Reviews must treat a component link that resolves outside its own directory as a boundary violation.
+
+## Changes
+
+### 2026-09-28: Maintenance statements ship with the component
+
+A component's maintenance declaration and the evidence for its host adaptation follow [Adapt first-party host components to host upgrades](./2026-09-28-adapt-components-to-host-upgrades.md) and live inside the component, so a component does not depend on a repository ADR, another component, or a repository-level table for either of them. This adds the declaration and its evidence to the material a component carries; it changes no boundary above.

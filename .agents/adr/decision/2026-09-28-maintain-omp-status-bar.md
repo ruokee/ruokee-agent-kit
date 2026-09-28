@@ -1,16 +1,18 @@
-# ADR decision: Use a persistent widget for the OMP status bar
+# ADR decision: Maintain the OMP status bar across OMP host upgrades
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
-Reverses: [Use a persistent widget for the OMP status bar](../archived/2026-09-05-use-omp-status-bar-widget.md)
+Reverses: [Use a persistent widget for the OMP status bar](../archived/2026-09-24-use-omp-status-bar-widget.md)
 
-English | [中文](./2026-09-24-use-omp-status-bar-widget.zh.md)
+English | [中文](./2026-09-28-maintain-omp-status-bar.zh.md)
 
 ## Motivation
 
-The `@ruokee/omp-status-bar` package must show how many model requests the session has answered, a reading it does not have yet and that a user reads against the token totals to judge the token efficiency of a session and to notice a call that consumed far more than the rest. The predecessor decision fixed the builtin provider IDs at exactly six, so the reading cannot be recorded as an update to it, and this decision records the whole row: one persistent line the package owns, every metric in its own fixed color, the composed line truncated at the terminal width without cutting a color sequence, and the dimmed context glyph that blinks while the context is inside the speculation band. The plain-text extension-status channel cannot carry that.
+The `@ruokee/omp-status-bar` package shows the current session's context usage, token readings, cache-hit rate, and the number of model requests it has answered on one persistent row below the editor, together with the estimate that the context has entered the speculation band. This decision records that package's complete current choice: the persistent row it owns, the structured and sanitized provider fragments the Host composes, the ordered configuration in the agent directory, the builtin metric providers and their fixed colors, the answered-request count, the estimated speculation band with its limits, and the documentation and evidence that ship with the package. It also records how the package states its maintenance commitment now that the commitment no longer decides which hosts may install it.
 
 ## Analysis
+
+A host peer declaration states which host packages the package imports, and a numeric range there also decides installation for every host that resolves the dependency ([the host upgrade decision](./2026-09-28-adapt-components-to-host-upgrades.md)). The maintenance bound therefore leaves the peer declaration and becomes a statement in the component README, while the package's coupling to OMP stays a capability coupling to the public widget, context-usage, and compaction-resolution APIs. The versions and scenarios actually verified are evidence in the component documentation, not the bound itself.
 
 The [predecessor decision](../archived/2026-09-05-use-omp-status-bar-widget.md) admits no builtin ID beyond its fixed list, and the enumeration itself was not the protected boundary. The same section excludes amount, cost, and premium-request readings and the legacy `tokens` alias, and the package usage documentation already maintains the builtin IDs with their options and their colors. Stating the provider scope and linking that documentation as the owner of the inventory therefore keeps the boundary.
 
@@ -98,9 +100,9 @@ The indication is explicitly approximate. The extension cannot observe whether O
 
 ### Keep implementation evidence with the project
 
-The [English and Chinese public documentation decision](./2026-09-07-colocate-bilingual-docs.md) applies with package-local usage documents and reciprocal language links. Package documentation covers installation, enablement, the configuration schema, the builtin provider IDs and their options, per-entry failure behavior, the widget placement, the speculation estimate and its limits, the meaning and the display of the answered-request count, and the verified OMP compatibility range. Provider authoring documentation defines the public import path, registration phase, contract versioning, collision behavior, lifecycle context, and how to install and select an independently packaged provider.
+The [English and Chinese public documentation decision](./2026-09-07-colocate-bilingual-docs.md) applies with package-local usage documents and reciprocal language links. Package documentation covers installation, enablement, the configuration schema, the builtin provider IDs and their options, per-entry failure behavior, the widget placement, the speculation estimate and its limits, the meaning and the display of the answered-request count, and the host versions actually verified with the scenarios they cover. The component README compatibility section declares the maintenance lower bound and is that bound's authoritative statement: the package declares a lower bound and no maintenance upper bound, keeps no supported-version whitelist, and blocks no host by its version alone. A host below the bound is not prevented from running the package and gains no maintenance commitment, and raising the bound is its own decision under [the host upgrade decision](./2026-09-28-adapt-components-to-host-upgrades.md). Provider authoring documentation defines the public import path, registration phase, contract versioning, collision behavior, lifecycle context, and how to install and select an independently packaged provider.
 
-The direct `@oh-my-pi/*` imports declare peer dependencies with the range `>=18.1.8 <19`; the package targets OMP 18.x and records the verified versions. Behavioral tests cover configuration parsing and per-entry degradation, fragment sanitization and invalid-fragment isolation, ordered composition and width truncation, the speculation state machine's timing, the answered-request counting rule with its display states and its session behavior, registration from a separately loaded extension without shared module identity, cleanup without residual timers or widgets, and the target version's built-in Composer shapes and statusline presets with an extension-registered shape, all through the same widget path. The automated suite is headless and cannot see the terminal: a real OMP TUI session that confirms the widget appears below the editor alongside the native statusline is a release requirement, run and reviewed per release commit before tagging, not inside the unit suite.
+The direct `@oh-my-pi/*` imports declare their host packages as peer dependencies without a version range, so the declaration names the host packages the package uses and carries no maintenance limit. Behavioral tests cover configuration parsing and per-entry degradation, fragment sanitization and invalid-fragment isolation, ordered composition and width truncation, the speculation state machine's timing, the answered-request counting rule with its display states and its session behavior, registration from a separately loaded extension without shared module identity, cleanup without residual timers or widgets, and the target version's built-in Composer shapes and statusline presets with an extension-registered shape, all through the same widget path. The automated suite is headless and cannot see the terminal: a real OMP TUI session that confirms the widget appears below the editor alongside the native statusline is a release requirement, run and reviewed per release commit before tagging, not inside the unit suite.
 
 ## Alternatives considered
 
@@ -116,7 +118,7 @@ The direct `@oh-my-pi/*` imports declare peer dependencies with the range `>=18.
 
 The Host owns sanitization, composition, truncation, and the widget lifecycle, so providers stay small and cannot corrupt the row. Third-party extensions gain a stable, versioned contract for adding providers without touching the Host.
 
-The package is coupled to OMP's public widget, context-usage, and compaction-resolution APIs for the 18.x range. Every release verifies that range with real TUI checks before tagging, because the automated suite is headless and cannot see the terminal.
+The package is coupled to OMP's public widget, context-usage, and compaction-resolution APIs. It declares a maintenance lower bound and no maintenance upper bound, which states the maintenance commitment rather than a promise that every later release works, and the versions and scenarios actually verified stay in the component documentation beside that declaration. Every release runs its real TUI check on the host it targets before tagging, because the automated suite is headless and cannot see the terminal.
 
 The builtin inventory now lives in the package usage documentation. The code and that documentation must change together, and a metric added to one without the other leaves the published inventory wrong.
 

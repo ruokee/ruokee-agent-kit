@@ -35,3 +35,9 @@ Codex 和 Claude Code 使用 MCP。Pi 和 OMP 使用原生 extension。Pi 不设
 所有 tools 模式 Harness 共享相同请求、schema、领域规则和统一结果。适配器保持轻量，但必须执行兼容检查、资源限制、上下文映射、取消、加载隔离和传输故障报告。
 
 原生注册失败可能留下已经接受的工具前缀。这是 Harness API 边界，不是事务保证。
+
+## 变更
+
+### 2026-09-28：宿主维护声明独立于 runtime 协议
+
+组件的维护声明遵循[宿主内组件随宿主升级保持适配](./2026-09-28-adapt-components-to-host-upgrades.zh.md)，与上文合同相互独立：runtime 协议及其 `runtime_compat` 校验、CLI、驱动与原生工具合同、组件格式，以及预检失败时注册数为零的边界都保持原义。这里没有改动任何条款或协议。

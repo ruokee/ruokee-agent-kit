@@ -106,6 +106,10 @@ Ordinary public documentation uses same-directory `name.md` and `name.zh.md` pai
 
 Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/README.md).
 
+### Component host maintenance
+
+Components that load code into a host process state a maintenance lower bound in their own README compatibility section, keep their host peer declarations to package names, and raise a bound only through its own decision. The [host upgrade decision](./.agents/adr/decision/2026-09-28-adapt-components-to-host-upgrades.md) records the complete rules.
+
 ### Check prerequisites
 
 Use the pnpm version declared in [package.json](./package.json), a Rust toolchain with `rustfmt` and the [tk build prerequisites](./projects/tk/README.md), and Bun compatible with the component lockfiles. After the root dependency and hook setup above, install locked dependencies in each OMP component directory:

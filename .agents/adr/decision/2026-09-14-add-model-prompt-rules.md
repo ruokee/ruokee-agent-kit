@@ -113,3 +113,9 @@ Rule bodies grow the system prompt of every matching turn. No size limit or budg
 Text matching cannot distinguish an intended match from a coincidental one. A `contains` or `regex` rule can apply to more models than its author expected, and an uncompilable regular expression drops that rule with a diagnostic that does not say which models the author meant to cover. Public documentation states the matching target, case sensitivity, and the diagnostic channel; resolving a rule against the current model is left to the author.
 
 The append step reads both rule directories on every turn the hook runs, so a slow or remote directory delays prompt assembly for each turn with no cache to amortize it. The directories are small by design, and the read is bounded to direct children; unreadable directories go to the diagnostic channel instead of blocking the turn.
+
+## Changes
+
+### 2026-09-28: Maintenance declaration inherited with the host contract
+
+The component keeps the host contract it inherits from [Add an OMP system prompt extension](./2026-09-09-add-omp-system-prompt.md): the README compatibility section declares the maintenance lower bound under [Adapt first-party host components to host upgrades](./2026-09-28-adapt-components-to-host-upgrades.md), while the host peer stays unrestricted. Appending matching rule documents, the settings the component reads, and the check of the native capability it depends on stay unchanged.

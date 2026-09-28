@@ -3,6 +3,8 @@
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
 Reverses: [OMP 状态栏使用常驻 Widget](../archived/2026-09-05-use-omp-status-bar-widget.zh.md)
+Archived: 2026-09-28
+Reversed by: [随 OMP 宿主升级维护状态栏](../decision/2026-09-28-maintain-omp-status-bar.zh.md)
 
 [English](./2026-09-24-use-omp-status-bar-widget.md) | 中文
 
@@ -20,7 +22,7 @@ Reverses: [OMP 状态栏使用常驻 Widget](../archived/2026-09-05-use-omp-stat
 
 ### 保持一个自包含 Package，Host 与 Provider 分离
 
-`projects/omp-status-bar/` 是一个第一方、自包含的 OMP Plugin Package。[第一方能力套件决定](./2026-08-20-establish-first-party-capability-kit.zh.md)允许真实能力使用 `projects/`，[组件自包含决定](./2026-08-24-keep-components-self-contained.zh.md)要求每个可分发组件保持独立。`package.json` 通过 `omp.extensions` 声明原生扩展入口；Package 只使用公开的上游 OMP API，不包含、不修补、也不要求本地 Fork。
+`projects/omp-status-bar/` 是一个第一方、自包含的 OMP Plugin Package。[第一方能力套件决定](../decision/2026-08-20-establish-first-party-capability-kit.zh.md)允许真实能力使用 `projects/`，[组件自包含决定](../decision/2026-08-24-keep-components-self-contained.zh.md)要求每个可分发组件保持独立。`package.json` 通过 `omp.extensions` 声明原生扩展入口；Package 只使用公开的上游 OMP API，不包含、不修补、也不要求本地 Fork。
 
 实现拆分为状态 Host 和注册制 Provider。Provider 注册通过 `package.json#exports` 条目 `@ruokee/omp-status-bar/provider` 成为受支持的 Package API。注册使用通过 `Symbol.for()` 索引的带版本进程级 Registry，因此解析到自己 Package 副本的 Extension 仍注册到同一个 Registry，注册也不依赖 Extension 加载顺序。Registry 在注册时拒绝重复 Provider ID 和不兼容合同版本。Host 创建每个实例前从 Registry 解析配置中的 ID，并再次校验其合同版本。
 
@@ -98,7 +100,7 @@ context Provider 的文本配有一个字形，表示上下文大概进入了 OM
 
 ### 实现证据随项目保存
 
-[英文和中文公开文档决定](./2026-09-07-colocate-bilingual-docs.zh.md)适用，Package 本地使用文档互相链接。Package 文档覆盖安装、启停、配置 schema、内置 Provider ID 及其 options、按条目失败行为、Widget 位置、投机估计及其限制、已回答请求次数的含义和显示形式，以及验证过的 OMP 兼容范围。Provider 编写文档定义公开导入路径、注册时机、合同版本、冲突行为、生命周期上下文，以及如何安装和选用独立打包的 Provider。
+[英文和中文公开文档决定](../decision/2026-09-07-colocate-bilingual-docs.zh.md)适用，Package 本地使用文档互相链接。Package 文档覆盖安装、启停、配置 schema、内置 Provider ID 及其 options、按条目失败行为、Widget 位置、投机估计及其限制、已回答请求次数的含义和显示形式，以及验证过的 OMP 兼容范围。Provider 编写文档定义公开导入路径、注册时机、合同版本、冲突行为、生命周期上下文，以及如何安装和选用独立打包的 Provider。
 
 直接 `@oh-my-pi/*` 导入以 `>=18.1.8 <19` 范围声明对等依赖；Package 面向 OMP 18.x 并记录验证过的版本。行为测试覆盖配置解析与按条目降级、片段清理与无效片段隔离、有序组合与宽度截断、投机状态机的时序、已回答请求次数的计数规则及其显示状态和会话行为、来自独立加载且无共享模块身份的扩展的注册、无残留 timer 或 Widget 的清理，以及目标版本内置 Composer shape 与 statusline preset 加一个扩展注册的 shape，全部走同一个 Widget 路径。自动化测试全部无头运行，看不到终端：确认 Widget 出现在编辑器下方并与原生 statusline 共存的真实 OMP TUI 会话是发布要求，按发布提交运行并评审后才可打标签，不进入单元测试套件。
 

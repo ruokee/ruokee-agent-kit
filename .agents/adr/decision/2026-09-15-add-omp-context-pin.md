@@ -155,3 +155,9 @@ Verification compares provider-facing effective context, including the preceding
 - Request captures can leak credentials. Capture excludes sensitive transport fields before writing and leaves the request sent to the model unchanged.
 - A submission is recognized by the text the extension handed to the host, so a message that repeats those words while the submission is held is claimed once and settles with the submission.
 - The component's checks run inside `pnpm check`, and automated checks do not replace real-machine acceptance on a supported runtime.
+
+## Changes
+
+### 2026-09-28: Maintenance lower bound outside installation and activation
+
+The README compatibility section declares the maintenance lower bound under [Adapt first-party host components to host upgrades](./2026-09-28-adapt-components-to-host-upgrades.md). The bound takes no part in installation or activation, and the safety boundaries above do not move: activation still reads the host's public API, and record integrity, entry identity, branch scope, delivery, and persistence ownership keep their rules.

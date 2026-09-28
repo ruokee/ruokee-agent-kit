@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GLM-5.3 Flash
 Archived: 2026-09-24
-Reversed by: [OMP 状态栏使用常驻 Widget](../decision/2026-09-24-use-omp-status-bar-widget.zh.md)
+Reversed by: [OMP 状态栏使用常驻 Widget](../archived/2026-09-24-use-omp-status-bar-widget.zh.md)
 
 [English](./2026-09-05-use-omp-status-bar-widget.md) | 中文
 

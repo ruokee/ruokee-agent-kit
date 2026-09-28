@@ -1,29 +1,27 @@
-# ADR proposal: Adapt first-party host components to host upgrades
+# ADR decision: Adapt first-party host components to host upgrades
 
-Draft owner: Ruokee
-Draft writer: OMP DeepSeek V4.1 Flash
+Decision owner: Ruokee
+Decision writer: OMP DeepSeek V4.1 Flash
 
 English | [中文](./2026-09-28-adapt-components-to-host-upgrades.zh.md)
 
 ## Motivation
 
-This repository proposes separating host maintenance responsibility from version gates.
-
-Components adapting to newer hosts must also preserve existing behavior on older maintained hosts. Maintenance responsibility, implementation selection, and verification evidence need distinct meanings rather than a single version range. This proposal establishes common rules for host-resident components without requiring a common implementation.
+First-party components load code into a host process and must keep working as that host upgrades while they also keep the behavior older maintained hosts need. Maintenance responsibility, implementation selection, and verification evidence need distinct meanings rather than a single version range, so this decision separates the host maintenance responsibility from version gates and records the common rules for those components: a component declares its maintenance lower bound in its own documentation, its host peer declarations keep naming the host packages without carrying that bound, an update preserves the results a maintained older host had, verification follows the actual behavioral change, and a bound is raised only through its own decision. The rules require no common implementation.
 
 ## Analysis
 
 Peer ranges participate in dependency resolution; they are not just maintenance notes. For example, npm installs peer dependencies by default, and unresolved conflicts can cause installation to fail ([npm package.json documentation](https://github.com/npm/cli/blob/latest/docs/lib/content/configuring-npm/package-json.md)). Putting a maintenance lower bound in a peer range can prevent installation on a host that could run the component. The actual result depends on the installation path; npm's behavior is not an observed result for every host.
 
-## Proposal
+## Decision
 
 ### Scope
 
-This rule applies to all repository components that load code into a host process. Material distributed only as instructions or configuration, without executing code in that process, is not a compatibility object. Different hosts use their own version lines, and each component declares its own maintenance lower bound.
+This decision applies to all repository components that load code into a host process. Material distributed only as instructions or configuration, without executing code in that process, is not a compatibility object. Different hosts use their own version lines, and each component declares its own maintenance lower bound.
 
 Independent protocols a component depends on retain their own contracts. A host maintenance lower bound does not replace protocol compatibility requirements or safety checks.
 
-A capability that is unrelated to an upgrade is decided in its own requirement. This rule does not ask a component to adopt a new host API, and compatibility work is judged by the result a user sees rather than by which host API produced it.
+A capability that is unrelated to an upgrade is decided in its own requirement. This decision does not ask a component to adopt a new host API, and compatibility work is judged by the result a user sees rather than by which host API produced it.
 
 ### Declare the maintenance lower bound in the component README
 
@@ -37,13 +35,13 @@ The lower bound follows the delivered component's load conditions, required capa
 
 Host peer declarations keep naming the host packages a component uses, and their ranges do not narrow by the maintenance lower bound or add a maintenance upper bound. Installation conditions, custom metadata fields, and runtime version checks do not carry the maintenance limit either. A component whose declaration already names the host package without a version restriction keeps that form.
 
-Ordinary dependencies that evolve on their own keep their real constraints. Development dependencies stay locked for reproducible checks and do not become the declaration. A capability or a semantic difference a component actually needs is handled by its adapters and its own checks, not by restoring a numeric range on a host peer. A repository checker, a compatibility manager, or a supported-version table is not added for this rule, and production code never reads component documentation to decide how to run.
+Ordinary dependencies that evolve on their own keep their real constraints. Development dependencies stay locked for reproducible checks and do not become the declaration. A capability or a semantic difference a component actually needs is handled by its adapters and its own checks, not by restoring a numeric range on a host peer. A repository checker, a compatibility manager, or a supported-version table is not added for this decision, and production code never reads component documentation to decide how to run.
 
 ### Keep the behavior older maintained hosts need
 
 Inside the bound, an update keeps the results older hosts had. One implementation is reused when it covers both, and a real difference keeps the implementations the hosts need together with the documented condition that selects between them. When a host release provides a native capability, the user-visible result, the configuration, and the failure behavior are compared first; an equivalent native path may replace a wrapper, and the wrapper another maintained host still needs stays.
 
-Behavior a still-maintained host needs is kept, and an implementation that carries it may be refactored, merged, or replaced as long as the behavior remains and the change is verified. Code that only serves hosts outside the maintenance range and carries no other behavior can be cleaned up without waiting for another bound raise. A component's independent new features decide their own availability and may be documented as available on some hosts; this rule does not require every host to have the same feature set.
+Behavior a still-maintained host needs is kept, and an implementation that carries it may be refactored, merged, or replaced as long as the behavior remains and the change is verified. Code that only serves hosts outside the maintenance range and carries no other behavior can be cleaned up without waiting for another bound raise. A component's independent new features decide their own availability and may be documented as available on some hosts; this decision does not require every host to have the same feature set.
 
 ### Isolate host implementation from component behavior
 
@@ -79,28 +77,28 @@ The default is to keep a lower bound. A raise becomes possible when the componen
 
 Each raise is its own ADR that the maintainer decides, and it updates the declaration, the implementation, the tests, and any migration note in the same change. One component's raise does not move another component's bound, and an approval recorded outside the decisions does not replace the ADR. Raising a bound does not restore a capability a host release removed.
 
-### Handling of current decisions
+### The current decisions this rule changes
 
-This proposal would reverse the following two clauses. Current decisions remain effective until the implementation change creates complete successors and archives the old files. The successors preserve the other effective contracts.
+Two clauses in the current decisions cannot hold together with this rule, and complete successor decisions reverse them while keeping the rest of each contract:
 
-**The status bar's numeric host declaration.** [The status bar decision](../decision/2026-09-24-use-omp-status-bar-widget.md) declares the direct host imports as peer dependencies with the range `>=18.1.8 <19`, names OMP 18.x as the target, and draws the consequence that the package is coupled to that range. A range that states maintenance responsibility would keep deciding installation for hosts the package can serve, so the two cannot hold at once. If accepted and implemented, that clause is reversed and the maintenance bound is stated in the component README instead. The successor decision keeps the rest of that contract as it stands: the widget, the provider contract, the builtin inventory, the speculation estimate and its limits, and the real TUI verification of every release before tagging.
+**The status bar's numeric host declaration.** [The status bar decision](../archived/2026-09-24-use-omp-status-bar-widget.md) declared the direct host imports as peer dependencies with the range `>=18.1.8 <19`, named OMP 18.x as the target, and drew the consequence that the package is coupled to that range. A range that states maintenance responsibility would keep deciding installation for hosts the package can serve, so the two cannot hold at once. [The successor decision](./2026-09-28-maintain-omp-status-bar.md) keeps the rest of that contract as it stands, including the widget, the provider contract, the builtin inventory, the speculation estimate and its limits, and the real TUI check before each release tag, and states the maintenance bound in the component README instead.
 
-**The quality-of-life deadline mechanism.** [The quality-of-life decision](../decision/2026-09-22-recover-interrupted-turns.md) requires the component to use a supported request-level timeout interface and retire its process-wide mechanism once the host provides one, and it keeps no condition for a still-maintained host that lacks that interface. An unconditional retirement and this rule, which keeps the behavior a maintained older host needs, cannot hold at once. If accepted and implemented, that clause is reversed and the successor decision selects the implementation by the host at hand: a host with an equivalent native interface uses it, and a still-maintained host without one keeps the implementation that provides the deadline, with one owner of the deadline policy in a runtime. Its other rules stay as they are.
+**The quality-of-life deadline mechanism.** [The quality-of-life decision](../archived/2026-09-22-recover-interrupted-turns.md) required the component to use a supported request-level timeout interface and retire its process-wide mechanism once the host provides one, and it kept no condition for a still-maintained host that lacks that interface. An unconditional retirement and this rule, which keeps the behavior a maintained older host needs, cannot hold at once. [The successor decision](./2026-09-28-maintain-omp-qol.md) selects the deadline implementation by the host at hand, keeping this decision's principle, and keeps that decision's other rules.
 
 The remaining current decisions are checked and kept:
 
-- [The system prompt decision](../decision/2026-09-09-add-omp-system-prompt.md) already declares an unrestricted peer, forbids reading the host version to decide eligibility, activation, transformation, diagnostics, or fallback, and keeps structural checks and the evidence boundary. Adding a documented maintenance bound does not change any of that.
-- [The model prompt rules decision](../decision/2026-09-14-add-model-prompt-rules.md) keeps the peer contract it inherits from that decision. A documented bound is a declaration and not a transition back to a version condition.
-- [The context pin decision](../decision/2026-09-15-add-omp-context-pin.md) records no version gate. Its activation reads the host's public API, which stays as it is, and the declaration follows this rule.
-- [The tk integration decision](../decision/2026-09-02-integrate-tk-tools-with-harnesses.md) keeps the independent runtime protocol and its `runtime_compat`, CLI and driver contracts, component format, preflight validation, the zero-registration outcome of a failed preflight, and the single bounded diagnostic of a later `registerTool` failure. A host maintenance bound is not a runtime protocol change.
-- [The self-contained component decision](../decision/2026-08-24-keep-components-self-contained.md) keeps every component's documentation and material with the component, so the bound is stated there and not in a repository-level table.
-- [The quality-of-life decision](../decision/2026-09-22-recover-interrupted-turns.md) keeps its per-adjustment verification separation and its obligation to re-read the cited source on an upgrade and update the affected sections rather than widen the declared peer range. That obligation keeps its meaning here: widening the peer range does not replace those steps. The maintenance declaration moves into the README under this rule while the peer package names stay in the manifest, and the successor decision records that along with its other rules; the reversal named above is the deadline clause.
+- [The system prompt decision](./2026-09-09-add-omp-system-prompt.md) already declares an unrestricted peer, forbids reading the host version to decide eligibility, activation, transformation, diagnostics, or fallback, and keeps structural checks and the evidence boundary. Adding a documented maintenance bound does not change any of that.
+- [The model prompt rules decision](./2026-09-14-add-model-prompt-rules.md) keeps the peer contract it inherits from that decision. A documented bound is a declaration and not a transition back to a version condition.
+- [The context pin decision](./2026-09-15-add-omp-context-pin.md) records no version gate. Its activation reads the host's public API, which stays as it is, and the declaration follows this decision.
+- [The tk integration decision](./2026-09-02-integrate-tk-tools-with-harnesses.md) keeps the independent runtime protocol and its `runtime_compat`, CLI and driver contracts, component format, preflight validation, the zero-registration outcome of a failed preflight, and the single bounded diagnostic of a later `registerTool` failure. A host maintenance bound is not a runtime protocol change.
+- [The self-contained component decision](./2026-08-24-keep-components-self-contained.md) keeps every component's documentation and material with the component, so the bound is stated there and not in a repository-level table.
+- [The quality-of-life successor decision](./2026-09-28-maintain-omp-qol.md) keeps its per-adjustment verification separation and its obligation to re-read the cited source on an upgrade and update the affected sections; editing the declared bound does not replace those steps.
 
 ## Alternatives considered
 
 ### Keep numeric installation and activation gates
 
-The maintenance lower bound could remain in peer dependencies or become an activation condition. This rejects out-of-range hosts early, but also rejects hosts that have the required capabilities and could run the component. It does not meet the requirement that the maintenance lower bound must not obstruct use.
+The maintenance lower bound could have remained in peer dependencies or become an activation condition. This rejects out-of-range hosts early, but also rejects hosts that have the required capabilities and could run the component. It does not meet the requirement that the maintenance lower bound must not obstruct use.
 
 ### Always verify the lower-bound and target hosts
 
@@ -110,16 +108,10 @@ A fixed pair standardizes verification steps, but imposes the same requirement o
 
 This retains maintainer approval but leaves no separate public rationale for each reduction in host support. Each raise therefore still requires its own ADR.
 
-## Acceptance criteria
+## Consequences
 
-- Each in-scope component's README compatibility section states its maintenance lower bound in both languages, and no supported-version whitelist, matrix, custom field, or compatibility checker appears for this rule.
-- No in-scope component refuses installation or activation for a host solely because its version number lies outside a maintenance range, while a host missing a capability the component needs is still handled by that component's own failure contract.
-- An update keeps the results a maintained older host had, or it records why it cannot and leaves the bound unchanged pending a maintainer decision.
-- Verification records state the kind of evidence, the versions used, the scenario, and the uncovered areas, and each component's existing release contract keeps its strength.
-- Every raise of a lower bound appears as its own decision with the maintainer's approval, and no raise rides on another component's change or on a record kept outside the ADRs.
-- Each in-scope component remains self-contained: its documentation, its implementation, its tests, and the material needed to run it stay inside its own directory.
-
-## Risks
-
-- Removing numeric gates lets previously rejected hosts reach loading and execution. If capability and behavior checks miss a real incompatibility, the component may fail only during use.
-- Multiple implementations may evolve separately during later maintenance, causing configuration meanings or failure behavior on older maintained hosts to diverge from the same feature's contract.
+- Removing numeric gates lets previously rejected hosts reach loading and execution. If capability and behavior checks miss a real incompatibility, the component fails during use rather than at installation.
+- A maintenance lower bound states responsibility, not verification. A host at or above the bound can still hold an unverified difference, so the evidence records and the per-change verification carry that weight instead of the number.
+- Multiple implementations kept for different maintained hosts may evolve separately during later maintenance, causing configuration meanings or failure behavior on older maintained hosts to diverge from the same feature's contract.
+- Keeping a lower bound delays the smaller code a raise could buy, and every raise needs its own decision and review; a component may carry compatibility work for a host version it could otherwise drop.
+- The decision adds no checker, compatibility manager, or supported-version table, so nothing mechanically enforces the declaration; review and the component documentation keep it accurate.
