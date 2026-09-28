@@ -12,6 +12,14 @@ Third-party extensions add providers through the public contract at `@ruokee/omp
 - [Provider contract](./docs/provider-contract.md)
 - [Provider development guide](./docs/provider-dev.md)
 
+## Compatibility
+
+The minimum maintained OMP version is `18.2.8`, with no upper maintenance bound. This section states the maintenance commitment; it is not an installation or runtime requirement. An earlier host may still run the package without gaining a maintenance commitment. The declaration does not promise that later releases keep working, and it does not mean every version at or above the minimum was verified.
+
+The package declares `@oh-my-pi/pi-coding-agent`, `@oh-my-pi/pi-agent-core`, and `@oh-my-pi/pi-tui` as unrestricted host peers (`*`). These declarations name the host packages the package imports; they are not a maintenance range or a claim about every host version.
+
+The automated type check and test suite run against OMP `18.2.8`. Real TUI validation covers OMP `18.2.3` and `18.2.8`; [Usage and configuration](./docs/usage.md) records those scenarios together with the versions and paths they do not cover. Every tagged release repeats the real TUI checks listed there.
+
 ## Installation
 
 The package has not been published. After cloning the GitHub repository, install its locked dependencies and link the package into the user-scoped OMP plugin directory:

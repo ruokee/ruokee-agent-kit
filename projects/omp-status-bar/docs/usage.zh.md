@@ -18,7 +18,7 @@ omp plugin link "$(pwd)" --scope user
 
 OMP 会读取 `package.json` 中的 `omp.extensions` 并加载 `src/extension.ts`，不需要手动设置 Extension 路径。
 
-支持的 OMP 范围为 `>=18.1.8 <19`。自动化检查针对 OMP 18.2.8 运行，`bun test` 与 `tsc --noEmit` 均通过。随包交付的源码也能在 OMP 18.1.8 和 18.2.3 下通过类型检查，在这两个版本上除 `cross-product.test.ts` 和 `render.test.ts` 外的测试文件全部通过，这两个文件导入了 OMP 内部的 Composer shape 与 statusline host 模块。真实 TUI 验证覆盖 OMP 18.2.3 与 18.2.8。
+最低维护 OMP 版本为 `18.2.8`，见[组件 README 的兼容性小节](../README.zh.md)。该下限只表达维护责任：不限制安装、激活或运行，也不是已验证版本的清单。自动化检查针对 OMP 18.2.8 运行，`bun test` 与 `tsc --noEmit` 均通过。随包交付的源码也能在 OMP 18.1.8 和 18.2.3 下通过类型检查，在这两个版本上除 `cross-product.test.ts` 和 `render.test.ts` 外的测试文件全部通过，这两个文件导入了 OMP 内部的 Composer shape 与 statusline host 模块；该结果属于包级检查，不是真实宿主运行。真实 TUI 验证覆盖 OMP 18.2.3 与 18.2.8。
 
 ## 配置
 
@@ -283,7 +283,7 @@ speculationBand = [start, threshold)
 - 状态栏与 OMP 原生 status line、终端标题 spinner 和子代理卡片共存，无闪烁或布局跳动；
 - 切换会话和退出后不留下重复 Widget 或 timer。
 
-OMP 18.2.3 兼容性使用组件锁定依赖与 `pro-20x/gpt-5.6-luna` 模型完成验证。真实 TUI 覆盖了 48 到 100 列的实时宽度调整、请求期间指标更新、会话切换、SGR 鼠标输入、子代理 Task 卡片、终端标题 spinner 帧和正常退出。验证时通过临时覆盖降低 recent-token 保留阈值，使手动 `/compact` 执行远端压缩；OMP 显示 `remote-compacted · 20K→19K`，状态栏在压缩后仍保持挂载并更新。本次无需修改运行时代码或公开 Provider 合同，`>=18.1.8 <19` 对等依赖范围保持不变。
+OMP 18.2.3 兼容性使用组件锁定依赖与 `pro-20x/gpt-5.6-luna` 模型完成验证。真实 TUI 覆盖了 48 到 100 列的实时宽度调整、请求期间指标更新、会话切换、SGR 鼠标输入、子代理 Task 卡片、终端标题 spinner 帧和正常退出。验证时通过临时覆盖降低 recent-token 保留阈值，使手动 `/compact` 执行远端压缩；OMP 显示 `remote-compacted · 20K→19K`，状态栏在压缩后仍保持挂载并更新。本次无需修改运行时代码或公开 Provider 合同。
 
 轮次计数在 OMP 18.2.8 上使用组件锁定依赖与 `pro-20x/gpt-6-luna` 模型完成验证，运行在带独立状态栏配置的临时 OMP profile 下。状态栏在 token 和上下文读数之后渲染 `Turn`，数值对每次已回答的模型请求前进一次，工具运行期间保持在前一个数值，被中断的请求不改变它，恢复会话后在发出新请求之前就显示分支历史，子代理运行也不会改变前台会话的数值。用 `/tree` 回退到更早的条目、或从更早的消息新建分支后，数值都降到当时前台分支的计数，下一次已回答请求再从新数值前进。本次验证中，数值在请求之间显示为弱化样式，请求运行期间使用强调样式。
 

@@ -12,6 +12,14 @@
 - [Provider 合同](./docs/provider-contract.zh.md)
 - [Provider 开发指南](./docs/provider-dev.zh.md)
 
+## 兼容性
+
+最低维护 OMP 版本为 `18.2.8`，不设置维护版本上限。本小节声明维护责任，不作为安装或运行条件。更早的宿主仍可能运行本 Package，但不因此获得维护承诺。这一声明不保证后续版本继续可用，也不表示下限及以上的每个版本都已验证。
+
+Package 将 `@oh-my-pi/pi-coding-agent`、`@oh-my-pi/pi-agent-core` 和 `@oh-my-pi/pi-tui` 声明为不限制版本的宿主 peer（`*`）。这些声明列出 Package 导入的宿主包，不定义维护范围，也不构成对每个宿主版本的兼容承诺。
+
+自动化类型检查与测试套件针对 OMP `18.2.8` 运行。真实 TUI 验证覆盖 OMP `18.2.3` 与 `18.2.8`，具体场景以及未覆盖的版本与路径见[使用与配置](./docs/usage.zh.md)。每次打标签前都会重复该文档列出的真实 TUI 检查。
+
 ## 安装
 
 Package 尚未发布。检出 GitHub 仓库后，安装锁定版本的依赖，再把 Package 链接到用户级 OMP Plugin 目录：
