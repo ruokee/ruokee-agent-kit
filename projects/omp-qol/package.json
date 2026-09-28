@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "OMP extension adjusting hub waiting, model-error recovery, native-history replay, and the experimental remote compaction deadline",
   "license": "MIT",
   "type": "module",
@@ -134,8 +134,8 @@
     }
   },
   "peerDependencies": {
-    "@oh-my-pi/pi-ai": ">=18.2.4 <19",
-    "@oh-my-pi/pi-coding-agent": ">=18.2.4 <19"
+    "@oh-my-pi/pi-ai": "*",
+    "@oh-my-pi/pi-coding-agent": "*"
   },
   "devDependencies": {
     "@oh-my-pi/pi-ai": "18.2.8",

@@ -4,7 +4,7 @@
 
 Four independently switchable adjustments to OMP behavior in one extension: a hub `wait` that keeps waiting to a total deadline, a bounded continuation turn after an eligible model error, an experimental extension of one compaction deadline, and a process-wide wrapper that keeps a resumed session's first request on the provider's native history. [Adjustments](./docs/adjustments.md) states, per adjustment, the OMP source it attaches to, the host version it is written against, its limits, and what has been verified.
 
-The extension performs no work of its own. Jobs, messages, processes, turns, and compaction stay with OMP; the extension changes when an existing mechanism stops and delegates everything else unchanged. Every adjustment can be switched off, and an adjustment that finds the host different from the version it is written against stays inactive and reports the reason.
+The extension performs no work of its own. Jobs, messages, processes, turns, and compaction stay with OMP; the extension changes when an existing mechanism stops and delegates everything else unchanged. Every adjustment can be switched off, and an adjustment that does not recognize the host interface, structure, or ownership it depends on stays inactive and reports the reason.
 
 ## Adjustments
 
@@ -83,7 +83,7 @@ Settings are read once per activation. Restart OMP after a change: a running pro
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.3.0
+@ruokee/omp-qol 0.3.1
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -106,9 +106,15 @@ Each adjustment lists its own limits in [Adjustments](./docs/adjustments.md). Th
 
 ## Compatibility
 
-The package declares the peer range `>=18.2.4 <19` in `package.json`. Automated checks run against OMP `18.2.8`; each adjustment documents its own source baseline, currently OMP `18.2.8` (`can1357/oh-my-pi` at `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`, tag `v18.2.8`). The range is metadata: it carries no runtime check and no claim about every version in it. Each adjustment reads the host interface it needs and stays inactive with a reason when the interface is missing or unrecognizable, so a later host version degrades to native behavior instead of failing.
+The minimum maintained OMP version is `18.2.8`, with no upper maintenance bound. This section states the maintenance commitment, not an installation, activation, or run condition: a host below the bound is not blocked and may still run the package, without gaining a maintenance commitment below it, and having no upper bound does not mean that every later release works or has been verified.
 
-`docs/adjustments.md` records, per adjustment, which verification ran and which items remain unverified.
+The package declares `@oh-my-pi/pi-ai` and `@oh-my-pi/pi-coding-agent` as unrestricted host peers (`*`). Those declarations name the host packages the component imports; they carry no maintenance range, no runtime check, and no claim about any host version.
+
+The automated type check and the test suite run against OMP `18.2.8`, and each adjustment documents its own source baseline, currently OMP `18.2.8` (`can1357/oh-my-pi` at `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`, tag `v18.2.8`). [Adjustments](./docs/adjustments.md) records, per adjustment, the automated checks and the real OMP CLI runs, with the versions and scenarios they cover and the items they leave unverified.
+
+Each adjustment checks the host interface, structure, or ownership it depends on, and stays inactive with a reason when that check does not hold, which leaves that adjustment on the host's own behavior. The checks cover what the modules inspect, and not the entry's own imports or a difference no module looks at, so an unrecognized host change can also alter behavior without disabling the adjustment.
+
+Before trusting the extension on an upgraded host, re-read the upstream source each adjustment cites and re-check the adaptation points it lists.
 
 ## Installation
 
