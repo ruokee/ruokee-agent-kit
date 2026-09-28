@@ -1592,6 +1592,8 @@ mod tests {
     #[test]
     fn embedded_bundle_covers_components_and_cli_skills() {
         let bundle = embedded_bundle().unwrap();
+        let project = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        assert_eq!(bundle.manifest.runtime_version, env!("CARGO_PKG_VERSION"));
         assert_eq!(bundle.manifest.components.len(), 16);
         for harness in [Harness::Codex, Harness::Claude, Harness::Pi, Harness::Omp] {
             for mode in [Mode::Tools, Mode::Cli] {
@@ -1624,6 +1626,63 @@ mod tests {
                             assert!(!component.files.contains_key("common.ts"));
                         }
                         (Harness::Codex, _) => {}
+                    }
+
+                    assert_eq!(component.runtime_compat, crate::version::RUNTIME_COMPAT);
+
+                    if matches!(harness, Harness::Pi | Harness::Omp) {
+                        let harness_dir = project.join(harness.name());
+                        for document in ["README.md", "README.zh.md"] {
+                            let source = fs::read(harness_dir.join(document)).unwrap();
+                            let archived = bundle
+                                .files
+                                .get(&format!("{}/{document}", component.payload))
+                                .unwrap();
+                            assert_eq!(
+                                archived.bytes, source,
+                                "{harness:?}/{mode:?}/{language:?} ships a stale {document}"
+                            );
+                        }
+                        let english = std::str::from_utf8(
+                            &bundle.files[&format!("{}/README.md", component.payload)].bytes,
+                        )
+                        .unwrap();
+                        assert!(
+                            english.contains("](./README.zh.md)"),
+                            "{harness:?}/{mode:?}/{language:?} README.md has no Chinese link"
+                        );
+                        let chinese = std::str::from_utf8(
+                            &bundle.files[&format!("{}/README.zh.md", component.payload)].bytes,
+                        )
+                        .unwrap();
+                        assert!(
+                            chinese.contains("](./README.md)"),
+                            "{harness:?}/{mode:?}/{language:?} README.zh.md has no English link"
+                        );
+
+                        let source_package: Value = serde_json::from_slice(
+                            &fs::read(harness_dir.join("package.json")).unwrap(),
+                        )
+                        .unwrap();
+                        let archived_package: Value = serde_json::from_slice(
+                            &bundle.files[&format!("{}/package.json", component.payload)].bytes,
+                        )
+                        .unwrap();
+                        assert_eq!(archived_package["name"], source_package["name"]);
+                        assert_eq!(archived_package["version"], source_package["version"]);
+                        let integration = archived_package[harness.name()]
+                            .as_object()
+                            .expect("harness integration object");
+                        match mode {
+                            Mode::Tools => {
+                                assert!(archived_package.get("dependencies").is_some());
+                                assert!(integration.contains_key("extensions"));
+                            }
+                            Mode::Cli => {
+                                assert!(archived_package.get("dependencies").is_none());
+                                assert!(!integration.contains_key("extensions"));
+                            }
+                        }
                     }
 
                     if mode == Mode::Cli {
