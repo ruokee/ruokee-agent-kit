@@ -8,7 +8,9 @@ English | [中文](./2026-09-03-distribute-custom-cli-skills.zh.md)
 
 ## Motivation
 
-tk distributes Harness components and Harness-independent CLI Skills from one embedded bundle so that component installation remains deterministic, offline, inspectable, and reversible without a second installation database. Runtime installation and Harness integration keep separate ownership.
+Distribute Harness components and Harness-independent CLI Skills from one embedded tk bundle, with a shared install, update, and uninstall path.
+
+Component installation must remain deterministic, offline, inspectable, and reversible without a second installation database. Runtime installation and Harness integration keep separate ownership.
 
 The `tk-cli` and `tk-cli-zh` Skills use only the public `tk` executable. They must be installable in a project-local or other Harness Skill directory without pretending that the directory is one of the four supported Harness integrations.
 

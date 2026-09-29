@@ -155,7 +155,7 @@ An archived decision keeps the decision format, adds `Archived: YYYY-MM-DD` to i
 
 ### Opening the ADR
 
-`## Motivation` opens both document types and states the concrete reason for considering or adopting the choice. Its first sentence identifies the subject and the concrete problem, intended change, or goal without relying on the title, links, or later text. A wanted capability need not be framed as a defect. A reversal proposal opens with the change it proposes, and a successor decision describes the complete choice it records.
+`## Motivation` opens both document types and states the concrete reason for considering or adopting the choice. Its first paragraph is one short sentence stating what is to be done, which is the choice to adopt or the work to perform. Write that action itself rather than what the record does, and make the sentence understandable without the title, links, or later text. The paragraphs after it carry the concrete problem, background, reasons, and evidence. A wanted capability need not be framed as a defect. A reversal proposal opens with the change it proposes, and a successor decision describes the complete choice it records.
 
 The English file may add an optional `## Analysis` section, and the Chinese file an optional `## 分析` section, immediately after the motivation section and before `## Proposal`/`## 提议` or `## Decision`/`## 决定`. Omit it when there is no substantive analysis. Analysis records only observations, evidence, constraints, reasoning, and uncertainties that affect the choice. It is not an implementation plan or a copy of research notes, and it neither repeats the motivation section nor the alternatives section.
 

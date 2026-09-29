@@ -7,6 +7,8 @@ Decision writer: OMP GPT-5.6 Sol
 
 ## 动机
 
+把 Task 行为收归唯一的 tk 运行时，人来使用的 CLI、stdio MCP 与 Harness 原生工具共用同一条命令边界。
+
 请求编排、领域规则、持久化、输出、取消和资源限制必须由同一个运行时负责，使 [tk 产品架构](./2026-08-21-define-tk-product-architecture.zh.md)暴露的面向人的 CLI、stdio MCP 和 Harness 原生工具不会成为同一套任务行为的多份独立实现。
 
 运行时还需要为脚本和适配器提供稳定的命令边界。它应以结构化方式报告预期失败，同时不能掩盖传输故障、操作系统错误或部分提交。

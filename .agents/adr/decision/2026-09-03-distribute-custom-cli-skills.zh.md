@@ -8,7 +8,9 @@ Reverses: [分发可选择的 tk Harness 组件](../archived/2026-09-02-distribu
 
 ## 动机
 
-tk 通过一份内嵌 bundle 分发 Harness 组件和与 Harness 无关的 CLI Skill，使组件安装保持确定、离线、可检查和可撤销，并且不增加第二个安装数据库。运行时安装和 Harness 集成分别负责不同内容。
+用同一个内嵌 bundle 分发 Harness 组件与不依赖 Harness 的 CLI Skill，安装、更新与卸载共用一条路径。
+
+组件安装必须保持确定、离线、可检查和可撤销，并且不增加第二个安装数据库。运行时安装和 Harness 集成分别负责不同内容。
 
 `tk-cli` 与 `tk-cli-zh` Skill 只使用公开 `tk` 可执行文件。用户需要把它们安装到项目级或其他 Harness 的 Skill 目录，而不能把任意目录伪装成四个已支持 Harness 之一。
 

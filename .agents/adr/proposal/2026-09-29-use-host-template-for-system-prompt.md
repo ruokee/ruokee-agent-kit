@@ -7,7 +7,7 @@ English | [中文](./2026-09-29-use-host-template-for-system-prompt.zh.md)
 
 ## Motivation
 
-This proposal asks the maintainer to approve a two-path contract for the system prompt extension: the host's template route where the user selects a component-provided template, and the existing conversion where the input is still the host default block.
+Define a two-path contract for the system prompt extension: the host's template route where the user selects a component-provided template, and the existing conversion where the input is still the host default block.
 
 The `@ruokee/omp-system-prompt` extension replaces the fixed policy text of OMP's default instruction block with its own maintained text, and appends model-scoped rule documents. It identifies the default block from its rendered structure and rebuilds it from the extension's own template. Host releases in the current upgrade target rewrote that block, so the recognized structure no longer matches and the extension leaves the host prompt untouched there. The maintained strategy, the Delivery setting, and the footer corrections therefore stop applying on those hosts while they keep applying on hosts whose block the extension still recognizes.
 

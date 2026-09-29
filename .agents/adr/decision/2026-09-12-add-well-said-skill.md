@@ -7,6 +7,8 @@ English | [中文](./2026-09-12-add-well-said-skill.zh.md)
 
 ## Motivation
 
+Add `well-said`, a Skill that applies to user-visible writing and removes writing-session residue and mechanical phrasing.
+
 Agent writing can sound mechanical even when its facts are correct. Stock phrasing, excessive formatting, and repeated qualifications obscure the author's meaning. Corrections can also leave traces in the finished text: labels describing discarded ideas, repeated assurances of compliance, inaccessible draft references, and temporary instructions presented as lasting requirements.
 
 The goal is writing that feels like a person expressing a considered thought, with an appropriate voice and enough information for its reader. Removing writing-session residue is the priority. Style cleanup and reducing unnecessary self-justification support the same goal, provided that facts, uncertainty, useful explanations, and the author's voice survive the edit.

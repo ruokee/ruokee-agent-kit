@@ -8,9 +8,11 @@ English | [中文](./2026-09-11-align-tk-usage-patterns.zh.md)
 
 ## Motivation
 
-tk needs one shared protocol for suggesting, adopting, and maintaining its four built-in usage patterns, and one ownership and bilingual consistency rule for the public pages that describe them, so that an Agent and a user reach the same understanding of what a pattern adds, what it requires, and which page owns which contract.
+Define tk's four built-in usage patterns and the ownership and bilingual consistency rules for the pages that describe them.
 
-The [Skill pattern reference](../../../projects/tk/skills/tk/references/patterns.md) and the [Skill design](../../../projects/tk/docs/design/skill.md) state the four patterns. This decision fixes that shared protocol and those ownership rules, and restates every still-effective rule of the [archived documentation decision](../archived/2026-08-29-maintain-tk-documentation.md) that governs the public documentation set and its maintenance.
+One shared protocol lets an Agent and a user reach the same understanding of what a pattern adds, what it requires, and which page owns which contract.
+
+The [Skill pattern reference](../../../projects/tk/skills/tk/references/patterns.md) and the [Skill design](../../../projects/tk/docs/design/skill.md) state the four patterns. The rules of the [archived documentation decision](../archived/2026-08-29-maintain-tk-documentation.md) that govern the public documentation set and its maintenance still apply.
 
 ## Analysis
 

@@ -7,7 +7,9 @@ Decision writer: OMP GPT-6 Astra
 
 ## 动机
 
-仓库的一次完整检查必须覆盖全部已有自动化：Markdown 格式、tk Rust 代码、各个独立打包的 OMP 拓展，以及 tk 原生适配器。仅执行 Markdown 与 Rust 检查无法发现 TypeScript 拓展或原生适配器的失败，因此根 [package.json](../../../package.json) 与组件脚本需要一个由明确组件目标和可靠失败传递构成的完整入口，为开发者提供一致的完整检查。
+为仓库确定唯一的完整检查命令 `pnpm check`，覆盖 Markdown、Rust、打包的 OMP 组件与 tk 原生适配器。
+
+仅执行 Markdown 与 Rust 检查无法发现 TypeScript 拓展或原生适配器的失败，因此根 [package.json](../../../package.json) 与组件脚本需要一个由明确组件目标和可靠失败传递构成的完整入口，为开发者提供一致的完整检查。
 
 ## 决定
 

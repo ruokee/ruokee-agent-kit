@@ -7,7 +7,7 @@ Draft writer: Mind (OMP GPT-5.6 Sol)
 
 ## 动机
 
-本提案请求维护者批准一项专用的、由模型自动调用的 ADR 维护 Skill。
+新增一项专用的、由模型自动调用的 ADR 维护 Skill，命名为 `adr`。
 
 [当前 ADR 机制决定](../decision/2026-09-23-clarify-adr-content-boundaries.zh.md)在机制仍随实际使用发生变化时，选择依靠评审、仓库搜索和 Git 历史，而不增加专用 Skill。
 

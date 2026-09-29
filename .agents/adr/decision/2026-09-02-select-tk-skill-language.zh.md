@@ -7,7 +7,9 @@ Decision writer: OMP GPT-5.6 Sol, Ruokee
 
 ## 动机
 
-`tk install` 必须能够选择 Skill 语言，使中文 Skill 使用 Harness 组件生命周期，而不是单独手动安装。手动安装的中文 Skill 位于该生命周期之外：用户需要单独安装和切换，tk 也无法把所选语言作为组件状态报告或更新。
+在 `tk install` 中选择 Skill 语言，由 `--language` 与 `--mode` 共同选定一个可发现的 Skill。
+
+手动安装的中文 Skill 位于该生命周期之外：用户需要单独安装和切换，tk 也无法把所选语言作为组件状态报告或更新。
 
 模式和语言是两个独立选择。命令合同应直接表达这两个维度，不要求用户记住四个 Skill 名称。
 

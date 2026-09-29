@@ -7,7 +7,7 @@ English | [中文](./2026-09-29-extend-qol-wait-to-host-wait-tool.zh.md)
 
 ## Motivation
 
-This proposal asks the maintainer to approve the contract that binds the wait adjustment of `omp-qol` to the host's built-in `wait` tool.
+Bind the wait adjustment of `omp-qol` to the host's built-in `wait` tool.
 
 The wait adjustment of [projects/omp-qol](../../../projects/omp-qol/README.md) gives one wait call a configured total deadline and keeps that call alive while the native window carries nothing new. It attaches to the built-in `hub` tool. Host releases in the current upgrade target no longer provide that tool, so the adjustment stays inactive there and users lose both the configured deadline and the empty-window merging, while the same extension keeps providing them on hosts that still have `hub`.
 

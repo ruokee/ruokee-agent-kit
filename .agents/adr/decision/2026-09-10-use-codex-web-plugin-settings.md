@@ -8,7 +8,9 @@ English | [中文](./2026-09-10-use-codex-web-plugin-settings.zh.md)
 
 ## Motivation
 
-`omp-codex-web-access` provides web search and page extraction through a forwarding Provider's Codex subscription, configured through OMP's native plugin settings. OMP's built-in `web_search` supports Codex subscriptions supplied directly to OMP but cannot use this forwarding arrangement, which the Codex Harness supports. The extension runs the forwarding Provider's `openai-responses` model registered in OMP and coexists with OMP's built-in tools. Users need independent control over each tool's availability and whether its schema is presented at the top level or discovered through `xd://`.
+Provide `omp-codex-web-access`, which adds web search and page extraction through a forwarding Provider's Codex subscription and is configured through OMP's native plugin settings.
+
+OMP's built-in `web_search` supports Codex subscriptions supplied directly to OMP but cannot use this forwarding arrangement, which the Codex Harness supports. The extension runs the forwarding Provider's `openai-responses` model registered in OMP and coexists with OMP's built-in tools. Users need independent control over each tool's availability and whether its schema is presented at the top level or discovered through `xd://`.
 
 The component also needs one OMP configuration contract that supports user values and project overrides. Native plugin settings provide that contract through OMP's CLI and public settings getter while keeping model credentials in OMP's existing model registry and credential APIs.
 

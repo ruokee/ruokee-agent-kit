@@ -7,6 +7,8 @@ English | [中文](./2026-09-06-add-grill-me-skill.zh.md)
 
 ## Motivation
 
+Add `grill-me`, a Skill that runs its questioning mode only when the user invokes it.
+
 Ruokee needs a questioning capability that turns an incomplete idea or an existing plan into shared understanding and an action-ready specification. `grill-me` discovers requirements and preferences, resolves checkable facts, and clarifies the choices needed before action.
 
 Sustained questioning is a deliberate interaction mode. Ordinary discussion, planning, and review must not activate it automatically. Both language variants enforce user invocation through their own `SKILL.md` and `agents/openai.yaml` configuration.

@@ -7,6 +7,8 @@ English | [中文](./2026-08-24-use-document-relative-file-links.zh.md)
 
 ## Motivation
 
+Write Markdown file references relative to the document that contains them, using `./` and `../`.
+
 File references in nested documents needed one form that supports both GitHub's branch-aware relative-link navigation and click-through in local editors. The `File paths` rules at the time replaced a path that returned two or more directory levels with a repository-root-relative path without a leading `/`. That form works in local editors, but GitHub resolves relative Markdown links from the directory containing the current document, so nested documents point to the wrong location. Adding a leading `/` makes the link repository-root-relative on GitHub, but local editors may treat it as an absolute filesystem path.
 
 ## Decision

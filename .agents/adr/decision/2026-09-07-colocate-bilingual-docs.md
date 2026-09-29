@@ -8,7 +8,9 @@ English | [中文](./2026-09-07-colocate-bilingual-docs.zh.md)
 
 ## Motivation
 
-The repository keeps English and Chinese public documentation in same-directory pairs so each version is independently readable and its counterpart stays beside the same component or topic. The repository is public and uses English for code and default documentation, while Ruokee uses Chinese to review technical decisions and usage details.
+Keep English and Chinese public documentation in same-directory `name.md` and `name.zh.md` pairs with reciprocal language links.
+
+Each language version must be independently readable, with its counterpart beside the same component or topic. The repository is public and uses English for code and default documentation, while Ruokee uses Chinese to review technical decisions and usage details.
 
 Repository and component entry pages also need clear responsibilities so readers can discover capabilities and reach their detailed documentation without competing indexes or duplicated contracts.
 

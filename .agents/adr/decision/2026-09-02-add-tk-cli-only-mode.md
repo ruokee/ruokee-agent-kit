@@ -7,7 +7,9 @@ English | [中文](./2026-09-02-add-tk-cli-only-mode.zh.md)
 
 ## Motivation
 
-tk provides a CLI-only mode so that each Task operation has one route rather than two. A Skill that teaches both logical operations and the public CLI leaves an Agent two valid routes for the same Task operation, so route choice can follow earlier calls rather than the installed integration contract.
+Provide the `tk-cli` and `tk-cli-zh` Skills, which route every Task operation through the public `tk` CLI.
+
+A Skill that teaches both logical operations and the public CLI leaves an Agent two valid routes for the same Task operation, so route choice can follow earlier calls rather than the installed integration contract.
 
 Some installations also need Task guidance without operation registration or adapter context. This requires a separate Skill identity rather than conditional wording inside the tools Skill.
 

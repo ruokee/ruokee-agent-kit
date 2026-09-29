@@ -7,6 +7,8 @@ English | [中文](./2026-08-22-use-motivation-heading-in-adrs.zh.md)
 
 ## Motivation
 
+Rename the first required body heading of every ADR from `Problem` to `Motivation` in both languages.
+
 The fixed `## Problem` opening assumes that every proposed decision responds to a defect or an undesirable situation. Some ADRs instead propose a wanted capability or other new addition. Those decisions have a reason, but do not necessarily begin with a problem.
 
 Writers can force such a proposal into the current structure by inventing a problem scenario. That framing is unnatural and can distort the actual reason for the proposal. The opening section needs a neutral name that covers problems, requirements, and desired additions.
@@ -49,3 +51,7 @@ The separate proposal and decision templates both keep `Motivation` as their fir
 ### 2026-09-23: Require an independently understandable opening and allow optional analysis
 
 The [mechanism decision](./2026-09-23-clarify-adr-content-boundaries.md) refines this rule without conflict. The first sentence of `Motivation` identifies the subject and the concrete problem, intended change, or goal without relying on the title, links, or later text, and an optional `## Analysis` section may follow `Motivation`.
+
+### 2026-09-29: Require a one-sentence opening paragraph
+
+The [mechanism decision](./2026-09-23-clarify-adr-content-boundaries.md) refines this rule. The first paragraph of `Motivation` is one short sentence stating what is to be done, written as the action itself rather than as a description of the record, and the concrete problem, background, reasons, and evidence follow in later paragraphs.

@@ -7,7 +7,9 @@ English | [中文](./2026-09-06-migrate-deep-research.zh.md)
 
 ## Motivation
 
-Ruokee Agent Kit needs the `deep-research` capability as a self-contained Skill, with equivalent English and Chinese variants. `deep-research` provides a structured, evidence-first research workflow for broad surveys and source-backed reports; its behavior is defined by research instructions and does not require a Plugin runtime.
+Ship `deep-research` as a pure Skill with equivalent English and Chinese variants.
+
+`deep-research` provides a structured, evidence-first research workflow for broad surveys and source-backed reports; its behavior is defined by research instructions and does not require a Plugin runtime.
 
 ## Decision
 

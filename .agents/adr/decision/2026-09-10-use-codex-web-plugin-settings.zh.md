@@ -8,7 +8,9 @@ Reverses: [ADR 决定：添加 OMP Codex 网页访问组件](../archived/2026-09
 
 ## 动机
 
-`omp-codex-web-access` 通过转发 Provider 的 Codex 订阅提供网页搜索和页面提取，并使用 OMP 原生插件设置进行配置。OMP 内置的 `web_search` 支持直接向 OMP 提供 Codex 订阅，但无法使用这种 Codex Harness 已支持的转发方式。扩展通过转发 Provider 在 OMP 中登记的 `openai-responses` 模型运行，并与 OMP 内置工具共存。用户需要分别控制每个工具是否可用，以及工具参数定义是直接呈现给模型，还是通过 `xd://` 发现。
+提供 `omp-codex-web-access`，通过转发 Provider 的 Codex 订阅提供网页搜索和页面提取，并使用 OMP 原生插件设置配置。
+
+OMP 内置的 `web_search` 支持直接向 OMP 提供 Codex 订阅，但无法使用这种 Codex Harness 已支持的转发方式。扩展通过转发 Provider 在 OMP 中登记的 `openai-responses` 模型运行，并与 OMP 内置工具共存。用户需要分别控制每个工具是否可用，以及工具参数定义是直接呈现给模型，还是通过 `xd://` 发现。
 
 该组件还需要一套 OMP 配置合同，同时支持用户值和项目覆盖。原生插件设置通过 OMP CLI 和公开设置 getter 提供这套合同，并继续使用 OMP 现有的模型登记与凭据 API 保存模型凭据。
 

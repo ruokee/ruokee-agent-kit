@@ -7,7 +7,9 @@ English | [中文](./2026-08-20-use-trunk-based-squash-workflow.zh.md)
 
 ## Motivation
 
-The repository needs one long-lived branch and a predictable rule for turning a reviewed task branch into public history. Repository initialization, Skill imports, documentation changes, and later capability work produce different numbers of intermediate commits, and publishing every one of them would turn review context and local experimentation into permanent maintenance cost.
+Keep `main` as the only long-lived branch, develop each change on a short-lived branch, and squash-merge it into `main`.
+
+Repository initialization, Skill imports, documentation changes, and later capability work produce different numbers of intermediate commits, and publishing every one of them would turn review context and local experimentation into permanent maintenance cost.
 
 ## Decision
 

@@ -7,7 +7,7 @@ English | [中文](./2026-09-03-add-adr-maintenance-skill.zh.md)
 
 ## Motivation
 
-This proposal asks the maintainer to approve a dedicated, model-invoked ADR maintenance Skill.
+Add a dedicated, model-invoked ADR maintenance Skill named `adr`.
 
 The [current ADR mechanism decision](../decision/2026-09-23-clarify-adr-content-boundaries.md) chose review, repository search, and Git history instead of a dedicated Skill while the mechanism was still changing through use.
 

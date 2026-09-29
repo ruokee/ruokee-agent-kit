@@ -7,7 +7,9 @@ English | [中文](./2026-09-15-add-omp-context-pin.zh.md)
 
 ## Motivation
 
-The first-party `omp-context-pin` extension keeps a small set of details word for word across compaction: an agreed interface, a file map, a command whose exact form matters. Compaction summarizes history, and a summary can shorten or reword that material; asking the model to reproduce text after the fact is unreliable in the same way.
+Add `omp-context-pin`, an extension that keeps chosen details word for word across context compaction.
+
+The details that must stay exact include an agreed interface, a file map, and a command whose exact form matters. Compaction summarizes history, and a summary can shorten or reword that material; asking the model to reproduce text after the fact is unreliable in the same way.
 
 ## Analysis
 

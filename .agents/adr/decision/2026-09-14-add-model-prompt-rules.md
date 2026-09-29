@@ -7,6 +7,8 @@ English | [中文](./2026-09-14-add-model-prompt-rules.zh.md)
 
 ## Motivation
 
+Let `@ruokee/omp-system-prompt` apply model-scoped, user-authored Markdown rules instead of one policy for every model.
+
 Models differ in how they follow instructions, and `@ruokee/omp-system-prompt` should let a maintainer give different instructions to different models by writing user-authored Markdown rule documents, without editing extension source, host files, or a distribution. A maintainer may want one model to state assumptions before editing and another to answer briefly.
 
 ## Analysis

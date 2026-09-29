@@ -8,9 +8,11 @@ Reverses: [维护 tk 文档](../archived/2026-08-29-maintain-tk-documentation.zh
 
 ## 动机
 
-tk 需要一套共同规则来建议、采用和维护四种内置使用模式，并需要为描述这些模式的公开页面明确归属与双语一致要求，使 Agent 和用户对模式会增加什么、需要维护什么，以及每项合同由哪个页面负责，形成一致理解。
+定义 tk 的四个内置使用模式，以及描述它们的页面的归属与双语一致性规则。
 
-[Skill 模式参考](../../../projects/tk/skills/tk-zh/references/patterns.md)与 [Skill 设计](../../../projects/tk/docs/design/skill.zh.md)给出四种模式。本决定确定上述共同规则与归属规则，并重述[已归档的文档维护决定](../archived/2026-08-29-maintain-tk-documentation.zh.md)中所有仍然有效、覆盖公开文档集合及其维护方式的规则。
+这套共同规则让 Agent 和用户对模式会增加什么、需要维护什么，以及每项合同由哪个页面负责，形成一致理解。
+
+[Skill 模式参考](../../../projects/tk/skills/tk-zh/references/patterns.md)与 [Skill 设计](../../../projects/tk/docs/design/skill.zh.md)给出四种模式。[已归档的文档维护决定](../archived/2026-08-29-maintain-tk-documentation.zh.md)中覆盖公开文档集合及其维护方式的规则仍然有效。
 
 ## 分析
 

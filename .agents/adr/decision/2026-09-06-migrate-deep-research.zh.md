@@ -7,7 +7,9 @@ Decision writer: OMP
 
 ## 动机
 
-Ruokee Agent Kit 需要以自包含 Skill 的形式提供 `deep-research` 能力，并保持中英文变体语义一致。`deep-research` 提供结构化、证据优先的研究流程，用于广泛调研和有来源依据的报告；其行为由研究指令定义，不需要 Plugin 运行时。
+把 `deep-research` 作为纯 Skill 分发，英文与中文变体内容对应。
+
+`deep-research` 提供结构化、证据优先的研究流程，用于广泛调研和有来源依据的报告；其行为由研究指令定义，不需要 Plugin 运行时。
 
 ## 决定
 

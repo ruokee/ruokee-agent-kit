@@ -8,7 +8,9 @@ English | [中文](./2026-09-09-add-omp-system-prompt.zh.md)
 
 ## Motivation
 
-`@ruokee/omp-system-prompt` replaces fixed policy in OMP's rendered system prompt while preserving selected runtime content. The public `before_agent_start` event provides the current `systemPrompt: string[]`, and public extension APIs provide effective plugin settings and Skill command metadata. This permits a self-contained extension without patching OMP or copying its private prompt builders.
+Provide `@ruokee/omp-system-prompt`, an extension that replaces fixed policy in OMP's rendered system prompt while preserving selected runtime content.
+
+The public `before_agent_start` event provides the current `systemPrompt: string[]`, and public extension APIs provide effective plugin settings and Skill command metadata. This permits a self-contained extension without patching OMP or copying its private prompt builders.
 
 ## Analysis
 

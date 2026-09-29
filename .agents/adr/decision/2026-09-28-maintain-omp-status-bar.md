@@ -8,7 +8,9 @@ English | [中文](./2026-09-28-maintain-omp-status-bar.zh.md)
 
 ## Motivation
 
-The `@ruokee/omp-status-bar` package shows the current session's context usage, token readings, cache-hit rate, and the number of model requests it has answered on one persistent row below the editor, together with the estimate that the context has entered the speculation band. This decision records that package's complete current choice: the persistent row it owns, the structured and sanitized provider fragments the Host composes, the ordered configuration in the agent directory, the builtin metric providers and their fixed colors, the answered-request count, the estimated speculation band with its limits, and the documentation and evidence that ship with the package. It also records how the package states its maintenance commitment now that the commitment no longer decides which hosts may install it.
+Maintain `@ruokee/omp-status-bar` as one self-contained package with a status Host and registered providers, and keep it working across OMP host upgrades.
+
+The `@ruokee/omp-status-bar` package shows the current session's context usage, token readings, cache-hit rate, and the number of model requests it has answered on one persistent row below the editor, together with the estimate that the context has entered the speculation band. The current choice covers the persistent row it owns, the structured and sanitized provider fragments the Host composes, the ordered configuration in the agent directory, the builtin metric providers and their fixed colors, the answered-request count, the estimated speculation band with its limits, and the documentation and evidence that ship with the package. The package also declares its maintenance commitment in a new form: the commitment no longer decides which hosts may install it.
 
 ## Analysis
 

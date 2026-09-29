@@ -7,6 +7,8 @@ English | [中文](./2026-08-20-package-self-contained-skill-variants.zh.md)
 
 ## Motivation
 
+Store each Skill's English base under `skills/<name>/` and its Chinese variant under `variants/zh/skills/<name>/`, and install the selected variant without that prefix.
+
 A packaged Skill has to remain self-contained and discoverable by Agent Harnesses without depending on repository packaging details. The source repositories stored a Skill beside Plugin manifests, marketplace metadata, package documentation, and language overlays, and copying that layout would make the Skill depend on those packaging details.
 
 Language variants add a second ambiguity. Their source path identifies the selected variant, but installed Skills must keep the path expected by Agent Harnesses. Links that include the source-only variant prefix break after installation.

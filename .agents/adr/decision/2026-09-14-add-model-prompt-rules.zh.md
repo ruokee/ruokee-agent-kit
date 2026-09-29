@@ -7,6 +7,8 @@ Decision writer: deepseek/deepseek-v4.1-flash
 
 ## 动机
 
+让 `@ruokee/omp-system-prompt` 按模型应用用户编写的 Markdown 规则，而不是对所有模型使用同一套策略。
+
 各模型遵循指令的方式并不相同，`@ruokee/omp-system-prompt` 应让维护者通过用户自有的 Markdown 规则文档为不同模型设置各自的指令，同时不必修改扩展源码、宿主文件或分发包；例如某个模型在改动前先说明自己的假设，另一个直接给出简短回答。
 
 ## 分析

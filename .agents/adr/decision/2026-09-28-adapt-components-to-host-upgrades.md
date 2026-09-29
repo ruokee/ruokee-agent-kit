@@ -7,7 +7,9 @@ English | [中文](./2026-09-28-adapt-components-to-host-upgrades.zh.md)
 
 ## Motivation
 
-First-party components load code into a host process and must keep working as that host upgrades while they also keep the behavior older maintained hosts need. Maintenance responsibility, implementation selection, and verification evidence need distinct meanings rather than a single version range, so this decision separates the host maintenance responsibility from version gates and records the common rules for those components: a component declares its maintenance lower bound in its own documentation, its host peer declarations keep naming the host packages without carrying that bound, an update preserves the results a maintained older host had, verification follows the actual behavioral change, and a bound is raised only through its own decision. The rules require no common implementation.
+Separate host maintenance responsibility from version gates and record the rules first-party host components follow across host upgrades.
+
+First-party components load code into a host process and must keep working as that host upgrades while they also keep the behavior older maintained hosts need. Maintenance responsibility, implementation selection, and verification evidence need distinct meanings rather than a single version range, so these components follow common rules: a component declares its maintenance lower bound in its own documentation, its host peer declarations keep naming the host packages without carrying that bound, an update preserves the results a maintained older host had, verification follows the actual behavioral change, and a bound is raised only through its own decision. The rules require no common implementation.
 
 ## Analysis
 

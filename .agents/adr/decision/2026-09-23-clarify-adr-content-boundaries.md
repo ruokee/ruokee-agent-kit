@@ -8,6 +8,8 @@ English | [中文](./2026-09-23-clarify-adr-content-boundaries.zh.md)
 
 ## Motivation
 
+Define the ADR mechanism: its terminology, document types and locations, content boundaries, and when a record is updated or reversed.
+
 The repository keeps long-lived choices in bilingual ADR proposals and decisions, which state the reason, the necessary contract, the lifecycle, and the grounds for reversal.
 
 The problem is inside individual records: a reader cannot always identify the choice or its reason from the record alone, revisions carry implementation material that belongs in component documentation or code, and ordinary growth has been handled by reversing a broad decision because an earlier record fixed a document count, an internal mechanism, or a temporary omission as a permanent constraint.
@@ -113,3 +115,9 @@ Requiring a named incompatibility before a reversal narrows reversals. An additi
 Discovery depends on concise filenames and repository search rather than a central index. Additional structure is deferred until the active tree becomes measurably difficult to search.
 
 The glossary stays deliberately small. Ordinary wording and unconfirmed synonyms do not become contractual terminology.
+
+## Changes
+
+### 2026-09-29: Require a one-sentence opening paragraph
+
+`Motivation` now opens with one short sentence stating what is to be done, written as the action itself rather than as a description of the record, and the concrete problem, background, reasons, and evidence move to the paragraphs after it. This replaces the earlier requirement that the first sentence identify the concrete problem, intended change, or goal. The rule itself is stated in [the ADR guide](../README.md), and the [motivation decision](./2026-08-22-use-motivation-heading-in-adrs.md) records the same update.

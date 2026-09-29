@@ -8,7 +8,9 @@ English | [中文](./2026-09-10-allow-closed-rename-filesystem-scan.zh.md)
 
 ## Motivation
 
-This decision defines tk's file-backed Task model, including carrier discovery, name repair for open and closed Tasks, and filesystem-based reference reporting. The [tk product architecture](./2026-08-21-define-tk-product-architecture.md) makes project files the only authoritative Task state, requiring precise rules for identity, paths, lifecycle, relationships, representations, discovery, writes, migration, and cleanup.
+Define tk's file-backed Task data model and its rules for closed-Task name repair and file system reference reporting.
+
+The [tk product architecture](./2026-08-21-define-tk-product-architecture.md) makes project files the only authoritative Task state, requiring precise rules for carrier discovery, identity, paths, lifecycle, relationships, representations, writes, migration, cleanup, name repair for open and closed Tasks, and filesystem-based reference reporting.
 
 ## Analysis
 
