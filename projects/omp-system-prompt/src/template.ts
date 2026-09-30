@@ -32,6 +32,52 @@ export interface TemplateVariants {
   withoutDelivery: string;
 }
 
+/** Static fragments of one template shape plus the slots they delimit. */
+export interface TemplateSlots {
+  fragments: string[];
+  slots: SlotName[];
+}
+
+/**
+ * Split a template into its static fragments around the slot markers.
+ *
+ * Returns `null` unless every known slot appears exactly once in marker
+ * order, which is the shape the transformer and the host-template generator
+ * both require.
+ */
+export function splitTemplateSlots(template: string): TemplateSlots | null {
+  const fragments: string[] = [];
+  const slots: SlotName[] = [];
+  let last = 0;
+  for (const match of template.matchAll(SLOT_MARKER_RE)) {
+    const name = match[1];
+    const index = match.index;
+    if (name === undefined || index === undefined || !SLOT_NAMES.includes(name as SlotName)) return null;
+    if (slots.includes(name as SlotName)) return null;
+    fragments.push(template.slice(last, index));
+    slots.push(name as SlotName);
+    last = index + match[0].length;
+  }
+  fragments.push(template.slice(last));
+  if (slots.length !== SLOT_NAMES.length) return null;
+  for (let index = 0; index < SLOT_NAMES.length; index++) {
+    if (slots[index] !== SLOT_NAMES[index]) return null;
+  }
+  return { fragments, slots };
+}
+
+/**
+ * The Delivery chapter as a standalone block: the owned text from `# Delivery`
+ * to the end of the template, without the blank separator that joins it to the
+ * main block in the single-block shape.
+ */
+export function getDeliveryChapter(template: string): string | null {
+  const variants = getTemplateVariants(template);
+  if (variants === null) return null;
+  const chapter = variants.withDelivery.slice(variants.withoutDelivery.length);
+  return chapter.startsWith("\n\n") && chapter.length > 2 ? chapter.slice(2) : null;
+}
+
 /**
  * Validate the final Delivery chapter and derive its two supported shapes.
  *

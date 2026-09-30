@@ -5,3 +5,7 @@ pnpm-lock.yaml
 # tk keeps its write-ahead log append-only and agent-unwritable.
 .tk/**/wal/
 tmp/
+
+# Component-owned Handlebars prompt templates carry prompt markers prettier's
+# Handlebars parser cannot read; a component test keeps them in step with their source.
+projects/*/host-template.hbs

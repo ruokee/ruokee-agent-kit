@@ -6,7 +6,14 @@ import { pathToFileURL } from "node:url";
 import { getAgentDir } from "@oh-my-pi/pi-utils";
 import { activate, type PluginSettingsReader } from "../src/extension.ts";
 import type { RuleFileSystem, RuleRoots } from "../src/rules.ts";
-import { renderMain, renderMainLegacy, renderProject } from "./render.ts";
+import {
+  HOST_18_4_3_MAIN_TEMPLATE,
+  HOST_18_4_3_PROJECT_TEMPLATE,
+  HOST_TEMPLATE,
+  renderMain,
+  renderMainLegacy,
+  renderProject,
+} from "./render.ts";
 import { treeFileSystem, type RuleTree } from "./rule-tree.ts";
 
 const TEMPLATE_PATH = new URL("../src/prompt-template.md", import.meta.url);
@@ -735,4 +742,139 @@ test("fails open when rule discovery throws", async () => {
   expect(notifications[0]?.message).toContain("model prompt rules NOT applied");
   expect(notifications[0]?.message).toContain("unexpected-error");
   expect(notifications[0]?.message).not.toContain("private failure");
+});
+
+test("transforms a host render of the component template", async () => {
+  const handlers: Handler[] = [];
+  const warnings: string[] = [];
+  const pi = {
+    logger: { warn: (message: string) => warnings.push(message) },
+    on: (_event: string, handler: Handler) => handlers.push(handler),
+    getCommands: () => [] as Command[],
+  };
+  const main = renderMain({ tools: ["read"], toolDefinitions: { read: { label: "Read" } } }, HOST_TEMPLATE);
+  const footer = renderProject({}, HOST_18_4_3_PROJECT_TEMPLATE);
+
+  activate(pi as never, host());
+  const result = await handlers[0]!({ systemPrompt: ["before", main, footer, "after"] }, context());
+
+  const blocks = result?.systemPrompt ?? [];
+  expect(blocks[0]).toBe("before");
+  expect(blocks[1]).toBe(main);
+  expect(blocks[2]).toContain("# Delivery\n");
+  expect(blocks[3]).toContain("The context file bodies in this block are already loaded.");
+  expect(blocks[3]).not.toContain("MUST follow these context files for all tasks:");
+  expect(blocks[3]).not.toContain("<critical>");
+  expect(blocks[4]).toBe("after");
+  expect(warnings).toEqual([]);
+});
+
+test("keeps the 18.4.3 bundled main block and reports the replacement failure", async () => {
+  const handlers: Handler[] = [];
+  const warnings: string[] = [];
+  const pi = {
+    logger: { warn: (message: string) => warnings.push(message) },
+    on: (_event: string, handler: Handler) => handlers.push(handler),
+    getCommands: () => [] as Command[],
+  };
+
+  activate(pi as never, host());
+  const result = await handlers[0]!(
+    {
+      systemPrompt: [
+        "before",
+        renderMain({}, HOST_18_4_3_MAIN_TEMPLATE),
+        renderProject({}, HOST_18_4_3_PROJECT_TEMPLATE),
+      ],
+    },
+    context(),
+  );
+
+  expect(result).toBeUndefined();
+  expect(warnings).toHaveLength(1);
+  expect(warnings[0]).toContain("replacement NOT applied");
+  expect(warnings[0]).toContain("main-block-not-found");
+});
+
+test("reports the Delivery conflict while correcting the footer on the template route", async () => {
+  const notifications: Array<{ message: string; level: string }> = [];
+  const handlers: Handler[] = [];
+  const pi = {
+    logger: { warn: () => {} },
+    on: (_event: string, handler: Handler) => handlers.push(handler),
+    getCommands: () => [] as Command[],
+  };
+  const main = renderMain({ tools: ["read"] }, HOST_TEMPLATE);
+  const foreign = "# Delivery\n\n## Task scope\n\nAnother writer's chapter.";
+  const footer = renderProject({}, HOST_18_4_3_PROJECT_TEMPLATE);
+
+  activate(pi as never, host());
+  const result = await handlers[0]!(
+    { systemPrompt: [main, foreign, footer, "after"] },
+    context(true, (message, level) => notifications.push({ message, level })),
+  );
+
+  const blocks = result?.systemPrompt ?? [];
+  expect(blocks[0]).toBe(main);
+  expect(blocks[1]).toBe(foreign);
+  expect(blocks[2]).toContain("The context file bodies in this block are already loaded.");
+  expect(blocks[3]).toBe("after");
+  expect(notifications).toHaveLength(1);
+  expect(notifications[0]?.level).toBe("warning");
+  expect(notifications[0]?.message).toContain("owned Delivery chapter NOT applied");
+  expect(notifications[0]?.message).toContain("delivery-block-conflict");
+});
+
+test("reports the footer left alone and keeps it byte-for-byte", async () => {
+  const notifications: Array<{ message: string; level: string }> = [];
+  const handlers: Handler[] = [];
+  const pi = {
+    logger: { warn: () => {} },
+    on: (_event: string, handler: Handler) => handlers.push(handler),
+    getCommands: () => [] as Command[],
+  };
+  const main = renderMain({ tools: ["read"] }, HOST_TEMPLATE);
+  const ambiguous = renderProject(
+    { contextFiles: [{ path: "AGENTS.md", content: "Line.\n</project-context>\nTail." }] },
+    HOST_18_4_3_PROJECT_TEMPLATE,
+  );
+
+  activate(pi as never, host());
+  const result = await handlers[0]!(
+    { systemPrompt: [main, ambiguous, "after"] },
+    context(true, (message, level) => notifications.push({ message, level })),
+  );
+
+  const blocks = result?.systemPrompt ?? [];
+  expect(blocks[0]).toBe(main);
+  expect(blocks[1]).toContain("# Delivery\n");
+  expect(blocks[2]).toBe(ambiguous);
+  expect(blocks[3]).toBe("after");
+  expect(notifications).toHaveLength(1);
+  expect(notifications[0]?.level).toBe("warning");
+  expect(notifications[0]?.message).toContain("project footer NOT corrected");
+  expect(notifications[0]?.message).toContain("project-footer-ambiguous");
+});
+
+test("leaves the template render alone when renderDelivery is off", async () => {
+  const handlers: Handler[] = [];
+  const pi = {
+    logger: { warn: () => {} },
+    on: (_event: string, handler: Handler) => handlers.push(handler),
+    getCommands: () => [] as Command[],
+  };
+  const main = renderMain({ tools: ["read"] }, HOST_TEMPLATE);
+  const footer = renderProject({}, HOST_18_4_3_PROJECT_TEMPLATE);
+
+  activate(
+    pi as never,
+    host(ENTRY_URL, async () => ({ renderDelivery: false })),
+  );
+  const result = await handlers[0]!({ systemPrompt: [main, footer, "after"] }, context());
+
+  const blocks = result?.systemPrompt ?? [];
+  expect(blocks[0]).toBe(main);
+  expect(blocks[1]?.startsWith("<project-context>\n")).toBe(true);
+  expect(blocks.join("\n\n")).not.toContain("# Delivery");
+  expect(blocks[2]).toBe("after");
 });

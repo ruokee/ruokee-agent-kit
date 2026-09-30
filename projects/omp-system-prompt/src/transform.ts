@@ -1,20 +1,42 @@
-import { getTemplateVariants, SLOT_NAMES, type SlotName } from "./template.ts";
+import {
+  getDeliveryChapter,
+  getTemplateVariants,
+  SLOT_NAMES,
+  splitTemplateSlots,
+  type SlotName,
+  type TemplateVariants,
+} from "./template.ts";
+import { buildHostTemplate, isHostTemplateRender } from "./host-template.ts";
 
 /**
- * Segment-level transform of the OMP 18.2.3 default system prompt.
+ * Segment-level transform of the OMP system prompt.
  *
- * Input is the ordered block array delivered by `before_agent_start`. The
- * transformer recognizes one supported default main block and one unique
- * PROJECT footer block, replaces fixed policy text in each, and leaves
- * every other block untouched. Structural recognition is atomic. A Skill
- * metadata failure is narrower: the isolated catalog stays byte-for-byte
- * unchanged while the rest of the owned prompt is still applied.
+ * Input is the ordered block array delivered by `before_agent_start`. Two
+ * routes share that input:
  *
- * Recognition model: the 18.2.3 default main block is a fixed sequence
- * of sections emitted by the host template, plus optional conditional
- * sections that appear in a fixed order. The transformer walks that
- * sequence with a cursor; each step may only look at the next structure set
- * allowed at that point in the host template:
+ *  - Host-template route: a user selects the component's generated template,
+ *    the host renders it into block 0, and the transformer keeps that block
+ *    as-is while applying the owned Delivery chapter as its own block and
+ *    correcting the host footer. Recognition needs the owned template's own
+ *    static text; an unknown template is never claimed.
+ *  - Default-block route (18.2.3 through 18.2.x hosts): the transformer
+ *    recognizes one supported default main block and one unique PROJECT
+ *    footer block, replaces fixed policy text in each, and leaves every other
+ *    block untouched. Structural recognition is atomic. A Skill metadata
+ *    failure is narrower: the isolated catalog stays byte-for-byte unchanged
+ *    while the rest of the owned prompt is still applied.
+ *
+ * The default-block route answers first whenever it can still reproduce the
+ * input, which keeps its own output and its in-block Delivery chapter on the
+ * route that owns them. Input carrying the owned chapter in its own block, and
+ * input that route cannot transform at all, is answered by the template route,
+ * whose own output keeps that chapter placement.
+ *
+ * Default-block recognition model: the 18.2.3 default main block is a fixed
+ * sequence of sections emitted by the host template, plus optional
+ * conditional sections that appear in a fixed order. The transformer walks
+ * that sequence with a cursor; each step may only look at the next structure
+ * set allowed at that point in the host template:
  *
  *  - Required headings must appear at line start at (or after blanks at)
  *    the cursor; anything non-blank before them is unexpected content.
@@ -31,8 +53,8 @@ import { getTemplateVariants, SLOT_NAMES, type SlotName } from "./template.ts";
  *    byte. Nothing is appended to the end of the owned prompt, and one
  *    owned slot is never refilled twice.
  *
- * Structural failure leaves the input array unchanged; Skill formatting
- * skips are reported on a successful result.
+ * Structural failure leaves the input array unchanged; Skill formatting and
+ * the per-step host-template notes are reported on a successful result.
  */
 
 /** Bounded reason for leaving the incoming prompt unchanged. */
@@ -47,9 +69,28 @@ export type RejectReason =
 /** Reason for keeping the Skill catalog unchanged inside an applied prompt. */
 export type SkillFormattingSkipReason = "skill-metadata-unavailable" | "skill-metadata-mismatch";
 
+/** Bounded reason for leaving one host-template step alone. */
+export type StepSkipReason = "delivery-block-conflict" | "project-footer-ambiguous" | "project-footer-not-recognized";
+
+/**
+ * One host-template step that did not change this turn's input. The main
+ * block stays active; the note names the step and why it left the input as
+ * it found it.
+ */
+export interface StepNote {
+  step: "delivery" | "project-footer";
+  reason: StepSkipReason;
+}
+
 /** Recognition or replacement outcome for one turn's input. */
 export type TransformResult =
-  | { ok: true; blocks: string[]; changed: boolean; skillFormattingSkipped?: SkillFormattingSkipReason }
+  | {
+      ok: true;
+      blocks: string[];
+      changed: boolean;
+      skillFormattingSkipped?: SkillFormattingSkipReason;
+      notes?: readonly StepNote[];
+    }
   | { ok: false; reason: RejectReason };
 
 /**
@@ -1326,8 +1367,6 @@ function parseProjectBlock(project: string): string {
 // Owned output recognition
 // ---------------------------------------------------------------------------
 
-const OWNED_SLOT_RE = /%%([a-z-]+)%%/g;
-
 /** Static fragments, slot order, and the owned identity line. */
 interface OwnedStructure {
   fragments: string[];
@@ -1351,25 +1390,11 @@ interface OwnedMatch {
  * order, which is the same shape `loadTemplate` accepts.
  */
 function ownedStructure(template: string): OwnedStructure | null {
-  const fragments: string[] = [];
-  const slots: SlotName[] = [];
-  let last = 0;
-  for (const match of template.matchAll(OWNED_SLOT_RE)) {
-    const name = match[1];
-    const index = match.index;
-    if (name === undefined || index === undefined) return null;
-    fragments.push(template.slice(last, index));
-    slots.push(name as SlotName);
-    last = index + match[0].length;
-  }
-  fragments.push(template.slice(last));
-  if (slots.length !== SLOT_NAMES.length) return null;
-  for (let index = 0; index < SLOT_NAMES.length; index++) {
-    if (slots[index] !== SLOT_NAMES[index]) return null;
-  }
+  const split = splitTemplateSlots(template);
+  if (split === null) return null;
   const identity = `${template.split("\n")[0] ?? ""}\n`;
   if (identity.trim().length === 0) return null;
-  return { fragments, slots, identity };
+  return { fragments: split.fragments, slots: split.slots, identity };
 }
 
 /**
@@ -1482,19 +1507,277 @@ function looksOwnedMainBlock(block: string, variants: readonly OwnedVariant[]): 
 }
 
 // ---------------------------------------------------------------------------
+// Host-template route
+// ---------------------------------------------------------------------------
+
+const PROJECT_CONTEXT_OPEN = "<project-context>\n";
+const PROJECT_CONTEXT_CLOSE = "</project-context>";
+const ACTIVE_REPO_OPEN = "<active-repo-context>\n";
+const ACTIVE_REPO_CLOSE = "</active-repo-context>";
+
+/** Containers the new footer may carry after the loading instructions. */
+const FOOTER_TAIL_CONTAINERS = [
+  [WORKSPACE_TREE_OPEN, WORKSPACE_TREE_CLOSE],
+  [WORKSPACE_ROOTS_OPEN, WORKSPACE_ROOTS_CLOSE],
+  [ACTIVE_REPO_OPEN, ACTIVE_REPO_CLOSE],
+] as const;
+
+const DELIVERY_HEADING = "# Delivery\n";
+
+/** Bounded failure while parsing the new footer. */
+class FooterFailure extends Error {
+  constructor(readonly reason: Exclude<StepSkipReason, "delivery-block-conflict">) {
+    super(reason);
+  }
+}
+
+function failFooter(reason: Exclude<StepSkipReason, "delivery-block-conflict">): never {
+  throw new FooterFailure(reason);
+}
+
+type FooterSkipReason = Exclude<StepSkipReason, "delivery-block-conflict">;
+
+/** Rewritten footer text, or the reason it was left alone. */
+type FooterOutcome = { kind: "rewritten"; text: string } | { kind: "unchanged"; reason?: FooterSkipReason };
+
+interface ContainerSpan {
+  /** First byte of the container's content. */
+  bodyAt: number;
+  /** First byte after the close marker. */
+  end: number;
+}
+
+/**
+ * Locate one `<tag>…</tag>` container at `from`.
+ *
+ * The close marker must be a line start and must occur once in the remaining
+ * block, so a rule body or the append text that mentions the same marker is
+ * rejected instead of being cut apart. `null` means the open tag is absent; a
+ * missing or repeated close marker fails the whole footer parse.
+ */
+function containerSpan(block: string, from: number, open: string, close: string): ContainerSpan | null {
+  if (!block.startsWith(open, from)) return null;
+  const openEnd = from + open.length;
+  const closeAt = findLineStart(block, openEnd, close);
+  if (closeAt === -1) failFooter("project-footer-not-recognized");
+  if (findLineStart(block, closeAt + close.length, close) !== -1) failFooter("project-footer-ambiguous");
+  return { bodyAt: openEnd, end: closeAt + close.length };
+}
+
+/**
+ * Rewrite the new host's `<project-context>` footer.
+ *
+ * Two things change: the outer loading instructions the owned strategy
+ * replaces, and the fixed critical tail that conflicts with the owned closing
+ * policy. The `<project-context>` markers, workstation, context bodies,
+ * directory paths, workspace data, active-repo text, and append tail stay
+ * byte-for-byte. An already-owned footer parses to itself, and a boundary that
+ * is not uniquely determined fails instead of cutting content apart.
+ */
+function parseProjectContext(block: string): string {
+  const outer = containerSpan(block, 0, PROJECT_CONTEXT_OPEN, PROJECT_CONTEXT_CLOSE);
+  if (outer === null) failFooter("project-footer-not-recognized");
+  const workstation = containerSpan(
+    block,
+    skipBlankLines(block, PROJECT_CONTEXT_OPEN.length),
+    WORKSTATION_OPEN,
+    WORKSTATION_CLOSE,
+  );
+  if (workstation === null) failFooter("project-footer-not-recognized");
+
+  const edits: Array<[number, number, string]> = [];
+  let cursor = skipBlankLines(block, workstation.end);
+  let hasContext = false;
+  let hasDirs = false;
+
+  const repoRules = containerSpan(block, cursor, REPO_RULES_OPEN, REPO_RULES_CLOSE);
+  if (repoRules !== null) {
+    const hostIntro = block.startsWith(REPO_RULES_INTRO, repoRules.bodyAt);
+    if (hostIntro) edits.push([repoRules.bodyAt, repoRules.bodyAt + REPO_RULES_INTRO.length, OWNED_REPO_RULES_INTRO]);
+    else if (!block.startsWith(OWNED_REPO_RULES_INTRO, repoRules.bodyAt)) {
+      failFooter("project-footer-not-recognized");
+    }
+    hasContext = true;
+    cursor = skipBlankLines(block, repoRules.end);
+  }
+
+  const dirContext = containerSpan(block, cursor, DIR_CONTEXT_OPEN, DIR_CONTEXT_CLOSE);
+  if (dirContext !== null) {
+    hasDirs = true;
+    cursor = skipBlankLines(block, dirContext.end);
+  }
+
+  if (hasContext || hasDirs) {
+    const owned = OWNED_AUTO_LOADED_LINES.find((line) => block.startsWith(line, cursor));
+    if (block.startsWith(AUTO_LOADED_LINE, cursor)) {
+      edits.push([
+        cursor,
+        cursor + AUTO_LOADED_LINE.length,
+        hasContext ? OWNED_AUTOLOADED_WITH_BODIES : OWNED_AUTOLOADED_DIRS_ONLY,
+      ]);
+      cursor = skipBlankLines(block, cursor + AUTO_LOADED_LINE.length);
+    } else if (owned !== undefined) {
+      cursor = skipBlankLines(block, cursor + owned.length);
+    } else {
+      failFooter("project-footer-not-recognized");
+    }
+  }
+
+  for (const [open, close] of FOOTER_TAIL_CONTAINERS) {
+    const span = containerSpan(block, cursor, open, close);
+    if (span !== null) cursor = skipBlankLines(block, span.end);
+  }
+  if (cursor !== outer.end - PROJECT_CONTEXT_CLOSE.length) failFooter("project-footer-not-recognized");
+
+  // The fixed critical tail the owned closing policy replaces; anything after
+  // it is the session's append text and survives verbatim. The blank line that
+  // separated the tail from `</project-context>` goes with it, so the append
+  // keeps a single separating blank line.
+  const criticalAt = skipBlankLines(block, outer.end);
+  const hasCritical = block.startsWith(PROJECT_CRITICAL_BLOCK, criticalAt);
+  const tailAt = criticalAt >= 2 && block.slice(criticalAt - 2, criticalAt) === "\n\n" ? criticalAt - 2 : criticalAt;
+  const parts: string[] = [];
+  let position = 0;
+  for (const [from, to, replacement] of edits) {
+    parts.push(block.slice(position, from), replacement);
+    position = to;
+  }
+  parts.push(block.slice(position, hasCritical ? tailAt : block.length));
+  if (hasCritical) parts.push(block.slice(criticalAt + PROJECT_CRITICAL_BLOCK.length));
+  return parts.join("");
+}
+
+/**
+ * Rewrite the footer of the host-template route. A component template can run
+ * on a host that still renders the older `PROJECT` footer, which the
+ * default-block route's parser already handles.
+ */
+function rewriteProjectFooter(block: string): FooterOutcome {
+  if (block.startsWith(PROJECT_CONTEXT_OPEN)) {
+    try {
+      return { kind: "rewritten", text: parseProjectContext(block) };
+    } catch (error) {
+      if (error instanceof FooterFailure) return { kind: "unchanged", reason: error.reason };
+      throw error;
+    }
+  }
+  if (isOwnedProjectBlock(block)) return { kind: "unchanged" };
+  try {
+    return { kind: "rewritten", text: parseProjectBlock(block) };
+  } catch (error) {
+    if (error instanceof WalkFailure) {
+      return {
+        kind: "unchanged",
+        reason: error.reason === "ambiguous-boundary" ? "project-footer-ambiguous" : "project-footer-not-recognized",
+      };
+    }
+    throw error;
+  }
+}
+
+/**
+ * Transform one turn's blocks when the host rendered the component's own
+ * template.
+ *
+ * Returns `null` when no block is such a render, so the caller can keep the
+ * default-block route's result. The main block is kept as the host rendered
+ * it; the owned Delivery chapter becomes its own block right after it, and
+ * the footer is corrected in place. Each step is recorded separately, and a
+ * step that cannot confirm its boundary leaves its input alone.
+ */
+function transformHostTemplateRoute(
+  blocks: readonly string[],
+  template: string,
+  renderDelivery: boolean,
+): TransformResult | null {
+  const built = buildHostTemplate(template);
+  if (built === null) return null;
+  let mainIndex = -1;
+  for (const [index, block] of blocks.entries()) {
+    if (!isHostTemplateRender(block, built.anchors)) continue;
+    if (mainIndex !== -1) return { ok: false, reason: "ambiguous-boundary" };
+    mainIndex = index;
+  }
+  if (mainIndex === -1) return null;
+
+  const chapter = getDeliveryChapter(template);
+  if (chapter === null) return { ok: false, reason: "unknown-section" };
+
+  const notes: StepNote[] = [];
+  const neighbor = blocks[mainIndex + 1];
+  let insertDelivery = false;
+  let removeDelivery = false;
+  if (renderDelivery) {
+    if (neighbor !== chapter) {
+      if (neighbor !== undefined && neighbor.startsWith(DELIVERY_HEADING)) {
+        // Another writer owns the Delivery slot this turn; the component does
+        // not overwrite it, and reports why its own chapter stayed out.
+        notes.push({ step: "delivery", reason: "delivery-block-conflict" });
+      } else {
+        insertDelivery = true;
+      }
+    }
+  } else if (neighbor === chapter) {
+    removeDelivery = true;
+  }
+
+  const footers = blocks
+    .map((block, index) => ({ block, index }))
+    .filter(({ block, index }) => index !== mainIndex && isFooterCandidate(block));
+  let footerIndex = -1;
+  let footerText: string | null = null;
+  if (footers.length > 1) {
+    notes.push({ step: "project-footer", reason: "project-footer-ambiguous" });
+  } else {
+    const footer = footers[0];
+    if (footer !== undefined) {
+      footerIndex = footer.index;
+      const outcome = rewriteProjectFooter(footer.block);
+      if (outcome.kind === "rewritten") footerText = outcome.text;
+      else if (outcome.reason !== undefined) notes.push({ step: "project-footer", reason: outcome.reason });
+    }
+  }
+
+  const out: string[] = [];
+  for (const [index, block] of blocks.entries()) {
+    if (index === mainIndex) {
+      out.push(block);
+      if (insertDelivery) out.push(chapter);
+      continue;
+    }
+    if (removeDelivery && index === mainIndex + 1) continue;
+    if (index === footerIndex && footerText !== null) {
+      out.push(footerText);
+      continue;
+    }
+    out.push(block);
+  }
+  const changed = out.length !== blocks.length || out.some((block, index) => block !== blocks[index]);
+  const result: TransformResult = { ok: true, blocks: out, changed };
+  return notes.length === 0 ? result : { ...result, notes };
+}
+
+/** True when a block is a footer the host-template route can rewrite. */
+function isFooterCandidate(block: string): boolean {
+  return block.startsWith(PROJECT_CONTEXT_OPEN) || isProjectBlock(block);
+}
+
+// ---------------------------------------------------------------------------
 // Transform entry
 // ---------------------------------------------------------------------------
 
 /**
  * Transform one turn's block array.
  *
- * Recognition requires the exact section sequence of the 18.2.3 default
- * main block plus a unique PROJECT footer with the exact fixed critical at
- * its structural tail. A unique, structurally valid output of this
- * extension is a no-op. Anything else (custom prompts, other versions,
- * unexpected sections, extra candidates) returns the input unchanged with
- * a bounded reason. The replacement is built only after all checks pass;
- * `changed` is false when nothing differs.
+ * A block rendered from the component's own host template selects the
+ * host-template route first; see {@link transformHostTemplateRoute}. Otherwise
+ * recognition requires the exact section sequence of the 18.2.3 default main
+ * block plus a unique PROJECT footer with the exact fixed critical at its
+ * structural tail. A unique, structurally valid output of this extension is a
+ * no-op. Anything else (custom prompts, other versions, unexpected sections,
+ * extra candidates) returns the input unchanged with a bounded reason. The
+ * replacement is built only after all checks pass; `changed` is false when
+ * nothing differs.
  */
 export function transformSystemPrompt(
   blocks: readonly string[],
@@ -1511,6 +1794,29 @@ export function transformSystemPrompt(
 
   const templateVariants = getTemplateVariants(template);
   if (templateVariants === null) return { ok: false, reason: "unknown-section" };
+
+  const defaultRoute = transformDefaultRoute(blocks, templateVariants, skillMetadata, renderDelivery);
+  // The template path owns input that already carries the owned chapter in its
+  // own block: the default-block route would keep that block and add a second
+  // copy of the chapter inside the main block. Everywhere else the default-block
+  // route keeps handling whatever it can still reproduce, including its own
+  // output and the in-block chapter shape it switches; a host render it cannot
+  // transform falls through to the template path.
+  const chapter = getDeliveryChapter(template);
+  if (defaultRoute.ok && (chapter === null || !blocks.includes(chapter))) return defaultRoute;
+  return transformHostTemplateRoute(blocks, template, renderDelivery) ?? defaultRoute;
+}
+
+/**
+ * Transform one turn's blocks through the default main block and PROJECT
+ * footer the maintained older hosts render.
+ */
+function transformDefaultRoute(
+  blocks: readonly string[],
+  templateVariants: TemplateVariants,
+  skillMetadata: readonly SkillCommandMetadata[],
+  renderDelivery: boolean,
+): TransformResult {
   const withDeliveryStructure = ownedStructure(templateVariants.withDelivery);
   const withoutDeliveryStructure = ownedStructure(templateVariants.withoutDelivery);
   if (withDeliveryStructure === null || withoutDeliveryStructure === null) {

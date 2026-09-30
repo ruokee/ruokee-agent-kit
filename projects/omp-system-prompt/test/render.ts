@@ -21,6 +21,23 @@ const PROJECT_TEMPLATE = readFileSync(
   "utf8",
 );
 
+/**
+ * The component's committed host template, read the way the host reads it.
+ * Pass it as the `template` argument of {@link renderMain} or
+ * {@link renderProject} to reproduce what the host sends to the extension.
+ */
+export const HOST_TEMPLATE = readFileSync(new URL("../host-template.hbs", import.meta.url), "utf8");
+
+/** The 18.4.3 bundled templates: `<project-context>` footer and new main block. */
+export const HOST_18_4_3_MAIN_TEMPLATE = readFileSync(
+  new URL("./fixtures/omp-18.4.3/system-prompt.txt", import.meta.url),
+  "utf8",
+);
+export const HOST_18_4_3_PROJECT_TEMPLATE = readFileSync(
+  new URL("./fixtures/omp-18.4.3/project-prompt.txt", import.meta.url),
+  "utf8",
+);
+
 type ToolDefinition = {
   wireName?: string;
   label?: string;
@@ -50,6 +67,7 @@ export type MainOptions = {
   intent?: boolean;
   secrets?: boolean;
   autoQa?: boolean;
+  writeTransportOnly?: boolean;
   ast?: boolean;
   task?: boolean;
   memory?: boolean;
@@ -62,13 +80,15 @@ export type MainOptions = {
   personality?: string;
   browser?: boolean;
   hasSkillUriAccess?: boolean;
+  internalUrls?: string[];
 };
 
 /**
- * Render a main block. `template` defaults to the installed 18.2.8 template;
- * the original-template regression passes the stored 18.1.21 template.
+ * Template data for a main block. Every field the installed template and the
+ * 18.4.3 template can read is present, so either template renders the same
+ * turn's data.
  */
-export function renderMain(options: MainOptions = {}, template: string = MAIN_TEMPLATE): string {
+function hostData(options: MainOptions): Record<string, unknown> {
   const names = options.tools ?? ["read", "bash"];
   const gates = options.gateTools ?? names;
   const definitions = options.toolDefinitions ?? {};
@@ -93,7 +113,7 @@ export function renderMain(options: MainOptions = {}, template: string = MAIN_TE
   const toolRefs = Object.fromEntries(
     [...gates, ...devices.map((device) => device.name)].map((name) => [name, definitions[name]?.wireName ?? name]),
   );
-  const data = {
+  return {
     tools,
     toolInfo,
     toolInventory,
@@ -102,6 +122,7 @@ export function renderMain(options: MainOptions = {}, template: string = MAIN_TE
     skills: options.skills ?? [],
     alwaysApplyRules: options.alwaysApplyRules ?? [],
     rules: options.rules ?? [],
+    internalUrls: options.internalUrls ?? ["skill://<name>", "artifact://<id>", "local://<name>.md"],
     environment: [
       { label: "OS", value: "linux" },
       { label: "Arch", value: "x64" },
@@ -117,7 +138,7 @@ export function renderMain(options: MainOptions = {}, template: string = MAIN_TE
     intentTracing: options.intent ?? false,
     intentField: "i",
     secretsEnabled: options.secrets ?? false,
-    writeTransportOnly: false,
+    writeTransportOnly: options.writeTransportOnly ?? false,
     autoQaEnabled: options.autoQa ?? false,
     astEnabled: (options.ast ?? false) || names.some((name) => name === "ast_grep" || name === "ast_edit"),
     delegationBias: "gated",
@@ -138,7 +159,15 @@ export function renderMain(options: MainOptions = {}, template: string = MAIN_TE
     contextFiles: [],
     agentsMdSearch: { files: [] },
   };
-  return prompt.format(prompt.render(template, data), { renderPhase: "post-render" });
+}
+
+/**
+ * Render a main block. `template` defaults to the installed 18.2.8 template;
+ * the original-template regression passes the stored 18.1.21 template, and the
+ * host-template route passes {@link HOST_TEMPLATE}.
+ */
+export function renderMain(options: MainOptions = {}, template: string = MAIN_TEMPLATE): string {
+  return prompt.format(prompt.render(template, hostData(options)), { renderPhase: "post-render" });
 }
 
 /**
@@ -216,6 +245,8 @@ export type ProjectOptions = {
   agentsMdFiles?: string[];
   workspaceTree?: string;
   additionalWorkspaceRoots?: string[];
+  /** Text the host interpolates from its own active-repo template. */
+  activeRepo?: string;
   append?: string;
 };
 
@@ -236,6 +267,7 @@ export function renderProject(options: ProjectOptions = {}, template: string = P
     includeWorkspaceTree: options.workspaceTree !== undefined,
     workspaceTree: { rendered: options.workspaceTree ?? "", truncated: false },
     additionalWorkspaceRoots: options.additionalWorkspaceRoots ?? [],
+    activeRepoContext: options.activeRepo ?? "",
     appendPrompt: options.append ?? "",
     tools: ["read", "bash"],
     toolRefs: { read: "read", bash: "bash", glob: "glob" },

@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP
 Archived: 2026-09-09
-Reversed by: [Add an OMP system prompt extension](../decision/2026-09-09-add-omp-system-prompt.md)
+Reversed by: [Add an OMP system prompt extension](./2026-09-09-add-omp-system-prompt.md)
 
 English | [中文](./2026-09-07-add-omp-system-prompt.zh.md)
 

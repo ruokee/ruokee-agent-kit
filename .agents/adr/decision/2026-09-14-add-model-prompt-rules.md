@@ -21,7 +21,7 @@ OMP has no model-scoped instruction mechanism at the [checked revision](https://
 
 ### Component
 
-`projects/omp-system-prompt` carries this capability under [Add an OMP system prompt extension](./2026-09-09-add-omp-system-prompt.md) and [Keep components self-contained](./2026-08-24-keep-components-self-contained.md). The package name, the native `omp.extensions` entry, the `renderDelivery` setting, and the peer dependency contract stay as decided; no file from another repository component takes part.
+`projects/omp-system-prompt` carries this capability under [Render the system prompt strategy from a host template](./2026-09-30-render-system-prompt-from-host-template.md) and [Keep components self-contained](./2026-08-24-keep-components-self-contained.md). The package name, the native `omp.extensions` entry, the `renderDelivery` setting, and the peer dependency contract stay as decided; no file from another repository component takes part.
 
 With no rule files present, every turn behaves as before, so the change is additive for installed users. No enable setting exists: the presence of rule files selects the capability.
 
@@ -80,7 +80,7 @@ The outcome decides whether the local capability stays, covers only what the hos
 
 Component checks cover the four matching keys with positive and negative cases, alternative semantics within one file, ids containing `/`, case sensitivity, the difference between `exact` and `model`, rule validation and BOM handling, body fidelity for LF, CRLF, indentation, HTML comments, and trailing newlines, ordering across both directories regardless of read completion order, missing directories, the combination with the replacement step in both failure directions, and the non-accumulation of appended blocks across turns.
 
-Real-host checks record the exercised OMP release, the models, and the observed provider-facing request. A handler return value is not provider evidence. They confirm that appended text reaches the request, that frontmatter never does, that a model switch re-matches against the new model, that host blocks and dynamic content survive, that no appended text is duplicated across consecutive turns or after a mid-turn prompt rebuild, and that ordinary subagent turns inherit the rules while restricted-tool and plan-mode subagents do not run the hook. Cases the available model configuration cannot trigger, such as automatic fallback, are recorded as unverified instead of inferred.
+Real-host checks record the exercised OMP release, the models, and the observed provider-facing request. A handler return value is not provider evidence. They confirm that appended text reaches the request, that frontmatter never does, that a model switch re-matches against the new model, that host blocks and dynamic content survive, that no appended text is duplicated across consecutive turns or after a mid-turn prompt rebuild, and that ordinary subagent turns inherit the rules while the plan-mode restricted subagent exercised at that time did not run the hook; the restricted-tool child observed later on OMP 18.4.3 is recorded under Changes. Cases the available model configuration cannot trigger, such as automatic fallback, are recorded as unverified instead of inferred.
 
 ## Alternatives considered
 
@@ -120,4 +120,8 @@ The append step reads both rule directories on every turn the hook runs, so a sl
 
 ### 2026-09-28: Maintenance declaration inherited with the host contract
 
-The component keeps the host contract it inherits from [Add an OMP system prompt extension](./2026-09-09-add-omp-system-prompt.md): the README compatibility section declares the maintenance lower bound under [Adapt first-party host components to host upgrades](./2026-09-28-adapt-components-to-host-upgrades.md), while the host peer stays unrestricted. Appending matching rule documents, the settings the component reads, and the check of the native capability it depends on stay unchanged.
+The component keeps the host contract it inherits from [Render the system prompt strategy from a host template](./2026-09-30-render-system-prompt-from-host-template.md): the README compatibility section declares the maintenance lower bound under [Adapt first-party host components to host upgrades](./2026-09-28-adapt-components-to-host-upgrades.md), while the host peer stays unrestricted. Appending matching rule documents, the settings the component reads, and the check of the native capability it depends on stay unchanged.
+
+### 2026-09-30: A restricted-tool child on OMP 18.4.3 runs both handlers
+
+On OMP 18.4.3, the `scout` agent spawned through the `task` tool carries a restricted tool set and sends a provider request that contains both the replacement result and the matching model-rule body, so the replacement handler and the rule append handler both run for that child. The verification entry above therefore describes the environment exercised when it was written, a plan-mode restricted subagent, rather than restricted subagents in general. Whether an OMP 18.4.3 plan-mode child runs the handlers stays unverified, and the two subagent classes keep separate statements in this decision. Evidence: the OMP 18.4.3 host checks recorded in the [component README](../../../projects/omp-system-prompt/README.md) verification scope.

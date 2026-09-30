@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP
 Archived: 2026-09-09
-Reversed by: [添加 OMP 系统提示词扩展](../decision/2026-09-09-add-omp-system-prompt.zh.md)
+Reversed by: [添加 OMP 系统提示词扩展](./2026-09-09-add-omp-system-prompt.zh.md)
 
 [English](./2026-09-07-add-omp-system-prompt.md) | 中文
 

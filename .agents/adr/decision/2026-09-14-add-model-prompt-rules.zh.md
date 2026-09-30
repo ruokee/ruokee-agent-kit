@@ -21,7 +21,7 @@ Decision writer: deepseek/deepseek-v4.1-flash
 
 ### 组件
 
-本能力由 `projects/omp-system-prompt` 承载，遵循 [增加 OMP 系统提示词扩展](./2026-09-09-add-omp-system-prompt.zh.md) 与 [保持组件自包含](./2026-08-24-keep-components-self-contained.zh.md) 两项决定。包名、原生 `omp.extensions` 入口、`renderDelivery` 设置与 peer dependency 合同保持不变；其他仓库组件中的文件不参与。
+本能力由 `projects/omp-system-prompt` 承载，遵循 [由宿主模板渲染系统提示词策略](./2026-09-30-render-system-prompt-from-host-template.zh.md) 与 [保持组件自包含](./2026-08-24-keep-components-self-contained.zh.md) 两项决定。包名、原生 `omp.extensions` 入口、`renderDelivery` 设置与 peer dependency 合同保持不变；其他仓库组件中的文件不参与。
 
 没有规则文件时，每个 turn 的行为与之前一致，因此该变更对已安装用户是增量式的。不提供启用开关：规则文件是否存在决定该能力是否生效。
 
@@ -80,7 +80,7 @@ Decision writer: deepseek/deepseek-v4.1-flash
 
 组件检查覆盖四个匹配键的正反用例、单文件内的多条目替代语义、包含 `/` 的 id、大小写敏感、`exact` 与 `model` 的差别、规则校验与 BOM 处理、LF、CRLF、缩进、HTML 注释与末尾换行的正文保真、跨两个目录且不受读取完成顺序影响的排序、目录缺失、与替换步骤的组合及两个方向的失败、以及追加块跨 turn 不累积。
 
-真实宿主检查记录所用 OMP 版本、所用模型和观察到的 Provider-facing 请求。处理器返回值本身不构成 Provider 证据。检查确认追加文本进入请求、frontmatter 从不进入、切换模型后按新模型重新匹配、宿主块与动态内容保留、连续 turn 以及轮中重建后追加文本不重复，以及普通子 Agent turn 继承规则，而受限工具与 plan-mode 子 Agent 不运行该钩子。当前模型配置无法触发的场景（例如自动回退）记为未验证，而不是推断结论。
+真实宿主检查记录所用 OMP 版本、所用模型和观察到的 Provider-facing 请求。处理器返回值本身不构成 Provider 证据。检查确认追加文本进入请求、frontmatter 从不进入、切换模型后按新模型重新匹配、宿主块与动态内容保留、连续 turn 以及轮中重建后追加文本不重复，以及普通子 Agent turn 继承规则，而当时观察到的 plan-mode 受限子 Agent 不运行该钩子；OMP 18.4.3 上受限工具子 Agent 的后续观察记录在「变更」中。当前模型配置无法触发的场景（例如自动回退）记为未验证，而不是推断结论。
 
 ## 考虑过的替代方案
 
@@ -120,4 +120,8 @@ Decision writer: deepseek/deepseek-v4.1-flash
 
 ### 2026-09-28：随宿主合同沿用维护声明
 
-组件沿用[添加 OMP 系统提示词扩展](./2026-09-09-add-omp-system-prompt.zh.md)中的宿主合同：README 兼容性小节按[宿主内组件随宿主升级保持适配](./2026-09-28-adapt-components-to-host-upgrades.zh.md)声明维护下限，宿主 peer 保持不受限制。追加匹配规则、组件读取的设置，以及它所依赖的原生能力复核保持不变。
+组件沿用[由宿主模板渲染系统提示词策略](./2026-09-30-render-system-prompt-from-host-template.zh.md)中的宿主合同：README 兼容性小节按[宿主内组件随宿主升级保持适配](./2026-09-28-adapt-components-to-host-upgrades.zh.md)声明维护下限，宿主 peer 保持不受限制。追加匹配规则、组件读取的设置，以及它所依赖的原生能力复核保持不变。
+
+### 2026-09-30：OMP 18.4.3 上的受限工具子 Agent 会运行两个处理器
+
+在 OMP 18.4.3 上，通过 `task` 工具派发、工具集受限的 `scout` 子 Agent 发出的 Provider 请求同时包含替换结果与匹配的模型规则正文，因此替换处理器与规则追加处理器都会为它运行。上文的验证条目描述的是写下它时所处的环境，即一个 plan-mode 受限子 Agent，而不是关于受限子 Agent 的一般结论。OMP 18.4.3 的 plan-mode 子 Agent 是否运行这两个处理器仍未验证，本决定继续把两类子 Agent 分开陈述。证据见[组件 README](../../../projects/omp-system-prompt/README.zh.md) 的已验证范围。

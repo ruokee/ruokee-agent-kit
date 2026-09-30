@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-system-prompt",
-  "version": "0.3.1",
+  "version": "0.4.2",
   "description": "OMP extension replacing the default system prompt's fixed policy with maintainer-owned text, plus model-scoped rule documents appended per turn",
   "license": "MIT",
   "type": "module",
@@ -32,6 +32,7 @@
     "typescript": "^5.9.3"
   },
   "scripts": {
+    "build:template": "bun scripts/build-template.ts",
     "test": "bun test",
     "typecheck": "tsc --noEmit -p ."
   }

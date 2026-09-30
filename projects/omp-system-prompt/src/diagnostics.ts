@@ -52,6 +52,24 @@ export class DiagnosticTracker {
     );
   }
 
+  reportDeliverySkipped(reason: string, target: string): void {
+    this.reportOnce(
+      "delivery",
+      reason,
+      target,
+      `omp-system-prompt: owned Delivery chapter NOT applied (reason: ${reason}; target: ${target}). The host-rendered template block and the rest of the prompt are unchanged.`,
+    );
+  }
+
+  reportProjectFooterUnchanged(reason: string, target: string): void {
+    this.reportOnce(
+      "project-footer",
+      reason,
+      target,
+      `omp-system-prompt: project footer NOT corrected (reason: ${reason}; target: ${target}). The footer keeps the host's loading guidance and closing critical; the owned main block stays active for this turn.`,
+    );
+  }
+
   reportRuleSkipped(reason: string, source: string): void {
     this.reportOnce(
       "model-prompt-rules",

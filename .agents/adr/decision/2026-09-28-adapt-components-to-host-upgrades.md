@@ -89,7 +89,7 @@ Two clauses in the current decisions cannot hold together with this rule, and co
 
 The remaining current decisions are checked and kept:
 
-- [The system prompt decision](./2026-09-09-add-omp-system-prompt.md) already declares an unrestricted peer, forbids reading the host version to decide eligibility, activation, transformation, diagnostics, or fallback, and keeps structural checks and the evidence boundary. Adding a documented maintenance bound does not change any of that.
+- [The system prompt decision](./2026-09-30-render-system-prompt-from-host-template.md) already declares an unrestricted peer, forbids reading the host version to decide eligibility, activation, transformation, diagnostics, or fallback, and keeps structural checks and the evidence boundary. Adding a documented maintenance bound does not change any of that.
 - [The model prompt rules decision](./2026-09-14-add-model-prompt-rules.md) keeps the peer contract it inherits from that decision. A documented bound is a declaration and not a transition back to a version condition.
 - [The context pin decision](./2026-09-15-add-omp-context-pin.md) records no version gate. Its activation reads the host's public API, which stays as it is, and the declaration follows this decision.
 - [The tk integration decision](./2026-09-02-integrate-tk-tools-with-harnesses.md) keeps the independent runtime protocol and its `runtime_compat`, CLI and driver contracts, component format, preflight validation, the zero-registration outcome of a failed preflight, and the single bounded diagnostic of a later `registerTool` failure. A host maintenance bound is not a runtime protocol change.

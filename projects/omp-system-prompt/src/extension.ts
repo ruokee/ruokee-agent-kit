@@ -50,6 +50,8 @@ const REASON_TARGETS: Record<string, string> = {
 
 const SKILL_FORMATTING_TARGET = "Skill catalog";
 const DELIVERY_SETTING_TARGET = "renderDelivery";
+const DELIVERY_BLOCK_TARGET = "Delivery block";
+const PROJECT_FOOTER_TARGET = "project footer";
 const SCOPE = "omp-system-prompt";
 
 /** Runtime inputs the activation step needs; tests substitute their own. */
@@ -162,6 +164,10 @@ export function activate(
       if (result.ok) {
         if (result.skillFormattingSkipped !== undefined) {
           tracker.reportSkillFormattingSkipped(result.skillFormattingSkipped, SKILL_FORMATTING_TARGET);
+        }
+        for (const note of result.notes ?? []) {
+          if (note.step === "delivery") tracker.reportDeliverySkipped(note.reason, DELIVERY_BLOCK_TARGET);
+          else tracker.reportProjectFooterUnchanged(note.reason, PROJECT_FOOTER_TARGET);
         }
         if (!result.changed) return undefined;
         return { systemPrompt: result.blocks } satisfies BeforeAgentStartEventResult;
