@@ -29,7 +29,7 @@ export function bindSessionSources(input: {
   getUsageStatistics: () => { input: number; cacheWrite: number; cacheRead: number; output: number };
   getContextUsage: () => ContextUsage | undefined;
   getModel: () => { provider: string; id: string; contextWindow: number | null; input: readonly string[] } | undefined;
-  getCompactionSettings: () => CompactionSettingsShape | undefined;
+  getCompactionSettings: () => Partial<CompactionSettingsShape> | undefined;
 }): void {
   sources = {
     getUsageStatistics: input.getUsageStatistics,

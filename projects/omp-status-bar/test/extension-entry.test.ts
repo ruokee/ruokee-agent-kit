@@ -80,6 +80,8 @@ class ExtensionHarness {
   usageThrows = false;
   /** The compaction group served by the injected Settings stub; undefined = uninitialized. */
   settingsGroup: Record<string, unknown> | undefined = undefined;
+  /** Live Settings instance to inject verbatim; takes precedence over {@link settingsGroup}. */
+  settingsInstance: unknown = undefined;
   /** Counts reads of the compaction group through the injected namespace. */
   settingsGroupReads = 0;
   /** Branch the session binding counts; set before emitStart/emitSwitch to seed history. */
@@ -163,6 +165,9 @@ class ExtensionHarness {
     // the Settings namespace injected by the active OMP runtime.
     const injectedSettings = {
       get instance() {
+        if (harness.settingsInstance !== undefined) {
+          return harness.settingsInstance;
+        }
         if (harness.settingsGroup === undefined) {
           throw new Error("Settings not initialized. Call Settings.init() first.");
         }
@@ -382,6 +387,111 @@ describe("extension entry lifecycle", () => {
       expect(line.includes("\u{F0068}")).toBe(false);
       // The injected getter never returned a compaction group.
       expect(h.settingsGroupReads).toBe(0);
+      // A read that failed is reported once, with its own locatable reason.
+      expect(h.diagnostics.length).toBe(1);
+      expect(h.diagnostics[0] ?? "").toContain("reading the compaction settings failed");
+    } finally {
+      await h.emitShutdown();
+      h.dispose();
+    }
+  });
+
+  test("a Settings instance without a readable group reports the reason once and keeps the row", async () => {
+    resetProviderRegistryForTests();
+    resetSnapshotStoreForTests();
+    const h = new ExtensionHarness("version: 1\nstatuses:\n  - id: context\n  - id: total\n");
+    try {
+      await h.activate();
+      // The instance exposes no `getGroup`: that is the shape of the host
+      // releases that removed the group reader, and the estimate stays hidden
+      // instead of being guessed, while the metrics around it keep
+      // publishing.
+      h.settingsInstance = { name: "opaque" };
+      await h.emitStart();
+      const component = h.mountWidget() as { render: (width: number) => string[] };
+      h.setMetrics(95, 150_000, 1.5);
+      // Several sampler ticks: a bounded report must not repeat per tick.
+      for (let tick = 0; tick < 5; tick++) {
+        for (const record of h.intervals) {
+          record.callback();
+        }
+        await Promise.resolve();
+      }
+      const line = component.render(120).join("");
+      // The other providers around the unavailable estimate keep publishing.
+      expect(line).toContain("ctx 95%");
+      expect(line).toContain("T 150K");
+      expect(line.includes("\u{F0068}")).toBe(false);
+      expect(h.diagnostics.length).toBe(1);
+      const reason = h.diagnostics[0] ?? "";
+      // Locatable cause, and no configuration value leaked into the report.
+      expect(reason).toContain("getGroup");
+      expect(reason).not.toMatch(/[0-9]/);
+    } finally {
+      await h.emitShutdown();
+      h.dispose();
+    }
+  });
+
+  test("compaction turned off stays a silent hidden indicator", async () => {
+    resetProviderRegistryForTests();
+    resetSnapshotStoreForTests();
+    const h = new ExtensionHarness("version: 1\nstatuses:\n  - id: context\n");
+    try {
+      await h.activate();
+      // A readable group that reports compaction off is a configuration
+      // state, not a host that lost the read: nothing to report.
+      h.settingsGroup = {
+        enabled: false,
+        asyncEnabled: false,
+        methodOrder: ["soft"],
+        thresholdTokens: 160_000,
+      };
+      await h.emitStart();
+      const component = h.mountWidget() as { render: (width: number) => string[] };
+      h.setMetrics(95, 150_000, 1.5);
+      for (let tick = 0; tick < 3; tick++) {
+        for (const record of h.intervals) {
+          record.callback();
+        }
+        await Promise.resolve();
+      }
+      const line = component.render(120).join("");
+      expect(line).toContain("ctx 95%");
+      expect(line.includes("\u{F0068}")).toBe(false);
+      expect(h.diagnostics).toEqual([]);
+    } finally {
+      await h.emitShutdown();
+      h.dispose();
+    }
+  });
+
+  test("a group with a foreign methodOrder shape keeps the fragment and reports nothing", async () => {
+    resetProviderRegistryForTests();
+    resetSnapshotStoreForTests();
+    const h = new ExtensionHarness("version: 1\nstatuses:\n  - id: context\n");
+    try {
+      await h.activate();
+      // Another host release may return the field under a shape this package
+      // does not consume. The sample must keep the readable fields and the
+      // fragment published, and the icon stays hidden.
+      h.settingsGroup = {
+        enabled: true,
+        asyncEnabled: true,
+        methodOrder: true,
+        thresholdTokens: 160_000,
+      };
+      await h.emitStart();
+      const component = h.mountWidget() as { render: (width: number) => string[] };
+      h.setMetrics(95, 150_000, 1.5);
+      for (const record of h.intervals) {
+        record.callback();
+      }
+      await Promise.resolve();
+      const line = component.render(120).join("");
+      expect(line).toContain("ctx 95%");
+      expect(line.includes("\u{F0068}")).toBe(false);
+      expect(h.diagnostics).toEqual([]);
     } finally {
       await h.emitShutdown();
       h.dispose();

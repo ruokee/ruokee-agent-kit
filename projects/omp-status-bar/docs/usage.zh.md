@@ -18,7 +18,7 @@ omp plugin link "$(pwd)" --scope user
 
 OMP 会读取 `package.json` 中的 `omp.extensions` 并加载 `src/extension.ts`，不需要手动设置 Extension 路径。
 
-最低维护 OMP 版本为 `18.2.8`，见[组件 README 的兼容性小节](../README.zh.md)。该下限只表达维护责任：不限制安装、激活或运行，也不是已验证版本的清单。自动化检查针对 OMP 18.2.8 运行，`bun test` 与 `tsc --noEmit` 均通过。随包交付的源码也能在 OMP 18.1.8 和 18.2.3 下通过类型检查，在这两个版本上除 `cross-product.test.ts` 和 `render.test.ts` 外的测试文件全部通过，这两个文件导入了 OMP 内部的 Composer shape 与 statusline host 模块；该结果属于包级检查，不是真实宿主运行。真实 TUI 验证覆盖 OMP 18.2.3 与 18.2.8。
+最低维护 OMP 版本为 `18.2.8`，见[组件 README 的兼容性小节](../README.zh.md)。该下限只表达维护责任：不限制安装、激活或运行，也不是已验证版本的清单。自动化检查针对 OMP 18.4.3 运行，`bun test` 与 `tsc --noEmit` 均通过。随包交付的源码也能在 OMP 18.2.8、18.2.3 和 18.1.8 下通过类型检查：在 18.2.8 上测试套件全部通过，在 18.2.3 和 18.1.8 上除 `cross-product.test.ts` 和 `render.test.ts` 外的测试文件全部通过，这两个文件导入了 OMP 内部的 Composer shape 与 statusline host 模块。以上都属于针对宿主包安装副本的包级检查，不是真实宿主运行。真实 TUI 验证覆盖 OMP 18.2.3、18.2.8 与 18.4.3。
 
 ## 配置
 
@@ -192,6 +192,8 @@ Provider 把固定标签 `Turn`、一个空格和数值渲染为同一个 `#87d7
 
 每次采样从 `ctx.getContextUsage()` 读取当前 token 和 window，从 `ctx.model` 读取模型，从 `Settings.instance.getGroup("compaction")` 读取压缩配置。阈值和方法选择复用 OMP 导出的函数：
 
+读取压缩配置依赖宿主暴露 settings group。从 Settings 单例移除 `getGroup` 的版本不为 Extension 提供等价读取方式：settings registry 的 handle 属于宿主模块实例，取自已方副本的 handle 会在真实实例上解析成其他 settings 的值。在这类版本上，采样不携带压缩配置，指示保持 `hidden`，行内其他内容照常渲染。会话会通过组件既有的诊断渠道报告一次该原因，以便区分「指示隐藏是因为宿主缺少读取」和「压缩配置本身处于关闭状态」。该判定是对运行中的 Settings 对象做能力探测，跟随对象本身而非版本号；OMP 18.4.3 是已确认探测不到读取器的版本。
+
 ```ts
 import { resolveSpeculationMethod } from "@oh-my-pi/pi-coding-agent/session/compaction-methods";
 import { resolveSpeculationLeadTokens } from "@oh-my-pi/pi-coding-agent/session/speculation-lead";
@@ -269,6 +271,7 @@ speculationBand = [start, threshold)
 - 所有 interval 和 timeout 都通过 OMP 托管 timer 创建。
 - Provider callback、发布、启动和停止的错误不会终止 OMP 会话。
 - 诊断按内容去重并限制数量。
+- 当 context Provider 请求压缩配置而宿主没有可读的 settings group 时，会话通过 `pi.logger.warn` 报告一次该原因；压缩配置自身报告为关闭不会被当成宿主问题上报。报告只说明缺失的读取方式，不携带任何配置值。
 - shutdown 之后 Host 拒绝新 timer、新发布和迟到的 callback。
 - shutdown 与未完成的 start 竞争时以 shutdown 为准：不重新挂载，不发布。
 
@@ -286,5 +289,9 @@ speculationBand = [start, threshold)
 OMP 18.2.3 兼容性使用组件锁定依赖与 `pro-20x/gpt-5.6-luna` 模型完成验证。真实 TUI 覆盖了 48 到 100 列的实时宽度调整、请求期间指标更新、会话切换、SGR 鼠标输入、子代理 Task 卡片、终端标题 spinner 帧和正常退出。验证时通过临时覆盖降低 recent-token 保留阈值，使手动 `/compact` 执行远端压缩；OMP 显示 `remote-compacted · 20K→19K`，状态栏在压缩后仍保持挂载并更新。本次无需修改运行时代码或公开 Provider 合同。
 
 轮次计数在 OMP 18.2.8 上使用组件锁定依赖与 `pro-20x/gpt-6-luna` 模型完成验证，运行在带独立状态栏配置的临时 OMP profile 下。状态栏在 token 和上下文读数之后渲染 `Turn`，数值对每次已回答的模型请求前进一次，工具运行期间保持在前一个数值，被中断的请求不改变它，恢复会话后在发出新请求之前就显示分支历史，子代理运行也不会改变前台会话的数值。用 `/tree` 回退到更早的条目、或从更早的消息新建分支后，数值都降到当时前台分支的计数，下一次已回答请求再从新数值前进。本次验证中，数值在请求之间显示为弱化样式，请求运行期间使用强调样式。
+
+状态栏在 OMP 18.4.3 上使用组件锁定依赖与临时 Agent 目录中的回环 OpenAI 兼容 Provider（`u05mock/u05-mock-1`，200000 token window，`u05mock/u05-mock-2`，50000 token window，每个请求 15000 prompt token）完成验证。启动后渲染 `ctx 4%`。第一个请求进行中该行保持这一读数，回答到达后的帧显示 `ctx 4% / Turn 1`，随后一次采样补上 token 读数成为 `T 15K / ctx 8% / Turn 1`。下一个请求由 Provider 挂起保持进行中，期间该行保持 `T 15K / ctx 8% / Turn 1`，native statusline 显示工作中的 spinner；该回答结束后轮次先变化（`T 15K / ctx 8% / Turn 2`），token 总量在下一次采样跟上（`T 30K / ctx 8% / Turn 2`）。`/hotkeys` 打开 Keyboard Shortcuts 面板期间，帧的底部仍带有 native statusline 和状态栏行 `T 15K / ctx 8% / Turn 1`；按 ESC 关闭面板后，下一个提示作为 `Turn 2` 得到回答。用仅对当前会话生效的模型切换切到 `u05mock/u05-mock-2` 后，native statusline 变为 `U05 Mock Two` 与 50000 token window，同样的 15000 token 变为 `ctx 30%`，轮次计数不受切换影响，只在随后一次已回答请求时前进（`T 30K / ctx 30% / Turn 2`）。每个会话还会写入一条有界诊断，指明缺少的设置读取方式，即投机压缩区间小节记录的原因，从而把隐藏指示与压缩配置关闭区分开；因此本次运行中该行没有图标。同一份组件副本在 OMP 18.2.8 上渲染出 `T 15K / U+F0068 ctx 8% / Turn 1`，确认在较新依赖集下旧宿主的指示路径仍然可用。
+
+实时终端宽度调整、会话切换、`/tree` 回退、请求中断和子代理卡片未在 OMP 18.4.3 上重跑；这些检查仍以 OMP 18.2.3 与 18.2.8 的记录为准。
 
 这些证据适用于本文档对应的组件源码。后续若修改可能影响渲染或生命周期的源码，需要重新执行真实 TUI 检查。

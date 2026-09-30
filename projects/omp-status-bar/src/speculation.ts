@@ -29,11 +29,17 @@
  * `normal` or `hidden`.
  */
 
-import type { CompactionSettings } from "@oh-my-pi/pi-coding-agent/config/settings-schema";
 import { resolveThresholdTokens } from "@oh-my-pi/pi-agent-core/compaction";
 import { resolveSpeculationMethod } from "@oh-my-pi/pi-coding-agent/session/compaction-methods";
 import { resolveSpeculationLeadTokens } from "@oh-my-pi/pi-coding-agent/session/speculation-lead";
 import type { CompactionSettingsShape } from "./snapshot-store.ts";
+
+// Each settings type comes from the resolver that consumes it. OMP keeps its
+// settings group type in a module that is not part of the imported host
+// surface on every release, so deriving from the parameters keeps the band
+// resolvable without depending on an internal path.
+type MethodSettings = Parameters<typeof resolveSpeculationMethod>[1];
+type ThresholdSettings = Parameters<typeof resolveThresholdTokens>[1];
 
 /** Public indicator states. */
 export type SpeculationState = "hidden" | "normal" | "indicating";
@@ -72,15 +78,12 @@ export function resolveBand(inputs: SpeculationInputs): SpeculationBand | undefi
   if (!compaction.enabled || compaction.asyncEnabled === false) {
     return undefined;
   }
-  // OMP's resolvers take the full `Model` and `CompactionSettings` types;
+  // OMP's resolvers take the full `Model` and compaction settings types;
   // the inputs here are the structural subsets those resolvers actually
-  // read. The model parameter type is derived from the resolver itself, so
+  // read. Both parameter types are derived from the resolvers themselves, so
   // the public contract stays free of OMP-internal types.
   type ResolverModel = Parameters<typeof resolveSpeculationMethod>[0];
-  const method = resolveSpeculationMethod(
-    model as unknown as ResolverModel,
-    compaction as unknown as CompactionSettings,
-  );
+  const method = resolveSpeculationMethod(model as unknown as ResolverModel, compaction as unknown as MethodSettings);
   if (method === undefined) {
     return undefined;
   }
@@ -88,7 +91,7 @@ export function resolveBand(inputs: SpeculationInputs): SpeculationBand | undefi
   if (typeof window !== "number" || !Number.isFinite(window) || window <= 0) {
     return undefined;
   }
-  const threshold = resolveThresholdTokens(window, compaction as unknown as CompactionSettings);
+  const threshold = resolveThresholdTokens(window, compaction as unknown as ThresholdSettings);
   if (!Number.isFinite(threshold) || threshold <= 0) {
     return undefined;
   }

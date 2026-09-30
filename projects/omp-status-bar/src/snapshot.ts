@@ -360,7 +360,7 @@ export class SnapshotStore {
             : {
                 enabled: compactionRaw.enabled ?? false,
                 asyncEnabled: compactionRaw.asyncEnabled ?? false,
-                methodOrder: compactionRaw.methodOrder ?? EMPTY_METHOD_ORDER,
+                methodOrder: normalizeMethodOrder(compactionRaw.methodOrder),
                 thresholdTokens: compactionRaw.thresholdTokens ?? 0,
                 thresholdPercent: compactionRaw.thresholdPercent ?? 0,
                 reserveTokens: compactionRaw.reserveTokens,
@@ -396,6 +396,15 @@ export class SnapshotStore {
 const EMPTY_METHOD_ORDER: readonly unknown[] = Object.freeze([]);
 
 /**
+ * Method order as a list. The group is host-owned data: a release that keeps
+ * the field under a different shape contributes no order instead of breaking
+ * the whole context sample.
+ */
+function normalizeMethodOrder(value: unknown): readonly unknown[] {
+  return Array.isArray(value) ? value : EMPTY_METHOD_ORDER;
+}
+
+/**
  * Compare the raw context source reads against the active record using only
  * primitives and array contents; no allocation. A false here means at least
  * one consumed field differs, so the record must be rebuilt.
@@ -408,7 +417,7 @@ function contextUnchanged(
 ): boolean {
   const enabled = compactionRaw?.enabled ?? false;
   const asyncEnabled = compactionRaw?.asyncEnabled ?? false;
-  const methodOrder = compactionRaw?.methodOrder ?? EMPTY_METHOD_ORDER;
+  const methodOrder = normalizeMethodOrder(compactionRaw?.methodOrder);
   const thresholdTokens = compactionRaw?.thresholdTokens ?? 0;
   const thresholdPercent = compactionRaw?.thresholdPercent ?? 0;
   const reserveTokens = compactionRaw?.reserveTokens;
