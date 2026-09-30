@@ -4,7 +4,7 @@
 
 What each adjustment changes in OMP, why it is needed, where it attaches, what it costs, and which verification exists. The README carries a short index; this document keeps the evidence.
 
-The source baseline is OMP `18.2.8`, tag `v18.2.8` of [`can1357/oh-my-pi`](https://github.com/can1357/oh-my-pi) at commit [`5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`](https://github.com/can1357/oh-my-pi/tree/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c). Every source link and line reference below points at that commit; the release a file belongs to and the snapshot it was read from can differ, so each adjustment states its own baseline as well.
+The development dependency baseline is OMP `18.2.8`, tag `v18.2.8` of [`can1357/oh-my-pi`](https://github.com/can1357/oh-my-pi) at commit [`5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`](https://github.com/can1357/oh-my-pi/tree/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c). Source links carrying that commit point to the development baseline. An adjustment can name another source baseline for a host path that it also supports; the standalone wait path below cites OMP `18.4.3`. Each adjustment states its own baselines explicitly.
 
 ## How a version note reads
 
@@ -16,63 +16,63 @@ Each adjustment ends with a version and verification note that separates three t
 
 A statement about a host version is a statement about that version only. Nothing here claims a continuous range of versions.
 
-## Continuing hub waits
+## Continuing waits
 
 ### Native behavior
 
-The builtin `hub` tool has a `wait` operation. One call blocks for a single window taken from a fixed ladder of `5 s, 10 s, 30 s, 60 s, 300 s` ([`packages/coding-agent/src/async/job-manager.ts:51`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/async/job-manager.ts#L51), chosen by `nextPollWaitMs` at [`job-manager.ts:493`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/async/job-manager.ts#L493) and used for the race timer at [`packages/coding-agent/src/tools/hub/index.ts:453`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/tools/hub/index.ts#L453)). The ladder is a compile-time constant with no setting behind it; a job or message wait therefore cannot be asked to block longer than the current rung.
+This adjustment supports two native entries and selects between them from the tools the session actually exposes.
 
-When the window elapses with nothing new, the tool returns a complete snapshot marked as carrying no information: `useless: true` with `op: "wait"`, built for a still-running job set at [`packages/coding-agent/src/tools/hub/jobs.ts:293`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/tools/hub/jobs.ts#L293) (predicate `isWaitingPollDetails` at [`packages/tui/src/tools/hub.ts:41`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/tui/src/tools/hub.ts#L41)) or for a clean message timeout at [`packages/coding-agent/src/tools/hub/messaging.ts:387`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/tools/hub/messaging.ts#L387). The tool description states the rule and tells the model to re-issue: "the wait window elapsing (5s, lengthening with each back-to-back wait up to 5m)" ([`packages/coding-agent/src/prompts/tools/hub.md:12`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/prompts/tools/hub.md#L12)).
+On the legacy OMP `18.2.8` path, the builtin `hub` tool has a `wait` operation. One call blocks for a window from the fixed ladder `5 s, 10 s, 30 s, 60 s, 300 s` ([job manager](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/async/job-manager.ts#L51), [hub wait](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/tools/hub/index.ts#L453)). A window with no new information is marked `useless: true`, either with a nonempty set of still-running jobs or with a clean message timeout. The hub `timeout` parameter does not control job and message waits; it belongs to logs, stop, and named-process waits.
 
-The `timeout` parameter of that tool is scoped to logs, stop, and named-process waits ([`packages/coding-agent/src/tools/hub/index.ts:110`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/tools/hub/index.ts#L110)); the job and message wait path never reads it.
+On the OMP `18.4.3` path, the builtin [`wait`](https://github.com/can1357/oh-my-pi/blob/v18.4.3/packages/coding-agent/src/tools/wait.ts) tool has an empty object parameter schema and one native call is capped at 30 minutes. It returns when a watched job settles, a peer message arrives, a steering interruption occurs, a service reports, no work is waitable, or the native window ends. A window that still watches the session's own jobs has a nonempty `details.jobs` array; an empty array is shared by several other outcomes whose distinction exists only in model-facing text.
 
-With the extension off, that is exactly what happens: one window per call, an empty frame returned to the model, and the ladder advancing only when the model calls again.
+With the extension off, each entry keeps exactly that behavior and the model must issue another call after a native empty window or ceiling.
 
 ### Why it is needed
 
-Each empty frame costs a model turn. The model reads a result with nothing in it and issues the same call again, which re-sends the conversation and spends provider quota. A long build or test run is the ordinary case for this tool, and at the start of a run the model wakes every 5 seconds until the ladder climbs. The ladder lowers the number of turns but not their cost, and the rung cannot be chosen by the caller.
+Each empty return costs a model turn: the model reads a result with no new information, resends the conversation, and issues the same call. Native retry settings govern model requests rather than tool waiting, and neither entry exposes a configurable total wait deadline.
 
-No native configuration reaches this: `retry.*` settings govern request retries, not this tool, and the ladder has no settings key.
+### Entry selection and attachment
 
-### Where it attaches
+The module selects capabilities, never a host version:
 
-The extension registers a tool named `hub`, which the host treats as a re-registration of the builtin of the same name ([`packages/coding-agent/src/extensibility/extensions/wrapper.ts:66`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/extensibility/extensions/wrapper.ts#L66)). Every call is forwarded to the native tool through `ctx.invokeTool`, which runs the shadowed builtin ([`packages/coding-agent/src/extensibility/extensions/runner.ts:573`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/extensibility/extensions/runner.ts#L573)).
+- If the session exposes builtin `hub`, the existing wrapper is used unchanged. It requires the recognized wait-window sentence and a reusable parameter schema, re-registers `hub`, and delegates through `ctx.invokeTool`.
+- If `hub` is absent and the session exposes builtin `wait`, the new path requires the recognized empty object parameter structure, re-registers `wait`, and delegates through `ctx.invokeTool`.
+- A missing entry, a candidate already replaced by another extension, an unrecognized schema, or a missing host schema builder leaves native behavior in place and produces one bounded reason.
 
-- Non-`wait` operations and waits with `name` are delegated once, unchanged, except that a named-process wait with no `timeout` gets the configured default.
-- For a job or message wait, `timeout` becomes the total deadline of the call and is not forwarded to the native window. A value that is not a finite number in `(0, 3600]` is refused as a parameter error with the accepted range in the message.
-- The deadline is one timer for the whole call. While each delegated result is a certain empty window, the wrapper calls the native tool again inside the same call.
-- A result that is anything else — a delivered message, a settled job, a report, an error, an empty `jobs` array — is returned unchanged. Text is never inspected to decide this; the decision reads `useless`, `details.op`, the detail key set, and the structure of `jobs` and `waited`.
-- The tool keeps the native parameter schema, approval function, `strict`, `loadMode`, and the interruptible flag for waits and followed log reads.
-- The description replaces the native wait-window sentence with the effective deadline and adds one paragraph stating the deadline, the routing, and the claim that a deadline ends the wait only.
+The standalone definition keeps the native name, read approval, essential load mode, strict validation, and interruptibility. It adds one model-visible optional number, `timeout`, meaning the total deadline of that outer call in seconds. The accepted range is finite `(0, 3600]`. Delegated native calls always receive `{}`, so the added parameter is never forwarded to the parameterless builtin.
 
-The delegated call inherits the outer abort signal and progress callback, so an interrupted wait stops the native call, and native progress still streams while the wrapper is looping.
+Both entries use one shared total-deadline loop with a monotonic clock. The legacy path retains its existing routing, classifier, result text, approval function, schema, and interruptibility function. The standalone path continues only a result marked useless whose details contain a nonempty job array and every job is still `running`. Messages, settled or absent jobs, errors, interruptions, cancellations, unknown detail shapes, and service frames return after the first native call. The classifier never reads result text.
+
+When the total deadline aborts an in-flight native call, a native result that still arrives wins and is returned unchanged. A rejection becomes a deadline result only after this call's own deadline has elapsed and the failure matches a recognized host abort: `ToolAbortError`, `AbortError`, or the exact `Operation aborted` message to which OMP `18.4.3` normalizes the delegated abort. An unrelated native rejection is thrown unchanged even if the timer has fired. Caller cancellation is checked first and keeps its own reason. Otherwise the wrapper returns the last certain continuation window plus a bounded deadline note, or a minimal note when no such window arrived. One timer exists per outer call and is cleared on every exit path.
 
 ### Settings
 
-`waitEnabled`, `waitContinueEmptyWindows`, `waitJobsSeconds`, `waitMessagesSeconds`, `waitProcessSeconds`; see the README for defaults and accepted values. Routing is fixed when the call starts: `name` is a process wait, non-empty `ids` is a job wait, `from` with a job snapshot that shows no running job is a message wait, anything else is a job wait.
+- `waitEnabled` and `waitContinueEmptyWindows` apply to both entries.
+- `waitJobsSeconds` is the default total deadline for job or mixed hub waits and for standalone `wait`; an explicit standalone `timeout` overrides it.
+- `waitMessagesSeconds` and `waitProcessSeconds` retain their existing meanings on `hub` and are not applicable to standalone `wait`.
+- `/qol` names the selected entry. For standalone `wait` it reports the effective default and marks message continuation, named-process waiting, and service continuation as `not-applicable` instead of printing unused configured values.
 
 ### Side effects and cancellation
 
-- The module repeats a read-only native call. It starts no background work, cancels nothing, and takes no message or job result of its own; the native tool remains the only owner of that state.
-- Reaching the deadline leaves background jobs and processes running. The returned result says so, and it is either the last certain empty window with that note appended, or a minimal text result when no window arrived.
-- An outer cancellation is rethrown with its own reason and is never reported as a deadline. A result that arrives while the deadline is aborting the in-flight window is still delivered.
-- One timer exists per call and is cleared when the call ends through any path.
-- Cancellation of the adjustment: set `waitEnabled` to `false` and restart OMP. The native tool is then used directly, with `waitContinueEmptyWindows` having no effect.
+- The module repeats a read-only native call. It starts no background work, cancels no job or process, and consumes no message or result on its own.
+- Reaching the deadline ends only the outer wait call. Background jobs and processes keep running. The standalone deadline note points to another `wait` call and to `proc://`, which are routes the target host actually exposes.
+- A caller cancellation outranks the component deadline and keeps its reason. A terminal host result wins even when the deadline signal arrived first.
+- Set `waitEnabled` to `false` and restart OMP to restore the native entry directly.
 
 ### Applicability and limits
 
-- The wrapper registers only when the session exposes a `hub` tool whose source is `builtin`, whose description contains the native wait-window sentence, and whose parameters are a schema. Otherwise the module stays inactive and reports `hub-tool-absent`, `hub-tool-shadowed`, `hub-description-unrecognized`, or `hub-schema-unrecognized`.
-- The description sentence is matched verbatim. A host release that rewords it disables the module rather than advertising two different deadlines.
-- Empty-window recognition depends on the host continuing to mark certain-empty frames with `useless`, `op: "wait"`, and the detail shape above. A host change there turns continuation off for those frames; the wait then behaves like the native one.
-- The module depends on extension-tool precedence over a builtin, its parameters being reusable as they are, and `ctx.invokeTool` reaching the shadowed builtin. Any of those changing makes the module inactive or wrong, so a host upgrade needs a re-check before this adjustment is trusted again.
-- The adjustment becomes unnecessary when the host lets a caller choose the wait window, or the ladder is exposed as a setting.
+- Legacy `hub` keeps message-only empty-window merging, `waitMessagesSeconds`, and named-process waits with `waitProcessSeconds`.
+- Standalone `wait` does not merge message-only empty windows, route `waitMessagesSeconds`, provide named-process waits, or merge service-only waits across the native ceiling. The module does not simulate them with status polling or host-text classification.
+- The standalone eligibility check depends on the builtin source and the empty object parameter structure. Its continuation rule depends on `useless`, `details.op`, and the nonempty all-running `details.jobs` shape. A host change can make the module stay inactive or return a window early rather than guessing.
+- The module still depends on same-name extension precedence and `ctx.invokeTool` reaching the shadowed builtin. A host upgrade requires re-checking those contracts.
+- This adaptation does not raise the component's minimum maintained host. Older hosts retain the legacy path and its complete settings.
 
 ### Version and verification
 
-- **Source baseline**: OMP `18.2.8` at `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`. Sources listed above.
-- **Automated checks**: OMP `18.2.8`, `bun test` and `tsc --noEmit` in this component, with a recording host in place of the real one. They cover deadline construction and routing, continuation across a sequence of empty windows, early return on a real result, message wins, outer cancellation not being reported as a deadline, the deadline note, timer cleanup, the tool definition fields, and registration gating on the settings. The package boundary is real: the schema and description used in the tests come from the installed host package.
-- **Real OMP CLI**: **未验证 / not verified**. Planned scenario: a CLI session with a finite background job, a wait that outlives the first native window, one outer call in the transcript, the first real result delivered at once, and an interrupt that leaves the job running; then message waits, a named-process wait, and a non-wait operation. Until that run exists, the user-visible behavior in a real session — including which tool the model is offered and how the wrapper's result renders — is unproven.
-- **Upstream history**: the ladder arrived with `529950711a` (2026-06-14, "added smart adaptive poll wait mode for job polling") and the tool set was consolidated onto `xd://` devices and `hub` in `5ff277349c` (2026-07-15). Both predate the baseline; the current locations are the ones cited. No commit changing this behavior up to the baseline has been located.
+- **Source baselines**: legacy `hub` behavior is OMP `18.2.8` at `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`; standalone `wait` behavior is OMP `18.4.3`, using the [wait tool](https://github.com/can1357/oh-my-pi/blob/v18.4.3/packages/coding-agent/src/tools/wait.ts), [extension API](https://github.com/can1357/oh-my-pi/blob/v18.4.3/packages/coding-agent/src/extensibility/extensions/types.ts), and [proc protocol](https://github.com/can1357/oh-my-pi/blob/v18.4.3/packages/coding-agent/src/internal-urls/proc-protocol.ts).
+- **Automated checks**: the component still compiles against its OMP `18.2.8` development baseline. Recording-host tests cover both capability paths, the standalone model-visible schema, `{}` delegation, default and explicit deadline selection, both structural continuation rules, terminal outcomes, cancellation, deadline/result races, registration refusals, and `/qol` applicability.
+- **Real OMP CLI**: OMP `18.4.3` with low-thinking `pro-20x/gpt-5.6-luna` received the standalone definition with optional `timeout`, rejected out-of-range and unknown parameters, returned the native no-job result, preserved controlled message and steering interruptions, and preserved SIGINT cancellation. With `waitJobsSeconds` set to `1.5`, a call whose production input a scenario control fixed to `{}` returned the configured `1.5 s` deadline at `1,499 ms` while a background job was still running, after two running-job progress frames; the model itself had asked for `{"timeout": 30}`, so the scenario replaced the arguments before execution rather than the model omitting them. One `wait` call with a `1950` second deadline returned a completed `1850` second background job after `1,847,444 ms`, crossing the native 30-minute ceiling without another model call, and a `wait { timeout: 1.1 }` call returned its completed near-deadline job at `991 ms`; `/qol` reported the standalone entry and its inapplicable routes. An earlier near-deadline completion attempt was intercepted by the host's queued-completion guard before the tool ran, and the exact ordering in which the deadline signal fires before the terminal result arrives remains deterministic recording-host evidence. Separate OMP `18.2.8` runs with the same model selected the legacy `hub` wrapper, preserved its native no-job result and non-wait start/stop routing, returned a still-running snapshot with the `0.2 s` deadline note at `199 ms`, and let one outer `hub { op: "wait", timeout: 12 }` call carry a running async job across a real native window to its completion at `7,051 ms`.
 
 ## Continuing after a transient model error
 
@@ -268,8 +268,8 @@ The extension replaces `Map.prototype.set` with a wrapper that keeps a reference
 
 | Commit | Date | Change | Adjustment it explains |
 | --- | --- | --- | --- |
-| [`529950711a`](https://github.com/can1357/oh-my-pi/commit/529950711a) | 2026-06-14 | Added the adaptive poll wait ladder for job polling. | Hub waits |
-| [`5ff277349c`](https://github.com/can1357/oh-my-pi/commit/5ff277349c) | 2026-07-15 | Consolidated the tool surface onto `xd://` devices and `hub`. | Hub waits |
+| [`529950711a`](https://github.com/can1357/oh-my-pi/commit/529950711a) | 2026-06-14 | Added the adaptive poll wait ladder for job polling. | Waits |
+| [`5ff277349c`](https://github.com/can1357/oh-my-pi/commit/5ff277349c) | 2026-07-15 | Consolidated the tool surface onto `xd://` devices and `hub`. | Waits |
 | [`c93774f892`](https://github.com/can1357/oh-my-pi/commit/c93774f892) | 2026-06-17 | Implemented the session stop hook semantics and its continuation cap. | Error recovery |
 | [`a418920ec1`](https://github.com/can1357/oh-my-pi/commit/a418920ec1) | 2026-08-03 | Made `/reset` semantically different, adding a chain reset path. | Error recovery |
 | [`f6c5a43a1f`](https://github.com/can1357/oh-my-pi/commit/f6c5a43a1f) | 2026-08-06 | Handled subscription-cap retry exhaustion and its message. | Error recovery |

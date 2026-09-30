@@ -114,3 +114,13 @@ Verified claims stay separate per adjustment. The component README compatibility
 - The effective settings snapshot is the only gate between an installed patch and a session that did not install it. A field added to the effective configuration without being added to that comparison widens reuse silently, and a session can be kept under a configuration it never chose.
 - After the installing activation exits, the process extends no compaction deadline until it restarts, and the status keeps reporting the released patch. That is the chosen terminal state: releasing the patch without letting a later activation install one costs the adjustment for the rest of that process's life.
 - Documentation is maintained against a fixed host baseline, so a host upgrade requires re-reading the cited source and updating the affected sections; editing the declared maintenance bound does not replace that work.
+
+## Changes
+
+### 2026-09-29: Select the wait entry by capability
+
+The wait module selects the builtin entry the session exposes instead of comparing host versions. A builtin `hub` keeps the established behavior unchanged. When `hub` is absent, a builtin `wait` with the recognized empty object parameter structure is re-registered under its own name with one optional finite `timeout` in seconds, in `(0, 3600]`; native delegation receives `{}` only. A missing, foreign, or structurally unrecognized entry leaves native behavior in place with a bounded reason.
+
+On standalone `wait`, `waitJobsSeconds` is the default total deadline and explicit `timeout` overrides it. `waitEnabled` and `waitContinueEmptyWindows` still apply. `waitMessagesSeconds`, `waitProcessSeconds`, message-only continuation, named-process waiting, and service-only continuation have no equivalent on that entry and are reported as not applicable. Only a nonempty snapshot whose jobs are all still running can continue; messages, settled or absent jobs, errors, interruptions, cancellations, services, and unknown shapes return as native outcomes without text classification.
+
+Both entries share one monotonic total-deadline mechanism. The deadline aborts only the in-flight native window, never background work. A native result that still arrives wins, caller cancellation keeps its reason, and a rejection becomes a deadline result only when this call's own deadline elapsed and the host reported a recognized abort; unrelated native rejections remain errors. The standalone deadline result points to `wait` and `proc://`, which the host exposes. `/qol` names the selected entry and effective applicability. The capability ships in component version `0.4.1` and does not raise the minimum maintained host.

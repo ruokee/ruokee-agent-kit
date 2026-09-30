@@ -6,6 +6,7 @@
  * extension talks to; OMP behavior itself is not simulated here.
  */
 
+import { zod } from "@oh-my-pi/pi-coding-agent";
 import type {
   AgentToolResult,
   ExtensionAPI,
@@ -65,8 +66,8 @@ export function moduleContext(options: ModuleContextOptions): ModuleContext {
 
 /** One registered extension tool, as the extension defined it. */
 export type RegisteredTool = ToolDefinition<never, unknown> & {
-  /** OMP 18.2.4 forwards this undeclared property through the registered-tool adapter. */
-  interruptible?: (params: Record<string, unknown>) => boolean;
+  /** OMP forwards this undeclared property through the registered-tool adapter. */
+  interruptible?: boolean | ((params: Record<string, unknown>) => boolean);
 };
 
 /** A registered slash command. */
@@ -103,6 +104,7 @@ export function createHarness(toolInfos?: ToolInfo[]): Harness {
   const handlers = new Map<string, Array<(event: unknown, ctx: ExtensionContext) => unknown>>();
 
   const pi = {
+    zod,
     logger: {
       warn: (message: string) => {
         warnings.push(message);
@@ -162,6 +164,16 @@ export function nativeHubToolInfo(description: string, parameters: unknown): Too
     description,
     parameters,
     sourceInfo: { path: "<builtin:hub>", source: "builtin", scope: "temporary", origin: "top-level" },
+  } as unknown as ToolInfo;
+}
+
+/** The built-in standalone wait entry in the shape `getAllTools()` reports. */
+export function nativeWaitToolInfo(description: string, parameters: unknown): ToolInfo {
+  return {
+    name: "wait",
+    description,
+    parameters,
+    sourceInfo: { path: "<builtin:wait>", source: "builtin", scope: "temporary", origin: "top-level" },
   } as unknown as ToolInfo;
 }
 

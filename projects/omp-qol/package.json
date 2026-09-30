@@ -1,7 +1,7 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.3.1",
-  "description": "OMP extension adjusting hub waiting, model-error recovery, native-history replay, and the experimental remote compaction deadline",
+  "version": "0.4.1",
+  "description": "OMP extension adjusting wait deadlines, model-error recovery, native-history replay, and the experimental remote compaction deadline",
   "license": "MIT",
   "type": "module",
   "keywords": [
@@ -21,33 +21,33 @@
       "waitEnabled": {
         "type": "boolean",
         "default": true,
-        "description": "Wrap the hub tool so one call keeps waiting across empty native windows."
+        "description": "Extend the available native wait entry with one bounded total deadline while preserving native ownership."
       },
       "waitContinueEmptyWindows": {
         "type": "boolean",
         "default": true,
-        "description": "Continue inside one hub wait call when the native window came back empty."
+        "description": "Continue within one call on certain empty legacy hub windows or standalone running-job snapshots."
       },
       "waitJobsSeconds": {
         "type": "number",
         "default": 1200,
         "min": 0.05,
         "max": 3600,
-        "description": "Default total wait deadline in seconds for job or mixed hub waits."
+        "description": "Default total deadline in seconds for job or mixed hub waits and the standalone wait entry."
       },
       "waitMessagesSeconds": {
         "type": "number",
         "default": 1200,
         "min": 0.05,
         "max": 3600,
-        "description": "Default total wait deadline in seconds for a pure message hub wait."
+        "description": "Default total deadline in seconds for a pure message hub wait; not applicable to standalone wait."
       },
       "waitProcessSeconds": {
         "type": "number",
         "default": 1200,
         "min": 0.05,
         "max": 3600,
-        "description": "Default timeout in seconds for a named-process hub wait."
+        "description": "Default timeout in seconds for a named-process hub wait; not applicable to standalone wait."
       },
       "recoveryEnabled": {
         "type": "boolean",

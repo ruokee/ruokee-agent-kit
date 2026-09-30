@@ -221,6 +221,34 @@ describe("the /qol command", () => {
     expect(text).toContain("not activated in this process");
   });
 
+  test("reports the standalone wait entry, effective default, and unavailable routes", () => {
+    const text = describeState({
+      cwd: "/x",
+      settings: defaultSettings(),
+      problems: [],
+      global: { status: "ok" },
+      modules: {
+        wait: {
+          status: "enabled",
+          detail:
+            "entry=wait effectiveDefaultSeconds=1200 " +
+            "messageContinuation=not-applicable processWait=not-applicable serviceContinuation=not-applicable",
+        },
+        recovery: { status: "enabled" },
+        compaction: { status: "disabled" },
+        replay: { status: "enabled" },
+      },
+    });
+    const line = text.split("\n").find((entry) => entry.startsWith("wait: "));
+    expect(line).toContain("entry=wait");
+    expect(line).toContain("effectiveDefaultSeconds=1200");
+    expect(line).toContain("messageContinuation=not-applicable");
+    expect(line).toContain("processWait=not-applicable");
+    expect(line).toContain("serviceContinuation=not-applicable");
+    expect(line).not.toContain("messagesSeconds=");
+    expect(line).not.toContain("processSeconds=");
+  });
+
   test("lists rejected keys by name and rule without values", () => {
     const problems: FieldProblem[] = [{ module: "compaction", key: "compactionTimeoutMs", rule: "integer" }];
     const text = describeState({

@@ -1,10 +1,8 @@
 /**
- * hub wait module tests (matrix W01-W05, with the host adapter seam of I01).
- *
- * Covers the description rewrite, the empty-window classifier, route and
- * deadline resolution, the deadline loop (including its clock and scheduler
- * seams), registration compatibility, and the real registered-tool adapter that
- * forwards the undeclared `interruptible` property.
+ * Wait deadline module tests for the legacy `hub` entry and the standalone
+ * `wait` entry. Covers capability selection, model-visible parameters,
+ * structural continuation classifiers, shared deadline races, delegation, and
+ * the baseline host adapter seam.
  */
 
 import { describe, expect, test } from "bun:test";
@@ -15,27 +13,59 @@ import type { AgentToolResult, AgentToolUpdateCallback, ExtensionContext, ToolIn
 import type { ModuleContext, ModuleState } from "../src/extension.ts";
 import { parseQolSettings, type QolSettings, type WaitSettings } from "../src/settings.ts";
 import {
+  createNativeWaitDefinition,
   createWaitDefinition,
   HUB_TOOL_NAME,
   hubApproval,
   installWaitModule,
   isEmptyWaitWindow,
+  isNativeEmptyWaitSchema,
+  isRunningJobWaitWindow,
+  nativeWaitDeadlineResult,
   NATIVE_WAIT_WINDOW_SENTENCE,
   resolveWaitDeadline,
   resolveWaitRoute,
+  rewriteNativeWaitDescription,
   rewriteWaitWindowText,
   runWaitLoop,
   waitDeadlineResult,
   WAIT_TIMEOUT_MAX_SECONDS,
+  WAIT_TOOL_NAME,
   type HubWaitParams,
+  type NativeWaitToolDefinition,
 } from "../src/wait.ts";
-import { createHarness, moduleContext, nativeHubToolInfo, toolResult, type Harness } from "./host.ts";
+import {
+  createHarness,
+  moduleContext,
+  nativeHubToolInfo,
+  nativeWaitToolInfo,
+  toolResult,
+  type Harness,
+} from "./host.ts";
 
 /** Verbatim `wait` bullet from the OMP 18.2.4 hub description. */
 const NATIVE_HUB_DESCRIPTION =
   "- **`wait`**: use ONLY when completely blocked with no other work. Returns on the FIRST of: an incoming message, " +
   "a watched job finishing, the wait window elapsing (5s, lengthening with each back-to-back wait up to 5m), " +
   "or a steering interrupt — NOT when all jobs finish; re-issue to keep waiting.";
+
+const NATIVE_WAIT_DESCRIPTION =
+  "Wait for background activity. Returns when a background job finishes, an incoming message arrives, the native wait window elapses, or a steering interrupt occurs.";
+
+/** Runtime shape emitted by `@oh-my-pi/omptype` for `type({})`. */
+function nativeEmptyObjectSchema(): unknown {
+  const schema = () => undefined;
+  Object.assign(schema, {
+    ir: {
+      k: "object",
+      props: [],
+      index: undefined,
+      symbolIndex: undefined,
+      patternIndexes: undefined,
+    },
+  });
+  return schema;
+}
 
 function settings(overrides: Record<string, unknown> = {}): QolSettings {
   const parsed = parseQolSettings(overrides);
@@ -84,24 +114,42 @@ function install(overrides: {
   parameters?: unknown;
   source?: string;
   hub?: boolean;
+  waitEntry?: boolean;
+  includeBoth?: boolean;
+  schemaBuilder?: boolean;
 }): { state: ModuleState; harness: Harness; reports: string[] } {
-  const description = overrides.description ?? NATIVE_HUB_DESCRIPTION;
-  const parameters = overrides.parameters ?? (() => undefined);
-  const infos: ToolInfo[] =
-    overrides.hub === false
-      ? []
-      : [
-          {
-            ...nativeHubToolInfo(description, parameters),
-            sourceInfo: {
-              path: "<builtin:hub>",
-              source: overrides.source ?? "builtin",
-              scope: "temporary",
-              origin: "top-level",
-            },
-          },
-        ];
+  const infos: ToolInfo[] = [];
+  if (overrides.hub !== false) {
+    infos.push({
+      ...nativeHubToolInfo(overrides.description ?? NATIVE_HUB_DESCRIPTION, overrides.parameters ?? (() => undefined)),
+      sourceInfo: {
+        path: "<builtin:hub>",
+        source: overrides.source ?? "builtin",
+        scope: "temporary",
+        origin: "top-level",
+      },
+    });
+  }
+  if (overrides.waitEntry === true || overrides.includeBoth === true) {
+    infos.push({
+      ...nativeWaitToolInfo(
+        overrides.description ?? NATIVE_WAIT_DESCRIPTION,
+        overrides.parameters ?? nativeEmptyObjectSchema(),
+      ),
+      sourceInfo: {
+        path: "<builtin:wait>",
+        source: overrides.source ?? "builtin",
+        scope: "temporary",
+        origin: "top-level",
+      },
+    });
+  }
   const harness = createHarness(infos);
+  if (overrides.schemaBuilder === false) {
+    // Tests deliberately remove one runtime member omitted by the baseline API type.
+    const runtime = harness.pi as unknown as { zod?: unknown };
+    runtime.zod = undefined;
+  }
   const reports: string[] = [];
   const context: ModuleContext = moduleContext({
     pi: harness.pi,
@@ -156,6 +204,15 @@ describe("description rewrite", () => {
   test("refuses a description it cannot recognize", () => {
     expect(rewriteWaitWindowText("Hub tool without the native sentence.", waitSettings())).toBeNull();
   });
+
+  test("documents the standalone entry's exact scope", () => {
+    const text = rewriteNativeWaitDescription(NATIVE_WAIT_DESCRIPTION, waitSettings({ jobsSeconds: 700 }));
+    expect(text).toContain("optional `timeout` total deadline");
+    expect(text).toContain("omit it to use 700s");
+    expect(text).toContain("only still-running jobs");
+    expect(text).toContain("Message-only empty-window merging");
+    expect(text).toContain("`proc://`");
+  });
 });
 
 describe("empty window classifier", () => {
@@ -182,6 +239,37 @@ describe("empty window classifier", () => {
       ["mixed jobs", emptyWindow({ op: "wait", jobs: [runningJob("a"), { id: "b", status: "failed" }] })],
     ];
     for (const [label, result] of cases) expect([label, isEmptyWaitWindow(result)]).toEqual([label, false]);
+  });
+});
+
+describe("standalone wait continuation classifier", () => {
+  test("accepts only nonempty all-running job snapshots", () => {
+    expect(
+      isRunningJobWaitWindow(
+        emptyWindow({
+          op: "wait",
+          meta: { source: { type: "report", value: "background jobs snapshot" } },
+          jobs: [runningJob("a"), runningJob("b")],
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  test("returns every informative or terminal native result without continuation", () => {
+    const cases: Array<[string, AgentToolResult]> = [
+      ["message", toolResult({ text: "peer replied", details: { op: "wait", jobs: [], message: { body: "hi" } } })],
+      ["no jobs", emptyWindow({ op: "wait", jobs: [] })],
+      ["interruption", emptyWindow({ op: "wait", jobs: [], interrupted: true })],
+      ["completed job", emptyWindow({ op: "wait", jobs: [{ id: "a", status: "completed" }] })],
+      ["cancelled job", emptyWindow({ op: "wait", jobs: [{ id: "a", status: "cancelled" }] })],
+      ["service event", toolResult({ text: "service exited", details: { op: "wait", jobs: [] } })],
+      ["native error", toolResult({ details: { op: "wait", jobs: [runningJob("a")] }, useless: true, isError: true })],
+      ["non-useless snapshot", toolResult({ details: { op: "wait", jobs: [runningJob("a")] } })],
+      ["unknown detail", emptyWindow({ op: "wait", jobs: [runningJob("a")], interrupted: false })],
+    ];
+    for (const [label, result] of cases) {
+      expect([label, isRunningJobWaitWindow(result)]).toEqual([label, false]);
+    }
   });
 });
 
@@ -239,6 +327,8 @@ describe("deadline loop", () => {
       continueEmptyWindows: true,
       signal: undefined,
       onUpdate: undefined,
+      isContinuationWindow: isEmptyWaitWindow,
+      deadlineResult: waitDeadlineResult,
       now: () => clock.at,
       schedule: scheduler.schedule,
     });
@@ -255,6 +345,8 @@ describe("deadline loop", () => {
       continueEmptyWindows: false,
       signal: undefined,
       onUpdate: undefined,
+      isContinuationWindow: isEmptyWaitWindow,
+      deadlineResult: waitDeadlineResult,
       now: () => 0,
       schedule: manualScheduler().schedule,
     });
@@ -272,6 +364,8 @@ describe("deadline loop", () => {
       continueEmptyWindows: true,
       signal: undefined,
       onUpdate: undefined,
+      isContinuationWindow: isEmptyWaitWindow,
+      deadlineResult: waitDeadlineResult,
       now: () => 0,
       schedule: manualScheduler().schedule,
     });
@@ -297,6 +391,8 @@ describe("deadline loop", () => {
       continueEmptyWindows: true,
       signal: undefined,
       onUpdate: undefined,
+      isContinuationWindow: isEmptyWaitWindow,
+      deadlineResult: waitDeadlineResult,
       now: () => clock.at,
       schedule: scheduler.schedule,
     });
@@ -312,10 +408,11 @@ describe("deadline loop", () => {
     let attempts = 0;
     const { invoke } = delegator(async (_params, signal) => {
       attempts += 1;
-      if (signal?.aborted === true) throw new Error("host aborted the window");
-      // The window never settles on its own: only the deadline ends it.
+      const nativeAbort = () => new Error("Operation aborted");
+      if (signal?.aborted === true) throw nativeAbort();
+      // The delegated host boundary may normalize ToolAbortError to a plain Error.
       return await new Promise<AgentToolResult>((_resolve, reject) => {
-        signal?.addEventListener("abort", () => reject(new Error("host aborted the window")), { once: true });
+        signal?.addEventListener("abort", () => reject(nativeAbort()), { once: true });
         scheduler.fire();
       });
     });
@@ -326,6 +423,8 @@ describe("deadline loop", () => {
       continueEmptyWindows: true,
       signal: undefined,
       onUpdate: undefined,
+      isContinuationWindow: isEmptyWaitWindow,
+      deadlineResult: waitDeadlineResult,
       now: () => 0,
       schedule: scheduler.schedule,
     });
@@ -333,6 +432,29 @@ describe("deadline loop", () => {
     expect(result.details).toEqual({ op: "wait" });
     expect(textOf(result)).toContain("Wait deadline reached after 0.05s");
     expect(result.isError).toBeUndefined();
+  });
+
+  test("keeps an unrelated native error when its own timer fires", async () => {
+    const scheduler = manualScheduler();
+    const failure = new Error("native storage failure unrelated to abort");
+    const { invoke } = delegator(async () => {
+      scheduler.fire();
+      throw failure;
+    });
+    await expect(
+      runWaitLoop({
+        invoke,
+        forward: {},
+        deadlineSeconds: 1,
+        continueEmptyWindows: true,
+        signal: undefined,
+        onUpdate: undefined,
+        isContinuationWindow: isRunningJobWaitWindow,
+        deadlineResult: nativeWaitDeadlineResult,
+        now: () => 0,
+        schedule: scheduler.schedule,
+      }),
+    ).rejects.toBe(failure);
   });
 
   test("keeps an unrelated native error", async () => {
@@ -348,6 +470,8 @@ describe("deadline loop", () => {
         continueEmptyWindows: true,
         signal: undefined,
         onUpdate: undefined,
+        isContinuationWindow: isEmptyWaitWindow,
+        deadlineResult: waitDeadlineResult,
         now: () => 0,
         schedule: manualScheduler().schedule,
       }),
@@ -371,6 +495,8 @@ describe("deadline loop", () => {
         continueEmptyWindows: true,
         signal: controller.signal,
         onUpdate: undefined,
+        isContinuationWindow: isEmptyWaitWindow,
+        deadlineResult: waitDeadlineResult,
         now: () => 0,
         schedule: scheduler.schedule,
       }),
@@ -391,6 +517,8 @@ describe("deadline loop", () => {
       continueEmptyWindows: true,
       signal: controller.signal,
       onUpdate: undefined,
+      isContinuationWindow: isEmptyWaitWindow,
+      deadlineResult: waitDeadlineResult,
       now: () => 0,
       schedule: manualScheduler().schedule,
     });
@@ -503,19 +631,207 @@ describe("delegation", () => {
   });
 });
 
+describe("standalone wait delegation", () => {
+  async function execute(
+    params: { timeout?: number },
+    wait: WaitSettings,
+    handler: (params: Record<string, unknown>, signal?: AbortSignal) => Promise<AgentToolResult>,
+    signal?: AbortSignal,
+  ) {
+    const harness = createHarness();
+    const { invoke, calls } = delegator(handler);
+    const native = nativeWaitToolInfo(NATIVE_WAIT_DESCRIPTION, nativeEmptyObjectSchema());
+    const definition: NativeWaitToolDefinition = createNativeWaitDefinition(
+      harness.pi,
+      rewriteNativeWaitDescription(native.description, wait),
+      wait,
+    );
+    const result = await definition.execute(
+      "call-standalone",
+      params,
+      signal,
+      undefined,
+      harness.context({ invokeTool: invoke }),
+    );
+    return { result, calls };
+  }
+
+  test("delegates empty native arguments across running snapshots", async () => {
+    let attempts = 0;
+    const { result, calls } = await execute({ timeout: 1 }, waitSettings(), async () => {
+      attempts += 1;
+      if (attempts === 1) return emptyWindow({ op: "wait", jobs: [runningJob("a")] });
+      return toolResult({ text: "job finished", details: { op: "wait", jobs: [{ id: "a", status: "completed" }] } });
+    });
+    expect(calls.map((call) => call.params)).toEqual([{}, {}]);
+    expect(textOf(result)).toBe("job finished");
+  });
+
+  test("keeps configured and explicit deadlines out of native arguments", async () => {
+    for (const params of [{}, { timeout: 42 }]) {
+      const delegated = await execute(params, waitSettings({ jobsSeconds: 10 }), async () =>
+        toolResult({ text: "finished", details: { op: "wait", jobs: [{ id: "a", status: "completed" }] } }),
+      );
+      expect(delegated.calls.map((call) => call.params)).toEqual([{}]);
+    }
+  });
+
+  test("renders the standalone deadline through the shared deterministic loop", async () => {
+    const clock = { at: 0 };
+    const scheduler = manualScheduler();
+    const running = emptyWindow({ op: "wait", jobs: [runningJob("a")] });
+    const { invoke } = delegator(async (_params, signal) => {
+      scheduler.fire();
+      clock.at = 10;
+      expect(signal?.aborted).toBe(true);
+      return running;
+    });
+    const result = await runWaitLoop({
+      invoke,
+      forward: {},
+      deadlineSeconds: 0.01,
+      continueEmptyWindows: true,
+      signal: undefined,
+      onUpdate: undefined,
+      isContinuationWindow: isRunningJobWaitWindow,
+      deadlineResult: nativeWaitDeadlineResult,
+      now: () => clock.at,
+      schedule: scheduler.schedule,
+    });
+    expect(textOf(result)).toContain("after 0.01s");
+    expect(textOf(result)).toContain("`proc://`");
+    expect(result.useless).toBeUndefined();
+  });
+
+  test("returns native terminal outcomes after one delegation", async () => {
+    const outcomes: Array<[string, AgentToolResult]> = [
+      ["message", toolResult({ text: "message", details: { op: "wait", jobs: [], message: { body: "hi" } } })],
+      ["no jobs", emptyWindow({ op: "wait", jobs: [] })],
+      ["interruption", emptyWindow({ op: "wait", jobs: [], interrupted: true })],
+      ["cancelled job", emptyWindow({ op: "wait", jobs: [{ id: "a", status: "cancelled" }] })],
+      ["service event", toolResult({ text: "service exited", details: { op: "wait", jobs: [] } })],
+      ["error", toolResult({ text: "error", details: { op: "wait", jobs: [] }, isError: true })],
+    ];
+    for (const [label, outcome] of outcomes) {
+      const delegated = await execute({ timeout: 1 }, waitSettings(), async () => outcome);
+      expect([label, delegated.calls.length]).toEqual([label, 1]);
+      expect(delegated.result).toBe(outcome);
+    }
+  });
+
+  test("keeps an outer cancellation reason on the standalone entry", async () => {
+    const controller = new AbortController();
+    await expect(
+      execute(
+        { timeout: 1 },
+        waitSettings(),
+        async () => {
+          controller.abort(new Error("caller cancelled"));
+          return emptyWindow({ op: "wait", jobs: [runningJob("a")] });
+        },
+        controller.signal,
+      ),
+    ).rejects.toThrow("caller cancelled");
+  });
+
+  test("returns a terminal result that arrives after the deadline signal", async () => {
+    const clock = { at: 0 };
+    const scheduler = manualScheduler();
+    const terminal = toolResult({ text: "late message", details: { op: "wait", jobs: [], message: { body: "hi" } } });
+    const { invoke } = delegator(async (_params, signal) => {
+      scheduler.fire();
+      clock.at = 1;
+      expect(signal?.aborted).toBe(true);
+      return terminal;
+    });
+    const result = await runWaitLoop({
+      invoke,
+      forward: {},
+      deadlineSeconds: 0.001,
+      continueEmptyWindows: true,
+      signal: undefined,
+      onUpdate: undefined,
+      isContinuationWindow: isRunningJobWaitWindow,
+      deadlineResult: nativeWaitDeadlineResult,
+      now: () => clock.at,
+      schedule: scheduler.schedule,
+    });
+    expect(result).toBe(terminal);
+  });
+
+  test("honors disabled continuation without adding a deadline note", async () => {
+    const running = emptyWindow({ op: "wait", jobs: [runningJob("a")] });
+    const { result, calls } = await execute(
+      { timeout: 1 },
+      waitSettings({ continueEmptyWindows: false }),
+      async () => running,
+    );
+    expect(calls).toHaveLength(1);
+    expect(result).toBe(running);
+    expect(textOf(result)).not.toContain("Wait deadline reached");
+  });
+});
+
 describe("registration", () => {
   test("registers the wrapper for an intact built-in hub", () => {
     const { state, harness } = install({});
-    expect(state).toEqual({ status: "enabled" });
+    expect(state).toEqual({ status: "enabled", detail: "entry=hub" });
     expect(harness.tools).toHaveLength(1);
     const tool = harness.tools[0];
     expect(tool?.name).toBe(HUB_TOOL_NAME);
     expect(tool?.loadMode).toBe("essential");
     expect(tool?.strict).toBe(true);
-    expect(tool?.interruptible?.({ op: "wait" })).toBe(true);
-    expect(tool?.interruptible?.({ op: "logs", follow: true })).toBe(true);
-    expect(tool?.interruptible?.({ op: "jobs" })).toBe(false);
+    expect(typeof tool?.interruptible).toBe("function");
+    if (typeof tool?.interruptible === "function") {
+      expect(tool.interruptible({ op: "wait" })).toBe(true);
+      expect(tool.interruptible({ op: "logs", follow: true })).toBe(true);
+      expect(tool.interruptible({ op: "jobs" })).toBe(false);
+    }
     expect(tool?.description).toContain("Wait deadline (omp-qol)");
+  });
+
+  test("registers a parameterized read-only standalone wait when hub is absent", () => {
+    const { state, harness } = install({ hub: false, waitEntry: true });
+    expect(state).toEqual({
+      status: "enabled",
+      detail:
+        "entry=wait effectiveDefaultSeconds=1200 " +
+        "messageContinuation=not-applicable processWait=not-applicable serviceContinuation=not-applicable",
+    });
+    expect(harness.tools).toHaveLength(1);
+    const tool = harness.tools[0];
+    expect(tool?.name).toBe(WAIT_TOOL_NAME);
+    expect(tool?.approval).toBe("read");
+    expect(tool?.interruptible).toBe(true);
+    expect(tool?.loadMode).toBe("essential");
+    expect(tool?.strict).toBe(true);
+    expect(tool?.description).toContain("optional `timeout` total deadline");
+    expect(tool?.description).toContain("Message-only empty-window merging");
+
+    const schema = tool?.parameters as unknown as { safeParse: (input: unknown) => { success: boolean } };
+    expect(schema.safeParse({}).success).toBe(true);
+    expect(schema.safeParse({ timeout: 1 }).success).toBe(true);
+    expect(schema.safeParse({ timeout: WAIT_TIMEOUT_MAX_SECONDS }).success).toBe(true);
+    expect(schema.safeParse({ timeout: 0 }).success).toBe(false);
+    expect(schema.safeParse({ timeout: WAIT_TIMEOUT_MAX_SECONDS + 1 }).success).toBe(false);
+    expect(schema.safeParse({ from: "Peer" }).success).toBe(false);
+  });
+
+  test("prefers the established hub entry when both capabilities exist", () => {
+    const { state, harness } = install({ includeBoth: true });
+    expect(state).toEqual({ status: "enabled", detail: "entry=hub" });
+    expect(harness.tools.map((tool) => tool.name)).toEqual([HUB_TOOL_NAME]);
+  });
+
+  test("recognizes only the native empty object parameter structure", () => {
+    expect(isNativeEmptyWaitSchema(nativeEmptyObjectSchema())).toBe(true);
+    expect(isNativeEmptyWaitSchema(() => undefined)).toBe(false);
+    expect(isNativeEmptyWaitSchema({ ir: { k: "object", props: [] } })).toBe(false);
+    const withProperty = nativeEmptyObjectSchema();
+    if (typeof withProperty !== "function" || !("ir" in withProperty)) throw new Error("invalid test schema");
+    const ir = withProperty.ir as { props: unknown[] };
+    ir.props.push({ name: "unexpected" });
+    expect(isNativeEmptyWaitSchema(withProperty)).toBe(false);
   });
 
   test("stays inactive when the module is switched off", () => {
@@ -526,7 +842,7 @@ describe("registration", () => {
 
   test("reports every compatibility failure and registers nothing", () => {
     const cases: Array<[string, Parameters<typeof install>[0], ModuleState, string]> = [
-      ["a missing hub", { hub: false }, { status: "unavailable", reason: "hub-tool-absent" }, "hub-tool-absent"],
+      ["no wait capability", { hub: false }, { status: "unavailable", reason: "wait-tool-absent" }, "wait-tool-absent"],
       [
         "a shadowed hub",
         { source: "extension" },
@@ -544,6 +860,24 @@ describe("registration", () => {
         { parameters: 42 },
         { status: "incompatible", reason: "hub-schema-unrecognized" },
         "hub-schema-unrecognized",
+      ],
+      [
+        "a shadowed standalone wait",
+        { hub: false, waitEntry: true, source: "extension" },
+        { status: "incompatible", reason: "wait-tool-shadowed" },
+        "wait-tool-shadowed",
+      ],
+      [
+        "an unexpected standalone schema",
+        { hub: false, waitEntry: true, parameters: () => undefined },
+        { status: "incompatible", reason: "wait-schema-unrecognized" },
+        "wait-schema-unrecognized",
+      ],
+      [
+        "a missing schema builder",
+        { hub: false, waitEntry: true, schemaBuilder: false },
+        { status: "incompatible", reason: "wait-schema-builder-absent" },
+        "wait-schema-builder-absent",
       ],
     ];
     for (const [label, options, expected, reportKey] of cases) {

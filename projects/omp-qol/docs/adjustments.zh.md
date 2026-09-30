@@ -4,7 +4,7 @@
 
 逐项说明扩展改动了 OMP 的什么行为、为什么需要调整、介入位置、代价，以及目前有哪些验证。README 只放简表，依据集中在这里。
 
-源码基线为 OMP `18.2.8`，即 [`can1357/oh-my-pi`](https://github.com/can1357/oh-my-pi) 的 tag `v18.2.8`，提交 [`5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`](https://github.com/can1357/oh-my-pi/tree/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c)。下文的源码链接与行号都指向该提交；文件所属的发行版本与快照读取时的版本可能不同，因此每项调整各自声明基线。
+开发依赖基线为 OMP `18.2.8`，即 [`can1357/oh-my-pi`](https://github.com/can1357/oh-my-pi) 的 tag `v18.2.8`，提交 [`5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`](https://github.com/can1357/oh-my-pi/tree/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c)。带该提交的源码链接指向开发依赖基线。某项调整支持其他宿主路径时，可以另外声明该路径的源码基线；下文的独立等待路径引用 OMP `18.4.3`。每项调整分别明确列出自身基线。
 
 ## 版本记录的读法
 
@@ -16,63 +16,63 @@
 
 关于宿主版本的结论只适用于该版本，本文不声称存在连续可用范围。
 
-## 持续等待 hub
+## 持续等待
 
 ### 原生行为
 
-内置 `hub` 工具的 `wait` 操作每次阻塞一个窗口，窗口取自固定阶梯 `5s, 10s, 30s, 60s, 300s`（[`packages/coding-agent/src/async/job-manager.ts:51`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/async/job-manager.ts#L51)，由 [`job-manager.ts:493`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/async/job-manager.ts#L493) 的 `nextPollWaitMs` 选择，用于 [`packages/coding-agent/src/tools/hub/index.ts:453`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/tools/hub/index.ts#L453) 的竞态计时器）。阶梯是编译期常量，没有对应设置，因此任务或消息等待无法要求比当前档位更长的窗口。
+该调整支持两个原生入口，并根据会话实际暴露的工具选择。
 
-窗口到期且没有新信息时，工具返回一份完整的快照，并标记它不含信息：`useless: true` 且 `op: "wait"`。仍在运行的任务集合由 [`packages/coding-agent/src/tools/hub/jobs.ts:293`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/tools/hub/jobs.ts#L293) 构造（判定函数 `isWaitingPollDetails` 位于 [`packages/tui/src/tools/hub.ts:41`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/tui/src/tools/hub.ts#L41)），干净的消息超时由 [`packages/coding-agent/src/tools/hub/messaging.ts:387`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/tools/hub/messaging.ts#L387) 构造。工具描述写明这条规则并要求重新发起："the wait window elapsing (5s, lengthening with each back-to-back wait up to 5m)"（[`packages/coding-agent/src/prompts/tools/hub.md:12`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/prompts/tools/hub.md#L12)）。
+在旧 OMP `18.2.8` 路径上，内建 `hub` 工具有 `wait` 操作。每次调用按固定阶梯 `5s, 10s, 30s, 60s, 300s` 阻塞一个窗口（[任务管理器](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/async/job-manager.ts#L51)、[hub wait](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/tools/hub/index.ts#L453)）。没有新信息的窗口标记为 `useless: true`，内容可能是非空的仍运行任务集合，也可能是干净的消息超时。hub 的 `timeout` 参数不控制任务与消息等待，它只属于 logs、stop 与命名进程等待。
 
-该工具的 `timeout` 参数只作用于 logs、stop 和命名进程等待（[`packages/coding-agent/src/tools/hub/index.ts:110`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/tools/hub/index.ts#L110)），任务与消息等待路径从不读取它。
+在 OMP `18.4.3` 路径上，内建 [`wait`](https://github.com/can1357/oh-my-pi/blob/v18.4.3/packages/coding-agent/src/tools/wait.ts) 工具使用空对象参数 schema，单次原生调用上限为 30 分钟。被监视任务结束、收到对等方消息、发生 steer 中断、service 报告、没有可等待工作或原生窗口结束时，调用都会返回。仍在监视本会话任务的窗口带非空 `details.jobs` 数组；空数组则由数种其他结果共用，差异只存在于模型可见正文中。
 
-关闭扩展时行为就是如此：每次调用一个窗口，空结果返回给模型，只有模型再次调用时阶梯才上升。
+关闭扩展后，两个入口都完全保留上述原生行为；原生空窗口或上限返回后，模型必须再发起一次调用。
 
 ### 为什么需要调整
 
-每个空结果都消耗一次模型轮次。模型读到的结果里没有信息，于是再次发出同样的调用，这会重发会话内容并消耗服务额度。长时间构建或测试是该工具的常见场景，而在一轮工作开始时模型会每 5 秒醒一次，直到阶梯爬升。阶梯减少的是轮次数量，不是单轮成本，而且调用方无法选择档位。
+每次空返回都消耗一个模型轮次：模型读到没有新信息的结果，重发会话，再次发起同一调用。原生 retry 设置管理的是模型请求，不是工具等待；两个入口都没有可配置的总等待期限。
 
-这里没有原生配置可用：`retry.*` 设置管理请求重试，与该工具无关，阶梯也没有设置键。
+### 入口选择与介入位置
 
-### 介入位置
+模块按能力而不是宿主版本选择：
 
-扩展注册名为 `hub` 的工具，宿主会将其视为对同名内置工具的重新注册（[`packages/coding-agent/src/extensibility/extensions/wrapper.ts:66`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/extensibility/extensions/wrapper.ts#L66)）。每次调用都通过 `ctx.invokeTool` 转交给原生工具，它运行被遮蔽的内置实现（[`packages/coding-agent/src/extensibility/extensions/runner.ts:573`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/extensibility/extensions/runner.ts#L573)）。
+- 会话暴露内建 `hub` 时，原有包装保持不变。它要求已识别的等待窗口句子与可复用参数 schema，重新注册 `hub`，并通过 `ctx.invokeTool` 委派。
+- 没有 `hub` 而会话暴露内建 `wait` 时，新路径要求已识别的空对象参数结构，重新注册 `wait`，并通过 `ctx.invokeTool` 委派。
+- 入口缺失、候选已被其他扩展替换、schema 无法识别或宿主没有可用的 schema 构造器时，模块保留原生行为并报告一个有界原因。
 
-- 非 `wait` 操作与带 `name` 的等待只委派一次，除缺省 `timeout` 填充外不做修改。
-- 任务或消息等待中，`timeout` 成为该次调用的总期限，不再转发给原生窗口。不是 `(0, 3600]` 内有限数字的取值按参数错误拒绝，并在消息中说明可用范围。
-- 整个调用使用一个期限计时器。每次委派结果都属于确定的空窗时，包装在同一次调用内再次调用原生工具。
-- 结果不属于空窗时原样返回：送达的消息、已结束的任务、报告、错误、空的 `jobs` 数组都如此。判断不读文本，只看 `useless`、`details.op`、详情键集合以及 `jobs` 与 `waited` 的结构。
-- 工具沿用原生的参数 schema、审批函数、`strict`、`loadMode`，以及等待与跟随日志读取的可中断标记。
-- 描述中把原生等待窗口那句替换为实际期限，并追加一段说明期限、路由，以及到期只结束等待这一事实。
+独立入口保留原生名称、read 审批、essential 加载模式、严格校验和可中断性。它新增一个模型可见的可选数字 `timeout`，单位为秒，表示这次外层调用的总期限，取值必须是 `(0, 3600]` 内的有限数。委派给原生工具的调用始终是 `{}`，新增参数不会转发给无参数内建工具。
 
-委派调用继承外层的中止信号与进度回调，因此中断会停止原生调用，包装循环期间原生进度仍会输出。
+两个入口使用同一个基于单调时钟的总期限循环。旧路径保留现有路由、分类器、结果文本、审批函数、schema 与可中断性函数。独立路径只续接标记为 useless、详情中带非空任务数组且每个任务仍为 `running` 的结果。消息、已结束或不存在的任务、错误、中断、取消、未知详情结构与 service 帧都在第一次原生调用后返回。分类器从不读取结果正文。
+
+总期限中止在途原生调用时，原生结果若仍返回则优先并原样交付。只有本次调用自身的期限已经到达，且拒绝符合已识别的宿主中止形态时，拒绝才会转为期限结果；已识别形态包括 `ToolAbortError`、`AbortError`，以及 OMP `18.4.3` 委派中止后归一化得到的精确消息 `Operation aborted`。即使计时器已经触发，无关的原生拒绝仍按原样抛出。调用方取消先于这项判断，并保留自身原因。其他情况下，包装返回最后一个确定可续接的窗口并追加一段有界期限说明；从未见过这种窗口时只返回最小说明。每次外层调用只有一个计时器，所有退出路径都会清理它。
 
 ### 配置
 
-`waitEnabled`、`waitContinueEmptyWindows`、`waitJobsSeconds`、`waitMessagesSeconds`、`waitProcessSeconds`，默认值与取值见 README。路由在调用开始时确定：`name` 为进程等待，非空 `ids` 为任务等待，`from` 且任务快照显示没有运行中的任务时为消息等待，其余为任务等待。
+- `waitEnabled` 与 `waitContinueEmptyWindows` 适用于两个入口。
+- `waitJobsSeconds` 是任务或混合 hub 等待及独立 `wait` 的默认总期限；独立入口的显式 `timeout` 覆盖它。
+- `waitMessagesSeconds` 与 `waitProcessSeconds` 在 `hub` 上保留原义，不适用于独立 `wait`。
+- `/qol` 写明所选入口。独立 `wait` 会报告生效的默认值，并把消息续接、命名进程等待与 service 续接标为 `not-applicable`，不显示没有被读取的配置值。
 
 ### 副作用与取消
 
-- 模块重复的是一次只读的原生调用。它不启动后台工作、不取消任何东西、也不自行取得消息或任务结果；这些状态仍由原生工具独占管理。
-- 期限到达后后台任务与进程继续运行。返回结果会说明这一点，内容是最后一次确定的空窗加上该提示，或没有窗口时的一段最小文本结果。
-- 外层取消会带着自身原因重新抛出，绝不报告为超时。期限中止在途窗口时若结果恰好返回，该结果仍会送达。
-- 每次调用只有一个计时器，调用经由任何路径结束时都会清理。
-- 关闭该调整：将 `waitEnabled` 设为 `false` 并重启 OMP，之后直接使用原生工具，`waitContinueEmptyWindows` 不再起作用。
+- 模块重复的是只读原生调用。它不启动后台工作、不取消任务或进程，也不自行消费消息或结果。
+- 到达期限只结束外层等待调用，后台任务与进程继续运行。独立入口的期限说明指向再次调用 `wait` 与 `proc://`，这两个入口在目标宿主上确实存在。
+- 调用方取消优先于组件期限并保留自身原因。即使期限信号先到，终止性的宿主结果仍然优先。
+- 将 `waitEnabled` 设为 `false` 并重启 OMP，即可直接恢复原生入口。
 
 ### 适用条件与边界
 
-- 仅当会话中存在 source 为 `builtin` 的 `hub` 工具、其描述包含原生等待窗口句子、且参数是 schema 时才注册包装；否则模块保持不生效并报告 `hub-tool-absent`、`hub-tool-shadowed`、`hub-description-unrecognized` 或 `hub-schema-unrecognized`。
-- 描述句子按原文匹配。宿主改写措辞时模块停用，而不是同时宣传两套期限。
-- 空窗识别依赖宿主继续用 `useless`、`op: "wait"` 和上述详情结构标记确定的空窗。宿主改变该处后，这类窗口不再续接，等待行为与原生一致。
-- 模块依赖扩展工具对内置工具的同名优先、参数 schema 可直接复用，以及 `ctx.invokeTool` 能到达被遮蔽的内置实现。任何一项变化都会使模块不生效或行为错误，宿主升级后需重新核对再信任该调整。
-- 当宿主允许调用方选择等待窗口，或把阶梯暴露为设置时，该调整不再必要。
+- 旧 `hub` 保留纯消息空窗口合并、`waitMessagesSeconds` 与使用 `waitProcessSeconds` 的命名进程等待。
+- 独立 `wait` 不合并纯消息空窗口、不路由 `waitMessagesSeconds`、不提供命名进程等待，也不跨原生上限合并纯 service 等待。模块不会用状态轮询或宿主正文分类模拟这些能力。
+- 独立入口的资格检查依赖 builtin 来源与空对象参数结构，续接规则依赖 `useless`、`details.op` 与非空且全部运行中的 `details.jobs` 结构。宿主变化可能使模块保持不生效或提前返回窗口，但模块不会猜测。
+- 模块仍依赖同名扩展优先级，以及 `ctx.invokeTool` 能到达被遮蔽的内建工具。宿主升级后需重新核对这些合同。
+- 该适配不提高组件的最低维护宿主。旧宿主保留旧路径及其完整配置。
 
 ### 版本与验证
 
-- **源码基线**：OMP `18.2.8`，提交 `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`，源码位置如上。
-- **自动检查**：OMP `18.2.8`，在本组件内运行 `bun test` 与 `tsc --noEmit`，以记录宿主替代真实宿主。覆盖期限构造与路由、跨多个空窗的续接、真实结果立即返回、消息优先、外层取消不记为超时、期限提示文本、计时器清理、工具定义字段，以及按配置注册与否。包边界是真实的：测试使用的 schema 与描述来自已安装的宿主包。
-- **真实 OMP CLI**：**未验证**。计划场景：CLI 会话中运行一个有限的后台任务，等待超过首个原生窗口，确认转录中只有一次外层调用、首个真实结果及时送达、中断不会结束后台任务；随后验证消息等待、命名进程等待与非 wait 操作。在该运行出现之前，真实会话中的用户可见行为（包括模型实际拿到哪个工具、包装结果如何呈现）都没有证据。
-- **上游变化**：阶梯随 `529950711a`（2026-06-14，"added smart adaptive poll wait mode for job polling"）引入，工具面在 `5ff277349c`（2026-07-15）合并到 `xd://` devices 与 `hub`。两者都早于基线，当前引用的是现行位置。截至基线，未发现改变该行为的提交。
+- **源码基线**：旧 `hub` 行为基于 OMP `18.2.8` 提交 `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`；独立 `wait` 行为基于 OMP `18.4.3` 的[等待工具](https://github.com/can1357/oh-my-pi/blob/v18.4.3/packages/coding-agent/src/tools/wait.ts)、[扩展 API](https://github.com/can1357/oh-my-pi/blob/v18.4.3/packages/coding-agent/src/extensibility/extensions/types.ts) 与 [proc 协议](https://github.com/can1357/oh-my-pi/blob/v18.4.3/packages/coding-agent/src/internal-urls/proc-protocol.ts)。
+- **自动检查**：组件仍针对 OMP `18.2.8` 开发基线编译。记录宿主测试覆盖两条能力路径、独立入口的模型可见 schema、`{}` 委派、缺省与显式期限选择、两种结构化续接规则、终止结果、取消、期限与结果竞态、注册拒绝以及 `/qol` 适用性。
+- **真实 OMP CLI**：OMP `18.4.3` 与 low thinking 的 `pro-20x/gpt-5.6-luna` 收到带可选 `timeout` 的独立工具定义，拒绝越界值和未知参数，返回原生无任务结果，并保留受控消息中断、steer 中断和 SIGINT 取消。把 `waitJobsSeconds` 配为 `1.5` 后，一次由场景控制把生产输入固定为 `{}` 的调用在后台任务仍运行期间于 `1,499 ms` 返回配置的 `1.5` 秒期限，此前收到两帧运行任务进度；该次模型实际发出的是 `{"timeout": 30}`，参数由场景控制在执行前替换，而不是模型自行省略。一次期限为 `1950` 秒的 `wait` 调用在 `1,847,444 ms` 后返回已完成的 `1850` 秒后台任务，中间跨过原生 30 分钟上限且没有再次调用模型；一次 `wait { timeout: 1.1 }` 在 `991 ms` 返回已完成的近期限任务；`/qol` 报告了独立入口及不适用路由。较早一次接近期限的完成尝试在工具执行前被宿主的排队完成守卫拦截，且期限信号先于终止结果到达的精确顺序仍由确定性的记录宿主测试覆盖。另用相同模型运行的 OMP `18.2.8` 选择了旧 `hub` 包装，保留原生无任务结果以及非等待 start/stop 路由，在 `199 ms` 返回带 `0.2` 秒期限说明的仍在运行快照，并让一次外层 `hub { op: "wait", timeout: 12 }` 调用在单次调用内跨过真实原生窗口，于 `7,051 ms` 返回运行任务的完成结果。
 
 ## 上游错误后续跑
 
@@ -268,8 +268,8 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 
 | 提交 | 日期 | 变更 | 对应调整项 |
 | --- | --- | --- | --- |
-| [`529950711a`](https://github.com/can1357/oh-my-pi/commit/529950711a) | 2026-06-14 | 为任务轮询加入自适应等待阶梯。 | 持续等待 hub |
-| [`5ff277349c`](https://github.com/can1357/oh-my-pi/commit/5ff277349c) | 2026-07-15 | 把工具面合并到 `xd://` devices 与 `hub`。 | 持续等待 hub |
+| [`529950711a`](https://github.com/can1357/oh-my-pi/commit/529950711a) | 2026-06-14 | 为任务轮询加入自适应等待阶梯。 | 持续等待 |
+| [`5ff277349c`](https://github.com/can1357/oh-my-pi/commit/5ff277349c) | 2026-07-15 | 把工具面合并到 `xd://` devices 与 `hub`。 | 持续等待 |
 | [`c93774f892`](https://github.com/can1357/oh-my-pi/commit/c93774f892) | 2026-06-17 | 实现 session stop hook 语义及其续跑上限。 | 上游错误后续跑 |
 | [`a418920ec1`](https://github.com/can1357/oh-my-pi/commit/a418920ec1) | 2026-08-03 | 改变 `/reset` 语义，增加链重置路径。 | 上游错误后续跑 |
 | [`f6c5a43a1f`](https://github.com/can1357/oh-my-pi/commit/f6c5a43a1f) | 2026-08-06 | 处理订阅额度耗尽导致的重试预算耗尽及其措辞。 | 上游错误后续跑 |
