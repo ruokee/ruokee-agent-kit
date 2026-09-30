@@ -31,4 +31,4 @@ Either variant can be installed and used independently. Each component contains 
 
 Both variants use `name: deep-research`, with equivalent `description` fields describing when to use the Skill. Their research requirements remain semantically aligned. An incomplete translation could omit an evidence requirement or change when research stops, so review the English and Chinese instructions together.
 
-Keep the capability-index links in both repository READMEs valid, and pass the repository check defined by the [unified repository checks decision](./2026-09-12-unify-repository-checks.md).
+Keep the capability-index links in both repository READMEs valid, and pass the repository check defined by the [repository check decision](./2026-09-30-scope-aware-repository-checks.md).

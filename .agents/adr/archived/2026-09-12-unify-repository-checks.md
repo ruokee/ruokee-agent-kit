@@ -2,6 +2,8 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
+Archived: 2026-09-30
+Reversed by: [Scope development checks and retain a complete merge gate](../decision/2026-09-30-scope-aware-repository-checks.md)
 
 English | [中文](./2026-09-12-unify-repository-checks.zh.md)
 
@@ -46,7 +48,7 @@ The aggregate runs existing automation without adding a CI platform, coverage th
 
 [README.md](../../../README.md), [README.zh.md](../../../README.zh.md), and [AGENTS.md](../../../AGENTS.md) distinguish complete checks from baseline checks and explain the prerequisites. Component documentation must remain consistent with the commands the aggregate invokes.
 
-This repository verification policy complements [the Markdown formatting decision](./2026-09-02-format-markdown-with-prettier.md). That decision's formatter and formatting requirements remain in force.
+This repository verification policy complements [the Markdown formatting decision](../decision/2026-09-02-format-markdown-with-prettier.md). That decision's formatter and formatting requirements remain in force.
 
 ## Alternatives considered
 

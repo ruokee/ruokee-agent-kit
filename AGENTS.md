@@ -52,15 +52,18 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 ## Validation
 
 - Install the Git hooks with `pnpm hooks:install`. It sets up the pre-commit formatting stage and the commit-msg message check.
-- Install root and component dependencies as described in [README.md](./README.md#check-prerequisites) before running checks.
-- Run `pnpm check` from the repository root before requesting review. It runs the Markdown check, tk Rust formatting and tests, every OMP component's TypeScript checks and tests, and tk native adapter tests sequentially. It stops at the first failure with a nonzero exit status.
+- Prepare root tools and only the selected component environments as described in [README.md](./README.md#check-prerequisites). Use locked versions and independent writable dependency and build directories for each branch. Do not share `node_modules` or build output across branches; package-manager content caches may be reused within the same trust boundary.
+- Run `pnpm check:changed` from the repository root during development and before requesting review. It includes committed and working-state changes relative to the merge base with local `main`, retains deletion and rename paths, and selects a deduplicated check union. Known Markdown consumers include their checks; unknown or shared inputs and unreliable classification fall back to one complete `pnpm check`.
+- After all review changes, run complete `pnpm check` on the clean, committed final candidate before merge. The candidate must contain target `main`; record its commit and tree, the target commit, and the result. Further tracked changes, pending changes, candidate changes, or target advancement invalidate success. An authorized squash merge must produce the validated tree against the unchanged target.
 - Use `pnpm check:base` for targeted Markdown and Rust checks; it does not cover component checks. Check commands do not install dependencies or format source files.
-- Keep component-specific checks beside their component and update the root aggregate when required automated checks change. Automated success does not replace required real-model or interactive UI validation.
+- Keep component-specific checks beside their component. When adding a component or document consumer, or changing required automated checks, update the complete aggregate, explicit selector mapping, and selector regression tests together. Automated success does not replace required real-model or interactive UI validation.
+- Missing selected tools or local dependencies fail checks; do not install automatically or use global tools to conceal missing local setup.
 
 ## Git workflow
 
 - Use trunk-based development. `main` is the only long-lived branch.
 - Develop each feature, fix, or documentation change on a short-lived branch created from current `main`. Do not modify `main` directly.
+- Use an independent worktree under `.worktrees/` for code, configuration, scripts, parallel tasks, or uncertain exclusivity. Only clean, serial explanatory Markdown or ADR tasks with confirmed exclusive use may use the main working directory, after switching to a short-lived branch. Runtime templates do not qualify; explanatory documents consumed by tests can qualify but retain their consumer checks. If scope expands or exclusivity is lost, stop shared-directory editing and preserve the work in an independent worktree before continuing.
 - Commit each atomic task to its branch by default. Stage only files that belong to the current task.
 - Write commit messages in English and follow the Conventional Commits specification. Types come from the standard set, and the optional scope is one of `skills`, `extensions`, `adr`, or `repo`; a change that spans two areas carries no scope. The commit-msg hook rejects a message that breaks these rules.
 - Let `git commit` run the quality hooks. If hooks modify task files, review and restage them before retrying the commit.

@@ -2,6 +2,8 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
+Archived: 2026-09-30
+Reversed by: [按范围执行开发检查并保留完整合并门禁](../decision/2026-09-30-scope-aware-repository-checks.zh.md)
 
 [English](./2026-09-12-unify-repository-checks.md) | 中文
 
@@ -46,7 +48,7 @@ Decision writer: OMP GPT-6 Astra
 
 [README.md](../../../README.md)、[README.zh.md](../../../README.zh.md) 和 [AGENTS.md](../../../AGENTS.md) 区分完整检查与基础检查，并说明前置条件。组件文档须与聚合入口实际调用的命令保持一致。
 
-本仓库验证政策与 [Markdown 格式化决定](./2026-09-02-format-markdown-with-prettier.md)互为补充。该决定规定的格式化工具及格式要求继续生效。
+本仓库验证政策与 [Markdown 格式化决定](../decision/2026-09-02-format-markdown-with-prettier.md)互为补充。该决定规定的格式化工具及格式要求继续生效。
 
 ## 考虑过的替代方案
 

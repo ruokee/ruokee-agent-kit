@@ -31,4 +31,4 @@ Decision writer: OMP
 
 两种变体均使用 `name: deep-research`，`description` 字段含义等价，说明何时使用该 Skill。两者的研究要求保持语义一致。翻译遗漏证据要求或改变研究停止条件，可能导致行为差异，因此应对照审查中英文指令。
 
-保持两份仓库 README 中的能力索引链接有效，并通过[统一仓库检查决定](./2026-09-12-unify-repository-checks.zh.md)定义的仓库检查。
+保持两份仓库 README 中的能力索引链接有效，并通过[仓库检查决定](./2026-09-30-scope-aware-repository-checks.zh.md)定义的仓库检查。

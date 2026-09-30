@@ -87,6 +87,10 @@ Skill 安装与下方的开发环境准备相互独立，不需要开发依赖�
 
 提交信息使用 Conventional Commits 类型，scope 可选。带 scope 的信息使用 `skills`、`extensions`、`adr`、`repo` 之一；跨越两个区域的改动不带 scope。
 
+代码、配置、脚本、并行任务，以及无法确认独占主工作目录的任务，使用 `.worktrees/` 下的独立 worktree。只有主工作目录干净、没有并行工作且能够确认独占时，串行说明性 Markdown 或 ADR 任务才可以使用主工作目录。编辑前创建并切换到短期分支，任何任务都不直接在 `main` 上编辑或提交。
+
+被测试读取的说明文档仍可以适用该目录例外，但必须运行消费者检查。运行时模板是源输入，不是说明文档。任务范围扩展到说明性 Markdown 之外或失去独占条件时，先停止共享目录编辑，并在继续前将已有工作保存在独立 worktree 中。
+
 开始开发之前，先确保安装了 Git 钩子：
 
 ```bash
@@ -112,7 +116,19 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 
 ### 检查前置条件
 
-使用 [package.json](./package.json) 声明的 pnpm 版本、包含 `rustfmt` 且满足 [tk 构建前提](./projects/tk/README.zh.md)的 Rust 工具链，以及兼容组件锁文件的 Bun。完成上述根依赖与钩子安装后，分别安装 OMP 组件的锁定依赖：
+使用 [package.json](./package.json) 声明的 pnpm 版本、其支持的 Node.js 运行时和 Git。开发阶段只准备受影响检查选中的环境：
+
+| 选中范围 | 需要准备的环境 |
+| --- | --- |
+| 说明性 Markdown 或 ADR 格式检查 | 上述根锁定依赖和 Git 钩子 |
+| 单个 OMP 组件 | 根工具链、兼容其锁文件的 Bun，以及该组件目录内的 `bun install --frozen-lockfile` |
+| tk | 根工具链、包含 `rustfmt` 且满足 [tk 构建前提](./projects/tk/README.zh.md)的 Rust、锁定 crate 依赖、Bun 和原生适配器测试所用系统工具 |
+| Skill 生命周期 | 根工具链、Git、非 root 的 POSIX shell 环境、`diff` 和测试脚本使用的常见系统文件工具 |
+| 完整检查或完整回退 | 上述全部环境，包括每个 OMP 组件的锁定依赖树 |
+
+已知文档消费者追加所需环境，多范围取并集。这不改变工作目录规则。每个分支保留独立的可写依赖目录和构建目录。包管理器内容缓存可以在同一信任边界内复用；清单或锁文件改变后，重新准备对应环境。
+
+完整验证时，安装每个 OMP 组件的锁定依赖：
 
 ```bash
 (cd projects/omp-status-bar && bun install --frozen-lockfile)
@@ -122,9 +138,42 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 (cd projects/omp-qol && bun install --frozen-lockfile)
 ```
 
-### 检查范围
+### 受影响检查
 
-请求审查前，在仓库根目录运行 `pnpm check`。该命令依次执行：
+开发和请求审查前，在仓库根目录运行 `pnpm check:changed`。审查前提交任务改动并保持工作树干净。
+
+默认基线是分支与本地 `main` 的 merge base。范围包含已提交、已暂存、未暂存、非忽略的未跟踪路径、删除路径和重命名两端。使用 `pnpm check:changed --base <ref>` 选择其他 ref 与 `HEAD` 的 merge base，不比较分支顶端。命令不 fetch 历史。
+
+[选择器](./scripts/check-changed.mjs)维护显式映射：
+
+| 变更范围 | 选中检查 |
+| --- | --- |
+| 已知说明性 Markdown，包括 ADR、根 README、Skill 和组件文档 | 对仍存在的变更文件运行 Prettier，保留仓库配置和忽略规则 |
+| 已登记 OMP 组件的非 Markdown 文件，或其 `src/`、`test/` 下的 Markdown | 该组件的 `typecheck`、`test`，以及变更 Markdown 格式检查 |
+| tk 非 Markdown 文件，或其 `skills/`、`claude/`、`pi/`、`omp/` 打包树中的 Markdown | Rust 格式与测试、原生适配器测试，以及变更 Markdown 格式检查 |
+| [docs/installation.md](./docs/installation.md)、对应中文版，或 Skill 安装与生命周期脚本 | Skill 生命周期测试，以及变更 Markdown 格式检查 |
+| 多个已知范围 | 检查并集，每项只执行一次 |
+| 共享工具链或检查输入、选择器变更、未知路径，或不可靠的基线与分类 | 只运行一次完整 `pnpm check`，不先执行局部检查 |
+
+消费者规则优先于普通 Markdown 规则。未知组件及其 Markdown 不按仅格式检查处理。新增组件、必需检查和文档消费者时，同步更新根聚合入口、显式映射及[选择测试](./scripts/tests/check-changed.test.mjs)。
+
+输出列出基线和 merge base、路径来源、选中范围与命令、回退原因及失败位置。
+
+缺失工具或选中范围的本地依赖时失败，不安装依赖，也不用全局 TypeScript 替代。缺少 Git、checkout 无效或 index 存在未解决冲突时直接失败。历史不足或无法可靠收集路径时触发完整回退。
+
+删除说明性 Markdown 可以无需格式命令。空的受影响结果不是完整合并验证。
+
+### 完整合并验证
+
+所有审查修改完成后、合并前，验证最终候选：
+
+1. 提交全部改动、保持工作树干净，并确认候选包含目标 `main`。
+2. 运行 `pnpm check`，记录候选提交和 tree、目标 `main` 提交、命令及结果。
+3. 执行已授权的 squash merge 前，确认目标未变化，并核对合并 tree 与验证 tree 一致。
+
+新增受跟踪变更、待提交内容、候选变化或目标 `main` 前进，都使原成功结果失效。形成新的最终候选并重新完整验证。
+
+完整入口保留下列检查顺序：
 
 1. 通过 `pnpm check:base` 执行 Markdown 格式检查、tk Rust 格式检查和 Rust 测试。
 2. [omp-status-bar](./projects/omp-status-bar/package.json) 的 TypeScript 检查和测试。
@@ -134,19 +183,27 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 6. [omp-qol](./projects/omp-qol/package.json) 的 TypeScript 检查和测试。
 7. 通过 `bun test projects/tk/adapter-tests` 执行 tk 原生适配器测试。
 8. 通过 `pnpm check:skills` 执行 `sh scripts/tests/skills.sh`，运行 Skill 生命周期测试。
+9. 通过 `pnpm check:selector` 执行受影响选择器回归测试。
 
-首次命令失败即停止执行，并返回非零状态。缺失可执行文件或依赖也会使检查失败。命令及组件输出可以定位失败步骤。检查不安装依赖或格式化源码；构建和测试可以创建自身正常使用的生成文件与临时文件。
+首次命令失败即停止执行，并返回非零状态。缺失可执行文件或依赖也会使检查失败。命令及组件输出可以定位失败步骤。检查不安装依赖或格式化源码；构建和测试可以创建自身正常使用的生成文件与临时文件。完整入口不调用受影响选择器，回退不会递归。
 
-`pnpm check:base` 只覆盖 Markdown 与 Rust，适用于局部工作。组件检查也可通过各自已有脚本独立执行。自动化成功不能证明真实模型行为或交互界面正确性，仍须遵循相关组件的场景及发布验证要求。[仓库检查决定](./.agents/adr/decision/2026-09-12-unify-repository-checks.zh.md)定义完整契约。
+`pnpm check:base` 只覆盖 Markdown 与 Rust，适用于局部工作。组件检查也可通过各自已有脚本独立执行。自动化成功不能证明真实模型行为或交互界面正确性，仍须遵循相关组件的场景及发布验证要求。[仓库检查决定](./.agents/adr/decision/2026-09-30-scope-aware-repository-checks.zh.md)定义完整契约。
 
 ### 常用命令
 
 ```bash
+# 开发与审查前运行受影响检查
+pnpm check:changed
+pnpm check:changed --base <ref>
+
 # 在仓库根目录运行完整自动化检查
 pnpm check
 
 # 仅运行 Markdown 与 Rust 基础检查
 pnpm check:base
+
+# 仅运行受影响选择器回归测试
+pnpm check:selector
 
 # 仅运行 Skill 生命周期测试
 pnpm check:skills

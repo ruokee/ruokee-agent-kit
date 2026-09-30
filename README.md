@@ -87,6 +87,10 @@ The project follows [Trunk-Based Development](https://trunkbaseddevelopment.com/
 
 Commit messages use the Conventional Commits types, and scope is optional. A message that carries a scope uses one of `skills`, `extensions`, `adr`, or `repo`; a change that spans two areas carries no scope.
 
+Use an independent worktree under `.worktrees/` for code, configuration, scripts, parallel tasks, and any task whose exclusive use of the main working directory cannot be confirmed. A serial explanatory Markdown or ADR task may use the main working directory only when it is clean, no parallel work is active, and exclusive use is confirmed. Create and switch to a short-lived branch before editing; never edit or commit directly on `main`.
+
+Documentation read by a test can still qualify for this directory exception, but must run its consumer checks. Runtime templates are source inputs, not explanatory documentation. If the task expands beyond explanatory Markdown or loses exclusive use, stop editing in the shared directory and preserve the work in an independent worktree before continuing.
+
 Before development, install the Git hooks:
 
 ```bash
@@ -112,7 +116,19 @@ Components that load code into a host process state a maintenance lower bound in
 
 ### Check prerequisites
 
-Use the pnpm version declared in [package.json](./package.json), a Rust toolchain with `rustfmt` and the [tk build prerequisites](./projects/tk/README.md), and Bun compatible with the component lockfiles. After the root dependency and hook setup above, install locked dependencies in each OMP component directory:
+Use the pnpm version declared in [package.json](./package.json), its supported Node.js runtime, and Git. Prepare only the environments selected by affected checks during development:
+
+| Selected scope | Environment to prepare |
+| --- | --- |
+| Explanatory Markdown or ADR formatting | Root locked dependencies and Git hooks as above |
+| One OMP component | Root tools, Bun compatible with its lockfile, and `bun install --frozen-lockfile` in that component directory |
+| tk | Root tools, Rust with `rustfmt` and the [tk build prerequisites](./projects/tk/README.md), locked crate dependencies, Bun, and native adapter test system tools |
+| Skill lifecycle | Root tools, Git, a non-root POSIX shell environment, `diff`, and the test script's common system file tools |
+| Complete checks or complete fallback | All of the above, including every OMP component's locked dependency tree |
+
+Known document consumers add their required environment; multiple scopes use the union. This does not change the working-directory rule. Keep independent writable dependency and build directories for each branch. Package-manager content caches may be reused within the same trust boundary; reprepare a selected environment when its manifest or lockfile changes.
+
+For complete validation, install each OMP component's locked dependencies:
 
 ```bash
 (cd projects/omp-status-bar && bun install --frozen-lockfile)
@@ -122,9 +138,42 @@ Use the pnpm version declared in [package.json](./package.json), a Rust toolchai
 (cd projects/omp-qol && bun install --frozen-lockfile)
 ```
 
-### Check coverage
+### Affected checks
 
-Run `pnpm check` from the repository root before requesting review. It executes these checks sequentially:
+Run `pnpm check:changed` from the repository root during development and before requesting review. Before review, commit task changes and leave the working tree clean.
+
+The default baseline is the branch's merge base with local `main`. Selection includes committed, staged, unstaged, and non-ignored untracked paths, deleted paths, and both sides of renames. Use `pnpm check:changed --base <ref>` for another ref's merge base with `HEAD`, not a comparison of branch tips. The command does not fetch history.
+
+The [selector](./scripts/check-changed.mjs) maintains an explicit mapping:
+
+| Changed scope | Selected checks |
+| --- | --- |
+| Known explanatory Markdown, including ADRs, root READMEs, Skills, and component documentation | Prettier for changed files that still exist, using the repository configuration and ignore rules |
+| Registered OMP component non-Markdown files, or Markdown under its `src/` or `test/` | That component's `typecheck` and `test`, plus changed Markdown formatting |
+| tk non-Markdown files, or Markdown in its `skills/`, `claude/`, `pi/`, or `omp/` packaging trees | Rust formatting and tests, native adapter tests, and changed Markdown formatting |
+| [docs/installation.md](./docs/installation.md), its Chinese counterpart, or the Skill installation and lifecycle scripts | Skill lifecycle tests, plus changed Markdown formatting |
+| Multiple known scopes | Their check union, without duplicate execution |
+| Shared toolchain or check inputs, selector changes, unknown paths, or an unreliable baseline or classification | One complete `pnpm check`, without first running partial checks |
+
+Consumer rules take priority over the ordinary Markdown rule. Unknown components, including their Markdown files, are not treated as formatting-only. New components, required checks, and document consumers must update the root aggregate, explicit mapping, and [selection tests](./scripts/tests/check-changed.test.mjs) together.
+
+Output lists the baseline and merge base, path sources, selected scopes and commands, fallback reason, and failing step.
+
+Missing tools or selected local dependencies fail without installation or substitution with global TypeScript. Git absence, an invalid checkout, and unresolved index conflicts fail directly. Insufficient history or unreliable path collection triggers complete fallback.
+
+Deleted explanatory Markdown may need no formatter. An empty affected result is not complete merge validation.
+
+### Complete merge validation
+
+After all review changes, validate the final candidate before merging:
+
+1. Commit all changes, leave the working tree clean, and ensure the candidate contains target `main`.
+2. Run `pnpm check` and record the candidate commit and tree, target `main` commit, command, and result.
+3. Before an authorized squash merge, confirm the target is unchanged and the merged tree equals the validated tree.
+
+Further tracked changes, pending changes, a changed candidate, or target `main` advancing invalidate success. Form a new final candidate and repeat complete validation.
+
+The complete command retains these checks in order:
 
 1. Markdown formatting, tk Rust formatting, and Rust tests through `pnpm check:base`.
 2. TypeScript checks and tests for [omp-status-bar](./projects/omp-status-bar/package.json).
@@ -134,19 +183,27 @@ Run `pnpm check` from the repository root before requesting review. It executes 
 6. TypeScript checks and tests for [omp-qol](./projects/omp-qol/package.json).
 7. tk native adapter tests with `bun test projects/tk/adapter-tests`.
 8. Skill lifecycle tests with `sh scripts/tests/skills.sh` through `pnpm check:skills`.
+9. Affected-selector regression tests through `pnpm check:selector`.
 
-The first failed command stops the sequence and returns a nonzero exit status. Missing executables or dependencies also fail the check. Commands and component output identify the failing step. Checks do not install dependencies or format source files; builds and tests can create their normal generated and temporary files.
+The first failed command stops the sequence and returns a nonzero exit status. Missing executables or dependencies also fail the check. Commands and component output identify the failing step. Checks do not install dependencies or format source files; builds and tests can create their normal generated and temporary files. The complete entry point never calls the affected selector, so fallback cannot recurse.
 
-`pnpm check:base` covers only Markdown and Rust for targeted work. Component checks can also run independently through their existing scripts. Automated success does not establish real-model behavior or interactive UI correctness; follow the relevant component's scenario and release validation requirements as well. The [repository check decision](./.agents/adr/decision/2026-09-12-unify-repository-checks.md) defines the complete contract.
+`pnpm check:base` covers only Markdown and Rust for targeted work. Component checks can also run independently through their existing scripts. Automated success does not establish real-model behavior or interactive UI correctness; follow the relevant component's scenario and release validation requirements as well. The [repository check decision](./.agents/adr/decision/2026-09-30-scope-aware-repository-checks.md) defines the complete contract.
 
 ### Common commands
 
 ```bash
+# Run affected checks for development and review
+pnpm check:changed
+pnpm check:changed --base <ref>
+
 # Run complete automated checks from the repository root
 pnpm check
 
 # Run only the Markdown and Rust baseline
 pnpm check:base
+
+# Run only affected-selector regression tests
+pnpm check:selector
 
 # Run only the Skill lifecycle tests
 pnpm check:skills
