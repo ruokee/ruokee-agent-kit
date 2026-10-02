@@ -38,7 +38,7 @@ function makeSources() {
   const contextReads: number[] = [];
   let usage = { input: 5, cacheWrite: 0, cacheRead: 3, output: 2 };
   const sources: SnapshotSources = {
-    getUsageStatistics: () => {
+    getConversationUsage: () => {
       reads.push(1);
       return usage;
     },
@@ -159,7 +159,7 @@ describe("SnapshotStore sampler ownership", () => {
       remoteEndpoint: undefined,
     };
     store.bind({
-      getUsageStatistics: () => rawUsage,
+      getConversationUsage: () => rawUsage,
       getContextUsage: () => ({ tokens: 1, contextWindow: 2, percent: 3 }),
       getModel: () => rawModel,
       getCompactionSettings: () => rawCompaction,
@@ -286,7 +286,7 @@ describe("SnapshotStore sampler ownership", () => {
     const timers = new FakeTimers();
     const store = new SnapshotStore();
     store.bind({
-      getUsageStatistics: () => ({ input: 1, cacheWrite: 0, cacheRead: 0, output: 0 }),
+      getConversationUsage: () => ({ input: 1, cacheWrite: 0, cacheRead: 0, output: 0 }),
       getContextUsage: () => ({ tokens: 10_000, contextWindow: 100_000, percent: 10 }),
       getModel: () => undefined,
       getCompactionSettings: () => undefined,
@@ -308,12 +308,12 @@ describe("SnapshotStore sampler ownership", () => {
     });
   });
 
-  test("tick calls getUsageStatistics at most once and revision only moves on change", () => {
+  test("tick calls getConversationUsage at most once and revision only moves on change", () => {
     const timers = new FakeTimers();
     let usage = { input: 1, cacheWrite: 0, cacheRead: 0, output: 0 };
     const store = new SnapshotStore();
     store.bind({
-      getUsageStatistics: () => usage,
+      getConversationUsage: () => usage,
       getContextUsage: () => undefined,
       getModel: () => undefined,
       getCompactionSettings: () => undefined,
@@ -364,7 +364,7 @@ describe("SnapshotStore sampler ownership", () => {
     store.onSamplerError = (error) => errors.push(error);
     let ticks = 0;
     store.bind({
-      getUsageStatistics: () => {
+      getConversationUsage: () => {
         throw new Error("stats boom");
       },
       getContextUsage: () => undefined,
@@ -399,7 +399,7 @@ describe("SnapshotStore sampler ownership", () => {
       remoteEndpoint: "x",
     };
     store.bind({
-      getUsageStatistics: () => ({ input: 1, cacheWrite: 0, cacheRead: 0, output: 0 }),
+      getConversationUsage: () => ({ input: 1, cacheWrite: 0, cacheRead: 0, output: 0 }),
       getContextUsage: () => ({ tokens: 10, contextWindow: 100, percent: 10 }),
       getModel: () => ({ provider: "p", id: "m", contextWindow: 100, input: ["text"] }),
       getCompactionSettings: () => settings,

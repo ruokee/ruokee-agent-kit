@@ -26,13 +26,13 @@ let sources: SnapshotSources | undefined;
 
 /** Bind live session sources at session start. */
 export function bindSessionSources(input: {
-  getUsageStatistics: () => { input: number; cacheWrite: number; cacheRead: number; output: number };
+  getConversationUsage: () => { input: number; cacheWrite: number; cacheRead: number; output: number };
   getContextUsage: () => ContextUsage | undefined;
   getModel: () => { provider: string; id: string; contextWindow: number | null; input: readonly string[] } | undefined;
   getCompactionSettings: () => Partial<CompactionSettingsShape> | undefined;
 }): void {
   sources = {
-    getUsageStatistics: input.getUsageStatistics,
+    getConversationUsage: input.getConversationUsage,
     getContextUsage: input.getContextUsage,
     getModel: input.getModel,
     getCompactionSettings: input.getCompactionSettings,

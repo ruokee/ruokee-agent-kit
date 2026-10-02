@@ -88,7 +88,7 @@ Builtin ids: `total`, `input`, `cache`, `output`, `cache-hit`, `context`, `turn`
 
 ### Metric formulas
 
-All five token metrics read the same per-tick snapshot from `getUsageStatistics()`:
+All five token metrics read the same per-tick snapshot. That snapshot holds the conversation's own usage, summed from the session branch the session currently holds: assistant message usage and `task` tool result usage count, out-of-band `model_usage` records do not. OMP's `getUsageStatistics()` adds both kinds into one session total, so a metric reading it would report the Find judgment cascade as conversation traffic; that cascade always reports `cacheRead: 0`, which holds the hit rate down for the rest of the session. Because the totals come from the branch, tree navigation and branching move them the same way they move `turn`.
 
 ```text
 input = input + cacheWrite          (I)
@@ -97,6 +97,8 @@ total = input + cacheWrite + cacheRead + output   (T)
 output = output                     (O)
 hitRate = C / (I + C)               (H)
 ```
+
+`input`, `cacheWrite`, `cacheRead`, and `output` are the conversation counters of that branch.
 
 T, I, C, and O render through the shared decimal token formatter:
 
@@ -252,9 +254,9 @@ Emphasized frames use `#5fafaf`. Dimmed frames use the same color with `dim: tru
 
 ## Data refresh
 
-When the first snapshot-backed builtin provider starts, the internal sources sample immediately and a shared OMP-managed interval ticks every `600 ms`. The snapshot-backed builtin providers read the same immutable snapshot; T, I, C, O, and H never trigger five separate `getUsageStatistics()` calls per tick. `turn` is event-driven instead: it reads no source, schedules no timer, and never starts the shared interval.
+When the first snapshot-backed builtin provider starts, the internal sources sample immediately and a shared OMP-managed interval ticks every `600 ms`. The snapshot-backed builtin providers read the same immutable snapshot; T, I, C, O, and H never trigger five separate branch aggregations per tick. `turn` is event-driven instead: it reads no source, schedules no timer, and never starts the shared interval.
 
-With TICO or H subscribers, each tick calls `getUsageStatistics()` at most once. `getContextUsage()`, the model, and the compaction settings are read only while `context` has subscribers. Third-party-only configs and configs holding only `turn` start no internal sources.
+With TICO or H subscribers, each tick aggregates the branch at most once. `getContextUsage()`, the model, and the compaction settings are read only while `context` has subscribers. Third-party-only configs and configs holding only `turn` start no internal sources.
 
 One process holds one bound source set. `session_start` binds the sources of the session that is now in front and `session_shutdown` releases them. A session without UI skips both, so a subagent session in the same process never rebinds the sources of the UI session it shares them with. The turn count follows the same rule: a session without UI ignores its turn events and never moves the value of the session in front.
 
@@ -291,6 +293,8 @@ OMP 18.2.3 compatibility was validated with the component's locked dependencies 
 The turn metric was validated on OMP 18.2.8 with the component's locked dependencies and the `pro-20x/gpt-6-luna` model, run under a temporary OMP profile with its own status bar configuration. The row rendered `Turn` after the token and context readings, the value advanced once per answered model request and held at its previous value while a tool ran, an interrupted request left it unchanged, a resumed session showed the branch history before any new request, and a subagent run did not move the value of the session in front. A `/tree` rewind to an earlier entry and a branch created from an earlier message each dropped the value to the count of the branch then in front, and in both cases the next answered request advanced it from there. In that run the value rendered dimmed between requests and emphasized while a request was running.
 
 The row was validated on OMP 18.4.3 with the component's locked dependencies and a loopback OpenAI-compatible provider (`u05mock/u05-mock-1`, 200000-token window, `u05mock/u05-mock-2`, 50000-token window, 15000 prompt tokens per request) added to a temporary agent directory. Startup rendered `ctx 4%`. During the first request the row held that reading, and once the answer arrived the frame showed `ctx 4% / Turn 1` before the next sample added the token reading as `T 15K / ctx 8% / Turn 1`. In the next request, which the provider held open, the row kept `T 15K / ctx 8% / Turn 1` while the native status line showed the working spinner; after that answer the turn count moved first (`T 15K / ctx 8% / Turn 2`) and the token total followed on the next sample (`T 30K / ctx 8% / Turn 2`). While `/hotkeys` had the Keyboard Shortcuts panel open, the bottom of the frame still carried the native status line and the widget row at `T 15K / ctx 8% / Turn 1`; ESC closed the panel and the next prompt was answered as `Turn 2`. A session-only model switch to `u05mock/u05-mock-2` changed the native status line to `U05 Mock Two` with a 50000-token window and moved the same 15000 tokens to `ctx 30%`, without touching the turn count, which advanced only on the following answered request (`T 30K / ctx 30% / Turn 2`). Each session also wrote one bounded diagnostic naming the missing settings read, the reason the band indicator section records, so a hidden indicator is distinguishable from a compaction configuration that is off; the run therefore shows the row without the glyph. The same component copy on OMP 18.2.8 rendered `T 15K / U+F0068 ctx 8% / Turn 1`, which confirms the indicator path on the older host with the newer dependency set.
+
+The conversation-only token source was validated on OMP `18.4.4` with the component's locked dependencies and the `pro-20x/gpt-5.6-luna` model, under an isolated plugin directory that kept the host agent configuration. A Find call over a large repository read 20 files and billed 16 judgment requests (68,368 input tokens, `cacheRead: 0`) while the row showed `Total 17.7K / Cache 7.7K / I 10K / O 79 / Hit 43.5% / Turn 2`, matching the conversation's own assistant-message usage to the token (9,968 input, 7,680 cache read, 79 output) and to the resulting 43.5% rate; the session aggregate would have shown `I 78K` and `Hit 8.9%` instead. Live terminal widths, session switching, tree rewinds, interrupts, and subagent cards were not re-run in that session.
 
 Live terminal widths, session switching, tree rewinds, interrupts, and subagent cards were not re-run on OMP 18.4.3; those checks stand as recorded for OMP 18.2.3 and 18.2.8.
 

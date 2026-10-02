@@ -77,6 +77,9 @@ function fakeSession(): import("@oh-my-pi/pi-coding-agent").AgentSession {
     state: { messages, model },
     settings: undefined,
     sessionManager: {
+      // OMP's native status line component reads its own session aggregate
+      // through this method; this double satisfies that query, not the
+      // extension's conversation-usage source.
       getUsageStatistics: () => ({
         input: 0,
         output: 0,

@@ -88,7 +88,7 @@ statuses:
 
 ### 指标公式
 
-五个 token 指标读取同一个每 tick 快照（来自 `getUsageStatistics()`）：
+五个 token 指标读取同一个每 tick 快照。该快照保存对话自身的用量，按当前分支汇总：assistant 消息的 usage 与 `task` 工具结果的 usage 计入，带外的 `model_usage` 条目不计入。OMP 的 `getUsageStatistics()` 把这两类合并成一个会话总数，读取它会把 Find 判定级联当对话流量：该级联的 `cacheRead` 恒为 0，会让命中率在整个会话里被压低。由于汇总来自分支，树导航与分叉对它的影响与 `turn` 一致。
 
 ```text
 input = input + cacheWrite          (I)
@@ -97,6 +97,8 @@ total = input + cacheWrite + cacheRead + output   (T)
 output = output                     (O)
 hitRate = C / (I + C)               (H)
 ```
+
+其中 `input`、`cacheWrite`、`cacheRead`、`output` 是该分支的对话计数。
 
 T、I、C、O 使用共享的十进制 token formatter：
 
@@ -252,9 +254,9 @@ speculationBand = [start, threshold)
 
 ## 数据刷新
 
-第一个依赖快照的内置 Provider 启动时，内部数据源立即采样，并启动一个共享的 OMP 托管 interval，每 `600 ms` 采样一次。依赖快照的内置 Provider 读取同一个不可变快照；T、I、C、O、H 不会各自调用 `getUsageStatistics()` 造成每 tick 五次调用。`turn` 由事件驱动：它不读取数据源，不注册 timer，也不会启动共享 interval。
+第一个依赖快照的内置 Provider 启动时，内部数据源立即采样，并启动一个共享的 OMP 托管 interval，每 `600 ms` 采样一次。依赖快照的内置 Provider 读取同一个不可变快照；T、I、C、O、H 不会各自聚合一次分支造成每 tick 五次汇总。`turn` 由事件驱动：它不读取数据源，不注册 timer，也不会启动共享 interval。
 
-存在 TICO 或 H 订阅时，每个 tick 最多调用一次 `getUsageStatistics()`。`getContextUsage()`、模型和压缩设置只在 `context` 有订阅时读取。只配置第三方 Provider 或只配置 `turn` 时不启动内部数据源。
+存在 TICO 或 H 订阅时，每个 tick 最多聚合一次分支。`getContextUsage()`、模型和压缩设置只在 `context` 有订阅时读取。只配置第三方 Provider 或只配置 `turn` 时不启动内部数据源。
 
 同一进程只持有一组绑定数据源。`session_start` 会为当前处于前台的会话重新绑定，`session_shutdown` 再释放。无 UI 的会话两件事都不做，因此同一进程内的子代理会话不会改绑它所共享的 UI 会话数据源。轮次计数遵循同一条规则：无 UI 的会话忽略自己的轮次事件，不会改变前台会话的数值。
 
@@ -291,6 +293,8 @@ OMP 18.2.3 兼容性使用组件锁定依赖与 `pro-20x/gpt-5.6-luna` 模型完
 轮次计数在 OMP 18.2.8 上使用组件锁定依赖与 `pro-20x/gpt-6-luna` 模型完成验证，运行在带独立状态栏配置的临时 OMP profile 下。状态栏在 token 和上下文读数之后渲染 `Turn`，数值对每次已回答的模型请求前进一次，工具运行期间保持在前一个数值，被中断的请求不改变它，恢复会话后在发出新请求之前就显示分支历史，子代理运行也不会改变前台会话的数值。用 `/tree` 回退到更早的条目、或从更早的消息新建分支后，数值都降到当时前台分支的计数，下一次已回答请求再从新数值前进。本次验证中，数值在请求之间显示为弱化样式，请求运行期间使用强调样式。
 
 状态栏在 OMP 18.4.3 上使用组件锁定依赖与临时 Agent 目录中的回环 OpenAI 兼容 Provider（`u05mock/u05-mock-1`，200000 token window，`u05mock/u05-mock-2`，50000 token window，每个请求 15000 prompt token）完成验证。启动后渲染 `ctx 4%`。第一个请求进行中该行保持这一读数，回答到达后的帧显示 `ctx 4% / Turn 1`，随后一次采样补上 token 读数成为 `T 15K / ctx 8% / Turn 1`。下一个请求由 Provider 挂起保持进行中，期间该行保持 `T 15K / ctx 8% / Turn 1`，native statusline 显示工作中的 spinner；该回答结束后轮次先变化（`T 15K / ctx 8% / Turn 2`），token 总量在下一次采样跟上（`T 30K / ctx 8% / Turn 2`）。`/hotkeys` 打开 Keyboard Shortcuts 面板期间，帧的底部仍带有 native statusline 和状态栏行 `T 15K / ctx 8% / Turn 1`；按 ESC 关闭面板后，下一个提示作为 `Turn 2` 得到回答。用仅对当前会话生效的模型切换切到 `u05mock/u05-mock-2` 后，native statusline 变为 `U05 Mock Two` 与 50000 token window，同样的 15000 token 变为 `ctx 30%`，轮次计数不受切换影响，只在随后一次已回答请求时前进（`T 30K / ctx 30% / Turn 2`）。每个会话还会写入一条有界诊断，指明缺少的设置读取方式，即投机压缩区间小节记录的原因，从而把隐藏指示与压缩配置关闭区分开；因此本次运行中该行没有图标。同一份组件副本在 OMP 18.2.8 上渲染出 `T 15K / U+F0068 ctx 8% / Turn 1`，确认在较新依赖集下旧宿主的指示路径仍然可用。
+
+对话口径的 token 数据源在 OMP 18.4.4 上使用组件锁定依赖与 `pro-20x/gpt-5.6-luna` 模型完成验证，插件目录独立且继承宿主 agent 配置。一次针对大型仓库的 Find 读取 20 个文件并计费 16 次判定请求（68,368 输入 token，`cacheRead: 0`），其间该行显示 `Total 17.7K / Cache 7.7K / I 10K / O 79 / Hit 43.5% / Turn 2`，与对话自身 assistant 消息的用量逐项一致（9,968 输入、7,680 cache read、79 输出），命中率也与由此得到的 43.5% 一致；若读取会话聚合，读数会是 `I 78K` 与 `Hit 8.9%`。该轮未重跑实时终端宽度调整、会话切换、`/tree` 回退、请求中断和子代理卡片。
 
 实时终端宽度调整、会话切换、`/tree` 回退、请求中断和子代理卡片未在 OMP 18.4.3 上重跑；这些检查仍以 OMP 18.2.3 与 18.2.8 的记录为准。
 

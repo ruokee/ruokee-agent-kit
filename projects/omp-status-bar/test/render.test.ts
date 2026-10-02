@@ -27,7 +27,7 @@ describe("builtin metric colors", () => {
     resetSnapshotStoreForTests();
     const store = getSnapshotStore();
     store.bind({
-      getUsageStatistics: () => ({ input: 20, cacheWrite: 0, cacheRead: 80, output: 0 }),
+      getConversationUsage: () => ({ input: 20, cacheWrite: 0, cacheRead: 80, output: 0 }),
       getContextUsage: () => undefined,
       getModel: () => undefined,
       getCompactionSettings: () => undefined,
@@ -67,7 +67,7 @@ describe("cache-hit precision", () => {
     resetSnapshotStoreForTests();
     const store = getSnapshotStore();
     store.bind({
-      getUsageStatistics: () => ({ input: 2, cacheWrite: 0, cacheRead: 1, output: 0 }),
+      getConversationUsage: () => ({ input: 2, cacheWrite: 0, cacheRead: 1, output: 0 }),
       getContextUsage: () => undefined,
       getModel: () => undefined,
       getCompactionSettings: () => undefined,

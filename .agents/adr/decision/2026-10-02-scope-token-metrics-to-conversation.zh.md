@@ -1,28 +1,34 @@
-# ADR 决定：OMP 状态栏使用常驻 Widget
+# ADR 决定：随 OMP 宿主升级维护状态栏
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
-Reverses: [OMP 状态栏使用常驻 Widget](../archived/2026-09-05-use-omp-status-bar-widget.zh.md)
-Archived: 2026-09-28
-Reversed by: [随 OMP 宿主升级维护状态栏](./2026-09-28-maintain-omp-status-bar.zh.md)
+Reverses: [随 OMP 宿主升级维护状态栏](../archived/2026-09-28-maintain-omp-status-bar.zh.md)
 
-[English](./2026-09-24-use-omp-status-bar-widget.md) | 中文
+[English](./2026-10-02-scope-token-metrics-to-conversation.md) | 中文
 
 ## 动机
 
-`@ruokee/omp-status-bar` 包需要显示本次会话已回答的模型请求次数，这是一项它目前没有的读数；用户把这个次数和 token 总数放在一起看，判断一次会话的 token 效率，及时发现消耗明显高于其他轮次的调用。先前的决定把内置 Provider ID 固定为恰好六项，这项读数无法作为对它的更新来记录，因此本决定记录整行的完整选择：由 Package 自己持有的一行常驻输出、每个指标各自固定的颜色、在终端宽度处截断且不切断颜色序列的组合行，以及上下文位于投机区间时闪烁的弱化 context 字形。纯文本扩展状态通道无法承载这些。
+把 `@ruokee/omp-status-bar` 维护为一个由状态 Host 与注册的 Provider 组成的自包含包，并让它跟随 OMP 宿主升级继续可用。
+
+`@ruokee/omp-status-bar` 包在编辑器下方的一行常驻输出中显示当前会话的上下文用量、token 读数、缓存命中率和已回答的模型请求次数，并给出上下文已进入投机区间的估计。当前选择包括：由它持有的常驻输出行、Host 组合的结构化且经过清理的 Provider 片段、agent 目录下的有序配置、内置指标 Provider 及其固定颜色、已回答请求次数、带有明确边界的投机区间估计，以及随 Package 保存的文档与证据。Package 也换用新的维护声明形式：维护承诺不再决定哪些宿主可以安装它。
+
+OMP 把带外的模型调用与对话记在同一个会话账本里，并通过同一个会话用量统计报告出来。Find 工具的判定级联就是这样一个调用方：它以 `purpose: "find"` 记录自己的调用，而这些记录不携带任何 cache 读数，因为判定路径只报告输入数、输出数与计费成本，无论服务端是否复用了缓存前缀都把 cache read 与 cache write 写为零。因此取自会话统计的读数会计入对话从未发起的流量，抬高输入读数并压低缓存命中率，计入量还随一次搜索读取的文件数增长。在本变更记录的验证轮里，一次针对大型仓库的 Find 调用增加 68K 输入 token 且不含任何 cache read，读数从 43.5% 变为 8.9%。
 
 ## 分析
+
+宿主 peer 声明只说明 Package 导入哪些宿主包，而在其中写入数值范围会同时替每个解析该依赖的宿主决定能否安装（[宿主升级决定](./2026-09-28-adapt-components-to-host-upgrades.zh.md)）。因此维护下限从 peer 声明中移出，改为在组件 README 的兼容性小节声明；Package 与 OMP 的耦合保持为对公开 Widget、上下文用量和压缩解析 API 的能力耦合。实际验证过的版本与场景是组件文档中的证据，不是下限本身。
 
 [先前的决定](../archived/2026-09-05-use-omp-status-bar-widget.zh.md)不接受列表之外的内置 ID，而枚举本身并不是被保护的边界。同一节还排除了金额、cost 和 premium request 读数以及旧的 `tokens` 别名，而 Package 使用文档已经维护内置 ID 及其 options 和颜色。写明 Provider 范围，并用链接把该文档指定为清单归属，就能保留边界。
 
 由会话活动推导出的读数只能作为内置 Provider 发布。公开的 Provider 合同只给实例提供它的 options、它的配置、一次发布调用和受管定时器；它不携带会话数据和事件，宿主也只对内置 Provider 绑定会话数据源。为公开合同增加这样一条通道，比增加这个读数本身的改动更大，而宿主已经向扩展报告每一轮，并同时给出响应是如何结束的。
 
+会话总量没有按用途拆分，也没有逐条明细，因此该 API 的任何调用方都无法把对话的用量与其余部分分开；而会话所持分支带着每条条目的父子链。该分支已经是已回答请求次数的来源，因此两项读数在沿树回退、新建分支和切换会话时一起重新取值。`task` 工具结果报告的是子代理为对话这次请求所做的工作，因此这些 token 属于对话，保持计入。只累加有限数值，因此异常记录导致少计，而不是产生非数值读数。
+
 ## 决定
 
 ### 保持一个自包含 Package，Host 与 Provider 分离
 
-`projects/omp-status-bar/` 是一个第一方、自包含的 OMP Plugin Package。[第一方能力套件决定](../decision/2026-08-20-establish-first-party-capability-kit.zh.md)允许真实能力使用 `projects/`，[组件自包含决定](../decision/2026-08-24-keep-components-self-contained.zh.md)要求每个可分发组件保持独立。`package.json` 通过 `omp.extensions` 声明原生扩展入口；Package 只使用公开的上游 OMP API，不包含、不修补、也不要求本地 Fork。
+`projects/omp-status-bar/` 是一个第一方、自包含的 OMP Plugin Package。[第一方能力套件决定](./2026-08-20-establish-first-party-capability-kit.zh.md)允许真实能力使用 `projects/`，[组件自包含决定](./2026-08-24-keep-components-self-contained.zh.md)要求每个可分发组件保持独立。`package.json` 通过 `omp.extensions` 声明原生扩展入口；Package 只使用公开的上游 OMP API，不包含、不修补、也不要求本地 Fork。
 
 实现拆分为状态 Host 和注册制 Provider。Provider 注册通过 `package.json#exports` 条目 `@ruokee/omp-status-bar/provider` 成为受支持的 Package API。注册使用通过 `Symbol.for()` 索引的带版本进程级 Registry，因此解析到自己 Package 副本的 Extension 仍注册到同一个 Registry，注册也不依赖 Extension 加载顺序。Registry 在注册时拒绝重复 Provider ID 和不兼容合同版本。Host 创建每个实例前从 Registry 解析配置中的 ID，并再次校验其合同版本。
 
@@ -76,7 +82,7 @@ Provider 范围保持封闭：Package 不提供金额、cost 或 premium request
 
 每个内置指标带固定颜色，遵循 pi-moon 配色；颜色不可配置。label option 按实例选择 compact 或 word 形式，一份配置可以混用两种形式，窄终端不会改变已选形式。缓存命中率的精度是另一项显示 option，取值范围由同一份使用文档维护。
 
-token 指标和缓存命中率共享一个来自会话用量统计的数据口径：`I` 是 input 加 cache write，`C` 是 cache read，`O` 是 output，`T` 是 `I + C + O`，命中率是 `C / (I + C)`。它们不读取编排字段，也不读取金额。token 数值使用一个共享的十进制 formatter，单位为 `K`、`M`、`G`、`T`；指标自身数据不存在时不发布内容，而不是显示零。
+token 指标和缓存命中率共享一个取自对话自身用量的数据口径：会话所持分支上的 assistant 消息，以及 `task` 工具结果报告的用量。带外记录不贡献任何用量，包括判定级联携带任何用途的 `model_usage` 条目；其他类型的条目或其他角色的消息也不贡献；在计入的 usage 内部，只累加有限数值，因此非法的计数桶被排除，其余有效的计数桶仍然计入。`I` 是 input 加 cache write，`C` 是 cache read，`O` 是 output，`T` 是 `I + C + O`，命中率是 `C / (I + C)`。它们不读取编排字段，也不读取金额。token 数值使用一个共享的十进制 formatter，单位为 `K`、`M`、`G`、`T`；指标自身数据不存在时不发布内容，而不是显示零。
 
 `context` Provider 读取公开的上下文用量 API，支持 `percent`（默认）和 `absolute` 两种模式。`absolute` 只用共享 formatter 显示当前 token 数；context window 仍用于数据校验和投机区间计算。它把上下文文本和投机区间字形合入一个片段，用普通空格连接，绕过配置的 separator。
 
@@ -100,9 +106,9 @@ context Provider 的文本配有一个字形，表示上下文大概进入了 OM
 
 ### 实现证据随项目保存
 
-[英文和中文公开文档决定](../decision/2026-09-07-colocate-bilingual-docs.zh.md)适用，Package 本地使用文档互相链接。Package 文档覆盖安装、启停、配置 schema、内置 Provider ID 及其 options、按条目失败行为、Widget 位置、投机估计及其限制、已回答请求次数的含义和显示形式，以及验证过的 OMP 兼容范围。Provider 编写文档定义公开导入路径、注册时机、合同版本、冲突行为、生命周期上下文，以及如何安装和选用独立打包的 Provider。
+[英文和中文公开文档决定](./2026-09-07-colocate-bilingual-docs.zh.md)适用，Package 本地使用文档互相链接。Package 文档覆盖安装、启停、配置 schema、内置 Provider ID 及其 options、按条目失败行为、Widget 位置、投机估计及其限制、已回答请求次数的含义和显示形式，以及实际验证过的宿主版本及其覆盖的场景。组件 README 的兼容性小节声明维护下限，该小节是这一下限的权威说明：Package 只声明下限、不设维护上限，不维护受支持版本白名单，也不会仅凭版本阻止任何宿主。低于下限的宿主不会被阻止运行本 Package，也不因此获得维护承诺；提高下限按[宿主升级决定](./2026-09-28-adapt-components-to-host-upgrades.zh.md)作为独立决定处理。Provider 编写文档定义公开导入路径、注册时机、合同版本、冲突行为、生命周期上下文，以及如何安装和选用独立打包的 Provider。
 
-直接 `@oh-my-pi/*` 导入以 `>=18.1.8 <19` 范围声明对等依赖；Package 面向 OMP 18.x 并记录验证过的版本。行为测试覆盖配置解析与按条目降级、片段清理与无效片段隔离、有序组合与宽度截断、投机状态机的时序、已回答请求次数的计数规则及其显示状态和会话行为、来自独立加载且无共享模块身份的扩展的注册、无残留 timer 或 Widget 的清理，以及目标版本内置 Composer shape 与 statusline preset 加一个扩展注册的 shape，全部走同一个 Widget 路径。自动化测试全部无头运行，看不到终端：确认 Widget 出现在编辑器下方并与原生 statusline 共存的真实 OMP TUI 会话是发布要求，按发布提交运行并评审后才可打标签，不进入单元测试套件。
+直接 `@oh-my-pi/*` 导入以不带版本范围的形式声明其宿主包，声明只列出 Package 使用的宿主包，不承载维护限制。行为测试覆盖配置解析与按条目降级、片段清理与无效片段隔离、有序组合与宽度截断、投机状态机的时序、已回答请求次数的计数规则及其显示状态和会话行为、来自独立加载且无共享模块身份的扩展的注册、无残留 timer 或 Widget 的清理，以及目标版本内置 Composer shape 与 statusline preset 加一个扩展注册的 shape，全部走同一个 Widget 路径。自动化测试全部无头运行，看不到终端：确认 Widget 出现在编辑器下方并与原生 statusline 共存的真实 OMP TUI 会话是发布要求，按发布提交运行并评审后才可打标签，不进入单元测试套件。
 
 ## 考虑过的替代方案
 
@@ -114,11 +120,17 @@ context Provider 的文本配有一个字形，表示上下文大概进入了 OM
 
 **用一个带显示开关的 Provider 代替独立指标 Provider。** 单个 Provider 加按指标开关会重复 `statuses` 已经提供的选择和排序能力，两个机制还可能对显示哪些指标、按什么顺序各执一词。独立 Provider 让一个结构同时完成选择和排序。
 
+**从会话总量中减去带外记录。** 这会把会话统计保留为基数。该总量不提供按用途拆分，减法只能遍历直接求和读取的同一分支、分类同一批记录，再从已经包含它们的总量中减去。结果会依赖必须持续一致的两侧：总量决定基数，分类决定修正值；宿主任何一侧发生变化都会留下 Package 无法解释的残差。
+
+**保留会话统计，另加一项带外流量读数。** 这保留所有现有数字，并在旁边报告被排除的量。它让使用者用来对照对话自身成本的读数继续失真，并要求使用者用一项读数减去另一项，才能还原对话的用量。
+
+**把修正后的口径挂在一次上游变更上。** OMP 可以让判定调用报告真实的 cache 字段，或者提供按用途拆分。这两者都不在 Package 控制范围内，也没有承诺，读数会在未知长度的时期内持续失真。
+
 ## 结果
 
 Host 负责清理、组合、截断和 Widget 生命周期，Provider 保持很小，也无法破坏整行。第三方扩展获得一个稳定、带版本的合同来增加 Provider，不需要触碰 Host。
 
-Package 与 OMP 公开的 Widget、上下文用量和压缩解析 API 在 18.x 范围内耦合。每次发布打标签前都用真实 TUI 检查验证该范围，因为自动化测试全部无头运行，看不到终端。
+Package 与 OMP 公开的 Widget、上下文用量和压缩解析 API 耦合。它只声明维护下限、不设维护上限，这表达的是维护承诺，而不是后续每个版本都可用；实际验证过的版本与场景与这一声明并列记录在组件文档中。每次发布打标签前都会在它所针对的宿主上运行真实 TUI 检查，因为自动化测试全部无头运行，看不到终端。
 
 内置清单现在由 Package 使用文档持有。代码和该文档必须一起变更；只改一侧会让公布的清单失真。
 
@@ -127,3 +139,9 @@ Package 与 OMP 公开的 Widget、上下文用量和压缩解析 API 在 18.x �
 已回答请求次数跟随会话所持有的分支，因此回退会让它下降，会话绑定后显示的数值也可能比绑定前记录的数值少一。这两种情况都是预期结果。
 
 Package 不为纯文本合同、`tokens` ID、金额显示或任意 separator 保留兼容层。
+
+token 读数与缓存命中率描述的是对话而不是会话。OMP 自身的 statusline 和任何成本报告仍包含带外流量，因此该行与那些读数按设计不同；使用文档在公式旁写明口径与被排除的记录。
+
+宿主若不再把 `task` 用量报告在工具结果上，或改用另一种形态记录对话用量，读数就会少计而没有任何测试察觉，因为测试固定的是当下读取的形态。这类变化最先表现为读数不再符合对话，通过使用者报告或通过真实账本上的发布 TUI 检查到达 Package。
+
+每次采样都要遍历分支，因此开销按采样节奏随会话条目数增长。遍历只读取需要的字段，并且每 tick 对五项读数至多执行一次。

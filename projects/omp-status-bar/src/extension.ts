@@ -13,8 +13,10 @@
  *    the bound sources and turn state belong to the UI session that shares this
  *    process.
  * 2. Seed the turn state from the branch the session now holds, and bind the
- *    data sources (usage statistics, context usage, model, compaction settings)
- *    to the shared snapshot store.
+ *    data sources (conversation usage, context usage, model, compaction
+ *    settings) to the shared snapshot store. Conversation usage is summed from
+ *    that same branch, so the token metrics exclude out-of-band `model_usage`
+ *    records such as the Find judgment cascade.
  * 3. Create the Host with an environment backed by this extension context, and
  *    start it (config read + provider creation + widget mount).
  *
@@ -45,6 +47,7 @@
 import { join as joinPath } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@oh-my-pi/pi-coding-agent";
 import { StatusBarHost, type HostEnvironment } from "./host.ts";
+import { sumConversationUsage } from "./conversation-usage.ts";
 import { registerBuiltinProviders } from "./providers/bundled.ts";
 import { bindSessionSources, unbindSessionSources, type CompactionSettingsShape } from "./snapshot-store.ts";
 import { countSuccessfulResponses, getTurnSample, setTurnSample, SUCCESSFUL_STOP_REASONS } from "./turn-state.ts";
@@ -155,7 +158,7 @@ export default function statusBarController(pi: ExtensionAPI): void {
     // instead of an empty row.
     reseedTurnCount(ctx);
     bindSessionSources({
-      getUsageStatistics: () => ctx.sessionManager.getUsageStatistics(),
+      getConversationUsage: () => sumConversationUsage(ctx.sessionManager.getBranch()),
       getContextUsage: () => ctx.getContextUsage(),
       getModel: () => ctx.model,
       getCompactionSettings: readCompactionSettings,

@@ -7,7 +7,7 @@
  *
  * - Token metrics (`total`, `input`, `cache`, `output`, `cache-hit`) share a
  *   subscription count; with at least one subscriber, each tick calls
- *   `getUsageStatistics()` at most once.
+ *   `getConversationUsage()` at most once.
  * - The `context` metric subscribes separately; with a subscriber, each tick
  *   reads `getContextUsage()`, the model, and the compaction settings group.
  *
@@ -20,7 +20,7 @@
  * publication cannot change the active snapshot without a new sample.
  */
 
-/** Usage statistics the Host cares about; mirrors OMP's `UsageStatistics` fields in scope. */
+/** Conversation token totals the token metrics publish; see `conversation-usage.ts`. */
 export interface UsageStats {
   readonly input: number;
   readonly cacheWrite: number;
@@ -71,7 +71,7 @@ export interface ModelSample {
 
 /** Session sources the sampler reads; the extension binds these to the live ctx. */
 export interface SnapshotSources {
-  getUsageStatistics(): UsageStats;
+  getConversationUsage(): UsageStats;
   getContextUsage(): ContextUsageSample | undefined;
   getModel(): ModelSample | undefined;
   getCompactionSettings(): Partial<CompactionSettingsShape> | undefined;
@@ -309,7 +309,7 @@ export class SnapshotStore {
       let raw: UsageStats;
       try {
         // One call per tick feeds every token metric.
-        raw = sources.getUsageStatistics();
+        raw = sources.getConversationUsage();
       } catch (error) {
         this.onSamplerError?.(error);
         return false;

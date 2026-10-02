@@ -60,7 +60,7 @@ describe("snapshot integration", () => {
     let statsCalls = 0;
     let tokens = 1000;
     const sources: SnapshotSources = {
-      getUsageStatistics: () => {
+      getConversationUsage: () => {
         statsCalls++;
         return { input: 1, cacheWrite: 0, cacheRead: 0, output: 1 };
       },

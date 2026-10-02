@@ -3,7 +3,7 @@
  *
  * The metric providers (`total`, `input`, `cache`, `output`, `cache-hit`, and
  * `context`) read the session-scoped shared snapshot (`src/snapshot.ts`), so
- * one 600 ms sampler feeds every instance and `getUsageStatistics()` is called
+ * one 600 ms sampler feeds every instance and `getConversationUsage()` is called
  * at most once per tick. The `turn` provider reads the turn state
  * (`src/turn-state.ts`) instead: that state is event-driven, and configuring
  * only `turn` starts no sampler. Providers never touch OMP UI; they publish

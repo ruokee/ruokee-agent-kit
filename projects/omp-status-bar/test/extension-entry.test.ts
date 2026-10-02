@@ -75,7 +75,7 @@ class ExtensionHarness {
   readonly repaints: unknown[] = [];
   #ctx?: unknown;
   #omp?: unknown;
-  #metrics = { percent: 42, totalTokens: 12_300, cost: 0.42 };
+  #metrics = { percent: 42, totalTokens: 12_300 };
   /** When true the next context-usage read throws; drives sampler-error tests. */
   usageThrows = false;
   /** The compaction group served by the injected Settings stub; undefined = uninitialized. */
@@ -92,7 +92,7 @@ class ExtensionHarness {
     writeFileSync(path.join(this.agentDir, "omp-status-bar.yml"), configYaml);
     this.hasUI = options.hasUI ?? true;
     if (options.totalTokens !== undefined) {
-      this.setMetrics(this.#metrics.percent, options.totalTokens, this.#metrics.cost);
+      this.setMetrics(this.#metrics.percent, options.totalTokens);
     }
   }
 
@@ -133,21 +133,25 @@ class ExtensionHarness {
         input: ["text"],
       },
       sessionManager: {
-        // The shared sampler reads the four token buckets; the harness
-        // derives them from totalTokens so tests drive one number.
-        getUsageStatistics: () => {
-          const tokens = this.#metrics.totalTokens;
-          const input = Math.round(tokens * 0.8);
-          return {
-            input,
-            cacheWrite: 0,
-            cacheRead: tokens - input,
-            output: 0,
-            totalTokens: tokens,
-            cost: this.#metrics.cost,
-          };
-        },
-        getBranch: () => this.branch,
+        // The shared sampler sums conversation usage from the branch. The
+        // harness appends one assistant message derived from totalTokens so
+        // tests drive a single number; it carries no stop reason, so it never
+        // moves the turn count seeded from the same branch.
+        getBranch: () => [
+          ...this.branch,
+          {
+            type: "message",
+            message: {
+              role: "assistant",
+              usage: {
+                input: Math.round(this.#metrics.totalTokens * 0.8),
+                cacheWrite: 0,
+                cacheRead: this.#metrics.totalTokens - Math.round(this.#metrics.totalTokens * 0.8),
+                output: 0,
+              },
+            },
+          },
+        ],
       },
       setInterval: (callback: () => void) => {
         const record: IntervalRecord = { callback, cleared: false };
@@ -258,8 +262,8 @@ class ExtensionHarness {
     }
   }
 
-  setMetrics(percent: number, totalTokens: number, cost: number): void {
-    this.#metrics = { percent, totalTokens, cost };
+  setMetrics(percent: number, totalTokens: number): void {
+    this.#metrics = { percent, totalTokens };
   }
 
   dispose(): void {
@@ -310,7 +314,7 @@ describe("extension entry lifecycle", () => {
       const component = h.mountWidget() as { render: (width: number) => string[] };
       expect(component.render(120).join("")).toContain("ctx 42%");
       h.repaints.length = 0;
-      h.setMetrics(90, 45_000, 1.25);
+      h.setMetrics(90, 45_000);
       // Drive the real OMP-managed interval callbacks: both the token
       // metrics and the context line refresh, and the repaint goes through
       // the tui captured at mount.
@@ -349,7 +353,7 @@ describe("extension entry lifecycle", () => {
       // 150_000 tokens sit inside the speculation band [140_000, 160_000),
       // so injected compaction settings make the context provider publish
       // its indicator instead of staying hidden.
-      h.setMetrics(95, 150_000, 1.5);
+      h.setMetrics(95, 150_000);
       for (const record of h.intervals) {
         record.callback();
       }
@@ -377,7 +381,7 @@ describe("extension entry lifecycle", () => {
       // off) and the icon stays hidden at any usage level.
       await h.emitStart();
       const component = h.mountWidget() as { render: (width: number) => string[] };
-      h.setMetrics(95, 150_000, 1.5);
+      h.setMetrics(95, 150_000);
       for (const record of h.intervals) {
         record.callback();
       }
@@ -409,7 +413,7 @@ describe("extension entry lifecycle", () => {
       h.settingsInstance = { name: "opaque" };
       await h.emitStart();
       const component = h.mountWidget() as { render: (width: number) => string[] };
-      h.setMetrics(95, 150_000, 1.5);
+      h.setMetrics(95, 150_000);
       // Several sampler ticks: a bounded report must not repeat per tick.
       for (let tick = 0; tick < 5; tick++) {
         for (const record of h.intervals) {
@@ -449,7 +453,7 @@ describe("extension entry lifecycle", () => {
       };
       await h.emitStart();
       const component = h.mountWidget() as { render: (width: number) => string[] };
-      h.setMetrics(95, 150_000, 1.5);
+      h.setMetrics(95, 150_000);
       for (let tick = 0; tick < 3; tick++) {
         for (const record of h.intervals) {
           record.callback();
@@ -483,7 +487,7 @@ describe("extension entry lifecycle", () => {
       };
       await h.emitStart();
       const component = h.mountWidget() as { render: (width: number) => string[] };
-      h.setMetrics(95, 150_000, 1.5);
+      h.setMetrics(95, 150_000);
       for (const record of h.intervals) {
         record.callback();
       }
@@ -519,7 +523,7 @@ describe("extension entry lifecycle", () => {
       // The sampler keeps running: recover the getter and the next tick
       // publishes again.
       h.usageThrows = false;
-      h.setMetrics(90, 12_300, 0.42);
+      h.setMetrics(90, 12_300);
       for (const record of h.intervals) {
         record.callback();
       }
@@ -680,7 +684,7 @@ describe("extension entry lifecycle", () => {
     const store = getSnapshotStore();
     const listener = () => {};
     try {
-      main.setMetrics(42, 500, 0.4);
+      main.setMetrics(42, 500);
       await main.activate();
       await main.emitStart();
       expect(main.widgetFactories.length).toBe(1);
@@ -695,7 +699,7 @@ describe("extension entry lifecycle", () => {
       expect(child.widgetFactories.length).toBe(0);
       expect(child.intervals.length).toBe(0);
       expect(store.sample().stats?.input).toBe(400);
-      main.setMetrics(42, 700, 0.4);
+      main.setMetrics(42, 700);
       expect(store.sample().stats?.input).toBe(560);
 
       await child.emitSwitch("resume");
@@ -704,7 +708,7 @@ describe("extension entry lifecycle", () => {
       // Shutdown must not unbind sources this activation never bound.
       await child.emitShutdown();
       expect(store.sample().stats?.input).toBe(560);
-      main.setMetrics(42, 900, 0.4);
+      main.setMetrics(42, 900);
       expect(store.sample().stats?.input).toBe(720);
       expect(main.widgetFactories.length).toBe(1);
       expect(child.diagnostics).toEqual([]);
@@ -863,7 +867,7 @@ describe("extension entry lifecycle", () => {
       expect(h.widgetFactories).toHaveLength(0);
       expect(h.intervals.every((timer) => timer.clearCalled)).toBe(true);
       await h.emitStart();
-      h.setMetrics(71, 5000, 0.1);
+      h.setMetrics(71, 5000);
       for (const timer of h.intervals.filter((timer) => !timer.clearCalled)) timer.callback();
       const component = h.mountWidget() as { render(width: number): string[] };
       expect(component.render(120).join("")).toContain("ctx 71%");
