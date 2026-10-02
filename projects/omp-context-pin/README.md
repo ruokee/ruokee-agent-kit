@@ -56,6 +56,20 @@ The extension pins text that a user or an Agent supplies. It does not read files
 
 An empty body is refused, and an accepted body keeps every character and all whitespace exactly.
 
+### Agent usage
+
+Use pins proactively when losing context across compaction or interruption could change later action. Decisions, permissions, restrictions, roles, destinations, recovery pointers, current conclusions, blockers and next steps can warrant a pin. Without an explicit requirement, skip short answers and easily recovered information that has no effect on later decisions. Explicit user, project or workflow requirements for content and timing take precedence.
+
+Keep independently changing topics separate according to their lifetime and update rate. Update an existing topic rather than create an equivalent copy, but do not merge unrelated topics to avoid duplicates. A small, coherent topic can stay in one entry; there is no required entry count. For example, keep a stable task goal and permissions separate from a changing candidate, blocker and next step. A candidate change then replaces only the work-state body.
+
+Headings within one body do not make topics independently updatable; use separate entries from the first write when those topics change independently. Acknowledging a change in chat does not synchronize its Pin. A replacement body must carry forward every still-valid condition and protected quotation. A new candidate or next step does not expand permissions.
+
+Update only entries whose meaning or actionable state changed. Correct revoked permissions, restrictions, stop conditions and invalid destinations before continuing affected actions. Combine ordinary changes within a turn, and preserve the latest recovery-relevant state before a handoff, wait or turn end. Reads and routine commands that leave effective state unchanged do not warrant a rewrite. Neither a new request nor compaction or recovery alone warrants repeating an unchanged body.
+
+Every update sends the complete replacement body, not a diff, so larger entries cost more output on each update. Keep essential constraints, current conclusions and clear recovery pointers rather than process logs or version histories. References require rereading; the tool does not load them. Preserve facts, conditions, obligations, negations, exceptions, uncertainty and text the user requires verbatim. A candidate change does not resolve uncertainty or withdraw a condition the user still requires. Keep that recovery information in the active pin set, not only in chat history.
+
+Do not repeat a write already accepted through `/ctx-pin` or create an equivalent active entry. Retire obsolete or superseded information, while keeping completion reminders that prevent repeated work. After compaction or interruption, use the latest effective branch state and necessary current sources. Pinning gives text no additional authority, does not restart completed work and does not restore old permissions.
+
 ## Records and revisions
 
 The operation records in the session journal are canonical state. Each record is one journal entry of the custom type `omp-context-pin` with this payload:
@@ -130,6 +144,8 @@ The minimum maintained OMP version is `18.1.8`, with no upper maintenance bound.
 The package declares `@oh-my-pi/pi-coding-agent` and `@oh-my-pi/pi-tui` as unrestricted host peers (`*`). These declarations name host dependencies; they do not define a maintenance range or guarantee compatibility with every host version.
 
 The automated type check and the test suite run against host version `18.2.8`. The interactive runs of the component used `18.1.16`; a real OMP CLI `18.2.8` session loaded this extension, registered its tool and command, and completed one read/write check. These observations cover only the versions and scenarios tested.
+
+Real OMP CLI `18.4.4` runs exercised the usage guidance, accepted user writes, independent entry maintenance, committed compaction and restart from a saved session. The scenarios included explicit requirements and default selection; they do not guarantee every model choice or establish net Token savings.
 
 Before registering anything, each activation checks the host's public API: the functions this component calls to register its tool and command, observe events, append its records, and deliver messages, the schema builders the tool uses, and the logger that reports a diagnostic. The reported version takes no part in refusing a host: one that passes the required-member check enters the registration flow. An activation that finds a missing member registers nothing and, when the host provides a usable logger, logs one bounded warning that names it; without a usable logger it registers nothing and cannot report the problem.
 
