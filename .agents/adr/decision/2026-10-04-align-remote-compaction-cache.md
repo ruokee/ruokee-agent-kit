@@ -1,16 +1,16 @@
-# ADR decision: Add configurable OMP quality-of-life adjustments
+# ADR decision: Maintain OMP quality-of-life adjustments with remote compaction cache alignment
 
 Decision owner: Ruokee
-Decision writer: deepseek/deepseek-v4.1-flash
-Reverses: [Add configurable OMP quality-of-life adjustments](../archived/2026-09-21-reuse-a-matching-compaction-patch.md)
-Archived: 2026-09-28
-Reversed by: [Maintain the OMP quality-of-life adjustments across OMP host upgrades](./2026-09-28-maintain-omp-qol.md)
+Decision writer: pro-20x/gpt-6-astra
+Reverses: [Maintain the OMP quality-of-life adjustments across OMP host upgrades](../archived/2026-09-28-maintain-omp-qol.md)
 
-English | [中文](./2026-09-22-recover-interrupted-turns.zh.md)
+English | [中文](./2026-10-04-align-remote-compaction-cache.zh.md)
 
 ## Motivation
 
-The first-party `omp-qol` extension provides independently configurable adjustments that reduce repeated empty waits, recover eligible failed turns within limits, and optionally extend the compaction deadline. A hub `wait` returns an empty window while the background work it watches is still running, so the model must ask again and each empty return costs a turn. A turn that ends with an upstream error stays settled even when the error is transient, because the native retry budget was exhausted or the error fell outside it. A remote compaction request is cut off at a fixed request deadline, and the compaction falls back instead of finishing.
+Maintain `@ruokee/omp-qol` with independently switchable wait, recovery, compaction deadline, native replay, and remote compaction cache adjustments across host upgrades.
+
+The original four adjustments are: a hub `wait` that keeps waiting to a total deadline, a bounded continuation after an eligible model error, an opt-in extension of the remote compaction deadline, and a process-wide wrapper that keeps a resumed process's first request in the provider's native history form. A hub `wait` returns an empty window while the background work it watches is still running, so the model must ask again and each empty return costs a turn. A turn that ends with an upstream error stays settled even when the error is transient, because the native retry budget was exhausted or the error fell outside it. A remote compaction request is cut off at a fixed request deadline, and the compaction falls back instead of finishing. A resumed process otherwise re-encodes the history it replays, and the wrapper keeps that first request in the native replay form. Remote compaction also serializes its input separately from online requests, which can shorten their reusable prompt-cache prefix. Cache alignment reuses a confirmed online prefix without taking over the compaction protocol. Each adjustment selects the implementation a given host needs.
 
 ## Analysis
 
@@ -26,9 +26,9 @@ This decision defines the first-party `omp-qol` component, the responsibility sp
 
 ### Component and scope
 
-Add `projects/omp-qol/`, named `@ruokee/omp-qol`, under the [first-party capability boundary](../decision/2026-08-20-establish-first-party-capability-kit.md) and the [self-contained component contract](../decision/2026-08-24-keep-components-self-contained.md). One package carries three independently switchable modules: continuing hub waits, continuation after an eligible model error, and the experimental compaction deadline extension. One installation, one configuration entry, and one set of checks cover all three, while each module keeps its own switch, availability status, and failure reporting.
+Add `projects/omp-qol/`, named `@ruokee/omp-qol`, under the [first-party capability boundary](./2026-08-20-establish-first-party-capability-kit.md) and the [self-contained component contract](./2026-08-24-keep-components-self-contained.md). One package carries five independently switchable modules: continuing waits, continuation after an eligible model error, the experimental compaction deadline extension, native history replay, and remote compaction cache alignment. One installation, one configuration entry, and one set of checks cover them, while each module keeps its own switch, availability status, and failure reporting.
 
-Configure the component through OMP plugin settings only, following the [native settings decision](../decision/2026-09-10-use-codex-web-plugin-settings.md), with OMP owning values, project overrides, and parsing. Waiting and conservative error recovery are enabled by default; the compaction extension is explicitly opt-in. A module reports its effective state and the reason it is inactive, and a fault in one module does not disable the others. A rejected setting is named by key and rule without echoing its value.
+Configure the component through OMP plugin settings only, following the [native settings decision](./2026-09-10-use-codex-web-plugin-settings.md), with OMP owning values, project overrides, and parsing. Waiting, conservative error recovery, and native history replay are enabled by default; the compaction deadline and cache adjustments are explicitly opt-in. A module reports its effective state and the reason it is inactive, and a fault in one module does not disable the others. A rejected setting is named by key and rule without echoing its value.
 
 Keep the component limited to these behavior adjustments. External tool guards, including Herdr guards, and unrelated host behavior stay outside it. Installation and migration remain with the user: the component does not modify existing extensions, user configuration, or installed host files.
 
@@ -51,7 +51,7 @@ The exclusions and the terminal-client-status rule keep precedence, so an exclud
 
 This adds no setting: `recoveryEnabled`, `recoveryMode`, the attempt and backoff keys, the fixed continuation body, and the chain rules keep their meaning, and the module and the host each keep their own cap. The component version moves with the new eligibility.
 
-### Compaction experiment and its replacement
+### Compaction deadline experiment and host selection
 
 Offer the compaction deadline extension as a default-off experiment: a bounded, process-wide timeout adjustment installed through a global registry, preserving the native compaction protocol, history replacement, retries, and fallback.
 
@@ -65,21 +65,48 @@ When the installing activation ends its session, the process does not leave the 
 
 The component reports the compaction state from the process registry when it is queried instead of repeating one activation's result. While this module's wrapper is installed by another activation, the status reports ownership; once that activation stops the patch, the status reports the recorded reason; if another extension replaced `AbortSignal.timeout`, it reports `patch-overwritten`. A session never keeps showing `enabled` for a patch it cannot drive.
 
-When OMP provides a supported request-level timeout setting or hook, use that interface and retire the global mechanism. Two owners of the same deadline policy are not kept.
+The deadline implementation is selected by the host at hand. Where a host provides an equivalent request-level timeout setting or hook, the user-visible result, the configuration, and the failure behavior are compared first, and that interface is used instead of installing the wrapper. A host that is still maintained and has no equivalent interface keeps the implementation that provides the deadline, so the experiment above remains the implementation there. One runtime keeps one owner of the deadline policy: while the native interface is in use, no process-wide wrapper is installed beside it.
+
+### Keep a resumed process's first request in the native replay form
+
+`omp-qol` ships `replay`, an independently switchable module that keeps a resumed process's first request in the native replay form. Its switch is `replayEnabled`, on by default under the component's master `enabled`. It installs one process-wide wrapper over `Map.prototype.set` that sets `nativeHistoryReplayWarmed` on the state the host creates for an `openai-responses` provider; every other write reaches the replaced function unchanged. `/qol` reports the module with its effective switch and the number of state writes the wrapper rewrote.
+
+Its ownership follows from having no window. The effect is process-wide and does not depend on the activation that installed the wrapper, so a later activation with the same package version and the module enabled keeps it and reports the module as `enabled`, rather than the `patch-owned-elsewhere` result the compaction experiment reports for a patch it cannot drive. The wrapper stays installed when the installing activation's session ends, because a state it warmed belongs to a session that may still be running and because the next session in that process would otherwise return to the re-encode form. An activation whose effective settings keep the module off, or whose settings could not be read or were rejected, releases the wrapper and reports the reason; `patch-overwritten` reports a function another extension replaced afterwards. The module refuses to install, with a reason, when the registry slot holds a layout this version cannot read or when the runtime did not take the wrapper. The compaction experiment keeps its own release rule and its own terminal state.
+
+The adjustment's measured effect, the host details it depends on, and its limits are in the component's `docs/adjustments.md`.
+
+### Remote compaction cache alignment
+
+Provide an independently switchable cache module using native OMP plugin settings. It is off by default and requires an explicitly selected provider name. The provider selection is user configuration, not a checked-in endpoint, credential, or machine profile. The maintained behavior covers that provider's non-Codex `openai-responses` V2 requests in the owning main session. Other APIs, providers, sessions, and unrecognized request shapes keep native behavior.
+
+The module retains one preceding provider payload in memory and confirms that it reached the actual online transport unchanged. It may reuse tool definitions and a proven shared input prefix, including recognized host envelopes and replay identifier differences, while preserving the compaction-only tail, trigger, opaque data, explicit tool choice, cache key, routing, and model policy. Any unrecognized difference leaves the complete request unchanged. It never invents a second serializer or modifies the provider response or stored history.
+
+#### Ownership and lifecycle
+
+Use one process-owned set of wrappers over `fetch`, native signal composition, and the public manual compaction method. An operation belongs to the session identified by the event and its signal lineage, not to a time window. Preserve original signals, reasons, return values, promise identity, native retries, and fallback. Clear manual ownership only when the native operation settles; a failed transport attempt is not the end of that operation.
+
+A matching later activation keeps the existing owner without installing or driving another wrapper and reports that it is not the owner. Conflicting settings or an unusable activation stop this module's rewriting. Owner shutdown, session navigation, overlapping operations, and overwritten wrappers stop rewriting and report a bounded reason. Restore only functions still owned by this module; no activation takes over a released owner during the same process lifetime.
+
+Enabling the module accepts the loss of speculative compaction in its owning session. Turning the setting off takes effect after restarting OMP and avoids registering the hook. `/qol` reports the effective switch, ownership or refusal reason, and rewrite count. No request-body logging, trial environment variables, sampling commands, or special rate-limit abort policy ships with the module.
+
+When an equivalent maintained native request-preparation interface becomes available, use it instead of the wrappers. The component documentation records the source baseline and the limits of observed cache benefits.
 
 ### Documentation and version evidence
 
 Document each adjustment in the component's own `docs/` in English and Chinese, linked from both README files: the native behavior and what happens with the extension off, why the adjustment is needed and which native configuration or hook was checked, where it attaches and how configuration changes it, its side effects, cancellation, and failure behavior, the upstream change that would make it unnecessary, the source baseline with the OMP version and commit, the versions actually verified for automated checks and for real OMP CLI runs, and the applicability limits.
 
-Verified claims stay separate per adjustment. A package-wide peer range is metadata about the host API and is not verification of any adjustment, and reading the source is not a run. Items without a real-session run are documented as unverified.
+Verified claims stay separate per adjustment. The component README compatibility section declares the maintenance lower bound and is that bound's authoritative statement, with no maintenance upper bound: a host below the bound is not blocked and gains no maintenance commitment, and raising the bound is its own decision under [the host upgrade decision](./2026-09-28-adapt-components-to-host-upgrades.md). The host peer declarations name the host packages the component imports without a version range; they add no install or activation condition and are not the maintenance range. A package-wide peer range is metadata about the host API and is not verification of any adjustment, and reading the source is not a run. Items without a real-session run are documented as unverified.
 
 ## Alternatives considered
 
-- **Separate extension packages per adjustment.** Considered while assessing packaging. Independent releases and independent failures are the gain; configuration, compatibility, migration, and checks spread across three installations are the cost, and the three adjustments share one host baseline. One package keeps those entry points together.
+- Keep the accepted local experiment without installing it. Considered when choosing between a trial result and a reusable QoL feature. It avoids adding a maintained host adaptation but does not make the repair available to ordinary projects.
+- Wait for an upstream request-preparation fix. Considered while assessing whether public extension events alone could preserve the online prefix. It avoids process-wide wrappers and the speculative-compaction cost, but leaves the mismatch in the current host. An equivalent maintained native interface should replace the wrappers when available.
+
+- **Separate extension packages per adjustment.** Considered while assessing packaging. Independent releases and independent failures are the gain; configuration, compatibility, migration, and checks spread across four installations are the cost, and the four adjustments share one host baseline. One package keeps those entry points together.
 - **A dedicated configuration file with its own parser.** Considered while choosing a configuration source. The required settings fit OMP plugin settings, so a separate parser, precedence rule, and update path would add maintenance without a capability the adjustment needs.
 - **Replacement of the native compaction flow.** Considered while judging how much control the deadline needs. It gives direct control over the request options, but transfers the compaction protocol, history replacement, retry, and fallback paths to this component, including the paths that produce the summaries the session depends on.
-- **Deferral of the compaction adjustment until OMP exposes a request-level interface.** Considered while assessing isolation. It avoids process-wide effects and keeps maintenance small, but leaves the fixed deadline in place; this decision instead makes the bounded global mechanism an explicit, disabled experiment with the replacement condition above.
-- **Only documenting the three limitations without an extension.** Considered before proposing a component. It adds no code and no compatibility surface, but leaves each case to repeated user or model intervention, which is what the adjustments exist to reduce.
+- **Deferral of the compaction adjustment until OMP exposes a request-level interface.** Considered while assessing isolation. It avoids process-wide effects and keeps maintenance small, but leaves the fixed deadline in place; this decision instead keeps the bounded global mechanism as an explicit, disabled experiment and compares a native interface against it when a host provides one.
+- **Only documenting these limitations without an extension.** Considered before proposing a component. It adds no code and no compatibility surface, but leaves each case to repeated user or model intervention, which is what the adjustments exist to reduce.
 - **Keep the ownership rule and document its consequence.** Considered when deciding whether to change the component. It leaves every live process without the adjustment once a subagent starts, so the experiment would only ever apply to sessions that never delegate.
 - **Change the host so a session does not re-activate process-global extensions.** Considered when weighing where the fix belongs. Per-session binding is deliberate: each `Extension` closes over its own session's cwd, event bus, and runtime, and restricted children are the only path that loads no extensions. Changing that model affects every extension, not this adjustment, and this component cannot verify the result without rebuilding the host.
 - **Let the newest activation take over the wrapper.** Considered while choosing the conflict behavior. It would let a session whose settings differ from the installed snapshot replace the patch in place, which is the overriding this decision rejects.
@@ -95,7 +122,12 @@ Verified claims stay separate per adjustment. A package-wide peer range is metad
 
 ## Consequences
 
-- One component shares a release, a lockfile, and one check entry point across three adjustments. A host change that breaks one module also stops the component from being installed as a whole, and a single dependency upgrade affects all three.
+- Host changes can alter request envelopes, signal composition, or lifecycle events. A recognized subset may stop matching; an undetected change could reuse the wrong prefix and change model input.
+- Disabling speculative compaction can increase visible waiting time at the compaction threshold, even when the provider gives no cache benefit.
+- Process-wide wrappers can interact with another extension's wrappers. Identity checks and ownership-conditional restoration avoid overwriting another extension but can leave this adjustment inactive until restart.
+- Keeping the preceding request consumes memory proportional to the conversation and tool payload. It remains in process memory only and is released with the reference or owner.
+
+- One component shares a release, a lockfile, and one check entry point across five adjustments. A host change that breaks one module also stops the component from being installed as a whole, and a single dependency upgrade affects all five.
 - Automated checks cannot establish host behavior. Each adjustment needs its own real-session evidence, and the compaction experiment's benefit stays unproven until a remote compaction longer than the native deadline completes with usable model requests afterwards.
 - The adjustments depend on host details that carry no compatibility promise: the builtin tool description and the shape of an empty window, `stopReason: "error"` together with the public classifier and the `stopDetails.type` mark it writes for an interrupted turn, the identity of `AbortSignal.timeout`, and the order of compaction lifecycle events. The mark is compared by value and the statusless condition reads an absent field, so a host release that stops writing the mark, or starts carrying a status, silently narrows the accepted set instead of failing. Each module is written to stay inactive and say why rather than to guess, so a host upgrade can disable an adjustment without breaking the session, and the adjustment is trusted again only after a re-check.
 - Continuations re-send the conversation and spend provider quota, and a re-run turn can repeat a side effect from the failed turn. Bounded attempts, the fixed exclusion list, and the host cap reduce exposure without promising exactly-once behavior.
@@ -105,14 +137,14 @@ Verified claims stay separate per adjustment. A package-wide peer range is metad
 - A session that keeps the patch does not drive the window and gains no guarantee that its own compaction is extended. The status line and the documentation are the only places that say so, so a missing or cached status would read as a fully served session.
 - The effective settings snapshot is the only gate between an installed patch and a session that did not install it. A field added to the effective configuration without being added to that comparison widens reuse silently, and a session can be kept under a configuration it never chose.
 - After the installing activation exits, the process extends no compaction deadline until it restarts, and the status keeps reporting the released patch. That is the chosen terminal state: releasing the patch without letting a later activation install one costs the adjustment for the rest of that process's life.
-- Documentation is maintained against a fixed host baseline, so a host upgrade requires re-reading the cited source and updating the affected sections rather than widening the declared peer range.
+- Documentation is maintained against a fixed host baseline, so a host upgrade requires re-reading the cited source and updating the affected sections; editing the declared maintenance bound does not replace that work.
 
 ## Changes
 
-### 2026-09-22: a fourth module, native history replay
+### 2026-09-29: Select the wait entry by capability
 
-`omp-qol` also ships `replay`, a fourth independently switchable module that keeps a resumed process's first request in the native replay form. Its switch is `replayEnabled`, on by default under the component's master `enabled`. It installs one process-wide wrapper over `Map.prototype.set` that sets `nativeHistoryReplayWarmed` on the state the host creates for an `openai-responses` provider; every other write reaches the replaced function unchanged. `/qol` reports the module with its effective switch and the number of state writes the wrapper rewrote.
+The wait module selects the builtin entry the session exposes instead of comparing host versions. A builtin `hub` keeps the established behavior unchanged. When `hub` is absent, a builtin `wait` with the recognized empty object parameter structure is re-registered under its own name with one optional finite `timeout` in seconds, in `(0, 3600]`; native delegation receives `{}` only. A missing, foreign, or structurally unrecognized entry leaves native behavior in place with a bounded reason.
 
-Its ownership follows from having no window. The effect is process-wide and does not depend on the activation that installed the wrapper, so a later activation with the same package version and the module enabled keeps it and reports the module as `enabled`, rather than the `patch-owned-elsewhere` result the compaction experiment reports for a patch it cannot drive. The wrapper stays installed when the installing activation's session ends, because a state it warmed belongs to a session that may still be running and because the next session in that process would otherwise return to the re-encode form. An activation whose effective settings keep the module off, or whose settings could not be read or were rejected, releases the wrapper and reports the reason; `patch-overwritten` reports a function another extension replaced afterwards. The module refuses to install, with a reason, when the registry slot holds a layout this version cannot read or when the runtime did not take the wrapper. The compaction experiment keeps its own release rule and its own terminal state.
+On standalone `wait`, `waitJobsSeconds` is the default total deadline and explicit `timeout` overrides it. `waitEnabled` and `waitContinueEmptyWindows` still apply. `waitMessagesSeconds`, `waitProcessSeconds`, message-only continuation, named-process waiting, and service-only continuation have no equivalent on that entry and are reported as not applicable. Only a nonempty snapshot whose jobs are all still running can continue; messages, settled or absent jobs, errors, interruptions, cancellations, services, and unknown shapes return as native outcomes without text classification.
 
-The component releases as `0.3.0`, and the module's documentation, README pair, package description, and settings schema name it in the same change. The adjustment's measured effect, the host details it depends on, and its limits are in the component's `docs/adjustments.md`.
+Both entries share one monotonic total-deadline mechanism. The deadline aborts only the in-flight native window, never background work. A native result that still arrives wins, caller cancellation keeps its reason, and a rejection becomes a deadline result only when this call's own deadline elapsed and the host reported a recognized abort; unrelated native rejections remain errors. The standalone deadline result points to `wait` and `proc://`, which the host exposes. `/qol` names the selected entry and effective applicability. The capability ships in component version `0.4.1` and does not raise the minimum maintained host.

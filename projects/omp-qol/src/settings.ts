@@ -15,7 +15,7 @@
  */
 
 /** The modules this package can switch on and off. */
-export const MODULE_IDS = ["wait", "recovery", "compaction", "replay"] as const;
+export const MODULE_IDS = ["wait", "recovery", "compaction", "replay", "cache"] as const;
 export type ModuleId = (typeof MODULE_IDS)[number];
 
 /** Recovery eligibility modes. */
@@ -51,6 +51,8 @@ export const SETTINGS_DEFAULTS = {
   compactionWindowGuardMs: 3_600_000,
   compactionTimeoutNotify: true,
   replayEnabled: true,
+  compactionCacheEnabled: false,
+  compactionCacheProvider: "",
 } as const;
 
 /** Settings of the hub wait module. */
@@ -86,6 +88,12 @@ export interface ReplaySettings {
   enabled: boolean;
 }
 
+/** Settings of the opt-in remote compaction cache module. */
+export interface CacheSettings {
+  enabled: boolean;
+  provider: string;
+}
+
 /** One validated activation snapshot; modules read their own slice. */
 export interface QolSettings {
   /** Master switch: false keeps every module on native behavior. */
@@ -94,6 +102,7 @@ export interface QolSettings {
   recovery: RecoverySettings;
   compaction: CompactionSettings;
   replay: ReplaySettings;
+  cache: CacheSettings;
 }
 
 /** Why one key failed validation. Rules are named so diagnostics never echo a value. */
@@ -278,6 +287,17 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     SETTINGS_DEFAULTS.compactionTimeoutNotify,
   );
   const replayEnabled = readBoolean(raw, "replayEnabled", "replay", SETTINGS_DEFAULTS.replayEnabled);
+  const cacheEnabled = readBoolean(raw, "compactionCacheEnabled", "cache", SETTINGS_DEFAULTS.compactionCacheEnabled);
+  const provider = raw.compactionCacheProvider;
+  const cacheProvider: Read<string> =
+    provider === undefined
+      ? { ok: true, value: SETTINGS_DEFAULTS.compactionCacheProvider }
+      : typeof provider === "string"
+        ? { ok: true, value: provider }
+        : {
+            ok: false,
+            problem: { module: "cache", key: "compactionCacheProvider", rule: provider === null ? "null" : "type" },
+          };
 
   const reads: Read<unknown>[] = [
     waitEnabled,
@@ -297,6 +317,8 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     guardMs,
     compactionNotify,
     replayEnabled,
+    cacheEnabled,
+    cacheProvider,
   ];
   const problems: FieldProblem[] = [];
   for (const read of reads) if (!read.ok) problems.push(read.problem);
@@ -335,6 +357,10 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
       },
       replay: {
         enabled: replayEnabled.ok ? replayEnabled.value : SETTINGS_DEFAULTS.replayEnabled,
+      },
+      cache: {
+        enabled: cacheEnabled.ok ? cacheEnabled.value : SETTINGS_DEFAULTS.compactionCacheEnabled,
+        provider: cacheProvider.ok ? cacheProvider.value : SETTINGS_DEFAULTS.compactionCacheProvider,
       },
     },
   };

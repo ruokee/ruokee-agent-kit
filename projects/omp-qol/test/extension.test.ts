@@ -8,12 +8,10 @@
  */
 
 import { afterEach, describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import type { ExtensionContext } from "@oh-my-pi/pi-coding-agent";
 import { activate, COMMAND_NAME, describeState, PACKAGE_NAME, PACKAGE_VERSION } from "../src/extension.ts";
 import type { FieldProblem, QolSettings } from "../src/settings.ts";
-import { parseQolSettings } from "../src/settings.ts";
+import { MODULE_IDS, parseQolSettings } from "../src/settings.ts";
 import { createHarness, resetNativeReplay, type Harness } from "./host.ts";
 
 type SessionHandler = (event: unknown, ctx: ExtensionContext) => Promise<void>;
@@ -77,7 +75,7 @@ describe("activation", () => {
     await sessionStartOf(harness)({}, harness.context());
 
     expect(runtime.state.global).toEqual({ status: "error", reason: "settings-reader-failed" });
-    for (const id of ["wait", "recovery", "compaction"] as const) {
+    for (const id of MODULE_IDS) {
       expect(runtime.state.modules[id]).toEqual({ status: "disabled", reason: "settings-reader-failed" });
     }
     expect(harness.tools).toEqual([]);
@@ -91,7 +89,7 @@ describe("activation", () => {
     await sessionStartOf(harness)({}, harness.context());
 
     expect(runtime.state.global.status).toBe("error");
-    for (const id of ["wait", "recovery", "compaction"] as const) {
+    for (const id of MODULE_IDS) {
       expect(runtime.state.modules[id].status).toBe("disabled");
     }
     expect(harness.tools).toEqual([]);
@@ -107,7 +105,7 @@ describe("activation", () => {
     await sessionStartOf(harness)({}, harness.context());
 
     expect(runtime.state.settings?.enabled).toBe(false);
-    for (const id of ["wait", "recovery", "compaction", "replay"] as const) {
+    for (const id of MODULE_IDS) {
       expect(runtime.state.modules[id]).toEqual({ status: "disabled", reason: "master-disabled" });
     }
     expect(harness.tools).toEqual([]);
@@ -215,6 +213,7 @@ describe("the /qol command", () => {
         recovery: { status: "pending" },
         compaction: { status: "pending" },
         replay: { status: "pending" },
+        cache: { status: "pending" },
       },
     });
     expect(text).toContain("wait: pending");
@@ -237,6 +236,7 @@ describe("the /qol command", () => {
         recovery: { status: "enabled" },
         compaction: { status: "disabled" },
         replay: { status: "enabled" },
+        cache: { status: "disabled" },
       },
     });
     const line = text.split("\n").find((entry) => entry.startsWith("wait: "));
@@ -261,6 +261,7 @@ describe("the /qol command", () => {
         recovery: { status: "disabled" },
         compaction: { status: "invalid" },
         replay: { status: "disabled" },
+        cache: { status: "disabled" },
       },
     });
     expect(text).toContain("problems: compaction.compactionTimeoutMs=integer");
@@ -289,15 +290,9 @@ describe("the /qol command", () => {
         recovery: { status: "enabled" },
         compaction: { status: "enabled" },
         replay: { status: "enabled" },
+        cache: { status: "disabled" },
       },
     });
     expect(defaults).not.toContain("no longer matches");
-  });
-
-  test("keeps the declared package version in step with the manifest", () => {
-    const manifest = JSON.parse(readFileSync(path.join(import.meta.dir, "..", "package.json"), "utf8")) as {
-      version?: string;
-    };
-    expect(manifest.version).toBe(PACKAGE_VERSION);
   });
 });

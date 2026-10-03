@@ -1,5 +1,5 @@
 /**
- * Extension entry: one activation snapshot, four independently controlled
+ * Extension entry: one activation snapshot, independently controlled
  * modules, and the read-only `/qol` status command.
  *
  * The factory registers lifecycle handlers and the command; it writes no global
@@ -11,18 +11,19 @@
  * A settings read that fails, a root that is not an object, an unknown key, or a
  * wrong master-switch type keeps every module on native behavior; no module is
  * installed with a default value. Such an activation still stops the compaction
- * patch and the native-replay wrapper another activation left in the process,
- * because both own process-wide state that the unusable settings cannot account
+ * patch, cache wrappers, and native-replay wrapper left in the process,
+ * because they own process-wide state that unusable settings cannot account
  * for. A fault inside one module's keys disables that module only, and a module
  * that cannot register reports `incompatible` without touching its siblings.
  *
- * The `/qol` compaction and replay lines are resolved from their process
+ * The `/qol` compaction, cache, and replay lines resolve from their process
  * registries when the command runs, so a patch or wrapper that stops after this
  * activation is reflected in every session of the process.
  */
 
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "@oh-my-pi/pi-coding-agent";
 import { getPluginSettings as getPublicPluginSettings } from "@oh-my-pi/pi-coding-agent/extensibility/plugins";
+import { compactionCacheStatus, installCompactionCacheModule, stopForeignCompactionCache } from "./compaction-cache.ts";
 import {
   compactionStatusFromRegistry,
   installCompactionModule,
@@ -46,7 +47,7 @@ import {
 import { installWaitModule } from "./wait.ts";
 
 export const PACKAGE_NAME = "@ruokee/omp-qol";
-export const PACKAGE_VERSION = "0.4.1";
+export const PACKAGE_VERSION = "0.5.0";
 export const COMMAND_NAME = "qol";
 
 let activationSequence = 0;
@@ -137,11 +138,11 @@ function createInitialState(): QolState {
 
 /**
  * Modules consulted even while the master switch or their own keys keep them
- * off. The compaction experiment and the native-replay adjustment each own a
- * process-wide patch, so every activation must be able to see and stop one that
+ * off. The compaction, replay, and cache adjustments own process-wide patches,
+ * so every activation must be able to see and stop one that
  * its own configuration contradicts.
  */
-const CONSULTED_WHILE_OFF: ReadonlySet<ModuleId> = new Set<ModuleId>(["compaction", "replay"]);
+const CONSULTED_WHILE_OFF: ReadonlySet<ModuleId> = new Set<ModuleId>(["compaction", "replay", "cache"]);
 
 /** One line per module: status, reason, and the effective values of that module. */
 function describeModule(id: ModuleId, state: ModuleState, settings: QolSettings | undefined): string {
@@ -163,6 +164,8 @@ function describeModule(id: ModuleId, state: ModuleState, settings: QolSettings 
     const replay = settings.replay;
     return `${head} — enabled=${replay.enabled}`;
   }
+  if (id === "cache")
+    return `${head} enabled=${settings.cache.enabled} providerSelected=${settings.cache.provider.length > 0}`;
   const compaction = settings.compaction;
   const floorNote =
     compaction.floorMs > NATIVE_COMPACTION_TIMEOUT_MS
@@ -247,6 +250,7 @@ export function activate(pi: ExtensionAPI, readSettings: PluginSettingsReader = 
    * unusable.
    */
   const stopPatchFromUnusableSettings = (): void => {
+    stopForeignCompactionCache(runtimeId);
     const stopped = stopForeignCompactionPatch(runtimeId);
     if (stopped !== undefined) {
       report(
@@ -334,6 +338,7 @@ export function activate(pi: ExtensionAPI, readSettings: PluginSettingsReader = 
     state.modules.recovery = installModule("recovery", installRecoveryModule);
     state.modules.compaction = installModule("compaction", installCompactionModule);
     state.modules.replay = installModule("replay", installNativeReplayModule);
+    state.modules.cache = installModule("cache", installCompactionCacheModule);
   };
 
   pi.on("session_start", async (_event, ctx) => {
@@ -352,6 +357,7 @@ export function activate(pi: ExtensionAPI, readSettings: PluginSettingsReader = 
     describeState(state, PACKAGE_VERSION, (id, recorded) => {
       if (id === "compaction") return compactionStatusFromRegistry(runtimeId, recorded);
       if (id === "replay") return nativeReplayStatusFromRegistry(recorded);
+      if (id === "cache") return compactionCacheStatus(runtimeId, recorded);
       return recorded;
     });
 
@@ -369,7 +375,7 @@ export function activate(pi: ExtensionAPI, readSettings: PluginSettingsReader = 
   };
 }
 
-/** Module installers, filled in by the wait, recovery, compaction, and replay modules. */
+/** Activate the independently configured modules. */
 export default function ompQolExtension(pi: ExtensionAPI): void {
   activate(pi);
 }

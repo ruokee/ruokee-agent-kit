@@ -265,6 +265,46 @@ The extension replaces `Map.prototype.set` with a wrapper that keeps a reference
 - **Real OMP CLI**: OMP `18.2.4`, `pro-20x/gpt-5.6-luna` with high thinking, in a throwaway cwd that held only the sessions under test, each arm run as a new session followed by a `-c` resume. Both arms loaded the same `wait` and `recovery` source and differed only in this module: the released `0.2.1` extension carries no replay module, and the `0.3.0` extension under development installs it. The first request after a resume reported `19,968` cached and `1,002` uncached tokens with the module, and `17,920` cached and `2,971` uncached without it; the two request bodies differ as quoted above, while their `tools` and `instructions` digests are identical. An observer reading the process registry reported `installed=true`, `schema=1`, `packageVersion=0.3.0`, `rewrites=1` before the first request was built, and the wrapper still in place at session shutdown. An interactive session of the same extension printed `replay: enabled (rewrites=0) — enabled=true` from `/qol`. The paired resume was repeated with headless `--print` runs on OMP `18.4.3` and on the installed OMP `18.2.8`, `pro-20x/gpt-5.6-luna` with high thinking, in a throwaway cwd: one new session followed by two `-c` resumes of the same stored session that differed only in `replayEnabled`. On `18.4.3` the replayed first request carried `10` items including two `reasoning` items and reported `8704` cached against `1251` uncached input tokens, while the rebuilt one carried `8` items with no `reasoning` item and reported `6656` cached against `2746` uncached. On `18.2.8` a paired run of the same scenario reported `19968` cached against `668` uncached for the replayed request (`10` items, three of them `reasoning`) and `17920` cached against `2224` uncached for the rebuilt one (`7` items, no `reasoning`); the repeat run whose log is stored reported the same direction with `11` items and four `reasoning` against `7` items with none, `19968`/`1130` against `17920`/`2632`. Item counts follow the model's own reasoning items, so they differ between runs. The probe read the process registry in each arm: a component-owned `Map.prototype.set` with one rewrite when the module was on, and the native `set` with no registry entry when it was off. Not verified: the official OpenAI endpoint, codex responses, `/clear`, an interactive takeover, a post-compaction rebuild, and a stored history the endpoint rejects.
 - **Upstream history**: the flag and its guard arrived together with `8013be90c9` (2026-03-21). No later commit changing the flag or its read has been located.
 
+## Aligning remote compaction cache
+
+### Native behavior
+
+Non-Codex Responses V2 remote compaction builds a separate request from session context. Its shared history and tool definitions can differ from the preceding online request even when both requests describe the same conversation. The implementation is in [`packages/agent/src/compaction/compaction-v2-streaming.ts`](https://github.com/can1357/oh-my-pi/blob/d0cc52397dc2a68d39cba49b0009b9e50ffd643e/packages/agent/src/compaction/compaction-v2-streaming.ts).
+
+### Why adjust
+
+Those differences can prevent reuse of a previously cached prefix. The adjustment reuses the confirmed online request's representation where equivalence is established. It does not change cache keys, provider routing, model selection, or the provider's cache policy, and a rewrite does not prove a cache hit.
+
+### Where it attaches
+
+- `before_provider_request` retains the online request in memory. The `fetch` wrapper confirms that the same body actually reaches transport before it becomes an alignment reference.
+- `before_compact` binds the native operation's abort signal. An `AbortSignal.any` wrapper tracks derived signals without changing cancellation. Only an unambiguous active operation belonging to the owning main session may rewrite its V2 request.
+- Alignment requires matching top-level fields and tool identities. It reuses the complete online tool definitions, removes an implicit `tool_choice: "auto"` only when the online request omitted it, and aligns the shared input prefix across recognized reminder, steering, and replay representations. Unknown differences leave the whole request unchanged. Compaction-only tail items, opaque data, and required IDs remain intact.
+- A wrapper around public `AgentSession.compact` clears manual-operation ownership when its original promise settles. It returns that same promise and leaves native errors, retries, fallback, cancellation, and history commits to the host ([`agent-session.ts:6150–6153`](https://github.com/can1357/oh-my-pi/blob/d0cc52397dc2a68d39cba49b0009b9e50ffd643e/packages/coding-agent/src/session/agent-session.ts#L6150-L6153)).
+
+### Configuration and side effects
+
+The module is off by default. Set `compactionCacheProvider` to the exact provider identifier and enable `compactionCacheEnabled`, then restart OMP. See [Compaction cache](../README.md#compaction-cache).
+
+- Registering `before_compact` disables native speculative compaction on the documented host baseline ([`session-maintenance.ts:2057–2061`](https://github.com/can1357/oh-my-pi/blob/d0cc52397dc2a68d39cba49b0009b9e50ffd643e/packages/coding-agent/src/session/session-maintenance.ts#L2057-L2061)). This can move compaction latency into the foreground. The hook cannot be removed through the public API, so this cost remains until restart even if the transport wrapper stops.
+- The process retains an online body and computes comparison digests. It writes no request bodies, opaque data, credentials, or sampling logs to disk.
+- The wrappers affect process-wide entry points. Only one activation owns them. Another matching activation does not stack wrappers; a conflicting activation stops the owner. Navigation, shutdown, or an overwritten wrapper also stops the adjustment until restart. Cleanup restores only functions still owned by this module.
+- `/qol` reports the effective state, rewrite count, speculative-compaction cost, and a bounded skip reason. It does not report cache-hit rates.
+
+### Applicability and limits
+
+- One explicitly selected provider, `openai-responses`, non-Codex V2 remote compaction, and an identifiable main session. Missing host capabilities leave the module inactive.
+- The transport must use the expected endpoint, a POST with a string JSON body, and a signal traceable to the active native operation. `Request` objects, other bodies, uncertain ownership, stale references, and unknown request differences are forwarded unchanged.
+- The module does not enable compaction, replace the native builder, reconstruct opaque reasoning, or introduce response retries. It does not claim compatibility with every provider or other extension that patches these functions.
+
+### Version and verification
+
+- **Source and runtime baseline**: OMP `18.5.1`, commit `d0cc52397dc2a68d39cba49b0009b9e50ffd643e`.
+- **Historical provider measurement**: local trial `0.2.1`, two successful compactions per arm. Weighted cached-input share was `4.25%` without alignment and `98.31%` with alignment. One baseline `503` used native retry; no `429` occurred. These were nondeterministic conversations, not a four-session controlled study or a field-by-field causal result. These numbers are not a new measurement of QoL `0.5.0`.
+- **Lifecycle repair**: local trial `0.2.2` corrected manual-operation cleanup after terminal failure. Its separate verification covered seven core tests, fifteen guard scenarios, six native-maintenance scenarios, and four public-wrapper contract scenarios using synthetic HTTP.
+- **QoL `0.5.0`**: TypeScript checking passed against the locked OMP `18.2.8` development types. A real OMP `18.5.1` CLI run exercised native remote compaction with synthetic transport: three attempts, two aligned requests, terminal failure followed immediately by success, one native history commit, and restoration of owned wrappers. It made no provider calls. The complete test suite was not rerun for this release.
+- **Not measured for `0.5.0`**: new provider cache gains, the full remote/soft fallback sequence, the full installed-extension combination, concurrent live main sessions, other providers, or long-term reliability.
+
 ## Upstream references
 
 | Commit | Date | Change | Adjustment it explains |

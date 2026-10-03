@@ -1,7 +1,7 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.4.1",
-  "description": "OMP extension adjusting wait deadlines, model-error recovery, native-history replay, and the experimental remote compaction deadline",
+  "version": "0.5.0",
+  "description": "OMP adjustments for wait deadlines, model-error recovery, native-history replay, compaction deadlines, and remote compaction cache alignment",
   "license": "MIT",
   "type": "module",
   "keywords": [
@@ -125,6 +125,16 @@
         "type": "boolean",
         "default": true,
         "description": "Show a warning line when the experiment rewrites a deadline."
+      },
+      "compactionCacheEnabled": {
+        "type": "boolean",
+        "default": false,
+        "description": "Align owned Responses V2 compaction with the preceding online request. Disables speculative compaction in the owning session. Off by default."
+      },
+      "compactionCacheProvider": {
+        "type": "string",
+        "default": "",
+        "description": "Exact provider name eligible for compaction cache alignment. Empty keeps the module inactive."
       },
       "replayEnabled": {
         "type": "boolean",

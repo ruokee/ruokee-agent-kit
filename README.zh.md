@@ -47,7 +47,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 - **[omp-codex-web-access](./projects/omp-codex-web-access/README.zh.md)**：让 OMP 支持通过转发 Provider 使用 Codex 订阅，接入网页搜索与页面提取工具。
 - **[omp-system-prompt](./projects/omp-system-prompt/README.zh.md)**：将 OMP 默认系统提示词中的固定策略文本替换为维护的英文文本，同时保留动态运行时段落；识别失败时原样回退到宿主提示词。
 - **[omp-context-pin](./projects/omp-context-pin/README.zh.md)**：让少量固定条目在当前会话分支的每次普通模型请求中原样出现，并在每次提交后的压缩之后恢复这些条目。
-- **[omp-qol](./projects/omp-qol/README.zh.md)**：提供四项可独立开关的调整：在总期限内持续等待的 hub 等待、可续跑模型错误后的受限续跑、实验性的单个压缩期限延长，以及让恢复会话的首次请求沿用提供方原生历史的进程级包装。
+- **[omp-qol](./projects/omp-qol/README.zh.md)**：提供可独立开关的等待期限、模型错误后的受限续跑、实验性的压缩期限延长、原生历史重放，以及可选择启用的远端压缩缓存对齐。
 
 ## 安装
 

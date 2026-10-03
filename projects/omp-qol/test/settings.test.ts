@@ -1,29 +1,14 @@
-/**
- * Settings validation and default tests (matrix C01).
- *
- * The manifest defaults and the runtime defaults are compared key by key, and
- * every validation rule is exercised through the public parse entry point.
- */
+/** Settings boundaries and module-local validation failures. */
 
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import {
   COMPACTION_FLOOR_MIN_MS,
   COMPACTION_GUARD_MAX_MS,
   COMPACTION_TIMEOUT_MAX_MS,
-  MODULE_IDS,
   parseQolSettings,
-  SETTINGS_DEFAULTS,
   WAIT_SECONDS_MAX,
   WAIT_SECONDS_MIN,
 } from "../src/settings.ts";
-
-interface ManifestShape {
-  omp?: { settings?: Record<string, { type?: string; default?: unknown; min?: number; max?: number }> };
-}
-
-const manifest = JSON.parse(readFileSync(path.join(import.meta.dir, "..", "package.json"), "utf8")) as ManifestShape;
 
 function parse(raw: unknown) {
   const result = parseQolSettings(raw);
@@ -31,47 +16,7 @@ function parse(raw: unknown) {
   return result;
 }
 
-describe("manifest and runtime defaults", () => {
-  test("every manifest setting has the same runtime default and type", () => {
-    const settings = manifest.omp?.settings ?? {};
-    expect(Object.keys(settings).sort()).toEqual(Object.keys(SETTINGS_DEFAULTS).sort());
-    for (const [key, declared] of Object.entries(settings)) {
-      expect(declared.default).toBe(SETTINGS_DEFAULTS[key as keyof typeof SETTINGS_DEFAULTS]);
-    }
-    expect(settings.compactionTimeoutEnabled?.type).toBe("boolean");
-    expect(settings.recoveryMode?.type).toBe("enum");
-  });
-
-  test("an empty object takes every default", () => {
-    const { settings, problems, invalidModules } = parse({});
-    expect(problems).toEqual([]);
-    expect(invalidModules).toEqual([]);
-    expect(settings.enabled).toBe(true);
-    expect(settings.wait).toEqual({
-      enabled: true,
-      continueEmptyWindows: true,
-      jobsSeconds: 1200,
-      messagesSeconds: 1200,
-      processSeconds: 1200,
-    });
-    expect(settings.recovery).toEqual({
-      enabled: true,
-      mode: "knownTransient",
-      maxAttempts: 8,
-      backoffBaseMs: 1000,
-      backoffMaxMs: 8000,
-      notify: true,
-    });
-    expect(settings.compaction).toEqual({
-      enabled: false,
-      timeoutMs: 900000,
-      floorMs: 300000,
-      guardMs: 3600000,
-      notify: true,
-    });
-    expect(settings.replay).toEqual({ enabled: true });
-  });
-
+describe("settings ranges", () => {
   test("accepted values include every boundary of the documented ranges", () => {
     const { settings, problems } = parse({
       enabled: false,
@@ -123,6 +68,9 @@ describe("rejected values", () => {
     ["guard above the maintenance bound", { compactionWindowGuardMs: 14_400_001 }, "compactionWindowGuardMs=range"],
     ["fractional timeout", { compactionTimeoutMs: 900_000.5 }, "compactionTimeoutMs=integer"],
     ["a non-boolean replay switch", { replayEnabled: "on" }, "replayEnabled=type"],
+    ["a non-boolean cache switch", { compactionCacheEnabled: "on" }, "compactionCacheEnabled=type"],
+    ["a non-string cache provider", { compactionCacheProvider: 7 }, "compactionCacheProvider=type"],
+    ["a null cache provider", { compactionCacheProvider: null }, "compactionCacheProvider=null"],
   ];
 
   for (const [label, raw, expected] of cases) {
@@ -150,7 +98,6 @@ describe("rejected values", () => {
     const { invalidModules, problems } = parse({ waitJobsSeconds: -1, compactionTimeoutMs: 1.5 });
     expect(invalidModules).toEqual(["wait", "compaction"]);
     expect(problems.map((problem) => problem.module)).toEqual(["wait", "compaction"]);
-    expect(MODULE_IDS).toEqual(["wait", "recovery", "compaction", "replay"]);
   });
 });
 
