@@ -117,6 +117,13 @@ export const PROJECT_CRITICAL_EXACT = [
 // The rendered block ends at the close tag; any bytes after it (the blank
 // separator and the additional prompt) survive as the project remainder.
 const PROJECT_CRITICAL_BLOCK = PROJECT_CRITICAL_EXACT;
+const SUBAGENT_PROJECT_CRITICAL_BLOCK = [
+  "<critical>",
+  "- Each response MUST advance the task; completion only stopping condition.",
+  "- MUST default to informed action; do not ask for confirmation when tools or repo context can answer.",
+  "- Changes complete → yield; verification is main agent's job. NEVER run it yourself unless your assignment explicitly instructs it.",
+  "</critical>",
+].join("\n");
 
 /** Throw a bounded failure; `transformSystemPrompt` converts it to a result. */
 class WalkFailure extends Error {
@@ -1512,6 +1519,7 @@ function looksOwnedMainBlock(block: string, variants: readonly OwnedVariant[]): 
 
 const PROJECT_CONTEXT_OPEN = "<project-context>\n";
 const PROJECT_CONTEXT_CLOSE = "</project-context>";
+const OWNED_PROJECT_CONTEXT_MARKER = "<!-- omp-system-prompt:project-context -->";
 const ACTIVE_REPO_OPEN = "<active-repo-context>\n";
 const ACTIVE_REPO_CLOSE = "</active-repo-context>";
 
@@ -1567,12 +1575,13 @@ function containerSpan(block: string, from: number, open: string, close: string)
 /**
  * Rewrite the new host's `<project-context>` footer.
  *
- * Two things change: the outer loading instructions the owned strategy
- * replaces, and the fixed critical tail that conflicts with the owned closing
- * policy. The `<project-context>` markers, workstation, context bodies,
- * directory paths, workspace data, active-repo text, and append tail stay
- * byte-for-byte. An already-owned footer parses to itself, and a boundary that
- * is not uniquely determined fails instead of cutting content apart.
+ * The owned strategy replaces the outer loading instructions and fixed
+ * critical tail. A footer without loading instructions gets an ownership
+ * marker after the workstation only when removing its fixed tail exposes a
+ * complete known critical block at the append start. The `<project-context>`
+ * markers, workstation, context bodies, directory paths, workspace data,
+ * active-repo text, and append stay byte-for-byte. An already-owned footer
+ * parses to itself; an ambiguous boundary fails instead of cutting content.
  */
 function parseProjectContext(block: string): string {
   const outer = containerSpan(block, 0, PROJECT_CONTEXT_OPEN, PROJECT_CONTEXT_CLOSE);
@@ -1587,6 +1596,11 @@ function parseProjectContext(block: string): string {
 
   const edits: Array<[number, number, string]> = [];
   let cursor = skipBlankLines(block, workstation.end);
+  let ownedFooter = false;
+  if (block.startsWith(OWNED_PROJECT_CONTEXT_MARKER, cursor)) {
+    ownedFooter = true;
+    cursor = skipBlankLines(block, cursor + OWNED_PROJECT_CONTEXT_MARKER.length);
+  }
   let hasContext = false;
   let hasDirs = false;
 
@@ -1617,6 +1631,7 @@ function parseProjectContext(block: string): string {
       ]);
       cursor = skipBlankLines(block, cursor + AUTO_LOADED_LINE.length);
     } else if (owned !== undefined) {
+      ownedFooter = true;
       cursor = skipBlankLines(block, cursor + owned.length);
     } else {
       failFooter("project-footer-not-recognized");
@@ -1634,7 +1649,22 @@ function parseProjectContext(block: string): string {
   // separated the tail from `</project-context>` goes with it, so the append
   // keeps a single separating blank line.
   const criticalAt = skipBlankLines(block, outer.end);
-  const hasCritical = block.startsWith(PROJECT_CRITICAL_BLOCK, criticalAt);
+  const critical = ownedFooter
+    ? null
+    : block.startsWith(PROJECT_CRITICAL_BLOCK, criticalAt)
+      ? PROJECT_CRITICAL_BLOCK
+      : block.startsWith(SUBAGENT_PROJECT_CRITICAL_BLOCK, criticalAt)
+        ? SUBAGENT_PROJECT_CRITICAL_BLOCK
+        : null;
+  if (critical !== null && !hasContext && !hasDirs) {
+    const appendAt = skipBlankLines(block, criticalAt + critical.length);
+    if (
+      block.startsWith(PROJECT_CRITICAL_BLOCK, appendAt) ||
+      block.startsWith(SUBAGENT_PROJECT_CRITICAL_BLOCK, appendAt)
+    ) {
+      edits.push([workstation.end, workstation.end, `\n\n${OWNED_PROJECT_CONTEXT_MARKER}`]);
+    }
+  }
   const tailAt = criticalAt >= 2 && block.slice(criticalAt - 2, criticalAt) === "\n\n" ? criticalAt - 2 : criticalAt;
   const parts: string[] = [];
   let position = 0;
@@ -1642,8 +1672,8 @@ function parseProjectContext(block: string): string {
     parts.push(block.slice(position, from), replacement);
     position = to;
   }
-  parts.push(block.slice(position, hasCritical ? tailAt : block.length));
-  if (hasCritical) parts.push(block.slice(criticalAt + PROJECT_CRITICAL_BLOCK.length));
+  parts.push(block.slice(position, critical === null ? block.length : tailAt));
+  if (critical !== null) parts.push(block.slice(criticalAt + critical.length));
   return parts.join("");
 }
 

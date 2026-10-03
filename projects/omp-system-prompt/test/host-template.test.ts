@@ -9,6 +9,7 @@ import {
   HOST_TEMPLATE,
   renderMain,
   renderProject,
+  replaceHostText,
   type MainOptions,
   type ProjectOptions,
 } from "./render.ts";
@@ -17,6 +18,24 @@ const OWNED_TEMPLATE = readFileSync(new URL("../src/prompt-template.md", import.
 const COMMITTED_TEMPLATE = readFileSync(new URL(`../${HOST_TEMPLATE_FILE_NAME}`, import.meta.url), "utf8");
 
 const CHAPTER = getDeliveryChapter(OWNED_TEMPLATE) ?? "";
+// Official 18.5.0 project-prompt.md selects this line for ordinary subagents.
+const SUBAGENT_CRITICAL_LINE =
+  "- Changes complete → yield; verification is main agent's job. NEVER run it yourself unless your assignment explicitly instructs it.";
+const MAIN_CRITICAL_LINE =
+  "- Before yielding, MUST verify significant behavioral changes: run the specific test, command, or scenario covering the change.";
+const SUBAGENT_PROJECT_TEMPLATE = replaceHostText(
+  HOST_18_4_3_PROJECT_TEMPLATE,
+  MAIN_CRITICAL_LINE,
+  SUBAGENT_CRITICAL_LINE,
+  "18.5.0 subagent critical tail",
+);
+const SUBAGENT_CRITICAL_TAIL = [
+  "<critical>",
+  "- Each response MUST advance the task; completion only stopping condition.",
+  "- MUST default to informed action; do not ask for confirmation when tools or repo context can answer.",
+  SUBAGENT_CRITICAL_LINE,
+  "</critical>",
+].join("\n");
 
 /** The provider prompt a host with the component template selected builds. */
 function hostTurn(options: { main?: MainOptions; project?: ProjectOptions; renderDelivery?: boolean } = {}) {
@@ -304,6 +323,121 @@ describe("host template footer", () => {
     expect(footer.endsWith(`</project-context>\n\n${append}`)).toBe(true);
     expect(footer.startsWith("<project-context>\n<workstation>")).toBe(true);
     expect(footer).toContain("- Model: luna");
+    expect(result.notes).toBeUndefined();
+  });
+  test("removes the subagent tail without changing main output or opaque copies", () => {
+    const quotedTail = SUBAGENT_CRITICAL_TAIL;
+    const quotedMainTail = quotedTail.replace(SUBAGENT_CRITICAL_LINE, MAIN_CRITICAL_LINE);
+    const body = `Quoted host tails:\n${quotedTail}\n${quotedMainTail}`;
+    const append = `Append remains opaque:\n${quotedMainTail}\n${quotedTail}`;
+    const project: ProjectOptions = {
+      contextFiles: [{ path: "nested/rules.md", content: body }],
+      agentsMdFiles: ["some/AGENTS.md"],
+      workspaceTree: "src/\n  index.ts",
+      additionalWorkspaceRoots: ["/other/root"],
+      activeRepo: "<active-repo-context>\nActive project: `web/`.\n</active-repo-context>",
+      append,
+    };
+    const main = renderMain({}, HOST_TEMPLATE);
+    const before = [main, renderProject(project, SUBAGENT_PROJECT_TEMPLATE), "after"];
+    const expected = expectApplied(hostTurn({ project }));
+    const result = expectApplied(transformSystemPrompt(before, OWNED_TEMPLATE, [], true));
+    expect(result.blocks).toEqual(expected.blocks);
+    expect(result.blocks[2]).toContain(`<file path="nested/rules.md">\n${body}\n</file>`);
+    expect(result.blocks[2]?.endsWith(`</project-context>\n\n${append}`)).toBe(true);
+    expect(result.notes).toBeUndefined();
+    const again = expectApplied(transformSystemPrompt(result.blocks, OWNED_TEMPLATE, [], true));
+    expect(again.blocks).toEqual(result.blocks);
+    expect(again.changed).toBe(false);
+  });
+
+  for (const [kind, projectTemplate] of [
+    ["main", HOST_18_4_3_PROJECT_TEMPLATE],
+    ["subagent", SUBAGENT_PROJECT_TEMPLATE],
+  ] as const) {
+    for (const [shape, project] of [
+      ["bodies", {}],
+      ["directories", { contextFiles: [] }],
+      ["workstation only", { contextFiles: [], agentsMdFiles: [] }],
+    ] satisfies Array<[string, ProjectOptions]>) {
+      test(`preserves a critical block at the append start across repeated ${kind} conversion with ${shape}`, () => {
+        const append = `${SUBAGENT_CRITICAL_TAIL}\n\nUSER_APPEND_KEEP`;
+        const result = expectApplied(
+          transformSystemPrompt(
+            [renderMain({}, HOST_TEMPLATE), renderProject({ ...project, append }, projectTemplate)],
+            OWNED_TEMPLATE,
+            [],
+            false,
+          ),
+        );
+        expect(result.blocks[1]?.endsWith(`</project-context>\n\n${append}`)).toBe(true);
+        expect(result.notes).toBeUndefined();
+        const again = expectApplied(transformSystemPrompt(result.blocks, OWNED_TEMPLATE, [], false));
+        expect(again.blocks).toEqual(result.blocks);
+        expect(again.changed).toBe(false);
+        expect(again.notes).toBeUndefined();
+      });
+    }
+  }
+
+  test("keeps complete bare-footer output unchanged for non-ambiguous appends", () => {
+    const main = renderMain({}, HOST_TEMPLATE);
+    for (const [projectTemplate, tail] of [
+      [HOST_18_4_3_PROJECT_TEMPLATE, SUBAGENT_CRITICAL_TAIL.replace(SUBAGENT_CRITICAL_LINE, MAIN_CRITICAL_LINE)],
+      [SUBAGENT_PROJECT_TEMPLATE, SUBAGENT_CRITICAL_TAIL],
+    ]) {
+      for (const append of [
+        "",
+        "ORDINARY_APPEND_KEEP",
+        `Quoted tail:\n${SUBAGENT_CRITICAL_TAIL}`,
+        "<!-- omp-system-prompt:project-context -->\nAPPEND_KEEP",
+      ]) {
+        const footer = renderProject({ contextFiles: [], agentsMdFiles: [], append }, projectTemplate);
+        const expected = replaceHostText(footer, `\n\n${tail}`, "", "native outer tail");
+        const result = expectApplied(transformSystemPrompt([main, footer], OWNED_TEMPLATE, [], false));
+        expect(result.blocks).toEqual([main, expected]);
+        expect(result.notes).toBeUndefined();
+        const again = expectApplied(transformSystemPrompt(result.blocks, OWNED_TEMPLATE, [], false));
+        expect(again.blocks).toEqual(result.blocks);
+        expect(again.changed).toBe(false);
+      }
+    }
+  });
+
+  test("adds only the ownership comment when a bare append starts with either known tail", () => {
+    const main = renderMain({}, HOST_TEMPLATE);
+    for (const tail of [
+      SUBAGENT_CRITICAL_TAIL,
+      SUBAGENT_CRITICAL_TAIL.replace(SUBAGENT_CRITICAL_LINE, MAIN_CRITICAL_LINE),
+    ]) {
+      const append = `${tail}\n\nAPPEND_KEEP`;
+      const footer = renderProject({ contextFiles: [], agentsMdFiles: [], append }, SUBAGENT_PROJECT_TEMPLATE);
+      const expected = footer
+        .replace(`\n\n${SUBAGENT_CRITICAL_TAIL}`, "")
+        .replace("</workstation>", "</workstation>\n\n<!-- omp-system-prompt:project-context -->");
+      const result = expectApplied(transformSystemPrompt([main, footer], OWNED_TEMPLATE, [], false));
+      expect(result.blocks).toEqual([main, expected]);
+      const enabled = expectApplied(transformSystemPrompt(result.blocks, OWNED_TEMPLATE, [], true));
+      expect(enabled.blocks).toEqual([main, CHAPTER, expected]);
+      const disabled = expectApplied(transformSystemPrompt(enabled.blocks, OWNED_TEMPLATE, [], false));
+      expect(disabled.blocks).toEqual(result.blocks);
+      const again = expectApplied(transformSystemPrompt(disabled.blocks, OWNED_TEMPLATE, [], false));
+      expect(again.changed).toBe(false);
+      expect(again.blocks).toEqual(result.blocks);
+    }
+  });
+
+  test("retains an unknown subagent tail at the validated outer boundary", () => {
+    const unknownLine = `${SUBAGENT_CRITICAL_LINE} Additional instruction.`;
+    const footer = renderProject(
+      { append: "Append." },
+      replaceHostText(SUBAGENT_PROJECT_TEMPLATE, SUBAGENT_CRITICAL_LINE, unknownLine, "unknown critical tail"),
+    );
+    const result = expectApplied(
+      transformSystemPrompt([renderMain({}, HOST_TEMPLATE), footer], OWNED_TEMPLATE, [], true),
+    );
+    expect(result.blocks[2]).toContain(unknownLine);
+    expect(result.blocks[2]?.endsWith("</critical>\n\nAppend.")).toBe(true);
     expect(result.notes).toBeUndefined();
   });
 

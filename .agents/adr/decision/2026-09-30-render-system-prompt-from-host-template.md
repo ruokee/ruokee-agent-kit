@@ -90,3 +90,19 @@ The template path publishes the component's text as a file the host reads direct
 Accepting the host's previewed and summarized skill descriptions on this path means an activation constraint the extension previously preserved can disappear from the prompt with no diagnostic, because the host-side shortening is there expected behavior.
 
 Text recognition remains no provenance or security boundary. Real-host verification establishes only the observed behavior, and the component documentation must keep identifying the exercised fixture and each observation's scope rather than promising exact host compatibility.
+
+## Changes
+
+### 2026-10-03: Conditional footer ownership
+
+The template footer contract recognizes the exactly known main-agent and subagent critical tails at the validated outer boundary. Unknown tails and ambiguous outer structure retain their existing preservation and diagnostic behavior. The strict older `PROJECT` path is unchanged.
+
+A footer without loading guidance needs a conversion-state signal when its append begins with a complete known critical block. After native-tail removal, that append occupies the same textual position as an unprocessed tail. With Delivery disabled, the complete block array can be identical in both cases, yet one identity requires preservation and the other deletion. Text alone cannot distinguish them. Footers with loading guidance already acquire an owned loading line during conversion.
+
+Insert a neutral, non-instructional ownership comment only when all three conditions hold: the valid footer has no loading guidance, this conversion removes an exactly recognized native critical tail, and the append starts with a complete recognized native critical block. Place it inside the outer `<project-context>` block, outside workstation data, context bodies, listed paths, workspace data, active-repository text, and append bytes. The comment and its necessary separator are the sole exception to byte-identical prior complete output. Ordinary appends and footers with loading guidance gain no marker; no opaque data or strategy instruction may be rewritten under this exception.
+
+Recognize converted footers through owned loading guidance or the comment at its validated structural position, never through marker text inside opaque data. Reprocessing preserves the complete block array and returns no replacement when settings are unchanged. Delivery changes alter only that chapter. Keep the `<project-context>` block start, array position, and static-prefix cache boundary; use no process-local ownership cache or new setting. This remains textual recognition, not provenance or a security boundary. The default-block path, bounded failures, strategy, template artifact, model rules, maintenance floor, and structure-based eligibility retain their contracts, without a host-version gate or installed-host changes.
+
+Marking every footer without loading guidance was considered but changes ordinary old output unnecessarily. Carrying source or processing state outside the prompt was also considered; it preserves prompt bytes but needs a separate interface and lifecycle design. The conditional comment keeps state in the validated footer while limiting its provider-visible cost to the ambiguous case. Consumers requiring complete byte identity can still reject that affected output. Recognizing a marker outside its validated position could leave native policy in place, so opaque text must not participate in ownership recognition.
+
+[projects/omp-system-prompt/README.md](../../../projects/omp-system-prompt/README.md#host-template-route) owns the concrete footer contract and separates API regressions from real-host Provider observations. Those observations must cover required-marker and no-marker cases, including an ordinary subagent, without claiming general host certification.
