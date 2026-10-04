@@ -18,14 +18,25 @@ export type ToolName = (typeof TOOL_NAMES)[number];
 export const LOAD_MODES = ["essential", "discoverable"] as const;
 export type LoadMode = (typeof LOAD_MODES)[number];
 
+/** The settings the manifest declares, with the types runtime validation accepts. */
+export interface CodexWebAccessSettings {
+  model: string;
+  searchEnabled: boolean;
+  searchLoadMode: LoadMode;
+  fetchEnabled: boolean;
+  fetchLoadMode: LoadMode;
+}
+
+type SettingKey = keyof CodexWebAccessSettings;
+
 /** Manifest defaults mirrored by runtime validation. */
-export const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS: Readonly<CodexWebAccessSettings> = {
   model: "",
   searchEnabled: true,
-  searchLoadMode: "essential" as LoadMode,
+  searchLoadMode: "essential",
   fetchEnabled: true,
-  fetchLoadMode: "discoverable" as LoadMode,
-} as const;
+  fetchLoadMode: "discoverable",
+};
 
 /** Per-tool registration settings. */
 export interface ToolConfig {
@@ -50,15 +61,51 @@ export interface ConfigProblem {
 export type ConfigParseResult =
   { kind: "loaded"; config: CodexWebAccessConfig } | { kind: "invalid"; problems: ConfigProblem[] };
 
-function isLoadMode(value: unknown): value is LoadMode {
-  return LOAD_MODES.some((mode) => mode === value);
+/** The accepted value type of one setting and the reason reported for any other. */
+interface SettingRule<T> {
+  accepts: (value: unknown) => value is T;
+  reason: string;
 }
 
-function invalidLoadMode(field: string): ConfigProblem {
-  return {
-    field,
-    reason: `must be one of ${LOAD_MODES.map((value) => JSON.stringify(value)).join(", ")}`,
-  };
+const STRING_RULE: SettingRule<string> = {
+  accepts: (value): value is string => typeof value === "string",
+  reason: "must be a string",
+};
+
+const BOOLEAN_RULE: SettingRule<boolean> = {
+  accepts: (value): value is boolean => typeof value === "boolean",
+  reason: "must be a boolean",
+};
+
+const LOAD_MODE_RULE: SettingRule<LoadMode> = {
+  accepts: (value): value is LoadMode => LOAD_MODES.some((mode) => mode === value),
+  reason: `must be one of ${LOAD_MODES.map((value) => JSON.stringify(value)).join(", ")}`,
+};
+
+/** Validation rule of every setting, in the order problems are reported. */
+const SETTING_RULES: { [K in SettingKey]: SettingRule<CodexWebAccessSettings[K]> } = {
+  model: STRING_RULE,
+  searchEnabled: BOOLEAN_RULE,
+  searchLoadMode: LOAD_MODE_RULE,
+  fetchEnabled: BOOLEAN_RULE,
+  fetchLoadMode: LOAD_MODE_RULE,
+};
+
+/**
+ * The effective value of one setting: the supplied value, or the manifest
+ * default when the key is absent. A value of the wrong type is recorded as a
+ * problem, and the default stands in so the remaining settings still validate.
+ */
+function readSetting<K extends SettingKey>(
+  settings: Record<string, unknown>,
+  key: K,
+  problems: ConfigProblem[],
+): CodexWebAccessSettings[K] {
+  const value = Object.hasOwn(settings, key) ? settings[key] : DEFAULT_SETTINGS[key];
+  const rule: SettingRule<CodexWebAccessSettings[K]> = SETTING_RULES[key];
+  if (rule.accepts(value)) return value;
+  problems.push({ field: key, reason: rule.reason });
+  return DEFAULT_SETTINGS[key];
 }
 
 /**
@@ -77,43 +124,11 @@ export function parseCodexWebAccessSettings(settings: unknown): ConfigParseResul
     }
   }
 
-  const modelRaw = Object.hasOwn(settings, "model") ? settings.model : DEFAULT_SETTINGS.model;
-  const model = typeof modelRaw === "string" ? modelRaw.trim() : "";
-  if (typeof modelRaw !== "string") {
-    problems.push({ field: "model", reason: "must be a string" });
-  }
-
-  const searchEnabledRaw = Object.hasOwn(settings, "searchEnabled")
-    ? settings.searchEnabled
-    : DEFAULT_SETTINGS.searchEnabled;
-  const searchEnabled = typeof searchEnabledRaw === "boolean" ? searchEnabledRaw : false;
-  if (typeof searchEnabledRaw !== "boolean") {
-    problems.push({ field: "searchEnabled", reason: "must be a boolean" });
-  }
-
-  const searchLoadModeRaw = Object.hasOwn(settings, "searchLoadMode")
-    ? settings.searchLoadMode
-    : DEFAULT_SETTINGS.searchLoadMode;
-  const searchLoadMode = isLoadMode(searchLoadModeRaw) ? searchLoadModeRaw : DEFAULT_SETTINGS.searchLoadMode;
-  if (!isLoadMode(searchLoadModeRaw)) {
-    problems.push(invalidLoadMode("searchLoadMode"));
-  }
-
-  const fetchEnabledRaw = Object.hasOwn(settings, "fetchEnabled")
-    ? settings.fetchEnabled
-    : DEFAULT_SETTINGS.fetchEnabled;
-  const fetchEnabled = typeof fetchEnabledRaw === "boolean" ? fetchEnabledRaw : false;
-  if (typeof fetchEnabledRaw !== "boolean") {
-    problems.push({ field: "fetchEnabled", reason: "must be a boolean" });
-  }
-
-  const fetchLoadModeRaw = Object.hasOwn(settings, "fetchLoadMode")
-    ? settings.fetchLoadMode
-    : DEFAULT_SETTINGS.fetchLoadMode;
-  const fetchLoadMode = isLoadMode(fetchLoadModeRaw) ? fetchLoadModeRaw : DEFAULT_SETTINGS.fetchLoadMode;
-  if (!isLoadMode(fetchLoadModeRaw)) {
-    problems.push(invalidLoadMode("fetchLoadMode"));
-  }
+  const model = readSetting(settings, "model", problems).trim();
+  const searchEnabled = readSetting(settings, "searchEnabled", problems);
+  const searchLoadMode = readSetting(settings, "searchLoadMode", problems);
+  const fetchEnabled = readSetting(settings, "fetchEnabled", problems);
+  const fetchLoadMode = readSetting(settings, "fetchLoadMode", problems);
 
   if (problems.length > 0) {
     return { kind: "invalid", problems };

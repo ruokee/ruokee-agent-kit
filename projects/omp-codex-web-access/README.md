@@ -15,11 +15,11 @@ This OMP extension lets OMP use a Codex subscription through a forwarding Provid
 
 ## Compatibility
 
-The minimum maintained OMP version is `18.2.8`, with no upper maintenance bound. This section states the maintenance commitment, not an installation, activation, or run condition: a host below the bound is not blocked and may still run the package, without gaining a maintenance commitment below it, and having no upper bound does not mean that every later release works or has been verified.
+The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound. This section states the maintenance commitment, not an installation, activation, or run condition: a host below the bound is not blocked and may still run the package, without gaining a maintenance commitment below it, and having no upper bound does not mean that every later release works or has been verified.
 
-The package declares `@oh-my-pi/pi-coding-agent` as an unrestricted host peer (`*`). That declaration names the host package the component imports; it carries no maintenance range, no runtime check, and no claim about any host version. The same package stays pinned as a development dependency at `18.2.8` for reproducible checks, which is not a declaration either.
+The package declares `@oh-my-pi/pi-coding-agent` as an unrestricted host peer (`*`). That declaration names the host package the component imports; it carries no maintenance range, no runtime check, and no claim about any host version. The same package stays pinned as a development dependency at `18.5.0` for reproducible checks, which is not a declaration either.
 
-The automated type check and the test suite run against OMP `18.2.8`. OMP `18.2.3` introduced the asynchronous model header API the extension calls, and real OMP TUI runs on that version exercised both tools successfully. Those runs cover the component as implemented at that time rather than the current source, and no real CLI run on `18.2.8` exists.
+The automated type check and the test suite run against OMP `18.5.0`. A real OMP CLI `18.5.1` session with a real model loaded this extension and called `codex_web_search` once through discovery and `codex_web_fetch` once as a top-level tool; both returned an answer with cited source URLs. These observations cover only the version and scenarios tested.
 
 ## Installation
 
