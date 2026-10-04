@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "OMP adjustments for wait deadlines, model-error recovery, native-history replay, compaction deadlines, and remote compaction cache alignment",
   "license": "MIT",
   "type": "module",
@@ -21,33 +21,33 @@
       "waitEnabled": {
         "type": "boolean",
         "default": true,
-        "description": "Extend the available native wait entry with one bounded total deadline while preserving native ownership."
+        "description": "Extend the builtin wait tool with one bounded total deadline while preserving native ownership."
       },
       "waitContinueEmptyWindows": {
         "type": "boolean",
         "default": true,
-        "description": "Continue within one call on certain empty legacy hub windows or standalone running-job snapshots."
+        "description": "Continue within one call while every watched job is still running."
       },
       "waitJobsSeconds": {
         "type": "number",
         "default": 1200,
         "min": 0.05,
         "max": 3600,
-        "description": "Default total deadline in seconds for job or mixed hub waits and the standalone wait entry."
+        "description": "Default total deadline in seconds for one wait call; an explicit timeout overrides it."
       },
       "waitMessagesSeconds": {
         "type": "number",
         "default": 1200,
         "min": 0.05,
         "max": 3600,
-        "description": "Default total deadline in seconds for a pure message hub wait; not applicable to standalone wait."
+        "description": "Accepted and validated; no effect on supported hosts, which offer no message-only wait entry."
       },
       "waitProcessSeconds": {
         "type": "number",
         "default": 1200,
         "min": 0.05,
         "max": 3600,
-        "description": "Default timeout in seconds for a named-process hub wait; not applicable to standalone wait."
+        "description": "Accepted and validated; no effect on supported hosts, which offer no named-process wait entry."
       },
       "recoveryEnabled": {
         "type": "boolean",
@@ -148,8 +148,8 @@
     "@oh-my-pi/pi-coding-agent": "*"
   },
   "devDependencies": {
-    "@oh-my-pi/pi-ai": "18.2.8",
-    "@oh-my-pi/pi-coding-agent": "18.2.8",
+    "@oh-my-pi/pi-ai": "18.5.0",
+    "@oh-my-pi/pi-coding-agent": "18.5.0",
     "@types/bun": "^1.3.14",
     "typescript": "^5.9.3"
   },

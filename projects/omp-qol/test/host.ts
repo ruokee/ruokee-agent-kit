@@ -95,7 +95,7 @@ export interface Harness {
   context(overrides?: Partial<ExtensionContext>): ExtensionContext;
 }
 
-/** Build a host replacement. `toolInfos` defaults to a native-looking hub entry. */
+/** Build a host replacement that reports `toolInfos` from `getAllTools()`. */
 export function createHarness(toolInfos?: ToolInfo[]): Harness {
   const tools: RegisteredTool[] = [];
   const commands = new Map<string, RegisteredCommandLike>();
@@ -155,16 +155,6 @@ export function createHarness(toolInfos?: ToolInfo[]): Harness {
     },
     context,
   };
-}
-
-/** A native hub entry in the shape `getAllTools()` reports. */
-export function nativeHubToolInfo(description: string, parameters: unknown): ToolInfo {
-  return {
-    name: "hub",
-    description,
-    parameters,
-    sourceInfo: { path: "<builtin:hub>", source: "builtin", scope: "temporary", origin: "top-level" },
-  } as unknown as ToolInfo;
 }
 
 /** The built-in standalone wait entry in the shape `getAllTools()` reports. */

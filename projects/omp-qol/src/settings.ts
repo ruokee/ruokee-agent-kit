@@ -55,13 +55,14 @@ export const SETTINGS_DEFAULTS = {
   compactionCacheProvider: "",
 } as const;
 
-/** Settings of the hub wait module. */
+/**
+ * Settings of the wait module. `waitMessagesSeconds` and `waitProcessSeconds`
+ * stay validated manifest keys but have no reader on supported hosts.
+ */
 export interface WaitSettings {
   enabled: boolean;
   continueEmptyWindows: boolean;
   jobsSeconds: number;
-  messagesSeconds: number;
-  processSeconds: number;
 }
 
 /** Settings of the model-error recovery module. */
@@ -337,8 +338,6 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
           ? continueEmptyWindows.value
           : SETTINGS_DEFAULTS.waitContinueEmptyWindows,
         jobsSeconds: jobsSeconds.ok ? jobsSeconds.value : SETTINGS_DEFAULTS.waitJobsSeconds,
-        messagesSeconds: messagesSeconds.ok ? messagesSeconds.value : SETTINGS_DEFAULTS.waitMessagesSeconds,
-        processSeconds: processSeconds.ok ? processSeconds.value : SETTINGS_DEFAULTS.waitProcessSeconds,
       },
       recovery: {
         enabled: recoveryEnabled.ok ? recoveryEnabled.value : SETTINGS_DEFAULTS.recoveryEnabled,

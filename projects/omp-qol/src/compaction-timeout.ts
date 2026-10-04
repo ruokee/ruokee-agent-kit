@@ -293,239 +293,267 @@ const REAL_DEPS: CompactionPatchDeps = {
   },
 };
 
+function refuseCompaction(context: ModuleContext, reason: string, message: string): ModuleState {
+  context.report(`compaction:${reason}`, `compaction patch stays inactive: ${message}`);
+  return { status: "incompatible", reason };
+}
+
+/** State of an activation that must not install: switches, not conflicts. */
+function inactiveCompactionState(context: ModuleContext): ModuleState {
+  if (context.off === "master-disabled") return { status: "disabled", reason: "master-disabled" };
+  if (context.off === "settings-invalid") return { status: "invalid", reason: "settings-invalid" };
+  return { status: "disabled", reason: "compaction-disabled" };
+}
+
+/**
+ * Decide what an activation does with a patch this process already holds:
+ * keep it, release it, or stop it. Never installs a second wrapper.
+ */
+function reuseInstalledPatch(
+  context: ModuleContext,
+  settings: CompactionSettings,
+  existing: CompactionPatchRegistry,
+): ModuleState {
+  if (existing.runtimeId !== context.runtimeId) {
+    // A patch that already stopped keeps its reason: there is nothing left to
+    // stop, and that reason is what later activations and `/qol` report.
+    if (existing.disabledReason !== undefined && context.off === undefined) {
+      return refuseCompaction(context, existing.disabledReason, "the patch stopped rewriting earlier in this process");
+    }
+    // A second activation that asks for the installed adjustment keeps the
+    // patch. The window stays with the activation whose events open it, so
+    // this one reports ownership instead of a state it cannot drive.
+    if (keepsInstalledPatch(context, settings, existing)) {
+      return { status: "incompatible", reason: "patch-owned-elsewhere" };
+    }
+    // Every other second activation stops the patch rather than sharing or
+    // overriding it, and reports the reasons this module already reports.
+    disablePatch(existing, "runtime-conflict");
+    const conflict = `another omp-qol runtime (${existing.packageVersion} at ${existing.cwd}) owned the process patch; it stopped rewriting`;
+    if (context.off !== undefined) {
+      context.report("compaction:runtime-conflict", `compaction patch stays inactive: ${conflict}`);
+      return inactiveCompactionState(context);
+    }
+    return refuseCompaction(context, "runtime-conflict", conflict);
+  }
+  if (existing.disabledReason !== undefined) {
+    if (context.off !== undefined) return inactiveCompactionState(context);
+    return refuseCompaction(context, existing.disabledReason, "the patch stopped rewriting earlier in this process");
+  }
+  if (currentTimeout() !== existing.wrapper) {
+    if (context.off !== undefined) return inactiveCompactionState(context);
+    return refuseCompaction(context, "patch-overwritten", "another extension replaced the patched AbortSignal.timeout");
+  }
+  if (context.off !== undefined || !settings.enabled) {
+    // This activation's own switches ask for the patch off: release it
+    // without reporting a conflict.
+    const state = inactiveCompactionState(context);
+    releasePatch(existing, state.reason ?? "compaction-disabled");
+    return state;
+  }
+  if (!sameCompactionSettings(existing.settings, settings)) {
+    // One activation installs once. A different snapshot means the installed
+    // patch no longer matches the effective settings, so it stops.
+    disablePatch(existing, "config-conflict");
+    return refuseCompaction(context, "config-conflict", "the installed patch used a different settings snapshot");
+  }
+  // Same activation and same snapshot: one patch per process, never a second wrapper.
+  return { status: "enabled" };
+}
+
+/**
+ * Give up a patch whose window events could not be registered: without them
+ * nothing opens a window and nothing releases the patch. The native function
+ * comes back and the registry keeps the failure for later activations and `/qol`.
+ */
+function rollBackPatch(context: ModuleContext, registry: CompactionPatchRegistry): ModuleState {
+  releasePatch(registry, "registration-error");
+  return refuseCompaction(context, "registration-error", "the runtime rejected a window event registration");
+}
+
+/** Install the process patch for an activation that found none. */
+function installPatch(context: ModuleContext, settings: CompactionSettings, deps: CompactionPatchDeps): ModuleState {
+  if (typeof currentTimeout() !== "function") {
+    return refuseCompaction(context, "host-unavailable", "this runtime has no AbortSignal.timeout");
+  }
+  const cwd = typeof context.ctx.cwd === "string" ? context.ctx.cwd : "";
+
+  let windowGeneration = 0;
+  const registry: CompactionPatchRegistry = {
+    schema: COMPACTION_REGISTRY_SCHEMA,
+    runtimeId: context.runtimeId,
+    packageVersion: PACKAGE_VERSION,
+    cwd,
+    original: currentTimeout(),
+    wrapper: createWrapper(),
+    settings,
+    window: undefined,
+    disabledReason: undefined,
+    cleanup: undefined,
+    now: deps.now,
+    notify: (message) => {
+      try {
+        context.ctx.ui.notify(message, "info");
+      } catch {
+        // A notice is best effort and must never affect the request path.
+      }
+    },
+    report: (reason) => {
+      context.report(`compaction:${reason}`, `compaction patch stopped rewriting: ${reason}`);
+      context.setStatus?.("compaction", { status: "incompatible", reason });
+    },
+  };
+
+  /** Open a window, or refine the open one without extending its lease. */
+  const openWindow = (kind: WindowKind, sessionId?: string): CompactionWindow | undefined => {
+    if (registry.disabledReason !== undefined) return undefined;
+    const open = liveWindow(registry);
+    if (open === undefined) {
+      windowGeneration += 1;
+      const generation = windowGeneration;
+      const guardDeadline = registry.now() + settings.guardMs;
+      registry.window = { kind, generation, sessionId, guardDeadline, notified: false, signal: undefined };
+      const cancelTimer = deps.setTimer(() => {
+        if (registry.window?.generation === generation) closeWindow(registry);
+      }, settings.guardMs);
+      registry.cleanup = cancelTimer;
+      return registry.window;
+    }
+    if (kind === "compacting") {
+      if (sessionId === undefined) return open;
+      if (open.sessionId === undefined) {
+        open.sessionId = sessionId;
+        return open;
+      }
+      if (open.sessionId !== sessionId) disablePatch(registry, "overlapping-session");
+      return open;
+    }
+    if (kind === open.kind) {
+      // A second start of the same kind without an end: two rounds overlap.
+      disablePatch(registry, "overlapping-round");
+      return undefined;
+    }
+    // A `session_before_compact` inside an auto round belongs to that round;
+    // an auto round starting inside a manual one does not. `session.compacting`
+    // only ever refines a window: it does not prove which method runs.
+    if (kind === "manual") return open;
+    disablePatch(registry, "unrecognized-order");
+    return undefined;
+  };
+
+  /**
+   * Bind a `session_before_compact` signal to the window it belongs to.
+   *
+   * The window may already be open, for example because an auto round or
+   * `session.compacting` opened it, so the signal is attached to whatever
+   * window is current instead of only to a freshly created one. One window
+   * holds one binding: a later event carrying the same signal never reaches
+   * this function. A listener left over from an earlier window must never
+   * close a later one, hence the generation check inside the abort handler.
+   */
+  const bindWindowSignal = (signal: AbortSignal): void => {
+    const window = registry.window;
+    if (window === undefined) return;
+    window.signal = signal;
+    const generation = window.generation;
+    const previousCleanup = registry.cleanup;
+    const onAbort = (): void => {
+      if (registry.window?.generation === generation) closeWindow(registry);
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    registry.cleanup = (): void => {
+      signal.removeEventListener("abort", onAbort);
+      previousCleanup?.();
+    };
+  };
+
+  const openManualWindow = (event: SessionBeforeCompactEvent): void => {
+    if (registry.disabledReason !== undefined) return;
+    if (event.signal.aborted) {
+      // A cancelled before-compact hook ends the window that is open, whether
+      // this event created it or an earlier one did.
+      closeWindow(registry);
+      return;
+    }
+    const bound = liveWindow(registry)?.signal;
+    if (bound !== undefined) {
+      // The window already belongs to one compaction operation. The same
+      // signal is that operation again: a repeated event, or the next method
+      // of a serial fallback. It keeps the window, its kind, generation,
+      // guard lease, notice state, and cancel binding. A different live
+      // signal is a second operation inside one window.
+      if (bound !== event.signal) disablePatch(registry, "overlapping-round");
+      return;
+    }
+    openWindow("manual");
+    bindWindowSignal(event.signal);
+  };
+
+  slots()[REGISTRY_KEY] = registry;
+  AbortSignal.timeout = registry.wrapper;
+
+  try {
+    context.pi.on("auto_compaction_start", (event: AutoCompactionStartEvent) => {
+      if (event.action === "remote") openWindow("auto");
+    });
+    context.pi.on("auto_compaction_end", () => {
+      closeWindow(registry);
+    });
+    context.pi.on("session_before_compact", (event: SessionBeforeCompactEvent) => {
+      openManualWindow(event);
+    });
+    context.pi.on("session.compacting", (event: SessionCompactingEvent) => {
+      openWindow("compacting", event.sessionId);
+    });
+    context.pi.on("session_compact", () => {
+      closeWindow(registry);
+    });
+    context.pi.on("session_switch", () => {
+      closeWindow(registry);
+    });
+    context.pi.on("session_shutdown", () => {
+      // The owner leaving ends the process patch. The window closes, the native
+      // function comes back while the global is still this module's wrapper, and
+      // the registry keeps a bounded `owner-stopped` terminal state. Later
+      // activations install no new patch, so the adjustment returns only with a
+      // restarted OMP. A session that merely keeps the patch never reaches this
+      // handler: it registered no window events and no release.
+      releasePatch(registry, "owner-stopped");
+    });
+  } catch {
+    return rollBackPatch(context, registry);
+  }
+
+  return { status: "enabled" };
+}
+
 /** Build the module installer; tests inject the clock and the guard timer. */
 export function createCompactionInstaller(deps: CompactionPatchDeps = REAL_DEPS) {
   return function installCompactionModule(context: ModuleContext): ModuleState {
     const settings = context.settings.compaction;
-    const cwd = typeof context.ctx.cwd === "string" ? context.ctx.cwd : "";
-    const refuse = (reason: string, message: string): ModuleState => {
-      context.report(`compaction:${reason}`, `compaction patch stays inactive: ${message}`);
-      return { status: "incompatible", reason };
-    };
-    /** State of an activation that must not install: switches, not conflicts. */
-    const inactiveState = (): ModuleState => {
-      if (context.off === "master-disabled") return { status: "disabled", reason: "master-disabled" };
-      if (context.off === "settings-invalid") return { status: "invalid", reason: "settings-invalid" };
-      return { status: "disabled", reason: "compaction-disabled" };
-    };
-
     // Conflicting patches are refused whatever this instance's own switch says:
     // a disabled second runtime must not be silently controlled by the first.
     if (legacyPatchPresent()) {
-      return refuse("legacy-patch", "another compaction deadline patch already replaced AbortSignal.timeout");
+      return refuseCompaction(
+        context,
+        "legacy-patch",
+        "another compaction deadline patch already replaced AbortSignal.timeout",
+      );
     }
     const slot = slots()[REGISTRY_KEY];
     const existing = recognizedRegistry();
     if (slot !== undefined && existing === undefined) {
       // Somebody wrote this slot in a layout this version does not know; it is
       // never taken over, and no second wrapper is stacked on top of it.
-      return refuse("registry-unrecognized", "the process patch registry was not written by this version");
+      return refuseCompaction(
+        context,
+        "registry-unrecognized",
+        "the process patch registry was not written by this version",
+      );
     }
-    if (existing !== undefined) {
-      if (existing.runtimeId !== context.runtimeId) {
-        // A patch that already stopped keeps its reason: there is nothing left to
-        // stop, and that reason is what later activations and `/qol` report.
-        if (existing.disabledReason !== undefined && context.off === undefined) {
-          return refuse(existing.disabledReason, "the patch stopped rewriting earlier in this process");
-        }
-        // A second activation that asks for the installed adjustment keeps the
-        // patch. The window stays with the activation whose events open it, so
-        // this one reports ownership instead of a state it cannot drive.
-        if (keepsInstalledPatch(context, settings, existing)) {
-          return { status: "incompatible", reason: "patch-owned-elsewhere" };
-        }
-        // Every other second activation stops the patch rather than sharing or
-        // overriding it, and reports the reasons this module already reports.
-        disablePatch(existing, "runtime-conflict");
-        const conflict = `another omp-qol runtime (${existing.packageVersion} at ${existing.cwd}) owned the process patch; it stopped rewriting`;
-        if (context.off !== undefined) {
-          context.report("compaction:runtime-conflict", `compaction patch stays inactive: ${conflict}`);
-          return inactiveState();
-        }
-        return refuse("runtime-conflict", conflict);
-      }
-      if (existing.disabledReason !== undefined) {
-        if (context.off !== undefined) return inactiveState();
-        return refuse(existing.disabledReason, "the patch stopped rewriting earlier in this process");
-      }
-      if (currentTimeout() !== existing.wrapper) {
-        if (context.off !== undefined) return inactiveState();
-        return refuse("patch-overwritten", "another extension replaced the patched AbortSignal.timeout");
-      }
-      if (context.off !== undefined || !settings.enabled) {
-        // This activation's own switches ask for the patch off: release it
-        // without reporting a conflict.
-        const state = inactiveState();
-        releasePatch(existing, state.reason ?? "compaction-disabled");
-        return state;
-      }
-      if (!sameCompactionSettings(existing.settings, settings)) {
-        // One activation installs once. A different snapshot means the installed
-        // patch no longer matches the effective settings, so it stops.
-        disablePatch(existing, "config-conflict");
-        return refuse("config-conflict", "the installed patch used a different settings snapshot");
-      }
-      // Same activation and same snapshot: one patch per process, never a second wrapper.
-      return { status: "enabled" };
-    }
-
-    if (context.off !== undefined || !settings.enabled) return inactiveState();
-    if (typeof currentTimeout() !== "function") {
-      return refuse("host-unavailable", "this runtime has no AbortSignal.timeout");
-    }
-
-    let windowGeneration = 0;
-    const registry: CompactionPatchRegistry = {
-      schema: COMPACTION_REGISTRY_SCHEMA,
-      runtimeId: context.runtimeId,
-      packageVersion: PACKAGE_VERSION,
-      cwd,
-      original: currentTimeout(),
-      wrapper: createWrapper(),
-      settings,
-      window: undefined,
-      disabledReason: undefined,
-      cleanup: undefined,
-      now: deps.now,
-      notify: (message) => {
-        try {
-          context.ctx.ui.notify(message, "info");
-        } catch {
-          // A notice is best effort and must never affect the request path.
-        }
-      },
-      report: (reason) => {
-        context.report(`compaction:${reason}`, `compaction patch stopped rewriting: ${reason}`);
-        context.setStatus?.("compaction", { status: "incompatible", reason });
-      },
-    };
-
-    /** Open a window, or refine the open one without extending its lease. */
-    const openWindow = (kind: WindowKind, sessionId?: string): CompactionWindow | undefined => {
-      if (registry.disabledReason !== undefined) return undefined;
-      const open = liveWindow(registry);
-      if (open === undefined) {
-        windowGeneration += 1;
-        const generation = windowGeneration;
-        const guardDeadline = registry.now() + settings.guardMs;
-        registry.window = { kind, generation, sessionId, guardDeadline, notified: false, signal: undefined };
-        const cancelTimer = deps.setTimer(() => {
-          if (registry.window?.generation === generation) closeWindow(registry);
-        }, settings.guardMs);
-        registry.cleanup = cancelTimer;
-        return registry.window;
-      }
-      if (kind === "compacting") {
-        if (sessionId === undefined) return open;
-        if (open.sessionId === undefined) {
-          open.sessionId = sessionId;
-          return open;
-        }
-        if (open.sessionId !== sessionId) disablePatch(registry, "overlapping-session");
-        return open;
-      }
-      if (kind === open.kind) {
-        // A second start of the same kind without an end: two rounds overlap.
-        disablePatch(registry, "overlapping-round");
-        return undefined;
-      }
-      // A `session_before_compact` inside an auto round belongs to that round;
-      // an auto round starting inside a manual one does not. `session.compacting`
-      // only ever refines a window: it does not prove which method runs.
-      if (kind === "manual") return open;
-      disablePatch(registry, "unrecognized-order");
-      return undefined;
-    };
-
-    /**
-     * Bind a `session_before_compact` signal to the window it belongs to.
-     *
-     * The window may already be open, for example because an auto round or
-     * `session.compacting` opened it, so the signal is attached to whatever
-     * window is current instead of only to a freshly created one. One window
-     * holds one binding: a later event carrying the same signal never reaches
-     * this function. A listener left over from an earlier window must never
-     * close a later one, hence the generation check inside the abort handler.
-     */
-    const bindWindowSignal = (signal: AbortSignal): void => {
-      const window = registry.window;
-      if (window === undefined) return;
-      window.signal = signal;
-      const generation = window.generation;
-      const previousCleanup = registry.cleanup;
-      const onAbort = (): void => {
-        if (registry.window?.generation === generation) closeWindow(registry);
-      };
-      signal.addEventListener("abort", onAbort, { once: true });
-      registry.cleanup = (): void => {
-        signal.removeEventListener("abort", onAbort);
-        previousCleanup?.();
-      };
-    };
-
-    const openManualWindow = (event: SessionBeforeCompactEvent): void => {
-      if (registry.disabledReason !== undefined) return;
-      if (event.signal.aborted) {
-        // A cancelled before-compact hook ends the window that is open, whether
-        // this event created it or an earlier one did.
-        closeWindow(registry);
-        return;
-      }
-      const bound = liveWindow(registry)?.signal;
-      if (bound !== undefined) {
-        // The window already belongs to one compaction operation. The same
-        // signal is that operation again: a repeated event, or the next method
-        // of a serial fallback. It keeps the window, its kind, generation,
-        // guard lease, notice state, and cancel binding. A different live
-        // signal is a second operation inside one window.
-        if (bound !== event.signal) disablePatch(registry, "overlapping-round");
-        return;
-      }
-      openWindow("manual");
-      bindWindowSignal(event.signal);
-    };
-
-    slots()[REGISTRY_KEY] = registry;
-    AbortSignal.timeout = registry.wrapper;
-
-    try {
-      context.pi.on("auto_compaction_start", (event: AutoCompactionStartEvent) => {
-        if (event.action === "remote") openWindow("auto");
-      });
-      context.pi.on("auto_compaction_end", () => {
-        closeWindow(registry);
-      });
-      context.pi.on("session_before_compact", (event: SessionBeforeCompactEvent) => {
-        openManualWindow(event);
-      });
-      context.pi.on("session.compacting", (event: SessionCompactingEvent) => {
-        openWindow("compacting", event.sessionId);
-      });
-      context.pi.on("session_compact", () => {
-        closeWindow(registry);
-      });
-      context.pi.on("session_switch", () => {
-        closeWindow(registry);
-      });
-      context.pi.on("session_shutdown", () => {
-        // The owner leaving ends the process patch. The window closes, the native
-        // function comes back while the global is still this module's wrapper, and
-        // the registry keeps a bounded `owner-stopped` terminal state. Later
-        // activations install no new patch, so the adjustment returns only with a
-        // restarted OMP. A session that merely keeps the patch never reaches this
-        // handler: it registered no window events and no release.
-        releasePatch(registry, "owner-stopped");
-      });
-    } catch {
-      // Registration is part of the installation: without it nothing opens a
-      // window and nothing releases the patch. The patch is given up rather
-      // than reported as enabled, so the native function comes back and the
-      // registry keeps the failure for later activations and `/qol`.
-      releasePatch(registry, "registration-error");
-      return refuse("registration-error", "the runtime rejected a window event registration");
-    }
-
-    return { status: "enabled" };
+    if (existing !== undefined) return reuseInstalledPatch(context, settings, existing);
+    if (context.off !== undefined || !settings.enabled) return inactiveCompactionState(context);
+    return installPatch(context, settings, deps);
   };
 }
 

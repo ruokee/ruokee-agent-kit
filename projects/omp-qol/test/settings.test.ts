@@ -41,7 +41,6 @@ describe("settings ranges", () => {
     expect(problems).toEqual([]);
     expect(settings.enabled).toBe(false);
     expect(settings.wait.jobsSeconds).toBe(WAIT_SECONDS_MIN);
-    expect(settings.wait.messagesSeconds).toBe(WAIT_SECONDS_MAX);
     expect(settings.recovery.mode).toBe("unclassified");
     expect(settings.compaction.timeoutMs).toBe(COMPACTION_TIMEOUT_MAX_MS);
     expect(settings.compaction.guardMs).toBe(COMPACTION_GUARD_MAX_MS);

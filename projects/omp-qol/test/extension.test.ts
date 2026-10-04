@@ -202,6 +202,27 @@ describe("the /qol command", () => {
     expect(runtime.describe()).toBe(text);
   });
 
+  test("an inactive wait module still reports its configured deadline", async () => {
+    const waitLine = async (settings: Record<string, unknown>) => {
+      const harness = createHarness();
+      const runtime = activate(harness.pi, gatedReader(settings).read);
+      await sessionStartOf(harness)({}, harness.context());
+      return runtime
+        .describe()
+        .split("\n")
+        .find((entry) => entry.startsWith("wait: "));
+    };
+
+    const absent = await waitLine({ waitJobsSeconds: 42 });
+    expect(absent).toStartWith("wait: unavailable (wait-tool-absent)");
+    expect(absent).toContain("jobsSeconds=42");
+
+    const off = await waitLine({ waitEnabled: false, waitJobsSeconds: 42 });
+    expect(off).not.toStartWith("wait: enabled");
+    expect(off).toContain("enabled=false");
+    expect(off).toContain("jobsSeconds=42");
+  });
+
   test("reports the activation state before the first session_start", () => {
     const text = describeState({
       cwd: undefined,
@@ -218,35 +239,6 @@ describe("the /qol command", () => {
     });
     expect(text).toContain("wait: pending");
     expect(text).toContain("not activated in this process");
-  });
-
-  test("reports the standalone wait entry, effective default, and unavailable routes", () => {
-    const text = describeState({
-      cwd: "/x",
-      settings: defaultSettings(),
-      problems: [],
-      global: { status: "ok" },
-      modules: {
-        wait: {
-          status: "enabled",
-          detail:
-            "entry=wait effectiveDefaultSeconds=1200 " +
-            "messageContinuation=not-applicable processWait=not-applicable serviceContinuation=not-applicable",
-        },
-        recovery: { status: "enabled" },
-        compaction: { status: "disabled" },
-        replay: { status: "enabled" },
-        cache: { status: "disabled" },
-      },
-    });
-    const line = text.split("\n").find((entry) => entry.startsWith("wait: "));
-    expect(line).toContain("entry=wait");
-    expect(line).toContain("effectiveDefaultSeconds=1200");
-    expect(line).toContain("messageContinuation=not-applicable");
-    expect(line).toContain("processWait=not-applicable");
-    expect(line).toContain("serviceContinuation=not-applicable");
-    expect(line).not.toContain("messagesSeconds=");
-    expect(line).not.toContain("processSeconds=");
   });
 
   test("lists rejected keys by name and rule without values", () => {

@@ -47,7 +47,7 @@ import {
 import { installWaitModule } from "./wait.ts";
 
 export const PACKAGE_NAME = "@ruokee/omp-qol";
-export const PACKAGE_VERSION = "0.5.1";
+export const PACKAGE_VERSION = "0.6.0";
 export const COMMAND_NAME = "qol";
 
 let activationSequence = 0;
@@ -151,10 +151,9 @@ function describeModule(id: ModuleId, state: ModuleState, settings: QolSettings 
   if (settings === undefined) return head;
   if (id === "wait") {
     const wait = settings.wait;
-    if (state.detail?.startsWith("entry=wait ") === true) {
-      return `${head} — enabled=${wait.enabled} continueEmptyWindows=${wait.continueEmptyWindows}`;
-    }
-    return `${head} — enabled=${wait.enabled} continueEmptyWindows=${wait.continueEmptyWindows} jobsSeconds=${wait.jobsSeconds} messagesSeconds=${wait.messagesSeconds} processSeconds=${wait.processSeconds}`;
+    const values = `enabled=${wait.enabled} continueEmptyWindows=${wait.continueEmptyWindows}`;
+    // An enabled entry already reports its effective default in the detail.
+    return state.status === "enabled" ? `${head} — ${values}` : `${head} — ${values} jobsSeconds=${wait.jobsSeconds}`;
   }
   if (id === "recovery") {
     const recovery = settings.recovery;
