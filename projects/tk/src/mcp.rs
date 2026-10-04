@@ -19,7 +19,7 @@ use tokio::net::unix::pipe::{Receiver, Sender};
 use tokio::process::Command;
 
 use crate::app::{
-    self, AppWarning, CreateRequest, CreateTaskInput, LifecycleAction, ReadView, SearchRequest,
+    self, AppWarning, CreateRequest, CreateTaskInput, LifecycleOptions, ReadView, SearchRequest,
     SubtaskInput, UpdateRequest,
 };
 use crate::contract::{
@@ -408,37 +408,16 @@ fn dispatch_create(params: CreateParams) -> Result<ToolOutcome> {
 }
 
 fn dispatch_update(params: UpdateParams) -> Result<ToolOutcome> {
-    let lifecycle_count = usize::from(params.start)
-        + usize::from(params.close.is_some())
-        + usize::from(params.reopen.is_some());
-    if lifecycle_count > 1 {
-        return Err(TkError::request(
-            "conflicting_lifecycle_actions",
-            "Only one lifecycle action is allowed per update",
-        ));
+    let lifecycle = LifecycleOptions {
+        start: params.start,
+        close: params.close,
+        reopen: params.reopen,
+        force: params.force,
+        user_confirmed: params.user_confirmed,
     }
-    if params.force && params.close.is_none() {
-        return Err(TkError::request(
-            "invalid_force_option",
-            "force is valid only with close",
-        ));
-    }
+    .into_action("")?;
     let cwd = request_cwd(params.cwd.clone())?;
     let project = discover_for_value(&cwd, &params.task_ref)?;
-    let lifecycle = if params.start {
-        Some(LifecycleAction::Start)
-    } else if let Some(reason) = params.close {
-        Some(LifecycleAction::Close {
-            reason,
-            force: params.force,
-            user_confirmed: params.user_confirmed,
-        })
-    } else {
-        params.reopen.map(|reason| LifecycleAction::Reopen {
-            reason,
-            user_confirmed: params.user_confirmed,
-        })
-    };
     let actor = params.actor.as_deref().unwrap_or("mcp");
     let mut result = app::update(
         &project,

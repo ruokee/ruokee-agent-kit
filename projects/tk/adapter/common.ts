@@ -8,6 +8,10 @@ const MAX_OUTPUT_BYTES = 1024 * 1024;
 const MAX_LOAD_ERROR_LENGTH = 500;
 const RUNTIME_COMPAT = ">=0.1,<0.2";
 const TOOL_NAMES = ["tk_search", "tk_read", "tk_create", "tk_update", "tk_log", "tk_exec"] as const;
+const HARNESS_LABELS = { pi: "Pi", omp: "OMP" } as const;
+
+export type HarnessName = keyof typeof HARNESS_LABELS;
+export type LoadMode = "essential" | "discoverable";
 
 export type ProcessResult = {
   stdout: string;
@@ -26,11 +30,11 @@ export type RegisteredTool = {
   label: string;
   description: string;
   parameters: unknown;
-  loadMode: "essential" | "discoverable";
+  loadMode?: LoadMode;
   execute(params: Record<string, unknown>, signal: AbortSignal | undefined, context: ToolContext): Promise<ToolResult>;
 };
 export type HarnessAdapter = {
-  harnessName: "omp";
+  harnessName: HarnessName;
   wrapSchema(schema: Record<string, unknown>): unknown;
   run(command: string, args: string[], cwd: string, signal?: AbortSignal): Promise<ProcessResult>;
   registerTool(tool: RegisteredTool): void;
@@ -46,13 +50,13 @@ type ToolSchema = {
   name: string;
   description: string;
   inputSchema: Record<string, unknown>;
-  loadMode: "essential" | "discoverable";
+  loadMode?: LoadMode;
 };
 type NativeContract = {
   contract_version: 3;
   runtime_version: string;
   runtime_compat: string[];
-  harness: "omp";
+  harness: HarnessName;
   tools: ToolSchema[];
 };
 
@@ -150,7 +154,6 @@ export function runBoundedProcess(
 export async function registerTkTools(adapter: HarnessAdapter): Promise<void> {
   const runtime = join(process.env.HOME ?? homedir(), ".local", "bin", "tk");
   await requireRuntime(runtime);
-
   const loadCwd = process.cwd();
   const version = await runRawJson(adapter, runtime, ["--version", "--output", "json"], loadCwd);
   if (!isObject(version) || typeof version.runtime_version !== "string") {
@@ -160,17 +163,17 @@ export async function registerTkTools(adapter: HarnessAdapter): Promise<void> {
   const schema = await runRawJson(
     adapter,
     runtime,
-    ["schema", "generate", "--type", "native", "--harness", "omp"],
+    ["schema", "generate", "--type", "native", "--harness", adapter.harnessName],
     loadCwd,
   );
-  const contract = parseContract(schema);
+  const contract = parseContract(schema, adapter.harnessName);
   if (contract.runtime_version !== version.runtime_version) {
     throw new Error("tk version and native schema runtime versions differ");
   }
   if (contract.runtime_compat.length !== 1 || contract.runtime_compat[0] !== RUNTIME_COMPAT) {
     throw new Error("tk native schema reports a different runtime compatibility range");
   }
-  validateToolSet(contract.tools);
+  validateToolSet(contract);
 
   const tools = contract.tools.map((definition) => makeTool(adapter, runtime, definition));
   for (const tool of tools) {
@@ -206,7 +209,7 @@ function makeTool(adapter: HarnessAdapter, runtime: string, definition: ToolSche
     label: toolLabel(definition.name),
     description: definition.description,
     parameters: adapter.wrapSchema(definition.inputSchema),
-    loadMode: definition.loadMode,
+    ...(definition.loadMode && { loadMode: definition.loadMode }),
     async execute(params, signal, context) {
       if (definition.name === "tk_exec") {
         return executeRaw(adapter, runtime, params, signal, context);
@@ -360,17 +363,18 @@ async function runRawJson(adapter: HarnessAdapter, runtime: string, args: string
   return parseJson(result);
 }
 
-function parseContract(value: unknown): NativeContract {
+function parseContract(value: unknown, harness: HarnessName): NativeContract {
+  const label = HARNESS_LABELS[harness];
   if (
     !isObject(value) ||
     value.contract_version !== 3 ||
     value.schema_type !== "native" ||
-    value.harness !== "omp" ||
+    value.harness !== harness ||
     typeof value.runtime_version !== "string" ||
     !Array.isArray(value.runtime_compat) ||
     !Array.isArray(value.tools)
   ) {
-    throw new Error("tk returned an invalid OMP native tool contract");
+    throw new Error(`tk returned an invalid ${label} native tool contract`);
   }
   const tools = value.tools.map((tool) => {
     if (
@@ -378,32 +382,37 @@ function parseContract(value: unknown): NativeContract {
       typeof tool.name !== "string" ||
       typeof tool.description !== "string" ||
       !isObject(tool.inputSchema) ||
-      !["essential", "discoverable"].includes(String(tool.loadMode))
+      (harness === "omp"
+        ? !["essential", "discoverable"].includes(String(tool.loadMode))
+        : Object.hasOwn(tool, "loadMode"))
     ) {
-      throw new Error("tk returned an invalid OMP native tool definition");
+      throw new Error(`tk returned an invalid ${label} native tool definition`);
     }
     return {
       name: tool.name,
       description: tool.description,
       inputSchema: tool.inputSchema,
-      loadMode: tool.loadMode as "essential" | "discoverable",
+      ...(harness === "omp" && { loadMode: tool.loadMode as LoadMode }),
     };
   });
   return {
     contract_version: 3,
     runtime_version: value.runtime_version,
     runtime_compat: value.runtime_compat.map(String),
-    harness: "omp",
+    harness,
     tools,
   };
 }
 
-function validateToolSet(tools: ToolSchema[]): void {
-  const names = tools.map((tool) => tool.name);
+function validateToolSet(contract: NativeContract): void {
+  const names = contract.tools.map((tool) => tool.name);
   if (names.length !== TOOL_NAMES.length || names.some((name, index) => name !== TOOL_NAMES[index])) {
     throw new Error(`tk native schema must expose exactly: ${TOOL_NAMES.join(", ")}`);
   }
-  for (const tool of tools) {
+  if (contract.harness !== "omp") {
+    return;
+  }
+  for (const tool of contract.tools) {
     const expected = tool.name === "tk_exec" ? "discoverable" : "essential";
     if (tool.loadMode !== expected) {
       throw new Error(`tk returned an invalid OMP load mode for ${tool.name}`);

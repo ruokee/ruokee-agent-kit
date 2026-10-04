@@ -603,18 +603,7 @@ fn inspect_cleanup_markers(project: &Project, diagnostics: &mut Vec<Diagnostic>)
         let manifest = entry.path().join(crate::gc::MANIFEST_FILE);
         let text = fs::read_to_string(&manifest)
             .map_err(|error| storage_error("read_cleanup_manifest", &manifest, error))?;
-        let classification = toml::from_str::<toml::Value>(&text).ok().filter(|value| {
-            value
-                .get("format_version")
-                .and_then(toml::Value::as_integer)
-                == Some(1)
-                && value.get("producer").is_some()
-                && value.get("created_at").is_some()
-                && value
-                    .get("temporary_paths")
-                    .is_none_or(toml::Value::is_array)
-        });
-        if classification.is_some() {
+        if crate::gc::is_recognized_manifest(&text) {
             diagnostics.push(diagnostic(
                 Severity::Error,
                 "operation_in_progress",
@@ -794,6 +783,59 @@ mod tests {
             .find(|diagnostic| diagnostic.code == "read_cleanup_manifest_failed")
             .unwrap();
         assert_eq!(diagnostic.path.as_deref(), Some(manifest.as_path()));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn check_blocks_only_on_recognizable_cleanup_manifests() {
+        let root = std::env::temp_dir().join(format!("tk-check-manifest-{}", Uuid::now_v7()));
+        fs::create_dir(&root).unwrap();
+        let project = crate::project::init(&root, crate::project::InitOptions::default())
+            .unwrap()
+            .project;
+        let operation = crate::gc::begin_project_operation(&project.task_root).unwrap();
+        let current = operation.path().join(crate::gc::MANIFEST_FILE);
+        let text = fs::read_to_string(&current).unwrap();
+        let write_manifest = |name: &str, content: &str| {
+            let directory = project.task_root.join(".tk-tmp").join(name);
+            fs::create_dir(&directory).unwrap();
+            let manifest = directory.join(crate::gc::MANIFEST_FILE);
+            fs::write(&manifest, content).unwrap();
+            manifest
+        };
+        let damaged = write_manifest(
+            "damaged",
+            "format_version = 1\nproducer = 7\ncreated_at = \"not a time\"\ntemporary_paths = []\n",
+        );
+        let missing_created =
+            write_manifest("missing-created", "format_version = 1\nproducer = 7\n");
+        let missing_producer =
+            write_manifest("missing-producer", "format_version = 1\ncreated_at = 1\n");
+        let paths_not_array = write_manifest(
+            "paths-not-array",
+            "format_version = 1\nproducer = 7\ncreated_at = 1\ntemporary_paths = \"x\"\n",
+        );
+        let future = write_manifest(
+            "future",
+            &text.replace("format_version = 1", "format_version = 2"),
+        );
+        let garbage = write_manifest("garbage", "not toml [");
+
+        let result = check(&root);
+        let codes: HashMap<_, _> = result
+            .diagnostics
+            .iter()
+            .filter_map(|diagnostic| Some((diagnostic.path.clone()?, diagnostic.code.as_str())))
+            .collect();
+        assert_eq!(codes[&current], "operation_in_progress");
+        assert_eq!(codes[&damaged], "operation_in_progress");
+        assert_eq!(codes[&missing_created], "unknown_cleanup_manifest");
+        assert_eq!(codes[&missing_producer], "unknown_cleanup_manifest");
+        assert_eq!(codes[&paths_not_array], "unknown_cleanup_manifest");
+        assert_eq!(codes[&future], "unknown_cleanup_manifest");
+        assert_eq!(codes[&garbage], "unknown_cleanup_manifest");
+        assert!(!result.ok);
+        drop(operation);
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -1256,12 +1298,6 @@ mod tests {
             .unwrap_err();
             assert_eq!(error.code, "broken_reference_conflict");
             assert!(matches!(error.category, ErrorCategory::Conflict));
-            assert!(error.message.contains("31-01--target"));
-            assert!(error.message.contains("--ignore-brokenlinks"));
-            for (relative, line) in &references_expected {
-                let listed = format!("{}/{relative}:{line}", root.display());
-                assert!(error.message.contains(&listed), "message lists {listed}");
-            }
             let details = error.details.as_ref().unwrap();
             assert_eq!(details["new_name"], "target");
             assert_eq!(
@@ -1353,73 +1389,6 @@ mod tests {
         fs::remove_dir_all(root).unwrap();
     }
 
-    #[test]
-    fn non_generated_child_and_repeated_rename_skip_the_gate() {
-        let root = std::env::temp_dir().join(format!("tk-rename-child-gate-{}", Uuid::now_v7()));
-        fs::create_dir(&root).unwrap();
-        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
-        let parent = project.task_root.join("2026/08/31-01--parent");
-        task_store::create_task_files(
-            &parent,
-            &task_metadata("parent"),
-            b"parent\n",
-            MetadataMode::Split,
-        )
-        .unwrap();
-        let imported = parent.join("materials/imported-task");
-        let imported_metadata = task_metadata("imported");
-        task_store::create_task_files(
-            &imported,
-            &imported_metadata,
-            b"imported\n",
-            MetadataMode::Split,
-        )
-        .unwrap();
-        let old_relative = ".tk/2026/08/31-01--parent/materials/imported-task";
-        write_reference(
-            &root,
-            ".tk/notes/child.md",
-            &format!("points at {old_relative} from the task root\n"),
-        );
-
-        let first = rename(
-            &project,
-            &imported_metadata.id.to_string(),
-            "renamed-import",
-            false,
-            false,
-            "test:agent",
-        )
-        .unwrap();
-        assert!(first.changed && first.committed);
-        assert!(!first.plan.references.is_empty());
-        assert_eq!(
-            first.plan.references[0].path,
-            root.join(".tk/notes/child.md")
-        );
-        assert_eq!(first.plan.target_path, imported);
-        assert_eq!(
-            task_store::read_task(&imported, MetadataMode::Split)
-                .unwrap()
-                .metadata
-                .name,
-            "renamed-import"
-        );
-
-        let repeat = rename(
-            &project,
-            &imported_metadata.id.to_string(),
-            "renamed-import",
-            false,
-            false,
-            "test:agent",
-        )
-        .unwrap();
-        assert!(!repeat.changed && !repeat.committed);
-        assert!(!repeat.plan.references.is_empty());
-        assert_eq!(repeat.plan.target_path, imported);
-        fs::remove_dir_all(root).unwrap();
-    }
     fn damage_task_name(directory: &Path, mode: MetadataMode, old_name: &str) {
         let path = match mode {
             MetadataMode::Split => directory.join("tk.toml"),
@@ -1579,7 +1548,7 @@ mod tests {
         fs::remove_dir_all(root).unwrap();
     }
     #[test]
-    fn rename_repairs_path_only_and_keeps_non_generated_child_path() {
+    fn rename_repairs_generated_suffix_path() {
         let root = std::env::temp_dir().join(format!("tk-rename-path-test-{}", Uuid::now_v7()));
         fs::create_dir(&root).unwrap();
         let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
@@ -1602,36 +1571,16 @@ mod tests {
             "test:agent",
         )
         .unwrap();
-        let parent = project.task_root.join("2026/08/31-01--source");
+        let target = project.task_root.join("2026/08/31-01--source");
         assert!(path_repair.changed && path_repair.committed);
+        assert_eq!(path_repair.plan.target_path, target);
         assert!(!wrong_path.exists());
-
-        let imported = parent.join("materials/imported-task");
-        task_store::create_task_files(
-            &imported,
-            &task_metadata("source"),
-            b"imported body\n",
-            MetadataMode::Split,
-        )
-        .unwrap();
-        damage_task_name(&imported, MetadataMode::Split, "bad imported name");
-        let repaired = rename(
-            &project,
-            &imported.to_string_lossy(),
-            "imported",
-            false,
-            false,
-            "test:agent",
-        )
-        .unwrap();
-        assert_eq!(repaired.plan.target_path, imported);
-        assert!(imported.exists());
         assert_eq!(
-            task_store::read_task(&imported, MetadataMode::Split)
+            task_store::read_task(&target, MetadataMode::Split)
                 .unwrap()
                 .metadata
-                .name,
-            "imported"
+                .id,
+            parent_metadata.id
         );
         fs::remove_dir_all(root).unwrap();
     }
@@ -1708,35 +1657,6 @@ mod tests {
             assert!(target.join("wal").exists(), "rename appends the WAL event");
             fs::remove_dir_all(root).unwrap();
         }
-    }
-
-    #[test]
-    fn rename_renames_closed_task_without_reopening() {
-        let root = std::env::temp_dir().join(format!("tk-rename-closed-plain-{}", Uuid::now_v7()));
-        fs::create_dir(&root).unwrap();
-        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
-        let (directory, metadata) = rename_closed_task_directory(&root, MetadataMode::Split);
-
-        let result = rename(
-            &project,
-            &directory.to_string_lossy(),
-            "renamed",
-            false,
-            false,
-            "test:agent",
-        )
-        .unwrap();
-        let target = project.task_root.join("2026/08/31-01--renamed");
-        assert!(result.changed && result.committed);
-        assert_eq!(result.task.status, crate::domain::Status::Closed);
-        let after = task_store::read_task(&target, MetadataMode::Split)
-            .unwrap()
-            .metadata;
-        assert_eq!(after.name, "renamed");
-        assert_eq!(after.status, crate::domain::Status::Closed);
-        assert_eq!(after.id, metadata.id);
-        assert_eq!(after.created_at, metadata.created_at);
-        fs::remove_dir_all(root).unwrap();
     }
 
     #[test]

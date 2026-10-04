@@ -12,7 +12,7 @@ Define tk's four built-in usage patterns and the ownership and bilingual consist
 
 One shared protocol lets an Agent and a user reach the same understanding of what a pattern adds, what it requires, and which page owns which contract.
 
-The [Skill pattern reference](../../../projects/tk/skills/tk/references/patterns.md) and the [Skill design](../../../projects/tk/docs/design/skill.md) state the four patterns. The rules of the [archived documentation decision](../archived/2026-08-29-maintain-tk-documentation.md) that govern the public documentation set and its maintenance still apply.
+The [Skill pattern reference](../../../projects/tk/skills/shared/en/patterns.md) and the [Skill design](../../../projects/tk/docs/design/skill.md) state the four patterns. The rules of the [archived documentation decision](../archived/2026-08-29-maintain-tk-documentation.md) that govern the public documentation set and its maintenance still apply.
 
 ## Analysis
 

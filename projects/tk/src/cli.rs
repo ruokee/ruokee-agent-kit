@@ -1,5 +1,5 @@
 use std::fmt::Write as _;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use clap::{Args, CommandFactory, Parser, Subcommand, ValueEnum};
@@ -7,7 +7,7 @@ use serde::Serialize;
 use serde_json::{Value, json};
 
 use crate::app::{
-    self, CreateRequest, CreateTaskInput, LifecycleAction, ReadView, SearchRequest, SubtaskInput,
+    self, CreateRequest, CreateTaskInput, LifecycleOptions, ReadView, SearchRequest, SubtaskInput,
     UpdateRequest,
 };
 use crate::component;
@@ -108,11 +108,9 @@ struct ReadArgs {
     task_ref: String,
     #[arg(long, value_enum, default_value_t = CliReadView::Summary)]
     view: CliReadView,
-    /// Maximum recent WAL entries. Defaults to 5 for summary and 50 for detailed.
-    #[arg(long)]
+    #[arg(long, help = format!("Maximum recent WAL entries. {}", app::wal_budget_defaults().0))]
     wal_max_entries: Option<usize>,
-    /// Maximum recent WAL bytes. Defaults to 4000 for summary and 16000 for detailed.
-    #[arg(long)]
+    #[arg(long, help = format!("Maximum recent WAL bytes. {}", app::wal_budget_defaults().1))]
     wal_max_length: Option<usize>,
 }
 
@@ -559,377 +557,364 @@ fn resolve_skill_root(cwd: &std::path::Path, path: PathBuf) -> PathBuf {
 }
 
 fn execute(command: Commands, cwd: PathBuf) -> Result<CommandOutput> {
+    let cwd = cwd.as_path();
     match command {
-        Commands::Search(args) => {
-            let project = discover_for_search(&cwd, &args.query)?;
-            let extra = args
-                .extra
-                .as_deref()
-                .map(parse_json_object)
-                .transpose()?
-                .unwrap_or_default();
-            let mut result = app::search(
-                &project,
-                SearchRequest {
-                    query: args.query,
-                    regex: args.regex,
-                    search_body: args.search_body,
-                    statuses: args.status.into_iter().map(Into::into).collect(),
-                    extra,
-                    limit: args.limit,
-                },
-            )?;
-            let warnings = convert_warnings(std::mem::take(&mut result.warnings));
-            let text = result
-                .items
-                .iter()
-                .map(|item| {
-                    format!(
-                        "{}\t{}\t{}\t{}",
-                        item.id,
-                        item.status,
-                        item.name,
-                        item.task_dir.display()
-                    )
-                })
-                .collect::<Vec<_>>()
-                .join("\n");
-            Ok(CommandOutput {
-                data: serde_json::to_value(result).expect("serializing search result"),
-                text,
-                warnings,
-            })
-        }
-        Commands::Read(args) => {
-            let project = discover_for_task_ref(&cwd, &args.task_ref)?;
-            let view = ReadView::from(args.view);
-            let (default_entries, default_length) = view.default_wal_limits();
-            let mut result = app::read(
-                &project,
-                &args.task_ref,
-                view,
-                args.wal_max_entries.unwrap_or(default_entries),
-                args.wal_max_length.unwrap_or(default_length),
-            )?;
-            let warnings = convert_warnings(std::mem::take(&mut result.warnings));
-            let text = serde_json::to_string_pretty(&result).expect("serializing read result");
-            Ok(CommandOutput {
-                data: serde_json::to_value(result).expect("serializing read result"),
-                text,
-                warnings,
-            })
-        }
-        Commands::Create { command } => {
-            let project = match &command {
-                CreateCommands::Task(_) => project::discover(&cwd)?,
-                CreateCommands::Subtask(args) => discover_for_task_ref(&cwd, &args.parent_ref)?,
-            };
-            let request = match command {
-                CreateCommands::Task(args) => CreateRequest::Task {
-                    input: CreateTaskInput {
-                        name: args.name,
-                        status: args.status.into(),
-                        created_at: args.created_at,
-                        depends_on: args.depends_on,
-                        related_to: args.related_to,
-                        extra: args
-                            .extra
-                            .as_deref()
-                            .map(parse_json_object)
-                            .transpose()?
-                            .unwrap_or_default(),
-                    },
-                    user_confirmed: args.user_confirmed.unwrap_or(true),
-                },
-                CreateCommands::Subtask(args) => CreateRequest::Subtasks {
-                    parent_ref: args.parent_ref,
-                    subtasks: args
-                        .items
-                        .iter()
-                        .map(|item| {
-                            serde_json::from_str::<SubtaskInput>(item).map_err(|error| {
-                                TkError::request(
-                                    "invalid_subtask_item",
-                                    format!("Invalid --item JSON: {error}"),
-                                )
-                            })
-                        })
-                        .collect::<Result<Vec<_>>>()?,
-                    user_confirmed: args.user_confirmed.unwrap_or(true),
-                },
-            };
-            let result = app::create(&project, request)?;
-            let text = result
-                .created
-                .iter()
-                .map(|task| format!("Created {} at {}", task.name, task.task_dir.display()))
-                .collect::<Vec<_>>()
-                .join("\n");
-            Ok(CommandOutput {
-                data: serde_json::to_value(result).expect("serializing create result"),
-                text,
-                warnings: vec![],
-            })
-        }
-        Commands::Update(args) => {
-            let project = discover_for_task_ref(&cwd, &args.task_ref)?;
-            let lifecycle_count = usize::from(args.start)
-                + usize::from(args.close.is_some())
-                + usize::from(args.reopen.is_some());
-            if lifecycle_count > 1 {
-                return Err(TkError::request(
-                    "conflicting_lifecycle_actions",
-                    "Only one lifecycle action is allowed per update",
-                ));
-            }
-            if args.force && args.close.is_none() {
-                return Err(TkError::request(
-                    "invalid_force_option",
-                    "--force is valid only with --close",
-                ));
-            }
-            let confirmed = args.user_confirmed.unwrap_or(true);
-            let lifecycle = if args.start {
-                Some(LifecycleAction::Start)
-            } else if let Some(reason) = args.close {
-                Some(LifecycleAction::Close {
-                    reason,
-                    force: args.force,
-                    user_confirmed: confirmed,
-                })
-            } else {
-                args.reopen.map(|reason| LifecycleAction::Reopen {
-                    reason,
-                    user_confirmed: confirmed,
-                })
-            };
-            let mut result = app::update(
-                &project,
-                &args.task_ref,
-                UpdateRequest {
-                    add_depends_on: args.depends_on_add,
-                    remove_depends_on: args.depends_on_remove,
-                    add_related_to: args.related_to_add,
-                    remove_related_to: args.related_to_remove,
-                    set_extra: args
-                        .extra_set
-                        .as_deref()
-                        .map(parse_json_object)
-                        .transpose()?
-                        .unwrap_or_default(),
-                    unset_extra: args.extra_remove,
-                    lifecycle,
-                },
-                args.actor.as_deref().unwrap_or("cli"),
-            )?;
-            let warnings = convert_warnings(std::mem::take(&mut result.warnings));
-            let text = if result.changed {
-                format!("Updated {}", result.task.task_dir.display())
-            } else {
-                "No changes".into()
-            };
-            Ok(CommandOutput {
-                data: serde_json::to_value(result).expect("serializing update result"),
-                text,
-                warnings,
-            })
-        }
-        Commands::Log(args) => {
-            let project = discover_for_task_ref(&cwd, &args.task_ref)?;
-            let mut result = app::log(
-                &project,
-                &args.task_ref,
-                &args.message,
-                args.body.as_deref(),
-                args.actor.as_deref().unwrap_or("cli"),
-            )?;
-            let warnings = convert_warnings(std::mem::take(&mut result.warnings));
-            let text = format!("Logged event for {}", result.task.task_dir.display());
-            Ok(CommandOutput {
-                data: serde_json::to_value(result).expect("serializing log result"),
-                text,
-                warnings,
-            })
-        }
-        Commands::Check => {
-            let result = maintenance::check(&cwd);
-            if !result.complete {
-                return Err(TkError::new(
-                    "check_incomplete",
-                    ErrorCategory::Storage,
-                    "Project check could not complete its scan",
-                )
-                .with_details(serde_json::to_value(result).expect("serializing check result")));
-            }
-            if !result.ok {
-                return Err(TkError::new(
-                    "check_failed",
-                    ErrorCategory::ManagedFile,
-                    "Project check found blocking diagnostics",
-                )
-                .with_details(serde_json::to_value(result).expect("serializing check result")));
-            }
-            let text = if result.ok {
-                "No integrity problems found".into()
-            } else {
-                result
-                    .diagnostics
-                    .iter()
-                    .map(|diagnostic| {
-                        format!(
-                            "{:?}\t{}\t{}",
-                            diagnostic.severity, diagnostic.code, diagnostic.message
-                        )
-                    })
-                    .collect::<Vec<_>>()
-                    .join("\n")
-            };
-            Ok(CommandOutput {
-                data: serde_json::to_value(result).expect("serializing check result"),
-                text,
-                warnings: vec![],
-            })
-        }
-        Commands::Rename(args) => {
-            let project = discover_for_rename_ref(&cwd, &args.task_ref)?;
-            let mut result = maintenance::rename(
-                &project,
-                &args.task_ref,
-                &args.name,
-                args.dry_run,
-                args.ignore_brokenlinks,
-                args.actor.as_deref().unwrap_or("cli"),
-            )?;
-            let warnings = convert_warnings(std::mem::take(&mut result.warnings));
-            Ok(CommandOutput {
-                data: serde_json::to_value(&result).expect("serializing rename result"),
-                text: rename_text(args.dry_run, &result),
-                warnings,
-            })
-        }
-        Commands::Metadata { command } => {
-            let project = project::discover_unchecked(&cwd)?;
-            let (data, text) = match command {
-                MetadataCommands::Migrate(args) => {
-                    let result = migrate::schema(&project, &args.to, &args.files, args.dry_run)?;
-                    let text = if result.changed {
-                        format!(
-                            "schema migration: {} -> {} ({} Tasks)",
-                            result.source, result.target, result.affected_tasks
-                        )
-                    } else {
-                        "No migration needed".into()
-                    };
-                    (
-                        serde_json::to_value(result).expect("serializing schema migration result"),
-                        text,
-                    )
-                }
-                MetadataCommands::Switch(args) => {
-                    let result = metadata::switch(&project, args.to.into(), args.dry_run)?;
-                    let text = if result.changed {
-                        format!(
-                            "{}: {} -> {} ({} Tasks)",
-                            result.kind, result.source, result.target, result.affected_tasks
-                        )
-                    } else {
-                        "No migration needed".into()
-                    };
-                    (
-                        serde_json::to_value(result).expect("serializing metadata switch result"),
-                        text,
-                    )
-                }
-            };
-            Ok(CommandOutput {
-                data,
-                text,
-                warnings: vec![],
-            })
-        }
-        Commands::Gc(args) => {
-            let result = gc::run(Some(&cwd), args.dry_run)?;
-            Ok(CommandOutput {
-                text: serde_json::to_string_pretty(&result).expect("serializing gc result"),
-                data: serde_json::to_value(result).expect("serializing gc result"),
-                warnings: vec![],
-            })
-        }
-        Commands::Install(args) => {
-            let result = match (args.target.harness, args.target.skill_root) {
-                (Some(harness), None) => component::install(
-                    harness.into(),
-                    args.mode.unwrap_or(CliMode::Tools).into(),
-                    args.language.into(),
-                    args.dry_run,
-                )?,
-                (None, Some(skill_root)) => {
-                    if !matches!(args.mode, Some(CliMode::Cli)) {
-                        return Err(TkError::request(
-                            "invalid_install_mode",
-                            "--skill-root requires --mode cli",
-                        ));
-                    }
-                    component::install_skill_root(
-                        resolve_skill_root(&cwd, skill_root),
-                        args.language.into(),
-                        args.dry_run,
-                    )?
-                }
-                _ => unreachable!("clap requires exactly one install target"),
-            };
-            Ok(CommandOutput {
-                text: serde_json::to_string_pretty(&result).expect("serializing install result"),
-                data: serde_json::to_value(result).expect("serializing install result"),
-                warnings: vec![],
-            })
-        }
-        Commands::Uninstall(args) => {
-            let result = match (args.target.harness, args.target.skill_root) {
-                (Some(harness), None) => component::uninstall(harness.into(), args.dry_run)?,
-                (None, Some(skill_root)) => component::uninstall_skill_root(
-                    resolve_skill_root(&cwd, skill_root),
-                    args.dry_run,
-                )?,
-                _ => unreachable!("clap requires exactly one uninstall target"),
-            };
-            Ok(CommandOutput {
-                text: serde_json::to_string_pretty(&result).expect("serializing uninstall result"),
-                data: serde_json::to_value(result).expect("serializing uninstall result"),
-                warnings: vec![],
-            })
-        }
+        Commands::Search(args) => execute_search(args, cwd),
+        Commands::Read(args) => execute_read(args, cwd),
+        Commands::Create { command } => execute_create(command, cwd),
+        Commands::Update(args) => execute_update(args, cwd),
+        Commands::Log(args) => execute_log(args, cwd),
+        Commands::Check => execute_check(cwd),
+        Commands::Rename(args) => execute_rename(args, cwd),
+        Commands::Metadata { command } => execute_metadata(command, cwd),
+        Commands::Gc(args) => execute_gc(args, cwd),
+        Commands::Install(args) => execute_install(args, cwd),
+        Commands::Uninstall(args) => execute_uninstall(args, cwd),
+        Commands::Init(args) => execute_init(args, cwd),
         Commands::Schema { .. } | Commands::Mcp => {
             unreachable!("long-running or raw-output commands are handled before execution")
         }
-        Commands::Init(args) => {
-            let result = project::init(
-                &cwd,
-                InitOptions {
-                    task_root: args.task_root,
-                    subtasks_dir: args.subtasks_dir,
-                    git_policy: args.git_policy.map(Into::into),
-                    creation_policy: args.creation_policy.map(Into::into),
-                    metadata_mode: args.metadata_mode.map(Into::into),
-                    force: args.force,
-                },
-            )?;
-            let warnings = Vec::new();
-            Ok(CommandOutput {
-                data: json!({
-                    "changed": true,
-                    "project_root": result.project.root,
-                    "task_root": result.project.task_root,
-                    "metadata_mode": result.project.config.metadata_mode,
-                }),
-                text: format!(
-                    "Initialized tk project at {}",
-                    result.project.root.display()
-                ),
-                warnings,
-            })
-        }
     }
+}
+
+fn execute_search(args: SearchArgs, cwd: &Path) -> Result<CommandOutput> {
+    let project = discover_for_search(cwd, &args.query)?;
+    let extra = args
+        .extra
+        .as_deref()
+        .map(parse_json_object)
+        .transpose()?
+        .unwrap_or_default();
+    let mut result = app::search(
+        &project,
+        SearchRequest {
+            query: args.query,
+            regex: args.regex,
+            search_body: args.search_body,
+            statuses: args.status.into_iter().map(Into::into).collect(),
+            extra,
+            limit: args.limit,
+        },
+    )?;
+    let warnings = convert_warnings(std::mem::take(&mut result.warnings));
+    let text = result
+        .items
+        .iter()
+        .map(|item| {
+            format!(
+                "{}\t{}\t{}\t{}",
+                item.id,
+                item.status,
+                item.name,
+                item.task_dir.display()
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    Ok(CommandOutput {
+        data: serde_json::to_value(result).expect("serializing search result"),
+        text,
+        warnings,
+    })
+}
+
+fn execute_read(args: ReadArgs, cwd: &Path) -> Result<CommandOutput> {
+    let project = discover_for_task_ref(cwd, &args.task_ref)?;
+    let view = ReadView::from(args.view);
+    let (default_entries, default_length) = view.default_wal_limits();
+    let mut result = app::read(
+        &project,
+        &args.task_ref,
+        view,
+        args.wal_max_entries.unwrap_or(default_entries),
+        args.wal_max_length.unwrap_or(default_length),
+    )?;
+    let warnings = convert_warnings(std::mem::take(&mut result.warnings));
+    let text = serde_json::to_string_pretty(&result).expect("serializing read result");
+    Ok(CommandOutput {
+        data: serde_json::to_value(result).expect("serializing read result"),
+        text,
+        warnings,
+    })
+}
+
+fn execute_create(command: CreateCommands, cwd: &Path) -> Result<CommandOutput> {
+    let project = match &command {
+        CreateCommands::Task(_) => project::discover(cwd)?,
+        CreateCommands::Subtask(args) => discover_for_task_ref(cwd, &args.parent_ref)?,
+    };
+    let request = match command {
+        CreateCommands::Task(args) => CreateRequest::Task {
+            input: CreateTaskInput {
+                name: args.name,
+                status: args.status.into(),
+                created_at: args.created_at,
+                depends_on: args.depends_on,
+                related_to: args.related_to,
+                extra: args
+                    .extra
+                    .as_deref()
+                    .map(parse_json_object)
+                    .transpose()?
+                    .unwrap_or_default(),
+            },
+            user_confirmed: args.user_confirmed.unwrap_or(true),
+        },
+        CreateCommands::Subtask(args) => CreateRequest::Subtasks {
+            parent_ref: args.parent_ref,
+            subtasks: args
+                .items
+                .iter()
+                .map(|item| {
+                    serde_json::from_str::<SubtaskInput>(item).map_err(|error| {
+                        TkError::request(
+                            "invalid_subtask_item",
+                            format!("Invalid --item JSON: {error}"),
+                        )
+                    })
+                })
+                .collect::<Result<Vec<_>>>()?,
+            user_confirmed: args.user_confirmed.unwrap_or(true),
+        },
+    };
+    let result = app::create(&project, request)?;
+    let text = result
+        .created
+        .iter()
+        .map(|task| format!("Created {} at {}", task.name, task.task_dir.display()))
+        .collect::<Vec<_>>()
+        .join("\n");
+    Ok(CommandOutput {
+        data: serde_json::to_value(result).expect("serializing create result"),
+        text,
+        warnings: vec![],
+    })
+}
+
+fn execute_update(args: UpdateArgs, cwd: &Path) -> Result<CommandOutput> {
+    let project = discover_for_task_ref(cwd, &args.task_ref)?;
+    let lifecycle = LifecycleOptions {
+        start: args.start,
+        close: args.close,
+        reopen: args.reopen,
+        force: args.force,
+        user_confirmed: args.user_confirmed.unwrap_or(true),
+    }
+    .into_action("--")?;
+    let mut result = app::update(
+        &project,
+        &args.task_ref,
+        UpdateRequest {
+            add_depends_on: args.depends_on_add,
+            remove_depends_on: args.depends_on_remove,
+            add_related_to: args.related_to_add,
+            remove_related_to: args.related_to_remove,
+            set_extra: args
+                .extra_set
+                .as_deref()
+                .map(parse_json_object)
+                .transpose()?
+                .unwrap_or_default(),
+            unset_extra: args.extra_remove,
+            lifecycle,
+        },
+        args.actor.as_deref().unwrap_or("cli"),
+    )?;
+    let warnings = convert_warnings(std::mem::take(&mut result.warnings));
+    let text = if result.changed {
+        format!("Updated {}", result.task.task_dir.display())
+    } else {
+        "No changes".into()
+    };
+    Ok(CommandOutput {
+        data: serde_json::to_value(result).expect("serializing update result"),
+        text,
+        warnings,
+    })
+}
+
+fn execute_log(args: LogArgs, cwd: &Path) -> Result<CommandOutput> {
+    let project = discover_for_task_ref(cwd, &args.task_ref)?;
+    let mut result = app::log(
+        &project,
+        &args.task_ref,
+        &args.message,
+        args.body.as_deref(),
+        args.actor.as_deref().unwrap_or("cli"),
+    )?;
+    let warnings = convert_warnings(std::mem::take(&mut result.warnings));
+    let text = format!("Logged event for {}", result.task.task_dir.display());
+    Ok(CommandOutput {
+        data: serde_json::to_value(result).expect("serializing log result"),
+        text,
+        warnings,
+    })
+}
+
+fn execute_check(cwd: &Path) -> Result<CommandOutput> {
+    let result = maintenance::check(cwd);
+    if !result.complete {
+        return Err(TkError::new(
+            "check_incomplete",
+            ErrorCategory::Storage,
+            "Project check could not complete its scan",
+        )
+        .with_details(serde_json::to_value(result).expect("serializing check result")));
+    }
+    if !result.ok {
+        return Err(TkError::new(
+            "check_failed",
+            ErrorCategory::ManagedFile,
+            "Project check found blocking diagnostics",
+        )
+        .with_details(serde_json::to_value(result).expect("serializing check result")));
+    }
+    Ok(CommandOutput {
+        data: serde_json::to_value(result).expect("serializing check result"),
+        text: "No integrity problems found".into(),
+        warnings: vec![],
+    })
+}
+
+fn execute_rename(args: RenameArgs, cwd: &Path) -> Result<CommandOutput> {
+    let project = discover_for_rename_ref(cwd, &args.task_ref)?;
+    let mut result = maintenance::rename(
+        &project,
+        &args.task_ref,
+        &args.name,
+        args.dry_run,
+        args.ignore_brokenlinks,
+        args.actor.as_deref().unwrap_or("cli"),
+    )?;
+    let warnings = convert_warnings(std::mem::take(&mut result.warnings));
+    Ok(CommandOutput {
+        data: serde_json::to_value(&result).expect("serializing rename result"),
+        text: rename_text(args.dry_run, &result),
+        warnings,
+    })
+}
+
+fn execute_metadata(command: MetadataCommands, cwd: &Path) -> Result<CommandOutput> {
+    let project = project::discover_unchecked(cwd)?;
+    let (data, text) = match command {
+        MetadataCommands::Migrate(args) => {
+            let result = migrate::schema(&project, &args.to, &args.files, args.dry_run)?;
+            let text = if result.changed {
+                format!(
+                    "schema migration: {} -> {} ({} Tasks)",
+                    result.source, result.target, result.affected_tasks
+                )
+            } else {
+                "No migration needed".into()
+            };
+            (
+                serde_json::to_value(result).expect("serializing schema migration result"),
+                text,
+            )
+        }
+        MetadataCommands::Switch(args) => {
+            let result = metadata::switch(&project, args.to.into(), args.dry_run)?;
+            let text = if result.changed {
+                format!(
+                    "{}: {} -> {} ({} Tasks)",
+                    result.kind, result.source, result.target, result.affected_tasks
+                )
+            } else {
+                "No migration needed".into()
+            };
+            (
+                serde_json::to_value(result).expect("serializing metadata switch result"),
+                text,
+            )
+        }
+    };
+    Ok(CommandOutput {
+        data,
+        text,
+        warnings: vec![],
+    })
+}
+
+fn execute_gc(args: GcArgs, cwd: &Path) -> Result<CommandOutput> {
+    let result = gc::run(Some(cwd), args.dry_run)?;
+    Ok(CommandOutput {
+        text: serde_json::to_string_pretty(&result).expect("serializing gc result"),
+        data: serde_json::to_value(result).expect("serializing gc result"),
+        warnings: vec![],
+    })
+}
+
+fn execute_install(args: ComponentArgs, cwd: &Path) -> Result<CommandOutput> {
+    let result = match (args.target.harness, args.target.skill_root) {
+        (Some(harness), None) => component::install(
+            harness.into(),
+            args.mode.unwrap_or(CliMode::Tools).into(),
+            args.language.into(),
+            args.dry_run,
+        )?,
+        (None, Some(skill_root)) => {
+            if !matches!(args.mode, Some(CliMode::Cli)) {
+                return Err(TkError::request(
+                    "invalid_install_mode",
+                    "--skill-root requires --mode cli",
+                ));
+            }
+            component::install_skill_root(
+                resolve_skill_root(cwd, skill_root),
+                args.language.into(),
+                args.dry_run,
+            )?
+        }
+        _ => unreachable!("clap requires exactly one install target"),
+    };
+    Ok(CommandOutput {
+        text: serde_json::to_string_pretty(&result).expect("serializing install result"),
+        data: serde_json::to_value(result).expect("serializing install result"),
+        warnings: vec![],
+    })
+}
+
+fn execute_uninstall(args: UninstallArgs, cwd: &Path) -> Result<CommandOutput> {
+    let result = match (args.target.harness, args.target.skill_root) {
+        (Some(harness), None) => component::uninstall(harness.into(), args.dry_run)?,
+        (None, Some(skill_root)) => {
+            component::uninstall_skill_root(resolve_skill_root(cwd, skill_root), args.dry_run)?
+        }
+        _ => unreachable!("clap requires exactly one uninstall target"),
+    };
+    Ok(CommandOutput {
+        text: serde_json::to_string_pretty(&result).expect("serializing uninstall result"),
+        data: serde_json::to_value(result).expect("serializing uninstall result"),
+        warnings: vec![],
+    })
+}
+
+fn execute_init(args: InitArgs, cwd: &Path) -> Result<CommandOutput> {
+    let result = project::init(
+        cwd,
+        InitOptions {
+            task_root: args.task_root,
+            subtasks_dir: args.subtasks_dir,
+            git_policy: args.git_policy.map(Into::into),
+            creation_policy: args.creation_policy.map(Into::into),
+            metadata_mode: args.metadata_mode.map(Into::into),
+            force: args.force,
+        },
+    )?;
+    let warnings = Vec::new();
+    Ok(CommandOutput {
+        data: json!({
+            "changed": true,
+            "project_root": result.project.root,
+            "task_root": result.project.task_root,
+            "metadata_mode": result.project.config.metadata_mode,
+        }),
+        text: format!(
+            "Initialized tk project at {}",
+            result.project.root.display()
+        ),
+        warnings,
+    })
 }
 
 fn convert_warnings(warnings: Vec<app::AppWarning>) -> Vec<Warning> {

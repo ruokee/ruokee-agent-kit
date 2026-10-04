@@ -28,7 +28,7 @@ fn main() {
 
 fn assemble() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rerun-if-env-changed=TK_SOURCE_REVISION");
-    for path in ["skills", "claude", "pi", "omp"] {
+    for path in ["skills", "adapter", "claude", "pi", "omp"] {
         println!("cargo:rerun-if-changed={path}");
     }
 
@@ -48,13 +48,8 @@ fn assemble() -> Result<(), Box<dyn std::error::Error>> {
     }
     for language in LANGUAGES {
         let id = cli_skill_id(language);
-        let skill = skill_name("cli", language);
         let mut files = BTreeMap::new();
-        collect_tree(
-            &project.join("skills").join(skill),
-            Path::new(""),
-            &mut files,
-        )?;
+        collect_skill(&project, "cli", language, Path::new(""), &mut files)?;
         validate_payload(&id, &files, &project)?;
         payloads.insert(id, files);
     }
@@ -163,20 +158,39 @@ fn assemble_payload(
     let mut files = BTreeMap::new();
     if harness != "codex" {
         collect_tree(&project.join(harness), Path::new(""), &mut files)?;
+        if harness == "pi" || harness == "omp" {
+            collect_file(&project.join("adapter/common.ts"), "common.ts", &mut files)?;
+        }
         if mode == "cli" {
             make_cli_only(harness, &mut files)?;
         }
     }
 
-    let skill = skill_name(mode, language);
     let prefix = if harness == "codex" {
         PathBuf::new()
     } else {
-        PathBuf::from("skills").join(skill)
+        PathBuf::from("skills").join(skill_name(mode, language))
     };
-    let skill_source = project.join("skills").join(skill);
-    collect_tree(&skill_source, &prefix, &mut files)?;
+    collect_skill(project, mode, language, &prefix, &mut files)?;
     Ok(files)
+}
+
+/// Collects one Skill tree plus the reference files that every Skill of the
+/// same language shares from `skills/shared/<language>/`.
+fn collect_skill(
+    project: &Path,
+    mode: &str,
+    language: &str,
+    prefix: &Path,
+    files: &mut BTreeMap<String, SourceFile>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let skills = project.join("skills");
+    collect_tree(&skills.join(skill_name(mode, language)), prefix, files)?;
+    collect_tree(
+        &skills.join("shared").join(language),
+        &prefix.join("references"),
+        files,
+    )
 }
 
 fn make_cli_only(
@@ -253,21 +267,25 @@ fn collect_tree(
                 .to_str()
                 .ok_or_else(|| format!("component path is not UTF-8: {}", path.display()))?
                 .replace('\\', "/");
-            if output
-                .insert(
-                    archive_path.clone(),
-                    SourceFile {
-                        bytes: fs::read(&path)?,
-                        mode: 0o644,
-                    },
-                )
-                .is_some()
-            {
-                return Err(format!("duplicate component path: {archive_path}").into());
-            }
+            collect_file(&path, &archive_path, output)?;
         } else {
             return Err(format!("unsupported component source: {}", path.display()).into());
         }
+    }
+    Ok(())
+}
+
+fn collect_file(
+    source: &Path,
+    archive_path: &str,
+    output: &mut BTreeMap<String, SourceFile>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let file = SourceFile {
+        bytes: fs::read(source)?,
+        mode: 0o644,
+    };
+    if output.insert(archive_path.to_owned(), file).is_some() {
+        return Err(format!("duplicate component path: {archive_path}").into());
     }
     Ok(())
 }

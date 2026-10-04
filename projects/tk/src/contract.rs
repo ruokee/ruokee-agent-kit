@@ -5,6 +5,7 @@ use serde::de::{DeserializeOwned, Error as _, MapAccess, SeqAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Number, Value, json};
 
+use crate::app::{MAX_WAL_LIMITS, wal_budget_defaults};
 use crate::domain::Status;
 use crate::error::{Result, TkError};
 
@@ -340,12 +341,14 @@ fn search_schema() -> Value {
 }
 
 fn read_schema() -> Value {
+    let (max_entries, max_length) = MAX_WAL_LIMITS;
+    let (entries_default, length_default) = wal_budget_defaults();
     object_schema(
         json!({
             "task_ref": {"type": "string", "minLength": 1},
             "view": {"type": "string", "enum": ["minimal", "summary", "detailed"], "default": "summary"},
-            "wal_max_entries": {"type": "integer", "minimum": 0, "maximum": 50, "description": "Defaults to 5 for summary and 50 for detailed; unused by minimal."},
-            "wal_max_length": {"type": "integer", "minimum": 0, "maximum": 16000, "description": "Defaults to 4000 for summary and 16000 for detailed; unused by minimal."},
+            "wal_max_entries": {"type": "integer", "minimum": 0, "maximum": max_entries, "description": format!("{entries_default}; unused by minimal.")},
+            "wal_max_length": {"type": "integer", "minimum": 0, "maximum": max_length, "description": format!("{length_default}; unused by minimal.")},
             "cwd": {"type": "string"}
         }),
         &["task_ref"],

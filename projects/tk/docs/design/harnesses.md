@@ -110,7 +110,7 @@ For ordinary native tools, both successful results and valid domain failures are
 
 Cargo builds use Rust assembly logic to generate multiple Harness component payloads and two Harness-independent CLI Skill payloads, one deterministic `tar.zst` archive, and one manifest. The Harness selections span four Harnesses, two modes, and two languages. Identical inputs must produce identical paths, file bytes, archive bytes, and manifests.
 
-Harness assembly reads only the selected Harness source and one of the four self-contained Skill trees. The standalone payloads read only `tk-cli` or `tk-cli-zh`. Publishing, installation, and validation use the same Rust artifacts.
+Harness assembly reads only the selected Harness source and one of the four Skill trees, plus two shared sources: the reference files common to every Skill of the selected language, and for Pi and OMP the shared mapping layer `common.ts`. The standalone payloads read only `tk-cli` or `tk-cli-zh` and the shared references of that language. Each assembled payload stays self-contained. Publishing, installation, and validation use the same Rust artifacts.
 
 Rust assembly artifacts are the only component inputs used for publishing, installation, and validation.
 

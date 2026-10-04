@@ -12,7 +12,7 @@ Reverses: [维护 tk 文档](../archived/2026-08-29-maintain-tk-documentation.zh
 
 这套共同规则让 Agent 和用户对模式会增加什么、需要维护什么，以及每项合同由哪个页面负责，形成一致理解。
 
-[Skill 模式参考](../../../projects/tk/skills/tk-zh/references/patterns.md)与 [Skill 设计](../../../projects/tk/docs/design/skill.zh.md)给出四种模式。[已归档的文档维护决定](../archived/2026-08-29-maintain-tk-documentation.zh.md)中覆盖公开文档集合及其维护方式的规则仍然有效。
+[Skill 模式参考](../../../projects/tk/skills/shared/zh/patterns.md)与 [Skill 设计](../../../projects/tk/docs/design/skill.zh.md)给出四种模式。[已归档的文档维护决定](../archived/2026-08-29-maintain-tk-documentation.zh.md)中覆盖公开文档集合及其维护方式的规则仍然有效。
 
 ## 分析
 

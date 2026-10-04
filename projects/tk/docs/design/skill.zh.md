@@ -25,7 +25,7 @@ tools Skill 的 search、read、create、update 和 log 使用 Harness 逻辑操
 
 CLI Skill 的所有任务操作都使用公开 `tk` CLI，并在自身目录中包含所需的完整现行命令参考。它不比较入口，也不依赖集成发现。
 
-同一模式的英文和中文 Skill 具有对应的语义覆盖。四个目录均可独立安装和理解，不依赖其他仓库组件。
+同一模式的英文和中文 Skill 具有对应的语义覆盖。安装后的四个 Skill 均可独立理解，不依赖其他仓库组件。源码中同一语言各 Skill 完全相同的参考文件只在 `skills/shared/<language>/` 保存一份，组装时复制进该语言的每个 Skill。
 
 ## 生命周期含义
 

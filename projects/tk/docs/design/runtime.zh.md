@@ -114,7 +114,7 @@ OMP 把 search、read、create、update 和 log 设置为 essential，exec 为 d
 
 ## 组件构建和运行时来源
 
-Cargo 构建使用唯一的 Rust 组装逻辑，从四个 Skill 目录和各 Harness 源码生成多份自包含 Harness 载荷，并生成两份只含 `tk-cli` 或 `tk-cli-zh` 的独立载荷。生成过程只写 Cargo `OUT_DIR` 和 Cargo 自身目标目录。
+Cargo 构建使用唯一的 Rust 组装逻辑，从四个 Skill 目录、同语言 Skill 共用的参考文件和各 Harness 源码生成多份自包含 Harness 载荷，并生成两份只含 `tk-cli` 或 `tk-cli-zh` 的独立载荷。生成过程只写 Cargo `OUT_DIR` 和 Cargo 自身目标目录。
 
 运行时通过 `include_bytes!` 使用内嵌归档和清单。Harness 与自定义根目录安装都不访问网络，不启动 `curl`，不接受本地归档路径。
 

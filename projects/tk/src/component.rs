@@ -183,20 +183,9 @@ pub fn install(
     let skill = skill_name(mode, language);
     let target = component_target(harness, &home, skill);
     let targets = component_targets(harness, &home);
-    let residual_targets: Vec<_> = targets
-        .iter()
-        .filter(|candidate| **candidate != target)
-        .cloned()
-        .collect();
     let target_before = target_fingerprints(&targets)?;
     let target_existed = entry_exists(&target)?;
-    let residual_existing = residual_targets
-        .into_iter()
-        .map(|path| entry_exists(&path).map(|exists| (path, exists)))
-        .collect::<Result<Vec<_>>>()?
-        .into_iter()
-        .filter_map(|(path, exists)| exists.then_some(path))
-        .collect::<Vec<_>>();
+    let residual_existing = existing_entries(targets.iter().filter(|path| **path != target))?;
     let registration = registration_state(
         harness,
         mode,
@@ -212,35 +201,27 @@ pub fn install(
         _ => target_changed || registration_changed,
     };
     let changed = target_changed || configure_needed || !residual_existing.is_empty();
-    let action = if !changed {
-        "no_change"
-    } else if dry_run {
-        "would_install"
-    } else if target_existed || registration.present || !residual_existing.is_empty() {
-        "updated"
-    } else {
-        "installed"
-    };
+    let existed = target_existed || registration.present || !residual_existing.is_empty();
 
     let mut planned = Vec::new();
     if target_changed {
         planned.push(target.display().to_string());
     }
     if configure_needed {
-        planned.push("Harness registration".into());
+        planned.push(REGISTRATION_ITEM.into());
     }
     planned.extend(
         residual_existing
             .iter()
             .map(|path| path.display().to_string()),
     );
-    let mut result = ComponentResult {
+    let result = ComponentResult {
         harness: Some(harness),
         skill_root: None,
         mode: Some(mode),
         language: Some(language),
         skill: Some(skill),
-        action,
+        action: install_action(changed, dry_run, existed),
         version: bundle.manifest.runtime_version.clone(),
         runtime_compat: component.runtime_compat.clone(),
         source_revision: bundle.manifest.source_revision.clone(),
@@ -249,25 +230,26 @@ pub fn install(
         partial: false,
         dry_run,
         completed: Vec::new(),
-        uncompleted: planned.clone(),
+        uncompleted: planned,
         installed_paths: target_changed.then(|| target.clone()).into_iter().collect(),
         removed_paths: residual_existing.clone(),
     };
-    if !changed || dry_run {
-        return Ok(result);
-    }
-
-    let operation = crate::gc::begin_user_operation(&target)?;
-    let completed = operation.execute(
+    commit_plan(
+        Scope::Harness,
+        "installation",
+        &target,
+        result,
         |operation| {
-            let staging = if target_changed {
-                let path = operation.temporary_path("component")?;
-                materialize_payload(&path, &component.payload, &component.files, &bundle.files)?;
-                Some(path)
-            } else {
-                None
-            };
-            crate::cancel::checkpoint()?;
+            stage_payload(
+                operation,
+                target_changed,
+                "component",
+                &component.payload,
+                &component.files,
+                &bundle.files,
+            )
+        },
+        || {
             let current_registration = registration_state(
                 harness,
                 mode,
@@ -275,66 +257,29 @@ pub fn install(
                 &runtime,
                 &bundle.manifest.runtime_version,
             )?;
-            if target_fingerprints(&targets)? != target_before
-                || current_registration != registration
-            {
-                return Err(TkError::new(
-                    "changed_since_plan",
-                    ErrorCategory::Conflict,
-                    "Harness component state changed after preflight",
-                ));
-            }
-
-            let mut completed = Vec::new();
-            let mut remaining = planned.clone();
+            Ok(target_fingerprints(&targets)? == target_before
+                && current_registration == registration)
+        },
+        |progress, staging| {
             if let Some(staging) = staging {
-                replace_target(&staging, &target)?;
-                let item = target.display().to_string();
-                completed.push(item.clone());
-                remaining.retain(|candidate| candidate != &item);
+                progress.path_step(&target, || replace_target(&staging, &target))?;
             }
-            if let Err(error) = crate::cancel::checkpoint() {
-                return Err(partial_error(error, &completed, &remaining));
-            }
+            progress.checkpoint()?;
             if configure_needed {
-                if let Err(error) = configure(
-                    harness,
-                    mode,
-                    &target,
-                    &runtime,
-                    registration.installed,
-                    &mut completed,
-                ) {
-                    return Err(partial_error(error, &completed, &remaining));
-                }
-                remaining.retain(|candidate| candidate != "Harness registration");
+                progress.step(REGISTRATION_ITEM, |completed| {
+                    configure(
+                        harness,
+                        mode,
+                        &target,
+                        &runtime,
+                        registration.installed,
+                        completed,
+                    )
+                })?;
             }
-            for residual in &residual_existing {
-                if let Err(error) = crate::cancel::checkpoint() {
-                    return Err(partial_error(error, &completed, &remaining));
-                }
-                if let Err(error) = remove_entry(residual) {
-                    return Err(partial_error(error, &completed, &remaining));
-                }
-                let item = residual.display().to_string();
-                completed.push(item.clone());
-                remaining.retain(|candidate| candidate != &item);
-            }
-            Ok(completed)
+            progress.remove_entries(&residual_existing)
         },
-        |completed, cleanup_path, error| {
-            TkError::partial_commit(
-                "Component installation committed but cleanup failed",
-                serde_json::json!(completed),
-                serde_json::json!([cleanup_path]),
-                error,
-            )
-        },
-    )?;
-    result.committed = true;
-    result.completed = completed;
-    result.uncompleted.clear();
-    Ok(result)
+    )
 }
 
 pub fn install_skill_root(
@@ -357,20 +302,9 @@ pub fn install_skill_root(
     let skill = skill_name(Mode::Cli, language);
     let target = skill_root.join(skill);
     let targets = cli_skill_targets(&skill_root);
-    let residual_targets = targets
-        .iter()
-        .filter(|candidate| **candidate != target)
-        .cloned()
-        .collect::<Vec<_>>();
     let target_before = target_fingerprints(&targets)?;
     let target_existed = entry_exists(&target)?;
-    let residual_existing = residual_targets
-        .into_iter()
-        .map(|path| entry_exists(&path).map(|exists| (path, exists)))
-        .collect::<Result<Vec<_>>>()?
-        .into_iter()
-        .filter_map(|(path, exists)| exists.then_some(path))
-        .collect::<Vec<_>>();
+    let residual_existing = existing_entries(targets.iter().filter(|path| **path != target))?;
     let target_changed = payload_differs(
         &target,
         &skill_manifest.payload,
@@ -378,15 +312,7 @@ pub fn install_skill_root(
         &bundle.files,
     )?;
     let changed = target_changed || !residual_existing.is_empty();
-    let action = if !changed {
-        "no_change"
-    } else if dry_run {
-        "would_install"
-    } else if target_existed || !residual_existing.is_empty() {
-        "updated"
-    } else {
-        "installed"
-    };
+    let existed = target_existed || !residual_existing.is_empty();
 
     let mut planned = Vec::new();
     if target_changed {
@@ -397,13 +323,13 @@ pub fn install_skill_root(
             .iter()
             .map(|path| path.display().to_string()),
     );
-    let mut result = ComponentResult {
+    let result = ComponentResult {
         harness: None,
         skill_root: Some(skill_root.clone()),
         mode: Some(Mode::Cli),
         language: Some(language),
         skill: Some(skill),
-        action,
+        action: install_action(changed, dry_run, existed),
         version: bundle.manifest.runtime_version.clone(),
         runtime_compat: skill_manifest.runtime_compat.clone(),
         source_revision: bundle.manifest.source_revision.clone(),
@@ -412,73 +338,35 @@ pub fn install_skill_root(
         partial: false,
         dry_run,
         completed: Vec::new(),
-        uncompleted: planned.clone(),
+        uncompleted: planned,
         installed_paths: target_changed.then(|| target.clone()).into_iter().collect(),
         removed_paths: residual_existing.clone(),
     };
-    if !changed || dry_run {
-        return Ok(result);
-    }
-
-    let operation = crate::gc::begin_user_operation(&skill_root)?;
-    let completed = operation.execute(
+    commit_plan(
+        Scope::Skill,
+        "installation",
+        &skill_root,
+        result,
         |operation| {
-            let staging = if target_changed {
-                let path = operation.temporary_path("skill")?;
-                materialize_payload(
-                    &path,
-                    &skill_manifest.payload,
-                    &skill_manifest.files,
-                    &bundle.files,
-                )?;
-                Some(path)
-            } else {
-                None
-            };
-            crate::cancel::checkpoint()?;
-            if target_fingerprints(&targets)? != target_before {
-                return Err(TkError::new(
-                    "changed_since_plan",
-                    ErrorCategory::Conflict,
-                    "CLI Skill state changed after preflight",
-                ));
-            }
-
-            let mut completed = Vec::new();
-            let mut remaining = planned.clone();
-            if let Some(staging) = staging {
-                replace_target(&staging, &target)?;
-                let item = target.display().to_string();
-                completed.push(item.clone());
-                remaining.retain(|candidate| candidate != &item);
-            }
-            for residual in &residual_existing {
-                if let Err(error) = crate::cancel::checkpoint() {
-                    return Err(skill_partial_error(error, &completed, &remaining));
-                }
-                if let Err(error) = remove_entry(residual) {
-                    return Err(skill_partial_error(error, &completed, &remaining));
-                }
-                let item = residual.display().to_string();
-                completed.push(item.clone());
-                remaining.retain(|candidate| candidate != &item);
-            }
-            Ok(completed)
-        },
-        |completed, cleanup_path, error| {
-            TkError::partial_commit(
-                "CLI Skill installation committed but cleanup failed",
-                serde_json::json!(completed),
-                serde_json::json!([cleanup_path]),
-                error,
+            stage_payload(
+                operation,
+                target_changed,
+                "skill",
+                &skill_manifest.payload,
+                &skill_manifest.files,
+                &bundle.files,
             )
         },
-    )?;
-    result.committed = true;
-    result.completed = completed;
-    result.uncompleted.clear();
-    Ok(result)
+        || Ok(target_fingerprints(&targets)? == target_before),
+        |progress, staging| {
+            if let Some(staging) = staging {
+                progress.path_step(&target, || replace_target(&staging, &target))?;
+            }
+            progress.remove_entries(&residual_existing)
+        },
+    )
 }
+
 pub fn uninstall(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
     let home = home()?;
     let runtime = home.join(".local/bin/tk");
@@ -494,13 +382,7 @@ pub fn uninstall(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
 
     let targets = component_targets(harness, &home);
     let target_before = target_fingerprints(&targets)?;
-    let existing_targets = targets
-        .iter()
-        .map(|path| entry_exists(path).map(|exists| (path, exists)))
-        .collect::<Result<Vec<_>>>()?
-        .into_iter()
-        .filter_map(|(path, exists)| exists.then_some(path.clone()))
-        .collect::<Vec<_>>();
+    let existing_targets = existing_entries(&targets)?;
     let registration_target =
         component_target(harness, &home, skill_name(Mode::Tools, Language::En));
     let registration = registration_state(
@@ -511,30 +393,23 @@ pub fn uninstall(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
         &bundle.manifest.runtime_version,
     )?;
     let changed = !existing_targets.is_empty() || registration.present;
-    let action = if !changed {
-        "no_change"
-    } else if dry_run {
-        "would_uninstall"
-    } else {
-        "uninstalled"
-    };
 
     let mut planned = Vec::new();
     if registration.present {
-        planned.push("Harness registration".into());
+        planned.push(REGISTRATION_ITEM.into());
     }
     planned.extend(
         existing_targets
             .iter()
             .map(|path| path.display().to_string()),
     );
-    let mut result = ComponentResult {
+    let result = ComponentResult {
         harness: Some(harness),
         skill_root: None,
         mode: None,
         language: None,
         skill: None,
-        action,
+        action: uninstall_action(changed, dry_run),
         version: bundle.manifest.runtime_version.clone(),
         runtime_compat: component.runtime_compat.clone(),
         source_revision: bundle.manifest.source_revision.clone(),
@@ -543,18 +418,17 @@ pub fn uninstall(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
         partial: false,
         dry_run,
         completed: Vec::new(),
-        uncompleted: planned.clone(),
+        uncompleted: planned,
         installed_paths: Vec::new(),
         removed_paths: existing_targets.clone(),
     };
-    if !changed || dry_run {
-        return Ok(result);
-    }
-
-    let operation = crate::gc::begin_user_operation(&registration_target)?;
-    let completed = operation.execute(
-        |_operation| {
-            crate::cancel::checkpoint()?;
+    commit_plan(
+        Scope::Harness,
+        "uninstall",
+        &registration_target,
+        result,
+        |_operation| Ok(None),
+        || {
             let current_registration = registration_state(
                 harness,
                 Mode::Tools,
@@ -562,50 +436,18 @@ pub fn uninstall(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
                 &runtime,
                 &bundle.manifest.runtime_version,
             )?;
-            if target_fingerprints(&targets)? != target_before
-                || current_registration != registration
-            {
-                return Err(TkError::new(
-                    "changed_since_plan",
-                    ErrorCategory::Conflict,
-                    "Harness component state changed after preflight",
-                ));
-            }
-
-            let mut completed = Vec::new();
-            let mut remaining = planned.clone();
+            Ok(target_fingerprints(&targets)? == target_before
+                && current_registration == registration)
+        },
+        |progress, _staging| {
             if registration.present {
-                if let Err(error) = deconfigure(harness, &registration_target, &mut completed) {
-                    return Err(partial_error(error, &completed, &remaining));
-                }
-                remaining.retain(|candidate| candidate != "Harness registration");
+                progress.step(REGISTRATION_ITEM, |completed| {
+                    deconfigure(harness, &registration_target, completed)
+                })?;
             }
-            for target in &existing_targets {
-                if let Err(error) = crate::cancel::checkpoint() {
-                    return Err(partial_error(error, &completed, &remaining));
-                }
-                if let Err(error) = remove_entry(target) {
-                    return Err(partial_error(error, &completed, &remaining));
-                }
-                let item = target.display().to_string();
-                completed.push(item.clone());
-                remaining.retain(|candidate| candidate != &item);
-            }
-            Ok(completed)
+            progress.remove_entries(&existing_targets)
         },
-        |completed, cleanup_path, error| {
-            TkError::partial_commit(
-                "Component uninstall committed but cleanup failed",
-                serde_json::json!(completed),
-                serde_json::json!([cleanup_path]),
-                error,
-            )
-        },
-    )?;
-    result.committed = true;
-    result.completed = completed;
-    result.uncompleted.clear();
-    Ok(result)
+    )
 }
 
 pub fn uninstall_skill_root(skill_root: PathBuf, dry_run: bool) -> Result<ComponentResult> {
@@ -623,32 +465,19 @@ pub fn uninstall_skill_root(skill_root: PathBuf, dry_run: bool) -> Result<Compon
 
     let targets = cli_skill_targets(&skill_root);
     let target_before = target_fingerprints(&targets)?;
-    let existing_targets = targets
-        .iter()
-        .map(|path| entry_exists(path).map(|exists| (path, exists)))
-        .collect::<Result<Vec<_>>>()?
-        .into_iter()
-        .filter_map(|(path, exists)| exists.then_some(path.clone()))
-        .collect::<Vec<_>>();
+    let existing_targets = existing_entries(&targets)?;
     let changed = !existing_targets.is_empty();
-    let action = if !changed {
-        "no_change"
-    } else if dry_run {
-        "would_uninstall"
-    } else {
-        "uninstalled"
-    };
     let planned = existing_targets
         .iter()
         .map(|path| path.display().to_string())
         .collect::<Vec<_>>();
-    let mut result = ComponentResult {
+    let result = ComponentResult {
         harness: None,
         skill_root: Some(skill_root.clone()),
         mode: Some(Mode::Cli),
         language: None,
         skill: None,
-        action,
+        action: uninstall_action(changed, dry_run),
         version: bundle.manifest.runtime_version.clone(),
         runtime_compat: skill_manifest.runtime_compat.clone(),
         source_revision: bundle.manifest.source_revision.clone(),
@@ -657,44 +486,137 @@ pub fn uninstall_skill_root(skill_root: PathBuf, dry_run: bool) -> Result<Compon
         partial: false,
         dry_run,
         completed: Vec::new(),
-        uncompleted: planned.clone(),
+        uncompleted: planned,
         installed_paths: Vec::new(),
         removed_paths: existing_targets.clone(),
     };
-    if !changed || dry_run {
-        return Ok(result);
+    commit_plan(
+        Scope::Skill,
+        "uninstall",
+        &skill_root,
+        result,
+        |_operation| Ok(None),
+        || Ok(target_fingerprints(&targets)? == target_before),
+        |progress, _staging| progress.remove_entries(&existing_targets),
+    )
+}
+
+const REGISTRATION_ITEM: &str = "Harness registration";
+
+/// Which lifecycle a plan belongs to; selects the wording of its errors.
+#[derive(Clone, Copy)]
+enum Scope {
+    Harness,
+    Skill,
+}
+
+impl Scope {
+    fn subject(self) -> &'static str {
+        match self {
+            Self::Harness => "Harness component",
+            Self::Skill => "CLI Skill",
+        }
     }
 
-    let operation = crate::gc::begin_user_operation(&skill_root)?;
+    fn cleanup_subject(self) -> &'static str {
+        match self {
+            Self::Harness => "Component",
+            Self::Skill => "CLI Skill",
+        }
+    }
+}
+
+fn install_action(changed: bool, dry_run: bool, existed: bool) -> &'static str {
+    if !changed {
+        "no_change"
+    } else if dry_run {
+        "would_install"
+    } else if existed {
+        "updated"
+    } else {
+        "installed"
+    }
+}
+
+fn uninstall_action(changed: bool, dry_run: bool) -> &'static str {
+    if !changed {
+        "no_change"
+    } else if dry_run {
+        "would_uninstall"
+    } else {
+        "uninstalled"
+    }
+}
+
+fn existing_entries<'a>(paths: impl IntoIterator<Item = &'a PathBuf>) -> Result<Vec<PathBuf>> {
+    let mut existing = Vec::new();
+    for path in paths {
+        if entry_exists(path)? {
+            existing.push(path.clone());
+        }
+    }
+    Ok(existing)
+}
+
+fn stage_payload(
+    operation: &mut crate::gc::CleanupOperation,
+    needed: bool,
+    name: &str,
+    payload: &str,
+    manifest: &BTreeMap<String, FileManifest>,
+    files: &BTreeMap<String, PayloadFile>,
+) -> Result<Option<PathBuf>> {
+    if !needed {
+        return Ok(None);
+    }
+    let path = operation.temporary_path(name)?;
+    materialize_payload(&path, payload, manifest, files)?;
+    Ok(Some(path))
+}
+
+/// Runs a planned lifecycle change inside one cleanup operation.
+///
+/// `stage` prepares files before the preflight recheck, `unchanged` repeats the
+/// preflight, and `apply` commits each planned item through `Progress`.
+fn commit_plan(
+    scope: Scope,
+    verb: &str,
+    operation_target: &Path,
+    mut result: ComponentResult,
+    stage: impl FnOnce(&mut crate::gc::CleanupOperation) -> Result<Option<PathBuf>>,
+    unchanged: impl FnOnce() -> Result<bool>,
+    apply: impl FnOnce(&mut Progress, Option<PathBuf>) -> Result<()>,
+) -> Result<ComponentResult> {
+    if !result.changed || result.dry_run {
+        return Ok(result);
+    }
+    let remaining = result.uncompleted.clone();
+    let operation = crate::gc::begin_user_operation(operation_target)?;
     let completed = operation.execute(
-        |_operation| {
+        |operation| {
+            let staging = stage(operation)?;
             crate::cancel::checkpoint()?;
-            if target_fingerprints(&targets)? != target_before {
+            if !unchanged()? {
                 return Err(TkError::new(
                     "changed_since_plan",
                     ErrorCategory::Conflict,
-                    "CLI Skill state changed after preflight",
+                    format!("{} state changed after preflight", scope.subject()),
                 ));
             }
-
-            let mut completed = Vec::new();
-            let mut remaining = planned.clone();
-            for target in &existing_targets {
-                if let Err(error) = crate::cancel::checkpoint() {
-                    return Err(skill_partial_error(error, &completed, &remaining));
-                }
-                if let Err(error) = remove_entry(target) {
-                    return Err(skill_partial_error(error, &completed, &remaining));
-                }
-                let item = target.display().to_string();
-                completed.push(item.clone());
-                remaining.retain(|candidate| candidate != &item);
-            }
-            Ok(completed)
+            let mut progress = Progress {
+                scope,
+                completed: Vec::new(),
+                remaining,
+            };
+            apply(&mut progress, staging)?;
+            Ok(progress.completed)
         },
         |completed, cleanup_path, error| {
             TkError::partial_commit(
-                "CLI Skill uninstall committed but cleanup failed",
+                format!(
+                    "{} {verb} committed but cleanup failed",
+                    scope.cleanup_subject()
+                ),
                 serde_json::json!(completed),
                 serde_json::json!([cleanup_path]),
                 error,
@@ -705,6 +627,64 @@ pub fn uninstall_skill_root(skill_root: PathBuf, dry_run: bool) -> Result<Compon
     result.completed = completed;
     result.uncompleted.clear();
     Ok(result)
+}
+
+/// Tracks committed and remaining plan items so a failure after the first
+/// committed change reports a partial commit.
+struct Progress {
+    scope: Scope,
+    completed: Vec<String>,
+    remaining: Vec<String>,
+}
+
+impl Progress {
+    fn partial(&self, error: TkError) -> TkError {
+        if self.completed.is_empty() {
+            return error;
+        }
+        TkError::partial_commit(
+            format!(
+                "{} lifecycle stopped after committing some changes",
+                self.scope.subject()
+            ),
+            serde_json::json!(self.completed),
+            serde_json::json!(self.remaining),
+            error,
+        )
+    }
+
+    fn checkpoint(&self) -> Result<()> {
+        crate::cancel::checkpoint().map_err(|error| self.partial(error))
+    }
+
+    fn step(
+        &mut self,
+        item: &str,
+        action: impl FnOnce(&mut Vec<String>) -> Result<()>,
+    ) -> Result<()> {
+        if let Err(error) = action(&mut self.completed) {
+            return Err(self.partial(error));
+        }
+        self.remaining.retain(|candidate| candidate != item);
+        Ok(())
+    }
+
+    fn path_step(&mut self, path: &Path, action: impl FnOnce() -> Result<()>) -> Result<()> {
+        let item = path.display().to_string();
+        self.step(&item, |completed| {
+            action()?;
+            completed.push(item.clone());
+            Ok(())
+        })
+    }
+
+    fn remove_entries(&mut self, paths: &[PathBuf]) -> Result<()> {
+        for path in paths {
+            self.checkpoint()?;
+            self.path_step(path, || remove_entry(path))?;
+        }
+        Ok(())
+    }
 }
 
 fn embedded_bundle() -> Result<Bundle> {
@@ -1431,30 +1411,6 @@ fn driver_error(executable: &str, output: Output) -> TkError {
     )
 }
 
-fn partial_error(error: TkError, completed: &[String], uncompleted: &[String]) -> TkError {
-    if completed.is_empty() {
-        return error;
-    }
-    TkError::partial_commit(
-        "Harness component lifecycle stopped after committing some changes",
-        serde_json::json!(completed),
-        serde_json::json!(uncompleted),
-        error,
-    )
-}
-
-fn skill_partial_error(error: TkError, completed: &[String], uncompleted: &[String]) -> TkError {
-    if completed.is_empty() {
-        return error;
-    }
-    TkError::partial_commit(
-        "CLI Skill lifecycle stopped after committing some changes",
-        serde_json::json!(completed),
-        serde_json::json!(uncompleted),
-        error,
-    )
-}
-
 fn require_absolute_skill_root(path: &Path) -> Result<()> {
     if path.is_absolute() {
         return Ok(());
@@ -1774,12 +1730,23 @@ mod tests {
     }
 
     #[test]
-    fn deconfigure_partial_error_keeps_registration_uncompleted() {
-        let error = partial_error(
-            TkError::new("injected", ErrorCategory::Cancelled, "cancelled"),
-            &["Claude plugin registration removed".into()],
-            &["Harness registration".into(), "Component target".into()],
-        );
+    fn failed_step_after_partial_progress_keeps_its_item_uncompleted() {
+        let mut progress = Progress {
+            scope: Scope::Harness,
+            completed: Vec::new(),
+            remaining: vec![REGISTRATION_ITEM.into(), "Component target".into()],
+        };
+        let error = progress
+            .step(REGISTRATION_ITEM, |completed| {
+                completed.push("Claude plugin registration removed".into());
+                Err(TkError::new(
+                    "injected",
+                    ErrorCategory::Cancelled,
+                    "cancelled",
+                ))
+            })
+            .unwrap_err();
+        assert_eq!(error.code, "partial_commit");
         let details = error.details.unwrap();
         assert_eq!(
             details["completed"],
@@ -1790,6 +1757,14 @@ mod tests {
             serde_json::json!(["Harness registration", "Component target"])
         );
         assert_eq!(details["original_error"]["code"], "injected");
+
+        let untouched = Progress {
+            scope: Scope::Skill,
+            completed: Vec::new(),
+            remaining: vec!["target".into()],
+        }
+        .partial(TkError::new("injected", ErrorCategory::Cancelled, "x"));
+        assert_eq!(untouched.code, "injected");
     }
 
     #[test]

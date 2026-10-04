@@ -54,7 +54,7 @@ export const CHECKS = [
     command: "bun",
     args: ["test", "projects/tk/adapter-tests"],
     tools: ["sh"],
-    files: ["projects/tk/adapter-tests/common.test.ts", "projects/tk/pi/common.ts", "projects/tk/omp/common.ts"],
+    files: ["projects/tk/adapter-tests/common.test.ts", "projects/tk/adapter/common.ts"],
   },
   {
     id: "skills",

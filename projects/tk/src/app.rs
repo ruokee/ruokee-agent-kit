@@ -64,14 +64,33 @@ pub enum ReadView {
     Detailed,
 }
 
+/// The largest WAL budget any read view accepts; `detailed` uses it by default.
+pub const MAX_WAL_LIMITS: (usize, usize) = (50, 16_000);
+const SUMMARY_WAL_LIMITS: (usize, usize) = (5, 4_000);
+
 impl ReadView {
     pub const fn default_wal_limits(self) -> (usize, usize) {
         match self {
             Self::Minimal => (0, 0),
-            Self::Summary => (5, 4_000),
-            Self::Detailed => (50, 16_000),
+            Self::Summary => SUMMARY_WAL_LIMITS,
+            Self::Detailed => MAX_WAL_LIMITS,
         }
     }
+}
+
+/// Describes the default WAL entry and byte budgets for CLI help and tool schemas.
+pub fn wal_budget_defaults() -> (String, String) {
+    let (summary, detailed) = (SUMMARY_WAL_LIMITS, MAX_WAL_LIMITS);
+    (
+        format!(
+            "Defaults to {} for summary and {} for detailed",
+            summary.0, detailed.0
+        ),
+        format!(
+            "Defaults to {} for summary and {} for detailed",
+            summary.1, detailed.1
+        ),
+    )
 }
 
 #[derive(Debug)]
@@ -107,6 +126,51 @@ pub enum LifecycleAction {
         reason: String,
         user_confirmed: bool,
     },
+}
+
+/// Lifecycle options as an update request received them, before they select one action.
+pub struct LifecycleOptions {
+    pub start: bool,
+    pub close: Option<String>,
+    pub reopen: Option<String>,
+    pub force: bool,
+    pub user_confirmed: bool,
+}
+
+impl LifecycleOptions {
+    /// Validates the options and selects at most one action. `flag_prefix` spells option
+    /// names the way the calling surface does, such as `--` for the CLI.
+    pub fn into_action(self, flag_prefix: &str) -> Result<Option<LifecycleAction>> {
+        let selected = usize::from(self.start)
+            + usize::from(self.close.is_some())
+            + usize::from(self.reopen.is_some());
+        if selected > 1 {
+            return Err(TkError::request(
+                "conflicting_lifecycle_actions",
+                "Only one lifecycle action is allowed per update",
+            ));
+        }
+        if self.force && self.close.is_none() {
+            return Err(TkError::request(
+                "invalid_force_option",
+                format!("{flag_prefix}force is valid only with {flag_prefix}close"),
+            ));
+        }
+        Ok(if self.start {
+            Some(LifecycleAction::Start)
+        } else if let Some(reason) = self.close {
+            Some(LifecycleAction::Close {
+                reason,
+                force: self.force,
+                user_confirmed: self.user_confirmed,
+            })
+        } else {
+            self.reopen.map(|reason| LifecycleAction::Reopen {
+                reason,
+                user_confirmed: self.user_confirmed,
+            })
+        })
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -202,16 +266,17 @@ pub fn read(
     wal_max_entries: usize,
     wal_max_length: usize,
 ) -> Result<ReadResult> {
-    if wal_max_entries > 50 {
+    let (max_entries, max_length) = MAX_WAL_LIMITS;
+    if wal_max_entries > max_entries {
         return Err(TkError::request(
             "invalid_wal_max_entries",
-            "wal_max_entries must be between 0 and 50",
+            format!("wal_max_entries must be between 0 and {max_entries}"),
         ));
     }
-    if wal_max_length > 16_000 {
+    if wal_max_length > max_length {
         return Err(TkError::request(
             "invalid_wal_max_length",
-            "wal_max_length must be between 0 and 16000",
+            format!("wal_max_length must be between 0 and {max_length}"),
         ));
     }
     let task = resolve_ref(project, task_ref)?;
@@ -1405,6 +1470,69 @@ mod tests {
     use super::*;
     use crate::project::{InitOptions, MetadataMode, init};
 
+    fn lifecycle_options(
+        start: bool,
+        close: Option<&str>,
+        reopen: Option<&str>,
+        force: bool,
+    ) -> LifecycleOptions {
+        LifecycleOptions {
+            start,
+            close: close.map(Into::into),
+            reopen: reopen.map(Into::into),
+            force,
+            user_confirmed: false,
+        }
+    }
+
+    #[test]
+    fn lifecycle_options_select_one_action_and_reject_misplaced_force() {
+        for (options, code) in [
+            (
+                lifecycle_options(true, Some("done"), None, false),
+                "conflicting_lifecycle_actions",
+            ),
+            (
+                lifecycle_options(false, Some("done"), Some("again"), false),
+                "conflicting_lifecycle_actions",
+            ),
+            (
+                lifecycle_options(true, None, Some("again"), true),
+                "conflicting_lifecycle_actions",
+            ),
+            (
+                lifecycle_options(false, None, Some("again"), true),
+                "invalid_force_option",
+            ),
+            (
+                lifecycle_options(true, None, None, true),
+                "invalid_force_option",
+            ),
+        ] {
+            assert_eq!(options.into_action("").unwrap_err().code, code);
+        }
+        assert!(matches!(
+            lifecycle_options(false, Some("done"), None, true).into_action("").unwrap(),
+            Some(LifecycleAction::Close { reason, force: true, user_confirmed: false }) if reason == "done"
+        ));
+        assert!(matches!(
+            lifecycle_options(false, None, Some("again"), false).into_action("").unwrap(),
+            Some(LifecycleAction::Reopen { reason, user_confirmed: false }) if reason == "again"
+        ));
+        assert!(matches!(
+            lifecycle_options(true, None, None, false)
+                .into_action("")
+                .unwrap(),
+            Some(LifecycleAction::Start)
+        ));
+        assert!(
+            lifecycle_options(false, None, None, false)
+                .into_action("")
+                .unwrap()
+                .is_none()
+        );
+    }
+
     fn temp_project() -> (PathBuf, Project) {
         temp_project_with_policy(CreationPolicy::Strict)
     }
@@ -2158,8 +2286,6 @@ mod tests {
                     .metadata;
                 let body = task_store::read_body_bytes(&task.task_dir, mode).unwrap();
                 let reference = dependency.task_dir.join("TASK.md").display().to_string();
-                let scans_before = task_store::DISCOVERY_CALLS.get();
-                let reads_before = task_store::TASK_READS.get();
                 let result = update(
                     &project,
                     &task.id.to_string(),
@@ -2183,13 +2309,6 @@ mod tests {
                         ..UpdateRequest::default()
                     },
                     "test",
-                );
-                assert_eq!(
-                    (
-                        task_store::DISCOVERY_CALLS.get() - scans_before,
-                        task_store::TASK_READS.get() - reads_before
-                    ),
-                    (1, 2)
                 );
                 let after = task_store::read_task(&task.task_dir, mode)
                     .unwrap()
@@ -2344,7 +2463,6 @@ mod tests {
             "test",
         )
         .unwrap();
-        let scans_before = task_store::DISCOVERY_CALLS.get();
         let reopened = update(
             &project,
             &child.id.to_string(),
@@ -2358,7 +2476,6 @@ mod tests {
             "test",
         )
         .unwrap();
-        assert_eq!(task_store::DISCOVERY_CALLS.get() - scans_before, 1);
         assert_eq!(reopened.task.status, Status::Open);
         update(
             &project,

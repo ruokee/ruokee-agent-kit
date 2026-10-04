@@ -15,7 +15,7 @@ Both modes expose the same six logical operations: search, read, create, update,
 
 ## Compatibility
 
-`18.2.8` is the minimum maintained OMP version, and this section is the authoritative entry for that number. It is a maintenance commitment, not an installation or runtime requirement. There is no upper maintenance bound, and no version number blocks use: no install, loading, registration, or diagnostic path compares the host version against this minimum.
+`18.5.0` is the minimum maintained OMP version, and this section is the authoritative entry for that number. It is a maintenance commitment, not an installation or runtime requirement. There is no upper maintenance bound, and no version number blocks use: no install, loading, registration, or diagnostic path compares the host version against this minimum.
 
 The commitment covers only the host-side code shipped in `tools` mode. The `cli` mode component contains none of that code and carries no OMP-version maintenance commitment. A host below the minimum carries no maintenance commitment, and this declaration does not claim that any version at or above the minimum was verified.
 

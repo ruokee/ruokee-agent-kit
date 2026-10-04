@@ -591,6 +591,24 @@ pub(crate) fn operation_directories(root: &Path) -> Result<Vec<PathBuf>> {
     Ok(directories)
 }
 
+/// Whether a cleanup manifest is recognizable as this format: it declares the current
+/// `format_version`, names a producer and creation time, and keeps any
+/// `temporary_paths` as an array. Field contents are not validated, so a recognizable
+/// but damaged manifest still marks an unfinished operation.
+pub(crate) fn is_recognized_manifest(text: &str) -> bool {
+    toml::from_str::<toml::Value>(text).is_ok_and(|value| {
+        value
+            .get("format_version")
+            .and_then(toml::Value::as_integer)
+            == Some(i64::from(FORMAT_VERSION))
+            && value.get("producer").is_some()
+            && value.get("created_at").is_some()
+            && value
+                .get("temporary_paths")
+                .is_none_or(toml::Value::is_array)
+    })
+}
+
 fn read_manifest(path: &Path) -> Result<CleanupManifest> {
     let text = fs::read_to_string(path)
         .map_err(|error| storage_error("read_cleanup_manifest", path, error))?;

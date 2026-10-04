@@ -110,7 +110,7 @@ Pi 和 OMP 使用 `tk schema generate --type native --harness <pi|omp>` 的生�
 
 Cargo 构建使用 Rust 组装逻辑生成多份 Harness 组件载荷、两份与 Harness 无关的 CLI Skill 载荷、一个确定性 `tar.zst` 归档和一份清单。Harness 选择覆盖四个 Harness、两种模式和两种语言。相同输入必须产生相同路径、文件字节、归档字节和清单。
 
-Harness 组装只读取所选 Harness 源码和四个自包含 Skill 目录之一。独立载荷只读取 `tk-cli` 或 `tk-cli-zh`。发布、安装和验证使用同一套 Rust 产物。
+Harness 组装只读取所选 Harness 源码、四个 Skill 目录之一，以及两类共用源码：所选语言下各 Skill 共用的参考文件，以及 Pi 和 OMP 共用的映射层 `common.ts`。独立载荷只读取 `tk-cli` 或 `tk-cli-zh` 及同语言的共用参考文件。组装后的每份载荷都自包含。发布、安装和验证使用同一套 Rust 产物。
 
 Rust 组装产物是发布、安装和验证的唯一组件输入。
 

@@ -114,7 +114,7 @@ OMP marks search, read, create, update, and log as essential. Exec is discoverab
 
 ## Component builds and runtime sources
 
-Cargo builds use a single Rust assembly implementation to generate multiple self-contained Harness payloads from four Skill trees and the source code for each Harness, plus two standalone payloads containing only `tk-cli` or `tk-cli-zh`. Generation writes only to Cargo `OUT_DIR` and Cargo's own target directory.
+Cargo builds use a single Rust assembly implementation to generate multiple self-contained Harness payloads from four Skill trees, the reference files shared by Skills of the same language, and the source code for each Harness, plus two standalone payloads containing only `tk-cli` or `tk-cli-zh`. Generation writes only to Cargo `OUT_DIR` and Cargo's own target directory.
 
 The runtime uses embedded archives and manifests through `include_bytes!`. Harness and custom-root installation do not access the network, start `curl`, or accept a local archive path.
 

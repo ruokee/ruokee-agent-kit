@@ -25,7 +25,7 @@ The tools Skills use the Harness's logical operation for search, read, create, u
 
 The CLI Skills use the public `tk` CLI for every Task operation and contain the complete current command reference they need. They do not compare entry routes or depend on integration discovery.
 
-English and Chinese Skills in the same mode have equivalent semantic coverage. Each of the four directories can be installed and understood without another repository component.
+English and Chinese Skills in the same mode have equivalent semantic coverage. Each of the four installed Skills can be understood without another repository component. In the source tree, reference files that are identical across Skills of one language live once in `skills/shared/<language>/`, and assembly copies them into every Skill of that language.
 
 ## Lifecycle semantics
 
