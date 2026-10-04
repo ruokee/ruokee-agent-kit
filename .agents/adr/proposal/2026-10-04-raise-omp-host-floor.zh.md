@@ -82,7 +82,7 @@ Draft writer: OMP Claude Opus 5.5
 
 ### omp-qol：只保留独立 `wait`
 
-等待模块只服务独立的 `wait` 入口，`hub` 等待路径删除。`omp-qol` 0.5.0 的 manifest 声明的设置项逐项保留：全部 20 项的键名、默认值和取值范围不变，不增加也不删除设置项。这 20 项包括 `compactionCacheEnabled` 和 `compactionCacheProvider`，它们由[现行 QoL 决定](../decision/2026-10-04-align-remote-compaction-cache.zh.md)随远端压缩缓存对齐加入，此前 manifest 声明 18 项。`waitMessagesSeconds` 和 `waitProcessSeconds` 在受支持的宿主上不起作用，中英文文档和 manifest 中的设置说明写明这一点。
+等待模块只服务独立的 `wait` 入口，`hub` 等待路径删除。`omp-qol` 0.5.0 的 manifest 声明的设置项逐项保留：全部 20 项的键名、默认值和取值范围不变，不增加也不删除设置项。这 20 项包括 `compactionCacheEnabled` 和 `compactionCacheProvider`，它们由[缓存对齐决定](../archived/2026-10-04-align-remote-compaction-cache.zh.md)随远端压缩缓存对齐加入，此前 manifest 声明 18 项。`waitMessagesSeconds` 和 `waitProcessSeconds` 在受支持的宿主上不起作用，中英文文档和 manifest 中的设置说明写明这一点。
 
 compaction 期限补丁的所有权检查保持不变，包括拒绝与 `Symbol.for("ruokee.omp.compaction-timeout.patched")` 标记的补丁共存。
 
@@ -100,7 +100,7 @@ compaction 期限补丁的所有权检查保持不变，包括拒绝与 `Symbol.
 
 **[随 OMP 宿主升级维护状态栏](../decision/2026-10-02-scope-token-metrics-to-conversation.zh.md)。** 有效条款："从公开数据估计投机区间"一节，包括指示器的三种状态以及把 compaction 设置组作为输入；`context` provider 把文本与投机字形连接；与 compaction-resolution API 的耦合；以及投机估算的文档和测试。提议的选择：静态的 `U+F0068` 字形，不读取 compaction 设置。两者不能同时成立：该决定要求根据 compaction 设置计算估算值，而本提案禁止读取这些设置。后继决定保留 Widget、Provider 契约、内置指标清单、已应答请求计数，以及每个发布标签前的真实 TUI 检查。
 
-**[维护包含远端压缩缓存对齐的 OMP 体验调整](../decision/2026-10-04-align-remote-compaction-cache.zh.md)。** 有效条款：2026-09-29 的变更"按能力选择等待入口"，其中写明"内建 `hub` 完整保留既有行为"，并让两个入口共用一套期限机制。提议的选择：只保留独立 `wait`。两者不能同时成立：该决定保留 `hub` 行为，而本提案删除它。后继决定保留独立 `wait` 的合同、设置键、错误恢复、compaction 期限实验及其所有权规则、原生重放和缓存对齐。
+**[维护 OMP 体验调整并保留投机压缩](../decision/2026-10-04-preserve-speculative-cache.zh.md)。** 有效条款：2026-09-29 的变更"按能力选择等待入口"，其中写明"内建 `hub` 完整保留既有行为"，并让两个入口共用一套期限机制。提议的选择：只保留独立 `wait`。两者不能同时成立：该决定保留 `hub` 行为，而本提案删除它。后继决定保留独立 `wait` 的合同、设置键、错误恢复、compaction 期限实验及其所有权规则、原生重放和缓存对齐。
 
 ### 只需更新、不需反转的决定
 

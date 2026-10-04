@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "OMP adjustments for wait deadlines, model-error recovery, native-history replay, compaction deadlines, and remote compaction cache alignment",
   "license": "MIT",
   "type": "module",
@@ -129,7 +129,7 @@
       "compactionCacheEnabled": {
         "type": "boolean",
         "default": false,
-        "description": "Align owned Responses V2 compaction with the preceding online request. Disables speculative compaction in the owning session. Off by default."
+        "description": "Align owned Responses V2 compaction with a confirmed online request without disabling native speculative compaction. Off by default."
       },
       "compactionCacheProvider": {
         "type": "string",

@@ -2,7 +2,9 @@
 
 Decision owner: Ruokee
 Decision writer: pro-20x/gpt-6-astra
-Reverses: [Maintain the OMP quality-of-life adjustments across OMP host upgrades](../archived/2026-09-28-maintain-omp-qol.md)
+Reverses: [Maintain the OMP quality-of-life adjustments across OMP host upgrades](./2026-09-28-maintain-omp-qol.md)
+Archived: 2026-10-04
+Reversed by: [Maintain OMP quality-of-life adjustments while preserving speculative compaction](../decision/2026-10-04-preserve-speculative-cache.md)
 
 English | [中文](./2026-10-04-align-remote-compaction-cache.zh.md)
 
@@ -26,9 +28,9 @@ This decision defines the first-party `omp-qol` component, the responsibility sp
 
 ### Component and scope
 
-Add `projects/omp-qol/`, named `@ruokee/omp-qol`, under the [first-party capability boundary](./2026-08-20-establish-first-party-capability-kit.md) and the [self-contained component contract](./2026-08-24-keep-components-self-contained.md). One package carries five independently switchable modules: continuing waits, continuation after an eligible model error, the experimental compaction deadline extension, native history replay, and remote compaction cache alignment. One installation, one configuration entry, and one set of checks cover them, while each module keeps its own switch, availability status, and failure reporting.
+Add `projects/omp-qol/`, named `@ruokee/omp-qol`, under the [first-party capability boundary](../decision/2026-08-20-establish-first-party-capability-kit.md) and the [self-contained component contract](../decision/2026-08-24-keep-components-self-contained.md). One package carries five independently switchable modules: continuing waits, continuation after an eligible model error, the experimental compaction deadline extension, native history replay, and remote compaction cache alignment. One installation, one configuration entry, and one set of checks cover them, while each module keeps its own switch, availability status, and failure reporting.
 
-Configure the component through OMP plugin settings only, following the [native settings decision](./2026-09-10-use-codex-web-plugin-settings.md), with OMP owning values, project overrides, and parsing. Waiting, conservative error recovery, and native history replay are enabled by default; the compaction deadline and cache adjustments are explicitly opt-in. A module reports its effective state and the reason it is inactive, and a fault in one module does not disable the others. A rejected setting is named by key and rule without echoing its value.
+Configure the component through OMP plugin settings only, following the [native settings decision](../decision/2026-09-10-use-codex-web-plugin-settings.md), with OMP owning values, project overrides, and parsing. Waiting, conservative error recovery, and native history replay are enabled by default; the compaction deadline and cache adjustments are explicitly opt-in. A module reports its effective state and the reason it is inactive, and a fault in one module does not disable the others. A rejected setting is named by key and rule without echoing its value.
 
 Keep the component limited to these behavior adjustments. External tool guards, including Herdr guards, and unrelated host behavior stay outside it. Installation and migration remain with the user: the component does not modify existing extensions, user configuration, or installed host files.
 
@@ -95,7 +97,7 @@ When an equivalent maintained native request-preparation interface becomes avail
 
 Document each adjustment in the component's own `docs/` in English and Chinese, linked from both README files: the native behavior and what happens with the extension off, why the adjustment is needed and which native configuration or hook was checked, where it attaches and how configuration changes it, its side effects, cancellation, and failure behavior, the upstream change that would make it unnecessary, the source baseline with the OMP version and commit, the versions actually verified for automated checks and for real OMP CLI runs, and the applicability limits.
 
-Verified claims stay separate per adjustment. The component README compatibility section declares the maintenance lower bound and is that bound's authoritative statement, with no maintenance upper bound: a host below the bound is not blocked and gains no maintenance commitment, and raising the bound is its own decision under [the host upgrade decision](./2026-09-28-adapt-components-to-host-upgrades.md). The host peer declarations name the host packages the component imports without a version range; they add no install or activation condition and are not the maintenance range. A package-wide peer range is metadata about the host API and is not verification of any adjustment, and reading the source is not a run. Items without a real-session run are documented as unverified.
+Verified claims stay separate per adjustment. The component README compatibility section declares the maintenance lower bound and is that bound's authoritative statement, with no maintenance upper bound: a host below the bound is not blocked and gains no maintenance commitment, and raising the bound is its own decision under [the host upgrade decision](../decision/2026-09-28-adapt-components-to-host-upgrades.md). The host peer declarations name the host packages the component imports without a version range; they add no install or activation condition and are not the maintenance range. A package-wide peer range is metadata about the host API and is not verification of any adjustment, and reading the source is not a run. Items without a real-session run are documented as unverified.
 
 ## Alternatives considered
 

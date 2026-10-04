@@ -11,7 +11,7 @@ export function digest(value: unknown) {
 }
 // Unknown inputs add no identity. Conflicting known roots poison descendants.
 export function signalOwners<T extends object>(base: typeof AbortSignal.any) {
-  const owners = new WeakMap<AbortSignal, T | null>();
+  let owners = new WeakMap<AbortSignal, T | null>();
   function any(this: typeof AbortSignal, signals: AbortSignal[]): AbortSignal {
     const combined = Reflect.apply(base, this, [signals]);
     if (!Array.isArray(signals)) return combined;
@@ -30,8 +30,11 @@ export function signalOwners<T extends object>(base: typeof AbortSignal.any) {
   }
   return {
     any,
-    bind: (signal: AbortSignal, owner: T) => owners.set(signal, owner),
+    bind: (signal: AbortSignal, owner: T | null) => owners.set(signal, owner),
     get: (signal: AbortSignal) => owners.get(signal),
+    clear: () => {
+      owners = new WeakMap();
+    },
   };
 }
 

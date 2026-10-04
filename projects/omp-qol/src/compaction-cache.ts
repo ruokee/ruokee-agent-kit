@@ -1,4 +1,4 @@
-import { AgentSession, type ExtensionContext } from "@oh-my-pi/pi-coding-agent";
+import type { ExtensionContext } from "@oh-my-pi/pi-coding-agent";
 import { alignCompaction, digest, isObject, signalOwners, type JsonObject } from "./compaction-cache-core.ts";
 import { PACKAGE_VERSION, type ModuleContext, type ModuleState } from "./extension.ts";
 
@@ -9,13 +9,12 @@ interface Reference {
   sent: boolean;
 }
 interface Operation {
-  reference: Reference;
+  reference?: Reference;
   state: string;
   root: AbortSignal;
-  active: boolean;
-}
-interface ManualRun {
-  operation?: Operation;
+  generation: number;
+  valid: boolean;
+  online: boolean;
 }
 interface CacheRegistry {
   schema: 1;
@@ -61,7 +60,7 @@ export function compactionCacheStatus(runtimeId: string, recorded: ModuleState):
   if (current.runtimeId !== runtimeId) return { status: "incompatible", reason: "patch-owned-elsewhere" };
   return {
     status: "enabled",
-    detail: `rewrites=${current.rewrites} speculativeCompaction=disabled${current.lastSkip ? ` lastSkip=${current.lastSkip}` : ""}`,
+    detail: `rewrites=${current.rewrites}${current.lastSkip ? ` lastSkip=${current.lastSkip}` : ""}`,
   };
 }
 
@@ -91,18 +90,24 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
   if (
     typeof globalThis.fetch !== "function" ||
     typeof AbortSignal.any !== "function" ||
-    typeof AgentSession.prototype.compact !== "function"
+    typeof ctx.modelRegistry?.resolver !== "function"
   )
     return { status: "incompatible", reason: "host-interface" };
 
-  let context = ctx;
+  const context = ctx;
+  let cwd = ctx.cwd;
   const session = ctx.sessionManager.getSessionId();
   let reference: Reference | undefined;
-  let operation: Operation | undefined;
-  let manual: ManualRun | undefined;
+  let pending: Reference | undefined;
+  let generation = 0;
   const baseFetch = globalThis.fetch;
   const baseAny = AbortSignal.any;
-  const baseCompact = AgentSession.prototype.compact;
+  const modelRegistry = ctx.modelRegistry;
+  const baseResolver = modelRegistry.resolver;
+  const descriptor = Object.getOwnPropertyDescriptor(modelRegistry, "resolver");
+  if (descriptor && (!("value" in descriptor) || !descriptor.writable))
+    return { status: "incompatible", reason: "host-interface" };
+  if (!descriptor && !Object.isExtensible(modelRegistry)) return { status: "incompatible", reason: "host-interface" };
   const lineage = signalOwners<Operation>(baseAny);
   const state = (current: ExtensionContext): string =>
     digest({
@@ -111,32 +116,78 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
       prompt: current.getSystemPrompt(),
       tools: pi.getAllTools(),
       active: pi.getActiveTools(),
-      cwd: current.cwd,
+      cwd,
     }).sha256;
   const ownSession = (current: ExtensionContext): boolean =>
     isMain(current) &&
     current.sessionManager === ctx.sessionManager &&
     current.sessionManager.getSessionId() === session;
+  // Payload contexts can override model for an auxiliary request; keep the live owner getter.
+  const matchesModel = (target: unknown): boolean =>
+    isObject(target) &&
+    !!context.model &&
+    target.provider === context.model.provider &&
+    target.id === context.model.id &&
+    target.baseUrl === context.model.baseUrl &&
+    (target.api === undefined || target.api === context.model.api);
 
-  const wrappedCompact: typeof baseCompact = function (this: AgentSession, instructions, options) {
-    if (owner.reason || slots[SLOT] !== owner || this.sessionManager !== ctx.sessionManager || manual) {
-      return baseCompact.call(this, instructions, options);
-    }
-    const run: ManualRun = {};
-    manual = run;
-    const finish = (): void => {
-      if (run.operation) run.operation.active = false;
-      if (manual === run) manual = undefined;
-    };
-    // Settlement includes all native retries and method fallback. Keep the original promise.
+  const wrappedResolver: typeof baseResolver = function (this: typeof modelRegistry, ...args: unknown[]) {
+    // Delegate outside inspection: credential errors and promise identity belong to the host.
+    const resolve = Reflect.apply(baseResolver, this, args) as ReturnType<typeof baseResolver>;
+    if (typeof resolve !== "function") return resolve;
+    let snapshot: { reference?: Reference; state: string; generation: number } | undefined;
     try {
-      const result = baseCompact.call(this, instructions, options);
-      void result.then(finish, finish);
-      return result;
-    } catch (error) {
-      finish();
-      throw error;
+      if (!owner.reason && !owner.owned()) owner.stop("patch-overwritten");
+      const [target, sessionId] = args;
+      if (
+        !owner.reason &&
+        this === modelRegistry &&
+        ownSession(context) &&
+        supported(context) &&
+        sessionId === session &&
+        matchesModel(target)
+      ) {
+        const currentState = state(context);
+        snapshot = {
+          reference: reference?.state === currentState ? reference : undefined,
+          state: currentState,
+          generation,
+        };
+      }
+    } catch {
+      owner.lastSkip = "binding-unavailable";
     }
+    return function (this: unknown, ...resolveArgs: Parameters<typeof resolve>) {
+      try {
+        if (!owner.reason && !owner.owned()) owner.stop("patch-overwritten");
+        const root = resolveArgs[0]?.signal;
+        if (!owner.reason && root instanceof AbortSignal) {
+          const known = lineage.get(root);
+          if (
+            !snapshot ||
+            root.aborted ||
+            snapshot.generation !== generation ||
+            !ownSession(context) ||
+            snapshot.state !== state(context)
+          ) {
+            if (known) known.valid = false;
+            lineage.bind(root, null);
+          } else if (known === undefined) {
+            lineage.bind(root, { ...snapshot, root, valid: true, online: false });
+          } else if (
+            known &&
+            (known.root !== root || known.state !== snapshot.state || known.generation !== generation)
+          ) {
+            known.valid = false;
+            lineage.bind(root, null);
+          }
+          // Existing roots keep their first reference, including a missing one, across retries.
+        }
+      } catch {
+        owner.stop("binding-unavailable");
+      }
+      return Reflect.apply(resolve, this, resolveArgs);
+    };
   };
 
   const wrappedFetch = ((input: string | URL | Request, init?: RequestInit) => {
@@ -162,25 +213,40 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
               const body: unknown = JSON.parse(init.body);
               if (!isObject(body)) throw new TypeError("Expected request object");
               const compaction = Array.isArray(body.input) && body.input.at(-1)?.type === "compaction_trigger";
+              const op = init.signal ? lineage.get(init.signal) : undefined;
+              const currentState = state(context);
+              const liveRoot =
+                op &&
+                op.valid &&
+                !op.root.aborted &&
+                !init.signal?.aborted &&
+                op.generation === generation &&
+                op.state === currentState;
               if (!compaction) {
-                if (reference && reference.hash === digest(body).sha256 && reference.state === state(context))
-                  reference.sent = true;
+                if (liveRoot && op) {
+                  op.online = true;
+                  if (
+                    url === endpoint &&
+                    pending &&
+                    pending.state === currentState &&
+                    pending.hash === digest(body).sha256
+                  ) {
+                    pending.sent = true;
+                    reference = pending;
+                    pending = undefined;
+                  }
+                }
               } else {
-                const op = init.signal ? lineage.get(init.signal) : undefined;
                 const reason = !op
                   ? "unowned-signal"
-                  : !op.active
+                  : !liveRoot || op.online
                     ? "inactive-operation"
-                    : op.root.aborted
-                      ? "cancelled-operation"
-                      : op.state !== state(context)
-                        ? "changed-state"
-                        : !op.reference.sent
-                          ? "reference-not-sent"
-                          : undefined;
+                    : !op.reference?.sent
+                      ? "reference-not-sent"
+                      : undefined;
                 if (reason) owner.lastSkip = reason;
-                else if (op) {
-                  const alignment = alignCompaction(op.reference.body, body, context.cwd);
+                else if (op?.reference) {
+                  const alignment = alignCompaction(op.reference.body, body, cwd);
                   if (!alignment.ok) {
                     // Dynamic field names can contain private data; expose only the category.
                     owner.lastSkip = alignment.reason.split(":", 1)[0];
@@ -216,16 +282,20 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
       slots[SLOT] === owner &&
       globalThis.fetch === wrappedFetch &&
       AbortSignal.any === lineage.any &&
-      AgentSession.prototype.compact === wrappedCompact,
+      modelRegistry.resolver === wrappedResolver,
     stop(reason) {
       if (owner.reason) return;
       owner.reason = reason;
       reference = undefined;
-      if (operation) operation.active = false;
-      operation = undefined;
+      pending = undefined;
+      generation += 1;
+      lineage.clear();
       if (globalThis.fetch === wrappedFetch) globalThis.fetch = baseFetch;
       if (AbortSignal.any === lineage.any) AbortSignal.any = baseAny;
-      if (AgentSession.prototype.compact === wrappedCompact) AgentSession.prototype.compact = baseCompact;
+      if (modelRegistry.resolver === wrappedResolver) {
+        if (descriptor) Object.defineProperty(modelRegistry, "resolver", descriptor);
+        else Reflect.deleteProperty(modelRegistry, "resolver");
+      }
       module.setStatus?.("cache", { status: "incompatible", reason });
       if (reason !== "owner-stopped") report(`cache:${reason}`, `compaction cache stopped rewriting: ${reason}`);
     },
@@ -238,46 +308,29 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
       owner.stop("different-session-request");
       return;
     }
-    context = current;
-    if (operation) operation.active = false;
-    reference = undefined;
-    if (!supported(current) || !isObject(event.payload)) return;
+    if (!matchesModel(current.model)) return;
+    cwd = current.cwd;
+    pending = undefined;
+    if (!supported(context) || !isObject(event.payload)) {
+      reference = undefined;
+      generation += 1;
+      return;
+    }
     try {
       const body = JSON.parse(JSON.stringify(event.payload)) as JsonObject;
-      reference = { body, hash: digest(body).sha256, state: state(current), sent: false };
+      const currentState = state(context);
+      if (reference && reference.state !== currentState) {
+        reference = undefined;
+        generation += 1;
+      }
+      pending = { body, hash: digest(body).sha256, state: currentState, sent: false };
     } catch {
       owner.lastSkip = "reference-unavailable";
     }
   });
-  pi.on("session_before_compact", (event, current) => {
-    if (owner.reason) return;
-    if (!ownSession(current)) {
-      owner.stop("different-session-compaction");
-      return;
-    }
-    context = current;
-    try {
-      if (!supported(current) || !reference?.sent || reference.state !== state(current)) {
-        owner.lastSkip = "missing-or-stale-reference";
-        return;
-      }
-      if (lineage.get(event.signal)?.active) return;
-      if (operation?.active && !operation.root.aborted) {
-        owner.stop("overlapping-compaction");
-        return;
-      }
-      operation = { reference, state: state(current), root: event.signal, active: true };
-      if (manual) manual.operation = operation;
-      lineage.bind(event.signal, operation);
-    } catch {
-      owner.lastSkip = "binding-unavailable";
-    }
-  });
-  pi.on("auto_compaction_end", () => {
-    if (operation) operation.active = false;
-  });
   pi.on("session_compact", () => {
-    if (operation) operation.active = false;
+    generation += 1;
+    pending = undefined;
     reference = undefined;
   });
   const stopForNavigation = (): void => owner.stop("session-navigation");
@@ -290,7 +343,13 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
   try {
     globalThis.fetch = wrappedFetch;
     AbortSignal.any = lineage.any;
-    AgentSession.prototype.compact = wrappedCompact;
+    Object.defineProperty(
+      modelRegistry,
+      "resolver",
+      descriptor
+        ? { ...descriptor, value: wrappedResolver }
+        : { value: wrappedResolver, writable: true, configurable: true },
+    );
     if (!owner.owned()) owner.stop("install-failed");
   } catch {
     owner.stop("install-failed");
