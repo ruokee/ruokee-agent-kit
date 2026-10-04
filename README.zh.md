@@ -155,7 +155,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 | 多个已知范围 | 检查并集，每项只执行一次 |
 | 共享工具链或检查输入、选择器变更、未知路径，或不可靠的基线与分类 | 只运行一次完整 `pnpm check`，不先执行局部检查 |
 
-消费者规则优先于普通 Markdown 规则。未知组件及其 Markdown 不按仅格式检查处理。新增组件、必需检查和文档消费者时，同步更新根聚合入口、显式映射及[选择测试](./scripts/tests/check-changed.test.mjs)。
+消费者规则优先于普通 Markdown 规则。未知组件及其 Markdown 不按仅格式检查处理。新增组件、必需检查和文档消费者时，同步更新选择器中的完整检查列表、显式映射及[选择测试](./scripts/tests/check-changed.test.mjs)。
 
 输出列出基线和 merge base、路径来源、选中范围与命令、回退原因及失败位置。
 
@@ -173,9 +173,9 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 
 新增受跟踪变更、待提交内容、候选变化或目标 `main` 前进，都使原成功结果失效。形成新的最终候选并重新完整验证。
 
-完整入口保留下列检查顺序：
+完整入口执行选择器中的完整检查列表，即 `node scripts/check-changed.mjs --complete`，不收集变更路径。检查顺序如下：
 
-1. 通过 `pnpm check:base` 执行 Markdown 格式检查、tk Rust 格式检查和 Rust 测试。
+1. Markdown 格式检查、tk Rust 格式检查和 Rust 测试，与 `pnpm check:base` 的序列相同。
 2. [omp-status-bar](./projects/omp-status-bar/package.json) 的 TypeScript 检查和测试。
 3. [omp-system-prompt](./projects/omp-system-prompt/package.json) 的 TypeScript 检查和测试。
 4. [omp-codex-web-access](./projects/omp-codex-web-access/package.json) 的 TypeScript 检查和测试。
@@ -185,7 +185,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 8. 通过 `pnpm check:skills` 执行 `sh scripts/tests/skills.sh`，运行 Skill 生命周期测试。
 9. 通过 `pnpm check:selector` 执行受影响选择器回归测试。
 
-首次命令失败即停止执行，并返回非零状态。缺失可执行文件或依赖也会使检查失败。命令及组件输出可以定位失败步骤。检查不安装依赖或格式化源码；构建和测试可以创建自身正常使用的生成文件与临时文件。完整入口不调用受影响选择器，回退不会递归。
+完整入口在执行第一条命令前核对所列的全部工具和本地输入。首次命令失败即停止执行，并返回非零状态。缺失可执行文件或依赖也会使检查失败。命令及组件输出可以定位失败步骤。检查不安装依赖或格式化源码；构建和测试可以创建自身正常使用的生成文件与临时文件。完整入口不选择受影响检查，回退不会递归。
 
 `pnpm check:base` 只覆盖 Markdown 与 Rust，适用于局部工作。组件检查也可通过各自已有脚本独立执行。自动化成功不能证明真实模型行为或交互界面正确性，仍须遵循相关组件的场景及发布验证要求。[仓库检查决定](./.agents/adr/decision/2026-09-30-scope-aware-repository-checks.zh.md)定义完整契约。
 

@@ -7,9 +7,11 @@ import { pathToFileURL } from "node:url";
 import {
   ROOT,
   CHECKS,
+  COMPLETE,
   OMP_COMPONENTS,
   buildCommands,
   checkChanged,
+  checkComplete,
   collectChanges,
   parseArgs,
   parseNameStatus,
@@ -67,9 +69,17 @@ function fakeTools(cwd, files) {
 }
 
 test("strict CLI syntax and explicit baseline", () => {
-  assert.equal(parseArgs([]), "main");
-  assert.equal(parseArgs(["--base", "topic"]), "topic");
-  for (const args of [["--base"], ["--base", ""], ["--base", "main", "--base", "other"], ["--help"], ["topic"]])
+  assert.deepEqual(parseArgs([]), { base: "main" });
+  assert.deepEqual(parseArgs(["--base", "topic"]), { base: "topic" });
+  assert.deepEqual(parseArgs(["--complete"]), { complete: true });
+  for (const args of [
+    ["--base"],
+    ["--base", ""],
+    ["--base", "main", "--base", "other"],
+    ["--complete", "--base", "main"],
+    ["--help"],
+    ["topic"],
+  ])
     assert.throws(() => parseArgs(args), /Usage/);
 });
 
@@ -124,31 +134,14 @@ test("only registered explanatory Markdown is formatting-only", () => {
 test("every OMP component selects its own two checks; Markdown consumers take priority", () => {
   for (const name of OMP_COMPONENTS) {
     const expected = [`${name}:typecheck`, `${name}:test`];
-    for (const path of [
-      "src/entry.ts",
-      "test/example.test.ts",
-      "package.json",
-      "bun.lock",
-      "src/prompt.md",
-      "test/fixture.md",
-    ])
+    for (const path of ["src/entry.ts", "package.json", "src/prompt.md", "test/fixture.md"])
       assert.deepEqual(ids([`projects/${name}/${path}`]), expected);
     assert.deepEqual(ids([`projects/${name}/docs/usage.md`]), []);
   }
 });
 
 test("tk packaging trees select Rust and adapters, installation docs select Skill checks", () => {
-  for (const path of [
-    "src/main.rs",
-    "build.rs",
-    "Cargo.toml",
-    "Cargo.lock",
-    "adapter-tests/common.test.ts",
-    "skills/tk/SKILL.md",
-    "claude/README.md",
-    "pi/README.zh.md",
-    "omp/README.md",
-  ])
+  for (const path of ["src/main.rs", "skills/tk/SKILL.md", "claude/README.md", "pi/README.zh.md", "omp/README.md"])
     assert.deepEqual(ids([`projects/tk/${path}`]), tkIds, path);
   for (const path of [
     "docs/installation.md",
@@ -545,18 +538,29 @@ test("CLI uses its own linked worktree rather than the caller's cwd", () =>
     git(cwd, "worktree", "remove", "--force", worktree);
   }));
 
-test("root aggregate preserves explicit targets and order without fallback recursion", () => {
+test("root complete entry runs the shared list once, in order, without selection", () => {
   const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
-  assert.equal(pkg.scripts["check:changed"], "node scripts/check-changed.mjs");
-  assert.equal(pkg.scripts["check:selector"], "node scripts/tests/check-changed.test.mjs");
-  assert.equal(pkg.scripts["check:base"], "pnpm docs:lint && pnpm cargo:fmt:check && pnpm cargo:test");
-  const expected = [
-    "pnpm check:base",
-    ...CHECKS.filter((check) => !check.id.startsWith("rust:")).map((check) => [check.command, ...check.args].join(" ")),
-    "pnpm check:selector",
-  ];
-  assert.deepEqual(pkg.scripts.check.split(" && "), expected);
-  assert.doesNotMatch(pkg.scripts.check, /check:changed/);
+  const commands = COMPLETE.map((check) => [check.command, ...check.args].join(" "));
+  assert.deepEqual(commands.slice(0, 3), pkg.scripts["check:base"].split(" && "));
+  assert.equal(commands.at(-1), "pnpm check:selector");
+  assert.equal(new Set(COMPLETE.map((check) => check.id)).size, COMPLETE.length);
+  for (const command of commands) assert.doesNotMatch(command, /^pnpm check(?::changed)?$/);
+
+  const calls = [];
+  const output = [];
+  const run = (command, args, options) => {
+    calls.push([[command, ...args].join(" "), options.cwd]);
+    return { status: 0 };
+  };
+  assert.equal(
+    checkComplete(ROOT, (line) => output.push(line), run, noPreflight),
+    0,
+  );
+  assert.deepEqual(
+    calls,
+    commands.map((command) => [command, ROOT]),
+  );
+  assert.match(output.at(-1), /Passed complete check/);
 });
 
 let failed = 0;

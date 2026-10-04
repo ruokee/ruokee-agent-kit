@@ -155,7 +155,7 @@ The [selector](./scripts/check-changed.mjs) maintains an explicit mapping:
 | Multiple known scopes | Their check union, without duplicate execution |
 | Shared toolchain or check inputs, selector changes, unknown paths, or an unreliable baseline or classification | One complete `pnpm check`, without first running partial checks |
 
-Consumer rules take priority over the ordinary Markdown rule. Unknown components, including their Markdown files, are not treated as formatting-only. New components, required checks, and document consumers must update the root aggregate, explicit mapping, and [selection tests](./scripts/tests/check-changed.test.mjs) together.
+Consumer rules take priority over the ordinary Markdown rule. Unknown components, including their Markdown files, are not treated as formatting-only. New components, required checks, and document consumers must update the complete check list and explicit mapping in the selector and the [selection tests](./scripts/tests/check-changed.test.mjs) together.
 
 Output lists the baseline and merge base, path sources, selected scopes and commands, fallback reason, and failing step.
 
@@ -173,9 +173,9 @@ After all review changes, validate the final candidate before merging:
 
 Further tracked changes, pending changes, a changed candidate, or target `main` advancing invalidate success. Form a new final candidate and repeat complete validation.
 
-The complete command retains these checks in order:
+The complete command runs the selector's complete check list, `node scripts/check-changed.mjs --complete`, without collecting changed paths. It retains these checks in order:
 
-1. Markdown formatting, tk Rust formatting, and Rust tests through `pnpm check:base`.
+1. Markdown formatting, tk Rust formatting, and Rust tests, the sequence `pnpm check:base` runs.
 2. TypeScript checks and tests for [omp-status-bar](./projects/omp-status-bar/package.json).
 3. TypeScript checks and tests for [omp-system-prompt](./projects/omp-system-prompt/package.json).
 4. TypeScript checks and tests for [omp-codex-web-access](./projects/omp-codex-web-access/package.json).
@@ -185,7 +185,7 @@ The complete command retains these checks in order:
 8. Skill lifecycle tests with `sh scripts/tests/skills.sh` through `pnpm check:skills`.
 9. Affected-selector regression tests through `pnpm check:selector`.
 
-The first failed command stops the sequence and returns a nonzero exit status. Missing executables or dependencies also fail the check. Commands and component output identify the failing step. Checks do not install dependencies or format source files; builds and tests can create their normal generated and temporary files. The complete entry point never calls the affected selector, so fallback cannot recurse.
+Before the first command, the complete entry point verifies every listed tool and local input. The first failed command stops the sequence and returns a nonzero exit status. Missing executables or dependencies also fail the check. Commands and component output identify the failing step. Checks do not install dependencies or format source files; builds and tests can create their normal generated and temporary files. The complete entry point never selects affected checks, so fallback cannot recurse.
 
 `pnpm check:base` covers only Markdown and Rust for targeted work. Component checks can also run independently through their existing scripts. Automated success does not establish real-model behavior or interactive UI correctness; follow the relevant component's scenario and release validation requirements as well. The [repository check decision](./.agents/adr/decision/2026-09-30-scope-aware-repository-checks.md) defines the complete contract.
 

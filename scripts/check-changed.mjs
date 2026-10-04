@@ -64,10 +64,24 @@ export const CHECKS = [
   },
 ].map((check) => ({ command: "pnpm", ...check }));
 
+// The complete check list. `pnpm check` runs it through `--complete`, and selector fallback runs `pnpm check`.
+export const COMPLETE = [
+  { id: "markdown:all", command: "pnpm", args: ["docs:lint"], files: [PRETTIER] },
+  ...CHECKS,
+  {
+    id: "selector",
+    command: "pnpm",
+    args: ["check:selector"],
+    tools: ["node"],
+    files: ["scripts/check-changed.mjs", "scripts/tests/check-changed.test.mjs"],
+  },
+];
+
 export function parseArgs(args) {
-  if (args.length === 0) return "main";
-  if (args.length === 2 && args[0] === "--base" && args[1]) return args[1];
-  throw new Error("Usage: pnpm check:changed [--base <ref>]");
+  if (args.length === 0) return { base: "main" };
+  if (args.length === 1 && args[0] === "--complete") return { complete: true };
+  if (args.length === 2 && args[0] === "--base" && args[1]) return { base: args[1] };
+  throw new Error("Usage: node scripts/check-changed.mjs [--base <ref> | --complete]");
 }
 
 function tokens(buffer) {
@@ -217,13 +231,8 @@ export function buildCommands(plan, cwd) {
         id: "complete",
         command: "pnpm",
         args: ["check"],
-        tools: ["node", ...new Set(CHECKS.flatMap((check) => [check.command, ...(check.tools ?? [])]))],
-        files: [
-          PRETTIER,
-          "scripts/check-changed.mjs",
-          "scripts/tests/check-changed.test.mjs",
-          ...new Set(CHECKS.flatMap((check) => check.files ?? [])),
-        ],
+        tools: [...new Set(COMPLETE.flatMap((check) => [check.command, ...(check.tools ?? [])]))],
+        files: [...new Set(COMPLETE.flatMap((check) => check.files ?? []))],
       },
     ];
   }
@@ -304,23 +313,36 @@ export function verifyRequirements(commands, cwd, env = process.env) {
   }
 }
 
-export function runCommands(commands, cwd, run = spawnSync, log = console.log, verify = verifyRequirements) {
+export function runCommands(
+  commands,
+  cwd,
+  run = spawnSync,
+  log = console.log,
+  verify = verifyRequirements,
+  prefix = "[check:changed]",
+) {
   try {
     verify(commands, cwd);
   } catch (error) {
-    log(`[check:changed] Preflight failed: ${error.message}`);
+    log(`${prefix} Preflight failed: ${error.message}`);
     return 1;
   }
   for (const check of commands) {
     const display = [check.command, ...check.args].map((arg) => JSON.stringify(arg)).join(" ");
-    log(`[check:changed] Running ${check.id}: ${display}`);
+    log(`${prefix} Running ${check.id}: ${display}`);
     const result = run(check.command, check.args, { cwd, stdio: "inherit", shell: false });
     if (result.error || result.signal || result.status !== 0) {
-      log(`[check:changed] Failed ${check.id}: ${result.error?.message || result.signal || `exit ${result.status}`}`);
+      log(`${prefix} Failed ${check.id}: ${result.error?.message || result.signal || `exit ${result.status}`}`);
       return Number.isInteger(result.status) && result.status > 0 ? result.status : 1;
     }
   }
   return 0;
+}
+
+export function checkComplete(cwd, log = console.log, run = spawnSync, verify = verifyRequirements) {
+  const status = runCommands(COMPLETE, cwd, run, log, verify, "[check]");
+  if (status === 0) log("[check] Passed complete check");
+  return status;
 }
 
 export function checkChanged(
@@ -361,7 +383,8 @@ export function checkChanged(
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    process.exitCode = checkChanged(ROOT, parseArgs(process.argv.slice(2)));
+    const options = parseArgs(process.argv.slice(2));
+    process.exitCode = options.complete ? checkComplete(ROOT) : checkChanged(ROOT, options.base);
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
