@@ -1,157 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import type { ExtensionAPI } from "@oh-my-pi/pi-coding-agent";
 import { COMMAND_NAME } from "../src/command.ts";
-import contextPinExtension, { PACKAGE_NAME, activate, inspectRuntime } from "../src/extension.ts";
+import { PACKAGE_NAME, activate } from "../src/extension.ts";
 import { MAX_DIAGNOSTIC_DETAIL } from "../src/receipt.ts";
 import { PROJECTION_TYPE, RECORD_SCHEMA_VERSION, RECORD_TYPE } from "../src/record.ts";
 import { TOOL_NAME } from "../src/tool.ts";
 import { callTool, recordsOf } from "./drive.ts";
 import { fakeHost } from "./host.ts";
-
-interface FakeRuntime {
-  api: ExtensionAPI;
-  warnings: string[];
-  calls: string[];
-}
-
-function createRuntime(overrides: Record<string, unknown> = {}): FakeRuntime {
-  const warnings: string[] = [];
-  const calls: string[] = [];
-  const members: Record<string, unknown> = {
-    logger: { warn: (message: string) => warnings.push(message) },
-    zod: { z: { object: () => ({}), enum: () => ({}), string: () => ({}), number: () => ({}) } },
-    pi: { VERSION: "18.1.16" },
-    on: () => calls.push("on"),
-    registerTool: () => calls.push("registerTool"),
-    registerCommand: () => calls.push("registerCommand"),
-    appendEntry: () => calls.push("appendEntry"),
-    sendMessage: () => calls.push("sendMessage"),
-    sendUserMessage: () => calls.push("sendUserMessage"),
-    ...overrides,
-  };
-  return { api: members as unknown as ExtensionAPI, warnings, calls };
-}
-
-describe("inspectRuntime", () => {
-  test("accepts a runtime carrying every required member", () => {
-    const { api } = createRuntime();
-    expect(inspectRuntime(api)).toBeUndefined();
-  });
-
-  test("reports missing and mistyped members in declaration order", () => {
-    expect(
-      inspectRuntime(createRuntime({ on: undefined, sendMessage: undefined, sendUserMessage: undefined }).api),
-    ).toEqual({
-      missing: ["on", "sendMessage", "sendUserMessage"],
-    });
-    expect(inspectRuntime(createRuntime({ on: 42, registerCommand: "register" }).api)).toEqual({
-      missing: ["on", "registerCommand"],
-    });
-  });
-
-  test("requires every schema builder the tool calls", () => {
-    for (const zod of [null, {}, { object: () => ({}) }, { z: 1 }, { z: { object: 1 } }, undefined]) {
-      expect(inspectRuntime(createRuntime({ zod }).api)).toEqual({
-        missing: ["zod.z.object", "zod.z.enum", "zod.z.string", "zod.z.number"],
-      });
-    }
-    // A namespace that carries some of them is still incomplete.
-    expect(inspectRuntime(createRuntime({ zod: { z: { object: () => ({}) } } }).api)).toEqual({
-      missing: ["zod.z.enum", "zod.z.string", "zod.z.number"],
-    });
-    expect(
-      inspectRuntime(
-        createRuntime({ zod: { z: { object: () => ({}), enum: 1, string: () => ({}), number: () => ({}) } } }).api,
-      ),
-    ).toEqual({
-      missing: ["zod.z.enum"],
-    });
-  });
-
-  test("requires a logger able to carry the diagnostic", () => {
-    for (const logger of [undefined, null, {}, 0, "log"]) {
-      expect(inspectRuntime(createRuntime({ logger }).api)).toEqual({ missing: ["logger.warn"] });
-    }
-  });
-
-  test("reports a value that is not a runtime object", () => {
-    expect(inspectRuntime(null as unknown as ExtensionAPI)).toEqual({ missing: ["pi"] });
-    expect(inspectRuntime("omp" as unknown as ExtensionAPI)).toEqual({ missing: ["pi"] });
-  });
-
-  test("does not read the reported host version as a compatibility condition", () => {
-    // A version string carries no claim about what a host can do, so a runtime
-    // that carries every required member is accepted whatever it reports.
-    for (const version of ["18.1.8", "17.9.0", "19.0.0", `19.0.0-${"x".repeat(500)}`, "main", undefined]) {
-      expect(inspectRuntime(createRuntime({ pi: { VERSION: version } }).api)).toBeUndefined();
-    }
-    // A host that reports no version object at all is accepted the same way.
-    expect(inspectRuntime(createRuntime({ pi: undefined }).api)).toBeUndefined();
-  });
-});
-
-describe("activate", () => {
-  test("stays silent on a supported runtime", () => {
-    const host = fakeHost();
-    activate(host.pi);
-    expect(host.warnings).toEqual([]);
-  });
-
-  test("warns once and registers nothing on an incomplete runtime", () => {
-    const { api, warnings, calls } = createRuntime({ registerTool: undefined, registerCommand: undefined });
-    activate(api);
-    expect(warnings).toHaveLength(1);
-    expect(warnings[0]).toContain(PACKAGE_NAME);
-    expect(warnings[0]).toContain("incomplete OMP runtime");
-    expect(warnings[0]).toContain("registerTool, registerCommand");
-    expect(calls).toEqual([]);
-  });
-
-  test("registers independently of the reported host version", () => {
-    // Changing only the reported version does not change registration.
-    for (const version of ["17.9.0", "19.0.0", `19.0.0-${"x".repeat(500)}`, "main"]) {
-      const host = fakeHost({ version });
-      activate(host.pi);
-      expect(host.warnings).toEqual([]);
-      expect(host.tools.has(TOOL_NAME)).toBe(true);
-      expect(host.commands.has(COMMAND_NAME)).toBe(true);
-    }
-  });
-
-  test("still registers nothing when a required member is missing", () => {
-    const { api, warnings, calls } = createRuntime({ pi: { VERSION: "19.0.0" }, registerTool: undefined });
-    activate(api);
-    expect(warnings).toHaveLength(1);
-    expect(warnings[0]).toContain("missing: registerTool");
-    expect(calls).toEqual([]);
-  });
-
-  test("does not throw when the host exposes no usable logger", () => {
-    for (const logger of [undefined, null, 0, "log"]) {
-      const { api, warnings, calls } = createRuntime({ logger, registerTool: undefined });
-      expect(() => activate(api)).not.toThrow();
-      expect(warnings).toEqual([]);
-      expect(calls).toEqual([]);
-    }
-  });
-
-  test("reports the same bounded message on every activation", () => {
-    const { api, warnings, calls } = createRuntime({ registerCommand: undefined });
-    activate(api);
-    activate(api);
-    expect(warnings).toHaveLength(2);
-    expect(warnings[0]).toBe(warnings[1]);
-    expect(warnings[0]?.length).toBeLessThan(200);
-    expect(calls).toEqual([]);
-  });
-
-  test("default export is the activation function", () => {
-    expect(contextPinExtension).toBe(activate);
-    const { api, warnings } = createRuntime({ on: undefined });
-    contextPinExtension(api);
-    expect(warnings).toHaveLength(1);
-  });
-});
 
 interface FakeTool {
   execute: (
@@ -448,18 +302,6 @@ describe("activate on a supported host", () => {
 });
 
 describe("session numbers", () => {
-  test("refuses a write when the host cannot show every entry of the session", async () => {
-    const host = fakeHost({ offersSessionEntries: false });
-    activate(host.pi);
-
-    const outcome = await callTool(host, "call-1", { action: "create", content: "maple" });
-
-    expect(outcome.details.code).toBe("rejected");
-    expect(String(outcome.content[0]?.text)).toContain("the host does not expose every session entry");
-    // A number that cannot be placed against the session is not handed out.
-    expect(recordsOf(host)).toHaveLength(0);
-  });
-
   test("reads the numbers of every branch, not only the branch it is on", async () => {
     const elsewhere = {
       id: "j-elsewhere",

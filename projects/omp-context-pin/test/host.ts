@@ -145,8 +145,6 @@ export interface FakeCtxOptions {
   journal: FakeEntry[];
   /** Every entry of the session, when it holds more than the branch of this host. */
   sessionEntries?: FakeEntry[];
-  /** Whether this host's session manager offers every entry of the session. */
-  offersSessionEntries?: boolean;
   ui?: FakeUI;
   hasUI?: boolean;
   sessionId?: () => string;
@@ -169,9 +167,7 @@ export function fakeContext(options: FakeCtxOptions): ExtensionContext {
     },
     sessionManager: {
       getBranch: () => options.journal,
-      ...(options.offersSessionEntries === false
-        ? {}
-        : { getEntries: () => options.sessionEntries ?? options.journal }),
+      getEntries: () => options.sessionEntries ?? options.journal,
       getSessionId: () => (options.sessionId ?? (() => "session-1"))(),
       getCwd: () => "/tmp/project",
       getSessionFile: () => "/tmp/project/session.jsonl",
@@ -184,13 +180,9 @@ export interface FakeHostOptions {
   journal?: FakeEntry[];
   /** Every entry of the session, when it holds more than this host's branch. */
   sessionEntries?: FakeEntry[];
-  /** Whether this host's session manager offers every entry of the session. */
-  offersSessionEntries?: boolean;
   ui?: FakeUI;
   hasUI?: boolean;
   sessionId?: () => string;
-  /** The version this host reports, which no registration decision reads. */
-  version?: string | undefined;
   /**
    * Whether a delivered message reaches the journal at once. The real host
    * queues it while a run is streaming and persists it later, so tests that
@@ -266,7 +258,6 @@ export function fakeHost(options: FakeHostOptions = {}): FakeHost {
   const ctx = fakeContext({
     journal,
     sessionEntries: options.sessionEntries,
-    offersSessionEntries: options.offersSessionEntries,
     ui,
     hasUI: options.hasUI ?? true,
     sessionId: options.sessionId,
@@ -309,7 +300,6 @@ export function fakeHost(options: FakeHostOptions = {}): FakeHost {
   const pi = {
     zod,
     logger: { warn: (message: string) => warnings.push(message) },
-    pi: { VERSION: options.version === undefined ? "18.2.8" : options.version },
     on: (event: string, handler: (event: unknown, ctx: ExtensionContext) => unknown) => {
       const list = handlers.get(event) ?? [];
       list.push(handler);

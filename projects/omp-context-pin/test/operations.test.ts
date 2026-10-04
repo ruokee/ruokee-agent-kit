@@ -13,7 +13,7 @@ function environment(overrides: Partial<PinEnvironment> = {}) {
   let operationCounter = 0;
   let entryCounter = 0;
   const env: PinEnvironment = {
-    reader: { getBranch: () => journal },
+    reader: { getBranch: () => journal, getEntries: () => journal },
     append: (record) => {
       journal.push({ id: `j-${journal.length + 1}`, type: "custom", customType: RECORD_TYPE, data: record });
     },
@@ -250,6 +250,7 @@ describe("damaged and unreadable ranges", () => {
         getBranch: () => {
           throw new Error("session closed");
         },
+        getEntries: () => [],
       },
     });
     const outcome = listPins(env);

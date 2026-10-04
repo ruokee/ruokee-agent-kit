@@ -156,10 +156,13 @@ function changeForms(plan: ProjectionPlan): Map<number, ChangeForm> {
   return new Map(plan.changes.map((change) => [change.record.operationId, changeForm(change.record, plan.scope)]));
 }
 
-/** Whether a message carries one of the plan's changes exactly as it was accepted. */
-function carriesChange(message: MessageLike, change: ChangeForm): boolean {
-  const details = parseProjectionDetails(message.details);
-  if (details === undefined || details.kind === "snapshot") return false;
+/**
+ * Whether a message carries one of the plan's changes exactly as it was accepted.
+ *
+ * The caller has already read the message's metadata, so it is passed in rather
+ * than parsed again.
+ */
+function carriesChange(details: ChangeProjectionDetails, message: MessageLike, change: ChangeForm): boolean {
   return (
     details.entryId === change.details.entryId &&
     details.revision === change.details.revision &&
@@ -187,13 +190,12 @@ function carriesChange(message: MessageLike, change: ChangeForm): boolean {
  * copy from another path.
  */
 function isForeignChange(
+  details: ProjectionDetails | undefined,
   message: MessageLike,
   plan: ProjectionPlan,
   changes: Map<number, ChangeForm>,
   reemit: Set<number>,
 ): boolean {
-  if (message.role !== "custom" || message.customType !== PROJECTION_TYPE) return false;
-  const details = parseProjectionDetails(message.details);
   if (details === undefined) return true;
   // The base snapshot is rebuilt from the plan, so it never stands in for one
   // of the plan's changes.
@@ -202,7 +204,7 @@ function isForeignChange(
   if (plan.coveredOperationIds.has(details.operationId)) return true;
   if (reemit.has(details.operationId)) return true;
   const change = changes.get(details.operationId);
-  if (change !== undefined) return !carriesChange(message, change);
+  if (change !== undefined) return !carriesChange(details, message, change);
   // The plan expresses no change for this operation. The entry being live and
   // the revision named here prove nothing: two sibling branches can reach the
   // same revision number with different content. Only an operation this range
@@ -210,7 +212,7 @@ function isForeignChange(
   if (!plan.liveEntryIds.has(details.entryId)) return true;
   const accepted = plan.acceptedOperations.get(details.operationId);
   if (accepted === undefined) return true;
-  return !carriesChange(message, changeForm(accepted, plan.scope));
+  return !carriesChange(details, message, changeForm(accepted, plan.scope));
 }
 
 /** Tail message describing one accepted change. */
@@ -422,7 +424,7 @@ function carriedChangeIndex(
   const details = parseProjectionDetails(message.details);
   if (details === undefined || details.kind === "snapshot") return undefined;
   const change = forms.get(details.operationId);
-  if (change === undefined || !carriesChange(message, change)) return undefined;
+  if (change === undefined || !carriesChange(details, message, change)) return undefined;
   return order.get(details.operationId);
 }
 
@@ -560,9 +562,8 @@ export function projectMessages<T extends MessageLike>(
     (change) => change.record.source !== "user" || !requestCarries(messages, change.record),
   );
   const reemit = new Set(tails.map((change) => change.record.operationId));
-  const copies = carriedCopies(messages, plan, forms, reemit);
+  const { kept, copies } = sortCarried(messages, plan, forms, reemit);
 
-  const kept = messages.filter((message) => !isForeignChange(message, plan, forms, reemit)) as T[];
   const placements = tailPlacements(kept, tails, plan, forms, order);
   const snapshotAt = plan.snapshot === undefined ? -1 : snapshotIndex(kept, plan.snapshot.summary);
   const written: T[] = [];
@@ -582,33 +583,44 @@ export function projectMessages<T extends MessageLike>(
 }
 
 /**
- * The message each change the plan writes is already carried by, by identity.
+ * Split the request into the messages that stay and the copies the plan reuses.
  *
- * A copy is read here and put back at the place the plan gives it, so a request
- * keeps the message object it already had instead of receiving an equal one, and
- * a host that appended the copy elsewhere finds the request rebuilt around the
- * message it holds. A copy of another scope, one the snapshot covers and one
- * that disagrees with its change are left out.
+ * One pass reads each message of this component's type once. A message that
+ * has to leave the request (see `isForeignChange`) is left out of the kept
+ * list. Among those, the first copy of each change the plan writes again is
+ * kept by identity and put back at the place the plan gives it, so a request
+ * keeps the message object it already had instead of receiving an equal one,
+ * and a host that appended the copy elsewhere finds the request rebuilt around
+ * the message it holds. A copy of another scope, one the snapshot covers and
+ * one that disagrees with its change are not reused.
  */
-function carriedCopies(
-  messages: readonly MessageLike[],
+function sortCarried<T extends MessageLike>(
+  messages: readonly T[],
   plan: ProjectionPlan,
   forms: Map<number, ChangeForm>,
   reemit: Set<number>,
-): Map<number, MessageLike> {
+): { kept: T[]; copies: Map<number, MessageLike> } {
+  const kept: T[] = [];
   const copies = new Map<number, MessageLike>();
   for (const message of messages) {
-    if (message.role !== "custom" || message.customType !== PROJECTION_TYPE) continue;
+    if (message.role !== "custom" || message.customType !== PROJECTION_TYPE) {
+      kept.push(message);
+      continue;
+    }
     const details = parseProjectionDetails(message.details);
+    if (!isForeignChange(details, message, plan, forms, reemit)) {
+      kept.push(message);
+      continue;
+    }
     if (details === undefined || details.kind === "snapshot") continue;
     if (details.sessionId !== plan.scope.sessionId || details.periodEntryId !== plan.scope.periodEntryId) continue;
     if (plan.coveredOperationIds.has(details.operationId)) continue;
     if (!reemit.has(details.operationId) || copies.has(details.operationId)) continue;
     const change = forms.get(details.operationId);
-    if (change === undefined || !carriesChange(message, change)) continue;
+    if (change === undefined || !carriesChange(details, message, change)) continue;
     copies.set(details.operationId, message);
   }
-  return copies;
+  return { kept, copies };
 }
 
 /**

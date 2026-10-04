@@ -20,7 +20,7 @@ export interface SessionReader {
    * wide, so a bind to allocate them has to see the entries of branches this
    * request does not hold.
    */
-  getEntries?(): readonly unknown[];
+  getEntries(): readonly unknown[];
 }
 
 export type JournalRead = { ok: true; entries: JournalEntry[] } | { ok: false; detail: string };
@@ -112,13 +112,9 @@ export function orderBranch(entries: readonly RawEntry[]): RawEntry[] | string {
  * operations, so the order of the values does not matter.
  */
 export function readSession(reader: SessionReader): JournalRead {
-  const source = reader.getEntries;
-  if (typeof source !== "function") {
-    return { ok: false, detail: "the host does not expose every session entry" };
-  }
   let session: readonly unknown[];
   try {
-    session = source.call(reader);
+    session = reader.getEntries();
   } catch (error) {
     return { ok: false, detail: `getEntries failed: ${error instanceof Error ? error.message : String(error)}` };
   }
@@ -134,7 +130,7 @@ export function readSession(reader: SessionReader): JournalRead {
 }
 
 /** Read the current branch of a session as replay input. */
-export function readJournal(reader: SessionReader): JournalRead {
+export function readJournal(reader: Pick<SessionReader, "getBranch">): JournalRead {
   let branch: readonly unknown[];
   try {
     branch = reader.getBranch();

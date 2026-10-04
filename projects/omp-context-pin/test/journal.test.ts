@@ -121,14 +121,6 @@ describe("readSession", () => {
     expect(read.entries.map((item) => item.id)).toEqual(["b", "a"]);
   });
 
-  test("reports a host that does not expose every entry", () => {
-    const read = readSession({ getBranch: () => [] });
-
-    expect(read.ok).toBe(false);
-    if (read.ok) throw new Error("expected a failure");
-    expect(read.detail).toBe("the host does not expose every session entry");
-  });
-
   test("reports a session that cannot be read", () => {
     const read = readSession({
       getBranch: () => [],

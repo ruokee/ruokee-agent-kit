@@ -1,18 +1,11 @@
 /**
  * OMP extension entry for context pin.
  *
- * The factory inspects the runtime before anything is registered, using public
- * API information only. A host that lacks a required API member keeps its
- * session and receives one bounded diagnostic instead of a half-registered
- * extension. The reported version does not decide eligibility. Passing the
- * required-member check lets activation enter the registration flow; it does
- * not prove that every host behavior is compatible.
- *
- * On a supported host the factory registers the `ctx_pin` tool, the `/ctx-pin`
- * command and the request hook. Reads and writes always use the newest session
- * the extension has seen, so a dialog left open across a session switch cannot
- * append to the wrong journal. Journal reads, replays and message rewriting all
- * run through the pure modules; this file only binds them to the host.
+ * The factory registers the `ctx_pin` tool, the `/ctx-pin` command and the
+ * request hook. Reads and writes always use the newest session the extension
+ * has seen, so a dialog left open across a session switch cannot append to the
+ * wrong journal. Journal reads, replays and message rewriting all run through
+ * the pure modules; this file only binds them to the host.
  */
 
 import type { ContextEventResult, ExtensionAPI, ExtensionContext } from "@oh-my-pi/pi-coding-agent";
@@ -47,56 +40,6 @@ import { replay } from "./state.ts";
 import { TOOL_NAME, registerPinTool } from "./tool.ts";
 
 export const PACKAGE_NAME = "@ruokee/omp-context-pin";
-
-/** Public extension API functions this component requires before it registers anything. */
-const REQUIRED_API_FUNCTIONS = [
-  "on",
-  "registerTool",
-  "registerCommand",
-  "appendEntry",
-  "sendMessage",
-  "sendUserMessage",
-] as const;
-
-/** Members of `pi.zod.z` the tool's parameter schema calls. */
-const REQUIRED_ZOD_MEMBERS = ["object", "enum", "string", "number"] as const;
-
-/** Runtime condition that prevents registration. */
-export interface RuntimeProblem {
-  /** Missing public API members, in declaration order. */
-  missing: string[];
-}
-
-interface RuntimeMembers {
-  zod?: { z?: Record<string, unknown> };
-  logger?: { warn?: unknown };
-}
-
-interface Logger {
-  warn(message: string): void;
-}
-
-/** Read a logger that can carry the diagnostic, if the host exposes one. */
-function usableLogger(pi: unknown): Logger | undefined {
-  const logger = (pi as RuntimeMembers | null | undefined)?.logger;
-  return typeof logger?.warn === "function" ? (logger as Logger) : undefined;
-}
-
-/** Inspect the runtime through public API information only. */
-export function inspectRuntime(pi: ExtensionAPI): RuntimeProblem | undefined {
-  if (typeof pi !== "object" || pi === null) return { missing: ["pi"] };
-
-  const api = pi as unknown as Record<string, unknown> & RuntimeMembers;
-  const missing: string[] = REQUIRED_API_FUNCTIONS.filter((name) => typeof api[name] !== "function");
-  // The tool builds its parameter schema from `pi.zod.z`, so those members are
-  // what this activation needs before it registers anything.
-  for (const name of REQUIRED_ZOD_MEMBERS) {
-    if (typeof api.zod?.z?.[name] !== "function") missing.push(`zod.z.${name}`);
-  }
-  if (typeof api.logger?.warn !== "function") missing.push("logger.warn");
-
-  return missing.length === 0 ? undefined : { missing };
-}
 
 /** Newest session context the extension has seen. */
 interface RuntimeState {
@@ -147,14 +90,6 @@ interface RuntimeState {
    * because the messages it measures are not the ones that session reads.
    */
   outcomeAnchors: Map<number, OutcomeAnchor>;
-  /**
-   * Messages the request last read, when one was read.
-   *
-   * A message the host runs for a confirmation is appended after the
-   * conversation the request held, so this count is what tells the message of a
-   * confirmation from a message that was already there.
-   */
-  seenMessages?: number;
   /** Range and reason of the problem this session already reported. */
   reportedProblem?: string;
   /** Texts reported for an operation identity, so each is reported once until the branch changes. */
@@ -185,16 +120,6 @@ interface SubmittedOperation {
    * message the host ran is one this process never saw before it ran.
    */
   at: number;
-  /**
-   * Messages the last request held when the message was handed over.
-   *
-   * A host that reports no time for the messages it runs leaves the count as
-   * the only measure: the host appends the message it runs after the
-   * conversation it already holds, so a message of this text that stands at or
-   * after this count is this submission's own. `undefined` when no request was
-   * read yet, so nothing of the conversation is measured.
-   */
-  baseline?: number;
   /**
    * Time the host reported for the message it ran for this submission.
    *
@@ -312,18 +237,9 @@ function deliveryScope(environment: PinEnvironment): ProjectionScope {
 
 /** Bind the shared operation path to this host and this session. */
 export function pinEnvironment(pi: ExtensionAPI, state: RuntimeState, fallback: ExtensionContext): PinEnvironment {
-  // A host that does not offer every entry keeps that member absent, so the
-  // scan reports what this host is missing instead of a call that failed.
-  const offersEntries = (): boolean => {
-    try {
-      return typeof liveContext(state, fallback).sessionManager.getEntries === "function";
-    } catch {
-      return false;
-    }
-  };
   const reader: SessionReader = {
     getBranch: () => liveContext(state, fallback).sessionManager.getBranch(),
-    ...(offersEntries() ? { getEntries: () => liveContext(state, fallback).sessionManager.getEntries?.() ?? [] } : {}),
+    getEntries: () => liveContext(state, fallback).sessionManager.getEntries(),
   };
 
   const currentSessionId = (): string | undefined => {
@@ -366,10 +282,8 @@ export function pinEnvironment(pi: ExtensionAPI, state: RuntimeState, fallback: 
         generation: state.branchGeneration,
         // The host takes the message after this, so its own report of the time
         // it took is what tells the message it runs from one the conversation
-        // already held, and the count this process last read is what a host
-        // that reports no time leaves to measure with.
+        // already held.
         at: Date.now(),
-        baseline: state.seenMessages,
       });
       pi.sendUserMessage(text);
     },
@@ -392,18 +306,8 @@ export function pinEnvironment(pi: ExtensionAPI, state: RuntimeState, fallback: 
   return environment;
 }
 
-/** Activate the extension, or report one bounded diagnostic and register nothing. */
+/** Activate the extension. */
 export function activate(pi: ExtensionAPI): void {
-  const problem = inspectRuntime(pi);
-  if (problem !== undefined) {
-    const logger = usableLogger(pi);
-    if (logger === undefined) return; // The host exposes no way to report the problem.
-    logger.warn(
-      `${PACKAGE_NAME}: incomplete OMP runtime, registering nothing (missing: ${problem.missing.join(", ")})`,
-    );
-    return;
-  }
-
   const state: RuntimeState = {
     queued: new Set(),
     branchGeneration: 0,
@@ -442,10 +346,8 @@ export function activate(pi: ExtensionAPI): void {
     state.queued = new Set();
     state.queuePeriod = undefined;
     state.reportedProblem = undefined;
-    // The messages of one branch are not the messages of another, so what was
-    // read of them, and the places the results of this branch were published
-    // at, are forgotten with it.
-    state.seenMessages = undefined;
+    // The places the results of this branch were published at are not places
+    // in another branch, so they are forgotten with it.
     state.outcomeAnchors = new Map();
     // A result is reported in the branch it was given in, so this process
     // forgets what it reported there when the branch changes. A reason that
@@ -473,7 +375,6 @@ export function activate(pi: ExtensionAPI): void {
     state.reportedProblem = undefined;
     state.identities = undefined;
     state.identityProblem = undefined;
-    state.seenMessages = undefined;
     state.outcomeAnchors = new Map();
     state.branchGeneration += 1;
     dropPendingWrites(state, ctx);
@@ -549,7 +450,7 @@ function reportProblem(
   if (state.reportedProblem === signature) return;
   state.reportedProblem = signature;
   const text = requestProblemText(detail);
-  usableLogger(pi)?.warn(`${PACKAGE_NAME}: ${text}`);
+  pi.logger.warn(`${PACKAGE_NAME}: ${text}`);
   ctx.ui.notify(text, "warning");
 }
 
@@ -594,7 +495,8 @@ function collectRequests(
   const claims: ClaimedSubmission[] = [];
   for (const submitted of submissions.values()) {
     const carrying = users.filter(
-      (entry) => entry.text === submitted.text && !claimed.has(entry.index) && !predates(submitted, entry, messages),
+      (entry) =>
+        entry.text === submitted.text && !claimed.has(entry.index) && !predates(submitted, messages[entry.index]),
     );
     if (carrying.length === 0) continue;
     // The host reports the time it took the message at, so the message it ran
@@ -622,20 +524,11 @@ function collectRequests(
  * The host reports the time it took a message at, and a message it took before
  * the confirmation was handed over is history, however exactly its text reads:
  * text the user typed, pasted or restored that happens to read the same is not
- * the confirmation, and a message the user later retypes is not one either. A
- * host that reports no time leaves the count the last request read: a message
- * that stands before the conversation that request held is history too.
+ * the confirmation, and a message the user later retypes is not one either.
  */
-function predates(
-  submitted: SubmittedOperation,
-  entry: { index: number; text: string },
-  messages: readonly unknown[],
-): boolean {
-  const time = messageTime(messages[entry.index]);
-  if (time !== undefined) return time < submitted.at;
-  const baseline = submitted.baseline;
-  if (baseline === undefined || baseline > messages.length) return false;
-  return entry.index < baseline;
+function predates(submitted: SubmittedOperation, message: unknown): boolean {
+  const time = messageTime(message);
+  return time !== undefined && time < submitted.at;
 }
 
 /** Time the host reported for one message, when it reports one. */
@@ -662,10 +555,7 @@ function expireSubmissions(state: RuntimeState, messages: readonly unknown[]): v
   const confirmed = new Set([...state.submissions.values()].map((submitted) => submitted.text));
   for (const [operationId, submitted] of state.submissions) {
     if (users.some((entry) => entry.text === submitted.text)) continue;
-    const overtaken = users.some((entry) => {
-      if (confirmed.has(entry.text) || predates(submitted, entry, messages)) return false;
-      return true;
-    });
+    const overtaken = users.some((entry) => !confirmed.has(entry.text) && !predates(submitted, messages[entry.index]));
     if (overtaken) state.submissions.delete(operationId);
   }
 }
@@ -862,11 +752,6 @@ function expressPins(
   messages: readonly unknown[],
 ): ContextEventResult | undefined {
   const environment = pinEnvironment(pi, state, ctx);
-  // The request the host builds for a run is the conversation a confirmation
-  // made now would be appended to, so the count is read before the claims of
-  // this request are taken from it.
-  state.seenMessages = messages.length;
-
   // A confirmation whose message the host did not run is left behind before
   // this request is read, so a later message that repeats its text is prose
   // rather than the confirmation.
