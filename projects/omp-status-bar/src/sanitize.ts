@@ -30,6 +30,17 @@ import { isObject } from "./object-guard.ts";
 
 export type SanitizeResult = { ok: true; fragment: ProviderFragment } | { ok: false };
 
+/** Structural span equality; no JSON serialization in the update hot path. */
+export function sameSpans(a: readonly ProviderSpan[], b: readonly ProviderSpan[]): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  return a.every((span, index) => {
+    const other = b[index];
+    return other !== undefined && span.text === other.text && span.color === other.color && span.dim === other.dim;
+  });
+}
+
 /** Pattern removing the escape sequences terminals interpret. */
 const ESCAPE_PATTERN = new RegExp(
   [

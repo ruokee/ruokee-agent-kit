@@ -46,8 +46,6 @@ function makeSources() {
       contextReads.push(1);
       return undefined;
     },
-    getModel: () => undefined,
-    getCompactionSettings: () => undefined,
   };
   return {
     sources,
@@ -148,21 +146,10 @@ describe("SnapshotStore sampler ownership", () => {
     const timers = new FakeTimers();
     const store = new SnapshotStore();
     const rawUsage = { input: 5, cacheWrite: 0, cacheRead: 3, output: 2 };
-    const rawModel = { provider: "p", id: "m", contextWindow: 8, input: ["a", "b"] };
-    const rawCompaction = {
-      enabled: true,
-      asyncEnabled: false,
-      methodOrder: ["x"],
-      thresholdTokens: 10,
-      thresholdPercent: 20,
-      reserveTokens: 30,
-      remoteEndpoint: undefined,
-    };
+    const rawContext = { tokens: 1, contextWindow: 2, percent: 3 };
     store.bind({
       getConversationUsage: () => rawUsage,
-      getContextUsage: () => ({ tokens: 1, contextWindow: 2, percent: 3 }),
-      getModel: () => rawModel,
-      getCompactionSettings: () => rawCompaction,
+      getContextUsage: () => rawContext,
     });
     store.attachTimers(timers);
     store.retainStats(() => {});
@@ -173,37 +160,19 @@ describe("SnapshotStore sampler ownership", () => {
     expect(Object.isFrozen(snapshot.stats)).toBe(true);
     expect(Object.isFrozen(snapshot.context)).toBe(true);
     const context = snapshot.context;
-    if (!context) {
-      throw new Error("context missing");
+    if (!context?.usage) {
+      throw new Error("context usage missing");
     }
     expect(Object.isFrozen(context.usage)).toBe(true);
-    const model = context.model;
-    if (!model) {
-      throw new Error("model missing");
-    }
-    expect(Object.isFrozen(model)).toBe(true);
-    expect(Object.isFrozen(model.input)).toBe(true);
-    expect(Object.isFrozen(context.compaction)).toBe(true);
-    expect(Object.isFrozen(context.compaction.methodOrder)).toBe(true);
     // Mutating the raw source objects after publication changes nothing.
     rawUsage.input = 999;
-    rawModel.input.push("c");
-    rawModel.id = "mutated";
-    rawCompaction.methodOrder.push("y");
-    rawCompaction.enabled = false;
+    rawContext.tokens = 999;
     const after = store.snapshot;
     expect(after.stats?.input).toBe(5);
-    expect(model.id).toBe("m");
-    expect(model.input.length).toBe(2);
-    expect(context.compaction.methodOrder.length).toBe(1);
-    expect(context.compaction.enabled).toBe(true);
-    expect(after.context !== undefined && Object.isFrozen(after.context)).toBe(true);
+    expect(context.usage.tokens).toBe(1);
     // The frozen objects refuse writes outright.
     expect(() => {
       (after.stats as { input: number }).input = 1;
-    }).toThrow();
-    expect(() => {
-      (context.compaction as { enabled: boolean }).enabled = false;
     }).toThrow();
     store.releaseStats(() => {});
     store.releaseContext(() => {});
@@ -282,30 +251,30 @@ describe("SnapshotStore sampler ownership", () => {
     store.releaseContext(() => {});
   });
 
-  test("tick notifies context listeners every tick even when the snapshot is unchanged", () => {
+  test("unchanged context tick does not notify context listeners; a changed tick does", () => {
     const timers = new FakeTimers();
     const store = new SnapshotStore();
+    let tokens = 10_000;
     store.bind({
       getConversationUsage: () => ({ input: 1, cacheWrite: 0, cacheRead: 0, output: 0 }),
-      getContextUsage: () => ({ tokens: 10_000, contextWindow: 100_000, percent: 10 }),
-      getModel: () => undefined,
-      getCompactionSettings: () => undefined,
+      getContextUsage: () => ({ tokens, contextWindow: 100_000, percent: tokens / 1_000 }),
     });
     store.attachTimers(timers);
     let contextTicks = 0;
-    store.retainContext(() => {
+    const listener = (): void => {
       contextTicks++;
-    });
+    };
+    store.retainContext(listener);
     const snapshotAtStart = store.snapshot;
     timers.tick();
     timers.tick();
-    timers.tick();
-    // Snapshot identical, listener still notified each tick (blink phase).
-    expect(contextTicks).toBe(3);
+    expect(contextTicks).toBe(0);
     expect(store.snapshot).toBe(snapshotAtStart);
-    store.releaseContext(() => {
-      contextTicks++;
-    });
+    tokens = 20_000;
+    timers.tick();
+    expect(contextTicks).toBe(1);
+    expect(store.snapshot.context?.usage?.tokens).toBe(20_000);
+    store.releaseContext(listener);
   });
 
   test("tick calls getConversationUsage at most once and revision only moves on change", () => {
@@ -315,8 +284,6 @@ describe("SnapshotStore sampler ownership", () => {
     store.bind({
       getConversationUsage: () => usage,
       getContextUsage: () => undefined,
-      getModel: () => undefined,
-      getCompactionSettings: () => undefined,
     });
     store.attachTimers(timers);
     store.retainStats(() => {});
@@ -368,8 +335,6 @@ describe("SnapshotStore sampler ownership", () => {
         throw new Error("stats boom");
       },
       getContextUsage: () => undefined,
-      getModel: () => undefined,
-      getCompactionSettings: () => undefined,
     });
     store.attachTimers(timers);
     store.retainStats(() => {
@@ -385,33 +350,6 @@ describe("SnapshotStore sampler ownership", () => {
     expect(errors.length).toBe(2);
     expect(store.snapshot.revision).toBe(revision);
     store.releaseStats(() => {});
-  });
-
-  test("snapshot is frozen and owned: caller mutation cannot change it", () => {
-    const store = new SnapshotStore();
-    const settings = {
-      enabled: true,
-      asyncEnabled: false,
-      methodOrder: ["a"],
-      thresholdTokens: 100,
-      thresholdPercent: 50,
-      reserveTokens: 10,
-      remoteEndpoint: "x",
-    };
-    store.bind({
-      getConversationUsage: () => ({ input: 1, cacheWrite: 0, cacheRead: 0, output: 0 }),
-      getContextUsage: () => ({ tokens: 10, contextWindow: 100, percent: 10 }),
-      getModel: () => ({ provider: "p", id: "m", contextWindow: 100, input: ["text"] }),
-      getCompactionSettings: () => settings,
-    });
-    store.retainContext(() => {});
-    const snapshot = store.snapshot;
-    expect(snapshot.context?.model?.input).toEqual(["text"]);
-    // Mutating the source after publication changes nothing the store holds.
-    (settings.methodOrder as string[]).push("b");
-    expect(snapshot.context?.compaction?.methodOrder).toEqual(["a"]);
-    expect(Object.isFrozen(snapshot)).toBe(true);
-    store.releaseContext(() => {});
   });
 
   test("unbind makes ticks no-ops", () => {

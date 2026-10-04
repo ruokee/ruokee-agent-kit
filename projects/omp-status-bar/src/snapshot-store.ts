@@ -5,10 +5,9 @@
  * store so one sampler feeds every instance.
  */
 import type { ContextUsage } from "@oh-my-pi/pi-coding-agent";
-import type { SnapshotSources, CompactionSettingsShape } from "./snapshot.ts";
+import type { SnapshotSources } from "./snapshot.ts";
 import { SnapshotStore as SnapshotStoreImpl } from "./snapshot.ts";
-export type { CompactionSettingsShape, SnapshotSources } from "./snapshot.ts";
-export { FALLBACK_COMPACTION } from "./snapshot.ts";
+export type { SnapshotSources } from "./snapshot.ts";
 
 /** The one session-scoped store; reset only in tests. */
 let store: SnapshotStoreImpl | undefined;
@@ -28,14 +27,10 @@ let sources: SnapshotSources | undefined;
 export function bindSessionSources(input: {
   getConversationUsage: () => { input: number; cacheWrite: number; cacheRead: number; output: number };
   getContextUsage: () => ContextUsage | undefined;
-  getModel: () => { provider: string; id: string; contextWindow: number | null; input: readonly string[] } | undefined;
-  getCompactionSettings: () => Partial<CompactionSettingsShape> | undefined;
 }): void {
   sources = {
     getConversationUsage: input.getConversationUsage,
     getContextUsage: input.getContextUsage,
-    getModel: input.getModel,
-    getCompactionSettings: input.getCompactionSettings,
   };
   getSnapshotStore().bind(sources);
 }

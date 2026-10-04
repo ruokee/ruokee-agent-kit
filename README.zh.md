@@ -43,7 +43,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 
 **OMP**
 
-- **[omp-status-bar](./projects/omp-status-bar/README.zh.md)**：OMP 状态栏拓展，提供额外的上下文信息显示，包括当前会话上下文（数值而非原生提供的百分比）、总 Token、输入 Token、缓存 Token、输出 Token、缓存命中率、已回答的模型请求次数和投机压缩指示。
+- **[omp-status-bar](./projects/omp-status-bar/README.zh.md)**：OMP 状态栏拓展，提供额外的上下文信息显示，包括当前会话上下文（数值而非原生提供的百分比）、总 Token、输入 Token、缓存 Token、输出 Token、缓存命中率和已回答的模型请求次数。
 - **[omp-codex-web-access](./projects/omp-codex-web-access/README.zh.md)**：让 OMP 支持通过转发 Provider 使用 Codex 订阅，接入网页搜索与页面提取工具。
 - **[omp-system-prompt](./projects/omp-system-prompt/README.zh.md)**：通过用户选择的宿主模板把维护的英文策略应用到 OMP 系统提示词，并为当前模型追加规则文档；其他系统提示词保持宿主构建的原样。
 - **[omp-context-pin](./projects/omp-context-pin/README.zh.md)**：让少量固定条目在当前会话分支的每次普通模型请求中原样出现，并在每次提交后的压缩之后恢复这些条目。

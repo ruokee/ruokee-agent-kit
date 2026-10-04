@@ -1,6 +1,6 @@
 /**
- * Context-fragment composition and blink phase tests, plus an integration
- * check that the shared sampler feeds the context provider.
+ * Context-fragment composition tests, plus an integration check that the
+ * shared sampler feeds the context provider.
  */
 import { describe, test, expect } from "bun:test";
 import { composeContextFragment } from "../src/context-fragment.ts";
@@ -9,48 +9,41 @@ import { SnapshotStore, type SnapshotSources } from "../src/snapshot.ts";
 
 const usage = (tokens: number) => ({ tokens, contextWindow: 200000, percent: (tokens / 200000) * 100 });
 
-const model = { provider: "acme", id: "big-1", contextWindow: 200000, input: ["text"] };
-
-describe("blink composition", () => {
-  test("indicating first frame is emphasized, second frame dims", () => {
-    const lit = composeContextFragment(usage(1000), "percent", "indicating", true)!;
-    const glyph = lit.spans[0]!;
-    expect(glyph.color).toBe("#5fafaf");
-    expect(glyph.dim).toBeUndefined();
-    const dim = composeContextFragment(usage(1000), "percent", "indicating", false)!;
-    expect(dim.spans[0]!.dim).toBe(true);
+describe("context fragment composition", () => {
+  test("percent mode puts the dimmed glyph and one plain space before the usage text", () => {
+    const fragment = composeContextFragment(usage(24000), "percent")!;
+    expect(fragment.spans).toEqual([
+      { text: "\u{F0068}", color: "#5fafaf", dim: true },
+      { text: " " },
+      { text: "ctx 12%" },
+    ]);
   });
 
-  test("hidden state contributes no glyph spans", () => {
-    const fragment = composeContextFragment(usage(24000), "percent", "hidden")!;
-    // Usage span only; the glyph and its spacing span are absent.
-    expect(fragment.spans.map((span) => span.text)).toEqual(["ctx 12%"]);
+  test("absolute mode puts the glyph before current tokens", () => {
+    const fragment = composeContextFragment(usage(24000), "absolute")!;
+    expect(fragment.spans.map((span) => span.text).join("")).toBe("\u{F0068} 24K");
   });
 
-  test("normal state renders the dimmed glyph", () => {
-    const fragment = composeContextFragment(usage(24000), "percent", "normal")!;
-    expect(fragment.spans.map((span) => span.text)).toEqual(["󰁨", " ", "ctx 12%"]);
-    expect(fragment.spans[0]!.dim).toBe(true);
+  test("the glyph does not change with usage", () => {
+    const low = composeContextFragment(usage(1000), "percent")!;
+    const high = composeContextFragment(usage(199000), "percent")!;
+    expect(high.spans[0]).toEqual(low.spans[0]!);
   });
 
-  test("absolute mode renders only current tokens", () => {
-    const fragment = composeContextFragment(usage(24000), "absolute", "hidden")!;
-    expect(fragment.spans[0]?.text).toBe("24K");
-  });
-
-  test("absolute mode places the indicator before current tokens", () => {
-    const fragment = composeContextFragment(usage(24000), "absolute", "normal")!;
-    expect(fragment.spans.map((span) => span.text).join("")).toBe("󰁨 24K");
+  test("no usage data or a non-positive window publishes nothing", () => {
+    expect(composeContextFragment(undefined, "percent")).toBeUndefined();
+    expect(composeContextFragment({ tokens: 10, contextWindow: 0, percent: 0 }, "percent")).toBeUndefined();
+    expect(composeContextFragment({ tokens: 10, contextWindow: -1, percent: 0 }, "absolute")).toBeUndefined();
   });
 
   test("composing two fragments separates them with a dim slash", () => {
     const bar = composeLine(
-      [composeContextFragment(usage(24000), "percent", "indicating", true)!, { spans: [{ text: "T 5K" }] }],
+      [composeContextFragment(usage(24000), "percent")!, { spans: [{ text: "T 5K" }] }],
       "slash",
       1,
     );
     const rendered = bar.spans.map((span) => span.text).join("");
-    expect(rendered).toBe("󰁨 ctx 12% / T 5K");
+    expect(rendered).toBe("\u{F0068} ctx 12% / T 5K");
   });
 });
 
@@ -68,8 +61,6 @@ describe("snapshot integration", () => {
         contextCalls++;
         return usage(tokens);
       },
-      getModel: () => model,
-      getCompactionSettings: () => undefined,
     };
     const store = new SnapshotStore();
     store.bind(sources);

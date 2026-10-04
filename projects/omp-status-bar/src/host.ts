@@ -43,7 +43,7 @@ import {
   type ProviderSpan,
 } from "./provider-api.ts";
 import { getProviderRegistry, type ProviderRegistry } from "./registry.ts";
-import { sanitizeFragment } from "./sanitize.ts";
+import { sameSpans, sanitizeFragment } from "./sanitize.ts";
 import { getSnapshotStore } from "./snapshot-store.ts";
 import { composeLine, createStatusBarWidget, type ComposedLine, type StatusBarWidgetComponent } from "./widget.ts";
 
@@ -125,17 +125,6 @@ interface RunningInstance {
 
 function describeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
-}
-
-/** Structural span equality; no JSON serialization in the update hot path. */
-function sameSpans(a: readonly ProviderSpan[], b: readonly ProviderSpan[]): boolean {
-  if (a.length !== b.length) {
-    return false;
-  }
-  return a.every((span, index) => {
-    const other = b[index];
-    return other !== undefined && span.text === other.text && span.color === other.color && span.dim === other.dim;
-  });
 }
 
 /**
@@ -461,25 +450,14 @@ export class StatusBarHost {
     // Deactivate first, then start every stop() synchronously: stop
     // promises kick off before any timer is cleared, per spec.
     for (const running of instances) {
-      const instance = running.instance;
-      if (instance !== undefined && running.stopped === undefined) {
-        running.stopped = (async () => {
-          try {
-            await instance.stop();
-          } catch (error) {
-            this.#failureReporter.reportFailure("stop", running.providerId, running.entryIndex, error);
-          }
-        })();
-      }
+      void this.#stopInstance(running);
     }
     // Reclaim every managed timer after all stops have been initiated.
     for (const running of instances) {
       this.#reclaimTimers(running);
     }
     for (const running of instances.reverse()) {
-      if (running.stopped !== undefined) {
-        await running.stopped;
-      }
+      await this.#stopInstance(running);
     }
     // Unmount exactly once, after every provider stopped and all timers
     // were reclaimed. Blocked publishes and timers between here and OMP's
@@ -551,14 +529,11 @@ export class StatusBarHost {
 
   /**
    * Call provider stop() exactly once per instance, however many callers
-   * race.
+   * race. The call starts synchronously; the returned promise never rejects
+   * because a failure becomes a bounded diagnostic.
    */
-  async #stopInstance(running: RunningInstance): Promise<void> {
-    if (running.stopped !== undefined) {
-      await running.stopped.catch(() => undefined);
-      return;
-    }
-    running.stopped = (async () => {
+  #stopInstance(running: RunningInstance): Promise<void> {
+    running.stopped ??= (async () => {
       if (running.instance === undefined) {
         return;
       }
@@ -568,7 +543,7 @@ export class StatusBarHost {
         this.#failureReporter.reportFailure("stop", running.providerId, running.entryIndex, error);
       }
     })();
-    await running.stopped;
+    return running.stopped;
   }
 
   #reportEntryFailures(skippedEntries: number): void {

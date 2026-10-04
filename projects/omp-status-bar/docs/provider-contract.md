@@ -4,43 +4,7 @@
 
 The public contract third-party extensions use to add status bar providers. Import from `@ruokee/omp-status-bar/provider`.
 
-```ts
-export type ProviderOptions = Readonly<Record<string, unknown>>;
-export type ProviderDescription = Readonly<Record<string, unknown>>;
-
-export interface ProviderSpan {
-  text: string;
-  color?: `#${string}`;
-  dim?: boolean;
-}
-
-export interface ProviderFragment {
-  spans: readonly ProviderSpan[];
-}
-
-export interface ProviderInstanceContext {
-  readonly options: ProviderOptions;
-  readonly config: ProviderDescription;
-  publish(fragment: ProviderFragment): void;
-  setInterval(callback: () => void, ms: number): unknown;
-  setTimeout(callback: () => void, ms: number): unknown;
-  clearTimer(timer: unknown): void;
-}
-
-export interface ProviderInstance {
-  start(): void | Promise<void>;
-  stop(): void | Promise<void>;
-}
-
-export interface ProviderDefinition {
-  readonly id: string;
-  readonly contractVersion: 1;
-  describe(options: ProviderOptions): ProviderDescription;
-  create(context: ProviderInstanceContext): ProviderInstance;
-}
-
-export function registerProvider(definition: ProviderDefinition): void;
-```
+The exported types, `registerProvider()`, and `PROVIDER_CONTRACT_VERSION` are defined in [src/provider-api.ts](../src/provider-api.ts), the module behind that import path. The sections below state the runtime rules those types cannot express.
 
 `PROVIDER_CONTRACT_VERSION` is `1`. Registration rejects a duplicate id or an unsupported contract version; the Host checks the version again before instance creation, so a definition registered through an older copy of the module is still rejected.
 

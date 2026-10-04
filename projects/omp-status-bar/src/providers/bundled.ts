@@ -14,19 +14,19 @@
  *
  *   I = input + cacheWrite, C = cacheRead, O = output, T = I + C + O
  *
- * The `context` provider renders context usage plus the speculation-band
- * indicator state machine.
+ * The `context` provider renders context usage behind a static context
+ * window glyph.
  */
 
 import type { ProviderDefinition, ProviderFragment, ProviderInstanceContext, ProviderSpan } from "../provider-api.ts";
 import { registerProvider } from "../provider-api.ts";
+import { sameSpans } from "../sanitize.ts";
 import { getProviderRegistry } from "../registry.ts";
 import { formatTokenCount } from "../format.ts";
 import { composeContextFragment } from "../context-fragment.ts";
 import { getSnapshotStore } from "../snapshot-store.ts";
 import type { SnapshotStore } from "../snapshot.ts";
 import { getTurnSample, subscribeTurn } from "../turn-state.ts";
-import { SpeculationMachine, type SpeculationState } from "../speculation.ts";
 
 /** Colors are fixed per provider; not user-configurable. */
 const COLORS = {
@@ -90,10 +90,9 @@ function readDecimalPlaces(options: Record<string, unknown>): number {
 /**
  * Shared instance behavior: subscribe a tick listener to the snapshot
  * store's scope and publish. The first subscriber in a scope samples that
- * scope immediately (so content appears at once), and every sampler tick
- * calls the listener; context listeners are called every tick even when the
- * snapshot did not change, so the blink phase advances. The listener still
- * dedupes by normalized fragment before publishing.
+ * scope immediately (so content appears at once), and a sampler tick calls
+ * the listener when its scope changed. The listener still dedupes by
+ * normalized fragment before publishing.
  */
 function makeTickerInstance(
   context: ProviderInstanceContext,
@@ -130,17 +129,6 @@ function makeTickerInstance(
       }
     },
   };
-}
-
-/** Structural span equality; no JSON in the update hot path. */
-function sameSpans(a: readonly ProviderSpan[], b: readonly ProviderSpan[]): boolean {
-  if (a.length !== b.length) {
-    return false;
-  }
-  return a.every((span, index) => {
-    const other = b[index];
-    return other !== undefined && span.text === other.text && span.color === other.color && span.dim === other.dim;
-  });
 }
 
 /** One span "label value"; label, space, and value share one color. */
@@ -195,7 +183,7 @@ function tokenMetricProvider(metric: "total" | "input" | "cache" | "output" | "c
   };
 }
 
-/** Context provider: usage text plus speculation-band indicator glyph. */
+/** Context provider: context usage behind the static context window glyph. */
 const contextProvider: ProviderDefinition = {
   id: "context",
   contractVersion: 1,
@@ -210,31 +198,9 @@ const contextProvider: ProviderDefinition = {
   },
   create: (context) => {
     const store = getSnapshotStore();
-    const machine = new SpeculationMachine();
-    let blinkPhase = false;
-    let lastState: SpeculationState = "hidden";
-    return makeTickerInstance(context, store, "context", () => {
-      const snap = store.snapshot;
-      if (snap.context === undefined) {
-        machine.reset();
-        lastState = "hidden";
-        return undefined;
-      }
-      const { usage, model, compaction } = snap.context;
-      const state = machine.evaluate({ usage, model, compaction });
-      // Entering `indicating` always starts lit; each subsequent tick in
-      // that state flips the frame. Phase flips are fragment changes, so
-      // the publish dedupe passes them through.
-      if (state === "indicating") {
-        if (lastState !== "indicating") {
-          blinkPhase = true;
-        } else {
-          blinkPhase = !blinkPhase;
-        }
-      }
-      lastState = state;
-      return composeContextFragment(usage, (context.config.mode as string) ?? "percent", state, blinkPhase);
-    });
+    return makeTickerInstance(context, store, "context", () =>
+      composeContextFragment(store.snapshot.context?.usage, (context.config.mode as string) ?? "percent"),
+    );
   },
 };
 

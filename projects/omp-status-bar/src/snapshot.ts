@@ -9,15 +9,15 @@
  *   subscription count; with at least one subscriber, each tick calls
  *   `getConversationUsage()` at most once.
  * - The `context` metric subscribes separately; with a subscriber, each tick
- *   reads `getContextUsage()`, the model, and the compaction settings group.
+ *   reads `getContextUsage()` once.
  *
  * With no subscribers the sampler calls nothing. Revision increases only
  * when a consumed field actually changes, so equal snapshots keep the
  * revision stable and providers suppress equal fragments.
  *
  * Every snapshot is package-owned: all consumed fields are copied into new
- * frozen records, so a caller mutating a settings or model object after
- * publication cannot change the active snapshot without a new sample.
+ * frozen records, so a caller mutating a usage object after publication
+ * cannot change the active snapshot without a new sample.
  */
 
 /** Conversation token totals the token metrics publish; see `conversation-usage.ts`. */
@@ -28,12 +28,9 @@ export interface UsageStats {
   readonly output: number;
 }
 
-/** Live context and model state the context provider reads. */
+/** Live context state the context provider reads. */
 export interface ContextSample {
   readonly usage: Readonly<{ tokens: number; contextWindow: number; percent: number }> | undefined;
-  readonly model:
-    Readonly<{ provider: string; id: string; contextWindow: number | null; input: readonly string[] }> | undefined;
-  readonly compaction: CompactionSettingsShape;
 }
 
 /** One immutable snapshot. */
@@ -43,17 +40,6 @@ export interface StatusBarSnapshot {
   readonly context: ContextSample | undefined;
 }
 
-/** The compaction settings subset the sampler consumes. */
-export interface CompactionSettingsShape {
-  readonly enabled: boolean;
-  readonly asyncEnabled: boolean;
-  readonly methodOrder: readonly unknown[];
-  readonly thresholdTokens: number;
-  readonly thresholdPercent: number;
-  readonly reserveTokens: number | undefined;
-  readonly remoteEndpoint: string | undefined;
-}
-
 /** Live context usage shape from OMP. */
 export interface ContextUsageSample {
   tokens: number;
@@ -61,71 +47,25 @@ export interface ContextUsageSample {
   percent: number;
 }
 
-/** Live model shape the sampler copies from. */
-export interface ModelSample {
-  provider: string;
-  id: string;
-  contextWindow: number | null;
-  input: readonly string[];
-}
-
 /** Session sources the sampler reads; the extension binds these to the live ctx. */
 export interface SnapshotSources {
   getConversationUsage(): UsageStats;
   getContextUsage(): ContextUsageSample | undefined;
-  getModel(): ModelSample | undefined;
-  getCompactionSettings(): Partial<CompactionSettingsShape> | undefined;
 }
-
-/** Compaction group used when the settings read fails or omits fields: speculation off. */
-export const FALLBACK_COMPACTION: CompactionSettingsShape = Object.freeze({
-  enabled: false,
-  asyncEnabled: false,
-  methodOrder: Object.freeze([]) as readonly unknown[],
-  thresholdTokens: 0,
-  thresholdPercent: 0,
-  reserveTokens: undefined,
-  remoteEndpoint: undefined,
-});
 
 /** Normalize a raw counter to a finite, non-negative number; invalid becomes zero. */
 function normalizeCount(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 0;
 }
 
-/**
- * Copy a context record with every consumed nested value, then freeze the
- * whole record: the returned `context` object itself is frozen, not just
- * its fields, so no nested slot can be replaced after publication.
- */
-function freezeContext(context: ContextSample): ContextSample {
-  const usage =
-    context.usage === undefined
-      ? undefined
-      : Object.freeze({
-          tokens: context.usage.tokens,
-          contextWindow: context.usage.contextWindow,
-          percent: context.usage.percent,
-        });
-  const model =
-    context.model === undefined
-      ? undefined
-      : Object.freeze({
-          provider: context.model.provider,
-          id: context.model.id,
-          contextWindow: context.model.contextWindow,
-          input: Object.freeze([...context.model.input]),
-        });
-  const compaction = Object.freeze({
-    enabled: context.compaction.enabled,
-    asyncEnabled: context.compaction.asyncEnabled,
-    methodOrder: Object.freeze([...context.compaction.methodOrder]),
-    thresholdTokens: context.compaction.thresholdTokens,
-    thresholdPercent: context.compaction.thresholdPercent,
-    reserveTokens: context.compaction.reserveTokens,
-    remoteEndpoint: context.compaction.remoteEndpoint,
+/** Copy and freeze a context usage read; the frozen record holds no source object. */
+function freezeContext(usage: ContextUsageSample | undefined): ContextSample {
+  return Object.freeze({
+    usage:
+      usage === undefined
+        ? undefined
+        : Object.freeze({ tokens: usage.tokens, contextWindow: usage.contextWindow, percent: usage.percent }),
   });
-  return Object.freeze({ usage, model, compaction });
 }
 
 /** Timer surface the store needs; satisfied by the Host environment. */
@@ -256,25 +196,23 @@ export class SnapshotStore {
   }
 
   /**
-   * One sampler tick: sample every subscribed scope once, then notify that
-   * scope's listeners. Stats listeners are called only when the stats
-   * fields changed — no churn for equal reads; context listeners are called
-   * every tick even when the snapshot did not change, so the blink phase
-   * advances (providers still dedupe by normalized fragment). Listener
-   * exceptions and source getter exceptions stay inside this boundary.
+   * One sampler tick: sample every subscribed scope once, then notify the
+   * listeners of each scope whose consumed fields changed — no churn for
+   * equal reads. Listener exceptions and source getter exceptions stay
+   * inside this boundary.
    */
   #tick(): void {
     const statsChanged = this.#sampleScope("stats");
-    this.#sampleScope("context");
+    const contextChanged = this.#sampleScope("context");
     if (statsChanged) {
       for (const listener of this.#statsListeners) {
         this.#notify(listener);
       }
     }
-    // The context scope notifies unconditionally: its blink phase advances
-    // on the shared cadence, not on data changes.
-    for (const listener of this.#contextListeners) {
-      this.#notify(listener);
+    if (contextChanged) {
+      for (const listener of this.#contextListeners) {
+        this.#notify(listener);
+      }
     }
   }
 
@@ -343,30 +281,13 @@ export class SnapshotStore {
       return false;
     }
     try {
-      const compactionRaw = sources.getCompactionSettings();
       const usage = sources.getContextUsage();
-      const model = sources.getModel();
       const old = this.#snapshot.context;
       // Compare raw primitives against the old record before copying.
-      if (old !== undefined && contextUnchanged(old, compactionRaw, usage, model)) {
+      if (old !== undefined && usageUnchanged(old.usage, usage)) {
         return false;
       }
-      const context = freezeContext({
-        usage,
-        model,
-        compaction:
-          compactionRaw === undefined
-            ? FALLBACK_COMPACTION
-            : {
-                enabled: compactionRaw.enabled ?? false,
-                asyncEnabled: compactionRaw.asyncEnabled ?? false,
-                methodOrder: normalizeMethodOrder(compactionRaw.methodOrder),
-                thresholdTokens: compactionRaw.thresholdTokens ?? 0,
-                thresholdPercent: compactionRaw.thresholdPercent ?? 0,
-                reserveTokens: compactionRaw.reserveTokens,
-                remoteEndpoint: compactionRaw.remoteEndpoint,
-              },
-      });
+      const context = freezeContext(usage);
       this.#revision++;
       this.#snapshot = Object.freeze({
         revision: this.#revision,
@@ -392,78 +313,10 @@ export class SnapshotStore {
   }
 }
 
-/** Shared frozen empty array: no allocation when the settings omit the field. */
-const EMPTY_METHOD_ORDER: readonly unknown[] = Object.freeze([]);
-
-/**
- * Method order as a list. The group is host-owned data: a release that keeps
- * the field under a different shape contributes no order instead of breaking
- * the whole context sample.
- */
-function normalizeMethodOrder(value: unknown): readonly unknown[] {
-  return Array.isArray(value) ? value : EMPTY_METHOD_ORDER;
-}
-
-/**
- * Compare the raw context source reads against the active record using only
- * primitives and array contents; no allocation. A false here means at least
- * one consumed field differs, so the record must be rebuilt.
- */
-function contextUnchanged(
-  old: ContextSample,
-  compactionRaw: Partial<CompactionSettingsShape> | undefined,
-  usage: ContextUsageSample | undefined,
-  model: ModelSample | undefined,
-): boolean {
-  const enabled = compactionRaw?.enabled ?? false;
-  const asyncEnabled = compactionRaw?.asyncEnabled ?? false;
-  const methodOrder = normalizeMethodOrder(compactionRaw?.methodOrder);
-  const thresholdTokens = compactionRaw?.thresholdTokens ?? 0;
-  const thresholdPercent = compactionRaw?.thresholdPercent ?? 0;
-  const reserveTokens = compactionRaw?.reserveTokens;
-  const remoteEndpoint = compactionRaw?.remoteEndpoint;
-  const compaction = old.compaction;
-  if (
-    compaction.enabled !== enabled ||
-    compaction.asyncEnabled !== asyncEnabled ||
-    compaction.thresholdTokens !== thresholdTokens ||
-    compaction.thresholdPercent !== thresholdPercent ||
-    compaction.reserveTokens !== reserveTokens ||
-    compaction.remoteEndpoint !== remoteEndpoint ||
-    compaction.methodOrder.length !== methodOrder.length ||
-    !compaction.methodOrder.every((value, index) => value === methodOrder[index])
-  ) {
-    return false;
+/** Compare a raw usage read against the active record using primitives only; no allocation. */
+function usageUnchanged(old: ContextSample["usage"], usage: ContextUsageSample | undefined): boolean {
+  if (usage === undefined || old === undefined) {
+    return usage === old;
   }
-  if (usage === undefined) {
-    if (old.usage !== undefined) {
-      return false;
-    }
-  } else {
-    if (
-      old.usage === undefined ||
-      old.usage.tokens !== usage.tokens ||
-      old.usage.contextWindow !== usage.contextWindow ||
-      old.usage.percent !== usage.percent
-    ) {
-      return false;
-    }
-  }
-  if (model === undefined) {
-    if (old.model !== undefined) {
-      return false;
-    }
-  } else {
-    if (
-      old.model === undefined ||
-      old.model.provider !== model.provider ||
-      old.model.id !== model.id ||
-      old.model.contextWindow !== model.contextWindow ||
-      old.model.input.length !== model.input.length ||
-      !old.model.input.every((value, index) => value === model.input[index])
-    ) {
-      return false;
-    }
-  }
-  return true;
+  return old.tokens === usage.tokens && old.contextWindow === usage.contextWindow && old.percent === usage.percent;
 }

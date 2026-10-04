@@ -2,7 +2,7 @@
 
 [English](./usage.md)
 
-一个常驻的 OMP 状态栏扩展：一个 `belowEditor` Widget Host 加内置 Provider，显示 token 指标、缓存命中率、带投机压缩区间指示的上下文用量，以及本次会话已回答的模型请求次数。
+一个常驻的 OMP 状态栏扩展：一个 `belowEditor` Widget Host 加内置 Provider，显示 token 指标、缓存命中率、上下文用量，以及本次会话已回答的模型请求次数。
 
 属于 [projects/omp-status-bar](../README.zh.md)，作者为 Ruokee。
 
@@ -18,7 +18,7 @@ omp plugin link "$(pwd)" --scope user
 
 OMP 会读取 `package.json` 中的 `omp.extensions` 并加载 `src/extension.ts`，不需要手动设置 Extension 路径。
 
-最低维护 OMP 版本为 `18.2.8`，见[组件 README 的兼容性小节](../README.zh.md)。该下限只表达维护责任：不限制安装、激活或运行，也不是已验证版本的清单。自动化检查针对 OMP 18.4.3 运行，`bun test` 与 `tsc --noEmit` 均通过。随包交付的源码也能在 OMP 18.2.8、18.2.3 和 18.1.8 下通过类型检查：在 18.2.8 上测试套件全部通过，在 18.2.3 和 18.1.8 上除 `cross-product.test.ts` 和 `render.test.ts` 外的测试文件全部通过，这两个文件导入了 OMP 内部的 Composer shape 与 statusline host 模块。以上都属于针对宿主包安装副本的包级检查，不是真实宿主运行。真实 TUI 验证覆盖 OMP 18.2.3、18.2.8 与 18.4.3。
+最低维护 OMP 版本为 `18.5.0`，见[组件 README 的兼容性小节](../README.zh.md)。该下限只表达维护责任：不限制安装、激活或运行，也不是已验证版本的清单。自动化检查针对 OMP 18.5.0 运行，`bun test` 与 `tsc --noEmit` 均通过。这些属于针对宿主包安装副本的包级检查，不是真实宿主运行。真实 TUI 验证覆盖 OMP 18.2.3、18.2.8、18.4.3 与 18.5.1。
 
 ## 配置
 
@@ -174,93 +174,23 @@ Provider 把固定标签 `Turn`、一个空格和数值渲染为同一个 `#87d7
 
 | option | 值 | 默认值 | 输出例子 |
 | --- | --- | --- | --- |
-| `mode` | `percent`、`absolute` | `percent` | `ctx 12%`、`14.7K` |
+| `mode` | `percent`、`absolute` | `percent` | `U+F0068 ctx 12%`、`U+F0068 14.7K` |
 
 未知 option 或其他 `mode` 值使当前条目失效。
 
-数据来自 `ctx.getContextUsage()`。数据不存在或 `contextWindow <= 0` 时，该 Provider 不发布片段。`percent` 使用整数四舍五入；`absolute` 只用共享 token formatter 格式化当前 token 数。context window 仍用于数据校验和投机区间计算，但不显示。
+数据来自 `ctx.getContextUsage()`。数据不存在或 `contextWindow <= 0` 时，该 Provider 不发布片段。`percent` 使用整数四舍五入；`absolute` 只用共享 token formatter 格式化当前 token 数。context window 只用于上述校验，不显示。
 
-投机压缩图标位于上下文文本左侧。两者属于同一个 ProviderFragment，中间用一个普通空格连接，不经过顶层 separator。
-
-## 投机压缩区间指示
-
-### 含义
-
-该图标只表示当前上下文大概进入了 OMP 的投机压缩区间。它不是 OMP 内部的 `idle`、`running` 或 `armed` 状态，也不能证明压缩任务正在运行或已经完成。
-
-图标使用 Nerd Font 字形 `U+F0068`，与 pi-moon 和 OMP 的 `icon.auto` 相同。终端字体不支持该字形时不提供回退字符。
-
-### 区间计算
-
-每次采样从 `ctx.getContextUsage()` 读取当前 token 和 window，从 `ctx.model` 读取模型，从 `Settings.instance.getGroup("compaction")` 读取压缩配置。阈值和方法选择复用 OMP 导出的函数：
-
-读取压缩配置依赖宿主暴露 settings group。从 Settings 单例移除 `getGroup` 的版本不为 Extension 提供等价读取方式：settings registry 的 handle 属于宿主模块实例，取自已方副本的 handle 会在真实实例上解析成其他 settings 的值。在这类版本上，采样不携带压缩配置，指示保持 `hidden`，行内其他内容照常渲染。会话会通过组件既有的诊断渠道报告一次该原因，以便区分「指示隐藏是因为宿主缺少读取」和「压缩配置本身处于关闭状态」。该判定是对运行中的 Settings 对象做能力探测，跟随对象本身而非版本号；OMP 18.4.3 是已确认探测不到读取器的版本。
-
-```ts
-import { resolveSpeculationMethod } from "@oh-my-pi/pi-coding-agent/session/compaction-methods";
-import { resolveSpeculationLeadTokens } from "@oh-my-pi/pi-coding-agent/session/speculation-lead";
-import { resolveThresholdTokens } from "@oh-my-pi/pi-agent-core/compaction";
-```
-
-```text
-lead = min(32000, max(8192, floor(threshold * 0.125)))
-start = max(0, threshold - lead)
-speculationBand = [start, threshold)
-```
-
-`resolveSpeculationMethod()` 返回 `remote`、`handoff` 或 `soft`，按 `methodOrder` 选择第一个可用方法，并把 `snapcompact` 和 `shake` 排除在首个可用方法之外。
-
-该估计无法观察 OMP 当前是否已经在压缩、是否正在生成 handoff，以及 `session_before_compact` handler 是否阻止了投机任务。OMP 的真实压缩判定还可能使用内部 stored-conversation estimate，把 token 抬高到 `ctx.getContextUsage()` 报告值之上。因此指示可能提前、延后，或在实际不会投机时出现；界面不会声称真实的运行状态。
-
-### 状态机
-
-内部状态：
-
-- `hidden`：未启用自动压缩、未启用异步压缩、没有可投机方法，或阈值数据无效；
-- `normal`：图标常亮弱化显示；
-- `indicating`：图标闪烁。
-
-状态机为当前估计依据保存 fingerprint：模型 provider、模型 id、context window、解析后的方法、threshold 和 start。首次有效采样按下方首次采样规则判断。已有 fingerprint 变化时，状态机丢弃 previous token 和当前周期的进入许可，重新建立基线，并在该次采样保持 `normal` 或 `hidden`，不直接进入 `indicating`。
-
-首次有效采样：
-
-- token 位于 `[start, threshold)`：进入 `indicating`；
-- token 小于 `start`：进入 `normal`，并允许后续进入指示区间；
-- token 不小于 `threshold`：进入 `normal`；超过阈值不解释为"投机已经运行"。
-
-从 `normal` 进入 `indicating` 需要 token 位于 `[start, threshold)`，且当前压缩周期允许进入。
-
-进入 `indicating` 后状态锁存。即使 token 越过 `threshold`，图标继续闪烁。以下任一条件结束指示：
-
-- 当前 token 小于上一次采样的 token；
-- `compaction.enabled` 关闭；
-- `compaction.asyncEnabled` 关闭；
-- `resolveSpeculationMethod()` 不再返回可投机方法；
-- 模型 provider、模型 id 或 context window 改变；
-- 会话结束。
-
-在 `indicating` 中检测到 token 下降时切回 `normal`。下降只说明"上下文变小"，分支切换或历史裁剪也可能触发。为避免仍在区间内时立即重新闪烁，状态机等 token 先回到 `start` 以下，才允许下一个周期进入 `indicating`。
-
-模型、context window、解析后的方法、threshold 或 start 改变时建立新的采样基线，不沿用旧 fingerprint 的 previous token 或进入许可。新基线只有在 token 低于 `start` 之后，才允许进入下一次 `indicating`。
-
-### 闪烁
-
-- `normal` 使用固定弱化图标。
-- 进入 `indicating` 后第一帧为强调状态。
-- 之后每 `600 ms` 在强调和弱化之间切换。
-- 离开 `indicating` 后立即停止动画，不保留后台 timer。
-
-强调帧使用 `#5fafaf`。弱化帧使用相同颜色并设 `dim: true`。上下文文本本身使用终端默认前景色。
+片段以 Nerd Font 字形 `U+F0068` 开头，后接一个普通空格和用量文本，例如 `U+F0068 ctx 12%`。该图标是静态的：不闪烁，也不随用量变化。图标以 `#5fafaf` 弱化显示，用量文本使用终端默认前景色。图标与文本属于同一个 ProviderFragment，因此顶层 separator 不会落在两者之间。终端字体不支持该字形时不提供回退字符。
 
 ## 数据刷新
 
 第一个依赖快照的内置 Provider 启动时，内部数据源立即采样，并启动一个共享的 OMP 托管 interval，每 `600 ms` 采样一次。依赖快照的内置 Provider 读取同一个不可变快照；T、I、C、O、H 不会各自聚合一次分支造成每 tick 五次汇总。`turn` 由事件驱动：它不读取数据源，不注册 timer，也不会启动共享 interval。
 
-存在 TICO 或 H 订阅时，每个 tick 最多聚合一次分支。`getContextUsage()`、模型和压缩设置只在 `context` 有订阅时读取。只配置第三方 Provider 或只配置 `turn` 时不启动内部数据源。
+存在 TICO 或 H 订阅时，每个 tick 最多聚合一次分支。`getContextUsage()` 只在 `context` 有订阅时读取。只配置第三方 Provider 或只配置 `turn` 时不启动内部数据源。
 
 同一进程只持有一组绑定数据源。`session_start` 会为当前处于前台的会话重新绑定，`session_shutdown` 再释放。无 UI 的会话两件事都不做，因此同一进程内的子代理会话不会改绑它所共享的 UI 会话数据源。轮次计数遵循同一条规则：无 UI 的会话忽略自己的轮次事件，不会改变前台会话的数值。
 
-快照只在字段变化时增加 revision。Provider 只在自己的标准化 fragment 变化时发布；`indicating` 的闪烁相位变化也算 fragment 变化。
+快照只在字段变化时增加 revision。Provider 只在自己的标准化 fragment 变化时发布。
 
 最后一个依赖快照的内置 Provider 停止时清除共享 interval。第三方 Provider 通过公开 Provider context 使用自己的 OMP 托管 timer。
 
@@ -273,7 +203,6 @@ speculationBand = [start, threshold)
 - 所有 interval 和 timeout 都通过 OMP 托管 timer 创建。
 - Provider callback、发布、启动和停止的错误不会终止 OMP 会话。
 - 诊断按内容去重并限制数量。
-- 当 context Provider 请求压缩配置而宿主没有可读的 settings group 时，会话通过 `pi.logger.warn` 报告一次该原因；压缩配置自身报告为关闭不会被当成宿主问题上报。报告只说明缺失的读取方式，不携带任何配置值。
 - shutdown 之后 Host 拒绝新 timer、新发布和迟到的 callback。
 - shutdown 与未完成的 start 竞争时以 shutdown 为准：不重新挂载，不发布。
 
@@ -292,9 +221,11 @@ OMP 18.2.3 兼容性使用组件锁定依赖与 `pro-20x/gpt-5.6-luna` 模型完
 
 轮次计数在 OMP 18.2.8 上使用组件锁定依赖与 `pro-20x/gpt-6-luna` 模型完成验证，运行在带独立状态栏配置的临时 OMP profile 下。状态栏在 token 和上下文读数之后渲染 `Turn`，数值对每次已回答的模型请求前进一次，工具运行期间保持在前一个数值，被中断的请求不改变它，恢复会话后在发出新请求之前就显示分支历史，子代理运行也不会改变前台会话的数值。用 `/tree` 回退到更早的条目、或从更早的消息新建分支后，数值都降到当时前台分支的计数，下一次已回答请求再从新数值前进。本次验证中，数值在请求之间显示为弱化样式，请求运行期间使用强调样式。
 
-状态栏在 OMP 18.4.3 上使用组件锁定依赖与临时 Agent 目录中的回环 OpenAI 兼容 Provider（`u05mock/u05-mock-1`，200000 token window，`u05mock/u05-mock-2`，50000 token window，每个请求 15000 prompt token）完成验证。启动后渲染 `ctx 4%`。第一个请求进行中该行保持这一读数，回答到达后的帧显示 `ctx 4% / Turn 1`，随后一次采样补上 token 读数成为 `T 15K / ctx 8% / Turn 1`。下一个请求由 Provider 挂起保持进行中，期间该行保持 `T 15K / ctx 8% / Turn 1`，native statusline 显示工作中的 spinner；该回答结束后轮次先变化（`T 15K / ctx 8% / Turn 2`），token 总量在下一次采样跟上（`T 30K / ctx 8% / Turn 2`）。`/hotkeys` 打开 Keyboard Shortcuts 面板期间，帧的底部仍带有 native statusline 和状态栏行 `T 15K / ctx 8% / Turn 1`；按 ESC 关闭面板后，下一个提示作为 `Turn 2` 得到回答。用仅对当前会话生效的模型切换切到 `u05mock/u05-mock-2` 后，native statusline 变为 `U05 Mock Two` 与 50000 token window，同样的 15000 token 变为 `ctx 30%`，轮次计数不受切换影响，只在随后一次已回答请求时前进（`T 30K / ctx 30% / Turn 2`）。每个会话还会写入一条有界诊断，指明缺少的设置读取方式，即投机压缩区间小节记录的原因，从而把隐藏指示与压缩配置关闭区分开；因此本次运行中该行没有图标。同一份组件副本在 OMP 18.2.8 上渲染出 `T 15K / U+F0068 ctx 8% / Turn 1`，确认在较新依赖集下旧宿主的指示路径仍然可用。
+状态栏在 OMP 18.4.3 上使用组件锁定依赖与临时 Agent 目录中的回环 OpenAI 兼容 Provider（`u05mock/u05-mock-1`，200000 token window，`u05mock/u05-mock-2`，50000 token window，每个请求 15000 prompt token）完成验证。启动后渲染 `ctx 4%`。第一个请求进行中该行保持这一读数，回答到达后的帧显示 `ctx 4% / Turn 1`，随后一次采样补上 token 读数成为 `T 15K / ctx 8% / Turn 1`。下一个请求由 Provider 挂起保持进行中，期间该行保持 `T 15K / ctx 8% / Turn 1`，native statusline 显示工作中的 spinner；该回答结束后轮次先变化（`T 15K / ctx 8% / Turn 2`），token 总量在下一次采样跟上（`T 30K / ctx 8% / Turn 2`）。`/hotkeys` 打开 Keyboard Shortcuts 面板期间，帧的底部仍带有 native statusline 和状态栏行 `T 15K / ctx 8% / Turn 1`；按 ESC 关闭面板后，下一个提示作为 `Turn 2` 得到回答。用仅对当前会话生效的模型切换切到 `u05mock/u05-mock-2` 后，native statusline 变为 `U05 Mock Two` 与 50000 token window，同样的 15000 token 变为 `ctx 30%`，轮次计数不受切换影响，只在随后一次已回答请求时前进（`T 30K / ctx 30% / Turn 2`）。
 
 对话口径的 token 数据源在 OMP 18.4.4 上使用组件锁定依赖与 `pro-20x/gpt-5.6-luna` 模型完成验证，插件目录独立且继承宿主 agent 配置。一次针对大型仓库的 Find 读取 20 个文件并计费 16 次判定请求（68,368 输入 token，`cacheRead: 0`），其间该行显示 `Total 17.7K / Cache 7.7K / I 10K / O 79 / Hit 43.5% / Turn 2`，与对话自身 assistant 消息的用量逐项一致（9,968 输入、7,680 cache read、79 输出），命中率也与由此得到的 43.5% 一致；若读取会话聚合，读数会是 `I 78K` 与 `Hit 8.9%`。该轮未重跑实时终端宽度调整、会话切换、`/tree` 回退、请求中断和子代理卡片。
+
+静态上下文图标在 OMP `18.5.1` 上使用组件锁定依赖与 `pro-20x/gpt-5.6-luna` 模型完成验证，只加载本扩展并沿用现有 agent 配置，其中 `context` 使用 `absolute` 模式，排在 token 指标和 `turn` 之前。启动后渲染 `U+F0068 11.8K`，图标以 `#5fafaf` 弱化显示，与读数之间隔一个空格。一次请求得到回答后，该行显示 `U+F0068 10.3K / Total 10.3K / Cache 0 / I 10.3K / O 5 / Hit 0.0% / Turn 1`；间隔约 350 ms 截取的六帧逐字节一致，图标没有闪烁。percent 模式、实时终端宽度调整、会话切换、`/tree` 回退、请求中断和子代理卡片未在 OMP 18.5.1 上重跑。
 
 实时终端宽度调整、会话切换、`/tree` 回退、请求中断和子代理卡片未在 OMP 18.4.3 上重跑；这些检查仍以 OMP 18.2.3 与 18.2.8 的记录为准。
 

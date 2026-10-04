@@ -1,51 +1,35 @@
 /**
- * Context fragment composition: usage text plus the speculation indicator.
+ * Context fragment composition: the context window glyph plus usage text.
  *
  * Output shapes (from the spec):
- * - percent:  `ctx 12%`
- * - absolute: `14.7K`
+ * - percent:  `<U+F0068> ctx 12%`
+ * - absolute: `<U+F0068> 14.7K`
  *
- * The indicator glyph joins the usage text with a plain space inside the
- * same fragment, bypassing the top-level separator. `hidden` contributes no
- * glyph. `normal` is the glyph dimmed in the emphasis color; `indicating`
- * flips between that dim frame and the lit frame via `blinkPhase`.
+ * The glyph is static: it does not blink and does not change with usage. It
+ * joins the usage text with a plain space inside the same fragment,
+ * bypassing the top-level separator. Without usage data, or with a context
+ * window of zero or less, the fragment is absent.
  */
 
-import type { ProviderFragment, ProviderSpan } from "./provider-api.ts";
+import type { ProviderFragment } from "./provider-api.ts";
 import { formatTokenCount } from "./format.ts";
-import type { SpeculationState } from "./speculation.ts";
 
-/** Emphasis color of the indicator; the dim frame uses the same color. */
-export const SPECULATION_COLOR = "#5fafaf";
+/** Color of the context window glyph. */
+export const CONTEXT_GLYPH_COLOR = "#5fafaf";
 
-/** Nerd Font glyph matching OMP `icon.auto`. */
-export const SPECULATION_GLYPH = "\u{F0068}";
+/** Nerd Font glyph marking the context window, matching OMP `icon.auto`. */
+export const CONTEXT_GLYPH = "\u{F0068}";
 
-/**
- * Build the context provider fragment.
- *
- * @param blinkPhase true renders the emphasis frame of the blink; false the
- *   dim frame. Only meaningful while `indicating`.
- */
+/** Build the context provider fragment. */
 export function composeContextFragment(
   usage: { tokens: number; contextWindow: number; percent: number } | undefined,
   mode: string,
-  state: SpeculationState,
-  blinkPhase = false,
 ): ProviderFragment | undefined {
   if (usage === undefined || usage.contextWindow <= 0) {
     return undefined;
   }
-  const spans: ProviderSpan[] = [];
   const usageText = mode === "absolute" ? formatTokenCount(usage.tokens) : `ctx ${Math.round(usage.percent)}%`;
-  if (state !== "hidden") {
-    if (state === "indicating" && blinkPhase) {
-      spans.push({ text: SPECULATION_GLYPH, color: SPECULATION_COLOR });
-    } else {
-      spans.push({ text: SPECULATION_GLYPH, color: SPECULATION_COLOR, dim: true });
-    }
-    spans.push({ text: " " });
-  }
-  spans.push({ text: usageText });
-  return { spans };
+  return {
+    spans: [{ text: CONTEXT_GLYPH, color: CONTEXT_GLYPH_COLOR, dim: true }, { text: " " }, { text: usageText }],
+  };
 }

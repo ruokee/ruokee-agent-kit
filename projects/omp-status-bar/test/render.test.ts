@@ -29,8 +29,6 @@ describe("builtin metric colors", () => {
     store.bind({
       getConversationUsage: () => ({ input: 20, cacheWrite: 0, cacheRead: 80, output: 0 }),
       getContextUsage: () => undefined,
-      getModel: () => undefined,
-      getCompactionSettings: () => undefined,
     });
     store.attachTimers({ setInterval: () => 1, clearTimeout: () => {} });
     try {
@@ -69,8 +67,6 @@ describe("cache-hit precision", () => {
     store.bind({
       getConversationUsage: () => ({ input: 2, cacheWrite: 0, cacheRead: 1, output: 0 }),
       getContextUsage: () => undefined,
-      getModel: () => undefined,
-      getCompactionSettings: () => undefined,
     });
     store.attachTimers({ setInterval: () => 1, clearTimeout: () => {} });
     const provider = BUILTIN_PROVIDERS.find((provider) => provider.id === "cache-hit")!;

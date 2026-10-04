@@ -13,10 +13,10 @@
  *    the bound sources and turn state belong to the UI session that shares this
  *    process.
  * 2. Seed the turn state from the branch the session now holds, and bind the
- *    data sources (conversation usage, context usage, model, compaction
- *    settings) to the shared snapshot store. Conversation usage is summed from
- *    that same branch, so the token metrics exclude out-of-band `model_usage`
- *    records such as the Find judgment cascade.
+ *    data sources (conversation usage and context usage) to the shared
+ *    snapshot store. Conversation usage is summed from that same branch, so
+ *    the token metrics exclude out-of-band `model_usage` records such as the
+ *    Find judgment cascade.
  * 3. Create the Host with an environment backed by this extension context, and
  *    start it (config read + provider creation + widget mount).
  *
@@ -49,30 +49,9 @@ import type { ExtensionAPI, ExtensionContext } from "@oh-my-pi/pi-coding-agent";
 import { StatusBarHost, type HostEnvironment } from "./host.ts";
 import { sumConversationUsage } from "./conversation-usage.ts";
 import { registerBuiltinProviders } from "./providers/bundled.ts";
-import { bindSessionSources, unbindSessionSources, type CompactionSettingsShape } from "./snapshot-store.ts";
+import { bindSessionSources, unbindSessionSources } from "./snapshot-store.ts";
 import { countSuccessfulResponses, getTurnSample, setTurnSample, SUCCESSFUL_STOP_REASONS } from "./turn-state.ts";
 import { getAgentDir } from "./agent-dir.ts";
-
-/** Live Settings instance that still exposes its groups directly (`getGroup`). */
-interface GroupReader {
-  getGroup(prefix: string): unknown;
-}
-
-/** True when the host still exposes setting groups on the Settings singleton itself. */
-function hasGroupReader(value: unknown): value is GroupReader {
-  return typeof value === "object" && value !== null && typeof Reflect.get(value, "getGroup") === "function";
-}
-
-/**
- * Bounded reasons the live settings read can fail while the context provider
- * asks for the compaction group. Each names the cause and stays free of
- * configuration values; a session reports one of them at most once, so a
- * 600 ms sampler cannot flood the log.
- */
-const NO_GROUP_READER_DIAGNOSTIC =
-  "omp-status-bar: the host Settings exposes no getGroup, so this session has no readable compaction group and keeps the speculation indicator hidden";
-const SETTINGS_READ_FAILED_DIAGNOSTIC =
-  "omp-status-bar: reading the compaction settings failed, so this session keeps the speculation indicator hidden";
 
 /**
  * Seed the turn state from the branch the session holds now. The session
@@ -93,19 +72,7 @@ export default function statusBarController(pi: ExtensionAPI): void {
   // mounts behind it so old cleanup cannot unbind a successor's sources.
   let lifecycle = Promise.resolve();
   let generation = 0;
-  /**
-   * Whether this session already reported why the settings read is
-   * unavailable. The sampler asks for the group on every tick, so the report
-   * is sent once per bound session instead of once per sample.
-   */
-  let settingsReadReported = false;
 
-  /** Report one bounded reason for an unavailable settings read. */
-  function reportSettingsReadUnavailable(message: string): void {
-    if (settingsReadReported) return;
-    settingsReadReported = true;
-    pi.logger.warn(message);
-  }
   function transition(ctx?: ExtensionContext): Promise<void> {
     const requested = ++generation;
     // Stop eagerly so a provider still starting can observe shutdown.
@@ -116,43 +83,11 @@ export default function statusBarController(pi: ExtensionAPI): void {
     return pending;
   }
 
-  /**
-   * Read the live compaction settings group; undefined when the host exposes
-   * no usable read, which leaves the speculation estimate hidden rather than
-   * guessed, and reports the bounded reason once per session. Hosts that
-   * removed the group reader moved settings onto registry handles owned by
-   * the host module instance: a handle from this package's copy resolves
-   * other settings' values against the host instance, so it is not an
-   * equivalent read.
-   */
-  function readCompactionSettings(): Partial<CompactionSettingsShape> | undefined {
-    try {
-      // Read through the host-injected namespace: this is the active OMP
-      // runtime's Settings singleton.
-      const settings = pi.pi.Settings.instance;
-      if (!hasGroupReader(settings)) {
-        // The context provider asks for this group only while it has
-        // subscribers, so a missing reader is why this session has no
-        // estimate, not a configuration that turned compaction off.
-        reportSettingsReadUnavailable(NO_GROUP_READER_DIAGNOSTIC);
-        return undefined;
-      }
-      const group: unknown = settings.getGroup("compaction");
-      return typeof group === "object" && group !== null ? (group as Partial<CompactionSettingsShape>) : undefined;
-    } catch {
-      reportSettingsReadUnavailable(SETTINGS_READ_FAILED_DIAGNOSTIC);
-      return undefined;
-    }
-  }
-
   async function startSession(ctx: ExtensionContext): Promise<void> {
     // A session without UI mounts nothing and owns no teardown state. Binding
     // here would replace the sources of the UI session that shares this
     // process, and this activation's later shutdown would then unbind them.
     if (!ctx.hasUI) return;
-    // Each bound session gets its own bounded report: the previous session's
-    // reason says nothing about the host this one runs against.
-    settingsReadReported = false;
     // The count follows the branch this session holds: seed it before the
     // Host starts, so the first publish shows the history of that branch
     // instead of an empty row.
@@ -160,8 +95,6 @@ export default function statusBarController(pi: ExtensionAPI): void {
     bindSessionSources({
       getConversationUsage: () => sumConversationUsage(ctx.sessionManager.getBranch()),
       getContextUsage: () => ctx.getContextUsage(),
-      getModel: () => ctx.model,
-      getCompactionSettings: readCompactionSettings,
     });
     const environment: HostEnvironment = {
       hasUI: ctx.hasUI,

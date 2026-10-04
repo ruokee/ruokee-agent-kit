@@ -78,12 +78,6 @@ class ExtensionHarness {
   #metrics = { percent: 42, totalTokens: 12_300 };
   /** When true the next context-usage read throws; drives sampler-error tests. */
   usageThrows = false;
-  /** The compaction group served by the injected Settings stub; undefined = uninitialized. */
-  settingsGroup: Record<string, unknown> | undefined = undefined;
-  /** Live Settings instance to inject verbatim; takes precedence over {@link settingsGroup}. */
-  settingsInstance: unknown = undefined;
-  /** Counts reads of the compaction group through the injected namespace. */
-  settingsGroupReads = 0;
   /** Branch the session binding counts; set before emitStart/emitSwitch to seed history. */
   branch: BranchEntryLike[] = [];
 
@@ -123,14 +117,8 @@ class ExtensionHarness {
           throw new Error("usage getter exploded");
         }
         // The context-usage token count tracks totalTokens so metric
-        // updates move the speculation band inputs together.
+        // updates move both providers together.
         return { tokens: this.#metrics.totalTokens, contextWindow: 200_000, percent: this.#metrics.percent };
-      },
-      model: {
-        provider: "test",
-        id: "test-model",
-        contextWindow: 200_000,
-        input: ["text"],
       },
       sessionManager: {
         // The shared sampler sums conversation usage from the branch. The
@@ -165,27 +153,6 @@ class ExtensionHarness {
     };
     this.#ctx = ctx;
     const diagnostics = this.diagnostics;
-    // The stub keeps its own group state, so reads prove the extension uses
-    // the Settings namespace injected by the active OMP runtime.
-    const injectedSettings = {
-      get instance() {
-        if (harness.settingsInstance !== undefined) {
-          return harness.settingsInstance;
-        }
-        if (harness.settingsGroup === undefined) {
-          throw new Error("Settings not initialized. Call Settings.init() first.");
-        }
-        return {
-          getGroup: (prefix: string) => {
-            if (prefix !== "compaction") {
-              throw new Error(`unexpected group: ${prefix}`);
-            }
-            harness.settingsGroupReads++;
-            return harness.settingsGroup;
-          },
-        };
-      },
-    };
     const omp = {
       logger: {
         warn: (message: string) => {
@@ -194,9 +161,6 @@ class ExtensionHarness {
       },
       on: (event: string, handler: Handler) => {
         (this.handlers[event] ??= []).push(handler);
-      },
-      pi: {
-        Settings: injectedSettings,
       },
     };
     this.#omp = omp;
@@ -322,180 +286,11 @@ describe("extension entry lifecycle", () => {
         record.callback();
       }
       await Promise.resolve();
-      expect(component.render(120).join("")).toContain("ctx 90%");
-      expect(component.render(120).join("")).toContain("45K");
-      expect(h.repaints.length).toBeGreaterThan(0);
-    } finally {
-      await h.emitShutdown();
-      h.dispose();
-    }
-  });
-
-  test("compaction settings flow through the injected Settings namespace", async () => {
-    resetProviderRegistryForTests();
-    resetSnapshotStoreForTests();
-    const h = new ExtensionHarness("version: 1\nstatuses:\n  - id: context\n");
-    try {
-      await h.activate();
-      // Reads resolve through pi.pi.Settings.instance at call time, so the
-      // group set here before the session tick is what the sampler sees.
-      h.settingsGroup = {
-        enabled: true,
-        asyncEnabled: true,
-        methodOrder: ["handoff", "snapcompact", "remote"],
-        thresholdPercent: 80,
-        thresholdTokens: 160_000,
-        reserveTokens: 40_000,
-        remoteEndpoint: undefined,
-      };
-      await h.emitStart();
-      const component = h.mountWidget() as { render: (width: number) => string[] };
-      // 150_000 tokens sit inside the speculation band [140_000, 160_000),
-      // so injected compaction settings make the context provider publish
-      // its indicator instead of staying hidden.
-      h.setMetrics(95, 150_000);
-      for (const record of h.intervals) {
-        record.callback();
-      }
-      await Promise.resolve();
       const line = component.render(120).join("");
-      expect(line).toContain("ctx 95%");
+      expect(line).toContain("ctx 90%");
       expect(line).toContain("\u{F0068}");
-      // The group came from the injected stub, through the runtime's
-      // getGroup channel.
-      expect(h.settingsGroupReads).toBeGreaterThan(0);
-    } finally {
-      await h.emitShutdown();
-      h.dispose();
-    }
-  });
-
-  test("an uninitialized injected Settings leaves the speculation icon hidden", async () => {
-    resetProviderRegistryForTests();
-    resetSnapshotStoreForTests();
-    const h = new ExtensionHarness("version: 1\nstatuses:\n  - id: context\n");
-    try {
-      await h.activate();
-      // settingsGroup stays undefined: the injected instance getter throws,
-      // so the sampler binds the fallback compaction group (speculation
-      // off) and the icon stays hidden at any usage level.
-      await h.emitStart();
-      const component = h.mountWidget() as { render: (width: number) => string[] };
-      h.setMetrics(95, 150_000);
-      for (const record of h.intervals) {
-        record.callback();
-      }
-      await Promise.resolve();
-      const line = component.render(120).join("");
-      expect(line).toContain("ctx 95%");
-      expect(line.includes("\u{F0068}")).toBe(false);
-      // The injected getter never returned a compaction group.
-      expect(h.settingsGroupReads).toBe(0);
-      // A read that failed is reported once, with its own locatable reason.
-      expect(h.diagnostics.length).toBe(1);
-      expect(h.diagnostics[0] ?? "").toContain("reading the compaction settings failed");
-    } finally {
-      await h.emitShutdown();
-      h.dispose();
-    }
-  });
-
-  test("a Settings instance without a readable group reports the reason once and keeps the row", async () => {
-    resetProviderRegistryForTests();
-    resetSnapshotStoreForTests();
-    const h = new ExtensionHarness("version: 1\nstatuses:\n  - id: context\n  - id: total\n");
-    try {
-      await h.activate();
-      // The instance exposes no `getGroup`: that is the shape of the host
-      // releases that removed the group reader, and the estimate stays hidden
-      // instead of being guessed, while the metrics around it keep
-      // publishing.
-      h.settingsInstance = { name: "opaque" };
-      await h.emitStart();
-      const component = h.mountWidget() as { render: (width: number) => string[] };
-      h.setMetrics(95, 150_000);
-      // Several sampler ticks: a bounded report must not repeat per tick.
-      for (let tick = 0; tick < 5; tick++) {
-        for (const record of h.intervals) {
-          record.callback();
-        }
-        await Promise.resolve();
-      }
-      const line = component.render(120).join("");
-      // The other providers around the unavailable estimate keep publishing.
-      expect(line).toContain("ctx 95%");
-      expect(line).toContain("T 150K");
-      expect(line.includes("\u{F0068}")).toBe(false);
-      expect(h.diagnostics.length).toBe(1);
-      const reason = h.diagnostics[0] ?? "";
-      // Locatable cause, and no configuration value leaked into the report.
-      expect(reason).toContain("getGroup");
-      expect(reason).not.toMatch(/[0-9]/);
-    } finally {
-      await h.emitShutdown();
-      h.dispose();
-    }
-  });
-
-  test("compaction turned off stays a silent hidden indicator", async () => {
-    resetProviderRegistryForTests();
-    resetSnapshotStoreForTests();
-    const h = new ExtensionHarness("version: 1\nstatuses:\n  - id: context\n");
-    try {
-      await h.activate();
-      // A readable group that reports compaction off is a configuration
-      // state, not a host that lost the read: nothing to report.
-      h.settingsGroup = {
-        enabled: false,
-        asyncEnabled: false,
-        methodOrder: ["soft"],
-        thresholdTokens: 160_000,
-      };
-      await h.emitStart();
-      const component = h.mountWidget() as { render: (width: number) => string[] };
-      h.setMetrics(95, 150_000);
-      for (let tick = 0; tick < 3; tick++) {
-        for (const record of h.intervals) {
-          record.callback();
-        }
-        await Promise.resolve();
-      }
-      const line = component.render(120).join("");
-      expect(line).toContain("ctx 95%");
-      expect(line.includes("\u{F0068}")).toBe(false);
-      expect(h.diagnostics).toEqual([]);
-    } finally {
-      await h.emitShutdown();
-      h.dispose();
-    }
-  });
-
-  test("a group with a foreign methodOrder shape keeps the fragment and reports nothing", async () => {
-    resetProviderRegistryForTests();
-    resetSnapshotStoreForTests();
-    const h = new ExtensionHarness("version: 1\nstatuses:\n  - id: context\n");
-    try {
-      await h.activate();
-      // Another host release may return the field under a shape this package
-      // does not consume. The sample must keep the readable fields and the
-      // fragment published, and the icon stays hidden.
-      h.settingsGroup = {
-        enabled: true,
-        asyncEnabled: true,
-        methodOrder: true,
-        thresholdTokens: 160_000,
-      };
-      await h.emitStart();
-      const component = h.mountWidget() as { render: (width: number) => string[] };
-      h.setMetrics(95, 150_000);
-      for (const record of h.intervals) {
-        record.callback();
-      }
-      await Promise.resolve();
-      const line = component.render(120).join("");
-      expect(line).toContain("ctx 95%");
-      expect(line.includes("\u{F0068}")).toBe(false);
-      expect(h.diagnostics).toEqual([]);
+      expect(line).toContain("45K");
+      expect(h.repaints.length).toBeGreaterThan(0);
     } finally {
       await h.emitShutdown();
       h.dispose();

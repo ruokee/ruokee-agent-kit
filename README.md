@@ -43,7 +43,7 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 
 **OMP**
 
-- **[omp-status-bar](./projects/omp-status-bar/README.md)** adds an OMP status bar with extra context information, including current session context usage as a number rather than the native percentage, total tokens, input tokens, cached tokens, output tokens, cache-hit rate, the number of model requests the session has answered, and speculative-compaction indicators.
+- **[omp-status-bar](./projects/omp-status-bar/README.md)** adds an OMP status bar with extra context information, including current session context usage as a number rather than the native percentage, total tokens, input tokens, cached tokens, output tokens, cache-hit rate, and the number of model requests the session has answered.
 - **[omp-codex-web-access](./projects/omp-codex-web-access/README.md)** lets OMP use a Codex subscription through a forwarding Provider for web search and page extraction.
 - **[omp-system-prompt](./projects/omp-system-prompt/README.md)** applies a maintained English strategy to OMP's system prompt through a host template the user selects, and appends rule documents for the model in use; any other system prompt stays as the host built it.
 - **[omp-context-pin](./projects/omp-context-pin/README.md)** keeps a small set of pinned text entries present word for word in every ordinary model request on the current session branch, and restores them after each committed compaction.

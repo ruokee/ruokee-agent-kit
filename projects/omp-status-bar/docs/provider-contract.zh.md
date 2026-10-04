@@ -4,43 +4,7 @@
 
 第三方扩展添加状态栏 Provider 使用的公开合同。从 `@ruokee/omp-status-bar/provider` 导入。
 
-```ts
-export type ProviderOptions = Readonly<Record<string, unknown>>;
-export type ProviderDescription = Readonly<Record<string, unknown>>;
-
-export interface ProviderSpan {
-  text: string;
-  color?: `#${string}`;
-  dim?: boolean;
-}
-
-export interface ProviderFragment {
-  spans: readonly ProviderSpan[];
-}
-
-export interface ProviderInstanceContext {
-  readonly options: ProviderOptions;
-  readonly config: ProviderDescription;
-  publish(fragment: ProviderFragment): void;
-  setInterval(callback: () => void, ms: number): unknown;
-  setTimeout(callback: () => void, ms: number): unknown;
-  clearTimer(timer: unknown): void;
-}
-
-export interface ProviderInstance {
-  start(): void | Promise<void>;
-  stop(): void | Promise<void>;
-}
-
-export interface ProviderDefinition {
-  readonly id: string;
-  readonly contractVersion: 1;
-  describe(options: ProviderOptions): ProviderDescription;
-  create(context: ProviderInstanceContext): ProviderInstance;
-}
-
-export function registerProvider(definition: ProviderDefinition): void;
-```
+导出的类型、`registerProvider()` 与 `PROVIDER_CONTRACT_VERSION` 定义在 [src/provider-api.ts](../src/provider-api.ts)，即该导入路径对应的模块。下文说明这些类型无法表达的运行时规则。
 
 `PROVIDER_CONTRACT_VERSION` 为 `1`。注册时拒绝重复 ID 和不支持的合同版本；Host 在创建实例前会再次校验版本，因此通过模块旧副本注册的定义同样会被拒绝。
 
