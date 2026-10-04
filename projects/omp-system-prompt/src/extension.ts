@@ -1,22 +1,24 @@
 /**
- * OMP extension entry: replace the default system prompt's fixed policy, then
- * append model-scoped rule documents.
+ * OMP extension entry: apply the owned strategy to a host render of the
+ * component's own template, then append model-scoped rule documents.
  *
  * At activation the extension reads the owned template once. It registers
- * `before_agent_start` twice: the first handler transforms the current
+ * `before_agent_start` twice: the first handler inspects the current
  * `event.systemPrompt` array — never a startup snapshot or
  * `ctx.getSystemPrompt()`, which reflects the already-chained result rather
- * than the handler-chain input. The second handler receives that result, keeps
- * it, and appends one block per rule document matching the turn's model.
+ * than the handler-chain input. When no block is a render of the owned
+ * template (no template selected, `SYSTEM.md`, `--system-prompt`, or another
+ * template), it returns nothing and reports nothing. The second handler
+ * receives the chained result, keeps it, and appends one block per rule
+ * document matching the turn's model.
  *
- * Failure handling is fail-open by design: custom prompt paths, malformed
- * templates, unrecognized block shapes, unreadable rule sources, and
- * unexpected turn-processing errors leave the incoming array untouched so the
- * turn proceeds with the host prompt.
- * A bounded diagnostic reports the reason through the session channel
- * (interactive notify or file logger); it does not claim to have blocked
- * the model request. Activation-time failures register the handler too, so
- * the first turn reports them once on the correct channel.
+ * Failure handling is fail-open by design: a malformed owned template,
+ * unrecognized step boundaries, unreadable rule sources, and unexpected
+ * turn-processing errors leave the incoming array untouched so the turn
+ * proceeds with the host prompt. A bounded diagnostic reports the reason
+ * through the session channel (interactive notify or file logger); it does not
+ * claim to have blocked the model request. Activation-time failures register
+ * the handler too, so the first turn reports them once on the correct channel.
  */
 
 import {
@@ -32,23 +34,18 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { DiagnosticTracker, type DiagnosticSink } from "./diagnostics.ts";
 import { RULE_DIR_NAME, collectRuleBodies, nodeRuleFileSystem, type RuleFileSystem, type RuleRoots } from "./rules.ts";
-import { TEMPLATE_FILE_NAME, loadTemplate } from "./template.ts";
-import { transformSystemPrompt } from "./transform.ts";
+import { loadTemplate } from "./template.ts";
+import { isHostTemplateRender } from "./host-template.ts";
+import { prepareTemplate, transformSystemPrompt } from "./transform.ts";
 
 const PACKAGE_NAME = "@ruokee/omp-system-prompt";
 
 /** Reason codes mapped to the bounded target shown in diagnostics. */
 const REASON_TARGETS: Record<string, string> = {
-  "empty-input": "empty input",
-  "main-block-not-found": "default main block",
-  "project-block-not-found": "project block",
-  "unknown-section": "unrecognized section",
   "ambiguous-boundary": "ambiguous boundary",
-  "owned-output-invalid": "owned output structure",
   "template-unavailable": "owned prompt template",
 };
 
-const SKILL_FORMATTING_TARGET = "Skill catalog";
 const DELIVERY_SETTING_TARGET = "renderDelivery";
 const DELIVERY_BLOCK_TARGET = "Delivery block";
 const PROJECT_FOOTER_TARGET = "project footer";
@@ -130,12 +127,7 @@ export function activate(
   // Activation-time failures still register the turn handler: the session
   // channel is only known from the event context, and the diagnostic is
   // reported once per session on the first turn. The input stays unchanged.
-  const fatal =
-    templateText === null
-      ? { reason: "template-unavailable", target: REASON_TARGETS["template-unavailable"] ?? "owned prompt template" }
-      : null;
-
-  const SKILL_COMMAND_PREFIX = "skill:";
+  const owned = templateText === null ? null : prepareTemplate(templateText);
   const readSettings = host.getPluginSettings ?? getPublicPluginSettings;
   const ruleRoots = host.ruleRoots ?? defaultRuleRoots;
   const ruleFileSystem = host.ruleFileSystem ?? nodeRuleFileSystem;
@@ -143,28 +135,19 @@ export function activate(
   pi.on("before_agent_start", async (event: BeforeAgentStartEvent, ctx: ExtensionContext) => {
     const seen = (seenBySession[ctx.sessionManager.getSessionId()] ??= new Set<string>());
     const tracker = new DiagnosticTracker(SCOPE, sinkFor(ctx, loggerWarn), seen);
-    if (fatal) {
-      tracker.report(fatal.reason, fatal.target);
+    if (owned === null) {
+      tracker.report("template-unavailable", REASON_TARGETS["template-unavailable"] ?? "owned prompt template");
       return undefined;
     }
 
     try {
+      // Only a host render of the owned template is the component's to
+      // change; any other main block stays as the host built it, silently.
+      if (!event.systemPrompt.some((block) => isHostTemplateRender(block, owned.anchors))) return undefined;
       const renderDelivery = await resolveRenderDelivery(readSettings, ctx.cwd, tracker);
-      // Current-turn Skill command metadata: names, order, and descriptions
-      // only. Paths are ignored and no resource is rescanned; the event
-      // catalog stays authoritative for what is visible.
-      const skillMetadata = pi
-        .getCommands()
-        .filter((command) => command.source === "skill" && command.name.startsWith(SKILL_COMMAND_PREFIX))
-        .map((command) => ({
-          name: command.name.slice(SKILL_COMMAND_PREFIX.length),
-          description: command.description ?? "",
-        }));
-      const result = transformSystemPrompt(event.systemPrompt, templateText, skillMetadata, renderDelivery);
+      const result = transformSystemPrompt(event.systemPrompt, owned, renderDelivery);
+      if (result === undefined) return undefined;
       if (result.ok) {
-        if (result.skillFormattingSkipped !== undefined) {
-          tracker.reportSkillFormattingSkipped(result.skillFormattingSkipped, SKILL_FORMATTING_TARGET);
-        }
         for (const note of result.notes ?? []) {
           if (note.step === "delivery") tracker.reportDeliverySkipped(note.reason, DELIVERY_BLOCK_TARGET);
           else tracker.reportProjectFooterUnchanged(note.reason, PROJECT_FOOTER_TARGET);

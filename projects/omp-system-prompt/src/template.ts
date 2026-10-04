@@ -1,10 +1,10 @@
 /**
- * Maintainer-owned template for the replacement main block.
+ * Maintainer-owned source of the component template.
  *
- * The template carries owned static English text plus `%%name%%` slots.
- * The transformer fills each slot with a verbatim segment extracted from
- * the host's rendered default main block. Slot values are data, never
- * re-parsed or recursively rendered.
+ * The template carries owned static English text plus `%%name%%` slots. The
+ * host-template generator binds each slot to the host data that fills it, and
+ * the final `# Delivery` chapter becomes the standalone block the extension
+ * applies after a host render of that template.
  */
 
 /** One slot in the owned template, keyed by its `%%name%%` marker. */
@@ -42,8 +42,7 @@ export interface TemplateSlots {
  * Split a template into its static fragments around the slot markers.
  *
  * Returns `null` unless every known slot appears exactly once in marker
- * order, which is the shape the transformer and the host-template generator
- * both require.
+ * order, which is the shape the host-template generator requires.
  */
 export function splitTemplateSlots(template: string): TemplateSlots | null {
   const fragments: string[] = [];
@@ -125,7 +124,7 @@ export function getTemplateVariants(template: string): TemplateVariants | null {
  * Returns the normalized template text with slot markers intact, or `null`
  * when the file is missing, empty, structurally invalid, or carries an
  * unknown or duplicated marker. A broken template must never reach the
- * transformer, which would otherwise splice retained content into an
+ * host-template generator, which would otherwise bind host data into an
  * unintended place.
  */
 export function loadTemplate(read: (path: string) => string, resolve: (name: string) => string): string | null {

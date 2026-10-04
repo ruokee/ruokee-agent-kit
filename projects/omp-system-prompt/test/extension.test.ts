@@ -6,21 +6,13 @@ import { pathToFileURL } from "node:url";
 import { getAgentDir } from "@oh-my-pi/pi-utils";
 import { activate, type PluginSettingsReader } from "../src/extension.ts";
 import type { RuleFileSystem, RuleRoots } from "../src/rules.ts";
-import {
-  HOST_18_4_3_MAIN_TEMPLATE,
-  HOST_18_4_3_PROJECT_TEMPLATE,
-  HOST_TEMPLATE,
-  renderMain,
-  renderMainLegacy,
-  renderProject,
-} from "./render.ts";
+import { HOST_TEMPLATE, renderMain, renderProject, type MainOptions } from "./render.ts";
 import { treeFileSystem, type RuleTree } from "./rule-tree.ts";
 
 const TEMPLATE_PATH = new URL("../src/prompt-template.md", import.meta.url);
 const ENTRY_URL = new URL("../src/extension.ts", import.meta.url).href;
 const TEST_CWD = "/tmp/omp-system-prompt-test";
 
-type Command = { name: string; description?: string; source: string };
 type Notify = (message: string, level: string) => void;
 type TestModel = { id: string; provider: string };
 interface TestContext {
@@ -40,6 +32,16 @@ const TEST_MODEL: TestModel = { id: "gpt-5.6-luna", provider: "pro-20x" };
 const RULE_ROOTS: RuleRoots = { user: "/rules/user", project: "/rules/project" };
 
 const noSettings: PluginSettingsReader = async () => ({});
+
+/** The host's render of the component template: the only main block the extension changes. */
+function ownedMain(options: MainOptions = {}): string {
+  return renderMain(options, HOST_TEMPLATE);
+}
+
+/** True when a block is the owned Delivery chapter on its own. */
+function isDeliveryBlock(block: string | undefined): boolean {
+  return block?.startsWith("# Delivery\n") === true;
+}
 
 function host(importMetaUrl = ENTRY_URL, getPluginSettings: PluginSettingsReader = noSettings) {
   return { importMetaUrl, getPluginSettings };
@@ -77,7 +79,7 @@ function recordingFileSystem(paths: string[], fileSystem: RuleFileSystem = treeF
   };
 }
 
-test("loads the template from encoded installation paths", () => {
+test("loads the template from encoded installation paths", async () => {
   const root = mkdtempSync(join(tmpdir(), "omp system prompt "));
   try {
     const component = join(root, "escaped %23 path");
@@ -85,130 +87,33 @@ test("loads the template from encoded installation paths", () => {
     copyFileSync(TEMPLATE_PATH, join(component, "prompt-template.md"));
 
     const warnings: string[] = [];
-    const handlers: unknown[] = [];
+    const handlers: Handler[] = [];
     const pi = {
       logger: { warn: (message: string) => warnings.push(message) },
-      on: (_event: string, handler: unknown) => handlers.push(handler),
+      on: (_event: string, handler: Handler) => handlers.push(handler),
     };
-
     activate(pi as never, host(pathToFileURL(join(component, "extension.ts")).href));
 
+    const main = ownedMain();
+    const result = await handlers[0]!({ systemPrompt: [main, renderProject()] }, context());
+
+    expect(result?.systemPrompt?.[0]).toBe(main);
+    expect(isDeliveryBlock(result?.systemPrompt?.[1])).toBe(true);
     expect(warnings).toEqual([]);
-    expect(handlers).toHaveLength(2);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
 });
 
-test("uses visible Skill entries while ignoring hidden command candidates", async () => {
-  const skills = [
-    { name: "alpha", description: "First skill." },
-    { name: "beta", description: "Second skill." },
-  ];
-  const blocks = ["before", renderMain({ skills }), renderProject(), "after"];
-  const warnings: string[] = [];
-  const handlers: Handler[] = [];
-  let reads = 0;
-  const pi = {
-    logger: { warn: (message: string) => warnings.push(message) },
-    on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => {
-      reads += 1;
-      return [
-        { name: "skill:before", description: "Hidden before.", source: "skill" },
-        { name: "skill:alpha", description: "First skill.", source: "skill" },
-        { name: "skill:between", description: "Hidden between.", source: "skill" },
-        { name: "skill:beta", description: "Second skill.", source: "skill" },
-        { name: "skill:after", description: "Hidden after.", source: "skill" },
-        { name: "help", description: "Show help.", source: "builtin" },
-      ] satisfies Command[];
-    },
-  };
-
-  activate(pi as never, host());
-  const handler = handlers[0];
-  expect(handler).toBeDefined();
-
-  const first = await handler!({ systemPrompt: blocks }, context());
-  expect(reads).toBe(1);
-  expect(first?.systemPrompt?.[1]).toContain("- alpha: First skill.");
-  expect(first?.systemPrompt?.[1]).toContain("- beta: Second skill.");
-  expect(first?.systemPrompt?.[1]).not.toContain("Hidden before.");
-  expect(first?.systemPrompt?.[1]).not.toContain("Hidden between.");
-  expect(first?.systemPrompt?.[1]).not.toContain("Hidden after.");
-  expect(warnings).toEqual([]);
-});
-
-test("reports Skill formatting skip without claiming replacement failure", async () => {
-  const skills = [{ name: "alpha", description: "First\nContinuation" }];
-  const blocks = ["before", renderMain({ skills }), renderProject(), "after"];
-  const warnings: string[] = [];
-  const handlers: Handler[] = [];
-  const pi = {
-    logger: { warn: (message: string) => warnings.push(message) },
-    on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
-  };
-
-  activate(pi as never, host());
-  const handler = handlers[0];
-  expect(handler).toBeDefined();
-
-  const result = await handler!({ systemPrompt: blocks }, context());
-  expect(result?.systemPrompt?.[1]).toContain("You are an assistant in Oh My Pi");
-  expect(result?.systemPrompt?.[2]).toContain("# Project snapshot");
-  expect(warnings).toHaveLength(1);
-  expect(warnings[0]).toContain("Skill catalog formatting skipped");
-  expect(warnings[0]).toContain("skill-metadata-unavailable");
-  expect(warnings[0]).not.toContain("replacement NOT applied");
-  expect(warnings[0]).not.toContain("First");
-});
-
-test("reports a Skill formatting skip through the interactive sink", async () => {
-  const skills = [{ name: "alpha", description: "First skill." }];
-  const blocks = ["before", renderMain({ skills }), renderProject(), "after"];
-  const warnings: string[] = [];
-  const notifications: Array<{ message: string; level: string }> = [];
-  const handlers: Handler[] = [];
-  const pi = {
-    logger: { warn: (message: string) => warnings.push(message) },
-    on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
-  };
-
-  activate(pi as never, host());
-  const handler = handlers[0];
-  expect(handler).toBeDefined();
-
-  const result = await handler!(
-    { systemPrompt: blocks },
-    context(true, (message, level) => notifications.push({ message, level })),
-  );
-
-  expect(result?.systemPrompt?.[1]).toContain("You are an assistant in Oh My Pi");
-  expect(result?.systemPrompt?.[2]).toContain("# Project snapshot");
-  expect(warnings).toEqual([]);
-  expect(notifications).toHaveLength(1);
-  expect(notifications[0]?.level).toBe("warning");
-  expect(notifications[0]?.message).toContain("Skill catalog formatting skipped");
-  expect(notifications[0]?.message).toContain("skill-metadata-unavailable");
-  expect(notifications[0]?.message).not.toContain("replacement NOT applied");
-  expect(notifications[0]?.message).not.toContain("First skill.");
-});
-
 test("deduplicates local and whole-prompt diagnostics independently", async () => {
-  const blocks = [
-    "before",
-    renderMain({ skills: [{ name: "alpha", description: "First" }] }),
-    renderProject(),
-    "after",
-  ];
+  const footer = renderProject();
+  const conflict = [ownedMain(), "# Delivery\n\nAnother writer's chapter.", footer];
+  const ambiguous = [ownedMain(), ownedMain(), footer];
   const warnings: string[] = [];
   const handlers: Handler[] = [];
   const pi = {
     logger: { warn: (message: string) => warnings.push(message) },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
 
   activate(pi as never, host());
@@ -216,14 +121,14 @@ test("deduplicates local and whole-prompt diagnostics independently", async () =
   expect(handler).toBeDefined();
   const ctx = context();
 
-  expect((await handler!({ systemPrompt: blocks }, ctx))?.systemPrompt).toBeDefined();
-  expect(await handler!({ systemPrompt: ["custom", renderProject()] }, ctx)).toBeUndefined();
-  expect((await handler!({ systemPrompt: blocks }, ctx))?.systemPrompt).toBeDefined();
-  expect(await handler!({ systemPrompt: ["custom", renderProject()] }, ctx)).toBeUndefined();
+  expect((await handler!({ systemPrompt: conflict }, ctx))?.systemPrompt).toBeDefined();
+  expect(await handler!({ systemPrompt: ambiguous }, ctx)).toBeUndefined();
+  expect((await handler!({ systemPrompt: conflict }, ctx))?.systemPrompt).toBeDefined();
+  expect(await handler!({ systemPrompt: ambiguous }, ctx)).toBeUndefined();
 
   expect(warnings).toHaveLength(2);
-  expect(warnings.filter((message) => message.includes("Skill catalog formatting skipped"))).toHaveLength(1);
-  expect(warnings.filter((message) => message.includes("replacement NOT applied"))).toHaveLength(1);
+  expect(warnings.filter((message) => message.includes("delivery-block-conflict"))).toHaveLength(1);
+  expect(warnings.filter((message) => message.includes("ambiguous-boundary"))).toHaveLength(1);
 });
 
 test("reads renderDelivery every turn and switches the owned shape", async () => {
@@ -237,18 +142,17 @@ test("reads renderDelivery every turn and switches the owned shape", async () =>
   const pi = {
     logger: { warn: () => {} },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
-  const initial = ["before", renderMain({ tools: ["read"] }), renderProject(), "after"];
+  const initial = ["before", ownedMain({ tools: ["read"] }), renderProject(), "after"];
 
   activate(pi as never, host(ENTRY_URL, readSettings));
   const handler = handlers[0];
   expect(handler).toBeDefined();
 
   const disabled = await handler!({ systemPrompt: initial }, context());
-  expect(disabled?.systemPrompt?.[1]).not.toContain("# Delivery\n");
+  expect(disabled?.systemPrompt?.some(isDeliveryBlock)).toBe(false);
   const enabled = await handler!({ systemPrompt: disabled?.systemPrompt ?? initial }, context());
-  expect(enabled?.systemPrompt?.[1]).toContain("# Delivery\n");
+  expect(enabled?.systemPrompt?.[2]).toSatisfy(isDeliveryBlock);
   expect(calls).toEqual([
     { packageName: "@ruokee/omp-system-prompt", cwd: TEST_CWD },
     { packageName: "@ruokee/omp-system-prompt", cwd: TEST_CWD },
@@ -260,34 +164,11 @@ test("uses the default true behavior when renderDelivery is unset", async () => 
   const pi = {
     logger: { warn: () => {} },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
 
   activate(pi as never, host());
-  const result = await handlers[0]!({ systemPrompt: ["before", renderMain(), renderProject(), "after"] }, context());
-  expect(result?.systemPrompt?.[1]).toContain("# Delivery\n");
-});
-
-test("replaces the pre-18.2.7 host wording as well", async () => {
-  const handlers: Handler[] = [];
-  const warnings: string[] = [];
-  const pi = {
-    logger: { warn: (message: string) => warnings.push(message) },
-    on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
-  };
-
-  activate(pi as never, host());
-  const result = await handlers[0]!(
-    { systemPrompt: ["before", renderMainLegacy(), renderProject(), "after"] },
-    context(),
-  );
-  const main = result?.systemPrompt?.[1] ?? "";
-
-  expect(main).toContain("You are an assistant in Oh My Pi (OMP), a terminal-based coding agent.");
-  expect(main).not.toContain("<conventions>");
-  expect(main).not.toContain("Helpful, trusted assistant for load-bearing changes");
-  expect(warnings.every((message) => !message.includes("replacement NOT applied"))).toBe(true);
+  const result = await handlers[0]!({ systemPrompt: ["before", ownedMain(), renderProject(), "after"] }, context());
+  expect(result?.systemPrompt?.[2]).toSatisfy(isDeliveryBlock);
 });
 
 test("fails open on settings errors and invalid values with session deduplication", async () => {
@@ -302,16 +183,15 @@ test("fails open on settings errors and invalid values with session deduplicatio
   const pi = {
     logger: { warn: (message: string) => warnings.push(message) },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
-  const input = { systemPrompt: ["before", renderMain(), renderProject(), "after"] };
+  const input = { systemPrompt: ["before", ownedMain(), renderProject(), "after"] };
 
   activate(pi as never, host(ENTRY_URL, readSettings));
   const handler = handlers[0];
   expect(handler).toBeDefined();
   for (let index = 0; index < 4; index++) {
     const result = await handler!(input, context());
-    expect(result?.systemPrompt?.[1]).toContain("# Delivery\n");
+    expect(result?.systemPrompt?.[2]).toSatisfy(isDeliveryBlock);
   }
 
   expect(warnings.filter((message) => message.includes("renderDelivery setting ignored"))).toHaveLength(2);
@@ -320,54 +200,47 @@ test("fails open on settings errors and invalid values with session deduplicatio
   expect(warnings.every((message) => !message.includes("replacement NOT applied"))).toBe(true);
 });
 
+/** A turn whose prompt array throws on access, standing in for any unexpected failure. */
+function throwingEvent(): { systemPrompt: string[] } {
+  return {
+    get systemPrompt(): string[] {
+      throw new Error("private failure");
+    },
+  };
+}
+
 test("reports unexpected turn-processing errors and leaves the host prompt active", async () => {
-  const blocks = ["before", renderMain(), renderProject(), "after"];
   const warnings: string[] = [];
   const notifications: Array<{ message: string; level: string }> = [];
   const handlers: Handler[] = [];
-  let commandReads = 0;
-  let settingsReads = 0;
-  const readSettings: PluginSettingsReader = async () => {
-    settingsReads += 1;
-    return {};
-  };
   const pi = {
     logger: { warn: (message: string) => warnings.push(message) },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => {
-      commandReads += 1;
-      throw new Error("unexpected command failure");
-    },
   };
 
-  activate(pi as never, host(ENTRY_URL, readSettings), "template");
+  activate(pi as never, host());
   const handler = handlers[0];
   expect(handler).toBeDefined();
 
   const ctx = context(true, (message, level) => notifications.push({ message, level }));
-  expect(await handler!({ systemPrompt: blocks }, ctx)).toBeUndefined();
-  expect(commandReads).toBe(1);
-  expect(settingsReads).toBe(1);
+  expect(await handler!(throwingEvent(), ctx)).toBeUndefined();
   expect(warnings).toEqual([]);
   expect(notifications).toHaveLength(1);
   expect(notifications[0]?.level).toBe("warning");
   expect(notifications[0]?.message).toContain("unexpected-error");
   expect(notifications[0]?.message).toContain("replacement NOT applied");
-  expect(notifications[0]?.message).not.toContain("unexpected command failure");
+  expect(notifications[0]?.message).not.toContain("private failure");
 
   // One report per session even across turns.
-  expect(await handler!({ systemPrompt: blocks }, ctx)).toBeUndefined();
-  expect(commandReads).toBe(2);
-  expect(settingsReads).toBe(2);
+  expect(await handler!(throwingEvent(), ctx)).toBeUndefined();
   expect(notifications).toHaveLength(1);
 });
 
 test("reports a missing template through the log channel and stays inactive", async () => {
-  const blocks = ["before", renderMain(), renderProject(), "after"];
+  const blocks = ["before", ownedMain(), renderProject(), "after"];
   const warnings: string[] = [];
   const notifications: Array<{ message: string; level: string }> = [];
   const handlers: Handler[] = [];
-  let commandReads = 0;
   let settingsReads = 0;
   const readSettings: PluginSettingsReader = async () => {
     settingsReads += 1;
@@ -376,10 +249,6 @@ test("reports a missing template through the log channel and stays inactive", as
   const pi = {
     logger: { warn: (message: string) => warnings.push(message) },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => {
-      commandReads += 1;
-      return [] as Command[];
-    },
   };
 
   activate(pi as never, host(ENTRY_URL, readSettings), null);
@@ -392,7 +261,6 @@ test("reports a missing template through the log channel and stays inactive", as
   );
 
   expect(result).toBeUndefined();
-  expect(commandReads).toBe(0);
   expect(settingsReads).toBe(0);
   expect(notifications).toEqual([]);
   expect(warnings).toHaveLength(1);
@@ -413,11 +281,10 @@ test("rejects a template whose Delivery chapter is not final", async () => {
     const pi = {
       logger: { warn: (message: string) => warnings.push(message) },
       on: (_event: string, handler: Handler) => handlers.push(handler),
-      getCommands: () => [] as Command[],
     };
 
     activate(pi as never, host(pathToFileURL(join(component, "extension.ts")).href));
-    const result = await handlers[0]!({ systemPrompt: ["before", renderMain(), renderProject(), "after"] }, context());
+    const result = await handlers[0]!({ systemPrompt: ["before", ownedMain(), renderProject(), "after"] }, context());
     expect(result).toBeUndefined();
     expect(warnings).toHaveLength(1);
     expect(warnings[0]).toContain("template-unavailable");
@@ -431,7 +298,7 @@ test("reports a corrupt template file through the interactive sink", async () =>
   try {
     const component = join(root, "component");
     mkdirSync(component);
-    // Duplicated slot marker: loadTemplate rejects it before the transformer runs.
+    // Duplicated slot marker: loadTemplate rejects it on activation.
     writeFileSync(join(component, "prompt-template.md"), "Owned text\n\n%%tools%%\n\n%%tools%%\n");
 
     const warnings: string[] = [];
@@ -440,7 +307,6 @@ test("reports a corrupt template file through the interactive sink", async () =>
     const pi = {
       logger: { warn: (message: string) => warnings.push(message) },
       on: (_event: string, handler: Handler) => handlers.push(handler),
-      getCommands: () => [] as Command[],
     };
 
     activate(pi as never, host(pathToFileURL(join(component, "extension.ts")).href));
@@ -448,7 +314,7 @@ test("reports a corrupt template file through the interactive sink", async () =>
     expect(handler).toBeDefined();
 
     const result = await handler!(
-      { systemPrompt: ["before", renderMain(), renderProject(), "after"] },
+      { systemPrompt: ["before", ownedMain(), renderProject(), "after"] },
       context(true, (message, level) => notifications.push({ message, level })),
     );
 
@@ -464,17 +330,13 @@ test("reports a corrupt template file through the interactive sink", async () =>
 });
 
 test("deduplicates each diagnostic within its session across new, resume, and fork identities", async () => {
-  for (const scenario of ["template", "settings", "structure", "skills", "unexpected"]) {
+  for (const scenario of ["template", "settings", "structure", "unexpected"]) {
     const notifications: string[] = [];
     const warnings: string[] = [];
     const handlers: Handler[] = [];
     const pi = {
       logger: { warn: (message: string) => warnings.push(message) },
       on: (_event: string, handler: Handler) => handlers.push(handler),
-      getCommands: () => {
-        if (scenario === "unexpected") throw new Error("private failure");
-        return [];
-      },
     };
     const readSettings: PluginSettingsReader =
       scenario === "settings"
@@ -487,15 +349,13 @@ test("deduplicates each diagnostic within its session across new, resume, and fo
       host(ENTRY_URL, readSettings),
       scenario === "template" ? null : readFileSync(TEMPLATE_PATH, "utf8"),
     );
-    const event = {
-      systemPrompt:
-        scenario === "structure"
-          ? ["custom", renderProject()]
-          : [
-              renderMain({ skills: scenario === "skills" ? [{ name: "alpha", description: "Skill" }] : [] }),
-              renderProject(),
-            ],
-    };
+    const event =
+      scenario === "unexpected"
+        ? throwingEvent()
+        : {
+            systemPrompt:
+              scenario === "structure" ? [ownedMain(), ownedMain(), renderProject()] : [ownedMain(), renderProject()],
+          };
     const handler = handlers[0]!;
     const first = context(true, (message) => notifications.push(message), "first");
     await handler(event, first);
@@ -535,10 +395,9 @@ test("overlapping turns keep their own diagnostic channels", async () => {
   const pi = {
     logger: { warn: (message: string) => warnings.push(message) },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [],
   };
   activate(pi as never, host(ENTRY_URL, readSettings));
-  const event = { systemPrompt: [renderMain({ skills: [] }), renderProject()] };
+  const event = { systemPrompt: [ownedMain(), renderProject()] };
   const handler = handlers[0]!;
   const first = handler(
     event,
@@ -567,7 +426,6 @@ test("appends matching rule documents after the replacement result", async () =>
   const pi = {
     logger: { warn: (message: string) => warnings.push(message) },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
 
   activate(pi as never, {
@@ -578,7 +436,7 @@ test("appends matching rule documents after the replacement result", async () =>
   const appended = handlers[1];
   expect(appended).toBeDefined();
 
-  const blocks = ["before", renderMain(), renderProject(), "after"];
+  const blocks = ["before", ownedMain(), renderProject(), "after"];
   const replaced = await handlers[0]!({ systemPrompt: blocks }, context());
   expect(replaced?.systemPrompt).toBeDefined();
 
@@ -599,7 +457,6 @@ test("keeps the incoming prompt when no rule document matches", async () => {
   const pi = {
     logger: { warn: (message: string) => warnings.push(message) },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
 
   activate(pi as never, {
@@ -622,7 +479,6 @@ test("appends nothing without a model and falls back to the current model", asyn
   const pi = {
     logger: { warn: () => {} },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
 
   activate(pi as never, {
@@ -648,7 +504,6 @@ test("reads rule documents from the agent and project config directories", async
   const pi = {
     logger: { warn: () => {} },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
 
   activate(pi as never, { ...host(), ruleFileSystem: recordingFileSystem(paths) });
@@ -667,7 +522,6 @@ test("reports each skipped rule document once per session without its text", asy
   const pi = {
     logger: { warn: (message: string) => warnings.push(message) },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
 
   activate(pi as never, {
@@ -697,7 +551,6 @@ test("reports an unreadable rule directory and still appends from the other", as
   const pi = {
     logger: { warn: (message: string) => warnings.push(message) },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
 
   activate(pi as never, {
@@ -722,7 +575,6 @@ test("fails open when rule discovery throws", async () => {
   const pi = {
     logger: { warn: () => {} },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
 
   activate(pi as never, {
@@ -750,10 +602,9 @@ test("transforms a host render of the component template", async () => {
   const pi = {
     logger: { warn: (message: string) => warnings.push(message) },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
-  const main = renderMain({ tools: ["read"], toolDefinitions: { read: { label: "Read" } } }, HOST_TEMPLATE);
-  const footer = renderProject({}, HOST_18_4_3_PROJECT_TEMPLATE);
+  const main = ownedMain({ tools: ["read"], toolDefinitions: { read: { label: "Read" } } });
+  const footer = renderProject();
 
   activate(pi as never, host());
   const result = await handlers[0]!({ systemPrompt: ["before", main, footer, "after"] }, context());
@@ -769,31 +620,40 @@ test("transforms a host render of the component template", async () => {
   expect(warnings).toEqual([]);
 });
 
-test("keeps the 18.4.3 bundled main block and reports the replacement failure", async () => {
+test("leaves a main block that is not the template render untouched and silent", async () => {
+  const tree: RuleTree = { "/rules/user/luna.md": ruleDocument("model: gpt-5.6-luna", "Luna rule.\n") };
+  const footer = renderProject();
   const handlers: Handler[] = [];
   const warnings: string[] = [];
+  const notifications: string[] = [];
+  let settingsReads = 0;
   const pi = {
     logger: { warn: (message: string) => warnings.push(message) },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
 
-  activate(pi as never, host());
-  const result = await handlers[0]!(
-    {
-      systemPrompt: [
-        "before",
-        renderMain({}, HOST_18_4_3_MAIN_TEMPLATE),
-        renderProject({}, HOST_18_4_3_PROJECT_TEMPLATE),
-      ],
-    },
-    context(),
-  );
-
-  expect(result).toBeUndefined();
-  expect(warnings).toHaveLength(1);
-  expect(warnings[0]).toContain("replacement NOT applied");
-  expect(warnings[0]).toContain("main-block-not-found");
+  activate(pi as never, {
+    ...host(ENTRY_URL, async () => {
+      settingsReads += 1;
+      return {};
+    }),
+    ruleRoots: () => RULE_ROOTS,
+    ruleFileSystem: treeFileSystem(tree),
+  });
+  const ctx = context(true, (message) => notifications.push(message));
+  for (const blocks of [
+    // No template selected: the host's bundled main block.
+    [renderMain(), footer],
+    // `--system-prompt` or `SYSTEM.md`: custom text.
+    ["Custom system prompt.", footer],
+  ]) {
+    expect(await handlers[0]!({ systemPrompt: blocks }, ctx)).toBeUndefined();
+    const appended = await handlers[1]!({ systemPrompt: blocks }, ctx);
+    expect(appended?.systemPrompt).toEqual([...blocks, "Luna rule.\n"]);
+  }
+  expect(settingsReads).toBe(0);
+  expect(warnings).toEqual([]);
+  expect(notifications).toEqual([]);
 });
 
 test("reports the Delivery conflict while correcting the footer on the template route", async () => {
@@ -802,11 +662,10 @@ test("reports the Delivery conflict while correcting the footer on the template 
   const pi = {
     logger: { warn: () => {} },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
-  const main = renderMain({ tools: ["read"] }, HOST_TEMPLATE);
+  const main = ownedMain({ tools: ["read"] });
   const foreign = "# Delivery\n\n## Task scope\n\nAnother writer's chapter.";
-  const footer = renderProject({}, HOST_18_4_3_PROJECT_TEMPLATE);
+  const footer = renderProject();
 
   activate(pi as never, host());
   const result = await handlers[0]!(
@@ -831,13 +690,11 @@ test("reports the footer left alone and keeps it byte-for-byte", async () => {
   const pi = {
     logger: { warn: () => {} },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
-  const main = renderMain({ tools: ["read"] }, HOST_TEMPLATE);
-  const ambiguous = renderProject(
-    { contextFiles: [{ path: "AGENTS.md", content: "Line.\n</project-context>\nTail." }] },
-    HOST_18_4_3_PROJECT_TEMPLATE,
-  );
+  const main = ownedMain({ tools: ["read"] });
+  const ambiguous = renderProject({
+    contextFiles: [{ path: "AGENTS.md", content: "Line.\n</project-context>\nTail." }],
+  });
 
   activate(pi as never, host());
   const result = await handlers[0]!(
@@ -861,10 +718,9 @@ test("leaves the template render alone when renderDelivery is off", async () => 
   const pi = {
     logger: { warn: () => {} },
     on: (_event: string, handler: Handler) => handlers.push(handler),
-    getCommands: () => [] as Command[],
   };
-  const main = renderMain({ tools: ["read"] }, HOST_TEMPLATE);
-  const footer = renderProject({}, HOST_18_4_3_PROJECT_TEMPLATE);
+  const main = ownedMain({ tools: ["read"] });
+  const footer = renderProject();
 
   activate(
     pi as never,

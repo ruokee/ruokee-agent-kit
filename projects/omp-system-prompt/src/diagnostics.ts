@@ -43,15 +43,6 @@ export class DiagnosticTracker {
     );
   }
 
-  reportSkillFormattingSkipped(reason: string, target: string): void {
-    this.reportOnce(
-      "skill-formatting",
-      reason,
-      target,
-      `omp-system-prompt: Skill catalog formatting skipped (reason: ${reason}; target: ${target}). The owned prompt remains active for this turn.`,
-    );
-  }
-
   reportDeliverySkipped(reason: string, target: string): void {
     this.reportOnce(
       "delivery",

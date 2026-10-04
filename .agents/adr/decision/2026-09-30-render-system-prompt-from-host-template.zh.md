@@ -105,4 +105,4 @@ Reverses: [Add an OMP system prompt extension](../archived/2026-09-09-add-omp-sy
 
 曾考虑为全部无加载说明页脚加入标记，但这会不必要地改变普通旧输出。也考虑过在提示词之外携带来源或处理状态，它能保留提示词字节，但需要独立的接口及生命周期设计。有条件注释将状态保留在已校验页脚内，把 Provider 可见变化限定在歧义形态。要求完整字节一致的消费者仍可能拒绝这一输出。在已校验位置之外识别标记可能留下原生策略，因此不透明文本不能参与归属判断。
 
-[projects/omp-system-prompt/README.zh.md](../../../projects/omp-system-prompt/README.zh.md#宿主模板路径) 维护具体页脚合同，并区分 API 回归与真实宿主 Provider 观察。观察必须覆盖需要标记及无需标记的形态，包括普通子代理，不声称宿主全面认证。
+[projects/omp-system-prompt/README.zh.md](../../../projects/omp-system-prompt/README.zh.md#工作机制) 维护具体页脚合同，并区分 API 回归与真实宿主 Provider 观察。观察必须覆盖需要标记及无需标记的形态，包括普通子代理，不声称宿主全面认证。

@@ -2,10 +2,13 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { buildHostTemplate, HOST_TEMPLATE_FILE_NAME } from "../src/host-template.ts";
 import { getDeliveryChapter } from "../src/template.ts";
-import { transformSystemPrompt, type TransformResult } from "../src/transform.ts";
 import {
-  HOST_18_4_3_MAIN_TEMPLATE,
-  HOST_18_4_3_PROJECT_TEMPLATE,
+  prepareTemplate,
+  transformSystemPrompt as transformWith,
+  type OwnedTemplate,
+  type TransformResult,
+} from "../src/transform.ts";
+import {
   HOST_TEMPLATE,
   renderMain,
   renderProject,
@@ -18,17 +21,12 @@ const OWNED_TEMPLATE = readFileSync(new URL("../src/prompt-template.md", import.
 const COMMITTED_TEMPLATE = readFileSync(new URL(`../${HOST_TEMPLATE_FILE_NAME}`, import.meta.url), "utf8");
 
 const CHAPTER = getDeliveryChapter(OWNED_TEMPLATE) ?? "";
-// Official 18.5.0 project-prompt.md selects this line for ordinary subagents.
+const OWNED = prepareTemplate(OWNED_TEMPLATE) as OwnedTemplate;
+// The host project-prompt.md selects this line for ordinary subagents.
 const SUBAGENT_CRITICAL_LINE =
   "- Changes complete → yield; verification is main agent's job. NEVER run it yourself unless your assignment explicitly instructs it.";
 const MAIN_CRITICAL_LINE =
   "- Before yielding, MUST verify significant behavioral changes: run the specific test, command, or scenario covering the change.";
-const SUBAGENT_PROJECT_TEMPLATE = replaceHostText(
-  HOST_18_4_3_PROJECT_TEMPLATE,
-  MAIN_CRITICAL_LINE,
-  SUBAGENT_CRITICAL_LINE,
-  "18.5.0 subagent critical tail",
-);
 const SUBAGENT_CRITICAL_TAIL = [
   "<critical>",
   "- Each response MUST advance the task; completion only stopping condition.",
@@ -40,18 +38,17 @@ const SUBAGENT_CRITICAL_TAIL = [
 /** The provider prompt a host with the component template selected builds. */
 function hostTurn(options: { main?: MainOptions; project?: ProjectOptions; renderDelivery?: boolean } = {}) {
   return transformSystemPrompt(
-    [renderMain(options.main ?? {}, HOST_TEMPLATE), renderNewFooter(options.project), "after"],
-    OWNED_TEMPLATE,
-    [],
+    [renderMain(options.main ?? {}, HOST_TEMPLATE), renderProject(options.project), "after"],
     options.renderDelivery ?? true,
   );
 }
 
-function renderNewFooter(options: ProjectOptions = {}): string {
-  return renderProject(options, HOST_18_4_3_PROJECT_TEMPLATE);
+function transformSystemPrompt(blocks: readonly string[], renderDelivery: boolean): TransformResult | undefined {
+  return transformWith(blocks, OWNED, renderDelivery);
 }
 
-function expectApplied(result: TransformResult): Extract<TransformResult, { ok: true }> {
+function expectApplied(result: TransformResult | undefined): Extract<TransformResult, { ok: true }> {
+  if (result === undefined) throw new Error("template render not recognized");
   if (!result.ok) throw new Error(`unexpected rejection: ${result.reason}`);
   return result;
 }
@@ -146,7 +143,6 @@ describe("host template artifact", () => {
 describe("host template route", () => {
   test("applies the owned Delivery chapter as its own block", () => {
     const main = renderMain({ tools: ["read"], computer: false }, HOST_TEMPLATE);
-    const footer = renderNewFooter({});
     const result = expectApplied(hostTurn({ main: { tools: ["read"] }, project: {} }));
     expect(result.changed).toBe(true);
     expect(result.blocks[0]).toBe(main);
@@ -173,7 +169,7 @@ describe("host template route", () => {
 
   test("is a no-op on its own output and switches the chapter", () => {
     const enabled = expectApplied(hostTurn({}));
-    const again = expectApplied(transformSystemPrompt(enabled.blocks, OWNED_TEMPLATE, [], true));
+    const again = expectApplied(transformSystemPrompt(enabled.blocks, true));
     expect(again.changed).toBe(false);
     expect(again.blocks).toEqual(enabled.blocks);
     expect(again.notes).toBeUndefined();
@@ -183,8 +179,6 @@ describe("host template route", () => {
     const result = expectApplied(
       transformSystemPrompt(
         [renderMain({ tools: ["read"], skills: [], rules: [], devices: [], internalUrls: [] }, HOST_TEMPLATE)],
-        OWNED_TEMPLATE,
-        [],
         true,
       ),
     );
@@ -192,14 +186,9 @@ describe("host template route", () => {
     expect(result.notes).toBeUndefined();
   });
 
-  test("does not claim the 18.4.3 bundled main block", () => {
-    const result = transformSystemPrompt(
-      [renderMain({}, HOST_18_4_3_MAIN_TEMPLATE), renderNewFooter({})],
-      OWNED_TEMPLATE,
-      [],
-      true,
-    );
-    expect(result).toEqual({ ok: false, reason: "main-block-not-found" });
+  test("does not claim the host's bundled main block", () => {
+    const result = transformSystemPrompt([renderMain({}), renderProject({})], true);
+    expect(result).toBeUndefined();
   });
 
   test("does not claim a template whose static skeleton was edited, or one that only shares the identity line", () => {
@@ -207,17 +196,12 @@ describe("host template route", () => {
       "Authority follows trusted message origin",
       "Authority follows message origin",
     );
-    const editedResult = transformSystemPrompt([renderMain({}, edited), renderNewFooter({})], OWNED_TEMPLATE, [], true);
-    expect(editedResult).toEqual({ ok: false, reason: "owned-output-invalid" });
+    const editedResult = transformSystemPrompt([renderMain({}, edited), renderProject({})], true);
+    expect(editedResult).toBeUndefined();
 
     const lookalike = `${OWNED_TEMPLATE.split("\n")[0]}\n\n# Instruction sources\n\nThird-party text.`;
-    const lookalikeResult = transformSystemPrompt(
-      [renderMain({}, lookalike), renderNewFooter({})],
-      OWNED_TEMPLATE,
-      [],
-      true,
-    );
-    expect(lookalikeResult).toEqual({ ok: false, reason: "owned-output-invalid" });
+    const lookalikeResult = transformSystemPrompt([renderMain({}, lookalike), renderProject({})], true);
+    expect(lookalikeResult).toBeUndefined();
   });
 
   test("still claims a template whose dynamic bindings were replaced", () => {
@@ -227,12 +211,7 @@ describe("host template route", () => {
     );
     expect(edited).not.toBe(HOST_TEMPLATE);
     const result = expectApplied(
-      transformSystemPrompt(
-        [renderMain({ tools: ["read"], internalUrls: [] }, edited), renderNewFooter({})],
-        OWNED_TEMPLATE,
-        [],
-        true,
-      ),
+      transformSystemPrompt([renderMain({ tools: ["read"], internalUrls: [] }, edited), renderProject({})], true),
     );
     expect(result.blocks[0]).toContain("third-party instructions");
     expect(result.blocks[1]).toBe(CHAPTER);
@@ -241,9 +220,7 @@ describe("host template route", () => {
   test("keeps a foreign Delivery block and reports the conflict", () => {
     const main = renderMain({ tools: ["read"] }, HOST_TEMPLATE);
     const foreign = "# Delivery\n\n## Task scope\n\nAnother writer's chapter.";
-    const result = expectApplied(
-      transformSystemPrompt([main, foreign, renderNewFooter({}), "after"], OWNED_TEMPLATE, [], true),
-    );
+    const result = expectApplied(transformSystemPrompt([main, foreign, renderProject({}), "after"], true));
     expect(result.blocks[0]).toBe(main);
     expect(result.blocks[1]).toBe(foreign);
     expect(result.blocks).not.toContain(CHAPTER);
@@ -251,43 +228,27 @@ describe("host template route", () => {
   });
 });
 
-describe("host template route precedence", () => {
-  test("switches the chapter on older-footer output across turns", () => {
+describe("host template chapter switching", () => {
+  test("switches the chapter across turns", () => {
     const without = expectApplied(
       transformSystemPrompt(
         [renderMain({ tools: ["read"] }, HOST_TEMPLATE), renderProject({ append: "Append." })],
-        OWNED_TEMPLATE,
-        [],
         false,
       ),
     );
-    const enabled = expectApplied(transformSystemPrompt(without.blocks, OWNED_TEMPLATE, [], true));
+    const enabled = expectApplied(transformSystemPrompt(without.blocks, true));
     expect(enabled.changed).toBe(true);
     expect(enabled.notes).toBeUndefined();
     expect(enabled.blocks[0]).toBe(without.blocks[0]);
     expect(enabled.blocks[1]).toBe(CHAPTER);
     expect(enabled.blocks).toHaveLength(without.blocks.length + 1);
 
-    const disabled = expectApplied(transformSystemPrompt(enabled.blocks, OWNED_TEMPLATE, [], false));
+    const disabled = expectApplied(transformSystemPrompt(enabled.blocks, false));
     expect(disabled.blocks).toEqual(without.blocks);
 
-    const again = expectApplied(transformSystemPrompt(disabled.blocks, OWNED_TEMPLATE, [], false));
+    const again = expectApplied(transformSystemPrompt(disabled.blocks, false));
     expect(again.changed).toBe(false);
     expect(again.blocks).toEqual(disabled.blocks);
-  });
-
-  test("keeps the chapter inside a main block the default-block route reproduces", () => {
-    const upstream = [
-      renderMain({ tools: ["read"], internalUrls: ["`skill://<name>`: instructions"] }, HOST_TEMPLATE),
-      renderProject({ append: "Append." }),
-    ];
-    const without = expectApplied(transformSystemPrompt(upstream, OWNED_TEMPLATE, [], false));
-    const enabled = expectApplied(transformSystemPrompt(without.blocks, OWNED_TEMPLATE, [], true));
-    expect(enabled.blocks.some((block) => block === CHAPTER)).toBe(false);
-    expect(enabled.blocks[0]).toContain("# Delivery\n");
-
-    const disabled = expectApplied(transformSystemPrompt(enabled.blocks, OWNED_TEMPLATE, [], false));
-    expect(disabled.blocks).toEqual(without.blocks);
   });
 });
 
@@ -339,22 +300,19 @@ describe("host template footer", () => {
       append,
     };
     const main = renderMain({}, HOST_TEMPLATE);
-    const before = [main, renderProject(project, SUBAGENT_PROJECT_TEMPLATE), "after"];
+    const before = [main, renderProject({ ...project, subagent: true }), "after"];
     const expected = expectApplied(hostTurn({ project }));
-    const result = expectApplied(transformSystemPrompt(before, OWNED_TEMPLATE, [], true));
+    const result = expectApplied(transformSystemPrompt(before, true));
     expect(result.blocks).toEqual(expected.blocks);
     expect(result.blocks[2]).toContain(`<file path="nested/rules.md">\n${body}\n</file>`);
     expect(result.blocks[2]?.endsWith(`</project-context>\n\n${append}`)).toBe(true);
     expect(result.notes).toBeUndefined();
-    const again = expectApplied(transformSystemPrompt(result.blocks, OWNED_TEMPLATE, [], true));
+    const again = expectApplied(transformSystemPrompt(result.blocks, true));
     expect(again.blocks).toEqual(result.blocks);
     expect(again.changed).toBe(false);
   });
 
-  for (const [kind, projectTemplate] of [
-    ["main", HOST_18_4_3_PROJECT_TEMPLATE],
-    ["subagent", SUBAGENT_PROJECT_TEMPLATE],
-  ] as const) {
+  for (const kind of ["main", "subagent"] as const) {
     for (const [shape, project] of [
       ["bodies", {}],
       ["directories", { contextFiles: [] }],
@@ -364,15 +322,13 @@ describe("host template footer", () => {
         const append = `${SUBAGENT_CRITICAL_TAIL}\n\nUSER_APPEND_KEEP`;
         const result = expectApplied(
           transformSystemPrompt(
-            [renderMain({}, HOST_TEMPLATE), renderProject({ ...project, append }, projectTemplate)],
-            OWNED_TEMPLATE,
-            [],
+            [renderMain({}, HOST_TEMPLATE), renderProject({ ...project, append, subagent: kind === "subagent" })],
             false,
           ),
         );
         expect(result.blocks[1]?.endsWith(`</project-context>\n\n${append}`)).toBe(true);
         expect(result.notes).toBeUndefined();
-        const again = expectApplied(transformSystemPrompt(result.blocks, OWNED_TEMPLATE, [], false));
+        const again = expectApplied(transformSystemPrompt(result.blocks, false));
         expect(again.blocks).toEqual(result.blocks);
         expect(again.changed).toBe(false);
         expect(again.notes).toBeUndefined();
@@ -382,22 +338,22 @@ describe("host template footer", () => {
 
   test("keeps complete bare-footer output unchanged for non-ambiguous appends", () => {
     const main = renderMain({}, HOST_TEMPLATE);
-    for (const [projectTemplate, tail] of [
-      [HOST_18_4_3_PROJECT_TEMPLATE, SUBAGENT_CRITICAL_TAIL.replace(SUBAGENT_CRITICAL_LINE, MAIN_CRITICAL_LINE)],
-      [SUBAGENT_PROJECT_TEMPLATE, SUBAGENT_CRITICAL_TAIL],
-    ]) {
+    for (const [subagent, tail] of [
+      [false, SUBAGENT_CRITICAL_TAIL.replace(SUBAGENT_CRITICAL_LINE, MAIN_CRITICAL_LINE)],
+      [true, SUBAGENT_CRITICAL_TAIL],
+    ] as const) {
       for (const append of [
         "",
         "ORDINARY_APPEND_KEEP",
         `Quoted tail:\n${SUBAGENT_CRITICAL_TAIL}`,
         "<!-- omp-system-prompt:project-context -->\nAPPEND_KEEP",
       ]) {
-        const footer = renderProject({ contextFiles: [], agentsMdFiles: [], append }, projectTemplate);
+        const footer = renderProject({ contextFiles: [], agentsMdFiles: [], append, subagent });
         const expected = replaceHostText(footer, `\n\n${tail}`, "", "native outer tail");
-        const result = expectApplied(transformSystemPrompt([main, footer], OWNED_TEMPLATE, [], false));
+        const result = expectApplied(transformSystemPrompt([main, footer], false));
         expect(result.blocks).toEqual([main, expected]);
         expect(result.notes).toBeUndefined();
-        const again = expectApplied(transformSystemPrompt(result.blocks, OWNED_TEMPLATE, [], false));
+        const again = expectApplied(transformSystemPrompt(result.blocks, false));
         expect(again.blocks).toEqual(result.blocks);
         expect(again.changed).toBe(false);
       }
@@ -411,17 +367,17 @@ describe("host template footer", () => {
       SUBAGENT_CRITICAL_TAIL.replace(SUBAGENT_CRITICAL_LINE, MAIN_CRITICAL_LINE),
     ]) {
       const append = `${tail}\n\nAPPEND_KEEP`;
-      const footer = renderProject({ contextFiles: [], agentsMdFiles: [], append }, SUBAGENT_PROJECT_TEMPLATE);
+      const footer = renderProject({ contextFiles: [], agentsMdFiles: [], append, subagent: true });
       const expected = footer
         .replace(`\n\n${SUBAGENT_CRITICAL_TAIL}`, "")
         .replace("</workstation>", "</workstation>\n\n<!-- omp-system-prompt:project-context -->");
-      const result = expectApplied(transformSystemPrompt([main, footer], OWNED_TEMPLATE, [], false));
+      const result = expectApplied(transformSystemPrompt([main, footer], false));
       expect(result.blocks).toEqual([main, expected]);
-      const enabled = expectApplied(transformSystemPrompt(result.blocks, OWNED_TEMPLATE, [], true));
+      const enabled = expectApplied(transformSystemPrompt(result.blocks, true));
       expect(enabled.blocks).toEqual([main, CHAPTER, expected]);
-      const disabled = expectApplied(transformSystemPrompt(enabled.blocks, OWNED_TEMPLATE, [], false));
+      const disabled = expectApplied(transformSystemPrompt(enabled.blocks, false));
       expect(disabled.blocks).toEqual(result.blocks);
-      const again = expectApplied(transformSystemPrompt(disabled.blocks, OWNED_TEMPLATE, [], false));
+      const again = expectApplied(transformSystemPrompt(disabled.blocks, false));
       expect(again.changed).toBe(false);
       expect(again.blocks).toEqual(result.blocks);
     }
@@ -429,13 +385,13 @@ describe("host template footer", () => {
 
   test("retains an unknown subagent tail at the validated outer boundary", () => {
     const unknownLine = `${SUBAGENT_CRITICAL_LINE} Additional instruction.`;
-    const footer = renderProject(
-      { append: "Append." },
-      replaceHostText(SUBAGENT_PROJECT_TEMPLATE, SUBAGENT_CRITICAL_LINE, unknownLine, "unknown critical tail"),
+    const footer = replaceHostText(
+      renderProject({ append: "Append.", subagent: true }),
+      SUBAGENT_CRITICAL_LINE,
+      unknownLine,
+      "unknown critical tail",
     );
-    const result = expectApplied(
-      transformSystemPrompt([renderMain({}, HOST_TEMPLATE), footer], OWNED_TEMPLATE, [], true),
-    );
+    const result = expectApplied(transformSystemPrompt([renderMain({}, HOST_TEMPLATE), footer], true));
     expect(result.blocks[2]).toContain(unknownLine);
     expect(result.blocks[2]?.endsWith("</critical>\n\nAppend.")).toBe(true);
     expect(result.notes).toBeUndefined();
@@ -450,16 +406,11 @@ describe("host template footer", () => {
   });
 
   test("leaves the footer alone when the outer boundary is not unique", () => {
-    const footer = renderNewFooter({
+    const footer = renderProject({
       contextFiles: [{ path: "AGENTS.md", content: "Line.\n</project-context>\nTail." }],
     });
     const result = expectApplied(
-      transformSystemPrompt(
-        [renderMain({ tools: ["read"] }, HOST_TEMPLATE), footer, "after"],
-        OWNED_TEMPLATE,
-        [],
-        true,
-      ),
+      transformSystemPrompt([renderMain({ tools: ["read"] }, HOST_TEMPLATE), footer, "after"], true),
     );
     expect(result.blocks[2]).toBe(footer);
     expect(result.notes).toEqual([{ step: "project-footer", reason: "project-footer-ambiguous" }]);
@@ -467,27 +418,12 @@ describe("host template footer", () => {
   });
 
   test("leaves a footer alone when its loading instructions are unknown", () => {
-    const footer = renderNewFooter({}).replace(
+    const footer = renderProject({}).replace(
       "MUST follow these context files for all tasks:",
       "Read these context files first:",
     );
-    const result = expectApplied(
-      transformSystemPrompt([renderMain({ tools: ["read"] }, HOST_TEMPLATE), footer], OWNED_TEMPLATE, [], true),
-    );
+    const result = expectApplied(transformSystemPrompt([renderMain({ tools: ["read"] }, HOST_TEMPLATE), footer], true));
     expect(result.blocks[2]).toBe(footer);
     expect(result.notes).toEqual([{ step: "project-footer", reason: "project-footer-not-recognized" }]);
-  });
-
-  test("corrects the older footer when the template runs on an older host", () => {
-    const main = renderMain({ tools: ["read"] }, HOST_TEMPLATE);
-    const oldFooter = renderProject({ append: "Append." });
-    const result = expectApplied(transformSystemPrompt([main, oldFooter], OWNED_TEMPLATE, [], true));
-    expect(result.blocks[1]).toBe(CHAPTER);
-    const footer = result.blocks[2] ?? "";
-    expect(footer).not.toContain("<critical>");
-    expect(footer).toContain("The context file bodies in this block are already loaded.");
-    expect(footer.endsWith("Append.")).toBe(true);
-    const again = expectApplied(transformSystemPrompt(result.blocks, OWNED_TEMPLATE, [], true));
-    expect(again.changed).toBe(false);
   });
 });

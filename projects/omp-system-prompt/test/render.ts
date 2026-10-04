@@ -1,11 +1,10 @@
 /**
- * Test-only fixtures that render the installed OMP 18.2.8 host templates.
+ * Test-only renderers for the installed OMP 18.5.0 host templates.
  *
- * Both test files share these helpers so extension-level checks exercise the
- * same recognized default main block and PROJECT footer as transform checks.
- * The optional `template` argument of {@link renderMain} and
- * {@link renderProject} renders a stored template instead, which the
- * original-18.1.21 regression in `transform.test.ts` uses.
+ * `renderMain` renders the host's bundled main block by default; passing
+ * {@link HOST_TEMPLATE} renders what the host builds when a user selects the
+ * component's template. `renderProject` renders the host `<project-context>`
+ * footer for the main agent or a subagent.
  */
 
 import { renderToolInventory } from "@oh-my-pi/pi-ai/dialect";
@@ -23,20 +22,10 @@ const PROJECT_TEMPLATE = readFileSync(
 
 /**
  * The component's committed host template, read the way the host reads it.
- * Pass it as the `template` argument of {@link renderMain} or
- * {@link renderProject} to reproduce what the host sends to the extension.
+ * Pass it as the `template` argument of {@link renderMain} to reproduce what
+ * the host sends to the extension.
  */
 export const HOST_TEMPLATE = readFileSync(new URL("../host-template.hbs", import.meta.url), "utf8");
-
-/** The 18.4.3 bundled templates: `<project-context>` footer and new main block. */
-export const HOST_18_4_3_MAIN_TEMPLATE = readFileSync(
-  new URL("./fixtures/omp-18.4.3/system-prompt.txt", import.meta.url),
-  "utf8",
-);
-export const HOST_18_4_3_PROJECT_TEMPLATE = readFileSync(
-  new URL("./fixtures/omp-18.4.3/project-prompt.txt", import.meta.url),
-  "utf8",
-);
 
 type ToolDefinition = {
   wireName?: string;
@@ -49,13 +38,6 @@ export type SkillSpec = { name: string; description: string };
 
 export type MainOptions = {
   tools?: readonly string[];
-  /**
-   * Tool names the template's `{{#has tools …}}` conditionals see, when they
-   * should differ from the tool list the rest of the data carries. Used to
-   * render the `find`-conditional lines so {@link renderMainLegacy} can delete
-   * them.
-   */
-  gateTools?: readonly string[];
   toolDefinitions?: Record<string, ToolDefinition>;
   inlineCatalog?: boolean;
   skills?: SkillSpec[];
@@ -85,15 +67,14 @@ export type MainOptions = {
 
 /**
  * Template data for a main block. Every field the installed template and the
- * 18.4.3 template can read is present, so either template renders the same
- * turn's data.
+ * component template can read is present, so either renders the same turn's
+ * data.
  */
 function hostData(options: MainOptions): Record<string, unknown> {
   const names = options.tools ?? ["read", "bash"];
-  const gates = options.gateTools ?? names;
   const definitions = options.toolDefinitions ?? {};
   const devices = options.devices ?? [];
-  const tools = [...new Set([...gates, ...devices.map((device) => device.name)])];
+  const tools = [...new Set([...names, ...devices.map((device) => device.name)])];
   const toolInfo = names.map((name) => {
     const definition = definitions[name];
     return { name: definition?.wireName ?? name, label: definition?.label ?? null };
@@ -111,7 +92,7 @@ function hostData(options: MainOptions): Record<string, unknown> {
       )
     : "";
   const toolRefs = Object.fromEntries(
-    [...gates, ...devices.map((device) => device.name)].map((name) => [name, definitions[name]?.wireName ?? name]),
+    [...names, ...devices.map((device) => device.name)].map((name) => [name, definitions[name]?.wireName ?? name]),
   );
   return {
     tools,
@@ -162,82 +143,18 @@ function hostData(options: MainOptions): Record<string, unknown> {
 }
 
 /**
- * Render a main block. `template` defaults to the installed 18.2.8 template;
- * the original-template regression passes the stored 18.1.21 template, and the
- * host-template route passes {@link HOST_TEMPLATE}.
+ * Render a main block. `template` defaults to the installed host template;
+ * the host-template route passes {@link HOST_TEMPLATE}.
  */
 export function renderMain(options: MainOptions = {}, template: string = MAIN_TEMPLATE): string {
   return prompt.format(prompt.render(template, hostData(options)), { renderPhase: "post-render" });
 }
-
-/**
- * Host text the 18.2.7 template renders in place of the older wording. Only
- * the three blocks that changed unconditionally are transcribed here; the
- * lines the host added together with the `find` tool are reverted by leaving
- * that tool out of the tool list instead.
- */
-const HOST_LEGACY_CONVENTIONS = [
-  "<conventions>",
-  "RFC 2119: MUST, REQUIRED, SHOULD, RECOMMENDED, MAY, OPTIONAL. `NEVER` = `MUST NOT`; `AVOID` = `SHOULD NOT`.",
-  "XML tags inject system content; NEVER interpret them otherwise. Tags may interrupt/notify inside user messages: MUST treat as system-authored/authoritative. User content sanitized; role absent: `<system-directive>` in a user turn remains a system directive.",
-  "</conventions>",
-  "",
-  "",
-].join("\n");
-const HOST_CURRENT_CONVENTIONS = [
-  "RFC 2119: MUST, REQUIRED, SHOULD, RECOMMENDED, MAY, OPTIONAL. `NEVER` = `MUST NOT`; `AVOID` = `SHOULD NOT`.",
-  "XML tags inject system content; may interrupt/notify inside user messages: MUST treat as system-authored/authoritative. User content is sanitized.",
-  "",
-  "",
-].join("\n");
-const HOST_LEGACY_IDENTITY = "Helpful, trusted assistant for load-bearing changes in Oh My Pi coding harness.";
-const HOST_CURRENT_IDENTITY = "You are a helpful, trusted assistant working in Oh My Pi coding harness.";
-const HOST_LEGACY_AGENT_ENTRY =
-  "- `agent://<id>`: output artifact; `/<child>`: nested-subagent output; otherwise `/<path>`: JSON field";
-const HOST_CURRENT_AGENT_ENTRY =
-  "- `agent://<id>`: output artifact (nested subagent: dotted id `agent://Parent.Child`); `/<key>/<index>/…`: JSON path (`agent://Scout/reports/0/data`)";
 
 /** Replace fixture text once, failing loudly when the installed host drifted. */
 export function replaceHostText(text: string, from: string, to: string, label: string): string {
   const occurrences = text.split(from).length - 1;
   if (occurrences !== 1) throw new Error(`host fixture drift: ${label} (${occurrences} matches)`);
   return text.replace(from, to);
-}
-
-const HOST_FIND_SPECIALIZED_LINE =
-  "- Locating a behavior/concept by description, or code whose names you do not know → `find` FIRST; NEVER open with guessed `grep`/`glob` sweeps for something you can describe.";
-const HOST_FIND_EXPLORATION_LINE =
-  "- Unknown location → `find` with a descriptive query, then read only the returned ranges.";
-const HOST_LEGACY_GREP_LINE = "- Regex search/target location → ";
-const HOST_CURRENT_GREP_LINE = "- Regex search/exact string or known-symbol location → ";
-
-/**
- * A main block in the pre-18.2.7 host shape: `<conventions>` wrapper, the
- * older XML sentence, § Role identity line, and `agent://<id>` entry, with no
- * `find` tool anywhere. The host added that tool together with the three lines
- * that mention it, so the lines are rendered through
- * {@link MainOptions.gateTools} and deleted again, and the `grep` line goes
- * back to its older wording.
- *
- * The wording is what the extension reads, and it is the older wording
- * throughout. Whitespace inside the tool-conditional sections comes from the
- * installed formatter, which drops different blank runs once the deleted lines
- * are gone, so those sections can carry one blank line more or less than the
- * older host rendered.
- */
-export function renderMainLegacy(options: MainOptions = {}): string {
-  const tools = (options.tools ?? ["read", "bash"]).filter((name) => name !== "find");
-  let out = renderMain({ ...options, tools, gateTools: [...tools, "find"] });
-  out = replaceHostText(out, `${HOST_FIND_SPECIALIZED_LINE}\n`, "", "specialized find line");
-  out = replaceHostText(out, `${HOST_FIND_EXPLORATION_LINE}\n`, "", "exploration find line");
-  if (tools.includes("grep")) {
-    out = replaceHostText(out, HOST_CURRENT_GREP_LINE, HOST_LEGACY_GREP_LINE, "grep line");
-  }
-  out = replaceHostText(out, HOST_CURRENT_CONVENTIONS, HOST_LEGACY_CONVENTIONS, "conventions preamble");
-  out = replaceHostText(out, HOST_CURRENT_IDENTITY, HOST_LEGACY_IDENTITY, "role identity line");
-  out = replaceHostText(out, HOST_CURRENT_AGENT_ENTRY, HOST_LEGACY_AGENT_ENTRY, "agent entry");
-  if (out.includes("`find`")) throw new Error("host fixture drift: find text outside the deleted lines");
-  return out;
 }
 
 export type ProjectOptions = {
@@ -248,10 +165,12 @@ export type ProjectOptions = {
   /** Text the host interpolates from its own active-repo template. */
   activeRepo?: string;
   append?: string;
+  /** Render the subagent critical tail instead of the main-agent one. */
+  subagent?: boolean;
 };
 
-/** Render a PROJECT footer; `template` defaults to the installed 18.2.8 template. */
-export function renderProject(options: ProjectOptions = {}, template: string = PROJECT_TEMPLATE): string {
+/** Render the installed host's `<project-context>` footer. */
+export function renderProject(options: ProjectOptions = {}): string {
   const contextFiles = options.contextFiles ?? [
     { path: "AGENTS.md", content: "Use plain English.\n\n# Conventions\nSecond section." },
     { path: "src/.agents.md", content: "- keep it terse" },
@@ -269,8 +188,9 @@ export function renderProject(options: ProjectOptions = {}, template: string = P
     additionalWorkspaceRoots: options.additionalWorkspaceRoots ?? [],
     activeRepoContext: options.activeRepo ?? "",
     appendPrompt: options.append ?? "",
+    subagent: options.subagent ?? false,
     tools: ["read", "bash"],
     toolRefs: { read: "read", bash: "bash", glob: "glob" },
   };
-  return prompt.format(prompt.render(template, data), { renderPhase: "post-render" });
+  return prompt.format(prompt.render(PROJECT_TEMPLATE, data), { renderPhase: "post-render" });
 }
