@@ -69,7 +69,7 @@ describe("host template artifact", () => {
         toolDefinitions: { read: { label: "Read" }, bash: { label: "Bash" } },
         skills: [{ name: "code-quality", description: "Review code quality." }],
         alwaysApplyRules: [{ content: "Project conventions apply." }],
-        rules: [{ name: "luna", globs: ["**/*.ts"], description: "Luna rules." }],
+        rules: [{ name: "example-rule", globs: ["**/*.ts"], description: "Example rules." }],
         devices: [{ name: "video_read", docs: "- xd://video_read — Read a video." }],
         intent: true,
         secrets: true,
@@ -90,7 +90,7 @@ describe("host template artifact", () => {
       "<generic-rules>",
       "Project conventions apply.",
       "</generic-rules>\n\n<domain-rules>",
-      "- luna (**/*.ts): Luna rules.",
+      "- example-rule (**/*.ts): Example rules.",
       "## Runtime modes",
       "# Tool I/O",
       "- Most tools take `i`",
@@ -283,7 +283,7 @@ describe("host template footer", () => {
     expect(footer).toContain("<active-repo-context>\nActive project: `web/`.");
     expect(footer.endsWith(`</project-context>\n\n${append}`)).toBe(true);
     expect(footer.startsWith("<project-context>\n<workstation>")).toBe(true);
-    expect(footer).toContain("- Model: luna");
+    expect(footer).toContain("- Model: example-model-1.0");
     expect(result.notes).toBeUndefined();
   });
   test("removes the subagent tail without changing main output or opaque copies", () => {

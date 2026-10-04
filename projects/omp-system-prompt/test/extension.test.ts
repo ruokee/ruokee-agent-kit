@@ -28,7 +28,7 @@ type Handler = (
   ctx: TestContext,
 ) => Promise<{ systemPrompt?: string[] } | undefined>;
 
-const TEST_MODEL: TestModel = { id: "gpt-5.6-luna", provider: "pro-20x" };
+const TEST_MODEL: TestModel = { id: "example-model-1.0", provider: "example-provider" };
 const RULE_ROOTS: RuleRoots = { user: "/rules/user", project: "/rules/project" };
 
 const noSettings: PluginSettingsReader = async () => ({});
@@ -417,9 +417,9 @@ test("overlapping turns keep their own diagnostic channels", async () => {
 
 test("appends matching rule documents after the replacement result", async () => {
   const tree: RuleTree = {
-    "/rules/user/luna.md": ruleDocument("model: gpt-5.6-luna", "User luna rule.\n"),
-    "/rules/user/sol.md": ruleDocument("model: gpt-5.6-sol", "Sol rule.\n"),
-    "/rules/project/any-pro-20x.md": ruleDocument("contains: pro-20x/", "Project rule.\n"),
+    "/rules/user/example-model.md": ruleDocument("model: example-model-1.0", "User primary rule.\n"),
+    "/rules/user/secondary.md": ruleDocument("model: another-model-2.0", "Secondary rule.\n"),
+    "/rules/project/any-example-provider.md": ruleDocument("contains: example-provider/", "Project rule.\n"),
   };
   const warnings: string[] = [];
   const handlers: Handler[] = [];
@@ -441,16 +441,16 @@ test("appends matching rule documents after the replacement result", async () =>
   expect(replaced?.systemPrompt).toBeDefined();
 
   const result = await appended!({ systemPrompt: replaced?.systemPrompt ?? [] }, context());
-  expect(result?.systemPrompt).toEqual([...(replaced?.systemPrompt ?? []), "User luna rule.\n", "Project rule.\n"]);
-  expect(result?.systemPrompt).not.toContain("Sol rule.\n");
+  expect(result?.systemPrompt).toEqual([...(replaced?.systemPrompt ?? []), "User primary rule.\n", "Project rule.\n"]);
+  expect(result?.systemPrompt).not.toContain("Secondary rule.\n");
   expect(blocks).toHaveLength(4);
   expect(warnings).toEqual([]);
 });
 
 test("keeps the incoming prompt when no rule document matches", async () => {
   const tree: RuleTree = {
-    "/rules/user/sol.md": ruleDocument("model: gpt-5.6-sol", "Sol rule.\n"),
-    "/rules/user/broken.md": "---\nmatch:\n  - nam: luna\n---\nBroken.\n",
+    "/rules/user/secondary.md": ruleDocument("model: another-model-2.0", "Secondary rule.\n"),
+    "/rules/user/broken.md": "---\nmatch:\n  - nam: example-model\n---\nBroken.\n",
   };
   const warnings: string[] = [];
   const handlers: Handler[] = [];
@@ -473,7 +473,9 @@ test("keeps the incoming prompt when no rule document matches", async () => {
 });
 
 test("appends nothing without a model and falls back to the current model", async () => {
-  const tree: RuleTree = { "/rules/user/luna.md": ruleDocument("model: gpt-5.6-luna", "Luna rule.\n") };
+  const tree: RuleTree = {
+    "/rules/user/example-model.md": ruleDocument("model: example-model-1.0", "Primary rule.\n"),
+  };
   const paths: string[] = [];
   const handlers: Handler[] = [];
   const pi = {
@@ -494,7 +496,7 @@ test("appends nothing without a model and falls back to the current model", asyn
 
   const withCurrentModel = { ...context(), model: undefined, models: { current: () => TEST_MODEL } };
   const result = await appended({ systemPrompt: ["owned"] }, withCurrentModel);
-  expect(result?.systemPrompt).toEqual(["owned", "Luna rule.\n"]);
+  expect(result?.systemPrompt).toEqual(["owned", "Primary rule.\n"]);
   expect(paths).toEqual(["/rules/user", "/rules/project"]);
 });
 
@@ -515,7 +517,7 @@ test("reads rule documents from the agent and project config directories", async
 test("reports each skipped rule document once per session without its text", async () => {
   const tree: RuleTree = {
     "/rules/user/broken.md": "---\nprivate marker\n",
-    "/rules/user/kept.md": ruleDocument("contains: luna", "Kept rule.\n"),
+    "/rules/user/kept.md": ruleDocument("contains: example-model", "Kept rule.\n"),
   };
   const warnings: string[] = [];
   const handlers: Handler[] = [];
@@ -557,7 +559,7 @@ test("reports an unreadable rule directory and still appends from the other", as
     ...host(),
     ruleRoots: () => RULE_ROOTS,
     ruleFileSystem: treeFileSystem(
-      { "/rules/project/kept.md": ruleDocument("contains: luna", "Project rule.\n") },
+      { "/rules/project/kept.md": ruleDocument("contains: example-model", "Project rule.\n") },
       { unreadableDirectories: [RULE_ROOTS.user] },
     ),
   });
@@ -621,7 +623,9 @@ test("transforms a host render of the component template", async () => {
 });
 
 test("leaves a main block that is not the template render untouched and silent", async () => {
-  const tree: RuleTree = { "/rules/user/luna.md": ruleDocument("model: gpt-5.6-luna", "Luna rule.\n") };
+  const tree: RuleTree = {
+    "/rules/user/example-model.md": ruleDocument("model: example-model-1.0", "Primary rule.\n"),
+  };
   const footer = renderProject();
   const handlers: Handler[] = [];
   const warnings: string[] = [];
@@ -649,7 +653,7 @@ test("leaves a main block that is not the template render untouched and silent",
   ]) {
     expect(await handlers[0]!({ systemPrompt: blocks }, ctx)).toBeUndefined();
     const appended = await handlers[1]!({ systemPrompt: blocks }, ctx);
-    expect(appended?.systemPrompt).toEqual([...blocks, "Luna rule.\n"]);
+    expect(appended?.systemPrompt).toEqual([...blocks, "Primary rule.\n"]);
   }
   expect(settingsReads).toBe(0);
   expect(warnings).toEqual([]);

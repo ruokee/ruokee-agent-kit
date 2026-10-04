@@ -46,10 +46,10 @@ A rule document is Markdown with a `---` frontmatter block:
 ```markdown
 ---
 match:
-  - exact: pro-20x/gpt-5.6-luna
-  - model: gpt-5.6-sol
-  - contains: gpt-5.6
-  - regex: ^pro-20x/gpt-5\.6
+  - exact: example-provider/example-model-1.0
+  - model: another-model-1.0
+  - contains: example-model
+  - regex: ^example-provider/example-model-1\.0
 ---
 
 Text appended to the system prompt.

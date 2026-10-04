@@ -23,7 +23,7 @@ import { parseQolSettings, type ModuleId, type QolSettings } from "../src/settin
 import { createHarness, moduleContext, resetNativeReplay, TEST_RUNTIME_ID, type Harness } from "./host.ts";
 
 const REGISTRY_KEY = Symbol.for("ruokee.omp-qol.native-replay.registry");
-const STATE_KEY = "openai-responses:pro-20x";
+const STATE_KEY = "openai-responses:example-provider";
 
 type MapSet = (this: Map<unknown, unknown>, key: unknown, value: unknown) => Map<unknown, unknown>;
 
@@ -207,7 +207,7 @@ describe("replay wrapper behavior", () => {
     const map = new Map<unknown, unknown>();
     const symbolKey = Symbol("key");
     const others: Array<[unknown, unknown]> = [
-      ["openai-codex-responses:pro-20x", responsesState()],
+      ["openai-codex-responses:example-provider", responsesState()],
       ["anthropic-messages:claude", responsesState()],
       ["openai-completions:local", responsesState()],
       [7, responsesState()],

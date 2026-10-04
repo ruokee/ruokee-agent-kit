@@ -118,7 +118,7 @@ describe("activation", () => {
     await sessionStartOf(harness)({}, harness.context());
 
     const state = { nativeHistoryReplayWarmed: false };
-    new Map<unknown, unknown>().set("openai-responses:pro-20x", state);
+    new Map<unknown, unknown>().set("openai-responses:example-provider", state);
     expect(state.nativeHistoryReplayWarmed).toBe(true);
     expect(runtime.state.modules.replay).toEqual({ status: "enabled", detail: "rewrites=0" });
 
@@ -147,7 +147,7 @@ describe("activation", () => {
     expect(second.warnings.some((warning) => warning.includes("native replay stopped rewriting"))).toBe(true);
 
     const state = { nativeHistoryReplayWarmed: false };
-    new Map<unknown, unknown>().set("openai-responses:pro-20x", state);
+    new Map<unknown, unknown>().set("openai-responses:example-provider", state);
     expect(state.nativeHistoryReplayWarmed).toBe(false);
   });
 

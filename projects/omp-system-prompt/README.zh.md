@@ -46,10 +46,10 @@ OMP 用多个块装配系统提示词：主块、可选的 Computer Safety 块�
 ```markdown
 ---
 match:
-  - exact: pro-20x/gpt-5.6-luna
-  - model: gpt-5.6-sol
-  - contains: gpt-5.6
-  - regex: ^pro-20x/gpt-5\.6
+  - exact: example-provider/example-model-1.0
+  - model: another-model-1.0
+  - contains: example-model
+  - regex: ^example-provider/example-model-1\.0
 ---
 
 追加到系统提示词的文本。
