@@ -43,4 +43,8 @@ Repository-level documentation remains the place for comparisons, composition gu
 
 ### 2026-09-28: Maintenance statements ship with the component
 
-A component's maintenance declaration and the evidence for its host adaptation follow [Adapt first-party host components to host upgrades](./2026-09-28-adapt-components-to-host-upgrades.md) and live inside the component, so a component does not depend on a repository ADR, another component, or a repository-level table for either of them. This adds the declaration and its evidence to the material a component carries; it changes no boundary above.
+A component's maintenance declaration and the evidence for its host adaptation follow [Adapt first-party host components to host upgrades](../archived/2026-09-28-adapt-components-to-host-upgrades.md) and live inside the component, so a component does not depend on a repository ADR, another component, or a repository-level table for either of them. This adds the declaration and its evidence to the material a component carries; it changes no boundary above.
+
+### 2026-10-04: Maintenance statements follow the shared floor decision
+
+A component's maintenance declaration and the evidence for its host adaptation follow [Maintain host components against a shared OMP floor](./2026-10-04-raise-omp-host-floor.md) and still live inside the component. The shared bound is stated in each component README, not in a repository-level table.

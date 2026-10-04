@@ -2,6 +2,8 @@
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
+Archived: 2026-10-04
+Reversed by: [Maintain host components against a shared OMP floor](../decision/2026-10-04-raise-omp-host-floor.md)
 
 English | [中文](./2026-09-28-adapt-components-to-host-upgrades.zh.md)
 
@@ -83,17 +85,17 @@ Each raise is its own ADR that the maintainer decides, and it updates the declar
 
 Two clauses in the current decisions cannot hold together with this rule, and complete successor decisions reverse them while keeping the rest of each contract:
 
-**The status bar's numeric host declaration.** [The status bar decision](../archived/2026-09-24-use-omp-status-bar-widget.md) declared the direct host imports as peer dependencies with the range `>=18.1.8 <19`, named OMP 18.x as the target, and drew the consequence that the package is coupled to that range. A range that states maintenance responsibility would keep deciding installation for hosts the package can serve, so the two cannot hold at once. [The successor decision](./2026-10-02-scope-token-metrics-to-conversation.md) keeps the rest of that contract as it stands, including the widget, the provider contract, the builtin inventory, the speculation estimate and its limits, and the real TUI check before each release tag, and states the maintenance bound in the component README instead.
+**The status bar's numeric host declaration.** [The status bar decision](./2026-09-24-use-omp-status-bar-widget.md) declared the direct host imports as peer dependencies with the range `>=18.1.8 <19`, named OMP 18.x as the target, and drew the consequence that the package is coupled to that range. A range that states maintenance responsibility would keep deciding installation for hosts the package can serve, so the two cannot hold at once. [The successor decision](./2026-10-02-scope-token-metrics-to-conversation.md) keeps the rest of that contract as it stands, including the widget, the provider contract, the builtin inventory, the speculation estimate and its limits, and the real TUI check before each release tag, and states the maintenance bound in the component README instead.
 
-**The quality-of-life deadline mechanism.** [The quality-of-life decision](../archived/2026-09-22-recover-interrupted-turns.md) required the component to use a supported request-level timeout interface and retire its process-wide mechanism once the host provides one, and it kept no condition for a still-maintained host that lacks that interface. An unconditional retirement and this rule, which keeps the behavior a maintained older host needs, cannot hold at once. [The current QoL decision](./2026-10-04-preserve-speculative-cache.md) selects the deadline implementation by the host at hand, keeping this decision's principle, and keeps that decision's other rules.
+**The quality-of-life deadline mechanism.** [The quality-of-life decision](./2026-09-22-recover-interrupted-turns.md) required the component to use a supported request-level timeout interface and retire its process-wide mechanism once the host provides one, and it kept no condition for a still-maintained host that lacks that interface. An unconditional retirement and this rule, which keeps the behavior a maintained older host needs, cannot hold at once. [The current QoL decision](./2026-10-04-preserve-speculative-cache.md) selects the deadline implementation by the host at hand, keeping this decision's principle, and keeps that decision's other rules.
 
 The remaining current decisions are checked and kept:
 
 - [The system prompt decision](./2026-09-30-render-system-prompt-from-host-template.md) already declares an unrestricted peer, forbids reading the host version to decide eligibility, activation, transformation, diagnostics, or fallback, and keeps structural checks and the evidence boundary. Adding a documented maintenance bound does not change any of that.
-- [The model prompt rules decision](./2026-09-14-add-model-prompt-rules.md) keeps the peer contract it inherits from that decision. A documented bound is a declaration and not a transition back to a version condition.
-- [The context pin decision](./2026-09-15-add-omp-context-pin.md) records no version gate. Its activation reads the host's public API, which stays as it is, and the declaration follows this decision.
-- [The tk integration decision](./2026-09-02-integrate-tk-tools-with-harnesses.md) keeps the independent runtime protocol and its `runtime_compat`, CLI and driver contracts, component format, preflight validation, the zero-registration outcome of a failed preflight, and the single bounded diagnostic of a later `registerTool` failure. A host maintenance bound is not a runtime protocol change.
-- [The self-contained component decision](./2026-08-24-keep-components-self-contained.md) keeps every component's documentation and material with the component, so the bound is stated there and not in a repository-level table.
+- [The model prompt rules decision](../decision/2026-09-14-add-model-prompt-rules.md) keeps the peer contract it inherits from that decision. A documented bound is a declaration and not a transition back to a version condition.
+- [The context pin decision](../decision/2026-09-15-add-omp-context-pin.md) records no version gate. Its activation reads the host's public API, which stays as it is, and the declaration follows this decision.
+- [The tk integration decision](../decision/2026-09-02-integrate-tk-tools-with-harnesses.md) keeps the independent runtime protocol and its `runtime_compat`, CLI and driver contracts, component format, preflight validation, the zero-registration outcome of a failed preflight, and the single bounded diagnostic of a later `registerTool` failure. A host maintenance bound is not a runtime protocol change.
+- [The self-contained component decision](../decision/2026-08-24-keep-components-self-contained.md) keeps every component's documentation and material with the component, so the bound is stated there and not in a repository-level table.
 - [The current QoL decision](./2026-10-04-preserve-speculative-cache.md) keeps its per-adjustment verification separation and its obligation to re-read the cited source on an upgrade and update the affected sections; editing the declared bound does not replace those steps.
 
 ## Alternatives considered

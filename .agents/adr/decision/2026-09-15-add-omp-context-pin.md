@@ -162,4 +162,8 @@ Verification compares provider-facing effective context, including the preceding
 
 ### 2026-09-28: Maintenance lower bound outside installation and activation
 
-The README compatibility section declares the maintenance lower bound under [Adapt first-party host components to host upgrades](./2026-09-28-adapt-components-to-host-upgrades.md). The bound takes no part in installation or activation, and the safety boundaries above do not move: activation still reads the host's public API, and record integrity, entry identity, branch scope, delivery, and persistence ownership keep their rules.
+The README compatibility section declares the maintenance lower bound under [Adapt first-party host components to host upgrades](../archived/2026-09-28-adapt-components-to-host-upgrades.md). The bound takes no part in installation or activation, and the safety boundaries above do not move: activation still reads the host's public API, and record integrity, entry identity, branch scope, delivery, and persistence ownership keep their rules.
+
+### 2026-10-04: Shared OMP 18.5.0 floor
+
+The maintenance lower bound is OMP 18.5.0 under [Maintain host components against a shared OMP floor](./2026-10-04-raise-omp-host-floor.md). The component removes its pre-activation checks for host members, its `getEntries` capability probe, and its count fallback for user messages without a timestamp; each only guarded hosts below the earlier bound of 18.1.8. Activation still uses the host's public API, and record integrity, entry identity, branch scope, delivery, and persistence ownership keep their rules.

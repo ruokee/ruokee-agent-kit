@@ -42,4 +42,8 @@ A native registration failure can leave an accepted prefix. This is a Harness AP
 
 ### 2026-09-28: Host maintenance declaration independent of the runtime protocol
 
-The component's maintenance declaration follows [Adapt first-party host components to host upgrades](./2026-09-28-adapt-components-to-host-upgrades.md) and is independent of the contracts above: the runtime protocol and its `runtime_compat` check, the CLI, driver, and native tool contracts, the component format, and the zero-registration boundary after a failed preflight keep their meanings. Nothing here changes a clause or a protocol.
+The component's maintenance declaration follows [Adapt first-party host components to host upgrades](../archived/2026-09-28-adapt-components-to-host-upgrades.md) and is independent of the contracts above: the runtime protocol and its `runtime_compat` check, the CLI, driver, and native tool contracts, the component format, and the zero-registration boundary after a failed preflight keep their meanings. Nothing here changes a clause or a protocol.
+
+### 2026-10-04: Shared OMP 18.5.0 floor for the OMP adapter
+
+The OMP adapter's maintenance lower bound is OMP 18.5.0 under [Maintain host components against a shared OMP floor](./2026-10-04-raise-omp-host-floor.md). The adapter still declares only an unrestricted host peer; its declaration and verification baseline move to the new bound. The runtime protocol and its `runtime_compat` check, the preflight validation, and the zero-registration result of a failed preflight are not host maintenance rules and do not change.

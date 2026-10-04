@@ -112,7 +112,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 
 ### 组件宿主维护
 
-将代码加载进宿主进程的组件在自身 README 的兼容性小节声明维护下限，宿主 peer 声明只列出包名，提高下限只能通过独立决定。[宿主升级决定](./.agents/adr/decision/2026-09-28-adapt-components-to-host-upgrades.zh.md)记录完整规则。
+将代码加载进宿主进程的组件在自身 README 的兼容性小节声明维护下限，宿主 peer 声明只列出包名，提高下限只能通过独立决定。面向 OMP 的组件共用一个下限。[宿主维护决定](./.agents/adr/decision/2026-10-04-raise-omp-host-floor.zh.md)记录完整规则。
 
 ### 检查前置条件
 

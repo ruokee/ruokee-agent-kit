@@ -2,6 +2,8 @@
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
+Archived: 2026-10-04
+Reversed by: [宿主内组件按共同的 OMP 下限维护](../decision/2026-10-04-raise-omp-host-floor.zh.md)
 
 [English](./2026-09-28-adapt-components-to-host-upgrades.md) | 中文
 
@@ -83,17 +85,17 @@ peer 范围参与依赖解析，不是纯维护说明。例如，npm 默认安�
 
 现行决定中有两项条款与本决定不能同时成立，由完整后继决定反转，各自合同的其余部分保持不变：
 
-**状态栏的数值宿主声明。** [状态栏决定](../archived/2026-09-24-use-omp-status-bar-widget.md)把直接宿主导入声明为范围 `>=18.1.8 <19` 的 peer 依赖、把 OMP 18.x 写为目标，并由此得出 Package 与该范围绑定的结果。承担维护责任的数值范围会继续替能够正常服务的宿主决定能否安装，两者不能同时成立。[后继决定](./2026-10-02-scope-token-metrics-to-conversation.zh.md)保留该合同的其余内容：Widget、Provider 契约、内置清单、推测估计及其限制，以及每次发布打标签前执行的真实 TUI 检查；维护下限改在组件 README 中声明。
+**状态栏的数值宿主声明。** [状态栏决定](./2026-09-24-use-omp-status-bar-widget.md)把直接宿主导入声明为范围 `>=18.1.8 <19` 的 peer 依赖、把 OMP 18.x 写为目标，并由此得出 Package 与该范围绑定的结果。承担维护责任的数值范围会继续替能够正常服务的宿主决定能否安装，两者不能同时成立。[后继决定](./2026-10-02-scope-token-metrics-to-conversation.zh.md)保留该合同的其余内容：Widget、Provider 契约、内置清单、推测估计及其限制，以及每次发布打标签前执行的真实 TUI 检查；维护下限改在组件 README 中声明。
 
-**QoL 的期限机制。** [QoL 决定](../archived/2026-09-22-recover-interrupted-turns.md)要求宿主提供受支持的请求级超时接口后，组件使用该接口并停用进程级机制，没有为仍然受维护、但不具备该接口的宿主保留条件。无条件停用与本决定要求保留受维护旧宿主所需行为之间不能同时成立。[现行 QoL 决定](./2026-10-04-preserve-speculative-cache.zh.md)按实际宿主选择期限实现，沿用本决定的原则，并保留该决定的其他规则。
+**QoL 的期限机制。** [QoL 决定](./2026-09-22-recover-interrupted-turns.md)要求宿主提供受支持的请求级超时接口后，组件使用该接口并停用进程级机制，没有为仍然受维护、但不具备该接口的宿主保留条件。无条件停用与本决定要求保留受维护旧宿主所需行为之间不能同时成立。[现行 QoL 决定](./2026-10-04-preserve-speculative-cache.zh.md)按实际宿主选择期限实现，沿用本决定的原则，并保留该决定的其他规则。
 
 其余现行决定经核对后保留：
 
 - [系统提示词决定](./2026-09-30-render-system-prompt-from-host-template.md)已经声明不受限制的 peer，禁止读取宿主版本来决定安装资格、激活、转换、诊断或回退，并保留结构检查与证据边界。补充文档化的维护下限不改变其中任何一条。
-- [模型提示词规则决定](./2026-09-14-add-model-prompt-rules.md)沿用上述决定的 peer 合同。文档化的下限是声明，不是回到版本条件。
-- [Pin 决定](./2026-09-15-add-omp-context-pin.md)没有记录版本门禁。其激活逻辑读取宿主的公开 API，这一点保持不变，声明部分按本决定处理。
-- [tk 集成决定](./2026-09-02-integrate-tk-tools-with-harnesses.md)保留独立 runtime 协议及其 `runtime_compat`、CLI 与驱动合同、组件格式、预检校验、预检失败时注册数为零的结果，以及后续 `registerTool` 失败时唯一的一条有界诊断。宿主维护下限不是 runtime 协议变更。
-- [组件自包含决定](./2026-08-24-keep-components-self-contained.md)要求每个组件的文档和材料随组件分发，因此下限写在组件内，不建立仓库级表格。
+- [模型提示词规则决定](../decision/2026-09-14-add-model-prompt-rules.md)沿用上述决定的 peer 合同。文档化的下限是声明，不是回到版本条件。
+- [Pin 决定](../decision/2026-09-15-add-omp-context-pin.md)没有记录版本门禁。其激活逻辑读取宿主的公开 API，这一点保持不变，声明部分按本决定处理。
+- [tk 集成决定](../decision/2026-09-02-integrate-tk-tools-with-harnesses.md)保留独立 runtime 协议及其 `runtime_compat`、CLI 与驱动合同、组件格式、预检校验、预检失败时注册数为零的结果，以及后续 `registerTool` 失败时唯一的一条有界诊断。宿主维护下限不是 runtime 协议变更。
+- [组件自包含决定](../decision/2026-08-24-keep-components-self-contained.md)要求每个组件的文档和材料随组件分发，因此下限写在组件内，不建立仓库级表格。
 - [现行 QoL 决定](./2026-10-04-preserve-speculative-cache.zh.md)保留按调整项分别记录验证的做法，以及宿主升级时重新阅读引用源码、更新受影响章节的义务；修改声明的下限不能替代这些工作。
 
 ## 考虑过的替代方案

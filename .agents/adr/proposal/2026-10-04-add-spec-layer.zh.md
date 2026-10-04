@@ -9,7 +9,7 @@ Draft writer: OMP Claude Opus 5.5
 
 在 `.agents/spec/` 下增加中英双语规格（spec），描述每个组件和仓库领域当前的目标状态，ADR 继续记录决策及其理由。
 
-仓库里没有一类文档专门从整体上说明每个组件应该做成什么样。这些信息分散在现行决定、决定中按日期追加的 `变更` 条目和组件文档里。例如，`omp-system-prompt` 的目标由[宿主模板决定](../decision/2026-09-30-render-system-prompt-from-host-template.zh.md)、[模型级提示词规则决定](../decision/2026-09-14-add-model-prompt-rules.zh.md)和组件的 README 文件对共同构成。读者必须把这些来源合在一起，才能知道当前目标。Skill 体系和仓库约定的规则同样分散在现行决定、[AGENTS.md](../../../AGENTS.md) 和[仓库 README](../../../README.zh.md) 中。
+仓库里没有一类文档专门从整体上说明每个组件应该做成什么样。这些信息分散在现行决定、决定中按日期追加的 `变更` 条目和组件文档里。例如，`omp-system-prompt` 的目标由[只用模板决定](../decision/2026-10-04-use-system-prompt-template-only.zh.md)、[模型级提示词规则决定](../decision/2026-09-14-add-model-prompt-rules.zh.md)和组件的 README 文件对共同构成。读者必须把这些来源合在一起，才能知道当前目标。Skill 体系和仓库约定的规则同样分散在现行决定、[AGENTS.md](../../../AGENTS.md) 和[仓库 README](../../../README.zh.md) 中。
 
 ADR 本来就不承担这个职责。[ADR 指南](../README.zh.md)把 ADR 定义为持久决定的理由和契约，后继决定"不复制组件的实现规格"。组件文档面向安装和使用组件的人，仓库说明和 README 面向在仓库中工作的贡献者。它们都没有为维护者和 Agent 提供一份关于组件、Skill 体系或仓库约定的目标、边界和验收的当前说明。
 
@@ -20,7 +20,7 @@ ADR 本来就不承担这个职责。[ADR 指南](../README.zh.md)把 ADR 定义
 - [同目录维护中英文公开文档](../decision/2026-09-07-colocate-bilingual-docs.zh.md)要求普通公开页面使用同目录、互相链接的 `name.md` 和 `name.zh.md` 文件对，入口页面使用 `README.md` 和 `README.zh.md`。仅面向维护者的材料只在目标读者需要时翻译。spec 面向维护者和 Agent，本提案让 spec 保持双语，这在该决定允许的范围内。该决定中详细命令、参数和规范行为留在其所属页面的规则同样适用于 spec。
 - [明确 ADR 机制与内容边界](../decision/2026-09-23-clarify-adr-content-boundaries.zh.md)规定 ADR 必须包含的内容。它写明迁移一条约束性条款并不取消它，指向持续变化的当前文档不能替代历史契约。spec 直接修改、不保留历史，所以不能替代决定中记录的契约。本提案不改变 ADR 的内容规则、生命周期和术语表。
 - [保持可分发组件自包含](../decision/2026-08-24-keep-components-self-contained.zh.md)禁止组件内部引用组件以外的文件，并允许组件目录以外的仓库级文档引用组件。`.agents/spec/` 下的 spec 属于这类文档。该决定的 `变更` 条目把每个组件的维护声明留在组件内部。
-- [统一 tk 使用模式](../decision/2026-09-11-align-tk-usage-patterns.zh.md)为每项 tk 行为指定 `projects/tk/docs/` 下的一个主要所属页面，包括系统边界、不变量和验证。tk 的 spec 如果复述这些内容，就会出现第二个所属页面，所以 spec 改为链接到所属页面。
+- [以共享的 Skill 参考文件源码统一 tk 使用模式](../decision/2026-10-04-share-tk-skill-references.zh.md)为每项 tk 行为指定 `projects/tk/docs/` 下的一个主要所属页面，包括系统边界、不变量和验证。tk 的 spec 如果复述这些内容，就会出现第二个所属页面，所以 spec 改为链接到所属页面。
 - [建立第一方 Agent 能力工具集](../decision/2026-08-20-establish-first-party-capability-kit.zh.md)只在有真实组件时才增加新的顶层结构。`.agents/` 已经存在，规格层不增加顶层区域。
 
 ## 提议

@@ -2,7 +2,9 @@
 
 Decision owner: Ruokee
 Decision writer: OMP anyrouter/gpt-6-astra
-Reverses: [维护 tk 文档](../archived/2026-08-29-maintain-tk-documentation.zh.md)
+Reverses: [维护 tk 文档](./2026-08-29-maintain-tk-documentation.zh.md)
+Archived: 2026-10-04
+Reversed by: [以共享的 Skill 参考文件源码统一 tk 使用模式](../decision/2026-10-04-share-tk-skill-references.zh.md)
 
 [English](./2026-09-11-align-tk-usage-patterns.md) | 中文
 
@@ -12,11 +14,11 @@ Reverses: [维护 tk 文档](../archived/2026-08-29-maintain-tk-documentation.zh
 
 这套共同规则让 Agent 和用户对模式会增加什么、需要维护什么，以及每项合同由哪个页面负责，形成一致理解。
 
-[Skill 模式参考](../../../projects/tk/skills/shared/zh/patterns.md)与 [Skill 设计](../../../projects/tk/docs/design/skill.zh.md)给出四种模式。[已归档的文档维护决定](../archived/2026-08-29-maintain-tk-documentation.zh.md)中覆盖公开文档集合及其维护方式的规则仍然有效。
+[Skill 模式参考](../../../projects/tk/skills/shared/zh/patterns.md)与 [Skill 设计](../../../projects/tk/docs/design/skill.zh.md)给出四种模式。[已归档的文档维护决定](./2026-08-29-maintain-tk-documentation.zh.md)中覆盖公开文档集合及其维护方式的规则仍然有效。
 
 ## 分析
 
-[已归档的文档维护决定](../archived/2026-08-29-maintain-tk-documentation.zh.md)将 `scratchpad` 固定译为“临时记事区”，与“草稿纸”作为模式中文名称冲突。
+[已归档的文档维护决定](./2026-08-29-maintain-tk-documentation.zh.md)将 `scratchpad` 固定译为“临时记事区”，与“草稿纸”作为模式中文名称冲突。
 
 ## 决定
 
@@ -109,7 +111,7 @@ ADR 保存长期决定、替代方案和结果。它们链接当前公开合同�
 
 英文和中文页面语义对应。中文使用自然表达，不做逐句机械映射。命令、路径、字段、代码、日志、产品名和标识符保留规定的拼写与大小写。
 
-普通公开 Markdown 页面按照[公开文档决定](./2026-09-07-colocate-bilingual-docs.zh.md)使用同目录 `name.md` 和 `name.zh.md` 配对，组件 README 也如此。不维护分离的语言目录，也不在被取代的路径保留跳转占位文件；页面移动时修复受影响的入站链接和命令示例。
+普通公开 Markdown 页面按照[公开文档决定](../decision/2026-09-07-colocate-bilingual-docs.zh.md)使用同目录 `name.md` 和 `name.zh.md` 配对，组件 README 也如此。不维护分离的语言目录，也不在被取代的路径保留跳转占位文件；页面移动时修复受影响的入站链接和命令示例。
 
 术语表只包含在 tk 中具有特殊含义、需要固定大小写或必须保持稳定译法的术语。普通技术词留在归属文档中。固定中文形式包括 `受管`、`草稿纸`、`人类可读`、`直接切换`、`支持的子命令`、`活动操作标记`、`表示切换`、`续跑令牌` 和 `续跑状态`。
 

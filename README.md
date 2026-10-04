@@ -112,7 +112,7 @@ Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/READ
 
 ### Component host maintenance
 
-Components that load code into a host process state a maintenance lower bound in their own README compatibility section, keep their host peer declarations to package names, and raise a bound only through its own decision. The [host upgrade decision](./.agents/adr/decision/2026-09-28-adapt-components-to-host-upgrades.md) records the complete rules.
+Components that load code into a host process state a maintenance lower bound in their own README compatibility section, keep their host peer declarations to package names, and raise a bound only through its own decision. OMP-facing components share one lower bound. The [host maintenance decision](./.agents/adr/decision/2026-10-04-raise-omp-host-floor.md) records the complete rules.
 
 ### Check prerequisites
 

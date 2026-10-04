@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
 Reverses: [OMP 状态栏使用常驻 Widget](./2026-09-24-use-omp-status-bar-widget.zh.md)
 Archived: 2026-10-02
-Reversed by: [随 OMP 宿主升级维护状态栏](../decision/2026-10-02-scope-token-metrics-to-conversation.zh.md)
+Reversed by: [随 OMP 宿主升级维护状态栏](./2026-10-02-scope-token-metrics-to-conversation.zh.md)
 
 [English](./2026-09-28-maintain-omp-status-bar.md) | 中文
 
@@ -16,7 +16,7 @@ Reversed by: [随 OMP 宿主升级维护状态栏](../decision/2026-10-02-scope-
 
 ## 分析
 
-宿主 peer 声明只说明 Package 导入哪些宿主包，而在其中写入数值范围会同时替每个解析该依赖的宿主决定能否安装（[宿主升级决定](../decision/2026-09-28-adapt-components-to-host-upgrades.zh.md)）。因此维护下限从 peer 声明中移出，改为在组件 README 的兼容性小节声明；Package 与 OMP 的耦合保持为对公开 Widget、上下文用量和压缩解析 API 的能力耦合。实际验证过的版本与场景是组件文档中的证据，不是下限本身。
+宿主 peer 声明只说明 Package 导入哪些宿主包，而在其中写入数值范围会同时替每个解析该依赖的宿主决定能否安装（[宿主升级决定](./2026-09-28-adapt-components-to-host-upgrades.zh.md)）。因此维护下限从 peer 声明中移出，改为在组件 README 的兼容性小节声明；Package 与 OMP 的耦合保持为对公开 Widget、上下文用量和压缩解析 API 的能力耦合。实际验证过的版本与场景是组件文档中的证据，不是下限本身。
 
 [先前的决定](./2026-09-05-use-omp-status-bar-widget.zh.md)不接受列表之外的内置 ID，而枚举本身并不是被保护的边界。同一节还排除了金额、cost 和 premium request 读数以及旧的 `tokens` 别名，而 Package 使用文档已经维护内置 ID 及其 options 和颜色。写明 Provider 范围，并用链接把该文档指定为清单归属，就能保留边界。
 
@@ -104,7 +104,7 @@ context Provider 的文本配有一个字形，表示上下文大概进入了 OM
 
 ### 实现证据随项目保存
 
-[英文和中文公开文档决定](../decision/2026-09-07-colocate-bilingual-docs.zh.md)适用，Package 本地使用文档互相链接。Package 文档覆盖安装、启停、配置 schema、内置 Provider ID 及其 options、按条目失败行为、Widget 位置、投机估计及其限制、已回答请求次数的含义和显示形式，以及实际验证过的宿主版本及其覆盖的场景。组件 README 的兼容性小节声明维护下限，该小节是这一下限的权威说明：Package 只声明下限、不设维护上限，不维护受支持版本白名单，也不会仅凭版本阻止任何宿主。低于下限的宿主不会被阻止运行本 Package，也不因此获得维护承诺；提高下限按[宿主升级决定](../decision/2026-09-28-adapt-components-to-host-upgrades.zh.md)作为独立决定处理。Provider 编写文档定义公开导入路径、注册时机、合同版本、冲突行为、生命周期上下文，以及如何安装和选用独立打包的 Provider。
+[英文和中文公开文档决定](../decision/2026-09-07-colocate-bilingual-docs.zh.md)适用，Package 本地使用文档互相链接。Package 文档覆盖安装、启停、配置 schema、内置 Provider ID 及其 options、按条目失败行为、Widget 位置、投机估计及其限制、已回答请求次数的含义和显示形式，以及实际验证过的宿主版本及其覆盖的场景。组件 README 的兼容性小节声明维护下限，该小节是这一下限的权威说明：Package 只声明下限、不设维护上限，不维护受支持版本白名单，也不会仅凭版本阻止任何宿主。低于下限的宿主不会被阻止运行本 Package，也不因此获得维护承诺；提高下限按[宿主升级决定](./2026-09-28-adapt-components-to-host-upgrades.zh.md)作为独立决定处理。Provider 编写文档定义公开导入路径、注册时机、合同版本、冲突行为、生命周期上下文，以及如何安装和选用独立打包的 Provider。
 
 直接 `@oh-my-pi/*` 导入以不带版本范围的形式声明其宿主包，声明只列出 Package 使用的宿主包，不承载维护限制。行为测试覆盖配置解析与按条目降级、片段清理与无效片段隔离、有序组合与宽度截断、投机状态机的时序、已回答请求次数的计数规则及其显示状态和会话行为、来自独立加载且无共享模块身份的扩展的注册、无残留 timer 或 Widget 的清理，以及目标版本内置 Composer shape 与 statusline preset 加一个扩展注册的 shape，全部走同一个 Widget 路径。自动化测试全部无头运行，看不到终端：确认 Widget 出现在编辑器下方并与原生 statusline 共存的真实 OMP TUI 会话是发布要求，按发布提交运行并评审后才可打标签，不进入单元测试套件。
 

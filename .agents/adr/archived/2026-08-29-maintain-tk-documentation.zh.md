@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-11
-Reversed by: [统一 tk 使用模式](../decision/2026-09-11-align-tk-usage-patterns.zh.md)
+Reversed by: [统一 tk 使用模式](./2026-09-11-align-tk-usage-patterns.zh.md)
 
 [English](./2026-08-29-maintain-tk-documentation.md) | 中文
 

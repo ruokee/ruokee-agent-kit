@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP
 Archived: 2026-09-30
-Reversed by: [由宿主模板渲染系统提示词策略](../decision/2026-09-30-render-system-prompt-from-host-template.zh.md)
+Reversed by: [由宿主模板渲染系统提示词策略](./2026-09-30-render-system-prompt-from-host-template.zh.md)
 Reverses: [添加 OMP 系统提示词扩展](./2026-09-07-add-omp-system-prompt.zh.md)
 
 [English](./2026-09-09-add-omp-system-prompt.md) | 中文
@@ -98,4 +98,4 @@ custom 提示词、空或损坏的目标结构、缺失或损坏的模板、受�
 
 ### 2026-09-28：组件 README 中的维护声明
 
-组件 README 的兼容性小节按[宿主内组件随宿主升级保持适配](../decision/2026-09-28-adapt-components-to-host-upgrades.zh.md)声明维护下限。该声明不改变上文任何一条：宿主 peer 保持不受限制，组件仍然不读取宿主版本来决定安装资格、激活、转换、诊断或回退，结构识别、fail-open 回退与 Provider 证据合同保持原义。
+组件 README 的兼容性小节按[宿主内组件随宿主升级保持适配](./2026-09-28-adapt-components-to-host-upgrades.zh.md)声明维护下限。该声明不改变上文任何一条：宿主 peer 保持不受限制，组件仍然不读取宿主版本来决定安装资格、激活、转换、诊断或回退，结构识别、fail-open 回退与 Provider 证据合同保持原义。

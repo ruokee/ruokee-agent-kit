@@ -49,7 +49,7 @@ The following ADRs own the detailed contracts within this architecture:
 - [Skill language selection](./2026-09-02-select-tk-skill-language.md);
 - [Harness tools integration](./2026-09-02-integrate-tk-tools-with-harnesses.md);
 - [Harness component and custom CLI Skill distribution](./2026-09-03-distribute-custom-cli-skills.md);
-- [documentation and usage patterns](./2026-09-11-align-tk-usage-patterns.md).
+- [documentation and usage patterns](./2026-10-04-share-tk-skill-references.md).
 
 ## Alternatives considered
 

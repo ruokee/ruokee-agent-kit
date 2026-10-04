@@ -2,7 +2,9 @@
 
 Decision owner: Ruokee
 Decision writer: pro-20x/gpt-6-astra
-Reverses: [维护包含远端压缩缓存对齐的 OMP 体验调整](../archived/2026-10-04-align-remote-compaction-cache.zh.md)
+Reverses: [维护包含远端压缩缓存对齐的 OMP 体验调整](./2026-10-04-align-remote-compaction-cache.zh.md)
+Archived: 2026-10-04
+Reversed by: [在独立等待入口上维护 OMP 体验调整](../decision/2026-10-04-use-standalone-qol-wait.zh.md)
 
 [English](./2026-10-04-preserve-speculative-cache.md) | 中文
 
@@ -28,9 +30,9 @@ OMP 18.5.1 中，使用 `session_before_compact` 绑定缓存归属，即使只�
 
 ### 组件与范围
 
-在 [第一方能力边界](./2026-08-20-establish-first-party-capability-kit.md)与[自包含组件合同](./2026-08-24-keep-components-self-contained.md)下新增 `projects/omp-qol/`，包名 `@ruokee/omp-qol`。一个包包含五个可独立开关的模块：持续等待、可续跑模型错误后的续跑、实验性的压缩期限延长、原生历史重放，以及远端压缩缓存对齐。安装、配置入口与检查各只有一处，而每个模块保留自己的开关、可用状态与故障报告。
+在 [第一方能力边界](../decision/2026-08-20-establish-first-party-capability-kit.md)与[自包含组件合同](../decision/2026-08-24-keep-components-self-contained.md)下新增 `projects/omp-qol/`，包名 `@ruokee/omp-qol`。一个包包含五个可独立开关的模块：持续等待、可续跑模型错误后的续跑、实验性的压缩期限延长、原生历史重放，以及远端压缩缓存对齐。安装、配置入口与检查各只有一处，而每个模块保留自己的开关、可用状态与故障报告。
 
-组件只通过 OMP 插件设置配置，遵循[原生设置决定](./2026-09-10-use-codex-web-plugin-settings.md)，取值、项目级覆盖与解析都由 OMP 负责。等待、保守的错误恢复与原生历史重放默认启用，压缩期限延长与缓存调整明确为选择启用。模块报告自己的有效状态与不生效的原因，单个模块的故障不会停用其他模块。被拒绝的设置只写键与规则，不回显取值。
+组件只通过 OMP 插件设置配置，遵循[原生设置决定](../decision/2026-09-10-use-codex-web-plugin-settings.md)，取值、项目级覆盖与解析都由 OMP 负责。等待、保守的错误恢复与原生历史重放默认启用，压缩期限延长与缓存调整明确为选择启用。模块报告自己的有效状态与不生效的原因，单个模块的故障不会停用其他模块。被拒绝的设置只写键与规则，不回显取值。
 
 组件只限于这些行为调整。外部工具守卫（包括 Herdr 守卫）与无关的宿主行为不在其中。安装与迁移仍由用户决定：组件不改动已有扩展、用户配置或宿主安装文件。
 

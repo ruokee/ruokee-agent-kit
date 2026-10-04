@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP
 Archived: 2026-09-30
-Reversed by: [Render the system prompt strategy from a host template](../decision/2026-09-30-render-system-prompt-from-host-template.md)
+Reversed by: [Render the system prompt strategy from a host template](./2026-09-30-render-system-prompt-from-host-template.md)
 Reverses: [Add an OMP system prompt extension](./2026-09-07-add-omp-system-prompt.md)
 
 English | [中文](./2026-09-09-add-omp-system-prompt.zh.md)
@@ -98,4 +98,4 @@ The component also appends user-authored rule documents that match the turn's mo
 
 ### 2026-09-28: Maintenance declaration in the component README
 
-The component's README compatibility section declares its maintenance lower bound under [Adapt first-party host components to host upgrades](../decision/2026-09-28-adapt-components-to-host-upgrades.md). The declaration changes none of the rules above: the host peer stays unrestricted, the component still never reads the host version to decide eligibility, activation, transformation, diagnostics, or fallback, and structural recognition, the fail-open fallback, and the provider evidence contract keep their meaning.
+The component's README compatibility section declares its maintenance lower bound under [Adapt first-party host components to host upgrades](./2026-09-28-adapt-components-to-host-upgrades.md). The declaration changes none of the rules above: the host peer stays unrestricted, the component still never reads the host version to decide eligibility, activation, transformation, diagnostics, or fallback, and structural recognition, the fail-open fallback, and the provider evidence contract keep their meaning.

@@ -1,16 +1,16 @@
-# ADR decision: Maintain OMP quality-of-life adjustments with remote compaction cache alignment
+# ADR decision: Maintain OMP quality-of-life adjustments while preserving speculative compaction
 
 Decision owner: Ruokee
 Decision writer: pro-20x/gpt-6-astra
-Reverses: [Maintain the OMP quality-of-life adjustments across OMP host upgrades](./2026-09-28-maintain-omp-qol.md)
+Reverses: [Maintain OMP quality-of-life adjustments with remote compaction cache alignment](./2026-10-04-align-remote-compaction-cache.md)
 Archived: 2026-10-04
-Reversed by: [Maintain OMP quality-of-life adjustments while preserving speculative compaction](./2026-10-04-preserve-speculative-cache.md)
+Reversed by: [Maintain OMP quality-of-life adjustments on the standalone wait entry](../decision/2026-10-04-use-standalone-qol-wait.md)
 
-English | [中文](./2026-10-04-align-remote-compaction-cache.zh.md)
+English | [中文](./2026-10-04-preserve-speculative-cache.zh.md)
 
 ## Motivation
 
-Maintain `@ruokee/omp-qol` with independently switchable wait, recovery, compaction deadline, native replay, and remote compaction cache adjustments across host upgrades.
+Maintain `@ruokee/omp-qol` across host upgrades with five independently switchable adjustments and cache alignment that preserves native speculative compaction.
 
 The original four adjustments are: a hub `wait` that keeps waiting to a total deadline, a bounded continuation after an eligible model error, an opt-in extension of the remote compaction deadline, and a process-wide wrapper that keeps a resumed process's first request in the provider's native history form. A hub `wait` returns an empty window while the background work it watches is still running, so the model must ask again and each empty return costs a turn. A turn that ends with an upstream error stays settled even when the error is transient, because the native retry budget was exhausted or the error fell outside it. A remote compaction request is cut off at a fixed request deadline, and the compaction falls back instead of finishing. A resumed process otherwise re-encodes the history it replays, and the wrapper keeps that first request in the native replay form. Remote compaction also serializes its input separately from online requests, which can shorten their reusable prompt-cache prefix. Cache alignment reuses a confirmed online prefix without taking over the compaction protocol. Each adjustment selects the implementation a given host needs.
 
@@ -21,6 +21,8 @@ The extensions that can act on these cases sit in a different place from the beh
 A process-wide compaction patch adds a question about ownership: what happens when another session starts inside a process that already installed one. OMP binds the loaded extensions for every session it creates and calls their factory again, either on the module path or on a prepared factory rebound to the new session ([session SDK](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/coding-agent/src/sdk.ts#L505-L518), [extension loader](https://github.com/can1357/oh-my-pi/blob/1c0303b1f2ec515cbf4b44a9a49d68a029531aac/packages/coding-agent/src/extensibility/extensions/loader.ts#L479-L508)), so a subagent session reaches the compaction module's conflict path in a running process. The clause that stops the adjustment whenever an owner is already registered was written for owners that differ in what the patch should do, such as a window from another session or a settings snapshot that no longer applies. A second activation that carries the same package version and the same effective settings does not differ in that way. Under the clause as written, the first subagent session stopped the process patch for the rest of the process's life: settings and status said the experiment was on while the process kept the native five-minute deadline, and no configuration had changed. The same clause left no settled state after the installing session ended, so a later session could not tell a released patch from an installed one it may not drive.
 
 The recovery case also covers failures the marks miss. A transport interruption that ends a turn while a tool call is still streaming is recorded by the host as `stopDetails.type: "stream_interrupted_after_content"` instead of a classified error, and a relay response observed on 2026-09-22 ended a turn with `1012: websocket closed before terminal event (code 1012)`, which the installed `@oh-my-pi/pi-ai` 18.2.4 classifies as `0`. The host's own salvage branches for a stream that closed early, stalled, or reset all require a retriable id, so that error stays outside them as well.
+
+On OMP 18.5.1, a cache ownership hook registered as `session_before_compact` triggers the host's speculation veto even when it only observes the event. The model registry instead supplies explicit model/session identity and receives the native root signal during authentication. Observing that boundary avoids the veto without replacing the native maintenance flow. The component must still reject mismatched snapshots and unknown transport lineage.
 
 This decision defines the first-party `omp-qol` component, the responsibility split it keeps with the host, and the limits its users accept by enabling each adjustment.
 
@@ -81,17 +83,23 @@ The adjustment's measured effect, the host details it depends on, and its limits
 
 Provide an independently switchable cache module using native OMP plugin settings. It is off by default and requires an explicitly selected provider name. The provider selection is user configuration, not a checked-in endpoint, credential, or machine profile. The maintained behavior covers that provider's non-Codex `openai-responses` V2 requests in the owning main session. Other APIs, providers, sessions, and unrecognized request shapes keep native behavior.
 
-The module retains one preceding provider payload in memory and confirms that it reached the actual online transport unchanged. It may reuse tool definitions and a proven shared input prefix, including recognized host envelopes and replay identifier differences, while preserving the compaction-only tail, trigger, opaque data, explicit tool choice, cache key, routing, and model policy. Any unrecognized difference leaves the complete request unchanged. It never invents a second serializer or modifies the provider response or stored history.
+Keep the latest online payload available for future operations only after confirming that it reached its actual transport unchanged with explicit owning-session identity. Each native root keeps its own confirmed reference across authentication and transport retries. New online work can advance without invalidating an already-bound speculative operation; distinct, unambiguously owned roots may coexist. Never graft newer input into an older speculative snapshot.
+
+Reuse tool definitions and a proven shared input prefix only within the whole-request equivalence boundary, including recognized host envelopes and replay identifier differences. Preserve the compaction-only tail, trigger, opaque data, explicit tool choice, cache key, routing, model policy, provider response, and stored history. Any unrecognized difference leaves the complete request unchanged. Do not invent a second serializer.
 
 #### Ownership and lifecycle
 
-Use one process-owned set of wrappers over `fetch`, native signal composition, and the public manual compaction method. An operation belongs to the session identified by the event and its signal lineage, not to a time window. Preserve original signals, reasons, return values, promise identity, native retries, and fallback. Clear manual ownership only when the native operation settles; a failed transport attempt is not the end of that operation.
+Use one process-owned set of transport and native signal-composition wrappers, with a thin wrapper on the owning model registry instance and the resolvers it returns. Bind explicit owning-session and model identity to the resolver's native root signal and follow signal derivation to the final request. Neither time, payload similarity, cache keys, nor routing identifiers establish ownership. Endpoint and native V2 shape checks remain independently required.
 
-A matching later activation keeps the existing owner without installing or driving another wrapper and reports that it is not the owner. Conflicting settings or an unusable activation stop this module's rewriting. Owner shutdown, session navigation, overlapping operations, and overwritten wrappers stop rewriting and report a bounded reason. Restore only functions still owned by this module; no activation takes over a released owner during the same process lifetime.
+Forward native arguments, receivers, credential results, promises, errors, signals, and cancellation reasons unchanged. Do not read credential material, add authentication calls, or take over refresh and rotation. Do not wrap public manual compaction or treat authentication resolution or one transport settlement as operation completion. OMP owns operation lifetime, retries, model and method fallback, speculative result validation, and history commits.
 
-Enabling the module accepts the loss of speculative compaction in its owning session. Turning the setting off takes effect after restarting OMP and avoids registering the hook. `/qol` reports the effective switch, ownership or refusal reason, and rewrite count. No request-body logging, trial environment variables, sampling commands, or special rate-limit abort policy ships with the module.
+Unknown or conflicting identity, missing confirmation, changed context, cancellation, or ambiguous root reuse prevents stale rewriting. A retry cannot acquire a newer reference, and unrelated later work cannot inherit a completed operation's eligibility. Retain references only for the latest online candidate or native resolver/signal lifetimes; keep no unbounded history of completed operations.
 
-When an equivalent maintained native request-preparation interface becomes available, use it instead of the wrappers. The component documentation records the source baseline and the limits of observed cache benefits.
+A matching later activation keeps the existing owner without installing or driving another wrapper and reports that it is not the owner. Conflicting settings or an unusable activation stop this module's rewriting. Owner shutdown, session navigation, and overwritten wrappers stop rewriting with a bounded reason. Restore only still-owned functions, including the registry method's original property shape; no activation takes over a released owner during the same process lifetime. If the required interface cannot be safely observed, keep requests native and report the unavailable adjustment.
+
+Do not register `session_before_compact` for cache alignment, retain it as a fallback, hide another handler, or bypass the host's veto. Enabling cache alignment must preserve native speculative startup, preparation, waiting, and use of valid results. Other extensions, including the separately enabled QoL compaction deadline module, keep their own hooks and may still disable speculation. The cache module changes none of their settings and does not claim that speculation is globally enabled.
+
+`/qol` reports the effective switch, availability, ownership or refusal reason, and rewrite count. No request-body logging, trial environment variables, sampling commands, or special rate-limit abort policy ships with the module. Settings take effect on restart. Use an equivalent maintained native request-preparation interface when one becomes available. Component documentation separates source analysis, actual runtime coverage, and provider cache measurements.
 
 ### Documentation and version evidence
 
@@ -101,8 +109,11 @@ Verified claims stay separate per adjustment. The component README compatibility
 
 ## Alternatives considered
 
+- **Keep compaction-event ownership.** Considered when preserving speculation. Even a read-only handler triggers the native veto, so it cannot meet that requirement.
+- **Use `session.compacting` alone.** Considered during ownership analysis. It identifies a session and messages but carries no root signal, so it cannot attribute concurrent transport requests.
+
 - Keep the accepted local experiment without installing it. Considered when choosing between a trial result and a reusable QoL feature. It avoids adding a maintained host adaptation but does not make the repair available to ordinary projects.
-- Wait for an upstream request-preparation fix. Considered while assessing whether public extension events alone could preserve the online prefix. It avoids process-wide wrappers and the speculative-compaction cost, but leaves the mismatch in the current host. An equivalent maintained native interface should replace the wrappers when available.
+- Wait for an upstream request-preparation fix. Considered while assessing whether public extension events alone could preserve the online prefix. It avoids the host-dependent wrappers, but leaves the mismatch in the current host. An equivalent maintained native interface should replace the wrappers when available.
 
 - **Separate extension packages per adjustment.** Considered while assessing packaging. Independent releases and independent failures are the gain; configuration, compatibility, migration, and checks spread across four installations are the cost, and the four adjustments share one host baseline. One package keeps those entry points together.
 - **A dedicated configuration file with its own parser.** Considered while choosing a configuration source. The required settings fit OMP plugin settings, so a separate parser, precedence rule, and update path would add maintenance without a capability the adjustment needs.
@@ -125,9 +136,9 @@ Verified claims stay separate per adjustment. The component README compatibility
 ## Consequences
 
 - Host changes can alter request envelopes, signal composition, or lifecycle events. A recognized subset may stop matching; an undetected change could reuse the wrong prefix and change model input.
-- Disabling speculative compaction can increase visible waiting time at the compaction threshold, even when the provider gives no cache benefit.
+- A changed resolver, shared registry, or signal-composition path can break attribution. Conservative refusal makes cache alignment unavailable; incorrect attribution could change another operation's input. Another extension can independently keep speculation disabled.
 - Process-wide wrappers can interact with another extension's wrappers. Identity checks and ownership-conditional restoration avoid overwriting another extension but can leave this adjustment inactive until restart.
-- Keeping the preceding request consumes memory proportional to the conversation and tool payload. It remains in process memory only and is released with the reference or owner.
+- Concurrent native operations can retain different conversation and tool payloads. Memory follows the latest reference and native resolver/signal lifetimes rather than a completed-operation history; long-lived native references can retain large payloads. Strict equivalence can skip background requests whose snapshots no longer match and reduce cache benefit.
 
 - One component shares a release, a lockfile, and one check entry point across five adjustments. A host change that breaks one module also stops the component from being installed as a whole, and a single dependency upgrade affects all five.
 - Automated checks cannot establish host behavior. Each adjustment needs its own real-session evidence, and the compaction experiment's benefit stays unproven until a remote compaction longer than the native deadline completes with usable model requests afterwards.

@@ -42,4 +42,8 @@ Codex 和 Claude Code 使用 MCP。Pi 和 OMP 使用原生 extension。Pi 不设
 
 ### 2026-09-28：宿主维护声明独立于 runtime 协议
 
-组件的维护声明遵循[宿主内组件随宿主升级保持适配](./2026-09-28-adapt-components-to-host-upgrades.zh.md)，与上文合同相互独立：runtime 协议及其 `runtime_compat` 校验、CLI、驱动与原生工具合同、组件格式，以及预检失败时注册数为零的边界都保持原义。这里没有改动任何条款或协议。
+组件的维护声明遵循[宿主内组件随宿主升级保持适配](../archived/2026-09-28-adapt-components-to-host-upgrades.zh.md)，与上文合同相互独立：runtime 协议及其 `runtime_compat` 校验、CLI、驱动与原生工具合同、组件格式，以及预检失败时注册数为零的边界都保持原义。这里没有改动任何条款或协议。
+
+### 2026-10-04：OMP 适配器采用共同的 OMP 18.5.0 下限
+
+按照[宿主内组件按共同的 OMP 下限维护](./2026-10-04-raise-omp-host-floor.zh.md)，OMP 适配器的维护下限为 OMP 18.5.0。适配器仍然只声明不受限制的宿主 peer，其声明与验证基线改到新下限。runtime 协议及其 `runtime_compat` 校验、预检校验，以及预检失败时注册数为零的结果不属于宿主维护规则，保持不变。

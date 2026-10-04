@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: pro-20x/gpt-6-astra
 Reverses: [随 OMP 宿主升级维护 OMP 体验调整](./2026-09-28-maintain-omp-qol.zh.md)
 Archived: 2026-10-04
-Reversed by: [维护 OMP 体验调整并保留投机压缩](../decision/2026-10-04-preserve-speculative-cache.zh.md)
+Reversed by: [维护 OMP 体验调整并保留投机压缩](./2026-10-04-preserve-speculative-cache.zh.md)
 
 [English](./2026-10-04-align-remote-compaction-cache.md) | 中文
 
@@ -97,7 +97,7 @@ Reversed by: [维护 OMP 体验调整并保留投机压缩](../decision/2026-10-
 
 在组件自身的 `docs/` 中提供中英文对照的逐项说明，并由两个 README 相互链接：原生行为与关闭扩展时的表现；为什么需要调整、核对过哪些原生配置或 hook；介入位置以及配置如何影响行为；副作用、取消与失败行为；何种上游变化会使该调整不再必要；源码基线所用的 OMP 版本与提交；自动检查与真实 OMP CLI 运行各自验证过的版本；适用条件与边界。
 
-已核实的结论按调整项分开记录。组件 README 的兼容性小节声明维护下限，该小节是这一下限的权威说明，且不设维护上限：低于下限的宿主不会被阻止，也不因此获得维护承诺；提高下限按[宿主升级决定](../decision/2026-09-28-adapt-components-to-host-upgrades.zh.md)作为独立决定处理。宿主 peer 以不带版本范围的形式列出组件导入的宿主包，不构成安装或激活条件，也不是维护范围。包级 peer 范围是关于宿主 API 的元数据，不是对任何调整项的验证；阅读源码也不等于运行。没有真实会话运行的项目记为未验证。
+已核实的结论按调整项分开记录。组件 README 的兼容性小节声明维护下限，该小节是这一下限的权威说明，且不设维护上限：低于下限的宿主不会被阻止，也不因此获得维护承诺；提高下限按[宿主升级决定](./2026-09-28-adapt-components-to-host-upgrades.zh.md)作为独立决定处理。宿主 peer 以不带版本范围的形式列出组件导入的宿主包，不构成安装或激活条件，也不是维护范围。包级 peer 范围是关于宿主 API 的元数据，不是对任何调整项的验证；阅读源码也不等于运行。没有真实会话运行的项目记为未验证。
 
 ## 考虑过的替代方案
 

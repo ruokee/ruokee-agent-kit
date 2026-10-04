@@ -1,10 +1,10 @@
-# ADR decision: Align tk usage patterns
+# ADR decision: Align tk usage patterns with shared Skill reference sources
 
 Decision owner: Ruokee
-Decision writer: OMP anyrouter/gpt-6-astra
-Reverses: [Maintain tk documentation](../archived/2026-08-29-maintain-tk-documentation.md)
+Decision writer: OMP Claude Opus 5.5
+Reverses: [Align tk usage patterns](../archived/2026-09-11-align-tk-usage-patterns.md)
 
-English | [中文](./2026-09-11-align-tk-usage-patterns.zh.md)
+English | [中文](./2026-10-04-share-tk-skill-references.zh.md)
 
 ## Motivation
 
@@ -12,11 +12,15 @@ Define tk's four built-in usage patterns and the ownership and bilingual consist
 
 One shared protocol lets an Agent and a user reach the same understanding of what a pattern adds, what it requires, and which page owns which contract.
 
-The [Skill pattern reference](../../../projects/tk/skills/shared/en/patterns.md) and the [Skill design](../../../projects/tk/docs/design/skill.md) state the four patterns. The rules of the [archived documentation decision](../archived/2026-08-29-maintain-tk-documentation.md) that govern the public documentation set and its maintenance still apply.
+Each tk Skill reference that is identical across the tools and CLI Skills of one language keeps one source file, and the build copies it into every Skill of that language. The tools Skill and the CLI Skill of each language carry six references with byte-identical content: `catchup.md`, `patterns.md`, `project-storage.md`, `subtask.md`, `task-concept.md`, and `wal.md`. Keeping a complete copy in each of the four Skill source directories means 24 file copies of 12 distinct texts, six English and six Chinese. An edit then has to be repeated in both Skill trees of a language, and a change that reaches only one tree leaves the tools and CLI Skills telling the Agent different rules.
+
+The [Skill pattern reference](../../../projects/tk/skills/shared/en/patterns.md) and the [Skill design](../../../projects/tk/docs/design/skill.md) state the four patterns.
 
 ## Analysis
 
 The [archived documentation decision](../archived/2026-08-29-maintain-tk-documentation.md) fixes the Chinese form of `scratchpad` as `临时记事区`, which conflicts with `草稿纸` as the pattern's Chinese name.
+
+The [predecessor decision](../archived/2026-09-11-align-tk-usage-patterns.md) required each of the four Skill trees to keep its own complete pattern reference. A shared reference with one source per language cannot satisfy that clause, so this decision replaces it and carries the predecessor's other rules unchanged.
 
 ## Decision
 
@@ -72,7 +76,11 @@ Allow arbitrary files and subdirectories under `scratchpad/`, without a mandator
 
 ### Skill and contract ownership
 
-The four authoritative Skill trees are [tk](../../../projects/tk/skills/tk/SKILL.md), [tk-zh](../../../projects/tk/skills/tk-zh/SKILL.md), [tk-cli](../../../projects/tk/skills/tk-cli/SKILL.md), and [tk-cli-zh](../../../projects/tk/skills/tk-cli-zh/SKILL.md). Each is self-contained and keeps its own complete pattern reference. Tools and CLI references in the same language have identical content; English and Chinese have equivalent meaning. Skill files retain references within their own component.
+The four Skill source directories are [tk](../../../projects/tk/skills/tk/SKILL.md), [tk-zh](../../../projects/tk/skills/tk-zh/SKILL.md), [tk-cli](../../../projects/tk/skills/tk-cli/SKILL.md), and [tk-cli-zh](../../../projects/tk/skills/tk-cli-zh/SKILL.md). Together with `projects/tk/skills/shared/en/` and `projects/tk/skills/shared/zh/`, they are the authoritative Skill sources. The six shared references live once per language in the shared directory. Each Skill source directory keeps `SKILL.md`, its mode-specific references, and any Agent metadata. Tools and CLI references in the same language have identical content; English and Chinese have equivalent meaning.
+
+The tk build copies each shared reference of a language into the `references/` directory of every Skill in that language when it assembles the distributed payloads. A shared file and a Skill-specific file at the same assembled path stop the build. `SKILL.md` links to `./references/<file>.md`, the installed path, so these links resolve in the assembled payload and in every installed Skill; in the source tree, a link to a shared reference does not resolve inside the Skill directory. The build rejects a payload Markdown link whose target is missing.
+
+Self-containment applies to the assembled and installed Skills under the [self-contained component decision](./2026-08-24-keep-components-self-contained.md). Each installed Skill references only files inside itself and carries every shared reference of its language, and the sources stay inside the tk component directory `projects/tk/`.
 
 The [Skill design](../../../projects/tk/docs/design/skill.md) owns the Agent behavior contract. The [glossary](../../../projects/tk/docs/design/GLOSSARY.md) owns the four names and their meanings. The [documentation design](../../../projects/tk/docs/design/documentation.md) owns translation maintenance, and [validation](../../../projects/tk/docs/design/validation.md) owns observable acceptance. These contracts, their language counterparts, and the Skill references change together.
 
@@ -139,11 +147,15 @@ The authoritative maintenance details live in the [documentation design](../../.
 
 **Build a tk-specific bilingual structure checker.** Structural similarity cannot prove semantic equivalence or natural Chinese. Existing checks plus direct review are sufficient until a repeated mechanical failure identifies a useful rule.
 
+**Keep a complete copy of every shared reference in each Skill source directory.** Each source directory then resolves its own links, but every shared edit stays duplicated across two trees per language, and drift between the tools and CLI Skills is caught only by review.
+
 ## Consequences
 
 Readers can enter through a guide, design topic, Skill, or ADR and follow relative links to the owning contract. Each normative detail has one main maintenance location.
 
-Four self-contained Skill references and bilingual public contracts describe the same patterns. Keeping them aligned requires maintaining four Skill trees and both languages together; a change that reaches only some files can leave the rules inconsistent, so an Agent may follow different adoption or maintenance rules from those users read.
+Shared Skill references and bilingual public contracts describe the same patterns. A shared reference has one source per language, so the tools and CLI Skills of that language cannot differ in those files. Keeping the Skill references, the four `SKILL.md` files, and both languages aligned still requires maintaining them together; a change that reaches only some files can leave the rules inconsistent, so an Agent may follow different adoption or maintenance rules from those users read.
+
+A reader or Agent browsing a Skill source directory follows a `./references/` link to a shared file and finds nothing, because the file exists there only after assembly. Someone who edits the source tree without reading the [Skill design](../../../projects/tk/docs/design/skill.md) may recreate a local copy and reintroduce a duplicate source; the build stops on the path collision, but only after the copy is written.
 
 Every product change carries bilingual documentation work. Manual review remains necessary because formatting checks, link checks, and Rust tests cannot establish semantic equivalence, writing quality, or Agent behavior; scenario validation exercises the four patterns through each of the four Skills.
 
