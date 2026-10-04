@@ -108,7 +108,7 @@ Plugins, extensions, executables, and Harness packages keep the layout their Har
 
 Ordinary public documentation uses same-directory `name.md` and `name.zh.md` pairs. Repository and component entry pages use `README.md` and `README.zh.md`.
 
-Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/README.md).
+Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/README.md). Bilingual [specifications](./.agents/spec/README.md) state the current target of each component and repository area, linking to the decisions and documents that own the details.
 
 ### Component host maintenance
 
@@ -148,7 +148,7 @@ The [selector](./scripts/check-changed.mjs) maintains an explicit mapping:
 
 | Changed scope | Selected checks |
 | --- | --- |
-| Known explanatory Markdown, including ADRs, root READMEs, Skills, and component documentation | Prettier for changed files that still exist, using the repository configuration and ignore rules |
+| Known explanatory Markdown, including ADRs, specifications, root READMEs, Skills, and component documentation | Prettier for changed files that still exist, using the repository configuration and ignore rules |
 | Registered OMP component non-Markdown files, or Markdown under its `src/` or `test/` | That component's `typecheck` and `test`, plus changed Markdown formatting |
 | tk non-Markdown files, or Markdown in its `skills/`, `claude/`, `pi/`, or `omp/` packaging trees | Rust formatting and tests, native adapter tests, and changed Markdown formatting |
 | [docs/installation.md](./docs/installation.md), its Chinese counterpart, or the Skill installation and lifecycle scripts | Skill lifecycle tests, plus changed Markdown formatting |

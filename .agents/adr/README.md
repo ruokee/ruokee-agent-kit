@@ -4,6 +4,8 @@ English | [中文](./README.zh.md) | [Glossary](./glossary.md)
 
 An **ADR** records the rationale and contract of a durable repository decision. ADRs are not progress logs, release notes, temporary plans, or summaries of routine changes.
 
+The current target state of each component and repository area is stated in [specifications](../spec/README.md) under `.agents/spec/`. A spec links to the decisions behind it and must not conflict with a current decision.
+
 ## When to use an ADR
 
 Search existing proposals and current decisions before planning a requirement. Determine whether the requirement adds an unrelated capability, extends a current decision without conflict, or conflicts with a current decision.

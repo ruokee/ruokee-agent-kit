@@ -38,6 +38,7 @@ Keep this file focused on repository knowledge that cannot be inferred from the 
 - Use `ADR` as the repository term for an architecture decision record. This repository uses `.agents/adr` as its ADR root.
 - Search existing proposals and current decisions before planning a requirement.
 - Read [the ADR rules](./.agents/adr/README.md) and [glossary](./.agents/adr/glossary.md) before proposing or changing a durable architecture, contract, format, or repository-process decision.
+- Specifications in `.agents/spec/` state the current target of each component and repository area; ADRs record the decisions behind them. Read [the spec rules](./.agents/spec/README.md) and the affected specs before changing a component's or repository area's goals, boundaries, or acceptance, and update them in the same change.
 - Do not invent alternatives or risks to fill required sections; write `None` or `无` when nothing qualifies.
 - Keep each English ADR and its Chinese counterpart semantically aligned in the same change.
 - Update non-conflicting content under `Changes`. For a conflicting choice, merge a proposal first and create a complete decision that reverses the old one.

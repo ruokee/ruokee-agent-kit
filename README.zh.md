@@ -108,7 +108,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 
 普通公开文档采用同目录的 `name.md` 和 `name.zh.md` 配对。仓库和组件入口页使用 `README.md` 和 `README.zh.md`。
 
-长期仓库决定通过双语 [ADRs](./.agents/adr/README.zh.md) 记录。
+长期仓库决定通过双语 [ADRs](./.agents/adr/README.zh.md) 记录。双语[规格](./.agents/spec/README.zh.md)说明每个组件和仓库领域的当前目标，并链接到拥有细节的决定和文档。
 
 ### 组件宿主维护
 
@@ -148,7 +148,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 
 | 变更范围 | 选中检查 |
 | --- | --- |
-| 已知说明性 Markdown，包括 ADR、根 README、Skill 和组件文档 | 对仍存在的变更文件运行 Prettier，保留仓库配置和忽略规则 |
+| 已知说明性 Markdown，包括 ADR、规格、根 README、Skill 和组件文档 | 对仍存在的变更文件运行 Prettier，保留仓库配置和忽略规则 |
 | 已登记 OMP 组件的非 Markdown 文件，或其 `src/`、`test/` 下的 Markdown | 该组件的 `typecheck`、`test`，以及变更 Markdown 格式检查 |
 | tk 非 Markdown 文件，或其 `skills/`、`claude/`、`pi/`、`omp/` 打包树中的 Markdown | Rust 格式与测试、原生适配器测试，以及变更 Markdown 格式检查 |
 | [docs/installation.md](./docs/installation.md)、对应中文版，或 Skill 安装与生命周期脚本 | Skill 生命周期测试，以及变更 Markdown 格式检查 |

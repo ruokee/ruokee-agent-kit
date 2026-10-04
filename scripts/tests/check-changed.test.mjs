@@ -116,6 +116,7 @@ test("only registered explanatory Markdown is formatting-only", () => {
     "README.zh.md",
     "AGENTS.md",
     ".agents/adr/proposal/example.md",
+    ".agents/spec/example.md",
     "docs/usage.md",
     "skills/example/SKILL.md",
     "variants/zh/skills/example/SKILL.md",
