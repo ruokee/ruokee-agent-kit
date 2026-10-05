@@ -78,6 +78,7 @@ Settings are read once per activation. Restart OMP after a change: a running pro
 | --- | --- | --- | --- |
 | `compactionCacheEnabled` | `false` | boolean | Enable the process-owned cache adjustment for the main session without registering a speculation-vetoing hook. |
 | `compactionCacheProvider` | `""` | string | Exact configured provider name. Empty keeps the module inactive; only `openai-responses` V2 requests can match. |
+| `compactionCacheMode` | `"hooks"` | `standard`, `hooks` | `standard` retains the recognized host repairs; `hooks` also reuses a proved completed host context projection, including insertion, reordering, and restored context. Neither mode enables the module. |
 
 To enable it for a configured provider, replace `your-provider` with its name:
 
@@ -87,6 +88,8 @@ omp plugin config set @ruokee/omp-qol compactionCacheEnabled true
 ```
 
 Restart OMP with a model from that provider. `/qol` must show `cache: enabled`; `rewrites=0` means no eligible request has been rewritten yet, not that a provider cache hit occurred. Turn the setting off and restart to remove the hooks and wrappers. A stopped owner does not recover within the same process.
+
+The default `hooks` mode observes the owning session's context result without invoking handlers again or depending on a companion extension. With no relevant handler, it performs the common repair. `standard` leaves unknown hook differences native. To select it, set `compactionCacheMode` to `standard` and restart. Both modes require unchanged transport confirmation and complete request validation; an unknown projection or request difference leaves every byte native. `/qol` shows the effective `mode`.
 
 ### Validation
 
@@ -100,7 +103,7 @@ Restart OMP with a model from that provider. `/qol` must show `cache: enabled`; 
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.5.2
+@ruokee/omp-qol 0.5.3
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -108,7 +111,7 @@ wait: enabled (entry=wait effectiveDefaultSeconds=1200 messageContinuation=not-a
 recovery: enabled — enabled=true mode=knownTransient maxAttempts=8 backoffBaseMs=1000 backoffMaxMs=8000 notify=true
 compaction: disabled (compaction-disabled) — enabled=false timeoutMs=900000 floorMs=300000 windowGuardMs=3600000 notify=true
 replay: enabled (rewrites=0) — enabled=true
-cache: disabled (cache-disabled) enabled=false providerSelected=false
+cache: disabled (cache-disabled) enabled=false providerSelected=false mode=hooks
 ```
 
 `pending` means no session has started in this process. `disabled`, `invalid`, `incompatible`, and `unavailable` each carry a reason code, and `problems:` lists the rejected keys when the settings object was accepted only in part. A rejected settings object replaces every module line with the reason and ends the report with the keys that rejected it.

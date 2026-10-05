@@ -47,7 +47,7 @@ import {
 import { installWaitModule } from "./wait.ts";
 
 export const PACKAGE_NAME = "@ruokee/omp-qol";
-export const PACKAGE_VERSION = "0.5.2";
+export const PACKAGE_VERSION = "0.5.3";
 export const COMMAND_NAME = "qol";
 
 let activationSequence = 0;
@@ -164,7 +164,7 @@ function describeModule(id: ModuleId, state: ModuleState, settings: QolSettings 
     return `${head} — enabled=${replay.enabled}`;
   }
   if (id === "cache")
-    return `${head} enabled=${settings.cache.enabled} providerSelected=${settings.cache.provider.length > 0}`;
+    return `${head} enabled=${settings.cache.enabled} providerSelected=${settings.cache.provider.length > 0} mode=${settings.cache.mode}`;
   const compaction = settings.compaction;
   const floorNote =
     compaction.floorMs > NATIVE_COMPACTION_TIMEOUT_MS

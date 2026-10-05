@@ -161,3 +161,22 @@ export function alignCompaction(live: JsonObject, request: JsonObject, cwd: stri
     appendedItems: request.input.length - live.input.length - 1,
   };
 }
+
+/** Prove the raw history boundary before splicing its completed host projection. */
+export function alignProjectedCompaction(
+  live: JsonObject,
+  request: JsonObject,
+  projection: { raw: unknown[]; result: unknown[] },
+  cwd: string,
+): Alignment {
+  const raw = alignCompaction({ ...request, input: projection.raw }, request, cwd);
+  if (!raw.ok) return { ok: false, reason: "raw-prefix-unproven" };
+  return alignCompaction(
+    live,
+    {
+      ...request,
+      input: [...projection.result, ...request.input.slice(projection.raw.length)],
+    },
+    cwd,
+  );
+}

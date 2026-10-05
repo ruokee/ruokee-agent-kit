@@ -1,12 +1,33 @@
+import { isDeepStrictEqual } from "node:util";
+import type { ApiKeyResolver } from "@oh-my-pi/pi-ai";
+import type { Model } from "@oh-my-pi/pi-ai/types";
 import type { ExtensionContext } from "@oh-my-pi/pi-coding-agent";
-import { alignCompaction, digest, isObject, signalOwners, type JsonObject } from "./compaction-cache-core.ts";
+import { AgentRegistry } from "@oh-my-pi/pi-coding-agent/registry/agent-registry";
+import { convertToLlm } from "@oh-my-pi/pi-coding-agent/session/messages";
+import { buildResponsesInput } from "@oh-my-pi/pi-ai/providers/openai-shared";
+import {
+  alignCompaction,
+  alignProjectedCompaction,
+  digest,
+  isObject,
+  signalOwners,
+  type JsonObject,
+} from "./compaction-cache-core.ts";
 import { PACKAGE_VERSION, type ModuleContext, type ModuleState } from "./extension.ts";
+import type { CompactionCacheMode } from "./settings.ts";
+
+type Messages = Parameters<typeof convertToLlm>[0];
+interface Projection {
+  raw: Messages;
+  result: Messages;
+}
 
 interface Reference {
   body: JsonObject;
   hash: string;
   state: string;
   sent: boolean;
+  projection?: { raw: unknown[]; result: unknown[] };
 }
 interface Operation {
   reference?: Reference;
@@ -15,12 +36,14 @@ interface Operation {
   generation: number;
   valid: boolean;
   online: boolean;
+  projection?: Projection;
 }
 interface CacheRegistry {
   schema: 1;
   runtimeId: string;
   version: string;
   provider: string;
+  mode: CompactionCacheMode;
   reason?: string;
   rewrites: number;
   lastSkip?: string;
@@ -72,7 +95,12 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
   const existing = registry();
   if (slots[SLOT] !== undefined && !existing) return { status: "incompatible", reason: "registry-unrecognized" };
   if (existing) {
-    if (disabled || existing.provider !== settings.provider || existing.version !== PACKAGE_VERSION) {
+    if (
+      disabled ||
+      existing.provider !== settings.provider ||
+      existing.mode !== settings.mode ||
+      existing.version !== PACKAGE_VERSION
+    ) {
       existing.stop(disabled ?? "runtime-conflict");
     }
     if (!existing.reason && !existing.owned()) existing.stop("patch-overwritten");
@@ -108,6 +136,21 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
   if (descriptor && (!("value" in descriptor) || !descriptor.writable))
     return { status: "incompatible", reason: "host-interface" };
   if (!descriptor && !Object.isExtensible(modelRegistry)) return { status: "incompatible", reason: "host-interface" };
+  const hostSession = settings.mode === "hooks" ? AgentRegistry.global().get(ctx.agent.id)?.session : undefined;
+  const runner = hostSession?.extensionRunner;
+  if (settings.mode === "hooks" && (!runner || hostSession?.sessionManager !== ctx.sessionManager))
+    return { status: "incompatible", reason: "context-interface" };
+  const baseContext = runner?.emitContext;
+  const contextDescriptor = runner ? Object.getOwnPropertyDescriptor(runner, "emitContext") : undefined;
+  if (
+    runner &&
+    (typeof baseContext !== "function" ||
+      (contextDescriptor
+        ? !("value" in contextDescriptor) || !contextDescriptor.writable
+        : !Object.isExtensible(runner)))
+  )
+    return { status: "incompatible", reason: "context-interface" };
+  let projections = new WeakMap<AbortSignal, Projection>();
   const lineage = signalOwners<Operation>(baseAny);
   const state = (current: ExtensionContext): string =>
     digest({
@@ -122,6 +165,67 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
     isMain(current) &&
     current.sessionManager === ctx.sessionManager &&
     current.sessionManager.getSessionId() === session;
+  const ownRunner = (): boolean =>
+    !runner ||
+    (AgentRegistry.global().get(ctx.agent.id)?.session === hostSession && hostSession?.extensionRunner === runner);
+  const wrappedContext: typeof baseContext =
+    baseContext &&
+    function (this: typeof runner, messages, signal) {
+      let observation: { raw: Messages; state: string; generation: number } | undefined;
+      try {
+        if (!owner.reason && !owner.owned()) owner.stop("patch-overwritten");
+        if (
+          !owner.reason &&
+          this === runner &&
+          ownRunner() &&
+          ownSession(context) &&
+          supported(context) &&
+          signal &&
+          !signal.aborted
+        )
+          observation = { raw: structuredClone(messages), state: state(context), generation };
+      } catch {
+        owner.lastSkip = "projection-unavailable";
+      }
+      // Preserve the host promise and its rejection; observation has no handler side effects.
+      const result = Reflect.apply(baseContext, this, [messages, signal]) as Promise<Messages>;
+      if (observation && signal) {
+        const saved = observation;
+        void result.then(
+          (completed) => {
+            try {
+              if (
+                !owner.reason &&
+                owner.owned() &&
+                !signal.aborted &&
+                saved.generation === generation &&
+                saved.state === state(context)
+              )
+                projections.set(signal, {
+                  raw: saved.raw,
+                  result: isDeepStrictEqual(saved.raw, completed) ? saved.raw : structuredClone(completed),
+                });
+            } catch {
+              owner.lastSkip = "projection-unavailable";
+            }
+          },
+          () => {},
+        );
+      }
+      return result;
+    };
+  const encode = (messages: Messages): unknown[] => {
+    const model = context.model as Model<"openai-responses">;
+    return buildResponsesInput({
+      model,
+      context: { messages: convertToLlm(messages) },
+      nativeHistory: { replay: true, filterReasoning: false },
+      strictResponsesPairing: model.compat.strictResponsesPairing,
+      supportsImageDetailOriginal: model.compat.supportsImageDetailOriginal,
+      includeThinkingSignatures: true,
+      repairOrphanOutputs: true,
+    });
+  };
   // Payload contexts can override model for an auxiliary request; keep the live owner getter.
   const matchesModel = (target: unknown): boolean =>
     isObject(target) &&
@@ -133,7 +237,7 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
 
   const wrappedResolver: typeof baseResolver = function (this: typeof modelRegistry, ...args: unknown[]) {
     // Delegate outside inspection: credential errors and promise identity belong to the host.
-    const resolve = Reflect.apply(baseResolver, this, args) as ReturnType<typeof baseResolver>;
+    const resolve = Reflect.apply(baseResolver, this, args) as ApiKeyResolver;
     if (typeof resolve !== "function") return resolve;
     let snapshot: { reference?: Reference; state: string; generation: number } | undefined;
     try {
@@ -173,7 +277,8 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
             if (known) known.valid = false;
             lineage.bind(root, null);
           } else if (known === undefined) {
-            lineage.bind(root, { ...snapshot, root, valid: true, online: false });
+            lineage.bind(root, { ...snapshot, root, valid: true, online: false, projection: projections.get(root) });
+            projections.delete(root);
           } else if (
             known &&
             (known.root !== root || known.state !== snapshot.state || known.generation !== generation)
@@ -231,8 +336,29 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
                     pending.state === currentState &&
                     pending.hash === digest(body).sha256
                   ) {
-                    pending.sent = true;
-                    reference = pending;
+                    if (settings.mode === "hooks") {
+                      if (!op.projection) owner.lastSkip = "projection-unavailable";
+                      else {
+                        const raw = encode(op.projection.raw);
+                        const result = op.projection.raw === op.projection.result ? raw : encode(op.projection.result);
+                        const confirmed =
+                          Array.isArray(body.input) &&
+                          body.input.length === result.length &&
+                          alignCompaction(body, { ...body, input: [...result, { type: "compaction_trigger" }] }, cwd)
+                            .ok;
+                        if (!confirmed) owner.lastSkip = "projection-unconfirmed";
+                        else {
+                          pending.projection = { raw, result };
+                          pending.sent = true;
+                          reference = pending;
+                          owner.lastSkip = undefined;
+                        }
+                      }
+                      op.projection = undefined;
+                    } else {
+                      pending.sent = true;
+                      reference = pending;
+                    }
                     pending = undefined;
                   }
                 }
@@ -246,7 +372,12 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
                       : undefined;
                 if (reason) owner.lastSkip = reason;
                 else if (op?.reference) {
-                  const alignment = alignCompaction(op.reference.body, body, cwd);
+                  const alignment =
+                    settings.mode === "hooks"
+                      ? op.reference.projection
+                        ? alignProjectedCompaction(op.reference.body, body, op.reference.projection, cwd)
+                        : { ok: false as const, reason: "projection-unavailable" }
+                      : alignCompaction(op.reference.body, body, cwd);
                   if (!alignment.ok) {
                     // Dynamic field names can contain private data; expose only the category.
                     owner.lastSkip = alignment.reason.split(":", 1)[0];
@@ -277,12 +408,15 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
     runtimeId,
     version: PACKAGE_VERSION,
     provider: settings.provider,
+    mode: settings.mode,
     rewrites: 0,
     owned: () =>
       slots[SLOT] === owner &&
       globalThis.fetch === wrappedFetch &&
       AbortSignal.any === lineage.any &&
-      modelRegistry.resolver === wrappedResolver,
+      modelRegistry.resolver === wrappedResolver &&
+      ownRunner() &&
+      (!runner || runner.emitContext === wrappedContext),
     stop(reason) {
       if (owner.reason) return;
       owner.reason = reason;
@@ -290,6 +424,11 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
       pending = undefined;
       generation += 1;
       lineage.clear();
+      projections = new WeakMap();
+      if (runner && runner.emitContext === wrappedContext) {
+        if (contextDescriptor) Object.defineProperty(runner, "emitContext", contextDescriptor);
+        else Reflect.deleteProperty(runner, "emitContext");
+      }
       if (globalThis.fetch === wrappedFetch) globalThis.fetch = baseFetch;
       if (AbortSignal.any === lineage.any) AbortSignal.any = baseAny;
       if (modelRegistry.resolver === wrappedResolver) {
@@ -323,6 +462,8 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
         reference = undefined;
         generation += 1;
       }
+      // Old roots retain their snapshot; future roots require this online request's proof.
+      if (settings.mode === "hooks") reference = undefined;
       pending = { body, hash: digest(body).sha256, state: currentState, sent: false };
     } catch {
       owner.lastSkip = "reference-unavailable";
@@ -332,6 +473,7 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
     generation += 1;
     pending = undefined;
     reference = undefined;
+    projections = new WeakMap();
   });
   const stopForNavigation = (): void => owner.stop("session-navigation");
   pi.on("session_before_switch", stopForNavigation);
@@ -350,6 +492,14 @@ export function installCompactionCacheModule(module: ModuleContext): ModuleState
         ? { ...descriptor, value: wrappedResolver }
         : { value: wrappedResolver, writable: true, configurable: true },
     );
+    if (runner)
+      Object.defineProperty(
+        runner,
+        "emitContext",
+        contextDescriptor
+          ? { ...contextDescriptor, value: wrappedContext }
+          : { value: wrappedContext, writable: true, configurable: true },
+      );
     if (!owner.owned()) owner.stop("install-failed");
   } catch {
     owner.stop("install-failed");

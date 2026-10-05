@@ -44,7 +44,11 @@ function setup() {
     captures.push(JSON.parse(init.body as string));
     return Promise.resolve(new Response("synthetic"));
   }) as typeof fetch;
-  const settings = parseQolSettings({ compactionCacheEnabled: true, compactionCacheProvider: "synthetic" });
+  const settings = parseQolSettings({
+    compactionCacheEnabled: true,
+    compactionCacheProvider: "synthetic",
+    compactionCacheMode: "standard",
+  });
   if (settings.kind !== "loaded") throw new Error("Invalid test settings");
   const installed = installCompactionCacheModule(moduleContext({ pi: harness.pi, ctx, settings: settings.settings }));
   expect(installed.status).toBe("enabled");

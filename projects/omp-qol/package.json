@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "OMP adjustments for wait deadlines, model-error recovery, native-history replay, compaction deadlines, and remote compaction cache alignment",
   "license": "MIT",
   "type": "module",
@@ -135,6 +135,15 @@
         "type": "string",
         "default": "",
         "description": "Exact provider name eligible for compaction cache alignment. Empty keeps the module inactive."
+      },
+      "compactionCacheMode": {
+        "type": "enum",
+        "values": [
+          "standard",
+          "hooks"
+        ],
+        "default": "hooks",
+        "description": "Context processing for cache alignment: standard recognizes existing host differences; hooks also reuses a proved completed host context projection. Restart to apply."
       },
       "replayEnabled": {
         "type": "boolean",

@@ -70,6 +70,9 @@ describe("rejected values", () => {
     ["a non-boolean cache switch", { compactionCacheEnabled: "on" }, "compactionCacheEnabled=type"],
     ["a non-string cache provider", { compactionCacheProvider: 7 }, "compactionCacheProvider=type"],
     ["a null cache provider", { compactionCacheProvider: null }, "compactionCacheProvider=null"],
+    ["an unknown cache mode", { compactionCacheMode: "unknown" }, "compactionCacheMode=enum"],
+    ["a non-string cache mode", { compactionCacheMode: 7 }, "compactionCacheMode=type"],
+    ["a null cache mode", { compactionCacheMode: null }, "compactionCacheMode=null"],
   ];
 
   for (const [label, raw, expected] of cases) {

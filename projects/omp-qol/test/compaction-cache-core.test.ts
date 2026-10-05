@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { alignCompaction, signalOwners } from "../src/compaction-cache-core.ts";
+import { alignCompaction, alignProjectedCompaction, signalOwners } from "../src/compaction-cache-core.ts";
 
 const cwd = "/synthetic/repository";
 const reminder = {
@@ -121,6 +121,55 @@ describe("checked request alignment", () => {
     compact.input[0].encrypted_content = "different-opaque";
     expect(alignCompaction(online, compact, cwd).ok).toBe(false);
   });
+});
+
+test("proved insertion and reordering preserve opaque history and new tool results", () => {
+  const { online, compact } = pair(true);
+  const raw = structuredClone(online.input);
+  const inserted = { role: "user", content: [{ type: "input_text", text: "arbitrary restored context" }] };
+  const projected = [raw[0], inserted, raw[2], raw[3], raw[1]];
+  const live = { ...online, input: projected };
+  const tail = [
+    { type: "function_call", call_id: "new_call", name: "read", arguments: "{}" },
+    { type: "function_call_output", call_id: "new_call", output: "new real output" },
+    { type: "compaction_trigger" },
+  ];
+  compact.input.splice(raw.length, compact.input.length - raw.length, ...tail);
+  const original = structuredClone(compact);
+  expect(alignCompaction(live, compact, cwd).ok).toBe(false);
+  const result = alignProjectedCompaction(live, compact, { raw, result: projected }, cwd);
+  if (!result.ok) throw new Error(result.reason);
+  expect(result.body.input).toEqual([...projected, ...tail]);
+  expect(result.body.tools).toEqual(online.tools);
+  expect(result.body.prompt_cache_key).toBe(online.prompt_cache_key);
+  expect(compact).toEqual(original);
+});
+
+test("unproved raw history or changed complete request cannot be partially repaired", () => {
+  for (const mutate of [
+    (body: any) => {
+      body.input[2].output = "unproved result";
+    },
+    (body: any) => {
+      body.input[0].encrypted_content = "other opaque";
+    },
+    (body: any) => {
+      body.routing = "unknown policy";
+    },
+    (body: any) => {
+      body.tool_choice = "required";
+    },
+  ]) {
+    const { online, compact } = pair(true);
+    const raw = structuredClone(online.input);
+    const projected = [raw[0], { role: "user", content: [{ type: "input_text", text: "hook" }] }, ...raw.slice(1)];
+    mutate(compact);
+    const original = structuredClone(compact);
+    expect(alignProjectedCompaction({ ...online, input: projected }, compact, { raw, result: projected }, cwd).ok).toBe(
+      false,
+    );
+    expect(compact).toEqual(original);
+  }
 });
 
 test("signal ownership survives nesting and cancellation but not conflict", () => {

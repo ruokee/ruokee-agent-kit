@@ -78,6 +78,7 @@ omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 | --- | --- | --- | --- |
 | `compactionCacheEnabled` | `false` | boolean | 为主会话启用进程归属的缓存调整，不注册会否决投机压缩的钩子。 |
 | `compactionCacheProvider` | `""` | string | 已配置提供方的准确名称。空值保持模块不生效；只有 `openai-responses` V2 请求可以匹配。 |
+| `compactionCacheMode` | `"hooks"` | `standard`、`hooks` | `standard` 保留已识别的宿主修复；`hooks` 还复用经过证明的宿主钩子处理结果，支持插入、重排和恢复上下文。两种模式均不自动开启模块。 |
 
 为已配置的提供方启用时，把 `your-provider` 替换为其名称：
 
@@ -87,6 +88,8 @@ omp plugin config set @ruokee/omp-qol compactionCacheEnabled true
 ```
 
 选择该提供方的模型并重启 OMP。`/qol` 应显示 `cache: enabled`；`rewrites=0` 只表示尚未改写符合条件的请求，不代表提供方已经命中缓存。关闭设置并重启可移除 hook 与包装。停止的 owner 不会在同一进程内恢复。
+
+默认 `hooks` 模式观察所属会话的上下文处理结果，不重复调用处理器，也不依赖配套扩展。没有相关处理器时执行通用修复。`standard` 对未知钩子差异保持原生请求；选择该模式时，将 `compactionCacheMode` 设为 `standard` 并重启。两种模式都要求传输原样确认及整条请求校验。投影或请求差异无法确认时，完整请求保持原样。`/qol` 显示有效 `mode`。
 
 ### 校验
 
@@ -100,7 +103,7 @@ omp plugin config set @ruokee/omp-qol compactionCacheEnabled true
 `/qol` 打印当前状态，不做任何修改。它不启动模型轮次，也不读取设置 schema 之外的值。
 
 ```
-@ruokee/omp-qol 0.5.2
+@ruokee/omp-qol 0.5.3
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -108,7 +111,7 @@ wait: enabled (entry=wait effectiveDefaultSeconds=1200 messageContinuation=not-a
 recovery: enabled — enabled=true mode=knownTransient maxAttempts=8 backoffBaseMs=1000 backoffMaxMs=8000 notify=true
 compaction: disabled (compaction-disabled) — enabled=false timeoutMs=900000 floorMs=300000 windowGuardMs=3600000 notify=true
 replay: enabled (rewrites=0) — enabled=true
-cache: disabled (cache-disabled) enabled=false providerSelected=false
+cache: disabled (cache-disabled) enabled=false providerSelected=false mode=hooks
 ```
 
 `pending` 表示该进程尚未执行过会话启动。`disabled`、`invalid`、`incompatible` 和 `unavailable` 各自带原因码；设置对象只被部分接受时，`problems:` 列出被拒绝的键。设置对象整体被拒绝时，每个模块行替换为拒绝原因，报告末尾列出导致拒绝的键。

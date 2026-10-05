@@ -162,3 +162,17 @@ Verified claims stay separate per adjustment. The component README compatibility
 - After the installing activation exits, the process extends no compaction deadline until it restarts, and the status keeps reporting the released patch. That is the chosen terminal state: releasing the patch without letting a later activation install one costs the adjustment for the rest of that process's life.
 - Documentation is maintained against a fixed host baseline, so a host upgrade requires re-reading the cited source and updating the affected sections; editing the declared maintenance bound does not replace that work.
 - On a host that still offers the builtin `hub` tool, which is below the maintenance lower bound, the total-deadline wait no longer applies. The module finds no standalone `wait` entry there and leaves native behavior in place with its bounded reason.
+
+## Changes
+
+### 2026-10-05: Generic context processing modes
+
+Provide native `compactionCacheMode` values `standard` and `hooks`, defaulting to `hooks`. The mode selects context processing, not whether caching is enabled. The existing disabled default, explicit provider selection, activation-time settings snapshot, whole-request boundary, and native lifecycle remain binding. Invalid modes affect only the cache module; effective modes participate in owner compatibility and `/qol` status. The setting contract belongs to [projects/omp-qol/README.md](../../../projects/omp-qol/README.md#compaction-cache).
+
+`standard` retains recognized host repairs. `hooks` additionally observes the owning runner's raw context and completed result without rerunning handlers or inspecting another component's private state. Native encoding must correspond to the online payload confirmed at actual transport; the native shared-history boundary and the complete projected candidate must both be proved before any replacement. Legitimate insertions, reordering, and restoration may therefore align without plugin-specific recognition. Both modes remain useful without context handlers.
+
+Bind the confirmed projection to the same immutable session/model/root snapshot as the request reference. New context that lacks proof cannot seed future operations or alter already-bound retries. Retain only the latest candidate and snapshots reachable through native operation lifetimes. Restore only still-owned functions and their original property shapes. Missing observation, encoding mismatch, unknown correspondence, and owner loss leave the complete request native with a bounded reason. The cache module still adds no compaction veto and does not bypass another handler's veto.
+
+Keeping only the existing alignment was considered but continues to reject legitimate context transformations. Rerunning ordinary preparation was considered but repeats handler side effects and may read newer state than an operation's confirmed reference. Waiting for a maintained shared-preparation interface avoids runner adaptation but leaves the current mismatch; such an interface remains the replacement condition.
+
+Runner or encoder changes can make the adjustment unavailable. Incorrect attribution can insert unrelated context or lose history, so proof precedes replacement and unknown differences remain native. Raw and projected snapshots retain additional conversation data for native operation lifetimes. Actual host coverage and provider cache measurements remain separate evidence.

@@ -22,6 +22,10 @@ export type ModuleId = (typeof MODULE_IDS)[number];
 export const RECOVERY_MODES = ["knownTransient", "unclassified"] as const;
 export type RecoveryMode = (typeof RECOVERY_MODES)[number];
 
+/** Remote compaction context processing modes. */
+export const COMPACTION_CACHE_MODES = ["standard", "hooks"] as const;
+export type CompactionCacheMode = (typeof COMPACTION_CACHE_MODES)[number];
+
 /** Bounds shared by the validated settings and the `wait` tool parameter. */
 export const WAIT_SECONDS_MIN = 0.05;
 export const WAIT_SECONDS_MAX = 3600;
@@ -53,6 +57,7 @@ export const SETTINGS_DEFAULTS = {
   replayEnabled: true,
   compactionCacheEnabled: false,
   compactionCacheProvider: "",
+  compactionCacheMode: "hooks",
 } as const;
 
 /**
@@ -93,6 +98,7 @@ export interface ReplaySettings {
 export interface CacheSettings {
   enabled: boolean;
   provider: string;
+  mode: CompactionCacheMode;
 }
 
 /** One validated activation snapshot; modules read their own slice. */
@@ -299,6 +305,13 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
             ok: false,
             problem: { module: "cache", key: "compactionCacheProvider", rule: provider === null ? "null" : "type" },
           };
+  const cacheMode = readEnum(
+    raw,
+    "compactionCacheMode",
+    "cache",
+    COMPACTION_CACHE_MODES,
+    SETTINGS_DEFAULTS.compactionCacheMode,
+  );
 
   const reads: Read<unknown>[] = [
     waitEnabled,
@@ -320,6 +333,7 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     replayEnabled,
     cacheEnabled,
     cacheProvider,
+    cacheMode,
   ];
   const problems: FieldProblem[] = [];
   for (const read of reads) if (!read.ok) problems.push(read.problem);
@@ -360,6 +374,7 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
       cache: {
         enabled: cacheEnabled.ok ? cacheEnabled.value : SETTINGS_DEFAULTS.compactionCacheEnabled,
         provider: cacheProvider.ok ? cacheProvider.value : SETTINGS_DEFAULTS.compactionCacheProvider,
+        mode: cacheMode.ok ? cacheMode.value : SETTINGS_DEFAULTS.compactionCacheMode,
       },
     },
   };
