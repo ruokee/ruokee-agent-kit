@@ -50,7 +50,7 @@ omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 | 键 | 默认 | 取值 | 效果 |
 | --- | --- | --- | --- |
 | `recoveryEnabled` | `true` | boolean | 注册 `session_stop` 处理器。 |
-| `recoveryMode` | `knownTransient` | `knownTransient`、`unclassified` | 可续跑的错误范围。`knownTransient` 接受宿主判定为瞬时或超时的错误、宿主标记为流中途中断的错误，以及既无 HTTP 状态也无分类结论的错误；`unclassified` 接受所有未分类且不属于排除类型的错误。 |
+| `recoveryMode` | `knownTransient` | `knownTransient`、`unclassified` | 可续跑的错误范围。`knownTransient` 接受宿主判定为瞬时或超时的错误、宿主标记为流中途中断的错误，以及既无 HTTP 状态也无分类结论的错误；`unclassified` 在相同安全排除与终止性客户端状态检查后接受宿主判定为瞬时或超时的错误，以及全部未分类错误，不论是否带 HTTP 状态。 |
 | `recoveryMaxAttempts` | `8` | 整数 `1`–`8` | 一条失败链请求的续跑轮次上限。 |
 | `recoveryBackoffBaseMs` | `1000` | 整数 `1`–`10000` | 首次续跑前的等待时间。 |
 | `recoveryBackoffMaxMs` | `8000` | 不小于 `recoveryBackoffBaseMs` 的整数，上限 `10000` | 倍增等待的上限。 |
@@ -100,7 +100,7 @@ omp plugin config set @ruokee/omp-qol compactionCacheEnabled true
 `/qol` 打印当前状态，不做任何修改。它不启动模型轮次，也不读取设置 schema 之外的值。
 
 ```
-@ruokee/omp-qol 0.6.0
+@ruokee/omp-qol 0.5.2
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok

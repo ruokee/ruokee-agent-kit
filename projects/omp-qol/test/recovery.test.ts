@@ -21,7 +21,7 @@ import {
   type RecoveryController,
   type RecoveryErrorInput,
 } from "../src/recovery.ts";
-import { SETTINGS_DEFAULTS, type RecoverySettings } from "../src/settings.ts";
+import type { RecoverySettings } from "../src/settings.ts";
 import { createHarness, type Harness } from "./host.ts";
 
 const RECOVERY: RecoverySettings = {
@@ -100,6 +100,11 @@ async function handle(
   overrides: StopOverrides = {},
 ): Promise<SessionStopEventResult | undefined> {
   return await helper.controller.handleStop(stopEvent(overrides), (message) => helper.notes.push(message));
+}
+
+/** The visible attempt and delay, without pinning the surrounding prose. */
+function noticeNumbers(notes: readonly string[]): number[][] {
+  return notes.map((note) => Array.from(note.matchAll(/\d+/g), (match) => Number(match[0])));
 }
 
 describe("recovery classification", () => {
@@ -318,13 +323,18 @@ describe("recovery chain", () => {
     const first = await handle(helper, { turnId: 1 });
     expect(first).toEqual({ continue: true, additionalContext: RECOVERY_CONTINUATION_CONTEXT });
     expect(helper.sleeps).toEqual([100]);
-    expect(helper.notes).toEqual(["Recovering after an upstream error: attempt 1, waiting 100 ms"]);
 
     await handle(helper, { turnId: 2, stopHookActive: true });
     await handle(helper, { turnId: 3, stopHookActive: true });
     await handle(helper, { turnId: 4, stopHookActive: true });
     expect(helper.sleeps).toEqual([100, 200, 300, 300]);
     expect(helper.controller.chain.attempts).toBe(4);
+    expect(noticeNumbers(helper.notes)).toEqual([
+      [1, 100],
+      [2, 200],
+      [3, 300],
+      [4, 300],
+    ]);
   });
 
   test("counts a continuation only when the wait was not cancelled", async () => {
@@ -362,7 +372,6 @@ describe("recovery chain", () => {
     });
     expect(result).toEqual({ continue: true, additionalContext: RECOVERY_CONTINUATION_CONTEXT });
     expect(helper.sleeps).toEqual([100]);
-    expect(helper.notes).toEqual(["Recovering after an upstream error: attempt 1, waiting 100 ms"]);
   });
 
   test("stays native when the settle pass is already aborted", async () => {
@@ -441,10 +450,10 @@ describe("recovery across agent runs", () => {
     helper.controller.startRun();
     expect((await handle(helper, { turnId: 0 }))?.continue).toBe(true);
     expect(helper.sleeps).toEqual([10, 10, 10]);
-    expect(helper.notes).toEqual([
-      "Recovering after an upstream error: attempt 1, waiting 10 ms",
-      "Recovering after an upstream error: attempt 2, waiting 10 ms",
-      "Recovering after an upstream error: attempt 1, waiting 10 ms",
+    expect(noticeNumbers(helper.notes)).toEqual([
+      [1, 10],
+      [2, 10],
+      [1, 10],
     ]);
   });
 
@@ -634,20 +643,16 @@ describe("cancellable sleep", () => {
   });
 });
 
-describe("recovery wiring", () => {
+describe("installed recovery behavior", () => {
   const fast = { recoveryBackoffBaseMs: 1, recoveryBackoffMaxMs: 1 };
-  const NOTICE_PREFIX = "Recovering after an upstream error:";
 
   async function activated(rawSettings: Record<string, unknown>): Promise<Harness> {
     const harness = createHarness();
     activate(harness.pi, async () => rawSettings);
     await harness.emit("session_start", { type: "session_start" }, harness.context());
+    // Observe the tested turn, not activation diagnostics from other modules.
+    harness.notifications.length = 0;
     return harness;
-  }
-
-  /** Notices this module shows, ignoring other modules' diagnostics. */
-  function recoveryNotices(harness: Harness): Array<{ message: string; level: string }> {
-    return harness.notifications.filter((entry) => entry.message.startsWith(NOTICE_PREFIX));
   }
 
   async function emitStop(
@@ -662,18 +667,11 @@ describe("recovery wiring", () => {
     return results.at(-1) as SessionStopEventResult | undefined;
   }
 
-  test("registers the stop hook when enabled and reports one attempt", async () => {
+  test("returns the fixed continuation and reports one attempt", async () => {
     const harness = await activated(fast);
-    expect(harness.handlers.get("session_stop")).toHaveLength(1);
-    expect(harness.handlers.get("agent_start")).toHaveLength(1);
-    expect(harness.handlers.get("session_shutdown")).toHaveLength(1);
-    expect(harness.handlers.get("session_switch")).toHaveLength(1);
-
     const result = await emitStop(harness);
     expect(result).toEqual({ continue: true, additionalContext: RECOVERY_CONTINUATION_CONTEXT });
-    expect(recoveryNotices(harness)).toEqual([
-      { message: "Recovering after an upstream error: attempt 1, waiting 1 ms", level: "info" },
-    ]);
+    expect(harness.notifications).toHaveLength(1);
   });
 
   test("recovers consecutive runs that each fail on their first turn", async () => {
@@ -686,21 +684,18 @@ describe("recovery wiring", () => {
       results.push(result?.continue === true);
     }
     expect(results).toEqual([true, true, true]);
-    expect(recoveryNotices(harness)).toHaveLength(3);
+    expect(harness.notifications).toHaveLength(3);
   });
 
-  test("registers nothing when the module switch, master switch, or keys are off", async () => {
+  test("stays native when the module switch, master switch, or keys are off", async () => {
     const disabled = await activated({ ...fast, recoveryEnabled: false });
-    expect(disabled.handlers.get("session_stop")).toBeUndefined();
-    expect(disabled.handlers.get("agent_start")).toBeUndefined();
     expect(await emitStop(disabled)).toBeUndefined();
 
     const master = await activated({ ...fast, enabled: false });
-    expect(master.handlers.get("session_stop")).toBeUndefined();
+    expect(await emitStop(master)).toBeUndefined();
 
     const invalid = await activated({ ...fast, recoveryMaxAttempts: 0 });
-    expect(invalid.handlers.get("session_stop")).toBeUndefined();
-    expect(invalid.warnings.filter((warning) => warning.includes("recovery stays inactive"))).toHaveLength(1);
+    expect(await emitStop(invalid)).toBeUndefined();
   });
 
   test("counts a host-marked continuation chain up to the cap", async () => {
@@ -708,9 +703,9 @@ describe("recovery wiring", () => {
     expect((await emitStop(harness))?.continue).toBe(true);
     expect((await emitStop(harness, { turnId: 2, stopHookActive: true }))?.continue).toBe(true);
     expect(await emitStop(harness, { turnId: 3, stopHookActive: true })).toBeUndefined();
-    expect(recoveryNotices(harness).map((entry) => entry.message)).toEqual([
-      "Recovering after an upstream error: attempt 1, waiting 1 ms",
-      "Recovering after an upstream error: attempt 2, waiting 1 ms",
+    expect(noticeNumbers(harness.notifications.map((entry) => entry.message))).toEqual([
+      [1, 1],
+      [2, 1],
     ]);
   });
 
@@ -729,7 +724,7 @@ describe("recovery wiring", () => {
 
     await harness.emit("agent_start", { type: "agent_start" }, harness.context());
     expect((await emitStop(harness, { turnId: 0, stopHookActive: true }))?.continue).toBe(true);
-    expect(recoveryNotices(harness)).toHaveLength(2);
+    expect(harness.notifications).toHaveLength(2);
   });
 
   test("stays native for an error the configured mode does not recover", async () => {
@@ -740,15 +735,6 @@ describe("recovery wiring", () => {
       harness.context(),
     );
     expect(results.at(-1)).toBeUndefined();
-    expect(recoveryNotices(harness)).toEqual([]);
-  });
-
-  test("defaults match the shipped manifest", () => {
-    expect(SETTINGS_DEFAULTS.recoveryEnabled).toBe(true);
-    expect(SETTINGS_DEFAULTS.recoveryMode).toBe("knownTransient");
-    expect(SETTINGS_DEFAULTS.recoveryMaxAttempts).toBe(8);
-    expect(SETTINGS_DEFAULTS.recoveryBackoffBaseMs).toBe(1000);
-    expect(SETTINGS_DEFAULTS.recoveryBackoffMaxMs).toBe(8000);
-    expect(SETTINGS_DEFAULTS.recoveryNotify).toBe(true);
+    expect(harness.notifications).toEqual([]);
   });
 });

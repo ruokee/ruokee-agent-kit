@@ -50,7 +50,7 @@ Settings are read once per activation. Restart OMP after a change: a running pro
 | Key | Default | Accepted | Effect |
 | --- | --- | --- | --- |
 | `recoveryEnabled` | `true` | boolean | Register the `session_stop` handler. |
-| `recoveryMode` | `knownTransient` | `knownTransient`, `unclassified` | Error scope that is eligible. `knownTransient` accepts errors the host classifies as transient or timeout, an error the host marked as interrupted mid-stream, or an error with neither an HTTP status nor a classification. `unclassified` accepts every error that carries no classification and is not one of the excluded kinds. |
+| `recoveryMode` | `knownTransient` | `knownTransient`, `unclassified` | Error scope that is eligible. `knownTransient` accepts errors the host classifies as transient or timeout, an error the host marked as interrupted mid-stream, or an error with neither an HTTP status nor a classification. `unclassified` accepts host-classified transient or timeout errors and all unclassified errors, with or without an HTTP status, after the same safety exclusions and terminal client status checks. |
 | `recoveryMaxAttempts` | `8` | integer `1`–`8` | Continuation turns requested for one failure chain. |
 | `recoveryBackoffBaseMs` | `1000` | integer `1`–`10000` | Delay before the first continuation. |
 | `recoveryBackoffMaxMs` | `8000` | integer above `recoveryBackoffBaseMs`, up to `10000` | Upper bound of the doubling delay. |
@@ -100,7 +100,7 @@ Restart OMP with a model from that provider. `/qol` must show `cache: enabled`; 
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.6.0
+@ruokee/omp-qol 0.5.2
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok

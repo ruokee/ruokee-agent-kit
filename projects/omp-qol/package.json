@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.6.0",
+  "version": "0.5.2",
   "description": "OMP adjustments for wait deadlines, model-error recovery, native-history replay, compaction deadlines, and remote compaction cache alignment",
   "license": "MIT",
   "type": "module",

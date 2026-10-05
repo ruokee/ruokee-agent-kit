@@ -47,7 +47,7 @@ import {
 import { installWaitModule } from "./wait.ts";
 
 export const PACKAGE_NAME = "@ruokee/omp-qol";
-export const PACKAGE_VERSION = "0.6.0";
+export const PACKAGE_VERSION = "0.5.2";
 export const COMMAND_NAME = "qol";
 
 let activationSequence = 0;
