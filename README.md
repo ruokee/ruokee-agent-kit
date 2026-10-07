@@ -45,9 +45,9 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 
 - **[omp-status-bar](./projects/omp-status-bar/README.md)** adds an OMP status bar with extra context information, including current session context usage as a number rather than the native percentage, total tokens, input tokens, cached tokens, output tokens, cache-hit rate, and the number of model requests the session has answered.
 - **[omp-codex-web-access](./projects/omp-codex-web-access/README.md)** lets OMP use a Codex subscription through a forwarding Provider for web search and page extraction.
-- **[omp-system-prompt](./projects/omp-system-prompt/README.md)** applies a maintained English strategy to OMP's system prompt through a host template the user selects, and appends rule documents for the model in use; any other system prompt stays as the host built it.
+- **[omp-system-prompt](./projects/omp-system-prompt/README.md)** applies a maintained English strategy to OMP's system prompt through a host template the user selects; any other system prompt stays as the host built it. It is approaching deprecation while its template, Delivery, footer, and current maintenance remain.
 - **[omp-context-pin](./projects/omp-context-pin/README.md)** keeps a small set of pinned text entries present word for word in every ordinary model request on the current session branch, and restores them after each committed compaction.
-- **[omp-qol](./projects/omp-qol/README.md)** provides independently switchable wait deadlines, bounded model-error recovery, experimental compaction deadlines, native history replay, and opt-in remote compaction cache alignment.
+- **[omp-qol](./projects/omp-qol/README.md)** provides independently switchable wait deadlines, bounded model-error recovery, experimental compaction deadlines, native history replay, opt-in remote compaction cache alignment, and opt-in model prompt rules.
 
 ## Install
 
@@ -78,6 +78,23 @@ Extensions have their own installation and update instructions. Follow the linke
 
 - [tk](./projects/tk/README.md) is a task runtime with components for several Harnesses. The runtime is installed separately from the components.
 - [omp-status-bar](./projects/omp-status-bar/README.md), [omp-system-prompt](./projects/omp-system-prompt/README.md), [omp-codex-web-access](./projects/omp-codex-web-access/README.md), [omp-context-pin](./projects/omp-context-pin/README.md), and [omp-qol](./projects/omp-qol/README.md) are OMP extensions. Each README states its host and configuration requirements.
+
+### Model prompt rules and system-prompt status
+
+[omp-qol](./projects/omp-qol/README.md#model-prompt-rules) owns model-scoped rule documents through `modelPromptsEnabled`, which defaults to `false` and is subordinate to `enabled`. [omp-system-prompt](./projects/omp-system-prompt/README.md#approaching-deprecation) is approaching deprecation; its optional template, Delivery, footer, and current maintenance remain. No removal date or automatic uninstall is scheduled.
+
+Update both components together, enable `modelPromptsEnabled` in QoL's native plugin settings, then restart OMP. User and project `model-prompts` directories and rule format stay the same. The updated system-prompt no longer reads rules; mixed old and new component versions have no compatibility path.
+
+When both are used, system-prompt must load before QoL so template processing precedes rule append. Installation-command order does not guarantee handler order. An explicit native invocation makes this order visible:
+
+```sh
+omp --no-extensions \
+  -e ./projects/omp-system-prompt/src/extension.ts \
+  -e ./projects/omp-qol/src/extension.ts \
+  --system-prompt-template ./projects/omp-system-prompt/host-template.hbs
+```
+
+Run this example from a prepared repository checkout and enable the rule switch separately. `--no-extensions` disables ambient extension discovery, so other extensions are not automatically loaded; add their explicit entries if needed. The template is optional, and QoL rules also work alone or with other system-prompt inputs. Rule and template failures are independent.
 
 ## Development
 

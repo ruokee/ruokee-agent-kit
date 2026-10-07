@@ -1,7 +1,7 @@
 {
   "name": "@ruokee/omp-system-prompt",
-  "version": "0.5.0",
-  "description": "OMP extension applying maintainer-owned policy when the user selects its host template, plus model-scoped rule documents appended per turn",
+  "version": "0.5.1",
+  "description": "OMP template strategy with Delivery and footer handling; approaching deprecation, with current maintenance retained",
   "license": "MIT",
   "type": "module",
   "keywords": [
@@ -21,8 +21,7 @@
     }
   },
   "peerDependencies": {
-    "@oh-my-pi/pi-coding-agent": "*",
-    "@oh-my-pi/pi-utils": "*"
+    "@oh-my-pi/pi-coding-agent": "*"
   },
   "devDependencies": {
     "@oh-my-pi/pi-ai": "18.5.0",

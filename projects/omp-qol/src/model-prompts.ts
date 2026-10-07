@@ -14,6 +14,9 @@
  * never changes the appended order.
  */
 
+import type { ExtensionContext } from "@oh-my-pi/pi-coding-agent";
+import { getAgentDir, getProjectAgentDir } from "@oh-my-pi/pi-utils";
+import type { ModuleContext, ModuleState } from "./extension.ts";
 import { YAML } from "bun";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -106,7 +109,7 @@ export const nodeRuleFileSystem: RuleFileSystem = {
   readDirectory: async (path) => readdir(path, { withFileTypes: true }),
   readFile: async (path) => readFile(path, "utf8"),
   isMissing: (error) => {
-    const code = (error as { code?: unknown } | null)?.code;
+    const code = error !== null && typeof error === "object" && "code" in error ? error.code : undefined;
     return code === "ENOENT" || code === "ENOTDIR";
   },
 };
@@ -172,7 +175,7 @@ function parseCondition(
  * Parse and validate one rule document.
  *
  * The first failure wins, so a document is reported once with the reason that
- * stopped it. Unknown keys, several keys in one entry, an empty `match` array,
+ * stopped it. Unknown match-entry keys, several keys in one entry, an empty `match` array,
  * non-string or blank values, an uncompilable regular expression, a missing or
  * malformed delimiter pair, and a blank body are all invalid.
  */
@@ -281,4 +284,72 @@ export async function collectRuleBodies(
   }
 
   return { bodies, diagnostics };
+}
+
+/** Replaceable file inputs for component-local behavior tests. */
+export interface ModelPromptsHost {
+  ruleRoots?: (cwd: string) => RuleRoots;
+  ruleFileSystem?: RuleFileSystem;
+}
+
+function defaultRuleRoots(cwd: string): RuleRoots {
+  return {
+    user: join(getAgentDir(), RULE_DIR_NAME),
+    project: join(getProjectAgentDir(cwd), RULE_DIR_NAME),
+  };
+}
+
+/** Install a default-off, turn-local appender with session-local diagnostics. */
+export function installModelPromptsModule(context: ModuleContext, host: ModelPromptsHost = {}): ModuleState {
+  if (context.off !== undefined) {
+    return context.off === "master-disabled"
+      ? { status: "disabled", reason: context.off }
+      : { status: "invalid", reason: context.off };
+  }
+  if (!context.settings.modelPrompts.enabled) {
+    return { status: "disabled", reason: "model-prompts-disabled" };
+  }
+  const { pi } = context;
+  const roots = host.ruleRoots ?? defaultRuleRoots;
+  const fileSystem = host.ruleFileSystem ?? nodeRuleFileSystem;
+  const seenBySession = new Map<string, Set<string>>();
+
+  const report = (ctx: ExtensionContext, reason: string, source: string): void => {
+    try {
+      const session = ctx.sessionManager.getSessionId();
+      let seen = seenBySession.get(session);
+      if (seen === undefined) {
+        seen = new Set<string>();
+        seenBySession.set(session, seen);
+      }
+      const key = JSON.stringify([source, reason]);
+      if (seen.has(key)) return;
+      seen.add(key);
+      const message =
+        "@ruokee/omp-qol: model prompt rules skipped (reason: " +
+        reason +
+        "; source: " +
+        source +
+        "). Other sources and incoming prompt blocks remain unchanged.";
+      if (ctx.hasUI) ctx.ui.notify(message, "warning");
+      else pi.logger.warn(message);
+    } catch {
+      // Diagnostics must not affect the turn or its fail-open result.
+    }
+  };
+
+  pi.on("before_agent_start", async (event, ctx) => {
+    try {
+      const model = ctx.model ?? ctx.models.current();
+      if (model === undefined) return undefined;
+      const { bodies, diagnostics } = await collectRuleBodies(roots(ctx.cwd), model, fileSystem);
+      for (const diagnostic of diagnostics) report(ctx, diagnostic.reason, diagnostic.source);
+      if (bodies.length === 0) return undefined;
+      return { systemPrompt: [...event.systemPrompt, ...bodies] };
+    } catch {
+      report(ctx, "unexpected-error", "model-prompts");
+      return undefined;
+    }
+  });
+  return { status: "enabled" };
 }

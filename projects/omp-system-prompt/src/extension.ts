@@ -1,21 +1,12 @@
 /**
  * OMP extension entry: apply the owned strategy to a host render of the
- * component's own template, then append model-scoped rule documents.
+ * component's own template.
  *
- * At activation the extension reads the owned template once. It registers
- * `before_agent_start` twice: the first handler inspects the current
- * `event.systemPrompt` array — never a startup snapshot or
- * `ctx.getSystemPrompt()`, which reflects the already-chained result rather
- * than the handler-chain input. When no block is a render of the owned
- * template (no template selected, `SYSTEM.md`, `--system-prompt`, or another
- * template), it returns nothing and reports nothing. The second handler
- * receives the chained result, keeps it, and appends one block per rule
- * document matching the turn's model.
- *
- * Failure handling is fail-open by design: a malformed owned template,
- * unrecognized step boundaries, unreadable rule sources, and unexpected
- * turn-processing errors leave the incoming array untouched so the turn
- * proceeds with the host prompt. A bounded diagnostic reports the reason
+ * At activation the extension reads the owned template once. Its handler
+ * inspects the current event.systemPrompt array, not a startup snapshot.
+ * Unrecognized template input stays unchanged without a diagnostic.
+ * Template, Delivery, and footer failures leave their input active so the
+ * turn can proceed with the host prompt. A bounded diagnostic reports the reason
  * through the session channel (interactive notify or file logger); it does not
  * claim to have blocked the model request. Activation-time failures register
  * the handler too, so the first turn reports them once on the correct channel.
@@ -28,12 +19,9 @@ import {
   type ExtensionContext,
 } from "@oh-my-pi/pi-coding-agent";
 import { getPluginSettings as getPublicPluginSettings } from "@oh-my-pi/pi-coding-agent/extensibility/plugins";
-import { getAgentDir, getProjectAgentDir } from "@oh-my-pi/pi-utils";
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { DiagnosticTracker, type DiagnosticSink } from "./diagnostics.ts";
-import { RULE_DIR_NAME, collectRuleBodies, nodeRuleFileSystem, type RuleFileSystem, type RuleRoots } from "./rules.ts";
 import { loadTemplate } from "./template.ts";
 import { isHostTemplateRender } from "./host-template.ts";
 import { prepareTemplate, transformSystemPrompt } from "./transform.ts";
@@ -57,18 +45,6 @@ export type PluginSettingsReader = (packageName: string, cwd: string) => Promise
 export interface ExtensionHost {
   importMetaUrl: string;
   getPluginSettings?: PluginSettingsReader;
-  /** Rule directories for one turn; tests point them at their own trees. */
-  ruleRoots?: (cwd: string) => RuleRoots;
-  /** Rule file access; tests substitute their own. */
-  ruleFileSystem?: RuleFileSystem;
-}
-
-/** Production rule directories: the active profile's agent dir and `<cwd>/.omp`. */
-function defaultRuleRoots(cwd: string): RuleRoots {
-  return {
-    user: join(getAgentDir(), RULE_DIR_NAME),
-    project: join(getProjectAgentDir(cwd), RULE_DIR_NAME),
-  };
 }
 
 /** Read the owned template from the component directory, once. */
@@ -129,8 +105,6 @@ export function activate(
   // reported once per session on the first turn. The input stays unchanged.
   const owned = templateText === null ? null : prepareTemplate(templateText);
   const readSettings = host.getPluginSettings ?? getPublicPluginSettings;
-  const ruleRoots = host.ruleRoots ?? defaultRuleRoots;
-  const ruleFileSystem = host.ruleFileSystem ?? nodeRuleFileSystem;
 
   pi.on("before_agent_start", async (event: BeforeAgentStartEvent, ctx: ExtensionContext) => {
     const seen = (seenBySession[ctx.sessionManager.getSessionId()] ??= new Set<string>());
@@ -158,38 +132,6 @@ export function activate(
       tracker.report(result.reason, REASON_TARGETS[result.reason] ?? "system prompt");
     } catch {
       tracker.report("unexpected-error", "system prompt transformation");
-    }
-    return undefined;
-  });
-
-  // Model-scoped rules: an independent second pass. It runs after the
-  // replacement above, keeps whatever array it receives, and appends one
-  // block per matching rule document. Files are re-read every turn, so
-  // editing a rule takes effect on the next turn; the model identity is the
-  // turn's effective model, without role, alias, or thinking-level lookup.
-  pi.on("before_agent_start", async (event: BeforeAgentStartEvent, ctx: ExtensionContext) => {
-    const seen = (seenBySession[ctx.sessionManager.getSessionId()] ??= new Set<string>());
-    const tracker = new DiagnosticTracker(SCOPE, sinkFor(ctx, loggerWarn), seen);
-    const model = ctx.model ?? ctx.models.current();
-    if (model === undefined) return undefined;
-
-    try {
-      const { bodies, diagnostics } = await collectRuleBodies(
-        ruleRoots(ctx.cwd),
-        { id: model.id, provider: model.provider },
-        ruleFileSystem,
-      );
-      for (const diagnostic of diagnostics) {
-        if (diagnostic.reason === "directory-unreadable") {
-          tracker.reportRuleDirectoryUnreadable(diagnostic.source);
-          continue;
-        }
-        tracker.reportRuleSkipped(diagnostic.reason, diagnostic.source);
-      }
-      if (bodies.length === 0) return undefined;
-      return { systemPrompt: [...event.systemPrompt, ...bodies] } satisfies BeforeAgentStartEventResult;
-    } catch {
-      tracker.reportRuleFailure("unexpected-error", "model prompt rules");
     }
     return undefined;
   });

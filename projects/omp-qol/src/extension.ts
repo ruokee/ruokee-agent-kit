@@ -30,6 +30,7 @@ import {
   NATIVE_COMPACTION_TIMEOUT_MS,
   stopForeignCompactionPatch,
 } from "./compaction-timeout.ts";
+import { installModelPromptsModule } from "./model-prompts.ts";
 import { installRecoveryModule } from "./recovery.ts";
 import {
   installNativeReplayModule,
@@ -47,7 +48,7 @@ import {
 import { installWaitModule } from "./wait.ts";
 
 export const PACKAGE_NAME = "@ruokee/omp-qol";
-export const PACKAGE_VERSION = "0.5.3";
+export const PACKAGE_VERSION = "0.5.4";
 export const COMMAND_NAME = "qol";
 
 let activationSequence = 0;
@@ -165,6 +166,7 @@ function describeModule(id: ModuleId, state: ModuleState, settings: QolSettings 
   }
   if (id === "cache")
     return `${head} enabled=${settings.cache.enabled} providerSelected=${settings.cache.provider.length > 0} mode=${settings.cache.mode}`;
+  if (id === "modelPrompts") return `${head} enabled=${settings.modelPrompts.enabled}`;
   const compaction = settings.compaction;
   const floorNote =
     compaction.floorMs > NATIVE_COMPACTION_TIMEOUT_MS
@@ -338,6 +340,7 @@ export function activate(pi: ExtensionAPI, readSettings: PluginSettingsReader = 
     state.modules.compaction = installModule("compaction", installCompactionModule);
     state.modules.replay = installModule("replay", installNativeReplayModule);
     state.modules.cache = installModule("cache", installCompactionCacheModule);
+    state.modules.modelPrompts = installModule("modelPrompts", installModelPromptsModule);
   };
 
   pi.on("session_start", async (_event, ctx) => {

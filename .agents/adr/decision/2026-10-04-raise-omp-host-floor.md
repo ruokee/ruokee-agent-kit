@@ -108,11 +108,11 @@ Maintenance effort is the work the maintenance promise already implies, so it is
 
 Raising the OMP-facing components to 18.5.0 removes three behaviors that still worked on some hosts below it, and complete successor decisions record each affected component contract:
 
-- [Render the system prompt strategy only from the component template](./2026-10-04-use-system-prompt-template-only.md) removes the default-block route that served hosts before 18.3.0.
+- [Render the system prompt strategy only from the component template](../archived/2026-10-04-use-system-prompt-template-only.md) removes the default-block route that served hosts before 18.3.0.
 - [Maintain the OMP status bar with a static context glyph](./2026-10-04-show-static-context-glyph.md) replaces the speculation band estimate that needs `Settings.getGroup`, which hosts before 18.4.0 provide.
-- [Maintain OMP quality-of-life adjustments on the standalone wait entry](./2026-10-04-use-standalone-qol-wait.md) removes the `hub` wait path that served hosts before 18.3.0.
+- [Maintain OMP quality-of-life adjustments on the standalone wait entry](../archived/2026-10-04-use-standalone-qol-wait.md) removes the `hub` wait path that served hosts before 18.3.0.
 
-`omp-context-pin`, `omp-codex-web-access`, and the `tk` OMP adapter remove no behavior that a host from their earlier bound up to 18.5.0 used. [The context pin decision](./2026-09-15-add-omp-context-pin.md), [the model prompt rules decision](./2026-09-14-add-model-prompt-rules.md), [the tk integration decision](./2026-09-02-integrate-tk-tools-with-harnesses.md), and [the self-contained component decision](./2026-08-24-keep-components-self-contained.md) record the bound or the inherited contract under their changes. [Use native plugin settings for Codex web access](./2026-09-10-use-codex-web-plugin-settings.md) records no bound and needs no change.
+`omp-context-pin`, `omp-codex-web-access`, and the `tk` OMP adapter remove no behavior that a host from their earlier bound up to 18.5.0 used. [The context pin decision](./2026-09-15-add-omp-context-pin.md), [the model prompt rules decision](../archived/2026-09-14-add-model-prompt-rules.md), [the tk integration decision](./2026-09-02-integrate-tk-tools-with-harnesses.md), and [the self-contained component decision](./2026-08-24-keep-components-self-contained.md) record the bound or the inherited contract under their changes. [Use native plugin settings for Codex web access](./2026-09-10-use-codex-web-plugin-settings.md) records no bound and needs no change.
 
 ## Alternatives considered
 

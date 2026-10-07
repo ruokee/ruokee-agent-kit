@@ -1,31 +1,30 @@
-# ADR decision: Add model-scoped prompt rules to the system prompt extension
+# ADR decision: Provide opt-in model prompt rules through QoL
 
 Decision owner: Ruokee
-Decision writer: deepseek/deepseek-v4.1-flash
+Decision writer: OMP
+Reverses: [Add model-scoped prompt rules to the system prompt extension](../archived/2026-09-14-add-model-prompt-rules.md)
 
-English | [中文](./2026-09-14-add-model-prompt-rules.zh.md)
+English | [中文](./2026-10-07-use-qol-model-prompts.zh.md)
 
 ## Motivation
 
-Let `@ruokee/omp-system-prompt` apply model-scoped, user-authored Markdown rules instead of one policy for every model.
-
-Models differ in how they follow instructions, and `@ruokee/omp-system-prompt` should let a maintainer give different instructions to different models by writing user-authored Markdown rule documents, without editing extension source, host files, or a distribution. A maintainer may want one model to state assumptions before editing and another to answer briefly.
+A maintainer needs user-authored Markdown rules that give different models different system instructions without editing extension source, host files, or a distribution. QoL should enable that capability independently of a component template or system-prompt strategy replacement. OMP's reduced prompt text and native templates reduce the maintainer's need for additional strategy replacement; they do not withdraw the model-rule requirement.
 
 ## Analysis
 
-OMP has no model-scoped instruction mechanism at the [checked revision](https://github.com/can1357/oh-my-pi/commit/61b1b8aef634334eaf1412afd003a763e1d1b9c1). Upstream [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) requests one as model-scoped `modelInstructions`. The public `before_agent_start` event exposes the rendered `systemPrompt: string[]` and accepts a replacement array for the current turn ([event](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/types.ts#L752-L768), [result](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/types.ts#L1149-L1153)), and `ctx.model` supplies the current `Model`, including its provider and id ([context](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/types.ts#L476-L480)). An OMP extension can therefore select prompt text by model without patching OMP.
-
-`@ruokee/omp-system-prompt` already transforms that same array to replace fixed policy. A second component would add a second transformation to the same turn input, with the visible result depending on installation order ([chaining](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/runner.ts#L1715-L1725)). One component applies both in a fixed internal order instead.
+The public `before_agent_start` event exposes the current turn's system-prompt blocks and effective model and accepts an extended array. The previously checked upstream request is [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739). That historical check does not establish that every current host lacks an equivalent capability; the upstream re-check below remains required. Native handlers chain in actual extension load order without a priority setting. Installation-command order does not establish execution order.
 
 ## Decision
 
-### Component
+### Component, switches, and coexistence
 
-`projects/omp-system-prompt` carries this capability under [Render the system prompt strategy only from the component template](./2026-10-04-use-system-prompt-template-only.md) and [Keep components self-contained](./2026-08-24-keep-components-self-contained.md). The package name, the native `omp.extensions` entry, the `renderDelivery` setting, and the peer dependency contract stay as decided; no file from another repository component takes part.
+The self-contained `@ruokee/omp-qol` owns the rules under [Keep components self-contained](./2026-08-24-keep-components-self-contained.md) and [Maintain QoL model prompts](./2026-10-07-maintain-qol-model-prompts.md). `modelPromptsEnabled` is a native boolean setting, defaults to `false`, and is subordinate to `enabled`. When off, it registers no rule handler, accesses no rule directory, and emits no idle rule diagnostic. Settings are read once at activation; changes require restarting OMP, and navigation or a new session does not refresh the snapshot.
 
-With no rule files present, every turn behaves as before, so the change is additive for installed users. No enable setting exists: the presence of rule files selects the capability.
+An invalid boolean disables this module only. Unknown settings, a non-object settings root, or a settings read failure reject all modules under the existing QoL contract. `/qol` shows the module's effective state, boolean, and inactive reason without running a model or exposing rule bodies or model identifiers.
 
-Register two `before_agent_start` handlers in this order: the existing replacement first, the rule append second. The append step reads the array the replacement produced, so it does not re-classify blocks the replacement just wrote. The steps fail independently. A replacement failure leaves the incoming host array for the append step to extend, and an append failure leaves the replacement result in effect. Both report through the component's existing bounded, session-deduplicated diagnostic channel.
+The same change removes all rule entry points, reads, diagnostics, tests, and unused runtime dependencies from system-prompt, with no forwarding, alias, or shim. That component continues to maintain its template, Delivery, and footer. QoL declares a direct pi-utils peer; host peers stay unrestricted and the maintenance floor remains OMP 18.5.0. Both components increment their patch versions.
+
+QoL works without system-prompt. Coexistence requires system-prompt before QoL in actual load order, with neither component depending on the other's files. Template failure preserves incoming blocks for rule append; rule failure preserves the template result. Later handlers retain authority to change the final input, with no cross-extension scheduler or guarantee. Users update both components together, then enable the new switch and restart. There is no mixed-old-version double-entry compatibility.
 
 ### Rule documents and matching
 
@@ -36,7 +35,7 @@ Read two fixed directories on every turn the hook runs:
 
 A directory contributes only its direct-child regular files with a lowercase `.md` extension. The loader does not recurse, follow file symlinks, or read hidden files. Files are ordered by JavaScript string comparison of their names, so prefixes such as `10-` and `20-` control order, and asynchronous reads cannot change it. User-directory bodies precede project-directory bodies. Bodies are not deduplicated across directories, a project file does not shadow a user file, and files with identical content are not merged. A missing directory is an empty set, and a read failure in one directory does not stop the other from contributing.
 
-A rule document opens with a frontmatter block delimited by lines containing exactly `---`, optionally preceded by a UTF-8 BOM. The frontmatter holds one required key, `match`, whose value is a non-empty array. Each entry is an object with exactly one of these keys and a non-empty string value:
+A rule document opens with a frontmatter block delimited by lines containing exactly `---`, optionally preceded by a UTF-8 BOM. LF and CRLF delimiter line endings are accepted. The required frontmatter key `match` is a non-empty array; other top-level metadata is ignored. Each entry is an object with exactly one of these keys and a non-empty, non-whitespace string value:
 
 | Key | Matches |
 | --- | --- |
@@ -47,13 +46,13 @@ A rule document opens with a frontmatter block delimited by lines containing exa
 
 Entries are alternatives. Any matching entry applies the file, and the append step appends a file that matches more than one entry once. Matching is case-sensitive and textual. It does not resolve aliases, roles, families, display names, wire names, or suffixes that select a thinking level, and it offers no globs or model lists. Model ids containing `/` compare as complete ids.
 
-The append step takes the body, the text after the closing delimiter, and appends it byte-for-byte, including empty lines, CRLF, indentation, HTML comments, template-like text, and a trailing newline. It removes a leading BOM.
+The append step takes the body, the text after the closing delimiter line ending, and appends it byte-for-byte, including empty lines, CRLF, indentation, HTML comments, template-like text, and a trailing newline. It removes a leading BOM.
 
-Unknown keys, more than one key in one entry, an empty `match` array, non-string values, invalid YAML, a missing or malformed delimiter, or an uncompilable regular expression make one file invalid. The component skips an invalid file with one diagnostic naming the file and a fixed reason code. A skipped file never partially applies, and the component never removes or replaces text from another file. The append step re-reads rule files on each turn the hook runs, so additions, edits, and deletions apply on the next turn without restarting the session.
+Unknown entry keys, more than one key in one entry, a missing or wrongly typed `match`, an empty `match` array, non-object entries, blank or non-string values, invalid YAML, a missing or malformed delimiter, an uncompilable regular expression, or a whitespace-only body make one file invalid. The component skips the whole file with one diagnostic naming the file and the first failed validation's fixed reason code. A skipped file never partially applies, and the component never removes or replaces text from another file. The append step re-reads rule files on each turn the hook runs, so additions, edits, and deletions apply on the next turn without restarting the session.
 
 ### Injection contract
 
-When at least one rule matches, the append step returns the incoming array unchanged followed by one block per matching file in the order above. When nothing matches, it returns nothing and leaves the turn input untouched.
+When at least one rule matches, the append step returns a new array containing every incoming block in its original order followed by one block per matching file in the order above. It does not modify the incoming array. When nothing matches, it returns nothing and leaves the turn input untouched.
 
 The system-prompt channel is the only channel. The host builds each turn's prompt from its base prompt ([base prompt](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/session/session-tools.ts#L1488-L1524)) and does not reuse a turn override as the next turn's input, so consecutive ordinary turns do not accumulate appended blocks.
 
@@ -61,9 +60,11 @@ The append step does not read `ctx.getSystemPrompt()`, modify incoming blocks, a
 
 ### Diagnostics
 
-Invalid rules, unreadable directories, and errors raised outside validation report through the component's existing channel: `ctx.ui.notify` in interactive sessions and the host logger otherwise, deduplicated per session and source. Diagnostics carry a fixed reason code and a locatable source such as `project/20-reasoning.md`. They do not include rule bodies, absolute paths, raw parser errors, regex sources, or conversation content.
+Invalid rules, unreadable directories, and errors raised outside validation report through the component's existing channel: `ctx.ui.notify` in interactive sessions and the host logger otherwise, deduplicated by the current event's session, source, and reason code, including a return to an earlier session or overlapping sessions. Diagnostics carry a fixed reason code and a locatable source such as `project/20-reasoning.md`. They do not include rule bodies, absolute paths, raw parser errors, regex sources, or conversation content.
 
 Regular expressions run as JavaScript regular expressions with no timeout and no sandbox.
+
+Each turn uses its effective event model and current cwd; no model means no rule read. Model switches, file additions, edits, deletions, and repairs re-match on the next covered turn without a body snapshot or cache. Coverage is ordinary main sessions and ordinary child Agents that run the hook, preserving each child's own model, role, and independent blocks. No new injection route serves plan-mode, Handoff, titles, classification, or other bypasses. Refresh is per turn, not per Provider request, temporary mid-turn switch, or automatic fallback. Unexpected processing errors preserve the input, and diagnostic failure cannot stop the model turn.
 
 ### Upstream re-check
 
@@ -83,14 +84,6 @@ Component checks cover the four matching keys with positive and negative cases, 
 Real-host checks record the exercised OMP release, the models, and the observed provider-facing request. A handler return value is not provider evidence. They confirm that appended text reaches the request, that frontmatter never does, that a model switch re-matches against the new model, that host blocks and dynamic content survive, that no appended text is duplicated across consecutive turns or after a mid-turn prompt rebuild, and that ordinary subagent turns inherit the rules while the plan-mode restricted subagent exercised at that time did not run the hook; the restricted-tool child observed later on OMP 18.4.3 is recorded under Changes. Cases the available model configuration cannot trigger, such as automatic fallback, are recorded as unverified instead of inferred.
 
 ## Alternatives considered
-
-### Distribute a separate extension and document an ordering contract
-
-This option was considered when choosing where the capability lives. Two components transforming the same array make the visible result depend on installation order, because handlers run in extension order with no priority option, and they require the replacement to recognize or preserve text owned by another component. Merging into one component removes both dependencies.
-
-### Mark the appended block with a recognizable prefix
-
-This option was considered while hardening the separate-extension design. A component-owned marker would make the replacement's block classification fail rather than misclassify. It writes component bookkeeping text into prompt content that is otherwise injected verbatim, so it was dropped together with the separate-extension design.
 
 ### Inject as the first conversation message
 
@@ -128,4 +121,4 @@ On OMP 18.4.3, the `scout` agent spawned through the `task` tool carries a restr
 
 ### 2026-10-04: Host contract from the template-only successor
 
-The component inherits its host contract from [Render the system prompt strategy only from the component template](./2026-10-04-use-system-prompt-template-only.md), and its maintenance lower bound is OMP 18.5.0 under [Maintain host components against a shared OMP floor](./2026-10-04-raise-omp-host-floor.md). The append step still runs after the replacement step. A turn without the component template is a no-op for the replacement step rather than a failure, and the append step still extends the host's system prompt array on that turn.
+The component inherits its host contract from [Render the system prompt strategy only from the component template](../archived/2026-10-04-use-system-prompt-template-only.md), and its maintenance lower bound is OMP 18.5.0 under [Maintain host components against a shared OMP floor](./2026-10-04-raise-omp-host-floor.md). The append step still runs after the replacement step. A turn without the component template is a no-op for the replacement step rather than a failure, and the append step still extends the host's system prompt array on that turn.

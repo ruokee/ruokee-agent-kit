@@ -5,7 +5,7 @@ import {
   parseRuleDocument,
   type RuleRejectReason,
   type RuleRoots,
-} from "../src/rules.ts";
+} from "../src/model-prompts.ts";
 import { treeFileSystem, type RuleTree } from "./rule-tree.ts";
 
 const MODEL = { id: "example-model-1.0", provider: "example-provider" };
@@ -51,14 +51,6 @@ test("treats entries as alternatives in any order", () => {
   const parsed = expectDocument(
     document("match:\n  - model: example-provider/other\n  - contains: example-model\n  - exact: nowhere"),
   );
-  expect(matchesModel(parsed, MODEL)).toBe(true);
-});
-
-test("keeps every condition when several entries match", () => {
-  const parsed = expectDocument(
-    document("match:\n  - contains: example-model\n  - exact: example-provider/example-model-1.0"),
-  );
-  expect(parsed.conditions).toHaveLength(2);
   expect(matchesModel(parsed, MODEL)).toBe(true);
 });
 
@@ -215,4 +207,32 @@ test("skips documents that do not match the turn's model", async () => {
 
   expect(diagnostics).toEqual([]);
   expect(bodies).toEqual(["Primary."]);
+});
+
+test("ignores top-level metadata but rejects unknown match-entry keys", () => {
+  const parsed = expectDocument(
+    document("title: Private metadata\nmatch:\n  - model: example-model-1.0", "Only body.\n"),
+  );
+  expect(parsed.body).toBe("Only body.\n");
+  expect(matchesModel(parsed, MODEL)).toBe(true);
+  expectReason(document("match:\n  - model: example-model-1.0\n  - unknown: example-model"), "entry-key");
+});
+
+test("uses the complete model id and keeps matching case-sensitive", () => {
+  const model = { provider: "Example", id: "family/model" };
+  for (const [condition, expected] of [
+    ["model: family/model", true],
+    ["model: model", false],
+    ["exact: Example/family/model", true],
+    ["exact: example/family/model", false],
+    ["contains: Family", false],
+    ["regex: ^Example/family/model$", true],
+  ] as const)
+    expect(matchesModel(expectDocument(document("match:\n  - " + condition)), model)).toBe(expected);
+});
+
+test("keeps equal bodies from separate sources and applies each OR rule once", async () => {
+  const text = document("match:\n  - model: example-model-1.0\n  - contains: example-model", "Same.\n");
+  const tree = { "project/same.md": text, "user/same.md": text };
+  expect((await collectRuleBodies(ROOTS, MODEL, treeFileSystem(tree))).bodies).toEqual(["Same.\n", "Same.\n"]);
 });

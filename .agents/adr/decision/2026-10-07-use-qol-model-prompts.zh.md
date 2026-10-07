@@ -1,31 +1,30 @@
-# ADR 决定：为系统提示词扩展增加模型级规则
+# ADR 决定：由 QoL 提供默认关闭的模型提示词规则
 
 Decision owner: Ruokee
-Decision writer: deepseek/deepseek-v4.1-flash
+Decision writer: OMP
+Reverses: [为系统提示词扩展增加模型级规则](../archived/2026-09-14-add-model-prompt-rules.zh.md)
 
-[English](./2026-09-14-add-model-prompt-rules.md) | 中文
+[English](./2026-10-07-use-qol-model-prompts.md) | 中文
 
 ## 动机
 
-让 `@ruokee/omp-system-prompt` 按模型应用用户编写的 Markdown 规则，而不是对所有模型使用同一套策略。
-
-各模型遵循指令的方式并不相同，`@ruokee/omp-system-prompt` 应让维护者通过用户自有的 Markdown 规则文档为不同模型设置各自的指令，同时不必修改扩展源码、宿主文件或分发包；例如某个模型在改动前先说明自己的假设，另一个直接给出简短回答。
+维护者需要通过用户自有 Markdown 规则为不同模型提供系统指令，无需修改扩展源码、宿主文件或分发包。该能力应在 QoL 内独立启用，不依赖组件模板或 system-prompt 的策略替换。OMP 已精简提示词并提供模板，这降低了维护者对额外策略替换的需求，但没有撤销模型规则需求。
 
 ## 分析
 
-在[已核对的修订](https://github.com/can1357/oh-my-pi/commit/61b1b8aef634334eaf1412afd003a763e1d1b9c1)中，OMP 没有模型级指令机制。上游 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) 要求提供模型级 `modelInstructions`。公开的 `before_agent_start` 事件暴露已渲染的 `systemPrompt: string[]`，并接受用于当前 turn 的替换数组（[event](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/types.ts#L752-L768)、[result](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/types.ts#L1149-L1153)），`ctx.model` 提供当前 `Model`，包括其 provider 和 id（[context](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/types.ts#L476-L480)）。因此 OMP 扩展无需修改 OMP 即可按模型选择提示词文本。
-
-`@ruokee/omp-system-prompt` 已经变换同一个数组以替换固定策略。另建一个组件会对同一 turn 输入叠加第二次变换，可见结果取决于安装顺序（[chaining](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/extensibility/extensions/runner.ts#L1715-L1725)）。由同一个组件按固定的内部顺序完成两项工作可以避免该依赖。
+公开的 `before_agent_start` 事件提供当前 turn 的系统提示词块与有效模型，可返回扩展后的数组。此前核对的上游模型指令请求见 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739)。这不证明任意当前宿主没有等价能力，能力归属变更保留下面的上游复核义务。原生 handler 按实际加载顺序链式执行，没有优先级设置；安装命令先后不确立执行顺序。
 
 ## 决定
 
-### 组件
+### 组件、开关与共存
 
-本能力由 `projects/omp-system-prompt` 承载，遵循 [只由组件模板渲染系统提示词策略](./2026-10-04-use-system-prompt-template-only.zh.md) 与 [保持组件自包含](./2026-08-24-keep-components-self-contained.zh.md) 两项决定。包名、原生 `omp.extensions` 入口、`renderDelivery` 设置与 peer dependency 合同保持不变；其他仓库组件中的文件不参与。
+由自包含的 `@ruokee/omp-qol` 承载规则，遵循[保持组件自包含](./2026-08-24-keep-components-self-contained.zh.md)与[维护 QoL 模型提示词](./2026-10-07-maintain-qol-model-prompts.zh.md)。`modelPromptsEnabled` 是原生布尔设置，默认 `false`，受总开关 `enabled` 控制。关闭时不注册规则 handler、不访问规则目录、不产生闲置规则诊断。设置在激活时读取一次；改动设置须重启 OMP，导航与新会话不刷新该快照。
 
-没有规则文件时，每个 turn 的行为与之前一致，因此该变更对已安装用户是增量式的。不提供启用开关：规则文件是否存在决定该能力是否生效。
+错误布尔值只停用本模块；未知设置键、非对象设置或设置读取失败按 QoL 既有合同拒绝全部模块。`/qol` 显示本模块有效状态、开关值与不可用原因，不运行模型，也不显示规则正文或模型标识。
 
-按顺序注册两个 `before_agent_start` 处理器：原有的替换在前，规则追加在后。追加步骤读取替换步骤产出的数组，因此不会重新识别替换步骤刚写入的块。两个步骤独立失败。替换失败时为追加步骤保留传入的宿主数组，追加失败时保留替换结果。两者都通过组件已有的、按会话去重的有界诊断通道报告。
+同一变更从 system-prompt 移除全部规则入口、读取、诊断、测试与无用途的运行依赖，不保留转发、别名或 shim；模板、Delivery 与页脚由它继续维护。QoL 增加直接 pi-utils peer，宿主 peer 保持不受限制，维护下限仍为 OMP 18.5.0。两组件分别增加补丁版本。
+
+单独使用 QoL 不需要 system-prompt。共存时实际加载顺序必须是 system-prompt 在前、QoL 在后，组件内部不依赖另一个组件文件。模板失败为规则追加保留传入数组，规则失败保留模板结果。更晚的 handler 仍可修改最终输入，不增加跨扩展调度或保证。两组件须协调更新，再启用新开关并重启；不保留旧版本混用的双重入口。
 
 ### 规则文档与匹配
 
@@ -36,7 +35,7 @@ Decision writer: deepseek/deepseek-v4.1-flash
 
 目录只贡献其直接子项中扩展名为小写 `.md` 的普通文件。加载器不递归、不跟随文件符号链接、不读取隐藏文件。文件按文件名的 JavaScript 字符串比较排序，因此 `10-`、`20-` 这类前缀决定顺序，异步读取不会改变该顺序。用户目录的正文排在项目目录的正文之前。正文不跨目录去重，项目文件不遮蔽用户文件，内容相同的文件不合并。目录缺失视为空集，一个目录读取失败不影响另一个目录继续提供规则。
 
-规则文档以 frontmatter 块开头，分隔行内容恰好为 `---`，前面可以有一个 UTF-8 BOM。frontmatter 只有一个必需键 `match`，其值为非空数组。每个条目是只含下列键之一、且值为非空字符串的对象：
+规则文档以 frontmatter 块开头，分隔行内容恰好为 `---`，前面可以有一个 UTF-8 BOM。分隔行支持 LF 和 CRLF。frontmatter 的必需键 `match` 为非空数组；其他顶层 metadata 忽略。每个条目是只含下列键之一、且值为非空且非全空白字符串的对象：
 
 | 键 | 匹配对象 |
 | --- | --- |
@@ -47,13 +46,13 @@ Decision writer: deepseek/deepseek-v4.1-flash
 
 条目之间是“或”的关系。任一匹配条目即应用该文件，命中多个条目的文件只追加一次。匹配区分大小写且为文本匹配：不解析别名、角色、家族、显示名、传输名或选择思考等级的后缀，也不提供通配符或模型列表。包含 `/` 的模型 id 按完整 id 比较。
 
-追加步骤取闭合分隔行之后的正文，逐字节追加，包括空行、CRLF、缩进、HTML 注释、模板形似文本和末尾换行。它移除开头的 BOM。
+追加步骤取闭合分隔行换行之后的正文，逐字节追加，包括空行、CRLF、缩进、HTML 注释、模板形似文本和末尾换行。它移除开头的 BOM。
 
-未知键、一个条目含多个键、`match` 数组为空、值不是字符串、YAML 无效、分隔行缺失或格式错误、正则无法编译，都会使该文件无效。组件跳过无效文件，并报告一条指明该文件和固定原因码的诊断。被跳过的文件不会部分生效，组件也不会删除或替换来自其他文件的文本。追加步骤在钩子运行的每个 turn 重新读取规则文件，因此新增、修改和删除在下一个 turn 生效，无需重启会话。
+条目内未知键、一个条目含多个键、`match` 缺失或类型错误、数组为空、条目不是对象、值为空白或不是字符串、YAML 无效、分隔行缺失或格式错误、正则无法编译或正文全为空白，都会使该文件无效。组件跳过整个文件，报告一条指明该文件和第一个失败点的固定原因码的诊断。被跳过的文件不会部分生效，组件也不会删除或替换来自其他文件的文本。追加步骤在钩子运行的每个 turn 重新读取规则文件，因此新增、修改和删除在下一个 turn 生效，无需重启会话。
 
 ### 注入契约
 
-至少有一条规则匹配时，追加步骤返回传入数组本身，并在其后追加每个匹配文件对应的一个块，顺序如上。没有匹配时，它不返回任何内容，传入的 turn 输入保持不变。
+至少有一条规则匹配时，追加步骤返回新数组，保持所有传入块及其顺序不变，再在末尾按上述顺序为每个匹配文件追加一个块。它不修改传入数组。没有匹配时，它不返回任何内容，传入的 turn 输入保持不变。
 
 只使用系统提示词通道。宿主在每个 turn 从其基础提示词重新装配（[base prompt](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/session/session-tools.ts#L1488-L1524)），不会把某个 turn 的 override 当作下一 turn 的输入，因此连续的普通 turn 不会累积追加的块。
 
@@ -61,9 +60,11 @@ Decision writer: deepseek/deepseek-v4.1-flash
 
 ### 诊断
 
-无效规则、不可读目录以及校验之外的异常，都通过组件已有的通道报告：交互会话使用 `ctx.ui.notify`，其他情况使用宿主 logger，并按会话与来源去重。诊断包含固定原因码和可定位来源，例如 `project/20-reasoning.md`。诊断不包含规则正文、绝对路径、原始解析错误、正则源码或对话内容。
+无效规则、不可读目录以及校验之外的异常，都通过组件已有的通道报告：交互会话使用 `ctx.ui.notify`，其他情况使用宿主 logger，并按当前事件的会话、来源和原因码去重；返回旧会话或交叠会话不改变归属。诊断包含固定原因码和可定位来源，例如 `project/20-reasoning.md`。诊断不包含规则正文、绝对路径、原始解析错误、正则源码或对话内容。
 
 正则按 JavaScript 正则执行，没有超时，也没有沙箱。
+
+每轮采用事件的有效模型及当前 cwd；无模型不读取规则。模型切换、文件增加、修改、删除和无效文件修复在下一覆盖 turn 重新匹配，不保存正文快照或缓存。该合同仅覆盖运行 hook 的普通主会话与普通子 Agent，保留子 Agent 自身模型、角色和独立块；不为 plan-mode、Handoff、标题、分类或其他旁路新增注入。刷新是逐 turn，不是逐 Provider 请求、轮内临时切换或自动回退。意外处理异常保留输入，诊断失败不阻止模型 turn。
 
 ### 上游复核
 
@@ -83,14 +84,6 @@ Decision writer: deepseek/deepseek-v4.1-flash
 真实宿主检查记录所用 OMP 版本、所用模型和观察到的 Provider-facing 请求。处理器返回值本身不构成 Provider 证据。检查确认追加文本进入请求、frontmatter 从不进入、切换模型后按新模型重新匹配、宿主块与动态内容保留、连续 turn 以及轮中重建后追加文本不重复，以及普通子 Agent turn 继承规则，而当时观察到的 plan-mode 受限子 Agent 不运行该钩子；OMP 18.4.3 上受限工具子 Agent 的后续观察记录在「变更」中。当前模型配置无法触发的场景（例如自动回退）记为未验证，而不是推断结论。
 
 ## 考虑过的替代方案
-
-### 分发独立扩展并记录顺序契约
-
-该方案在决定能力归属时进入选择。两个组件变换同一个数组时，可见结果取决于安装顺序，因为处理器按扩展顺序运行且没有优先级选项，同时要求替换步骤识别或保留另一个组件拥有的文本。合并到同一个组件可以消除这两项依赖。
-
-### 为追加的块添加可识别前缀
-
-该方案在加固独立扩展设计时进入选择。组件自有的标记会让替换步骤的块识别失败，而不是识别错误。它把组件内部的记账文本写进本应逐字节注入的提示词内容，因此随独立扩展方案一并放弃。
 
 ### 作为首条对话消息注入
 
@@ -128,4 +121,4 @@ Decision writer: deepseek/deepseek-v4.1-flash
 
 ### 2026-10-04：宿主合同来自只用模板的后继决定
 
-组件沿用[只由组件模板渲染系统提示词策略](./2026-10-04-use-system-prompt-template-only.zh.md)中的宿主合同，维护下限按[宿主内组件按共同的 OMP 下限维护](./2026-10-04-raise-omp-host-floor.zh.md)为 OMP 18.5.0。追加步骤仍在替换步骤之后运行。没有组件模板的轮次对替换步骤是空操作而不是失败，追加步骤在该轮次仍然扩展宿主的系统提示词数组。
+组件沿用[只由组件模板渲染系统提示词策略](../archived/2026-10-04-use-system-prompt-template-only.zh.md)中的宿主合同，维护下限按[宿主内组件按共同的 OMP 下限维护](./2026-10-04-raise-omp-host-floor.zh.md)为 OMP 18.5.0。追加步骤仍在替换步骤之后运行。没有组件模板的轮次对替换步骤是空操作而不是失败，追加步骤在该轮次仍然扩展宿主的系统提示词数组。

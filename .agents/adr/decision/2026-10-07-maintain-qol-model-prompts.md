@@ -1,14 +1,14 @@
-# ADR decision: Maintain OMP quality-of-life adjustments on the standalone wait entry
+# ADR decision: Maintain QoL model prompts and existing quality-of-life adjustments
 
 Decision owner: Ruokee
-Decision writer: OMP Claude Opus 5.5
-Reverses: [Maintain OMP quality-of-life adjustments while preserving speculative compaction](../archived/2026-10-04-preserve-speculative-cache.md)
+Decision writer: OMP
+Reverses: [Maintain OMP quality-of-life adjustments on the standalone wait entry](../archived/2026-10-04-use-standalone-qol-wait.md)
 
-English | [中文](./2026-10-04-use-standalone-qol-wait.zh.md)
+English | [中文](./2026-10-07-maintain-qol-model-prompts.zh.md)
 
 ## Motivation
 
-Maintain `@ruokee/omp-qol` with five independently switchable adjustments and cache alignment that preserves native speculative compaction, with the wait adjustment serving the standalone `wait` entry only.
+Maintain `@ruokee/omp-qol` with six independently switchable adjustments and cache alignment that preserves native speculative compaction, with the wait adjustment serving the standalone `wait` entry only.
 
 The original four adjustments are: a `wait` that keeps waiting to a total deadline, a bounded continuation after an eligible model error, an opt-in extension of the remote compaction deadline, and a process-wide wrapper that keeps a resumed process's first request in the provider's native history form. A native `wait` returns when its window ends while the background work it watches is still running, so the model must ask again and each such return costs a turn. A turn that ends with an upstream error stays settled even when the error is transient, because the native retry budget was exhausted or the error fell outside it. A remote compaction request is cut off at a fixed request deadline, and the compaction falls back instead of finishing. A resumed process otherwise re-encodes the history it replays, and the wrapper keeps that first request in the native replay form. Remote compaction also serializes its input separately from online requests, which can shorten their reusable prompt-cache prefix. Cache alignment reuses a confirmed online prefix without taking over the compaction protocol. Each adjustment selects the implementation a given host needs.
 
@@ -30,11 +30,17 @@ This decision defines the first-party `omp-qol` component, the responsibility sp
 
 ### Component and scope
 
-Add `projects/omp-qol/`, named `@ruokee/omp-qol`, under the [first-party capability boundary](./2026-08-20-establish-first-party-capability-kit.md) and the [self-contained component contract](./2026-08-24-keep-components-self-contained.md). One package carries five independently switchable modules: continuing waits, continuation after an eligible model error, the experimental compaction deadline extension, native history replay, and remote compaction cache alignment. One installation, one configuration entry, and one set of checks cover them, while each module keeps its own switch, availability status, and failure reporting.
+Add `projects/omp-qol/`, named `@ruokee/omp-qol`, under the [first-party capability boundary](./2026-08-20-establish-first-party-capability-kit.md) and the [self-contained component contract](./2026-08-24-keep-components-self-contained.md). One package carries six independently switchable modules: continuing waits, continuation after an eligible model error, the experimental compaction deadline extension, native history replay, remote compaction cache alignment, and model prompt rules. One installation, one configuration entry, and one set of checks cover them, while each module keeps its own switch, availability status, and failure reporting.
 
-Configure the component through OMP plugin settings only, following the [native settings decision](./2026-09-10-use-codex-web-plugin-settings.md), with OMP owning values, project overrides, and parsing. Waiting, conservative error recovery, and native history replay are enabled by default; the compaction deadline and cache adjustments are explicitly opt-in. A module reports its effective state and the reason it is inactive, and a fault in one module does not disable the others. A rejected setting is named by key and rule without echoing its value.
+Configure the component through OMP plugin settings only, following the [native settings decision](./2026-09-10-use-codex-web-plugin-settings.md), with OMP owning values, project overrides, and parsing. Waiting, conservative error recovery, and native history replay are enabled by default; the compaction deadline, cache, and model prompt adjustments are explicitly opt-in. A module reports its effective state and the reason it is inactive, and a fault in one module does not disable the others. A rejected setting is named by key and rule without echoing its value.
 
 Keep the component limited to these behavior adjustments. External tool guards, including Herdr guards, and unrelated host behavior stay outside it. Installation and migration remain with the user: the component does not modify existing extensions, user configuration, or installed host files.
+
+### Opt-in model prompt rules
+
+Maintain the independent module under [Provide opt-in model prompt rules through QoL](./2026-10-07-use-qol-model-prompts.md). `modelPromptsEnabled: false` is subordinate to the master switch and follows the same per-module boolean validation and fault isolation. The existing five modules retain their setting keys, defaults, ranges, cache modes, process-wrapper ownership and release rules, and native-interface adaptation obligations. The new key does not withdraw the preservation contract below for the 20 keys that existed when hub was removed.
+
+On covered turns, rules read fixed user/project directories using the current effective model and cwd and append byte-exact bodies. Off means no handler, directory reads, or idle diagnostics. Activation-snapshot changes require restart, rule files refresh next turn, and `/qol` reports effective state. Rules need neither system-prompt nor a template and do not join other modules' process-wrapper lifecycle. The model-rule decision fully specifies format, ordering, diagnostics, main/child sessions, failures, and upstream re-check.
 
 ### Host responsibilities
 
@@ -52,7 +58,7 @@ The wait module serves the builtin standalone `wait` entry only and does not com
 
 One monotonic total-deadline mechanism serves the entry. The deadline aborts only the in-flight native window, never background work. A native result that still arrives wins, caller cancellation keeps its reason, and a rejection becomes a deadline result only when this call's own deadline elapsed and the host reported a recognized abort; unrelated native rejections remain errors. The deadline result points to `wait` and `proc://`, which the host exposes. `/qol` names the entry and its effective applicability.
 
-Every setting the component declared before the `hub` path was removed stays, compared setting by setting: all 20 keep their keys, defaults, and ranges, and none is added or removed. `waitMessagesSeconds` and `waitProcessSeconds` remain accepted and validated and have no effect on supported hosts; the English and Chinese documentation and the setting descriptions in the manifest say so.
+Every setting the component declared before the `hub` path was removed stays, compared setting by setting: all 20 keep their keys, defaults, and ranges, and none of those keys is added or removed. The separate model prompt module adds `modelPromptsEnabled: false`. `waitMessagesSeconds` and `waitProcessSeconds` remain accepted and validated and have no effect on supported hosts; the English and Chinese documentation and the setting descriptions in the manifest say so.
 
 ### Interrupted and statusless errors
 
@@ -150,7 +156,7 @@ Verified claims stay separate per adjustment. The component README compatibility
 - Process-wide wrappers can interact with another extension's wrappers. Identity checks and ownership-conditional restoration avoid overwriting another extension but can leave this adjustment inactive until restart.
 - Concurrent native operations can retain different conversation and tool payloads. Memory follows the latest reference and native resolver/signal lifetimes rather than a completed-operation history; long-lived native references can retain large payloads. Strict equivalence can skip background requests whose snapshots no longer match and reduce cache benefit.
 
-- One component shares a release, a lockfile, and one check entry point across five adjustments. A host change that breaks one module also stops the component from being installed as a whole, and a single dependency upgrade affects all five.
+- One component shares a release, a lockfile, and one check entry point across six adjustments. A host change that breaks one module also stops the component from being installed as a whole, and a single dependency upgrade affects all six.
 - Automated checks cannot establish host behavior. Each adjustment needs its own real-session evidence, and the compaction experiment's benefit stays unproven until a remote compaction longer than the native deadline completes with usable model requests afterwards.
 - The adjustments depend on host details that carry no compatibility promise: the builtin tool description and the shape of an empty window, `stopReason: "error"` together with the public classifier and the `stopDetails.type` mark it writes for an interrupted turn, the identity of `AbortSignal.timeout`, and the order of compaction lifecycle events. The mark is compared by value and the statusless condition reads an absent field, so a host release that stops writing the mark, or starts carrying a status, silently narrows the accepted set instead of failing. Each module is written to stay inactive and say why rather than to guess, so a host upgrade can disable an adjustment without breaking the session, and the adjustment is trusted again only after a re-check.
 - Continuations re-send the conversation and spend provider quota, and a re-run turn can repeat a side effect from the failed turn. Bounded attempts, the fixed exclusion list, and the host cap reduce exposure without promising exactly-once behavior.

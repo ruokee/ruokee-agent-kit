@@ -2,7 +2,13 @@
 
 [中文](./README.zh.md)
 
-This OMP extension applies a maintained English strategy to OMP's system prompt and appends user-authored rule documents for the model in use. The strategy reaches the prompt through the host's own template mechanism: the user selects the shipped `host-template.hbs`, the host renders it with its runtime data, and the extension completes that render on each turn. OMP re-renders the system prompt each turn and hands the block array to `before_agent_start`; the extension transforms that input, never a startup snapshot.
+This OMP extension applies a maintained English strategy to OMP's system prompt through the host's own template mechanism. The user selects the shipped `host-template.hbs`, the host renders it with runtime data, and the extension completes that render on each turn. OMP re-renders the system prompt each turn and hands the block array to `before_agent_start`; the extension transforms that input, never a startup snapshot.
+
+## Approaching deprecation
+
+`omp-system-prompt` 0.5.1 is approaching deprecation. The maintainer reports that recent OMP updates substantially reduced the native prompt and support user-selected templates, reducing the need for this extension. Its template strategy, `renderDelivery`, footer processing, and current maintenance remain available. No removal date is set; the component does not uninstall itself or alter user templates and rules.
+
+Model prompt rules belong to QoL and are independently opt-in there. This component does not discover, read, append, or forward those rules.
 
 ## How it works
 
@@ -18,7 +24,7 @@ When exactly one block is a render of the shipped template, the extension handle
 
 Recognition uses the owned source's own static text as anchors: each anchor is edge-trimmed, the anchors keep their order, the first sits at the block start, and the last at the block end. Dynamic slot bodies are not part of that basis, so a third-party template that reproduces the whole static skeleton and changes only slot bodies is claimed as well. A render of a different template, a truncated or corrupt render, and a third-party block that merely opens with the owned identity line stay unclaimed.
 
-Any other main block is not the component's to change. Without a selected template, with `SYSTEM.md`, with `--system-prompt`, or with another template, the extension leaves the system prompt as the host built it and reports nothing; model rule documents are still appended.
+Any other main block is not the component's to change. Without a selected template, with `SYSTEM.md`, with `--system-prompt`, or with another template, the extension leaves the system prompt as the host built it and reports nothing.
 
 ## Agent coordination
 
@@ -36,48 +42,6 @@ The package declares `omp.settings.renderDelivery` as a boolean with a default o
 - A settings read failure or non-boolean value keeps Delivery enabled, reports one bounded session diagnostic for that reason, and lets the request continue.
 - When the setting changes between turns, the extension recognizes its own earlier output and adds or removes only the Delivery chapter block.
 - A foreign `# Delivery` block directly after the template render stays and reports `delivery-block-conflict`.
-
-## Model prompt rules
-
-The same extension appends user-authored prompt text for the model in use. Each covered turn reads `model-prompts` under the user agent directory (`getAgentDir()`, the active profile's agent directory) and under the project agent directory (`getProjectAgentDir(cwd)`, that is `<cwd>/.omp`). Only direct children count: a missing directory is empty, subdirectories are ignored, and no ancestor directory or resource root is searched. Rule files are direct regular files whose name ends in a lowercase `.md` and does not start with a dot, ordered by name in JavaScript string order, with the user directory first.
-
-A rule document is Markdown with a `---` frontmatter block:
-
-```markdown
----
-match:
-  - exact: example-provider/example-model-1.0
-  - model: another-model-1.0
-  - contains: example-model
-  - regex: ^example-provider/example-model-1\.0
----
-
-Text appended to the system prompt.
-```
-
-`match` is required and non-empty. Each entry carries exactly one key, and entries are alternatives:
-
-- `exact` compares the whole `provider/id` string.
-- `model` compares the bare model id.
-- `contains` tests a substring of `provider/id`.
-- `regex` tests the whole `provider/id` against a JavaScript regular expression compiled without flags.
-
-Matching is case-sensitive and textual. The keys take the model id literally, so a role alias, an alternate or routed id, and a thinking-level suffix match only when the id already contains that text; no alias, family, glob, or `name` key exists. Other frontmatter keys are ignored and never injected. The body after the closing delimiter is what gets appended, byte-for-byte, including its own headings, blank lines, and CRLF endings.
-
-Each matching file contributes one block, appended after the prompt the turn already has: after this extension's replaced prompt when the replacement applied, and after the incoming host prompt when it did not. The host stores the combined array as that turn's system prompt, so the rules survive a mid-turn rebuild and the next turn starts from the host's base prompt without accumulation. Files are read again on every turn, so an edit takes effect on the next turn.
-
-An invalid document is skipped without affecting the others, and the first failure wins. A missing or malformed delimiter pair (`frontmatter-missing`), unparsable YAML (`frontmatter-invalid`), a missing or mistyped `match` (`match-missing`), an empty array (`match-empty`), an entry that is not a single-key object (`entry-shape`), an unknown key (`entry-key`), a non-string or blank value (`entry-value`), an uncompilable pattern (`regex-invalid`), and a blank body (`body-blank`) each skip that one file. A file read failure reports `file-unreadable`; an unreadable directory reports `directory-unreadable` and skips only that directory. Each skip reports one bounded diagnostic per session naming the affected source as `<scope>/<file name>`, without rule text or the resolved directory. A turn with no matching document, and a turn without a current model, appends nothing.
-
-### Upstream re-check
-
-Upstream [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) proposes host-level model-scoped instructions (`modelInstructions`). When the host ships that mechanism, or an equivalent model-to-prompt capability, re-check this component before changing it:
-
-- the matching dimensions the host covers, such as exact `provider/model` keys, bare model ids, substring matching, and regular expressions;
-- how host-provided text composes with a replaced or customized system prompt: replacement or append, and where the text lands in the block order;
-- refresh timing: per agent turn, per provider request, on model switch, on temporary switch, and on fallback;
-- rule discovery conventions: directories, user and project precedence, and file order.
-
-Then decide whether model-scoped prompt text still belongs in this component, should keep only the parts the host leaves out, or should be dropped, and record the outcome alongside the matching version change.
 
 ## Fallback behavior
 
@@ -101,13 +65,13 @@ Handoff generation uses the base prompt; title generation and difficulty classif
 
 Ephemeral side requests such as `/btw` do not independently run the hook; they send the live Agent prompt. A per-turn override stays active until the next turn replaces or clears it.
 
-The override lasts one agent turn, not one provider request. A host rebuild during a turn preserves it, so the completed prompt describes turn-start assembly until the next turn. Appended rule blocks are part of that same turn-scoped prompt. Earlier extension blocks remain intact, and later handlers can overwrite this result; the extension does not reorder other extensions or claim final-provider precedence.
+The override lasts one agent turn, not one provider request. A host rebuild during a turn preserves it, so the completed prompt describes turn-start assembly until the next turn. Earlier extension blocks remain intact, and later handlers can overwrite this result; the extension does not reorder other extensions or claim final-provider precedence.
 
 ## Compatibility
 
 The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound. This section states the maintenance commitment, not an installation, activation, transformation, or fallback condition: a host below the bound is not blocked and may still run the package, without gaining a maintenance commitment below it, and having no upper bound does not mean that every later release works or has been verified.
 
-The package declares `@oh-my-pi/pi-coding-agent` and `@oh-my-pi/pi-utils` as unrestricted host peers (`*`). Those declarations name the host packages the component imports; they carry no maintenance range, no runtime check, and no claim about any host version.
+The package declares `@oh-my-pi/pi-coding-agent` as an unrestricted host peer (`*`). That declaration names the host package the component imports; it carries no maintenance range, runtime check, or claim about any host version.
 
 The three direct OMP dev dependencies are pinned at `18.5.0`, and the test suite renders the host templates of that installed package. A dev dependency version is neither a maintenance bound nor a supported-version range. The shipped template binds the runtime-section fields of OMP 18.5.0, and a test regenerates the committed artifact from the owned source so the two cannot drift.
 
@@ -128,7 +92,7 @@ omp install "$(pwd)" --scope user
 
 ### Selecting the template
 
-This step is optional. Without it the extension only appends model rule documents. The template is a user choice: the component never writes a template file, changes the installed host, or selects the template by itself. Use one of the host's own inputs:
+This step is optional. Without it the extension changes nothing. The template is a user choice: the component never writes a template file, changes the installed host, or selects the template by itself. Use one of the host's own inputs:
 
 - For one run, pass the shipped file on the command line:
 
@@ -157,15 +121,15 @@ cd projects/omp-system-prompt
 bun install --frozen-lockfile
 ```
 
-Restart OMP afterwards: a running process keeps the extension code it loaded at startup, and starting another session in the same process does not reload it. Prompt rule documents are read again on every turn, so editing those files needs no restart.
+Restart OMP afterwards: a running process keeps the extension code it loaded at startup, and starting another session in the same process does not reload it.
 
 ### Extension order
 
-OMP runs `before_agent_start` handlers in extension installation order, and each handler receives the previous handler's output as its input. This extension reads whatever array it receives, so extensions installed after it see the inserted Delivery block and the corrected footer; extensions that expect the host's uncorrected footer must run before it.
+OMP runs `before_agent_start` handlers in actual extension load order, and each handler receives the previous handler's output. This extension reads the array it receives, so handlers loaded after it see the inserted Delivery block and corrected footer; handlers that need the host's uncorrected footer must run before it. Installation command order alone does not establish this order.
 
 ### Verified scope
 
-Component checks run in the component directory: `bun run typecheck` and `bun test`. Tests render inputs at test time from the installed OMP 18.5.0 host templates and from the component's generated template, and one of them regenerates that artifact from the owned source. They cover template-render recognition, rejection of edited skeletons and lookalikes, the host's bundled main block and custom prompts staying unchanged without diagnostics, both Delivery shapes and switching between them, Delivery conflicts, footer correction for the main-agent and subagent tails, ambiguous and unrecognized footers, repeated conversion, model rule documents, settings fallback, diagnostic deduplication, and encoded installation paths.
+Component checks run in the component directory: `bun run typecheck` and `bun test`. Tests render inputs at test time from the installed OMP 18.5.0 host templates and from the component's generated template, and one regenerates that artifact from the owned source. They cover template-render recognition, rejection of edited skeletons and lookalikes, the host's bundled main block and custom prompts staying unchanged without diagnostics, both Delivery shapes and switching between them, Delivery conflicts, footer correction for the main-agent and subagent tails, ambiguous and unrecognized footers, repeated conversion, settings fallback, diagnostic deduplication, and encoded installation paths.
 
 Host checks on OMP 18.5.0 ran the published CLI in disposable Podman containers without host-directory mounts, with an isolated `HOME` and the component linked there. Both the main agent and an ordinary `task` child used the discovered synthetic project's `.omp/SYSTEM_TEMPLATE.md`. A loopback forwarder recorded request bodies and sent them to a real Provider; the captured main and child instructions exactly matched their same-turn post-handler blocks joined by two LFs. The main request kept the synthetic project body and append bytes, including quoted complete critical tails, with the owned loading guidance. The child request kept its independent role block and had no fixed tail after the outer `<project-context>` close. The child footer did not automatically inherit the main turn's project body or CLI append; quoted body text in the explicit task context is separate from footer inheritance. Byte preservation for those child footer inputs is regression-test evidence, not a real-child observation. Both agents returned the requested markers, and the same-run logs contained no `omp-system-prompt` diagnostics. These checks cover the footer repair, not general OMP 18.5.0 certification or unchanged features.
 
@@ -185,7 +149,7 @@ bun run build:template
 
 `bun run build:template` regenerates `host-template.hbs` from `src/prompt-template.md` and reports its byte size and anchor count; run it after editing the owned source, then `bun test`, which fails when the committed artifact and the source disagree.
 
-The runtime imports are limited to two unrestricted peer dependencies: `@oh-my-pi/pi-coding-agent` for extension APIs and `@oh-my-pi/pi-utils` for the profile-aware agent directory helpers. Tests pin direct dev dependencies on `@oh-my-pi/pi-coding-agent`, `@oh-my-pi/pi-ai`, and `@oh-my-pi/pi-utils` at 18.5.0 to keep the host templates reproducible; the dev dependency version does not restrict installation or activation.
+The runtime imports only the unrestricted peer `@oh-my-pi/pi-coding-agent` for extension APIs. Tests pin direct dev dependencies on `@oh-my-pi/pi-coding-agent`, `@oh-my-pi/pi-ai`, and `@oh-my-pi/pi-utils` at 18.5.0 to keep the host templates reproducible; the dev dependency version does not restrict installation or activation.
 
 ## License
 

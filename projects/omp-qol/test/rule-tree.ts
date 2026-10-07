@@ -1,4 +1,4 @@
-import type { RuleDirectoryEntry, RuleFileSystem } from "../src/rules.ts";
+import type { RuleDirectoryEntry, RuleFileSystem } from "../src/model-prompts.ts";
 
 /** File tree for an in-memory rule source; a null value is a directory. */
 export type RuleTree = Record<string, string | null>;
@@ -41,6 +41,6 @@ export function treeFileSystem(tree: RuleTree, options: RuleTreeOptions = {}): R
       if (content === undefined || content === null) throw failure("ENOENT");
       return content;
     },
-    isMissing: (error) => (error as { code?: unknown }).code === "ENOENT",
+    isMissing: (error) => error !== null && typeof error === "object" && "code" in error && error.code === "ENOENT",
   };
 }

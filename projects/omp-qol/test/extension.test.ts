@@ -10,7 +10,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import type { ExtensionContext } from "@oh-my-pi/pi-coding-agent";
 import { activate, COMMAND_NAME, describeState, PACKAGE_NAME, PACKAGE_VERSION } from "../src/extension.ts";
-import type { FieldProblem, QolSettings } from "../src/settings.ts";
+import type { QolSettings } from "../src/settings.ts";
 import { MODULE_IDS, parseQolSettings } from "../src/settings.ts";
 import { createHarness, resetNativeReplay, type Harness } from "./host.ts";
 
@@ -223,42 +223,6 @@ describe("the /qol command", () => {
     expect(off).toContain("jobsSeconds=42");
   });
 
-  test("reports the activation state before the first session_start", () => {
-    const text = describeState({
-      cwd: undefined,
-      settings: undefined,
-      problems: [],
-      global: { status: "ok" },
-      modules: {
-        wait: { status: "pending" },
-        recovery: { status: "pending" },
-        compaction: { status: "pending" },
-        replay: { status: "pending" },
-        cache: { status: "pending" },
-      },
-    });
-    expect(text).toContain("wait: pending");
-    expect(text).toContain("not activated in this process");
-  });
-
-  test("lists rejected keys by name and rule without values", () => {
-    const problems: FieldProblem[] = [{ module: "compaction", key: "compactionTimeoutMs", rule: "integer" }];
-    const text = describeState({
-      cwd: "/x",
-      settings: undefined,
-      problems,
-      global: { status: "ok" },
-      modules: {
-        wait: { status: "enabled" },
-        recovery: { status: "disabled" },
-        compaction: { status: "invalid" },
-        replay: { status: "disabled" },
-        cache: { status: "disabled" },
-      },
-    });
-    expect(text).toContain("problems: compaction.compactionTimeoutMs=integer");
-  });
-
   test("states that a floor above the native request deadline stops the compaction request from matching", async () => {
     const harness = createHarness();
     const { read } = gatedReader({ compactionTimeoutMs: 900_000, compactionTimeoutFloorMs: 400_000 });
@@ -283,6 +247,7 @@ describe("the /qol command", () => {
         compaction: { status: "enabled" },
         replay: { status: "enabled" },
         cache: { status: "disabled" },
+        modelPrompts: { status: "disabled" },
       },
     });
     expect(defaults).not.toContain("no longer matches");

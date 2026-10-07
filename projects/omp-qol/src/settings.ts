@@ -15,7 +15,7 @@
  */
 
 /** The modules this package can switch on and off. */
-export const MODULE_IDS = ["wait", "recovery", "compaction", "replay", "cache"] as const;
+export const MODULE_IDS = ["wait", "recovery", "compaction", "replay", "cache", "modelPrompts"] as const;
 export type ModuleId = (typeof MODULE_IDS)[number];
 
 /** Recovery eligibility modes. */
@@ -58,6 +58,7 @@ export const SETTINGS_DEFAULTS = {
   compactionCacheEnabled: false,
   compactionCacheProvider: "",
   compactionCacheMode: "hooks",
+  modelPromptsEnabled: false,
 } as const;
 
 /**
@@ -110,6 +111,7 @@ export interface QolSettings {
   compaction: CompactionSettings;
   replay: ReplaySettings;
   cache: CacheSettings;
+  modelPrompts: { enabled: boolean };
 }
 
 /** Why one key failed validation. Rules are named so diagnostics never echo a value. */
@@ -312,6 +314,12 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     COMPACTION_CACHE_MODES,
     SETTINGS_DEFAULTS.compactionCacheMode,
   );
+  const modelPromptsEnabled = readBoolean(
+    raw,
+    "modelPromptsEnabled",
+    "modelPrompts",
+    SETTINGS_DEFAULTS.modelPromptsEnabled,
+  );
 
   const reads: Read<unknown>[] = [
     waitEnabled,
@@ -334,6 +342,7 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     cacheEnabled,
     cacheProvider,
     cacheMode,
+    modelPromptsEnabled,
   ];
   const problems: FieldProblem[] = [];
   for (const read of reads) if (!read.ok) problems.push(read.problem);
@@ -375,6 +384,9 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
         enabled: cacheEnabled.ok ? cacheEnabled.value : SETTINGS_DEFAULTS.compactionCacheEnabled,
         provider: cacheProvider.ok ? cacheProvider.value : SETTINGS_DEFAULTS.compactionCacheProvider,
         mode: cacheMode.ok ? cacheMode.value : SETTINGS_DEFAULTS.compactionCacheMode,
+      },
+      modelPrompts: {
+        enabled: modelPromptsEnabled.ok ? modelPromptsEnabled.value : SETTINGS_DEFAULTS.modelPromptsEnabled,
       },
     },
   };

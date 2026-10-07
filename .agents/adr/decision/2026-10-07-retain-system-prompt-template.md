@@ -1,16 +1,16 @@
-# ADR decision: Render the system prompt strategy only from the component template
+# ADR decision: Retain the approaching-deprecation extension's template functionality
 
 Decision owner: Ruokee
-Decision writer: OMP Claude Opus 5.5
-Reverses: [Render the system prompt strategy from a host template](../archived/2026-09-30-render-system-prompt-from-host-template.md)
+Decision writer: OMP
+Reverses: [Render the system prompt strategy only from the component template](../archived/2026-10-04-use-system-prompt-template-only.md)
 
-English | [中文](./2026-10-04-use-system-prompt-template-only.zh.md)
+English | [中文](./2026-10-07-retain-system-prompt-template.zh.md)
 
 ## Motivation
 
 Have `@ruokee/omp-system-prompt` apply its strategy only to a host render of the component's own template, which the user selects as an optional step, and leave every other system prompt to the host without a diagnostic.
 
-The extension replaces the policy text of OMP's instruction block with its own maintained text and appends model-scoped rule documents. It used to support two routes: the host rendering the component's template, and a conversion that recognized the host's default block and rebuilt it from the component's template. The conversion recognized only the identity lines OMP used before 18.3.0. On 18.3.0 and later it found no main block, reported a failure on every turn, and left the host prompt unchanged, so users who selected no template got no strategy text and one diagnostic per session.
+The extension maintains its own policy text in OMP's instruction block; QoL independently provides model rules. It used to support two routes: the host rendering the component's template, and a conversion that recognized the host's default block and rebuilt it from the component's template. The conversion recognized only the identity lines OMP used before 18.3.0. On 18.3.0 and later it found no main block, reported a failure on every turn, and left the host prompt unchanged, so users who selected no template got no strategy text and one diagnostic per session.
 
 The OMP-facing components now share the maintenance lower bound OMP 18.5.0 under [Maintain host components against a shared OMP floor](./2026-10-04-raise-omp-host-floor.md), so no maintained host still uses the conversion. The template route covers the job on every maintained host, and a turn without the component's template is a session the component does not serve rather than a failure.
 
@@ -23,6 +23,12 @@ The template receives the session's live data, including visible skills, rules, 
 In 18.5.0, [`discoverSystemPromptOverride`](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/system-prompt.ts) looks at the project level before the user level, and within one level a literal `SYSTEM.md` wins over `SYSTEM_TEMPLATE.md`. An explicit command-line template or prompt overrides discovery. A selected `SYSTEM.md` is wrapped by the host's custom-prompt template, and the `<project-context>` block is still appended.
 
 ## Decision
+
+### Approaching deprecation and rule ownership
+
+The component is marked as approaching deprecation, without a removal date, automatic uninstall, maintenance stop, or per-turn deprecation warning. The maintainer observed that recent OMP updates substantially reduced prompt text and supplied templates, reducing the need for additional strategy replacement. This does not assert an unchecked release number or that native templates automatically equal every component policy. The template, Delivery, footer, diagnostics, optional installation, and current maintenance remain.
+
+Rules move completely under [Provide opt-in model prompt rules through QoL](./2026-10-07-use-qol-model-prompts.md), with no read, append, forwarding, or compatibility alias retained and no user rule file changed. The template functionality does not depend on QoL. Coexistence requires the template handler before the rule handler in actual load order; installation-command order guarantees no load order. The components fail independently.
 
 ### One recognized instruction block
 
@@ -45,7 +51,6 @@ A template that fails belongs to the route that read it. A strict template argum
 - **Instruction block.** The template render stays byte-for-byte in its position. Its tool, device, `xd://` URI, skill, rule, and runtime sections already carry the host's live data.
 - **Delivery.** The effective `renderDelivery` value is read on every covered turn through the public settings API and decides whether the owned Delivery chapter is inserted as its own block directly after the recognized template block. Its content, default, fail-open value, and per-turn refresh keep their meaning. A foreign block that occupies that position belongs to another writer: the extension keeps it and reports that its own chapter stayed out.
 - **Footer.** The extension corrects the outer loading guidance and removes the fixed outer critical tail, while `<project-context>`, context bodies, listed paths, workstation data, workspace data, active-repository text, and the append text stay byte-for-byte. The footer contract recognizes the exactly known main-agent and subagent critical tails at the validated outer boundary. Unknown tails and a boundary the extension cannot determine uniquely leave the whole footer unchanged and report that the correction did not apply. An absent footer needs no work and reports nothing.
-- **Model rules.** The second handler appends matching rule documents to the array the turn already has, with the same matching, ordering, and byte-exact bodies. Appending does not depend on the template, and a turn the replacement step leaves unchanged still lets the append step extend the incoming array.
 - **Skill text.** The template binds the host's visible skill data. The extension does not re-derive descriptions from command metadata, does not restore a description the host shortened, and never adds a skill to the visible set.
 
 Each of these reports its own bounded result. One step failing does not suppress another, and no step's success stands for the others.

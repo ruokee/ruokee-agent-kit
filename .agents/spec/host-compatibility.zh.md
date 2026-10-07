@@ -54,6 +54,6 @@
 
 - [宿主内组件按共同的 OMP 下限维护](../adr/decision/2026-10-04-raise-omp-host-floor.zh.md)
 - [保持可分发组件自包含](../adr/decision/2026-08-24-keep-components-self-contained.zh.md)
-- [只由组件模板渲染系统提示词策略](../adr/decision/2026-10-04-use-system-prompt-template-only.zh.md)
+- [保留即将弃用扩展的模板功能](../adr/decision/2026-10-07-retain-system-prompt-template.zh.md)
 - [以静态上下文字形维护 OMP 状态栏](../adr/decision/2026-10-04-show-static-context-glyph.zh.md)
-- [在独立等待入口上维护 OMP 体验调整](../adr/decision/2026-10-04-use-standalone-qol-wait.zh.md)
+- [维护 QoL 模型提示词与既有体验调整](../adr/decision/2026-10-07-maintain-qol-model-prompts.zh.md)

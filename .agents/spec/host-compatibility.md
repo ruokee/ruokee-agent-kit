@@ -54,6 +54,6 @@ The repository README summarizes the policy in [Component host maintenance](../.
 
 - [Maintain host components against a shared OMP floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)
 - [Keep distributable components self-contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
-- [Render the system prompt strategy only from the component template](../adr/decision/2026-10-04-use-system-prompt-template-only.md)
+- [Retain the approaching-deprecation extension's template functionality](../adr/decision/2026-10-07-retain-system-prompt-template.md)
 - [Maintain the OMP status bar with a static context glyph](../adr/decision/2026-10-04-show-static-context-glyph.md)
-- [Maintain OMP quality-of-life adjustments on the standalone wait entry](../adr/decision/2026-10-04-use-standalone-qol-wait.md)
+- [Maintain QoL model prompts and existing quality-of-life adjustments](../adr/decision/2026-10-07-maintain-qol-model-prompts.md)

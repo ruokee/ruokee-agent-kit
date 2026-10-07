@@ -2,7 +2,7 @@
 
 [English](./README.md)
 
-一个扩展提供五项可独立开关的 OMP 行为调整：持续等待、模型错误后的受限续跑、实验性的压缩期限延长、原生历史重放，以及可选择启用的远端压缩缓存对齐。每项调整的宿主源码、边界与已观察证据见[调整项](./docs/adjustments.zh.md)。
+一个扩展提供六项可独立开关的 OMP 行为调整：持续等待、模型错误后的受限续跑、实验性的压缩期限延长、原生历史重放、可选择启用的远端压缩缓存对齐，以及可选择启用的模型提示词规则。每项调整的宿主源码、边界与已观察证据见[调整项](./docs/adjustments.zh.md)。
 
 任务、消息、进程、模型轮次与压缩都由 OMP 管理。每项调整均可关闭；宿主接口、结构或归属无法识别时，对应调整保持不生效并报告原因。
 
@@ -15,6 +15,7 @@
 | [延长单个压缩期限](./docs/adjustments.zh.md#延长单个压缩期限) | **关** | 在一个压缩窗口内，命中的 `AbortSignal.timeout` 调用获得更长期限，使超过原生 5 分钟的远端压缩不被中断。进程级生效，实验性质。 |
 | [恢复会话时沿用原生历史](./docs/adjustments.zh.md#恢复会话时沿用原生历史) | 开 | 恢复会话的首次请求沿用上一个进程结束时的原生提供方条目，而不是按通用内容重建对话，使基于该形式的提示缓存可以服务这次请求。进程级生效，只设置一个标志，不改写请求体。 |
 | [远端压缩缓存对齐](./docs/adjustments.zh.md#远端压缩缓存对齐) | **关** | 为有明确归属的非 Codex Responses V2 压缩复用已确认的在线请求前缀。需选择提供方，保留原生投机压缩。 |
+| [模型提示词规则](#模型提示词规则) | **关** | 向每个受覆盖 turn 的系统提示词追加命中的用户 Markdown 正文，无需模板或其他组件。 |
 
 等待调整新增可选 `timeout`，重放选择已存的原生条目，缓存对齐只改变已识别的压缩请求前缀和工具定义。它们均不改模型、缓存键、已存历史或会话文件。恢复启动模型轮次，等待重复模型已经发出的调用，模型运行时会消耗服务额度。
 
@@ -91,6 +92,18 @@ omp plugin config set @ruokee/omp-qol compactionCacheEnabled true
 
 默认 `hooks` 模式观察所属会话的上下文处理结果，不重复调用处理器，也不依赖配套扩展。没有相关处理器时执行通用修复。`standard` 对未知钩子差异保持原生请求；选择该模式时，将 `compactionCacheMode` 设为 `standard` 并重启。两种模式都要求传输原样确认及整条请求校验。投影或请求差异无法确认时，完整请求保持原样。`/qol` 显示有效 `mode`。
 
+### 模型提示词
+
+| 键 | 默认 | 取值 | 效果 |
+| --- | --- | --- | --- |
+| `modelPromptsEnabled` | `false` | boolean | 追加按模型匹配的规则正文，总开关 `enabled` 也须开启。 |
+
+```bash
+omp plugin config set @ruokee/omp-qol modelPromptsEnabled true
+```
+
+修改开关后重启 OMP。既有规则文件无需迁移路径或格式。任一开关关闭时，本模块不注册 turn handler、不读取规则目录，也不报告未使用文件的诊断。
+
 ### 校验
 
 - 缺失的键取默认值。
@@ -103,7 +116,7 @@ omp plugin config set @ruokee/omp-qol compactionCacheEnabled true
 `/qol` 打印当前状态，不做任何修改。它不启动模型轮次，也不读取设置 schema 之外的值。
 
 ```
-@ruokee/omp-qol 0.5.3
+@ruokee/omp-qol 0.5.4
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -112,9 +125,60 @@ recovery: enabled — enabled=true mode=knownTransient maxAttempts=8 backoffBase
 compaction: disabled (compaction-disabled) — enabled=false timeoutMs=900000 floorMs=300000 windowGuardMs=3600000 notify=true
 replay: enabled (rewrites=0) — enabled=true
 cache: disabled (cache-disabled) enabled=false providerSelected=false mode=hooks
+modelPrompts: disabled (model-prompts-disabled) enabled=false
 ```
 
 `pending` 表示该进程尚未执行过会话启动。`disabled`、`invalid`、`incompatible` 和 `unavailable` 各自带原因码；设置对象只被部分接受时，`problems:` 列出被拒绝的键。设置对象整体被拒绝时，每个模块行替换为拒绝原因，报告末尾列出导致拒绝的键。
+
+## 模型提示词规则
+
+每个受覆盖 turn 读取当前 profile 用户 agent 目录下的 `model-prompts`，由 `getAgentDir()` 解析，以及 `getProjectAgentDir(ctx.cwd)` 下的同名目录，即 `<cwd>/.omp/model-prompts`。只处理直接子项中以小写 `.md` 结尾的非隐藏普通文件。忽略文件符号链接和子目录，不向祖先目录或资源根目录搜索。目录缺失视为空集。
+
+每个目录内按文件名的 JavaScript 字符串顺序排序，用户正文先于项目正文。项目文件不遮蔽同名用户文件，不同文件的相同正文仍分别贡献块。读取完成顺序不能改变该顺序。
+
+### 格式与匹配
+
+```markdown
+---
+metadata: optional, ignored
+match:
+  - exact: example-provider/example-model-1.0
+  - model: another-model-1.0
+  - contains: example-model
+  - regex: ^example-provider/example-model-1\.0
+---
+
+Text appended to the system prompt.
+```
+
+UTF-8 Markdown 开头可有一个 BOM。分隔行须恰好为 `---`，支持 LF 和 CRLF。`match` 是必需的非空数组，每个条目恰好有下列一个键，值为非空白字符串：
+
+- `exact` 比较完整的 `${model.provider}/${model.id}`。
+- `model` 比较完整的 `model.id`，包括 id 自身包含的 `/`。
+- `contains` 测试 `${model.provider}/${model.id}` 的字面子串。
+- `regex` 以不带 flags 的 JavaScript `RegExp` 测试同一字符串。
+
+条目之间是“或”的关系，一个文件命中多个条目仍只贡献一次。匹配区分大小写，按文本比较，不解析别名、角色、家族、显示名、传输名或思考等级后缀，不增加 glob 或模型列表语法。frontmatter 顶层额外键被忽略且永不注入；条目内未知键或多个键使整个文件无效。
+
+每个匹配文件向传入的 turn 数组末尾贡献一个块。正文从闭合分隔行的行尾之后开始，逐字节保留标题、空行、LF/CRLF、缩进、HTML 注释、模板形似文本和末尾换行。frontmatter 和开头 BOM 不注入。不添加包装、标题、裁剪、模板渲染、上下文改写、消息或历史条目，既有块保持字节与顺序。
+
+### 刷新与失败
+
+每个受覆盖 turn 重新读取规则与有效模型。新增、编辑、删除和修复在下一 turn 生效，无需重启；失败文件不沿用旧正文。没有模型、没有规则或没有命中时，传入提示词不变。OMP 的 turn 级 override 在轮内重建时保留，下一 turn 从宿主基础提示词开始，因此正文不累积。设置仍采用激活快照，修改需重启。
+
+无效文档在第一个失败点整文件跳过，原因包括 `frontmatter-missing`、`frontmatter-invalid`、`match-missing`、`match-empty`、`entry-shape`、`entry-key`、`entry-value`、`regex-invalid` 和 `body-blank`。`file-unreadable` 只影响一个文件，`directory-unreadable` 只影响一个目录，其他有效来源继续处理。handler 异常报告 `unexpected-error`，保留传入提示词，包括更早 handler 的结果。
+
+规则诊断包含固定原因与作用域相对来源，例如 `project/20-rules.md`，按会话、来源和原因去重。每个 turn 使用自己的当前 UI 通知通道，无 UI 时使用宿主 logger。不报告正文、绝对目录、解析错误、正则源码或对话内容。新建或分叉会话有独立历史，返回已访问会话时保留本次激活的记录。开关类型错误只停用本模块，设置对象整体被拒绝时沿用既有整组件拒绝规则。`/qol` 显示状态、有效开关及原因，不显示模型身份或规则正文。
+
+### 覆盖与信任
+
+覆盖运行 `before_agent_start` 的普通主 turn 和普通子 turn。子 Agent 按自身有效模型匹配，保留角色、独立块及宿主协议。plan-mode 子 Agent、Handoff、标题生成与难度分类不新增注入入口，旁路请求沿用宿主对当前 Agent 提示词的处理。这是 turn 级合同，不在每次 Provider 请求、回退或临时模型切换时独立刷新。后续 handler 可以覆盖结果，模块不重排扩展，也不声称最终 Provider 优先权。
+
+启用后，项目规则会成为系统指令，不增加项目信任门槛或安全隔离。JavaScript 正则没有沙箱或执行超时，匹配正文没有大小或额度限制，因此大文件会占用提示词空间，缓慢目录会拖慢 turn 装配。个人规则放用户目录，启用前检查项目规则。
+
+### 上游复核
+
+OMP 通过 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) 或等价机制提供模型级指令后，重新核对匹配维度、替换或追加的组合及块位置、刷新时机、目录发现及优先级和顺序。判断保留本能力、只补宿主缺失部分或移除，并记录对应版本变化。宿主模板本身不能证明模型规则行为等价。
 
 ## 限制
 
@@ -131,7 +195,7 @@ cache: disabled (cache-disabled) enabled=false providerSelected=false mode=hooks
 
 最低维护 OMP 版本为 `18.5.0`，不设置维护版本上限。本小节声明维护责任，不作为安装或运行条件。更早的宿主仍可能运行本包，但不因此获得维护承诺。这一声明不保证后续版本继续可用，也不表示下限及以上的每个版本都已验证。
 
-包的 peer 以无限制的范围 `*` 声明 `@oh-my-pi/pi-ai` 与 `@oh-my-pi/pi-coding-agent`。该声明只列出组件导入的宿主包，不构成维护范围，不带运行时检查，也不表示任何宿主版本可用。
+包的 peer 以无限制的范围 `*` 声明 `@oh-my-pi/pi-ai`、`@oh-my-pi/pi-coding-agent` 与 `@oh-my-pi/pi-utils`。该声明只列出组件导入的宿主包，不构成维护范围，不带运行时检查，也不表示任何宿主版本可用。
 
 自动化类型检查与测试套件针对 OMP `18.5.0` 运行。源码基线按路径区分：上游错误后续跑、压缩期限与原生历史重放引用最初阅读这些机制时的 `18.2.8`，持续等待引用 `18.5.0`，缓存对齐引用 `18.5.1`。宿主没有缓存对齐所需的主会话身份时，该模块保持不生效。[调整项](./docs/adjustments.zh.md)分别记录源码基线、实际检查或 CLI 运行，以及未经测试的场景。
 
@@ -178,6 +242,8 @@ bun test
 ```
 
 测试套件用一个小型记录宿主替代宿主，同时保留真实的包边界：来自已安装 `@oh-my-pi/pi-coding-agent` 的设置 getter、来自已安装 `@oh-my-pi/pi-ai` 的错误分类器，以及原生与已替换两种状态的 `AbortSignal.timeout` 与 `Map.prototype.set`。覆盖范围包括激活与校验、`wait` 注册及其模型可见参数、结构化续接规则与期限竞态、恢复的分类矩阵与续跑链、压缩模块的安装顺序与窗口生命周期与还原路径，以及重放包装的改写与转发矩阵、归属与释放路径、各类拒绝与 `/qol` 行。
+
+模型规则检查覆盖发现、匹配、正文保真、下一 turn 刷新、故障隔离、配置边界及会话级诊断。真实 CLI/TUI 观察及其边界见[模型提示词规则](./docs/adjustments.zh.md#模型提示词规则)。
 
 ## 许可证
 

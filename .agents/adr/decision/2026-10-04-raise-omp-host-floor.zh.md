@@ -108,11 +108,11 @@ OMP 下限是共同的维护基线，即组件实际开发和验证所用的 OMP
 
 把面向 OMP 的组件提高到 18.5.0，会删除三项在部分低版本宿主上仍然有效的行为，由完整的后继决定分别记录受影响的组件合同：
 
-- [只由组件模板渲染系统提示词策略](./2026-10-04-use-system-prompt-template-only.zh.md)删除了服务 18.3.0 以前宿主的默认块路线。
+- [只由组件模板渲染系统提示词策略](../archived/2026-10-04-use-system-prompt-template-only.zh.md)删除了服务 18.3.0 以前宿主的默认块路线。
 - [以静态上下文字形维护 OMP 状态栏](./2026-10-04-show-static-context-glyph.zh.md)取代了依赖 `Settings.getGroup` 的投机区间估算，只有 18.4.0 以前的宿主提供该方法。
-- [在独立等待入口上维护 OMP 体验调整](./2026-10-04-use-standalone-qol-wait.zh.md)删除了服务 18.3.0 以前宿主的 `hub` 等待路径。
+- [在独立等待入口上维护 OMP 体验调整](../archived/2026-10-04-use-standalone-qol-wait.zh.md)删除了服务 18.3.0 以前宿主的 `hub` 等待路径。
 
-`omp-context-pin`、`omp-codex-web-access` 和 `tk` OMP 适配器没有删除从各自原有下限到 18.5.0 之间宿主用到的行为。[Pin 决定](./2026-09-15-add-omp-context-pin.zh.md)、[模型提示词规则决定](./2026-09-14-add-model-prompt-rules.zh.md)、[tk 集成决定](./2026-09-02-integrate-tk-tools-with-harnesses.zh.md)和[组件自包含决定](./2026-08-24-keep-components-self-contained.zh.md)在各自的变更中记录下限或继承的合同。[Codex 网页访问使用原生插件设置](./2026-09-10-use-codex-web-plugin-settings.zh.md)没有记录下限，不需要修改。
+`omp-context-pin`、`omp-codex-web-access` 和 `tk` OMP 适配器没有删除从各自原有下限到 18.5.0 之间宿主用到的行为。[Pin 决定](./2026-09-15-add-omp-context-pin.zh.md)、[模型提示词规则决定](../archived/2026-09-14-add-model-prompt-rules.zh.md)、[tk 集成决定](./2026-09-02-integrate-tk-tools-with-harnesses.zh.md)和[组件自包含决定](./2026-08-24-keep-components-self-contained.zh.md)在各自的变更中记录下限或继承的合同。[Codex 网页访问使用原生插件设置](./2026-09-10-use-codex-web-plugin-settings.zh.md)没有记录下限，不需要修改。
 
 ## 考虑过的替代方案
 

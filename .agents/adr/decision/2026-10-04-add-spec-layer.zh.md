@@ -9,7 +9,7 @@ Decision writer: OMP Claude Opus 5.5
 
 在 `.agents/spec/` 下维护中英双语规格（spec），描述每个组件和仓库领域当前的目标状态，ADR 继续记录决策及其理由。
 
-仓库里原本没有一类文档专门从整体上说明每个组件应该做成什么样。这些信息分散在现行决定、决定中按日期追加的 `变更` 条目和组件文档里。例如，`omp-system-prompt` 的目标由[只用模板决定](./2026-10-04-use-system-prompt-template-only.zh.md)、[模型级提示词规则决定](./2026-09-14-add-model-prompt-rules.zh.md)和组件的 README 文件对共同构成。读者必须把这些来源合在一起，才能知道当前目标。Skill 体系和仓库约定的规则同样分散在现行决定、[AGENTS.md](../../../AGENTS.md) 和[仓库 README](../../../README.zh.md) 中。
+仓库里原本没有一类文档专门从整体上说明每个组件应该做成什么样。这些信息分散在现行决定、决定中按日期追加的 `变更` 条目和组件文档里。例如，`omp-system-prompt` 的目标由[只用模板决定](../archived/2026-10-04-use-system-prompt-template-only.zh.md)、[模型级提示词规则决定](../archived/2026-09-14-add-model-prompt-rules.zh.md)和组件的 README 文件对共同构成。读者必须把这些来源合在一起，才能知道当前目标。Skill 体系和仓库约定的规则同样分散在现行决定、[AGENTS.md](../../../AGENTS.md) 和[仓库 README](../../../README.zh.md) 中。
 
 ADR 本来就不承担这个职责。[ADR 指南](../README.zh.md)把 ADR 定义为持久决定的理由和契约，后继决定"不复制组件的实现规格"。组件文档面向安装和使用组件的人，仓库说明和 README 面向在仓库中工作的贡献者。它们都没有为维护者和 Agent 提供一份关于组件、Skill 体系或仓库约定的目标、边界和验收的当前说明。
 

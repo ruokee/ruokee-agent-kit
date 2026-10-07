@@ -3,33 +3,24 @@ import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSy
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { getAgentDir } from "@oh-my-pi/pi-utils";
 import { activate, type PluginSettingsReader } from "../src/extension.ts";
-import type { RuleFileSystem, RuleRoots } from "../src/rules.ts";
 import { HOST_TEMPLATE, renderMain, renderProject, type MainOptions } from "./render.ts";
-import { treeFileSystem, type RuleTree } from "./rule-tree.ts";
 
 const TEMPLATE_PATH = new URL("../src/prompt-template.md", import.meta.url);
 const ENTRY_URL = new URL("../src/extension.ts", import.meta.url).href;
 const TEST_CWD = "/tmp/omp-system-prompt-test";
 
 type Notify = (message: string, level: string) => void;
-type TestModel = { id: string; provider: string };
 interface TestContext {
   cwd: string;
   hasUI: boolean;
   ui: { notify: Notify };
   sessionManager: { getSessionId(): string };
-  model: TestModel | undefined;
-  models: { current(): TestModel | undefined };
 }
 type Handler = (
   event: { systemPrompt: string[] },
   ctx: TestContext,
 ) => Promise<{ systemPrompt?: string[] } | undefined>;
-
-const TEST_MODEL: TestModel = { id: "example-model-1.0", provider: "example-provider" };
-const RULE_ROOTS: RuleRoots = { user: "/rules/user", project: "/rules/project" };
 
 const noSettings: PluginSettingsReader = async () => ({});
 
@@ -47,35 +38,12 @@ function host(importMetaUrl = ENTRY_URL, getPluginSettings: PluginSettingsReader
   return { importMetaUrl, getPluginSettings };
 }
 
-function context(
-  hasUI = false,
-  notify: Notify = () => {},
-  sessionId = "session-1",
-  model: TestModel | undefined = TEST_MODEL,
-): TestContext {
+function context(hasUI = false, notify: Notify = () => {}, sessionId = "session-1"): TestContext {
   return {
     cwd: TEST_CWD,
     hasUI,
     ui: { notify },
     sessionManager: { getSessionId: () => sessionId },
-    model,
-    models: { current: () => undefined },
-  };
-}
-
-/** Rule document with one `match` entry and a marker body. */
-function ruleDocument(condition: string, body: string): string {
-  return `---\nmatch:\n  - ${condition}\n---\n${body}`;
-}
-
-/** Rule file access that records every directory it is asked to list. */
-function recordingFileSystem(paths: string[], fileSystem: RuleFileSystem = treeFileSystem({})): RuleFileSystem {
-  return {
-    ...fileSystem,
-    readDirectory: async (directory: string) => {
-      paths.push(directory);
-      return fileSystem.readDirectory(directory);
-    },
   };
 }
 
@@ -415,189 +383,6 @@ test("overlapping turns keep their own diagnostic channels", async () => {
   expect(notifications[0]).toContain("renderDelivery setting ignored");
 });
 
-test("appends matching rule documents after the replacement result", async () => {
-  const tree: RuleTree = {
-    "/rules/user/example-model.md": ruleDocument("model: example-model-1.0", "User primary rule.\n"),
-    "/rules/user/secondary.md": ruleDocument("model: another-model-2.0", "Secondary rule.\n"),
-    "/rules/project/any-example-provider.md": ruleDocument("contains: example-provider/", "Project rule.\n"),
-  };
-  const warnings: string[] = [];
-  const handlers: Handler[] = [];
-  const pi = {
-    logger: { warn: (message: string) => warnings.push(message) },
-    on: (_event: string, handler: Handler) => handlers.push(handler),
-  };
-
-  activate(pi as never, {
-    ...host(),
-    ruleRoots: () => RULE_ROOTS,
-    ruleFileSystem: treeFileSystem(tree),
-  });
-  const appended = handlers[1];
-  expect(appended).toBeDefined();
-
-  const blocks = ["before", ownedMain(), renderProject(), "after"];
-  const replaced = await handlers[0]!({ systemPrompt: blocks }, context());
-  expect(replaced?.systemPrompt).toBeDefined();
-
-  const result = await appended!({ systemPrompt: replaced?.systemPrompt ?? [] }, context());
-  expect(result?.systemPrompt).toEqual([...(replaced?.systemPrompt ?? []), "User primary rule.\n", "Project rule.\n"]);
-  expect(result?.systemPrompt).not.toContain("Secondary rule.\n");
-  expect(blocks).toHaveLength(4);
-  expect(warnings).toEqual([]);
-});
-
-test("keeps the incoming prompt when no rule document matches", async () => {
-  const tree: RuleTree = {
-    "/rules/user/secondary.md": ruleDocument("model: another-model-2.0", "Secondary rule.\n"),
-    "/rules/user/broken.md": "---\nmatch:\n  - nam: example-model\n---\nBroken.\n",
-  };
-  const warnings: string[] = [];
-  const handlers: Handler[] = [];
-  const pi = {
-    logger: { warn: (message: string) => warnings.push(message) },
-    on: (_event: string, handler: Handler) => handlers.push(handler),
-  };
-
-  activate(pi as never, {
-    ...host(),
-    ruleRoots: () => RULE_ROOTS,
-    ruleFileSystem: treeFileSystem(tree),
-  });
-
-  expect(await handlers[1]!({ systemPrompt: ["owned", "project"] }, context())).toBeUndefined();
-  expect(warnings).toHaveLength(1);
-  expect(warnings[0]).toContain("model prompt rule skipped");
-  expect(warnings[0]).toContain("entry-key");
-  expect(warnings[0]).toContain("source: user/broken.md");
-});
-
-test("appends nothing without a model and falls back to the current model", async () => {
-  const tree: RuleTree = {
-    "/rules/user/example-model.md": ruleDocument("model: example-model-1.0", "Primary rule.\n"),
-  };
-  const paths: string[] = [];
-  const handlers: Handler[] = [];
-  const pi = {
-    logger: { warn: () => {} },
-    on: (_event: string, handler: Handler) => handlers.push(handler),
-  };
-
-  activate(pi as never, {
-    ...host(),
-    ruleRoots: () => RULE_ROOTS,
-    ruleFileSystem: recordingFileSystem(paths, treeFileSystem(tree)),
-  });
-  const appended = handlers[1]!;
-
-  const withoutModel = { ...context(), model: undefined, models: { current: () => undefined } };
-  expect(await appended({ systemPrompt: ["owned"] }, withoutModel)).toBeUndefined();
-  expect(paths).toEqual([]);
-
-  const withCurrentModel = { ...context(), model: undefined, models: { current: () => TEST_MODEL } };
-  const result = await appended({ systemPrompt: ["owned"] }, withCurrentModel);
-  expect(result?.systemPrompt).toEqual(["owned", "Primary rule.\n"]);
-  expect(paths).toEqual(["/rules/user", "/rules/project"]);
-});
-
-test("reads rule documents from the agent and project config directories", async () => {
-  const paths: string[] = [];
-  const handlers: Handler[] = [];
-  const pi = {
-    logger: { warn: () => {} },
-    on: (_event: string, handler: Handler) => handlers.push(handler),
-  };
-
-  activate(pi as never, { ...host(), ruleFileSystem: recordingFileSystem(paths) });
-  expect(await handlers[1]!({ systemPrompt: ["owned"] }, context())).toBeUndefined();
-
-  expect(paths).toEqual([join(getAgentDir(), "model-prompts"), join(TEST_CWD, ".omp", "model-prompts")]);
-});
-
-test("reports each skipped rule document once per session without its text", async () => {
-  const tree: RuleTree = {
-    "/rules/user/broken.md": "---\nprivate marker\n",
-    "/rules/user/kept.md": ruleDocument("contains: example-model", "Kept rule.\n"),
-  };
-  const warnings: string[] = [];
-  const handlers: Handler[] = [];
-  const pi = {
-    logger: { warn: (message: string) => warnings.push(message) },
-    on: (_event: string, handler: Handler) => handlers.push(handler),
-  };
-
-  activate(pi as never, {
-    ...host(),
-    ruleRoots: () => RULE_ROOTS,
-    ruleFileSystem: treeFileSystem(tree),
-  });
-  const appended = handlers[1]!;
-  const event = { systemPrompt: ["owned"] };
-
-  expect((await appended(event, context()))?.systemPrompt).toEqual(["owned", "Kept rule.\n"]);
-  expect((await appended(event, context()))?.systemPrompt).toEqual(["owned", "Kept rule.\n"]);
-  expect(warnings).toHaveLength(1);
-  expect(warnings[0]).toContain("model prompt rule skipped");
-  expect(warnings[0]).toContain("frontmatter-missing");
-  expect(warnings[0]).toContain("source: user/broken.md");
-  expect(warnings[0]).not.toContain("private marker");
-  expect(warnings[0]).not.toContain("/rules/user");
-
-  expect((await appended(event, context(false, undefined, "second")))?.systemPrompt).toEqual(["owned", "Kept rule.\n"]);
-  expect(warnings).toHaveLength(2);
-});
-
-test("reports an unreadable rule directory and still appends from the other", async () => {
-  const warnings: string[] = [];
-  const handlers: Handler[] = [];
-  const pi = {
-    logger: { warn: (message: string) => warnings.push(message) },
-    on: (_event: string, handler: Handler) => handlers.push(handler),
-  };
-
-  activate(pi as never, {
-    ...host(),
-    ruleRoots: () => RULE_ROOTS,
-    ruleFileSystem: treeFileSystem(
-      { "/rules/project/kept.md": ruleDocument("contains: example-model", "Project rule.\n") },
-      { unreadableDirectories: [RULE_ROOTS.user] },
-    ),
-  });
-
-  const result = await handlers[1]!({ systemPrompt: ["owned"] }, context());
-  expect(result?.systemPrompt).toEqual(["owned", "Project rule.\n"]);
-  expect(warnings).toHaveLength(1);
-  expect(warnings[0]).toContain("model prompt directory unreadable");
-  expect(warnings[0]).toContain("scope: user");
-});
-
-test("fails open when rule discovery throws", async () => {
-  const notifications: Array<{ message: string; level: string }> = [];
-  const handlers: Handler[] = [];
-  const pi = {
-    logger: { warn: () => {} },
-    on: (_event: string, handler: Handler) => handlers.push(handler),
-  };
-
-  activate(pi as never, {
-    ...host(),
-    ruleRoots: () => {
-      throw new Error("private failure");
-    },
-  });
-
-  const result = await handlers[1]!(
-    { systemPrompt: ["owned"] },
-    context(true, (message, level) => notifications.push({ message, level })),
-  );
-  expect(result).toBeUndefined();
-  expect(notifications).toHaveLength(1);
-  expect(notifications[0]?.level).toBe("warning");
-  expect(notifications[0]?.message).toContain("model prompt rules NOT applied");
-  expect(notifications[0]?.message).toContain("unexpected-error");
-  expect(notifications[0]?.message).not.toContain("private failure");
-});
-
 test("transforms a host render of the component template", async () => {
   const handlers: Handler[] = [];
   const warnings: string[] = [];
@@ -623,9 +408,6 @@ test("transforms a host render of the component template", async () => {
 });
 
 test("leaves a main block that is not the template render untouched and silent", async () => {
-  const tree: RuleTree = {
-    "/rules/user/example-model.md": ruleDocument("model: example-model-1.0", "Primary rule.\n"),
-  };
   const footer = renderProject();
   const handlers: Handler[] = [];
   const warnings: string[] = [];
@@ -641,8 +423,6 @@ test("leaves a main block that is not the template render untouched and silent",
       settingsReads += 1;
       return {};
     }),
-    ruleRoots: () => RULE_ROOTS,
-    ruleFileSystem: treeFileSystem(tree),
   });
   const ctx = context(true, (message) => notifications.push(message));
   for (const blocks of [
@@ -652,8 +432,6 @@ test("leaves a main block that is not the template render untouched and silent",
     ["Custom system prompt.", footer],
   ]) {
     expect(await handlers[0]!({ systemPrompt: blocks }, ctx)).toBeUndefined();
-    const appended = await handlers[1]!({ systemPrompt: blocks }, ctx);
-    expect(appended?.systemPrompt).toEqual([...blocks, "Primary rule.\n"]);
   }
   expect(settingsReads).toBe(0);
   expect(warnings).toEqual([]);

@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
 Reverses: [Add an OMP system prompt extension](./2026-09-09-add-omp-system-prompt.md)
 Archived: 2026-10-04
-Reversed by: [Render the system prompt strategy only from the component template](../decision/2026-10-04-use-system-prompt-template-only.md)
+Reversed by: [Render the system prompt strategy only from the component template](./2026-10-04-use-system-prompt-template-only.md)
 
 English | [中文](./2026-09-30-render-system-prompt-from-host-template.zh.md)
 

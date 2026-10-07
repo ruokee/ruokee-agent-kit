@@ -45,9 +45,9 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 
 - **[omp-status-bar](./projects/omp-status-bar/README.zh.md)**：OMP 状态栏拓展，提供额外的上下文信息显示，包括当前会话上下文（数值而非原生提供的百分比）、总 Token、输入 Token、缓存 Token、输出 Token、缓存命中率和已回答的模型请求次数。
 - **[omp-codex-web-access](./projects/omp-codex-web-access/README.zh.md)**：让 OMP 支持通过转发 Provider 使用 Codex 订阅，接入网页搜索与页面提取工具。
-- **[omp-system-prompt](./projects/omp-system-prompt/README.zh.md)**：通过用户选择的宿主模板把维护的英文策略应用到 OMP 系统提示词，并为当前模型追加规则文档；其他系统提示词保持宿主构建的原样。
+- **[omp-system-prompt](./projects/omp-system-prompt/README.zh.md)**：通过用户选择的宿主模板把维护的英文策略应用到 OMP 系统提示词，其他系统提示词保持宿主构建的原样。组件即将弃用，模板、Delivery、页脚和当前维护仍保留。
 - **[omp-context-pin](./projects/omp-context-pin/README.zh.md)**：让少量固定条目在当前会话分支的每次普通模型请求中原样出现，并在每次提交后的压缩之后恢复这些条目。
-- **[omp-qol](./projects/omp-qol/README.zh.md)**：提供可独立开关的等待期限、模型错误后的受限续跑、实验性的压缩期限延长、原生历史重放，以及可选择启用的远端压缩缓存对齐。
+- **[omp-qol](./projects/omp-qol/README.zh.md)**：提供可独立开关的等待期限、模型错误后的受限续跑、实验性的压缩期限延长、原生历史重放、可选择启用的远端压缩缓存对齐，以及可选择启用的模型提示词规则。
 
 ## 安装
 
@@ -78,6 +78,23 @@ Skill 安装与下方的开发环境准备相互独立，不需要开发依赖�
 
 - [tk](./projects/tk/README.zh.md) 是跨多个 Harness 提供组件的任务运行时。运行时与组件分别安装。
 - [omp-status-bar](./projects/omp-status-bar/README.zh.md)、[omp-system-prompt](./projects/omp-system-prompt/README.zh.md)、[omp-codex-web-access](./projects/omp-codex-web-access/README.zh.md)、[omp-context-pin](./projects/omp-context-pin/README.zh.md) 和 [omp-qol](./projects/omp-qol/README.zh.md) 是 OMP 拓展。各自 README 说明宿主与配置要求。
+
+### 模型提示词规则与 system-prompt 状态
+
+[omp-qol](./projects/omp-qol/README.zh.md#模型提示词规则) 通过 `modelPromptsEnabled` 承载按模型匹配的规则文档，默认 `false`，受总开关 `enabled` 控制。[omp-system-prompt](./projects/omp-system-prompt/README.zh.md#即将弃用) 标记为即将弃用，可选模板、Delivery、页脚和当前维护仍保留，没有删除日期或自动卸载。
+
+同时更新两个组件，在 QoL 的原生插件设置中启用 `modelPromptsEnabled`，然后重启 OMP。用户级与项目级 `model-prompts` 目录、规则格式保持不变。更新后的 system-prompt 不再读取规则，不提供新旧组件混用的兼容入口。
+
+共存时 system-prompt 必须先于 QoL 加载，让模板处理在规则追加之前执行。安装命令先后不保证 handler 顺序。原生显式调用可以明确该顺序：
+
+```sh
+omp --no-extensions \
+  -e ./projects/omp-system-prompt/src/extension.ts \
+  -e ./projects/omp-qol/src/extension.ts \
+  --system-prompt-template ./projects/omp-system-prompt/host-template.hbs
+```
+
+从已准备依赖的仓库检出目录运行该示例，另行开启规则开关。`--no-extensions` 关闭 ambient 扩展发现，其他扩展不再自动加载；需要时添加对应显式入口。模板是可选的，QoL 规则可以单独使用，也可以配合其他系统提示词输入。规则与模板的失败互不抑制。
 
 ## 开发
 

@@ -304,6 +304,30 @@ The module is off by default. Set `compactionCacheProvider` to the exact provide
 - **QoL `0.5.3` runtime**: real OMP `18.5.1` CLI runs with local synthetic HTTP covered default and explicit modes, disabled and invalid settings, activation snapshots and restart, no handlers, generic insertion/reordering/restoration, new native tool history, first and repeated compaction, independent-process resume, manual and automatic compaction, speculative retry after newer context and native adoption, cancellation, terminal failures, the known context-restoration case, and the installed enabled-extension combination. Online payloads reached HTTP unchanged; proved compaction prefixes aligned; unknown differences remained native. No real provider calls were made.
 - **Not measured for `0.5.3`**: new provider cache gains, the complete remote/soft fallback sequence, concurrent live main sessions, other host versions/providers, or long-term reliability. Synthetic usage proves no cache benefit.
 
+## Model prompt rules
+
+### Native behavior and intended result
+
+The public `before_agent_start` event exposes the current turn's system-prompt blocks and effective model. The module appends matching user-authored bodies through that event without changing the host, template, history, or Provider payload. The upstream model-scoped instruction request is [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739); this reference is not a claim that every current host lacks an equivalent feature.
+
+`modelPromptsEnabled` defaults to `false` and is subordinate to `enabled`. Off registers no rule handler and performs no rule reads or idle rule diagnostics. Native plugin settings are an activation snapshot; changes require restart. Rule files instead refresh on every covered turn, using that event's model and cwd. `/qol` exposes effective state without running a model or showing rule content.
+
+### Composition, failures, and limits
+
+The [rule contract](../README.md#model-prompt-rules) defines discovery, matching, ordering, body fidelity, and diagnostics. Matching files each contribute one separate block after the unchanged input. No caching, deduplication, wrappers, template re-rendering, or history messages are added. Ordinary child Agents keep their own model and role blocks. A file failure skips only that file; a directory failure does not stop the other source; an unexpected handler failure preserves its input. Diagnostics belong to the current event's session/source/reason and use UI or logger without private values.
+
+When a template-processing extension is used, it must run before rule append in actual load order. Rule append is independent of the template; failure in either step preserves the other's result. Later handlers remain free to modify the input. Refresh is per turn, not per Provider request, temporary switch, or fallback. Other hook-bypassing routes gain no new injection entry. Project rules are trusted system instructions when this module is enabled; regexes have no sandbox or timeout, and rule bodies have no size budget.
+
+### Version and verification
+
+QoL `0.5.4` is checked against locked OMP `18.5.0` development types. Real OMP `18.6.3` CLI/TUI observations used explicit native entries and the `openai-completions` request family. They covered default/master/module-off requests, enabled rule-only requests, template-first coexistence with Delivery and corrected footer, ordinary child Agents, continuous file edits/additions/deletions/repairs and model re-matching. A registered tool-surface change in the first `before_provider_request` caused a directly observed native template render while the turn override was active. The effective blocks stayed unchanged and both real requests retained each rule once; this did not exercise prefix-binding freezes or updates after an assistant message. Request observations retained synthetic body bytes, block positions/counts, and hashes, not private request text. `/qol` was observed in the real TUI. The alternate model's request reached the Provider-facing boundary but that Provider returned insufficient credits; this proves re-matching, not successful completion by that Provider.
+
+Behavior tests cover parser/matching boundaries, zero access when off or without a model, configuration isolation and restart snapshots, directory/file failures, body fidelity, dynamic cwd/model inputs, diagnostic privacy/session ownership, and non-accumulation. These checks do not certify every host or extension combination. OMP `18.5.0` is a type/test baseline, not a new real-host matrix. Plan-mode, Handoff, titles, classification, automatic fallback, other request families, and long-term reliability remain unverified.
+
+### Upstream re-check
+
+If OMP offers native model-scoped instructions, compare matching dimensions, composition and block position, refresh on turns/requests/model changes/temporary switches/fallback, and rule discovery/precedence/order. Retain, narrow, or remove the local capability only after that comparison, with a corresponding version change.
+
 ## Upstream references
 
 | Commit | Date | Change | Adjustment it explains |

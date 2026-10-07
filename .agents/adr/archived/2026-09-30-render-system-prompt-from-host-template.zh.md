@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
 Reverses: [添加 OMP 系统提示词扩展](./2026-09-09-add-omp-system-prompt.zh.md)
 Archived: 2026-10-04
-Reversed by: [只由组件模板渲染系统提示词策略](../decision/2026-10-04-use-system-prompt-template-only.zh.md)
+Reversed by: [只由组件模板渲染系统提示词策略](./2026-10-04-use-system-prompt-template-only.zh.md)
 
 [English](./2026-09-30-render-system-prompt-from-host-template.md) | 中文
 
