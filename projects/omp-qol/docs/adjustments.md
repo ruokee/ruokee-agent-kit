@@ -310,13 +310,13 @@ The module is off by default. Set `compactionCacheProvider` to the exact provide
 
 The public `before_agent_start` event exposes the current turn's system-prompt blocks and effective model. The module appends matching user-authored bodies through that event without changing the host, template, history, or Provider payload. The upstream model-scoped instruction request is [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739); this reference is not a claim that every current host lacks an equivalent feature.
 
-`modelPromptsEnabled` defaults to `false` and is subordinate to `enabled`. Off registers no rule handler and performs no rule reads or idle rule diagnostics. Native plugin settings are an activation snapshot; changes require restart. Rule files instead refresh on every covered turn, using that event's model and cwd. `/qol` exposes effective state without running a model or showing rule content.
+Enable this opt-in module through [Model prompts settings](../README.md#model-prompts). Settings changes require restart; rule files refresh on each covered turn.
 
 ### Composition, failures, and limits
 
-The [rule contract](../README.md#model-prompt-rules) defines discovery, matching, ordering, body fidelity, and diagnostics. Matching files each contribute one separate block after the unchanged input. No caching, deduplication, wrappers, template re-rendering, or history messages are added. Ordinary child Agents keep their own model and role blocks. A file failure skips only that file; a directory failure does not stop the other source; an unexpected handler failure preserves its input. Diagnostics belong to the current event's session/source/reason and use UI or logger without private values.
+The [rule contract](../README.md#model-prompt-rules) defines discovery, matching, byte-exact append, and diagnostics. File and directory failures are isolated to their source; an unexpected handler failure preserves the incoming blocks.
 
-When a template-processing extension is used, it must run before rule append in actual load order. Rule append is independent of the template; failure in either step preserves the other's result. Later handlers remain free to modify the input. Refresh is per turn, not per Provider request, temporary switch, or fallback. Other hook-bypassing routes gain no new injection entry. Project rules are trusted system instructions when this module is enabled; regexes have no sandbox or timeout, and rule bodies have no size budget.
+Template-processing extensions must load before this module; template and rule failures remain independent, and later handlers can replace the result. Enabled project rules become system instructions. Regexes have no sandbox or timeout, and rule bodies have no size budget.
 
 ### Version and verification
 
@@ -326,7 +326,7 @@ Behavior tests cover parser/matching boundaries, zero access when off or without
 
 ### Upstream re-check
 
-If OMP offers native model-scoped instructions, compare matching dimensions, composition and block position, refresh on turns/requests/model changes/temporary switches/fallback, and rule discovery/precedence/order. Retain, narrow, or remove the local capability only after that comparison, with a corresponding version change.
+When OMP offers native model-scoped instructions, follow the [upstream re-check](../README.md#upstream-re-check) before retaining, narrowing, or removing this capability.
 
 ## Upstream references
 
