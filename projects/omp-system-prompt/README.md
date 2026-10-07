@@ -75,8 +75,6 @@ The package declares `@oh-my-pi/pi-coding-agent` as an unrestricted host peer (`
 
 The three direct OMP dev dependencies are pinned at `18.5.0`, and the test suite renders the host templates of that installed package. A dev dependency version is neither a maintenance bound nor a supported-version range. The shipped template binds the runtime-section fields of OMP 18.5.0, and a test regenerates the committed artifact from the owned source so the two cannot drift.
 
-The extension reads no host version. It recognizes the template render and the `<project-context>` footer from the event text, and anything it does not recognize stays as the host built it, so the maintenance bound never becomes a gate.
-
 ## Installation
 
 The package has not been published. After cloning the GitHub repository, install its locked dependencies and install the package into OMP:
