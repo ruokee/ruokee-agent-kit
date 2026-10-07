@@ -74,27 +74,7 @@ Follow [Installing Skills](./docs/installation.md) for the language choice, the 
 
 ### Extensions
 
-Extensions have their own installation and update instructions. Follow the linked component README; the root README does not repeat them.
-
-- [tk](./projects/tk/README.md) is a task runtime with components for several Harnesses. The runtime is installed separately from the components.
-- [omp-status-bar](./projects/omp-status-bar/README.md), [omp-system-prompt](./projects/omp-system-prompt/README.md), [omp-codex-web-access](./projects/omp-codex-web-access/README.md), [omp-context-pin](./projects/omp-context-pin/README.md), and [omp-qol](./projects/omp-qol/README.md) are OMP extensions. Each README states its host and configuration requirements.
-
-### Model prompt rules and system-prompt status
-
-[omp-qol](./projects/omp-qol/README.md#model-prompt-rules) owns model-scoped rule documents through `modelPromptsEnabled`, which defaults to `false` and is subordinate to `enabled`. [omp-system-prompt](./projects/omp-system-prompt/README.md#approaching-deprecation) is approaching deprecation; its optional template, Delivery, footer, and current maintenance remain. No removal date or automatic uninstall is scheduled.
-
-Update both components together, enable `modelPromptsEnabled` in QoL's native plugin settings, then restart OMP. User and project `model-prompts` directories and rule format stay the same. The updated system-prompt no longer reads rules; mixed old and new component versions have no compatibility path.
-
-When both are used, system-prompt must load before QoL so template processing precedes rule append. Installation-command order does not guarantee handler order. An explicit native invocation makes this order visible:
-
-```sh
-omp --no-extensions \
-  -e ./projects/omp-system-prompt/src/extension.ts \
-  -e ./projects/omp-qol/src/extension.ts \
-  --system-prompt-template ./projects/omp-system-prompt/host-template.hbs
-```
-
-Run this example from a prepared repository checkout and enable the rule switch separately. `--no-extensions` disables ambient extension discovery, so other extensions are not automatically loaded; add their explicit entries if needed. The template is optional, and QoL rules also work alone or with other system-prompt inputs. Rule and template failures are independent.
+Extensions have their own installation and update instructions. Follow the linked component README. Install the tk runtime separately from its Harness components.
 
 ## Development
 

@@ -74,27 +74,7 @@ Skill 安装与下方的开发环境准备相互独立，不需要开发依赖�
 
 ### 拓展
 
-拓展各自提供安装与更新说明，请按组件 README 操作，根 README 不重复这些步骤。
-
-- [tk](./projects/tk/README.zh.md) 是跨多个 Harness 提供组件的任务运行时。运行时与组件分别安装。
-- [omp-status-bar](./projects/omp-status-bar/README.zh.md)、[omp-system-prompt](./projects/omp-system-prompt/README.zh.md)、[omp-codex-web-access](./projects/omp-codex-web-access/README.zh.md)、[omp-context-pin](./projects/omp-context-pin/README.zh.md) 和 [omp-qol](./projects/omp-qol/README.zh.md) 是 OMP 拓展。各自 README 说明宿主与配置要求。
-
-### 模型提示词规则与 system-prompt 状态
-
-[omp-qol](./projects/omp-qol/README.zh.md#模型提示词规则) 通过 `modelPromptsEnabled` 承载按模型匹配的规则文档，默认 `false`，受总开关 `enabled` 控制。[omp-system-prompt](./projects/omp-system-prompt/README.zh.md#即将弃用) 标记为即将弃用，可选模板、Delivery、页脚和当前维护仍保留，没有删除日期或自动卸载。
-
-同时更新两个组件，在 QoL 的原生插件设置中启用 `modelPromptsEnabled`，然后重启 OMP。用户级与项目级 `model-prompts` 目录、规则格式保持不变。更新后的 system-prompt 不再读取规则，不提供新旧组件混用的兼容入口。
-
-共存时 system-prompt 必须先于 QoL 加载，让模板处理在规则追加之前执行。安装命令先后不保证 handler 顺序。原生显式调用可以明确该顺序：
-
-```sh
-omp --no-extensions \
-  -e ./projects/omp-system-prompt/src/extension.ts \
-  -e ./projects/omp-qol/src/extension.ts \
-  --system-prompt-template ./projects/omp-system-prompt/host-template.hbs
-```
-
-从已准备依赖的仓库检出目录运行该示例，另行开启规则开关。`--no-extensions` 关闭 ambient 扩展发现，其他扩展不再自动加载；需要时添加对应显式入口。模板是可选的，QoL 规则可以单独使用，也可以配合其他系统提示词输入。规则与模板的失败互不抑制。
+拓展各自提供安装与更新说明，请按组件 README 操作。tk 运行时与各 Harness 的接入组件分别安装。
 
 ## 开发
 
