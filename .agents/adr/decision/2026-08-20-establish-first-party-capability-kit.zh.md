@@ -39,4 +39,4 @@ Skill、Plugin、Extension、可执行项目、variant 和宿主包可以采用�
 
 以开发和维护的能力主体判断归属。第一方能力可以引用、摘录或改编第三方材料。是否属于 fork，取决于是否以第三方能力本身为主体，不能仅根据是否使用或使用了多少第三方内容判断。第三方能力、fork 和上游镜像仍不属于仓库范围。
 
-复用材料保留来源作者归属，并须满足适用许可和署名要求。这些义务与能力主体归属分别判断。该原则同时适用于 [architect](./2026-09-18-make-architect-model-invoked.zh.md#参考资料与改写) 和 [well-said](./2026-09-12-add-well-said-skill.zh.md)。改写来源材料是 architect 的具体选择，不是取得第一方身份的通用前提。
+复用材料保留来源作者归属，并须满足适用许可和署名要求。这些义务与能力主体归属分别判断。该原则同时适用于 [architect](./2026-09-18-make-architect-model-invoked.zh.md#参考资料与改写) 和 [well-said](./2026-10-08-rewrite-well-said.zh.md)。改写来源材料是 architect 的具体选择，不是取得第一方身份的通用前提。

@@ -2,6 +2,8 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
+Archived: 2026-10-08
+Reversed by: [Rewrite the well-said Skill](../decision/2026-10-08-rewrite-well-said.md)
 
 English | [中文](./2026-09-12-add-well-said-skill.zh.md)
 
@@ -33,15 +35,15 @@ The English component is [skills/well-said/SKILL.md](../../../skills/well-said/S
 
 Keep the required content complete, including the retained unslop material. Do not prebuild specialist reference files. Consider extracting substantial, infrequently used supplementary material only when the actual content and loading measurements justify it; ordinary writing must remain supported by the complete rules in `SKILL.md`.
 
-Follow the [self-contained component decision](./2026-08-24-keep-components-self-contained.md). Each language component includes its own rules and examples, with internal references resolving inside that component. Installed-path examples use `skills/well-said/` in both languages. The component must work without another Skill, personal instructions, private research, or the source repository.
+Follow the [self-contained component decision](../decision/2026-08-24-keep-components-self-contained.md). Each language component includes its own rules and examples, with internal references resolving inside that component. Installed-path examples use `skills/well-said/` in both languages. The component must work without another Skill, personal instructions, private research, or the source repository.
 
-Apply the [first-party capability decision](./2026-08-20-establish-first-party-capability-kit.md) by identifying the capability that is the subject of development and maintenance. A first-party capability may cite, quote, or adapt third-party content. Whether it is a fork depends on whether the third-party capability itself is that subject, rather than on the presence or amount of reused content alone.
+Apply the [first-party capability decision](../decision/2026-08-20-establish-first-party-capability-kit.md) by identifying the capability that is the subject of development and maintenance. A first-party capability may cite, quote, or adapt third-party content. Whether it is a fork depends on whether the third-party capability itself is that subject, rather than on the presence or amount of reused content alone.
 
 `well-said` is the independently designed and maintained capability, with its own purpose, organization, activation rules, and preservation boundaries. unslop supplies external material for its style section. Preserve most of the source wording, examples, and useful organization in `SKILL.md`, with necessary integration changes and additions. The reused material retains its original authorship.
 
 The retained unslop wording comes from [Cursor plugins / pstack](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/skills/unslop/SKILL.md), revision `99559f2f52047978602ef365589275831e76af07`, with a local Chinese-jargon category and corresponding renumbering. The source carries the [pstack MIT license](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/LICENSE), copyright Lauren Tan, 2026. Each language component includes the source attribution and full notice in its own `SKILL.md`. Capability ownership and source-use obligations are separate questions; verify provenance, permission, attribution, and notices for any further reused material before distribution.
 
-The [architect Skill](./2026-09-18-make-architect-model-invoked.md#sources-and-adaptation) provides an existing example: it uses an external architecture repository as a topic map and source material while remaining an independently authored Skill. Its choice to rewrite that material is specific to architect; rewriting is not a general prerequisite for first-party status.
+The [architect Skill](../decision/2026-09-18-make-architect-model-invoked.md#sources-and-adaptation) provides an existing example: it uses an external architecture repository as a topic map and source material while remaining an independently authored Skill. Its choice to rewrite that material is specific to architect; rewriting is not a general prerequisite for first-party status.
 
 The general ownership principle appears in [AGENTS.md](../../../AGENTS.md) and under `Changes` in the first-party capability decision, which links to this contract. References to or reuse of third-party material within a first-party capability do not themselves import a third-party capability, fork, or mirror. The prohibition on those third-party capabilities and the source attribution and license obligations remain binding.
 

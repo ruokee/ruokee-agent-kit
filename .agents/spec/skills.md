@@ -28,10 +28,11 @@ Spec for the ordinary Skills under `skills/` and their Chinese variants under `v
 - References inside a Skill resolve within that Skill's directory. A Skill does not link to, depend on, or instruct loading another repository component or a repository support file.
 - Links inside a Chinese variant use the installed `skills/<name>/` form.
 - The two language variants of a Skill have the same file set and the same scope. Neither omits an observable capability or a required instruction that the other has, and both change together.
-- A Skill tree holds only host-discoverable material: `SKILL.md`, workflows, references, examples, and glossaries. `grill-me` keeps its `agents/openai.yaml` invocation policy.
+- A Skill tree holds host-discoverable material such as `SKILL.md`, workflows, references, examples, and glossaries, plus required source attribution and license notices. `grill-me` keeps its `agents/openai.yaml` invocation policy.
 - `grill-me` loads only on explicit user invocation. `architect`, `code-quality`, `deep-research`, `msgspec`, `python-engineering`, and `well-said` may be loaded by the model.
 - Review workflows in `code-quality` and `python-engineering` may report findings and recommendations, but a review request does not authorize changes to the reviewed files.
 - Material adapted from a third party keeps its source attribution and license notice in both language variants.
+- `well-said` applies when outputting anything. Its complete writing guidance includes defensive phrasing and distinguishes work problems from wording problems. Each language component declares its version in `metadata.version` and keeps source attribution and licenses in adjacent files, as defined by the [well-said decision](../adr/decision/2026-10-08-rewrite-well-said.md).
 - The installer never writes into `skills/` or `variants/zh/skills/`.
 
 ## Host lower bound
@@ -55,5 +56,5 @@ None. Skills are instructions and do not load code into a host process, so they 
 - [Add the user-invoked grill-me Skill](../adr/decision/2026-09-06-add-grill-me-skill.md)
 - [Allow model invocation of architect](../adr/decision/2026-09-18-make-architect-model-invoked.md)
 - [Provide the deep-research Skill](../adr/decision/2026-09-06-migrate-deep-research.md)
-- [Add the well-said writing Skill](../adr/decision/2026-09-12-add-well-said-skill.md)
+- [Rewrite the well-said Skill](../adr/decision/2026-10-08-rewrite-well-said.md)
 - [Review authorization](../adr/decision/2026-09-06-review-authorization.md)

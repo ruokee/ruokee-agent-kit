@@ -2,6 +2,8 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
+Archived: 2026-10-08
+Reversed by: [重写 well-said Skill](../decision/2026-10-08-rewrite-well-said.zh.md)
 
 [English](./2026-09-12-add-well-said-skill.md) | 中文
 
@@ -33,15 +35,15 @@ Skill 不增加文件修改权限。审阅请求在未获编辑授权时保持�
 
 保持所需内容完整，包括保留的 unslop 材料。不预建专项参考文件。只有实际内容及加载测量表明有必要时，才考虑移出篇幅可观的低频补充材料；日常写作仍须由 `SKILL.md` 中的完整规则支持。
 
-遵循[组件自包含决定](./2026-08-24-keep-components-self-contained.zh.md)。每个语言组件提供完整规则和示例，内部引用解析到自身目录。两种语言中的安装路径示例均使用 `skills/well-said/`。组件使用不依赖其他 Skill、个人指令、私有研究或源仓库。
+遵循[组件自包含决定](../decision/2026-08-24-keep-components-self-contained.zh.md)。每个语言组件提供完整规则和示例，内部引用解析到自身目录。两种语言中的安装路径示例均使用 `skills/well-said/`。组件使用不依赖其他 Skill、个人指令、私有研究或源仓库。
 
-应用[第一方能力决定](./2026-08-20-establish-first-party-capability-kit.zh.md)时，以开发和维护的能力主体判断归属。第一方能力可以引用、摘录或改编第三方内容。是否属于 fork，取决于是否以第三方能力本身为主体，不能仅根据是否使用或使用了多少第三方内容判断。
+应用[第一方能力决定](../decision/2026-08-20-establish-first-party-capability-kit.zh.md)时，以开发和维护的能力主体判断归属。第一方能力可以引用、摘录或改编第三方内容。是否属于 fork，取决于是否以第三方能力本身为主体，不能仅根据是否使用或使用了多少第三方内容判断。
 
 `well-said` 是独立设计和维护的能力主体，拥有自己的目标、组织、激活规则和语义保护边界。unslop 为其中的文风章节提供外部材料。在 `SKILL.md` 中大幅保留来源原文、例子和有效组织，仅作必要衔接与补充。复用材料保留其原作者归属。
 
 保留的 unslop 原文来自 [Cursor plugins / pstack](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/skills/unslop/SKILL.md)，版本为 `99559f2f52047978602ef365589275831e76af07`，另有本地中文黑话类别及对应编号顺延。来源采用 [pstack MIT 许可](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/LICENSE)，版权人为 Lauren Tan，年份为 2026。各语言组件在自己的 `SKILL.md` 中包含来源署名与完整通知。能力主体归属与来源使用义务分别判断；后续复用其他材料时，同样须在分发前核实来源、权限、署名和通知。
 
-[architect Skill](./2026-09-18-make-architect-model-invoked.zh.md#参考资料与改写) 已有相同实践：它使用外部架构仓库作为主题地图和内容来源，同时保持独立编写的 Skill 主体。改写来源材料是 architect 的具体选择，不是取得第一方身份的通用前提。
+[architect Skill](../decision/2026-09-18-make-architect-model-invoked.zh.md#参考资料与改写) 已有相同实践：它使用外部架构仓库作为主题地图和内容来源，同时保持独立编写的 Skill 主体。改写来源材料是 architect 的具体选择，不是取得第一方身份的通用前提。
 
 通用归属原则记录在 [AGENTS.md](../../../AGENTS.md) 和第一方能力决定的 `Changes` 下，后者链接到本契约。第一方能力中的第三方材料引用或复用，本身不等于引入第三方能力、fork 或镜像。对这些第三方能力的禁止，以及来源署名与许可义务仍然有效。
 

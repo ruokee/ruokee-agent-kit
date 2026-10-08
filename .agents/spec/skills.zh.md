@@ -28,10 +28,11 @@
 - Skill 内的引用都在该 Skill 目录内解析。Skill 不链接、不依赖、也不指示加载仓库的其他组件或仓库支持文件。
 - 中文变体内的链接使用安装后的 `skills/<name>/` 形式。
 - 同一 Skill 的两个语言变体文件集相同、范围相同。任何一方都不缺少另一方具有的可观察能力或必需指令，两者一起修改。
-- Skill 树只包含宿主可发现的材料：`SKILL.md`、工作流、参考、示例和术语表。`grill-me` 保留其 `agents/openai.yaml` 调用策略。
+- Skill 树包含 `SKILL.md`、工作流、参考、示例和术语表等宿主可发现材料，以及必需的来源署名和许可通知。`grill-me` 保留其 `agents/openai.yaml` 调用策略。
 - `grill-me` 只在用户明确调用时加载。`architect`、`code-quality`、`deep-research`、`msgspec`、`python-engineering` 和 `well-said` 可以由模型加载。
 - `code-quality` 和 `python-engineering` 的审查工作流可以报告发现和建议，但审查请求不授权修改被审查的文件。
 - 改编自第三方的材料在两个语言变体中都保留来源署名和许可声明。
+- `well-said` 在输出任何内容时使用。完整写作指南包含防御性表述，区分工作问题与文字问题。每个语言组件在 `metadata.version` 声明版本，将来源署名和许可放在同目录附加文件中，具体要求见 [well-said 决定](../adr/decision/2026-10-08-rewrite-well-said.zh.md)。
 - 安装工具从不写入 `skills/` 或 `variants/zh/skills/`。
 
 ## 宿主下限
@@ -55,5 +56,5 @@
 - [添加用户主动调用的 grill-me Skill](../adr/decision/2026-09-06-add-grill-me-skill.zh.md)
 - [允许模型调用 architect](../adr/decision/2026-09-18-make-architect-model-invoked.zh.md)
 - [提供 deep-research Skill](../adr/decision/2026-09-06-migrate-deep-research.zh.md)
-- [增加 well-said 写作 Skill](../adr/decision/2026-09-12-add-well-said-skill.zh.md)
+- [重写 well-said Skill](../adr/decision/2026-10-08-rewrite-well-said.zh.md)
 - [审查授权](../adr/decision/2026-09-06-review-authorization.zh.md)
