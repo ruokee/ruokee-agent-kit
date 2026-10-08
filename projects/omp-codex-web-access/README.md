@@ -2,7 +2,13 @@
 
 [中文](./README.zh.md)
 
-This OMP extension lets OMP use a Codex subscription through a forwarding Provider for web search and page extraction. OMP's built-in `web_search` supports a directly supplied Codex subscription, but not this forwarded setup. The extension runs the Provider's OMP-registered `openai-responses` model with native web search and returns generated text with cited source URLs. No Codex CLI is launched.
+This OMP extension lets OMP use a Codex subscription through a forwarding Provider for web search and page extraction. The extension runs the Provider's OMP-registered `openai-responses` model with native web search and returns generated text with cited source URLs. No Codex CLI is launched. Recent OMP releases grant hosted web search to a model served through a custom endpoint with an API key, so the search tool covers a narrower gap than when the component was added.
+
+## Approaching deprecation
+
+`omp-codex-web-access` is approaching deprecation. The maintainer reports that recent OMP releases reach a forwarded Provider's model with hosted web search, which is the path `codex_web_search` covered, so that tool duplicates a host capability where this path works. Both tools, all five settings, the error contract, and the current maintenance remain available. No removal date is set; the component does not uninstall itself or change OMP's built-in tools.
+
+`codex_web_fetch` has no native equivalent. This status is not a plan to delete page extraction, and no real session here has yet confirmed a gateway executing the hosted search tool.
 
 ## Tools
 

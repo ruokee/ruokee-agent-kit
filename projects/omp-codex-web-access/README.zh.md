@@ -2,7 +2,13 @@
 
 [English](./README.md)
 
-这个 OMP 扩展让 OMP 支持通过转发 Provider 使用 Codex 订阅，接入网页搜索与页面提取工具。OMP 内置的 `web_search` 只支持直接提供 Codex 订阅，不支持这种转发方式。扩展使用该 Provider 在 OMP 中登记的 `openai-responses` 模型，以原生网页搜索运行并返回生成文本和引用来源 URL；扩展不启动 Codex CLI。
+这个 OMP 扩展让 OMP 支持通过转发 Provider 使用 Codex 订阅，接入网页搜索与页面提取工具。扩展使用该 Provider 在 OMP 中登记的 `openai-responses` 模型，以原生网页搜索运行并返回生成文本和引用来源 URL；扩展不启动 Codex CLI。近期 OMP 版本会把托管网页搜索授予通过自定义端点、使用 API key 访问的模型，因此搜索工具覆盖的缺口比加入组件时更小。
+
+## 即将弃用
+
+`omp-codex-web-access` 标记为即将弃用。维护者报告近期 OMP 版本可用托管网页搜索访问转发 Provider 的模型，而这正是 `codex_web_search` 覆盖的路径；在该路径可用时，该工具与宿主能力重复。两个工具、五项设置、错误合同与当前维护继续保留。不设删除日期，组件不自动卸载，也不修改 OMP 内置工具。
+
+`codex_web_fetch` 没有原生等价物。本状态不是删除页面提取的计划；本仓库也还没有一次真实会话确认网关会执行托管搜索工具。
 
 ## 工具
 
