@@ -1,9 +1,8 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { isDeepStrictEqual as equal } from "node:util";
-import type { AgentMessage, StreamFn } from "@oh-my-pi/pi-agent-core";
+import { normalizeTools, type AgentMessage, type StreamFn } from "@oh-my-pi/pi-agent-core";
 import { type ApiKeyResolver, type Context, type Model } from "@oh-my-pi/pi-ai";
 import { convertTools } from "@oh-my-pi/pi-ai/providers/openai-responses";
-import { normalizeTools } from "@oh-my-pi/pi-agent-core/agent-loop";
 import type { AgentSession, ExtensionContext, ModelRegistry } from "@oh-my-pi/pi-coding-agent";
 import { AgentRegistry } from "@oh-my-pi/pi-coding-agent/registry/agent-registry";
 import { body, nativeV2, object, reuse, type Body, type Reference } from "./reuse.ts";
@@ -13,7 +12,7 @@ import type { Construction } from "./construction.ts";
 
 const SLOT = Symbol.for("ruokee.omp-smart-cache.remote.coordinator");
 const OLD_QOL = Symbol.for("ruokee.omp-qol.compaction-cache.registry");
-const VERSION = "0.0.1";
+const VERSION = "0.0.2";
 const slots = globalThis as typeof globalThis & { [key: symbol]: unknown };
 const increment = (value: number): number => Math.min(Number.MAX_SAFE_INTEGER, value + 1);
 

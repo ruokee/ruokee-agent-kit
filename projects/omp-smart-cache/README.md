@@ -2,7 +2,7 @@
 
 [中文](./README.zh.md)
 
-`@ruokee/omp-smart-cache` reuses confirmed ordinary-request results in the selected Provider's native non-Codex Responses V2 remote compaction. It serves main sessions and native task and Eval children. Version: `0.0.1`.
+`@ruokee/omp-smart-cache` reuses confirmed ordinary-request results in the selected Provider's native non-Codex Responses V2 remote compaction. It serves main sessions and native task and Eval children. Version: `0.0.2`.
 
 It changes only a proved target request at the final sending boundary. OMP still owns triggering, preparation, trimming, credentials, retries, fallback, speculative adoption, history commits, and continuation. Ordinary requests remain unchanged. Alignment does not prove a Provider cache hit or savings.
 
@@ -78,7 +78,11 @@ Status contains no message body, opaque bytes, credential, raw endpoint, or priv
 
 Source baselines are the published `@oh-my-pi/pi-agent-core`, `pi-ai`, and `pi-coding-agent` packages at `18.5.0`, with maintained-host checks at `18.8.3`. Relevant source paths are `src/sdk.ts`, `src/registry/agent-registry.ts`, `src/session/session-maintenance.ts`, `src/session/date-cwd-reminder.ts`, `src/session/messages.ts`, `src/compaction/compaction.ts`, and `src/providers/openai-shared.ts` in their owning host packages.
 
+Imports use entries exposed by the compiled host. Source encoding stays with `buildResponsesInput`. Its model-adapted, hoisted output passes through `buildOpenAiNativeHistory` with no raw messages for native V2 replay normalization. Opaque correspondence uses the same native encoder on a single compaction record, requires a unique match, and restores the original record before normalization. Local image eligibility reads the native `images.urls.enabled` handle against the current session's settings, including child overrides. A missing handle does not count as disabled.
+
 Actual native CLI coverage on both versions includes complete-range reuse, tool-output trimming with local reuse, main/task/Eval attribution, parallel child isolation, child revive/cancellation, and switch/branch/tree recovery. Controlled synthetic HTTP exercises the native serializer, scheduler, and maintenance. Synthetic usage is not real Provider measurement. Source inspection alone is not runtime verification.
+
+Compiled `18.8.3` checks also cover those imports, opaque identity, required local reuse, and false/true image-setting overrides in native task and Eval children. Context or provider-request handlers without an independent-unit contract prevent local proof; complete-range reuse remains available. These controlled checks do not establish cache savings.
 
 Replace this adaptation when a maintained native interface preserves equivalent configuration, isolation, reuse safety, and failure behavior across the required paths, after behavioral verification.
 

@@ -2,7 +2,7 @@
 
 [English](./README.md)
 
-`@ruokee/omp-smart-cache` 将已确认普通请求的处理结果复用于用户选定 Provider 的原生非 Codex Responses V2 远端压缩。覆盖主会话和原生 task、Eval 子会话。版本：`0.0.1`。
+`@ruokee/omp-smart-cache` 将已确认普通请求的处理结果复用于用户选定 Provider 的原生非 Codex Responses V2 远端压缩。覆盖主会话和原生 task、Eval 子会话。版本：`0.0.2`。
 
 只在最终发送边界改写已经完整证明的目标请求。触发、准备、裁剪、凭据、重试、回退、投机采用、历史提交和续接仍归 OMP。普通请求不变。对齐不等于 Provider 缓存命中或收益。
 
@@ -78,7 +78,11 @@ switch、branch、tree 导航前撤销旧 epoch。原生转换结算后，新的
 
 源码基线为发布的 `@oh-my-pi/pi-agent-core`、`pi-ai`、`pi-coding-agent` `18.5.0`，当前受维护宿主核对使用 `18.8.3`。相关宿主包源码路径为 `src/sdk.ts`、`src/registry/agent-registry.ts`、`src/session/session-maintenance.ts`、`src/session/date-cwd-reminder.ts`、`src/session/messages.ts`、`src/compaction/compaction.ts` 和 `src/providers/openai-shared.ts`。
 
+导入使用编译宿主公开的入口。源编码保持使用 `buildResponsesInput`。其经过模型适配及 hoist 的输出传给 `buildOpenAiNativeHistory`，不传原始消息，以执行原生 V2 重放规范化。opaque 来源比较通过同一原生编码器处理单条 compaction record，要求唯一匹配，并在规范化之前恢复原 record。局部图片资格通过原生 `images.urls.enabled` handle 读取当前会话设置，包括子会话覆盖；缺失 handle 不视为关闭。
+
 两版实际原生 CLI 覆盖完整范围复用、工具输出裁剪后的局部复用、主会话/task/Eval 归属、并行子会话隔离、子会话 revive/取消及 switch/branch/tree 恢复。受控合成 HTTP 保留原生 serializer、调度和 maintenance。合成 usage 不是真实 Provider 测量，源码核对也不是运行验证。
+
+编译版 `18.8.3` 检查还覆盖上述导入、opaque 身份、必需局部复用，以及原生 task、Eval 子会话的 false/true 图片设置覆盖。没有独立单元合同的 context 或 provider-request handler 阻止局部证明，完整范围复用仍可用。这些受控检查不证明缓存收益。
 
 受维护原生接口在所需路径提供等价配置、隔离、复用安全及失败行为后，以行为验证为依据替换本适配。
 
