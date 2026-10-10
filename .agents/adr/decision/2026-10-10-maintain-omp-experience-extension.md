@@ -1,14 +1,14 @@
-# ADR decision: Maintain QoL without remote cache alignment
+# ADR decision: Maintain the extension that improves the OMP experience
 
 Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [Maintain QoL model prompts and existing quality-of-life adjustments](../archived/2026-10-07-maintain-qol-model-prompts.md)
 
-English | [中文](./2026-10-10-maintain-qol-without-remote.zh.md)
+English | [中文](./2026-10-10-maintain-omp-experience-extension.zh.md)
 
 ## Motivation
 
-Maintain `@ruokee/omp-qol` with five independently switchable adjustments. Remote cache alignment belongs to the independent smart-cache component; wait continues to serve the standalone `wait` entry only.
+Maintain `@ruokee/omp-qol` with its independently switchable adjustments. Remote cache alignment belongs to the independent smart-cache component; wait continues to serve the standalone `wait` entry only.
 
 The original four adjustments are: a `wait` that keeps waiting to a total deadline, a bounded continuation after an eligible model error, an opt-in extension of the remote compaction deadline, and a process-wide wrapper that keeps a resumed process's first request in the provider's native history form. A native `wait` returns when its window ends while the background work it watches is still running, so the model must ask again and each such return costs a turn. A turn that ends with an upstream error stays settled even when the error is transient, because the native retry budget was exhausted or the error fell outside it. A remote compaction request is cut off at a fixed request deadline, and the compaction falls back instead of finishing. A resumed process otherwise re-encodes the history it replays, and the wrapper keeps that first request in the native replay form. Each adjustment selects the implementation a given host needs.
 
@@ -28,7 +28,7 @@ This decision defines the first-party `omp-qol` component, the responsibility sp
 
 ### Component and scope
 
-Add `projects/omp-qol/`, named `@ruokee/omp-qol`, under the [first-party capability boundary](./2026-08-20-establish-first-party-capability-kit.md) and the [self-contained component contract](./2026-08-24-keep-components-self-contained.md). One package carries five independently switchable modules: continuing waits, continuation after an eligible model error, the experimental compaction deadline extension, native history replay, and model prompt rules. One installation, one configuration entry, and one set of checks cover them, while each module keeps its own switch, availability status, and failure reporting.
+Add `projects/omp-qol/`, named `@ruokee/omp-qol`, under the [first-party capability boundary](./2026-08-20-establish-first-party-capability-kit.md) and the [self-contained component contract](./2026-08-24-keep-components-self-contained.md). One package carries its independently switchable modules: continuing waits, continuation after an eligible model error, the experimental compaction deadline extension, native history replay, and model prompt rules. One installation, one configuration entry, and one set of checks cover them, while each module keeps its own switch, availability status, and failure reporting.
 
 Configure the component through OMP plugin settings only, following the [native settings decision](./2026-09-10-use-codex-web-plugin-settings.md), with OMP owning values, project overrides, and parsing. Waiting, conservative error recovery, and native history replay are enabled by default; the compaction deadline and model prompt adjustments are explicitly opt-in. A module reports its effective state and the reason it is inactive, and a fault in one module does not disable the others. A rejected setting is named by key and rule without echoing its value.
 
@@ -36,9 +36,9 @@ Keep the component limited to these behavior adjustments. External tool guards, 
 
 ### Opt-in model prompt rules
 
-Maintain the independent module under [Provide opt-in model prompt rules through QoL](./2026-10-07-use-qol-model-prompts.md). `modelPromptsEnabled: false` is subordinate to the master switch and follows the same per-module boolean validation and fault isolation. The other four modules retain their setting keys, defaults, ranges, process-wrapper ownership and release rules, and native-interface adaptation obligations. The remote cutover removes only its three settings and does not relax any unrelated preservation contract.
+Maintain the independent module under [Provide opt-in model prompt rules through QoL](./2026-10-07-use-qol-model-prompts.md). `modelPromptsEnabled: false` is subordinate to the master switch and follows the same per-module boolean validation and fault isolation. The remaining modules retain their setting keys, defaults, ranges, process-wrapper ownership and release rules, and native-interface adaptation obligations. The remote cutover touches only its three settings and leaves every other preservation contract in force.
 
-On covered turns, rules read fixed user/project directories using the current effective model and cwd and append byte-exact bodies. Off means no handler, directory reads, or idle diagnostics. Activation-snapshot changes require restart, rule files refresh next turn, and `/qol` reports effective state. Rules need neither system-prompt nor a template and do not join other modules' process-wrapper lifecycle. The model-rule decision fully specifies format, ordering, diagnostics, main/child sessions, failures, and upstream re-check.
+On covered turns, rules read fixed user/project directories using the current effective model and cwd and append byte-exact bodies. Both switches must be on for the handler, directory reads, and unused-file diagnostics. Activation-snapshot changes require restart, rule files refresh next turn, and `/qol` reports effective state. Rules need neither system-prompt nor a template and do not join other modules' process-wrapper lifecycle. The model-rule decision fully specifies format, ordering, diagnostics, main/child sessions, failures, and upstream re-check.
 
 ### Host responsibilities
 
@@ -95,7 +95,7 @@ The adjustment's measured effect, the host details it depends on, and its limits
 
 ### Remote cutover
 
-[Smart-cache owns remote alignment](./2026-10-10-use-smart-cache-remote.md). QoL has no remote implementation, setting consumption, status entry, alias, re-export, or runtime dependency on that component. The repository README pair owns coordinated user/project migration and restart guidance. QoL preserves the unrelated deadline experiment, including `owner-stopped`, and the process-wide replay ownership and release rules above. Remote recovery does not change those contracts.
+[Smart-cache owns remote alignment](./2026-10-10-use-smart-cache-remote.md). Remote implementation, setting consumption, status entry, alias, re-export, and runtime dependency belong to that component. The repository README pair owns coordinated user/project migration and restart guidance. QoL keeps its own adjustments: the deadline experiment, including `owner-stopped`, and the process-wide replay ownership and release rules above. Remote recovery does not change those contracts.
 
 ### Documentation and version evidence
 
@@ -105,7 +105,7 @@ Verified claims stay separate per adjustment. The component README compatibility
 
 ## Alternatives considered
 
-- **Separate extension packages per adjustment.** Considered while assessing packaging. Independent releases and independent failures are the gain; configuration, compatibility, migration, and checks spread across four installations are the cost, and the four adjustments share one host baseline. One package keeps those entry points together.
+- **Separate extension packages per adjustment.** Considered while assessing packaging. Independent releases and independent failures are the gain; configuration, compatibility, migration, and checks spread across one installation per adjustment are the cost, and the adjustments share one host baseline. One package keeps those entry points together.
 - **A dedicated configuration file with its own parser.** Considered while choosing a configuration source. The required settings fit OMP plugin settings, so a separate parser, precedence rule, and update path would add maintenance without a capability the adjustment needs.
 - **Replacement of the native compaction flow.** Considered while judging how much control the deadline needs. It gives direct control over the request options, but transfers the compaction protocol, history replacement, retry, and fallback paths to this component, including the paths that produce the summaries the session depends on.
 - **Deferral of the compaction adjustment until OMP exposes a request-level interface.** Considered while assessing isolation. It avoids process-wide effects and keeps maintenance small, but leaves the fixed deadline in place; this decision instead keeps the bounded global mechanism as an explicit, disabled experiment and compares a native interface against it when a host provides one.
@@ -127,7 +127,7 @@ Verified claims stay separate per adjustment. The component README compatibility
 
 - Process-wide wrappers can interact with another extension's wrappers. Identity checks and ownership-conditional restoration avoid overwriting another extension but can leave this adjustment inactive until restart.
 
-- One component shares a release, a lockfile, and one check entry point across five adjustments. A host change that breaks one module also stops the component from being installed as a whole, and a single dependency upgrade affects all five.
+- One component shares a release, a lockfile, and one check entry point across its adjustments. A host change that breaks one module also stops the component from being installed as a whole, and a single dependency upgrade affects all of them.
 - Automated checks cannot establish host behavior. Each adjustment needs its own real-session evidence, and the compaction experiment's benefit stays unproven until a remote compaction longer than the native deadline completes with usable model requests afterwards.
 - The adjustments depend on host details that carry no compatibility promise: the builtin tool description and the shape of an empty window, `stopReason: "error"` together with the public classifier and the `stopDetails.type` mark it writes for an interrupted turn, the identity of `AbortSignal.timeout`, and the order of compaction lifecycle events. The mark is compared by value and the statusless condition reads an absent field, so a host release that stops writing the mark, or starts carrying a status, silently narrows the accepted set instead of failing. Each module is written to stay inactive and say why rather than to guess, so a host upgrade can disable an adjustment without breaking the session, and the adjustment is trusted again only after a re-check.
 - Continuations re-send the conversation and spend provider quota, and a re-run turn can repeat a side effect from the failed turn. Bounded attempts, the fixed exclusion list, and the host cap reduce exposure without promising exactly-once behavior.

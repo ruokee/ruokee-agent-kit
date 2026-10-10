@@ -24,7 +24,7 @@ Each component's bound is declared in the compatibility section of its own READM
 - [projects/omp-context-pin/README.md](../../projects/omp-context-pin/README.md#compatibility)
 - [projects/omp-system-prompt/README.md](../../projects/omp-system-prompt/README.md#compatibility)
 - [projects/omp-qol/README.md](../../projects/omp-qol/README.md#compatibility)
-- [projects/omp-smart-cache/README.md](../../projects/omp-smart-cache/README.md#host-compatibility-and-source-baseline)
+- [projects/omp-smart-cache/README.md](../../projects/omp-smart-cache/README.md#compatibility)
 - [projects/omp-status-bar/README.md](../../projects/omp-status-bar/README.md#compatibility)
 - [projects/omp-codex-web-access/README.md](../../projects/omp-codex-web-access/README.md#compatibility)
 - [projects/tk/omp/README.md](../../projects/tk/omp/README.md#compatibility) for the tk OMP adapter in `tools` mode
@@ -57,5 +57,5 @@ The repository README summarizes the policy in [Component host maintenance](../.
 - [Keep distributable components self-contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
 - [Retain the approaching-deprecation extension's template functionality](../adr/decision/2026-10-07-retain-system-prompt-template.md)
 - [Maintain the OMP status bar with a static context glyph](../adr/decision/2026-10-04-show-static-context-glyph.md)
-- [Maintain QoL without remote cache alignment](../adr/decision/2026-10-10-maintain-qol-without-remote.md)
+- [Maintain the extension that improves the OMP experience](../adr/decision/2026-10-10-maintain-omp-experience-extension.md)
 - [Use smart-cache for remote alignment](../adr/decision/2026-10-10-use-smart-cache-remote.md)

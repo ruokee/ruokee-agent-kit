@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [Maintain OMP quality-of-life adjustments on the standalone wait entry](../archived/2026-10-04-use-standalone-qol-wait.md)
 Archived: 2026-10-10
-Reversed by: [Maintain QoL without remote cache alignment](../decision/2026-10-10-maintain-qol-without-remote.md) and [Use smart-cache for remote alignment](../decision/2026-10-10-use-smart-cache-remote.md)
+Reversed by: [Maintain the extension that improves the OMP experience](../decision/2026-10-10-maintain-omp-experience-extension.md) and [Use smart-cache for remote alignment](../decision/2026-10-10-use-smart-cache-remote.md)
 
 English | [中文](./2026-10-07-maintain-qol-model-prompts.zh.md)
 

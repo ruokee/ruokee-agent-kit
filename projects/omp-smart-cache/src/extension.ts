@@ -44,7 +44,7 @@ function settingsSnapshot(id: string, cwd: string): Promise<SettingsResult> {
 
 export function describe(status: Readonly<Status>, mode: string): string {
   return [
-    `omp-smart-cache 0.0.2 remote=${status.state} mode=${mode}`,
+    `omp-smart-cache 0.1.0 remote=${status.state} mode=${mode}`,
     `online=${status.online} binding=${status.binding} candidate=${status.candidate} sending=${status.sending}`,
     `dispatch=${status.dispatch} operation=${status.operation} reference=${status.reference}`,
     `operations=${status.operations} sends=${status.sends} retries=${status.retries} aligned=${status.aligned} rewritten=${status.rewritten} rejected=${status.rejected}`,
@@ -101,7 +101,7 @@ export default function extension(pi: ExtensionAPI): void {
       ctx.ui.notify(
         registration
           ? describe(registration.status(), mode)
-          : `omp-smart-cache 0.0.2 remote=unavailable reason=${unavailable}`,
+          : `omp-smart-cache 0.1.0 remote=unavailable reason=${unavailable}`,
         "info",
       );
     },

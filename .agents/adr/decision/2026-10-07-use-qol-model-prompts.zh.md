@@ -18,7 +18,7 @@ Reverses: [为系统提示词扩展增加模型级规则](../archived/2026-09-14
 
 ### 组件、开关与共存
 
-由自包含的 `@ruokee/omp-qol` 承载规则，遵循[保持组件自包含](./2026-08-24-keep-components-self-contained.zh.md)与[维护不含 remote 缓存对齐的 QoL](./2026-10-10-maintain-qol-without-remote.zh.md)。`modelPromptsEnabled` 是原生布尔设置，默认 `false`，受总开关 `enabled` 控制。关闭时不注册规则 handler、不访问规则目录、不产生闲置规则诊断。设置在激活时读取一次；改动设置须重启 OMP，导航与新会话不刷新该快照。
+由自包含的 `@ruokee/omp-qol` 承载规则，遵循[保持组件自包含](./2026-08-24-keep-components-self-contained.zh.md)与[维护提高 OMP 使用体验的拓展](./2026-10-10-maintain-omp-experience-extension.zh.md)。`modelPromptsEnabled` 是原生布尔设置，默认 `false`，受总开关 `enabled` 控制。两个开关都开启时才注册规则 handler、访问规则目录并产生未使用文件诊断。设置在激活时读取一次；改动设置须重启 OMP，导航与新会话不刷新该快照。
 
 错误布尔值只停用本模块；未知设置键、非对象设置或设置读取失败按 QoL 既有合同拒绝全部模块。`/qol` 显示本模块有效状态、开关值与不可用原因，不运行模型，也不显示规则正文或模型标识。
 

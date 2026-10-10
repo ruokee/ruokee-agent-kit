@@ -6,10 +6,10 @@ Spec for [projects/omp-qol](../../projects/omp-qol/README.md).
 
 ## Goals
 
-- Carry five independently switchable OMP adjustments in one package: continuing waits, continuing after an eligible transient model error, extending one compaction deadline, replaying native history in a resumed session, and appending model prompt rules.
+- Carry independently switchable OMP adjustments in one package.
 - Give them one installation, one configuration entry, and one set of checks, with a separate switch, availability state, and failure report for each adjustment.
-- Continue interrupted work in the same main session after an eligible stream closure, without requiring another user message.
-- Provide user-authored model rules without another component or a selected template.
+- Continue interrupted work in the same main session automatically after an eligible stream closure.
+- Provide user-authored model rules from this component directly.
 
 ## Non-goals
 
@@ -32,7 +32,7 @@ Spec for [projects/omp-qol](../../projects/omp-qol/README.md).
 
 ### Error recovery
 
-Recovery applies to main-session runs that end with an assistant error, including errors that remain after the host's native retries finish. A successful or non-error stop does not trigger recovery because its text mentions the same error.
+Recovery applies to main-session runs that end with an assistant error, including errors that remain after the host's native retries finish. Recovery keys off the run's stop reason, so a successful stop keeps its normal handling whatever text it contains.
 
 With the master and recovery switches enabled, the default `knownTransient` mode must continue after this assistant error unless cancellation, either continuation cap, a safety exclusion, or a terminal client status prevents it:
 
@@ -46,15 +46,15 @@ This is a native session-stop continuation, not an exact replay of the failed re
 
 ### Model prompt rules
 
-- The native boolean `modelPromptsEnabled` defaults to `false` and is subordinate to `enabled`. Either switch being off prevents handler registration, rule reads, appends, and unused-file diagnostics. Settings use the existing global/project precedence and activation snapshot; restarting OMP applies changes, switching sessions does not.
+- The native boolean `modelPromptsEnabled` defaults to `false` and is subordinate to `enabled`. Both switches must be on for handler registration, rule reads, appends, and unused-file diagnostics. Settings use the existing global/project precedence and activation snapshot; restarting OMP applies changes, switching sessions does not.
 - An invalid rule-module boolean disables only that module. An unknown settings key, non-object root, or failed getter retains whole-component rejection. `/qol` shows the effective switch, state, and inactive reason without a model turn, rule body, or model identity.
-- Each covered turn resolves `getAgentDir()/model-prompts` for the active profile and `getProjectAgentDir(ctx.cwd)/model-prompts` for its current project. Only direct, non-hidden regular lowercase `.md` files participate, without recursion, file-symlink following, ancestor search, or resource roots. Missing directories are empty. JavaScript filename order applies within each directory, user before project, independent of read completion. No same-name shadowing or cross-source filename/body deduplication occurs.
+- Each covered turn resolves `getAgentDir()/model-prompts` for the active profile and `getProjectAgentDir(ctx.cwd)/model-prompts` for its current project. Only direct, non-hidden regular lowercase `.md` files participate, without recursion, file-symlink following, ancestor search, or resource roots. Missing directories are empty. JavaScript filename order applies within each directory, user before project, independent of read completion. Same-name files in the two sources stay independent, each keeping its own body.
 - UTF-8 Markdown accepts one leading BOM and exact `---` delimiter lines with LF or CRLF. Required `match` is a non-empty array of single-key objects with non-blank string values. `exact` compares `provider/id`; `model` compares the complete id including `/`; `contains` tests a literal `provider/id` substring; `regex` uses JavaScript `RegExp` without flags. Matching is case-sensitive, textual, and OR-based, once per file, without alias, role, family, display/wire-name, thinking-suffix, wildcard, or model-list resolution.
 - Extra top-level metadata is ignored and never injected. Unknown or multiple entry keys, invalid YAML/delimiters/`match`/values/regex, and blank bodies invalidate the whole file at its first failure, without partial application.
 - Each match contributes one independent block after the current turn's incoming blocks. Preserve the exact body after the closing delimiter and its line ending, including headings, blank lines, LF/CRLF, indentation, comments, template-like text, and final newlines. Exclude frontmatter and BOM. Do not mutate the input, wrap, trim, re-render, rewrite context, or create messages/history.
-- Re-read and re-match the effective model every covered turn. Add, edit, delete, and repair changes apply next turn without restart; an invalid or unreadable file never reuses its previous body. No model, rule, or match leaves input unchanged without a no-match error. Consecutive turns do not accumulate bodies and native mid-turn rebuilds do not duplicate them.
-- A file failure affects one file; a directory failure affects one directory. A handler exception keeps the incoming prompt, including earlier components' results, without disabling other QoL modules. Fixed-reason diagnostics use locatable scope-relative sources and session/source/reason deduplication. Use the current turn's UI notification or otherwise the host logger; disclose no body, absolute path, raw parser error, regex source, or conversation content.
-- Ordinary main and child turns running public `before_agent_start` are covered. Children match their own effective model and retain roles, independent blocks, and host protocols. Add no route for plan-mode children, Handoff, titles, classification, or other bypasses. Side requests retain the host's live-prompt behavior; temporary switches, fallback, and individual provider requests gain no independent refresh promise. Later handlers retain their authority.
+- Re-read and re-match the effective model every covered turn. Add, edit, delete, and repair changes apply next turn without restart; an invalid or unreadable file contributes an empty body on the next turn. With no model, rules, or match, the input passes through unchanged and the module stays silent. Consecutive turns do not accumulate bodies and native mid-turn rebuilds do not duplicate them.
+- A file failure affects one file; a directory failure affects one directory. A handler exception keeps the incoming prompt, including earlier components' results, and other QoL modules keep running. Fixed-reason diagnostics use locatable scope-relative sources and session/source/reason deduplication. Use the current turn's UI notification or otherwise the host logger; disclose no body, absolute path, raw parser error, regex source, or conversation content.
+- Ordinary main and child turns running public `before_agent_start` are covered. Children match their own effective model and retain roles, independent blocks, and host protocols. Add no route for plan-mode children, Handoff, titles, classification, or other bypasses. Side requests, temporary switches, fallback, and individual provider requests keep the host's live-prompt behavior. Later handlers retain their authority.
 - With both updated components, actual load order puts system-prompt before QoL. Only QoL appends rules; template and rule failures remain independent. Coordinated-update guidance warns against enabling QoL rules alongside the old system-prompt rule handler and does not treat installation-command order as a guarantee.
 - Project rules can become system instructions. Add no trust gate, security isolation, regex sandbox/timeout, or body size/quota restriction. When OMP offers equivalent model instructions, re-check matching, composition/block order, refresh timing, and discovery before deciding to retain, narrow, or remove the local capability.
 
@@ -66,7 +66,7 @@ This is a native session-stop continuation, not an exact replay of the failed re
 - The compaction deadline patch keeps its ownership checks. It refuses to coexist with a patch carrying the `Symbol.for("ruokee.omp.compaction-timeout.patched")` marker, and a later matching activation does not take over an existing owner.
 - Configuration comes only from OMP plugin settings and is read once per activation.
 - A fault in one adjustment does not disable the others. A rejected setting is named by key and rule without echoing its value.
-- The component keeps no code path that exists only for hosts earlier than OMP 18.5.0, including the wait path that served only the builtin `hub` tool.
+- Every code path the component keeps serves OMP 18.5.0 and later, including the wait path for the standalone `wait` entry.
 - Recovery acts only on a main-session assistant error. Successful output that quotes an error does not trigger it; disabled switches or missing required host interfaces retain native behavior.
 - Safety exclusions and the terminal 4xx rule take precedence over both modes and the interruption mark. The recovery module classifies a copy without changing the original assistant error.
 - The existing per-chain continuation budget and doubling backoff apply across model runs. Only returned continuations consume budget; duplicate stop events for the same run and turn schedule no extra wait or continuation. The host cap applies independently.
@@ -88,16 +88,16 @@ OMP `18.5.0`, declared in [Compatibility](../../projects/omp-qol/README.md#compa
 - Behavioral checks cover the reported error's authentic host fields under the default mode. Reproducing its exact wording in a new real session is not a development prerequisite; an unrun exact-error scenario remains documented as not verified.
 - The same fault with recovery disabled yields no QoL continuation. A real TUI run shows the attempt and delay, and cancellation during that wait prevents continuation.
 - Behavioral checks cover both modes, marked and unmarked statusless errors, safety precedence, independent caps, backoff, cross-run chains, duplicate events, invalidated waits, switches, notifications, and the unchanged error and fixed-context boundaries.
-- Real maintained-host CLI requests prove QoL alone injects matching bodies after explicit enablement, with default/master/module-off runs showing no injected rules or unused-rule diagnostics. Behavioral checks prove zero reads in those states and unchanged independently enabled modules.
-- Behavioral checks cover all four matching keys, case sensitivity, complete ids containing `/`, OR-once semantics, ignored top-level metadata, strict entry keys, discovery filters, user/project ordering, same-name sources, and identical bodies retained independently.
+- Real maintained-host CLI requests prove QoL alone injects matching bodies after explicit enablement, with default/master/module-off runs showing no injected rules or unused-file diagnostics. Behavioral checks prove zero reads in those states and unchanged independently enabled modules.
+- Behavioral checks cover every matching key, case sensitivity, complete ids containing `/`, OR-once semantics, ignored top-level metadata, strict entry keys, discovery filters, user/project ordering, same-name sources, and identical bodies retained independently.
 - Real request observations and behavioral checks preserve incoming blocks, tools, dynamic content, BOM exclusion, and byte-exact bodies. Continuous turns, file additions/edits/deletions/repairs, a model switch, and a native mid-turn rebuild satisfy refresh and no-accumulation/no-duplication.
 - Checks cover missing model/no match, invalid files, file/directory read failures, unexpected handler errors, diagnostic privacy and session/context deduplication, module-local and global settings rejection, restart-only settings, and next-turn file changes. Actual `/qol` TUI shows default-off and enabled state without a model run.
 - Ordinary child Provider-facing requests retain the child's own model, role, and independent blocks. Real coexistence requests retain the owned template, Delivery, footer, and once-only rules in documented actual order; both failure directions preserve the other component's result. Unrun bypasses remain explicitly unverified.
-- Component descriptions, manifests, root guidance, paired documentation, and current project Specs agree on ownership and approaching deprecation. Preserve all five remaining adjustments and every unrelated valid requirement.
+- Component descriptions, manifests, root guidance, paired documentation, and current project Specs agree on ownership and approaching deprecation. Preserve all remaining adjustments and every unrelated valid requirement.
 
 ## Related ADRs
 
-- [Maintain QoL without remote cache alignment](../adr/decision/2026-10-10-maintain-qol-without-remote.md)
+- [Maintain the extension that improves the OMP experience](../adr/decision/2026-10-10-maintain-omp-experience-extension.md)
 - [Provide opt-in model prompt rules in QoL](../adr/decision/2026-10-07-use-qol-model-prompts.md)
 - [Use native plugin settings for Codex web access](../adr/decision/2026-09-10-use-codex-web-plugin-settings.md)
 - [Maintain host components against a shared OMP floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)

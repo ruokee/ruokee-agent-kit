@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-smart-cache",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Confirmed online-result reuse for native OMP Responses V2 remote compaction",
   "license": "MIT",
   "type": "module",

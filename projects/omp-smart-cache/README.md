@@ -2,9 +2,14 @@
 
 [中文](./README.zh.md)
 
-`@ruokee/omp-smart-cache` reuses confirmed ordinary-request results in the selected Provider's native non-Codex Responses V2 remote compaction. It serves main sessions and native task and Eval children. Version: `0.0.2`.
+`@ruokee/omp-smart-cache` is an extension that improves how OMP uses the Provider's cache. It aims to avoid unexpected cache misses on requests, and ordinary requests and the native request path stay unchanged.
 
-It changes only a proved target request at the final sending boundary. OMP still owns triggering, preparation, trimming, credentials, retries, fallback, speculative adoption, history commits, and continuation. Ordinary requests remain unchanged. Alignment does not prove a Provider cache hit or savings.
+Each optimization the package carries lives in its own section.
+
+## Documentation
+
+- [Design](./docs/design.md) covers how a reference is confirmed, what may be reused, and when a request stays native.
+- [Verification](./docs/verification.md) lists the host interfaces the package relies on and the scenarios already checked.
 
 ## Install
 
@@ -16,7 +21,7 @@ omp install . --scope user
 
 ## Configuration
 
-Install this package through OMP's native plugin manager. Its manifest declares the extension and settings; no separate extension entry or settings file is needed.
+Install this package through OMP's native plugin manager. Its manifest declares the extension and settings, so no separate extension entry or settings file is needed.
 
 ```bash
 omp plugin config list @ruokee/omp-smart-cache
@@ -27,33 +32,18 @@ omp plugin config set @ruokee/omp-smart-cache compactionCacheEnabled true
 | Key | Default | Accepted | Effect |
 | --- | --- | --- | --- |
 | `compactionCacheEnabled` | `false` | boolean | Enable remote alignment. |
-| `compactionCacheProvider` | `""` | string | Exact configured Provider name. Empty keeps alignment unavailable. |
-| `compactionCacheMode` | `"hooks"` | `standard`, `hooks` | Select the reuse contract. Does not enable alignment. |
+| `compactionCacheProvider` | `""` | string | Exact configured Provider name. An empty value keeps alignment unavailable. |
+| `compactionCacheMode` | `"hooks"` | `standard`, `hooks` | Select the reuse contract. Enabling alignment takes the switch and the exact Provider name. |
 
-OMP merges project overrides over user settings. Settings are read and validated once for each activation. Restart OMP after changing them. Navigation does not refresh the snapshot; a child uses its own actual model, tools, prompt, and session identities. A missing key takes its default. Explicit `null`, a wrong type, an unknown key, or an unsupported mode makes this capability unavailable. Diagnostics use fixed reasons without printing the rejected value.
+OMP merges project overrides over user settings. It reads and validates the settings once for each activation, so restart OMP after a change; navigation does not refresh the snapshot, and a child uses its own actual model, tools, prompt, and session identities. A missing key takes its default. An explicit `null`, a wrong type, an unknown key, or an unsupported mode makes the capability unavailable, and the diagnostic reports a fixed reason without printing the rejected value. [Design](./docs/design.md#modes) describes the two modes.
 
-### Modes
+## Remote compaction alignment
 
-Both modes align recognized native common content, including valid tool schema preparation, reminders, replay semantics, and implicit tool-choice defaults. V2 keeps its own output limit or omission.
+Remote compaction resends conversation content, much of which an ordinary request already sent. This optimization rewrites a fully proved target request at the final sending boundary, so the selected Provider's compaction reuses the confirmed results of that same ordinary request and the body stays consistent with what was already sent. OMP keeps triggering, preparation, trimming, credentials, retries, fallback, speculative adoption, history commits, and continuation, and ordinary requests reach transport unchanged.
 
-- `standard` accepts only recognized native preparation differences. It does not infer generic handler projection.
-- `hooks` additionally reuses proved already-sent handling results. Complete retained ranges support lawful insertion, reordering, restoration, cross-range merging, images, and existing post-payload transformations. Stateful handlers are not called again.
+An ordinary main-loop dispatch becomes a reference only when its source, completed preparation, existing callbacks, and actual outgoing payload belong to the same dispatch and reach transport unchanged. Title, warming, advisor, and Handoff are side requests that keep their own bodies. Any unknown field, explicit policy difference, model or tool mismatch, ambiguous identity, missing reference, cancelled operation, foreign wrapper, or unavailable interface leaves the whole request native. The rewrite covers the non-Codex Responses V2 remote compaction path only, in the main session and in native task and Eval children.
 
-A complete source range is proved before local matching. Repeated source messages do not invalidate an otherwise proved complete result. With partial retention, only independently reusable sent units whose dependencies remain unchanged can be reused. Native rewritten tool output stays rewritten; deleted dependencies are not restored. New ordinary, tool, and image tails, opaque history, pairing, and the trigger keep their native boundaries.
-
-An indivisible result whose dependencies were changed is left entirely native with `projection-dependency-changed`. Unknown provenance or unit boundaries report `projection-unconfirmed`. These refusals count as unaligned, not as successful alignment. No frozen pure-projection protocol or black-box handler re-execution is provided.
-
-## Eligibility and failure behavior
-
-An ordinary main-loop dispatch becomes a reference only after its source, completed preparation, existing callbacks, and actual outgoing payload are confirmed as one dispatch. Side requests such as title, warming, advisor, or Handoff cannot become references. Each native operation freezes its initial reference, including a missing reference, across later online work and authentication or transport retries.
-
-The implementation observes native CLI/SDK publication before `session_start` and checks the original agent, runner, and stream identities continuously. This observation is not an authentication API for arbitrary constructed Agent instances. An unobserved or changed chain can retain complete-range proof but cannot gain local native independence from matching lengths or outputs. History-dependent image preparation and later date/cwd reminders also require complete-range proof when local dependencies are not established.
-
-Unknown fields, explicit policy differences, model/tool mismatch, identity ambiguity, missing reference, cancelled operations, foreign wrappers, or unavailable interfaces leave the whole request native. Codex, V1, other APIs, and other Providers are untouched. No credential data is read and no extra reference or authentication request is issued.
-
-Before switch, branch, or tree navigation, the old epoch is revoked. After native transition settlement, a new ordinary send restores eligibility after success, cancellation, or failure. A child's finish or replacement releases only its own registration. Cleanup restores only wrappers still owned by this package; it never takes over a competing wrapper. Shared resources are released after the last registration. Retention is limited to current references and snapshots reachable through live native operations.
-
-Disable the switch or remove this package and restart OMP to use the native request path. Existing processes do not transfer in-flight references during an update. This package does not install a compaction veto or override other extensions' vetoes. It does not change Handoff behavior.
+Turn the setting off, or remove the package and restart OMP, to return to the native request path. Alignment rewrites the outgoing body on the client, and client alignment, native usability, and real Provider benefit stay separate outcomes. [Design](./docs/design.md) covers the full mechanism.
 
 ## Status
 
@@ -61,30 +51,20 @@ Disable the switch or remove this package and restart OMP to use the native requ
 
 | State | Meaning |
 | --- | --- |
-| `disabled` | Explicit switch is off. |
+| `disabled` | The explicit switch is off. |
 | `unavailable` | Configuration, interface, identity, or wrapper ownership is unusable. |
 | `awaiting-reference` | No confirmed ordinary reference is ready for a new operation. |
-| `already-aligned` | The valid candidate is identical to the native body. No reserialization. |
+| `already-aligned` | The valid candidate matches the native body, so nothing is reserialized. |
 | `rewritten` | A complete validated candidate was delegated. |
-| `rejected` | The target was delegated unchanged because its proof failed. |
+| `rejected` | Proof failed, so the target was delegated unchanged. |
 
-Separate fields show online confirmation, operation binding, candidate validation, and sending. Local dispatch/operation/reference numbers are not persistent session identifiers. Logical operations, physical sends, retries, aligned operations, rewrites, and refusals are counted separately with bounded counters. Rejected operations remain in the total. A later native commit does not turn a delegated rewrite into a Provider-hit claim.
+Separate fields report online confirmation, operation binding, candidate validation, and sending. Local dispatch, operation, and reference numbers are session-local counters. Logical operations, physical sends, retries, rewrites, and refusals are counted separately with bounded counters, and refusals stay in the total. The report carries states and bounded counters, and it is the package's only output. Message bodies, opaque bytes, credentials, raw endpoints, and private paths stay in the session, and configuration comes only from the native settings above.
 
-Status contains no message body, opaque bytes, credential, raw endpoint, or private path. The package has no sampling log, experimental environment variable, or special sampling command.
+## Compatibility
 
-## Host compatibility and source baseline
+The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound. This section records the maintenance commitment; installation and runtime follow the host's own rules. Verification covers this floor and the maintained hosts above it, and a host below the floor may still run the package.
 
-**Maintained OMP floor: `18.5.0`.** There is no upper bound or activation version whitelist. Host development dependencies are locked to this floor; peers are unrestricted. Missing interfaces fail conservatively.
-
-Source baselines are the published `@oh-my-pi/pi-agent-core`, `pi-ai`, and `pi-coding-agent` packages at `18.5.0`, with maintained-host checks at `18.8.3`. Relevant source paths are `src/sdk.ts`, `src/registry/agent-registry.ts`, `src/session/session-maintenance.ts`, `src/session/date-cwd-reminder.ts`, `src/session/messages.ts`, `src/compaction/compaction.ts`, and `src/providers/openai-shared.ts` in their owning host packages.
-
-Imports use entries exposed by the compiled host. Source encoding stays with `buildResponsesInput`. Its model-adapted, hoisted output passes through `buildOpenAiNativeHistory` with no raw messages for native V2 replay normalization. Opaque correspondence uses the same native encoder on a single compaction record, requires a unique match, and restores the original record before normalization. Local image eligibility reads the native `images.urls.enabled` handle against the current session's settings, including child overrides. A missing handle does not count as disabled.
-
-Actual native CLI coverage on both versions includes complete-range reuse, tool-output trimming with local reuse, main/task/Eval attribution, parallel child isolation, child revive/cancellation, and switch/branch/tree recovery. Controlled synthetic HTTP exercises the native serializer, scheduler, and maintenance. Synthetic usage is not real Provider measurement. Source inspection alone is not runtime verification.
-
-Compiled `18.8.3` checks also cover those imports, opaque identity, required local reuse, and false/true image-setting overrides in native task and Eval children. Context or provider-request handlers without an independent-unit contract prevent local proof; complete-range reuse remains available. These controlled checks do not establish cache savings.
-
-Replace this adaptation when a maintained native interface preserves equivalent configuration, isolation, reuse safety, and failure behavior across the required paths, after behavioral verification.
+The package declares `@oh-my-pi/pi-agent-core`, `@oh-my-pi/pi-ai`, and `@oh-my-pi/pi-coding-agent` as unrestricted host peers (`*`) and locks its development dependencies to `18.5.0`. A missing interface fails conservatively and keeps the native path. [Verification](./docs/verification.md) records the interfaces and scenarios checked.
 
 ## Development
 

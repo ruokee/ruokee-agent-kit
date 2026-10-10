@@ -2,7 +2,7 @@
 
 [中文](./README.zh.md)
 
-Five independently switchable adjustments to OMP behavior: continuing waits, bounded continuation after model errors, an experimental compaction deadline extension, native history replay, and opt-in model prompt rules. [Adjustments](./docs/adjustments.md) states each adjustment's host source, limits, and observed evidence.
+Independently switchable adjustments to OMP behavior. [Adjustments](./docs/adjustments.md) states each adjustment's host source, limits, and observed evidence.
 
 Jobs, messages, processes, turns, and compaction stay with OMP. Every adjustment can be switched off; an unrecognized host interface, structure, or ownership keeps the affected adjustment inactive with a reason.
 
@@ -27,7 +27,7 @@ omp plugin config list @ruokee/omp-qol
 omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 ```
 
-Settings are read once per activation. Restart OMP after a change: a running process keeps the values it read at startup, and a new session in that process does not reload them.
+Settings are read once per activation. Restart OMP after a change. A running process keeps the values it read at startup, and a new session in that process does not reload them.
 
 ### General
 
@@ -82,7 +82,7 @@ Settings are read once per activation. Restart OMP after a change: a running pro
 omp plugin config set @ruokee/omp-qol modelPromptsEnabled true
 ```
 
-Restart OMP after changing the switch. Existing rule files need no path or format migration. When either switch is off, this module registers no turn handler, reads no rule directory, and reports no unused-file diagnostic.
+Restart OMP after changing the switch. Existing rule files need no path or format migration. Both switches must be on for handler registration, rule reads, and unused-file diagnostics.
 
 ### Validation
 
@@ -204,7 +204,7 @@ cd projects/omp-qol
 bun install --frozen-lockfile
 ```
 
-Restart OMP afterwards: a running process keeps the extension code it loaded at startup. The extension stores nothing of its own, so an update changes no session, message, or job.
+Restart OMP afterwards. A running process keeps the extension code it loaded at startup. The extension stores nothing of its own, so an update changes no session, message, or job.
 
 ### Uninstalling
 

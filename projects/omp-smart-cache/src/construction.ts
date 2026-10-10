@@ -15,7 +15,7 @@ export interface Construction {
   release(): void;
 }
 interface Observer {
-  readonly version: "0.0.2";
+  readonly version: "0.1.0";
   readonly origins: WeakMap<AgentSession, Origin>;
   readonly registry: AgentRegistry;
   readonly wrapper: AgentRegistry["attachSession"];
@@ -31,7 +31,7 @@ export function observeConstruction(): Construction {
   if (present !== undefined) {
     if (
       !object(present) ||
-      present.version !== "0.0.2" ||
+      present.version !== "0.1.0" ||
       !(present.origins instanceof WeakMap) ||
       typeof present.restore !== "function" ||
       typeof present.leases !== "number"
@@ -90,7 +90,7 @@ export function observeConstruction(): Construction {
       return result;
     };
     const entry: Observer = {
-      version: "0.0.2",
+      version: "0.1.0",
       registry,
       wrapper,
       origins,

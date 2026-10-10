@@ -12,7 +12,7 @@ import type { Construction } from "./construction.ts";
 
 const SLOT = Symbol.for("ruokee.omp-smart-cache.remote.coordinator");
 const OLD_QOL = Symbol.for("ruokee.omp-qol.compaction-cache.registry");
-const VERSION = "0.0.2";
+const VERSION = "0.1.0";
 const slots = globalThis as typeof globalThis & { [key: symbol]: unknown };
 const increment = (value: number): number => Math.min(Number.MAX_SAFE_INTEGER, value + 1);
 

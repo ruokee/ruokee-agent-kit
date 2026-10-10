@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [在独立等待入口上维护 OMP 体验调整](../archived/2026-10-04-use-standalone-qol-wait.zh.md)
 Archived: 2026-10-10
-Reversed by: [维护不含 remote 缓存对齐的 QoL](../decision/2026-10-10-maintain-qol-without-remote.zh.md) 及[由 smart-cache 提供 remote 对齐](../decision/2026-10-10-use-smart-cache-remote.zh.md)
+Reversed by: [维护提高 OMP 使用体验的拓展](../decision/2026-10-10-maintain-omp-experience-extension.zh.md) 及[由 smart-cache 提供 remote 对齐](../decision/2026-10-10-use-smart-cache-remote.zh.md)
 
 [English](./2026-10-07-maintain-qol-model-prompts.md) | 中文
 

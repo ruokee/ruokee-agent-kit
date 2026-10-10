@@ -24,7 +24,7 @@
 - [projects/omp-context-pin/README.zh.md](../../projects/omp-context-pin/README.zh.md#兼容性)
 - [projects/omp-system-prompt/README.zh.md](../../projects/omp-system-prompt/README.zh.md#兼容性)
 - [projects/omp-qol/README.zh.md](../../projects/omp-qol/README.zh.md#兼容性)
-- [projects/omp-smart-cache/README.zh.md](../../projects/omp-smart-cache/README.zh.md#宿主兼容与源码基线)
+- [projects/omp-smart-cache/README.zh.md](../../projects/omp-smart-cache/README.zh.md#兼容性)
 - [projects/omp-status-bar/README.zh.md](../../projects/omp-status-bar/README.zh.md#兼容性)
 - [projects/omp-codex-web-access/README.zh.md](../../projects/omp-codex-web-access/README.zh.md#兼容性)
 - [projects/tk/omp/README.zh.md](../../projects/tk/omp/README.zh.md#兼容性)：tk OMP 适配器的 `tools` 模式
@@ -57,5 +57,5 @@
 - [保持可分发组件自包含](../adr/decision/2026-08-24-keep-components-self-contained.zh.md)
 - [保留即将弃用扩展的模板功能](../adr/decision/2026-10-07-retain-system-prompt-template.zh.md)
 - [以静态上下文字形维护 OMP 状态栏](../adr/decision/2026-10-04-show-static-context-glyph.zh.md)
-- [维护不含 remote 缓存对齐的 QoL](../adr/decision/2026-10-10-maintain-qol-without-remote.zh.md)
+- [维护提高 OMP 使用体验的拓展](../adr/decision/2026-10-10-maintain-omp-experience-extension.zh.md)
 - [由 smart-cache 提供 remote 对齐](../adr/decision/2026-10-10-use-smart-cache-remote.zh.md)

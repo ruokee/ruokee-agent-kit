@@ -14,9 +14,9 @@ Do not modify the host or Provider, replace native maintenance, add a conversion
 
 The native manifest exposes one opt-in switch, one exact Provider name, and two closed modes. Defaults and configuration commands are owned by [projects/omp-smart-cache/README.md](../../projects/omp-smart-cache/README.md#configuration).
 
-Native OMP user settings and project overrides are the only configuration source. Validate one activation snapshot; changes require restart. A mode does not enable the capability, and an empty Provider remains inactive. Missing keys use defaults; nulls, wrong types, unknown keys, and invalid modes fail with fixed private-value-free reasons. No QoL settings fallback, hot read, second reader, Provider list, or Handoff placeholder is provided.
+Native OMP user settings and project overrides are the only configuration source. Validate one activation snapshot; changes require restart. A mode does not enable the capability, and an empty Provider remains inactive. Missing keys use defaults; nulls, wrong types, unknown keys, and invalid modes fail with fixed private-value-free reasons. Configuration comes from this component's settings alone: QoL settings fallback, hot reads, a second reader, a Provider list, and Handoff placeholders are out of scope.
 
-`standard` supports recognized native repairs without general handler projection. `hooks` also reuses proved completed handling, including lawful insertion, reordering, restoration, cross-range merging, images, and post-payload transformations. Both retain common native alignment when no handler changes context. Neither repeats handlers or recognizes another component's names or private format.
+`standard` covers recognized native repairs only. `hooks` also reuses proved completed handling, including lawful insertion, reordering, restoration, cross-range merging, images, and post-payload transformations. Both retain common native alignment when no handler changes context. Each mode calls handlers once and reads only this component's own names and format.
 
 ## Invariants
 
@@ -31,11 +31,11 @@ Native OMP user settings and project overrides are the only configuration source
 9. Wrappers preserve native arguments, receivers, promises, credential results, exceptions, signals, and cancellation reasons. Restore only still-owned functions and property shapes. Foreign overwrite and mixed versions do not authorize takeover. Last-registration cleanup releases shared resources; retained payloads are limited to current references and snapshots reachable through live operations.
 10. OMP owns scheduling, preparation, speculation, waiting, retries, model/method fallback, adoption, commits, and continuation. No `session_before_compact` handler, hidden veto, manual-compaction replacement, extra credential request, or settings mutation is allowed. Non-V2 fallback is not V2 success.
 11. `/smart-cache` runs no model turn and distinguishes disabled, unavailable, awaiting-reference, already-aligned, rewritten, and rejected. Online, binding, candidate, and sending reasons remain separate. Logical operations, physical sends, retries, alignment, and refusals have bounded distinct counters. Output includes no body, opaque bytes, credentials, endpoint, private path, or private dynamic key.
-12. The package has its own source, native manifest, checks, paired documentation, and unrestricted host peers. Development dependencies follow the shared `18.5.0` maintenance floor. Interfaces are checked by capability, not a version whitelist. It neither imports another component nor replaces a Handoff prototype.
+12. The package has its own source, native manifest, checks, paired documentation, and unrestricted host peers. Development dependencies follow the shared `18.5.0` maintenance floor. Interfaces are checked by capability, not a version whitelist. The package is self-contained and stays independent of the Handoff prototype.
 
 ## Host lower bound
 
-Use the shared maintenance floor and the component's [host compatibility declaration](../../projects/omp-smart-cache/README.md#host-compatibility-and-source-baseline). Missing interfaces preserve the native path rather than enabling a guessed adaptation.
+Use the shared maintenance floor and the component's [host compatibility declaration](../../projects/omp-smart-cache/README.md#compatibility). Missing interfaces preserve the native path.
 
 ## Acceptance criteria
 
@@ -45,13 +45,13 @@ Use the shared maintenance floor and the component's [host compatibility declara
 - Main, task, and Eval coverage includes parallel siblings, parent interleaving, same-model different histories, different target models, non-target neighbors, finish, cancellation, revive, and all switch/branch/tree success/cancel/failure outcomes. In-flight old epochs remain invalid.
 - Missing reference, unknown fields/transforms, explicit tool choice, identity ambiguity, tool/model mismatch, mixed owners, wrapper loss, old generations, cancellation, exit, native errors, and fallback preserve native behavior. Ordinary and non-target bodies are unchanged; final cleanup does not overwrite foreign functions.
 - Real TUI commands expose accurate per-session stages without model requests or sensitive values. Native migration removes all three old QoL keys from every applicable user/project layer, preserves effective opt-in and unrelated settings, and leaves one owner. Accidental old QoL coexistence refuses safely; remaining QoL modules and other installed extensions do not regress.
-- Component checks, complete aggregate, changed selector mapping, regression selection, paired public documents, current Specs, and successor ADRs agree. Native CLI/TUI and final wire evidence are required at the floor and current maintained host. Source inspection and synthetic usage are not real-service proof.
+- Component checks, complete aggregate, changed selector mapping, regression selection, paired public documents, current Specs, and successor ADRs agree. Native CLI/TUI and final wire evidence are required at the floor and current maintained host. Source inspection and synthetic usage cover the mechanism only.
 - Separately authorized comparable real Provider runs repeatedly reduce uncached input while preserving correctness/usability. Report target, aligned, and unaligned groups, including refusals, by session class and applicable lifecycle; distinguish logical operations and physical requests. For each group include requests, valid usage samples, total/cached/uncached input, zero-hit fraction, and token-weighted hit rate. Failures, cancellation, 429, fallback, and missing usage remain explicit. Do not promise fixed hit rates, residency, or savings.
 
 ## Related ADRs
 
 - [Remote ownership and reuse contract](../adr/decision/2026-10-10-use-smart-cache-remote.md)
-- [Preserved QoL contract](../adr/decision/2026-10-10-maintain-qol-without-remote.md)
+- [Preserved QoL contract](../adr/decision/2026-10-10-maintain-omp-experience-extension.md)
 - [Shared OMP maintenance floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)
 - [Self-contained components](../adr/decision/2026-08-24-keep-components-self-contained.md)
 
