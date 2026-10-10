@@ -2,7 +2,7 @@
 
 [English](./README.md)
 
-一个扩展提供六项可独立开关的 OMP 行为调整：持续等待、模型错误后的受限续跑、实验性的压缩期限延长、原生历史重放、可选择启用的远端压缩缓存对齐，以及可选择启用的模型提示词规则。每项调整的宿主源码、边界与已观察证据见[调整项](./docs/adjustments.zh.md)。
+一个扩展提供五项可独立开关的 OMP 行为调整：持续等待、模型错误后的受限续跑、实验性的压缩期限延长、原生历史重放，以及可选择启用的模型提示词规则。每项调整的宿主源码、边界与已观察证据见[调整项](./docs/adjustments.zh.md)。
 
 任务、消息、进程、模型轮次与压缩都由 OMP 管理。每项调整均可关闭；宿主接口、结构或归属无法识别时，对应调整保持不生效并报告原因。
 
@@ -14,10 +14,9 @@
 | [上游错误后续跑](./docs/adjustments.zh.md#上游错误后续跑) | 开 | 以可续跑的上游错误结束的轮次在同一会话内继续，首次等待 1 秒并按倍增延长至上限 8 秒，每条失败链最多 8 次续跑。可续跑的判据包括：分类器判定为瞬时或超时、宿主标记为流中途中断，以及既无状态也无分类结论的错误。 |
 | [延长单个压缩期限](./docs/adjustments.zh.md#延长单个压缩期限) | **关** | 在一个压缩窗口内，命中的 `AbortSignal.timeout` 调用获得更长期限，使超过原生 5 分钟的远端压缩不被中断。进程级生效，实验性质。 |
 | [恢复会话时沿用原生历史](./docs/adjustments.zh.md#恢复会话时沿用原生历史) | 开 | 恢复会话的首次请求沿用上一个进程结束时的原生提供方条目，而不是按通用内容重建对话，使基于该形式的提示缓存可以服务这次请求。进程级生效，只设置一个标志，不改写请求体。 |
-| [远端压缩缓存对齐](./docs/adjustments.zh.md#远端压缩缓存对齐) | **关** | 为有明确归属的非 Codex Responses V2 压缩复用已确认的在线请求前缀。需选择提供方，保留原生投机压缩。 |
 | [模型提示词规则](#模型提示词规则) | **关** | 向每个受覆盖 turn 的系统提示词追加命中的用户 Markdown 正文，无需模板或其他组件。 |
 
-等待调整新增可选 `timeout`，重放选择已存的原生条目，缓存对齐只改变已识别的压缩请求前缀和工具定义。它们均不改模型、缓存键、已存历史或会话文件。恢复启动模型轮次，等待重复模型已经发出的调用，模型运行时会消耗服务额度。
+等待调整新增可选 `timeout`，重放选择已存的原生条目。两者均不改模型、缓存键、已存历史或会话文件。恢复启动模型轮次，等待重复模型已经发出的调用，模型运行时会消耗服务额度。
 
 ## 配置
 
@@ -73,25 +72,6 @@ omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 | --- | --- | --- | --- |
 | `replayEnabled` | `true` | boolean | 安装进程级包装，使恢复会话的首次请求沿用提供方的原生历史。默认开启；未携带已存条目的会话不受影响。 |
 
-### 压缩缓存
-
-| 键 | 默认 | 取值 | 效果 |
-| --- | --- | --- | --- |
-| `compactionCacheEnabled` | `false` | boolean | 为主会话启用进程归属的缓存调整，不注册会否决投机压缩的钩子。 |
-| `compactionCacheProvider` | `""` | string | 已配置提供方的准确名称。空值保持模块不生效；只有 `openai-responses` V2 请求可以匹配。 |
-| `compactionCacheMode` | `"hooks"` | `standard`、`hooks` | `standard` 保留已识别的宿主修复；`hooks` 还复用经过证明的宿主钩子处理结果，支持插入、重排和恢复上下文。两种模式均不自动开启模块。 |
-
-为已配置的提供方启用时，把 `your-provider` 替换为其名称：
-
-```bash
-omp plugin config set @ruokee/omp-qol compactionCacheProvider your-provider
-omp plugin config set @ruokee/omp-qol compactionCacheEnabled true
-```
-
-选择该提供方的模型并重启 OMP。`/qol` 应显示 `cache: enabled`；`rewrites=0` 只表示尚未改写符合条件的请求，不代表提供方已经命中缓存。关闭设置并重启可移除 hook 与包装。停止的 owner 不会在同一进程内恢复。
-
-默认 `hooks` 模式观察所属会话的上下文处理结果，不重复调用处理器，也不依赖配套扩展。没有相关处理器时执行通用修复。`standard` 对未知钩子差异保持原生请求；选择该模式时，将 `compactionCacheMode` 设为 `standard` 并重启。两种模式都要求传输原样确认及整条请求校验。投影或请求差异无法确认时，完整请求保持原样。`/qol` 显示有效 `mode`。
-
 ### 模型提示词
 
 | 键 | 默认 | 取值 | 效果 |
@@ -116,7 +96,7 @@ omp plugin config set @ruokee/omp-qol modelPromptsEnabled true
 `/qol` 打印当前状态，不做任何修改。它不启动模型轮次，也不读取设置 schema 之外的值。
 
 ```
-@ruokee/omp-qol 0.5.4
+@ruokee/omp-qol 0.5.5
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -124,7 +104,6 @@ wait: enabled (entry=wait effectiveDefaultSeconds=1200 messageContinuation=not-a
 recovery: enabled — enabled=true mode=knownTransient maxAttempts=8 backoffBaseMs=1000 backoffMaxMs=8000 notify=true
 compaction: disabled (compaction-disabled) — enabled=false timeoutMs=900000 floorMs=300000 windowGuardMs=3600000 notify=true
 replay: enabled (rewrites=0) — enabled=true
-cache: disabled (cache-disabled) enabled=false providerSelected=false mode=hooks
 modelPrompts: disabled (model-prompts-disabled) enabled=false
 ```
 
@@ -188,7 +167,6 @@ OMP 通过 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) 或等
 - [恢复](./docs/adjustments.zh.md#上游错误后续跑)。安全排除条件与宿主的独立上限仍适用，每条失败链最多续跑 8 次。续跑可能重复工具副作用，并消耗提供方额度。
 - [压缩](./docs/adjustments.zh.md#延长单个压缩期限)。实验对整个进程包装 `AbortSignal.timeout`，可能延长窗口内无关调用的期限。在 OMP `18.5.0` 上启用会关闭投机压缩。生命周期冲突或 owner 关闭可能使补丁停止，重启后才恢复。
 - [重放](./docs/adjustments.zh.md#恢复会话时沿用原生历史)。进程级 `Map.prototype.set` 包装只覆盖 `openai-responses` 状态。若服务端拒绝存储的原生条目，恢复后的请求可能失败。宿主变化可能使包装静默失效。
-- [缓存](./docs/adjustments.zh.md#远端压缩缓存对齐)。只改写选定提供方的已识别主会话 V2 请求，未知差异保持原生内容。归属冲突会停止改写，重启后才恢复。本模块不禁用投机压缩，但其他扩展仍可能否决它。是否命中缓存由提供方决定。
 
 ## 兼容性
 
@@ -196,7 +174,7 @@ OMP 通过 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) 或等
 
 包的 peer 以无限制的范围 `*` 声明 `@oh-my-pi/pi-ai`、`@oh-my-pi/pi-coding-agent` 与 `@oh-my-pi/pi-utils`。该声明只列出组件导入的宿主包，不构成维护范围，不带运行时检查，也不表示任何宿主版本可用。
 
-自动化类型检查与测试套件针对 OMP `18.5.0` 运行。源码基线按路径区分：上游错误后续跑、压缩期限与原生历史重放引用最初阅读这些机制时的 `18.2.8`，持续等待引用 `18.5.0`，缓存对齐引用 `18.5.1`。宿主没有缓存对齐所需的主会话身份时，该模块保持不生效。[调整项](./docs/adjustments.zh.md)分别记录源码基线、实际检查或 CLI 运行，以及未经测试的场景。
+自动化类型检查与测试套件针对 OMP `18.5.0` 运行。源码基线按路径区分：上游错误后续跑、压缩期限与原生历史重放引用最初阅读这些机制时的 `18.2.8`，持续等待引用 `18.5.0`。[调整项](./docs/adjustments.zh.md)分别记录源码基线、实际检查或 CLI 运行，以及未经测试的场景。
 
 每项调整会检查它所依赖的宿主接口、结构或归属，检查不成立时保持不生效并给出原因，该调整因而停留在宿主自身的行为上。这些检查只覆盖各模块实际查看的内容，不覆盖入口自身的导入，也不覆盖没有任何模块检查的差异，因此无法识别的宿主变化也可能在不被停用的情况下改变行为。
 

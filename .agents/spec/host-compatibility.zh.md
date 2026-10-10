@@ -6,7 +6,7 @@
 
 ## 目标
 
-- 所有面向 OMP 的组件按一个共同的维护下限 OMP `18.5.0` 维护。面向 OMP 的组件是 `omp-context-pin`、`omp-system-prompt`、`omp-qol`、`omp-status-bar`、`omp-codex-web-access` 以及 `tk` 的 OMP 适配器。
+- 所有面向 OMP 的组件按一个共同的维护下限 OMP `18.5.0` 维护。面向 OMP 的组件是 `omp-context-pin`、`omp-system-prompt`、`omp-qol`、`omp-smart-cache`、`omp-status-bar`、`omp-codex-web-access` 以及 `tk` 的 OMP 适配器。
 - 每个组件在用户会阅读的位置声明自己的下限。
 - 宿主升级后，组件在受维护的宿主上继续工作，不保留只服务维护范围以外宿主的代码。
 
@@ -24,6 +24,7 @@
 - [projects/omp-context-pin/README.zh.md](../../projects/omp-context-pin/README.zh.md#兼容性)
 - [projects/omp-system-prompt/README.zh.md](../../projects/omp-system-prompt/README.zh.md#兼容性)
 - [projects/omp-qol/README.zh.md](../../projects/omp-qol/README.zh.md#兼容性)
+- [projects/omp-smart-cache/README.zh.md](../../projects/omp-smart-cache/README.zh.md#宿主兼容与源码基线)
 - [projects/omp-status-bar/README.zh.md](../../projects/omp-status-bar/README.zh.md#兼容性)
 - [projects/omp-codex-web-access/README.zh.md](../../projects/omp-codex-web-access/README.zh.md#兼容性)
 - [projects/tk/omp/README.zh.md](../../projects/tk/omp/README.zh.md#兼容性)：tk OMP 适配器的 `tools` 模式
@@ -56,4 +57,5 @@
 - [保持可分发组件自包含](../adr/decision/2026-08-24-keep-components-self-contained.zh.md)
 - [保留即将弃用扩展的模板功能](../adr/decision/2026-10-07-retain-system-prompt-template.zh.md)
 - [以静态上下文字形维护 OMP 状态栏](../adr/decision/2026-10-04-show-static-context-glyph.zh.md)
-- [维护 QoL 模型提示词与既有体验调整](../adr/decision/2026-10-07-maintain-qol-model-prompts.zh.md)
+- [维护不含 remote 缓存对齐的 QoL](../adr/decision/2026-10-10-maintain-qol-without-remote.zh.md)
+- [由 smart-cache 提供 remote 对齐](../adr/decision/2026-10-10-use-smart-cache-remote.zh.md)

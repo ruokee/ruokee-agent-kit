@@ -144,3 +144,9 @@ This was suggested while analyzing why the bounds drifted. It removes the decisi
 - A user who keeps an OMP release below 18.5.0 and updates a component loses the removed behavior without a warning: the system prompt strategy stops applying on a host before 18.3.0 unless the user selects the template, the total-deadline wait stops applying on a `hub` host, and the speculation band indicator becomes a static glyph on a host before 18.4.0.
 - The shared OMP bound moves only through a decision for all OMP-facing components, so a component that could drop an older host earlier waits for the next shared raise, and every raise needs a decision and review that covers all six components.
 - The decision adds no checker, compatibility manager, or supported-version table, so nothing mechanically enforces the declaration; review and the component documentation keep it accurate.
+
+## Changes
+
+### 2026-10-10: Include smart-cache
+
+The self-contained `omp-smart-cache` remote component follows every maintenance, peer, adaptation, failure, and verification rule in this decision. Its README pair declares the same OMP `18.5.0` lower bound; this addition does not raise the bound or alter another component's contract. The [remote decision](./2026-10-10-use-smart-cache-remote.md) owns its behavior and independent protocol boundaries.

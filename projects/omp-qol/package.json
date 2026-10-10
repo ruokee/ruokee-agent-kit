@@ -1,7 +1,7 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.5.4",
-  "description": "OMP adjustments for wait deadlines, model-error recovery, native-history replay, compaction deadlines, remote compaction cache alignment, and opt-in model prompt rules",
+  "version": "0.5.5",
+  "description": "OMP adjustments for wait deadlines, model-error recovery, native-history replay, compaction deadlines, and opt-in model prompt rules",
   "license": "MIT",
   "type": "module",
   "keywords": [
@@ -125,25 +125,6 @@
         "type": "boolean",
         "default": true,
         "description": "Show a warning line when the experiment rewrites a deadline."
-      },
-      "compactionCacheEnabled": {
-        "type": "boolean",
-        "default": false,
-        "description": "Align owned Responses V2 compaction with a confirmed online request without disabling native speculative compaction. Off by default."
-      },
-      "compactionCacheProvider": {
-        "type": "string",
-        "default": "",
-        "description": "Exact provider name eligible for compaction cache alignment. Empty keeps the module inactive."
-      },
-      "compactionCacheMode": {
-        "type": "enum",
-        "values": [
-          "standard",
-          "hooks"
-        ],
-        "default": "hooks",
-        "description": "Context processing for cache alignment: standard recognizes existing host differences; hooks also reuses a proved completed host context projection. Restart to apply."
       },
       "replayEnabled": {
         "type": "boolean",

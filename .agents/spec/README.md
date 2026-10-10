@@ -15,6 +15,7 @@ A specification, or spec, states the current target state of one component or re
 | [.agents/spec/omp-context-pin.md](./omp-context-pin.md) | `projects/omp-context-pin` |
 | [.agents/spec/omp-system-prompt.md](./omp-system-prompt.md) | `projects/omp-system-prompt` |
 | [.agents/spec/omp-qol.md](./omp-qol.md) | `projects/omp-qol` |
+| [.agents/spec/omp-smart-cache.md](./omp-smart-cache.md) | `projects/omp-smart-cache` |
 | [.agents/spec/omp-status-bar.md](./omp-status-bar.md) | `projects/omp-status-bar` |
 | [.agents/spec/omp-codex-web-access.md](./omp-codex-web-access.md) | `projects/omp-codex-web-access` |
 

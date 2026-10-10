@@ -47,7 +47,8 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 - **[omp-codex-web-access](./projects/omp-codex-web-access/README.zh.md)**：让 OMP 支持通过转发 Provider 使用 Codex 订阅，接入网页搜索与页面提取工具。组件即将弃用，两个工具、设置与当前维护仍保留。
 - **[omp-system-prompt](./projects/omp-system-prompt/README.zh.md)**：通过用户选择的宿主模板把维护的英文策略应用到 OMP 系统提示词，其他系统提示词保持宿主构建的原样。组件即将弃用，模板、Delivery、页脚和当前维护仍保留。
 - **[omp-context-pin](./projects/omp-context-pin/README.zh.md)**：让少量固定条目在当前会话分支的每次普通模型请求中原样出现，并在每次提交后的压缩之后恢复这些条目。
-- **[omp-qol](./projects/omp-qol/README.zh.md)**：提供可独立开关的等待期限、模型错误后的受限续跑、实验性的压缩期限延长、原生历史重放、可选择启用的远端压缩缓存对齐，以及可选择启用的模型提示词规则。
+- **[omp-qol](./projects/omp-qol/README.zh.md)**：提供可独立开关的等待期限、模型错误后的受限续跑、实验性的压缩期限延长、原生历史重放，以及可选择启用的模型提示词规则。
+- **[omp-smart-cache](./projects/omp-smart-cache/README.zh.md)**：使用同一会话已发送的普通请求，对齐原生远端压缩中经过证明的共同内容。默认关闭，覆盖主会话及原生子会话，不把客户端对齐视为 Provider 缓存收益。
 
 ## 安装
 
@@ -75,6 +76,16 @@ Skill 安装与下方的开发环境准备相互独立，不需要开发依赖�
 ### 拓展
 
 拓展各自提供安装与更新说明，请按组件 README 操作。tk 运行时与各 Harness 的接入组件分别安装。
+
+### 将 QoL remote 设置迁入 smart-cache
+
+加载更新后的链接源码前协调完成迁移，再重启每个受影响的 OMP 进程。不热转移在途 owner 或参照。
+
+1. 检查 `@ruokee/omp-qol` 原生插件设置的**每个适用用户层及项目层**。记录旧的有效 `compactionCacheProvider` 与 `compactionCacheMode`；只有模式合法缺省时才使用 `hooks`。保留全部无关设置。
+2. 只有旧有效 QoL 总开关 `enabled` 和 `compactionCacheEnabled` 都合法且启用，Provider 合法非空、模式合法时，才启用新修复。默认、非法配置、空 Provider 或任一开关关闭都必须保持未启用。
+3. 安装 [omp-smart-cache](./projects/omp-smart-cache/README.zh.md#安装)。显式设置其原生 `compactionCacheEnabled`、`compactionCacheProvider` 与 `compactionCacheMode`，保留记录的有效选择；未启用时明确设置 `false`。核对项目覆盖，不能只处理合并后的用户对象。
+4. 从**每个适用 QoL 用户层及项目层**移除全部三个旧 remote 键，更新 QoL 并重启。旧键是 QoL 未知键，可能使所有模块拒绝配置。两组件都不读取对方设置、不编辑配置，也不自动迁移安装。
+5. `/smart-cache` 查看 remote，`/qol` 查看剩余五项调整。误装共存旧 QoL remote 时保守报告冲突，不抢占包装。Handoff 协议和安装分别维护，本次迁移不替换它们。
 
 ## 开发
 
@@ -133,6 +144,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 (cd projects/omp-codex-web-access && bun install --frozen-lockfile)
 (cd projects/omp-context-pin && bun install --frozen-lockfile)
 (cd projects/omp-qol && bun install --frozen-lockfile)
+(cd projects/omp-smart-cache && bun install --frozen-lockfile)
 ```
 
 ### 受影响检查
@@ -178,9 +190,10 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 4. [omp-codex-web-access](./projects/omp-codex-web-access/package.json) 的 TypeScript 检查和测试。
 5. [omp-context-pin](./projects/omp-context-pin/package.json) 的 TypeScript 检查和测试。
 6. [omp-qol](./projects/omp-qol/package.json) 的 TypeScript 检查和测试。
-7. 通过 `bun test projects/tk/adapter-tests` 执行 tk 原生适配器测试。
-8. 通过 `pnpm check:skills` 执行 `sh scripts/tests/skills.sh`，运行 Skill 生命周期测试。
-9. 通过 `pnpm check:selector` 执行受影响选择器回归测试。
+7. [omp-smart-cache](./projects/omp-smart-cache/package.json) 的 TypeScript 检查和测试。
+8. 通过 `bun test projects/tk/adapter-tests` 执行 tk 原生适配器测试。
+9. 通过 `pnpm check:skills` 执行 `sh scripts/tests/skills.sh`，运行 Skill 生命周期测试。
+10. 通过 `pnpm check:selector` 执行受影响选择器回归测试。
 
 完整入口在执行第一条命令前核对所列的全部工具和本地输入。首次命令失败即停止执行，并返回非零状态。缺失可执行文件或依赖也会使检查失败。命令及组件输出可以定位失败步骤。检查不安装依赖或格式化源码；构建和测试可以创建自身正常使用的生成文件与临时文件。完整入口不选择受影响检查，回退不会递归。
 

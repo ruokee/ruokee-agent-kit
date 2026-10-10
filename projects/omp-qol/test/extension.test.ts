@@ -246,7 +246,6 @@ describe("the /qol command", () => {
         recovery: { status: "enabled" },
         compaction: { status: "enabled" },
         replay: { status: "enabled" },
-        cache: { status: "disabled" },
         modelPrompts: { status: "disabled" },
       },
     });

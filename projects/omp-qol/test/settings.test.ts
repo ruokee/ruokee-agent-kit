@@ -67,12 +67,6 @@ describe("rejected values", () => {
     ["guard above the maintenance bound", { compactionWindowGuardMs: 14_400_001 }, "compactionWindowGuardMs=range"],
     ["fractional timeout", { compactionTimeoutMs: 900_000.5 }, "compactionTimeoutMs=integer"],
     ["a non-boolean replay switch", { replayEnabled: "on" }, "replayEnabled=type"],
-    ["a non-boolean cache switch", { compactionCacheEnabled: "on" }, "compactionCacheEnabled=type"],
-    ["a non-string cache provider", { compactionCacheProvider: 7 }, "compactionCacheProvider=type"],
-    ["a null cache provider", { compactionCacheProvider: null }, "compactionCacheProvider=null"],
-    ["an unknown cache mode", { compactionCacheMode: "unknown" }, "compactionCacheMode=enum"],
-    ["a non-string cache mode", { compactionCacheMode: 7 }, "compactionCacheMode=type"],
-    ["a null cache mode", { compactionCacheMode: null }, "compactionCacheMode=null"],
   ];
 
   for (const [label, raw, expected] of cases) {
@@ -109,6 +103,9 @@ describe("global faults", () => {
     ["an array root", [], "settings=root"],
     ["a null root", null, "settings=root"],
     ["an unknown key", { waitJobsTimeouts: 5 }, "waitJobsTimeouts=unknown-key"],
+    ["retired remote enabled key", { compactionCacheEnabled: true }, "compactionCacheEnabled=unknown-key"],
+    ["retired remote provider key", { compactionCacheProvider: "synthetic" }, "compactionCacheProvider=unknown-key"],
+    ["retired remote mode key", { compactionCacheMode: "hooks" }, "compactionCacheMode=unknown-key"],
     ["a wrong master switch", { enabled: "true" }, "enabled=type"],
     ["an explicit null master switch", { enabled: null }, "enabled=null"],
   ];

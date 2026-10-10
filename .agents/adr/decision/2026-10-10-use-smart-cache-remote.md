@@ -1,15 +1,16 @@
-# ADR proposal: Move remote cache alignment into smart-cache
+# ADR decision: Use smart-cache for remote alignment
 
-Draft owner: Ruokee
-Draft writer: OMP
+Decision owner: Ruokee
+Decision writer: OMP
+Reverses: [Maintain QoL model prompts and existing quality-of-life adjustments](../archived/2026-10-07-maintain-qol-model-prompts.md)
 
-English | [中文](./2026-10-10-move-remote-cache-to-smart-cache.zh.md)
+English | [中文](./2026-10-10-use-smart-cache-remote.zh.md)
 
 ## Motivation
 
 Move remote compaction cache alignment from QoL into the independent `@ruokee/omp-smart-cache` extension, serving main sessions, native child sessions, and same-process navigation.
 
-The [current QoL decision](../decision/2026-10-07-maintain-qol-model-prompts.md) assigns remote alignment to one main-session owner. A child activation cannot drive that owner's repair, and navigation releases eligibility without a same-process recovery path. Ordinary requests also finish transformations after context handlers return, while native V2 prepares its retained history separately. Comparing an intermediate context or requiring every request option to match can reject valid common-content repair.
+The [previous QoL decision](../archived/2026-10-07-maintain-qol-model-prompts.md) assigns remote alignment to one main-session owner. A child activation cannot drive that owner's repair, and navigation releases eligibility without a same-process recovery path. Ordinary requests also finish transformations after context handlers return, while native V2 prepares its retained history separately. Comparing an intermediate context or requiring every request option to match can reject valid common-content repair.
 
 Cache capabilities need an independent home without changing QoL's wait, recovery, deadline, replay, or model-rule behavior. Remote and Handoff repair have different protocols and evidence. Moving remote does not approve Handoff integration or replace an installed Handoff prototype.
 
@@ -17,19 +18,19 @@ Cache capabilities need an independent home without changing QoL's wait, recover
 
 A final sent result and its source range establish different facts. Seeing the final payload proves what was sent; it does not prove that part of a cross-range result can be reused after native trimming. If an ordinary request sent only an indivisible result `Y = F(U, T, s)` and V2 changes `T` to `T'`, there may be no independently sent result for `U`. Reusing all of `Y` retains a dependency on removed content; computing `F(U, T', s)` creates a new result and may repeat handler side effects. More provenance does not create an absent independently sent result.
 
-The proposed boundary therefore supports complete retained ranges and independently reusable local results. It leaves indivisible dependency changes native and counts them as unaligned. It does not restrict handlers to one-to-one transformations, change native trimming, require a new handler protocol, or equate an unknown proof with proven impossibility. Client alignment, native usability, and Provider cache benefit remain separate claims.
+The reuse boundary therefore supports complete retained ranges and independently reusable local results. It leaves indivisible dependency changes native and counts them as unaligned. It does not restrict handlers to one-to-one transformations, change native trimming, require a new handler protocol, or equate an unknown proof with proven impossibility. Client alignment, native usability, and Provider cache benefit remain separate claims.
 
-## Proposal
+## Decision
 
 ### Component and public configuration
 
-Maintain the self-contained package `@ruokee/omp-smart-cache` at `projects/omp-smart-cache`, with its own native `omp.extensions` entry, settings, checks, and English and Chinese documentation. Follow the [first-party boundary](../decision/2026-08-20-establish-first-party-capability-kit.md) and [self-contained component contract](../decision/2026-08-24-keep-components-self-contained.md). Do not import runtime code, settings readers, or documents from QoL or a local prototype.
+Maintain the self-contained package `@ruokee/omp-smart-cache` at `projects/omp-smart-cache`, with its own native `omp.extensions` entry, settings, checks, and English and Chinese documentation. Follow the [first-party boundary](./2026-08-20-establish-first-party-capability-kit.md) and [self-contained component contract](./2026-08-24-keep-components-self-contained.md). Do not import runtime code, settings readers, or documents from QoL or a local prototype.
 
 The remote public contract has native OMP settings `compactionCacheEnabled` defaulting to `false`, `compactionCacheProvider` defaulting to `""`, and `compactionCacheMode` defaulting to `"hooks"`. The mode accepts only `standard` and `hooks`; it does not enable the repair. A user explicitly selects one exact configured Provider name. No Provider list, extra mode, Handoff placeholder setting, or second configuration source is added.
 
 The mode set is closed for this remote contract because the two modes preserve distinct preparation and reuse promises; extending it requires a new contract decision. Multi-Provider selection and Handoff interfaces are outside this change, not permanent prohibitions on separately specified capabilities. Native settings remain the sole source to preserve host-owned precedence and restart semantics.
 
-OMP owns user values, project overrides, and parsing under the [native settings contract](../decision/2026-09-10-use-codex-web-plugin-settings.md#native-settings-and-scopes). Read and validate the effective settings as one activation snapshot. Repeated activation events do not duplicate registration. Changes require restarting OMP; creating or navigating a session does not refresh an existing snapshot. Children use their own actual model, API, tools, prompt, and identities, not the parent's model or a freshly hot-read configuration. Invalid settings or unavailable interfaces affect the corresponding capability or registration, never unrelated live sessions. Diagnostics name a key and fixed rule without echoing its value.
+OMP owns user values, project overrides, and parsing under the [native settings contract](./2026-09-10-use-codex-web-plugin-settings.md#native-settings-and-scopes). Read and validate the effective settings as one activation snapshot. Repeated activation events do not duplicate registration. Changes require restarting OMP; creating or navigating a session does not refresh an existing snapshot. Children use their own actual model, API, tools, prompt, and identities, not the parent's model or a freshly hot-read configuration. Invalid settings or unavailable interfaces affect the corresponding capability or registration, never unrelated live sessions. Diagnostics name a key and fixed rule without echoing its value.
 
 `/smart-cache` reports remote state without starting a model turn. Its states distinguish `disabled`, `unavailable`, `awaiting-reference`, `already-aligned`, `rewritten`, and `rejected`. Keep online confirmation, operation binding, candidate validation, and sending causes separately, so a later missing-reference result does not erase the original proof failure. Report logical operations separately from physical sends and retries; a rewrite, native result adoption, and a Provider cache hit are different outcomes. Diagnostics use bounded counters, local session and operation identifiers, and fixed reasons, with no request body, opaque content, credentials, raw endpoint, private path, or dynamic private key. Ship no body-sampling log, trial environment variable, sampling command, or special rate-limit abort policy.
 
@@ -69,11 +70,11 @@ OMP retains preparation, triggering, speculative startup and waiting, cancellati
 
 Do not register `session_before_compact`, keep it as a fallback, hide another handler, bypass a veto, or change another extension's settings. QoL's separately enabled deadline module and other extensions may still veto speculation under their own contracts. Remote alignment preserves the native speculative result's direct adoption, without a replacement request, but does not promise speculation is globally enabled.
 
-Apply the [shared OMP maintenance floor](../decision/2026-10-04-raise-omp-host-floor.md), currently `18.5.0`. The component README pair owns its declaration, with no upper bound or version whitelist. Lock host development dependencies to the shared floor; do not narrow host peers or add an installation or activation version gate. Choose maintained behavior by capability and structure. Replace these adaptations when a maintained native interface provides equivalent results, configuration semantics, isolation, and failure behavior across the required paths, after behavioral verification rather than merely an upstream PR merge.
+Apply the [shared OMP maintenance floor](./2026-10-04-raise-omp-host-floor.md), currently `18.5.0`. The component README pair owns its declaration, with no upper bound or version whitelist. Lock host development dependencies to the shared floor; do not narrow host peers or add an installation or activation version gate. Choose maintained behavior by capability and structure. Replace these adaptations when a maintained native interface provides equivalent results, configuration semantics, isolation, and failure behavior across the required paths, after behavioral verification rather than merely an upstream PR merge.
 
 ### Decision reversal and preserved contracts
 
-Implementation would reverse [Maintain QoL model prompts and existing quality-of-life adjustments](../decision/2026-10-07-maintain-qol-model-prompts.md). The conflicts and replacement choices are:
+This decision and the [complete QoL successor](./2026-10-10-maintain-qol-without-remote.md) reverse [Maintain QoL model prompts and existing quality-of-life adjustments](../archived/2026-10-07-maintain-qol-model-prompts.md). The conflicting choices are:
 
 | Effective clause in that decision | Replacement choice and conflict |
 | --- | --- |
@@ -86,9 +87,9 @@ Implementation would reverse [Maintain QoL model prompts and existing quality-of
 | Remote shutdown/navigation terminal state and no new owner in the process | Release one registration locally, restore after settled navigation with a new send, and permit a new coordinator generation after final release. Old epochs and operations never regain eligibility. |
 | Remote status and effective mode belong to `/qol` | `/smart-cache` owns remote state, modes, stage reasons, and counts; `/qol` retains only its remaining adjustments. |
 
-All non-conflicting rules remain binding. The complete QoL successor must preserve standalone wait delegation and deadlines, recovery safety exclusions and bounded continuations, the experimental compaction-deadline module's single-owner windows and `owner-stopped` terminal state, replay's separate process-wide ownership and release rules, [model prompt rules](../decision/2026-10-07-use-qol-model-prompts.md), native settings authority, module isolation, privacy, documentation evidence, and host-maintenance obligations. In particular, this proposal's remote recovery does not relax the deadline module's terminal owner rule or migrate replay merely because it is cache-related.
+All non-conflicting rules remain binding. The [complete QoL successor](./2026-10-10-maintain-qol-without-remote.md) preserves standalone wait delegation and deadlines, recovery safety exclusions and bounded continuations, the experimental compaction-deadline module's single-owner windows and `owner-stopped` terminal state, replay's separate process-wide ownership and release rules, [model prompt rules](./2026-10-07-use-qol-model-prompts.md), native settings authority, module isolation, privacy, documentation evidence, and host-maintenance obligations. In particular, this decision's remote recovery does not relax the deadline module's terminal owner rule or migrate replay merely because it is cache-related.
 
-The remote successor records the still-effective online confirmation, immutable root snapshots, native lifecycle, explicit-policy preservation, bounded retention, ownership-conditional restoration, no-veto, two-mode, privacy, and native-interface replacement contracts together with the changes above. Repair inbound references when the old pair is archived. Other current decisions are not reversed; adding smart-cache to the shared floor is a non-conflicting extension of that contract.
+This decision retains online confirmation, immutable root snapshots, native lifecycle, explicit-policy preservation, bounded retention, ownership-conditional restoration, no-veto, two-mode, privacy, and native-interface replacement together with the choices above. Other current decisions are not reversed; smart-cache joins the shared floor through a non-conflicting addition.
 
 ### Direct cutover and public documentation
 
@@ -96,15 +97,15 @@ Deliver remote directly in smart-cache, without a QoL multi-session interim rele
 
 Public migration guidance belongs in the repository README pair. It must cover user and project layers, not just the merged effective object: preserve the old effective Provider and mode, and enable the new repair only when the old effective QoL master `enabled` and `compactionCacheEnabled` were both valid and enabled. Defaults or invalid settings must not turn a previously inactive repair on. Users explicitly set the new package's values and remove all three old remote keys from every applicable QoL layer while retaining other settings. Old keys become unknown QoL keys and can reject the whole component, so deletion, new installation, and restart must be coordinated before the changed source is loaded. Runtime code neither reads QoL settings as a fallback nor edits user configuration or installation.
 
-Switch by restarting affected processes, not by hot-transferring in-flight owners or references. Accidental coexistence with old QoL remote reports a conservative conflict and does not seize its wrapper. Handoff protocol, support, status, benefit evidence, and installation remain separate; this proposal does not replace its prototype, reuse remote V2 rules for Handoff, or add placeholder Handoff interfaces.
+Switch by restarting affected processes, not by hot-transferring in-flight owners or references. Accidental coexistence with old QoL remote reports a conservative conflict and does not seize its wrapper. Handoff protocol, support, status, benefit evidence, and installation remain separate; this decision does not replace its prototype, reuse remote V2 rules for Handoff, or add placeholder Handoff interfaces.
 
-Component documentation owns detailed settings and commands, applicability, side effects, native-off behavior, fixed source baselines, versions actually exercised, and native replacement conditions in both languages. Source inspection, real CLI coverage, client alignment, native adoption, and Provider measurements are labeled separately. Change the QoL project Spec and add the smart-cache Spec, their index entry, component documentation, and check registration in the same implementation change as the changed targets. Keep current Specs and decisions unchanged while this is a proposal. Implement only after the maintainer approves and separately merges the proposal under the [ADR lifecycle](../README.md#active-proposal).
+Component documentation owns detailed settings and commands, applicability, side effects, native-off behavior, fixed source baselines, versions actually exercised, and native replacement conditions in both languages. Source inspection, real CLI coverage, client alignment, native adoption, and Provider measurements are labeled separately. Change the QoL project Spec and add the smart-cache Spec, their index entry, component documentation, and check registration in the same implementation change as the changed targets.
 
 ## Alternatives considered
 
 - **Expand QoL first, then migrate.** Considered while choosing the delivery location. It reduces the first installation change but adds an interim multi-session contract, release, configuration, and migration validation. Direct smart-cache delivery avoids that intermediate maintained path.
 - **Keep the unrestricted alignment promise and stop at the limitation.** Considered while choosing the reuse contract. When an indivisible result's dependency is removed, more observation cannot produce a missing sent sub-result without changing another requirement. It preserves the old promise but prevents a complete deliverable.
-- **Introduce a frozen pure-projection cooperation protocol.** Considered for trimmed cross-range transformations. It can compute a new result after one stateful preparation, but requires cooperating handlers and proof of no side effects, changes the sent-result reuse contract, and gives no guarantee that the new result reuses old Provider cache. This proposal adds no such protocol.
+- **Introduce a frozen pure-projection cooperation protocol.** Considered for trimmed cross-range transformations. It can compute a new result after one stateful preparation, but requires cooperating handlers and proof of no side effects, changes the sent-result reuse contract, and gives no guarantee that the new result reuses old Provider cache. This decision adds no such protocol.
 - **Rerun ordinary preparation or issue a new reference request.** Considered during final-context design. It repeats stateful handler effects, can read state newer than the operation snapshot, and may spend another request. Reusing already sent results preserves the selected boundary.
 - **Wait for an equivalent native interface or use Handoff instead.** Considered while assessing wrapper maintenance. Waiting leaves current remote differences unresolved; Handoff changes the selected compaction protocol and has separate evidence. An equivalent native interface remains the replacement condition.
 
@@ -123,7 +124,7 @@ Component documentation owns detailed settings and commands, applicability, side
 11. Automated checks and real maintained-host CLI/TUI evidence cover the changed public contracts, actual outgoing requests, native results, and the shared `18.5.0` floor. Required full and affected check registration, selector mapping, selector regressions, paired documentation, project Specs, and complete successor decisions agree at implementation cutover. Source inspection and synthetic usage are not real Provider evidence.
 12. Separately authorized comparable real-Provider runs repeatedly show reduced uncached input while preserving client correctness and native usability. Report overall target, aligned, and unaligned groups, including all dependency-change refusals, proof gaps, and other refusals, by session class and applicable compaction lifecycle. Separate logical operations and physical requests. For each group report requests, valid usage samples, total/cached/uncached input, zero-hit fraction, and token-weighted hit rate. Failures, cancellation, 429, fallback, and missing usage stay explicit rather than becoming zero hits or disappearing from denominators. Claim no fixed hit rate, cache residency, or savings amount; remote benefit does not prove Handoff benefit.
 
-## Risks
+## Consequences
 
 - Wrong source correspondence, lost unit boundaries, or concurrent attribution can insert another session's content, restore removed history, or break tool pairing. Complete and local proofs, explicit identities, immutable snapshots, and atomic refusal are required before replacement; conservative refusal alone still leaves required positive coverage incomplete.
 - Host changes or competing process wrappers can make the adjustment unavailable; incorrect restoration can overwrite another extension. Capability checks, conditional restoration, and maintained-host behavioral evidence reduce that exposure without promising universal compatibility.

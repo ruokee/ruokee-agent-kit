@@ -2,7 +2,7 @@
 
 [中文](./README.zh.md)
 
-Six independently switchable adjustments to OMP behavior: continuing waits, bounded continuation after model errors, an experimental compaction deadline extension, native history replay, opt-in remote compaction cache alignment, and opt-in model prompt rules. [Adjustments](./docs/adjustments.md) states each adjustment's host source, limits, and observed evidence.
+Five independently switchable adjustments to OMP behavior: continuing waits, bounded continuation after model errors, an experimental compaction deadline extension, native history replay, and opt-in model prompt rules. [Adjustments](./docs/adjustments.md) states each adjustment's host source, limits, and observed evidence.
 
 Jobs, messages, processes, turns, and compaction stay with OMP. Every adjustment can be switched off; an unrecognized host interface, structure, or ownership keeps the affected adjustment inactive with a reason.
 
@@ -14,10 +14,9 @@ Jobs, messages, processes, turns, and compaction stay with OMP. Every adjustment
 | [Continuing after a transient model error](./docs/adjustments.md#continuing-after-a-transient-model-error) | on | A turn that ended with an eligible upstream error continues in the same session after 1 s and again with a doubling delay up to 8 s, at most 8 continuation turns per failure chain. Eligible covers classifier-flagged transient and timeout failures, turns the host marked as interrupted mid-stream, and errors carrying neither a status nor a classification. |
 | [Extending one compaction deadline](./docs/adjustments.md#extending-one-compaction-deadline) | **off** | Within one compaction window, a matching `AbortSignal.timeout` call gets a longer deadline, so a remote compaction that needs more than the native 5 minutes is not cut off. Process-wide and experimental. |
 | [Replaying native history in a resumed session](./docs/adjustments.md#replaying-native-history-in-a-resumed-session) | on | A resumed session's first request replays the native provider items the previous process ended with, instead of rebuilding the conversation from its generic content, so a prompt cache over that form can serve it. Process-wide, one flag, no body rewrite. |
-| [Aligning remote compaction cache](./docs/adjustments.md#aligning-remote-compaction-cache) | **off** | Reuse a confirmed online request prefix for owned non-Codex Responses V2 compaction. Requires a selected provider and preserves native speculative compaction. |
 | [Model prompt rules](#model-prompt-rules) | **off** | Append matching user-authored Markdown bodies to each covered turn's system prompt, without requiring a template or another component. |
 
-The wait adjustment adds an optional `timeout`; replay chooses the stored native items; cache alignment changes only a recognized compaction request prefix and tool definitions. None changes the model, cache key, stored history, or session file. Recovery starts a turn and wait repeats a call the model already made; provider quota is spent when the model runs.
+The wait adjustment adds an optional `timeout`; replay chooses the stored native items. Neither changes the model, cache key, stored history, or session file. Recovery starts a turn and wait repeats a call the model already made; provider quota is spent when the model runs.
 
 ## Configuration
 
@@ -73,25 +72,6 @@ Settings are read once per activation. Restart OMP after a change: a running pro
 | --- | --- | --- | --- |
 | `replayEnabled` | `true` | boolean | Install the process-wide wrapper that keeps a resumed session's first request on the provider's native history. On by default; the adjustment is inert for a session that carries no stored items. |
 
-### Compaction cache
-
-| Key | Default | Accepted | Effect |
-| --- | --- | --- | --- |
-| `compactionCacheEnabled` | `false` | boolean | Enable the process-owned cache adjustment for the main session without registering a speculation-vetoing hook. |
-| `compactionCacheProvider` | `""` | string | Exact configured provider name. Empty keeps the module inactive; only `openai-responses` V2 requests can match. |
-| `compactionCacheMode` | `"hooks"` | `standard`, `hooks` | `standard` retains the recognized host repairs; `hooks` also reuses a proved completed host context projection, including insertion, reordering, and restored context. Neither mode enables the module. |
-
-To enable it for a configured provider, replace `your-provider` with its name:
-
-```bash
-omp plugin config set @ruokee/omp-qol compactionCacheProvider your-provider
-omp plugin config set @ruokee/omp-qol compactionCacheEnabled true
-```
-
-Restart OMP with a model from that provider. `/qol` must show `cache: enabled`; `rewrites=0` means no eligible request has been rewritten yet, not that a provider cache hit occurred. Turn the setting off and restart to remove the hooks and wrappers. A stopped owner does not recover within the same process.
-
-The default `hooks` mode observes the owning session's context result without invoking handlers again or depending on a companion extension. With no relevant handler, it performs the common repair. `standard` leaves unknown hook differences native. To select it, set `compactionCacheMode` to `standard` and restart. Both modes require unchanged transport confirmation and complete request validation; an unknown projection or request difference leaves every byte native. `/qol` shows the effective `mode`.
-
 ### Model prompts
 
 | Key | Default | Accepted | Effect |
@@ -116,7 +96,7 @@ Restart OMP after changing the switch. Existing rule files need no path or forma
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.5.4
+@ruokee/omp-qol 0.5.5
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -124,7 +104,6 @@ wait: enabled (entry=wait effectiveDefaultSeconds=1200 messageContinuation=not-a
 recovery: enabled — enabled=true mode=knownTransient maxAttempts=8 backoffBaseMs=1000 backoffMaxMs=8000 notify=true
 compaction: disabled (compaction-disabled) — enabled=false timeoutMs=900000 floorMs=300000 windowGuardMs=3600000 notify=true
 replay: enabled (rewrites=0) — enabled=true
-cache: disabled (cache-disabled) enabled=false providerSelected=false mode=hooks
 modelPrompts: disabled (model-prompts-disabled) enabled=false
 ```
 
@@ -188,7 +167,6 @@ Each adjustment lists its own limits in [Adjustments](./docs/adjustments.md). Th
 - [Recovery](./docs/adjustments.md#continuing-after-a-transient-model-error). Safety exclusions and the host's independent cap apply, with at most 8 continuations per failure chain. Continuing can repeat tool side effects and spends provider quota.
 - [Compaction](./docs/adjustments.md#extending-one-compaction-deadline). The experimental process-wide `AbortSignal.timeout` patch can extend unrelated calls within its window. On OMP `18.5.0`, enabling it disables speculative compaction. Lifecycle conflicts or owner shutdown can stop the patch until restart.
 - [Replay](./docs/adjustments.md#replaying-native-history-in-a-resumed-session). The process-wide `Map.prototype.set` wrapper covers only `openai-responses` states. A resumed request can fail if its endpoint rejects stored native items. Host changes can make the wrapper silently inactive.
-- [Cache](./docs/adjustments.md#aligning-remote-compaction-cache). Only recognized main-session V2 requests for the selected provider can be rewritten; unknown differences stay native. Ownership conflicts stop rewriting until restart. This module does not disable speculative compaction, but another extension may veto it. Cache hits remain a provider decision.
 
 ## Compatibility
 
@@ -196,7 +174,7 @@ The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound.
 
 The package declares `@oh-my-pi/pi-ai`, `@oh-my-pi/pi-coding-agent`, and `@oh-my-pi/pi-utils` as unrestricted host peers (`*`). Those declarations name the host packages the component imports; they carry no maintenance range, no runtime check, and no claim about any host version.
 
-The automated type check and test suite run against OMP `18.5.0`. Source baselines are path-specific: recovery, the compaction deadline, and replay cite `18.2.8`, where those mechanisms were first read; continuing waits cite `18.5.0`; cache alignment cites `18.5.1`. A host without the main-session identity required by cache alignment leaves that module inactive. [Adjustments](./docs/adjustments.md) separates each source baseline, actual check or CLI run, and untested scenario.
+The automated type check and test suite run against OMP `18.5.0`. Source baselines are path-specific: recovery, the compaction deadline, and replay cite `18.2.8`, where those mechanisms were first read; continuing waits cite `18.5.0`. [Adjustments](./docs/adjustments.md) separates each source baseline, actual check or CLI run, and untested scenario.
 
 Each adjustment checks the host interface, structure, or ownership it depends on, and stays inactive with a reason when that check does not hold, which leaves that adjustment on the host's own behavior. The checks cover what the modules inspect, and not the entry's own imports or a difference no module looks at, so an unrecognized host change can also alter behavior without disabling the adjustment.
 

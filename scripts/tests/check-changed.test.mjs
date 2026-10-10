@@ -141,6 +141,22 @@ test("every OMP component selects its own two checks; Markdown consumers take pr
   }
 });
 
+test("remote cutover selects both component checks and deduplicates shared paths", () => {
+  const plan = selectChecks([
+    "projects/omp-smart-cache/src/runtime.ts",
+    "projects/omp-smart-cache/package.json",
+    "projects/omp-qol/src/compaction-cache.ts",
+    "projects/omp-qol/src/extension.ts",
+  ]);
+  assert.equal(plan.full, false);
+  assert.deepEqual(plan.ids, [
+    "omp-qol:typecheck",
+    "omp-qol:test",
+    "omp-smart-cache:typecheck",
+    "omp-smart-cache:test",
+  ]);
+});
+
 test("tk packaging trees select Rust and adapters, installation docs select Skill checks", () => {
   for (const path of ["src/main.rs", "skills/tk/SKILL.md", "claude/README.md", "pi/README.zh.md", "omp/README.md"])
     assert.deepEqual(ids([`projects/tk/${path}`]), tkIds, path);

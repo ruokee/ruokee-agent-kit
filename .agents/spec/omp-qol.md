@@ -6,10 +6,9 @@ Spec for [projects/omp-qol](../../projects/omp-qol/README.md).
 
 ## Goals
 
-- Carry six independently switchable OMP adjustments in one package: continuing waits, continuing after an eligible transient model error, extending one compaction deadline, replaying native history in a resumed session, aligning the remote compaction cache, and appending model prompt rules.
+- Carry five independently switchable OMP adjustments in one package: continuing waits, continuing after an eligible transient model error, extending one compaction deadline, replaying native history in a resumed session, and appending model prompt rules.
 - Give them one installation, one configuration entry, and one set of checks, with a separate switch, availability state, and failure report for each adjustment.
 - Continue interrupted work in the same main session after an eligible stream closure, without requiring another user message.
-- Align proved shared context in remote compaction, including generic hook insertion, reordering, and restored context, without requiring another component.
 - Provide user-authored model rules without another component or a selected template.
 
 ## Non-goals
@@ -17,7 +16,7 @@ Spec for [projects/omp-qol](../../projects/omp-qol/README.md).
 - Guards for external tools, and host behavior unrelated to these adjustments.
 - Installing or migrating on the user's behalf, or modifying other extensions, user configuration, or installed host files.
 - Message-only continuation, named-process waiting, or service-only continuation on the wait entry.
-- Reducing the set of settings.
+- Reducing unrelated settings during the remote cutover.
 - Changing native in-turn retries, the host classifier, provider selection, or subagent recovery.
 - Matching provider error text, adding recovery settings, or recovering every error.
 - Exactly-once tool execution, rollback, or idempotent continuation.
@@ -61,7 +60,7 @@ This is a native session-stop continuation, not an exact replay of the failed re
 
 ## Invariants
 
-- Every setting the manifest declared in `omp-qol` 0.5.0 remains, including the two cache settings `compactionCacheEnabled` and `compactionCacheProvider`, with unchanged keys, defaults, and ranges.
+- Preserve every unrelated setting's key, default, range, and validation. The three remote settings `compactionCacheEnabled`, `compactionCacheProvider`, and `compactionCacheMode` are absent and rejected as unknown keys; no runtime compatibility path remains.
 - `waitMessagesSeconds` and `waitProcessSeconds` have no effect on supported hosts. The English and Chinese documentation and the manifest setting descriptions say so.
 - Wait continuation serves only the standalone `wait` entry. A missing, foreign, or unrecognized entry leaves native behavior in place and reports a bounded reason.
 - The compaction deadline patch keeps its ownership checks. It refuses to coexist with a patch carrying the `Symbol.for("ruokee.omp.compaction-timeout.patched")` marker, and a later matching activation does not take over an existing owner.
@@ -74,11 +73,6 @@ This is a native session-stop continuation, not an exact replay of the failed re
 - Normal completion, an out-of-scope error, or cancellation ends the chain. A later independent chain starts with fresh budget. A session switch, shutdown, new run, or invalidated chain prevents an old pending wait from continuing.
 - Recovery uses the existing fixed continuation text, asks the model to check completed work and side effects, and includes no provider error body, command, or tool output. OMP retains ownership of history, tool scheduling, and approvals.
 - Recovery notifications follow the existing switch and show the attempt and delay. `/qol` reports effective state and settings without starting a model run.
-- Cache processing offers `standard` and `hooks`, defaulting to `hooks`, without changing the disabled cache default or the explicit provider requirement. Invalid mode configuration rejects only cache; effective mode participates in owner compatibility and `/qol`.
-- Hook observations belong to the owning session runner and explicit session/model/root-signal operation. Reuse only a completed host projection whose native encoding matches an online request confirmed unchanged at transport. Never re-run handlers, read extension private state, recognize a component's text format, or maintain another serializer.
-- Before replacing a projected prefix, prove the raw shared-history boundary and validate the complete candidate. Preserve new ordinary and tool history, opaque data, trigger, explicit tool choice, cache keys, routing, and model policy. Unknown correspondence or difference leaves the entire original request unchanged.
-- New online references cannot alter older operations or their retries. Retention is bounded to the latest reference and native operation lifetimes. Cancellation, stale identity, navigation, conflicts, and overwritten wrappers prevent stale rewriting; shutdown restores only still-owned functions and original property shapes.
-- Cache does not register `session_before_compact`, hide handlers, or bypass the native veto. Manual, automatic, and speculative preparation, waiting, retries, fallback, result adoption, and history replacement remain host-owned. Independently enabled modules retain their own behavior.
 
 ## Host lower bound
 
@@ -87,26 +81,23 @@ OMP `18.5.0`, declared in [Compatibility](../../projects/omp-qol/README.md#compa
 ## Acceptance criteria
 
 - `bun run typecheck` and `bun test` pass in the component directory.
-- Every setting present in the 0.5.0 manifest, including both existing cache settings, retains its key, default, and range. The added cache processing mode follows its current native manifest contract.
+- Unrelated settings retain their keys, defaults, ranges, and validation. All three retired remote keys trigger the existing unknown-key rejection rather than configuring an adjustment.
 - The descriptions of `waitMessagesSeconds` and `waitProcessSeconds` state that they have no effect.
 - Each adjustment's real OMP CLI evidence is recorded under its verification section in [projects/omp-qol/docs/adjustments.md](../../projects/omp-qol/docs/adjustments.md), with unrun scenarios marked as not verified.
 - A real OMP CLI run on a maintained host demonstrates automatic continuation after an eligible upstream stream closure in the same main session, with default recovery settings and no intervening user message. Native retries alone or an enabled `/qol` line do not prove this behavior.
 - Behavioral checks cover the reported error's authentic host fields under the default mode. Reproducing its exact wording in a new real session is not a development prerequisite; an unrun exact-error scenario remains documented as not verified.
 - The same fault with recovery disabled yields no QoL continuation. A real TUI run shows the attempt and delay, and cancellation during that wait prevents continuation.
 - Behavioral checks cover both modes, marked and unmarked statusless errors, safety precedence, independent caps, backoff, cross-run chains, duplicate events, invalidated waits, switches, notifications, and the unchanged error and fixed-context boundaries.
-- Native configuration and `/qol` show the default and both explicit cache modes, activation-only reads, module-local invalid configuration, and unchanged disabled/empty-provider behavior.
-- With no relevant hook, both modes perform common alignment. Generic insertion, reordering, and restoration are refused by `standard` and aligned by `hooks` only when proved; new history and opaque content remain intact through first, subsequent, and resumed-session compaction.
-- Real CLI evidence demonstrates immutable speculative projections during newer online work and native retries, native adoption without a replacement request, cancellation and later recovery, and ownership-safe refusal and cleanup. Request consistency and native usability are reported separately from provider cache measurements; synthetic usage proves no provider benefit.
 - Real maintained-host CLI requests prove QoL alone injects matching bodies after explicit enablement, with default/master/module-off runs showing no injected rules or unused-rule diagnostics. Behavioral checks prove zero reads in those states and unchanged independently enabled modules.
 - Behavioral checks cover all four matching keys, case sensitivity, complete ids containing `/`, OR-once semantics, ignored top-level metadata, strict entry keys, discovery filters, user/project ordering, same-name sources, and identical bodies retained independently.
 - Real request observations and behavioral checks preserve incoming blocks, tools, dynamic content, BOM exclusion, and byte-exact bodies. Continuous turns, file additions/edits/deletions/repairs, a model switch, and a native mid-turn rebuild satisfy refresh and no-accumulation/no-duplication.
 - Checks cover missing model/no match, invalid files, file/directory read failures, unexpected handler errors, diagnostic privacy and session/context deduplication, module-local and global settings rejection, restart-only settings, and next-turn file changes. Actual `/qol` TUI shows default-off and enabled state without a model run.
 - Ordinary child Provider-facing requests retain the child's own model, role, and independent blocks. Real coexistence requests retain the owned template, Delivery, footer, and once-only rules in documented actual order; both failure directions preserve the other component's result. Unrun bypasses remain explicitly unverified.
-- Both component descriptions, manifests, root guidance, paired public documentation, and current project Specs agree on ownership and approaching deprecation. Preserve the five previous adjustments and every unrelated valid requirement.
+- Component descriptions, manifests, root guidance, paired documentation, and current project Specs agree on ownership and approaching deprecation. Preserve all five remaining adjustments and every unrelated valid requirement.
 
 ## Related ADRs
 
-- [Maintain OMP quality-of-life adjustments with model rules](../adr/decision/2026-10-07-maintain-qol-model-prompts.md)
+- [Maintain QoL without remote cache alignment](../adr/decision/2026-10-10-maintain-qol-without-remote.md)
 - [Provide opt-in model prompt rules in QoL](../adr/decision/2026-10-07-use-qol-model-prompts.md)
 - [Use native plugin settings for Codex web access](../adr/decision/2026-09-10-use-codex-web-plugin-settings.md)
 - [Maintain host components against a shared OMP floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)

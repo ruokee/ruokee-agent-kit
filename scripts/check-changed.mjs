@@ -10,6 +10,7 @@ export const OMP_COMPONENTS = [
   "omp-codex-web-access",
   "omp-context-pin",
   "omp-qol",
+  "omp-smart-cache",
 ];
 const PRETTIER = "node_modules/.bin/prettier";
 const SKILL_TOOLS = [

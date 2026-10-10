@@ -15,6 +15,7 @@
 | [.agents/spec/omp-context-pin.zh.md](./omp-context-pin.zh.md) | `projects/omp-context-pin` |
 | [.agents/spec/omp-system-prompt.zh.md](./omp-system-prompt.zh.md) | `projects/omp-system-prompt` |
 | [.agents/spec/omp-qol.zh.md](./omp-qol.zh.md) | `projects/omp-qol` |
+| [.agents/spec/omp-smart-cache.zh.md](./omp-smart-cache.zh.md) | `projects/omp-smart-cache` |
 | [.agents/spec/omp-status-bar.zh.md](./omp-status-bar.zh.md) | `projects/omp-status-bar` |
 | [.agents/spec/omp-codex-web-access.zh.md](./omp-codex-web-access.zh.md) | `projects/omp-codex-web-access` |
 
