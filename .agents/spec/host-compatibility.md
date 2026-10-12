@@ -58,4 +58,6 @@ The repository README summarizes the policy in [Component host maintenance](../.
 - [Retain the approaching-deprecation extension's template functionality](../adr/decision/2026-10-07-retain-system-prompt-template.md)
 - [Maintain the OMP status bar with a static context glyph](../adr/decision/2026-10-04-show-static-context-glyph.md)
 - [Maintain the extension that improves the OMP experience](../adr/decision/2026-10-10-maintain-omp-experience-extension.md)
-- [Use smart-cache for remote alignment](../adr/decision/2026-10-10-use-smart-cache-remote.md)
+- [Maintain the smart-cache extension](../adr/decision/2026-10-12-maintain-smart-cache-extension.md)
+- [Provide remote alignment through smart-cache](../adr/decision/2026-10-12-provide-remote-alignment.md)
+- [Provide Handoff alignment through smart-cache](../adr/decision/2026-10-12-provide-handoff-alignment.md)

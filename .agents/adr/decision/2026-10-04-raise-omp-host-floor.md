@@ -149,4 +149,4 @@ This was suggested while analyzing why the bounds drifted. It removes the decisi
 
 ### 2026-10-10: Include smart-cache
 
-The self-contained `omp-smart-cache` remote component follows every maintenance, peer, adaptation, failure, and verification rule in this decision. Its README pair declares the same OMP `18.5.0` lower bound; this addition does not raise the bound or alter another component's contract. The [remote decision](./2026-10-10-use-smart-cache-remote.md) owns its behavior and independent protocol boundaries.
+The self-contained `omp-smart-cache` component follows every maintenance, peer, adaptation, failure, and verification rule in this decision. Its README pair declares the same OMP `18.5.0` lower bound; this addition does not raise the bound or alter another component's contract. The [extension decision](./2026-10-12-maintain-smart-cache-extension.md) records the component's floor obligation, and the [remote decision](./2026-10-12-provide-remote-alignment.md) owns its behavior and independent protocol boundaries.

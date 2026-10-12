@@ -1,7 +1,7 @@
 {
   "name": "@ruokee/omp-smart-cache",
-  "version": "0.1.0",
-  "description": "Confirmed online-result reuse for native OMP Responses V2 remote compaction",
+  "version": "0.1.1",
+  "description": "Confirmed online-result reuse for native OMP Responses V2 remote compaction and handoff document generation",
   "license": "MIT",
   "type": "module",
   "keywords": [
@@ -31,6 +31,11 @@
         ],
         "default": "hooks",
         "description": "standard reuses recognized native repairs; hooks also reuses proved complete context results. Neither mode enables alignment; restart to apply."
+      },
+      "handoffCacheEnabled": {
+        "type": "boolean",
+        "default": false,
+        "description": "Align owned handoff side requests with the confirmed online dispatch without changing native handoff generation. Off by default; restart to apply."
       }
     }
   },

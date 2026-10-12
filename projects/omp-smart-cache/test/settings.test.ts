@@ -1,9 +1,22 @@
 import { expect, test } from "bun:test";
 import { parseSettings } from "../src/settings.ts";
 
+const handoffDisabled = { ok: true, settings: { enabled: false } } as const;
+const remoteDisabled = { ok: true, settings: { enabled: false, provider: "", mode: "hooks" } } as const;
+
 test("invalid explicit configuration never silently enables a repair or echoes private values", () => {
-  for (const input of [null, [], 0, false, "private-root"])
-    expect(parseSettings(input)).toEqual({ ok: false, reason: "settings-root-invalid" });
+  const root = {
+    remote: { ok: false, reason: "settings-root-invalid" },
+    handoff: { ok: false, reason: "settings-root-invalid" },
+  } as const;
+  for (const input of [null, [], 0, false, "private-root"]) expect(parseSettings(input)).toEqual(root);
+  expect(parseSettings({ "private-dynamic-key": "private-value" })).toEqual({
+    remote: { ok: false, reason: "settings-unknown-key" },
+    handoff: { ok: false, reason: "settings-unknown-key" },
+  });
+});
+
+test("a remote field failure leaves the handoff switch usable", () => {
   const cases = [
     [{ compactionCacheEnabled: null }, "compactionCacheEnabled=type"],
     [{ compactionCacheEnabled: "true" }, "compactionCacheEnabled=type"],
@@ -11,9 +24,20 @@ test("invalid explicit configuration never silently enables a repair or echoes p
     [{ compactionCacheProvider: [] }, "compactionCacheProvider=type"],
     [{ compactionCacheMode: null }, "compactionCacheMode=enum"],
     [{ compactionCacheMode: "private-invalid-mode" }, "compactionCacheMode=enum"],
-    [{ "private-dynamic-key": "private-value" }, "settings-unknown-key"],
   ] as const;
-  for (const [input, reason] of cases) expect(parseSettings(input)).toEqual({ ok: false, reason });
+  for (const [input, reason] of cases) {
+    const settings = parseSettings(input);
+    expect(settings.remote).toEqual({ ok: false, reason });
+    expect(settings.handoff).toEqual(handoffDisabled);
+  }
+});
+
+test("a handoff switch failure leaves remote alignment settings usable", () => {
+  for (const input of [{ handoffCacheEnabled: null }, { handoffCacheEnabled: "true" }, { handoffCacheEnabled: 1 }]) {
+    const settings = parseSettings(input);
+    expect(settings.handoff).toEqual({ ok: false, reason: "handoffCacheEnabled=type" });
+    expect(settings.remote).toEqual(remoteDisabled);
+  }
 });
 
 test("provider selection and mode cannot override an explicit disabled switch", () => {
@@ -23,6 +47,19 @@ test("provider selection and mode cannot override an explicit disabled switch", 
         compactionCacheEnabled: false,
         compactionCacheProvider: "synthetic-provider",
         compactionCacheMode: mode,
-      }),
+      }).remote,
     ).toEqual({ ok: true, settings: { enabled: false, provider: "synthetic-provider", mode } });
+});
+
+test("each capability reports its own switch without enabling the other", () => {
+  const settings = parseSettings({ compactionCacheEnabled: true, compactionCacheProvider: "synthetic-provider" });
+  expect(settings.remote).toEqual({
+    ok: true,
+    settings: { enabled: true, provider: "synthetic-provider", mode: "hooks" },
+  });
+  expect(settings.handoff).toEqual(handoffDisabled);
+  expect(parseSettings({ handoffCacheEnabled: true })).toEqual({
+    remote: remoteDisabled,
+    handoff: { ok: true, settings: { enabled: true } },
+  });
 });

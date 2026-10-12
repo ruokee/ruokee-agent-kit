@@ -1,18 +1,19 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { isDeepStrictEqual as equal } from "node:util";
 import { normalizeTools, type AgentMessage, type StreamFn } from "@oh-my-pi/pi-agent-core";
-import { type ApiKeyResolver, type Context, type Model } from "@oh-my-pi/pi-ai";
+import { type ApiKeyResolver, type Context, type Model, type SimpleStreamOptions } from "@oh-my-pi/pi-ai";
 import { convertTools } from "@oh-my-pi/pi-ai/providers/openai-responses";
 import type { AgentSession, ExtensionContext, ModelRegistry } from "@oh-my-pi/pi-coding-agent";
 import { AgentRegistry } from "@oh-my-pi/pi-coding-agent/registry/agent-registry";
+import { align, initialHandoff, type ChatRequest, type HandoffStatus, type Ownership } from "./handoff.ts";
 import { body, nativeV2, object, reuse, type Body, type Reference } from "./reuse.ts";
 import { copy, encode, nativeIndependent, payload, standardResult, units } from "./proof.ts";
-import type { Settings } from "./settings.ts";
+import type { HandoffResult, RemoteResult, RemoteSettings, Settings } from "./settings.ts";
 import type { Construction } from "./construction.ts";
 
 const SLOT = Symbol.for("ruokee.omp-smart-cache.remote.coordinator");
 const OLD_QOL = Symbol.for("ruokee.omp-qol.compaction-cache.registry");
-const VERSION = "0.1.0";
+const VERSION = "0.1.1";
 const slots = globalThis as typeof globalThis & { [key: symbol]: unknown };
 const increment = (value: number): number => Math.min(Number.MAX_SAFE_INTEGER, value + 1);
 
@@ -34,10 +35,30 @@ export interface Status {
   reused: number;
   retained: number;
 }
+/** One command reports each capability in its own section. */
+export interface Snapshot {
+  readonly remote: Readonly<Status>;
+  readonly handoff: Readonly<HandoffStatus>;
+}
 export interface Registration {
-  status(): Readonly<Status>;
+  status(): Snapshot;
   invalidate(reason: string): void;
   close(): void;
+}
+interface RemoteSelection {
+  readonly active: boolean;
+  readonly reason: string;
+  readonly state: Status["state"];
+  readonly settings?: RemoteSettings;
+}
+interface HandoffSelection {
+  readonly enabled: boolean;
+  readonly reason: string;
+  readonly state: HandoffStatus["state"];
+}
+interface Selection {
+  readonly remote: RemoteSelection;
+  readonly handoff: HandoffSelection;
 }
 interface State {
   readonly id: number;
@@ -47,12 +68,15 @@ interface State {
   readonly manager: AgentSession["sessionManager"];
   readonly runner: NonNullable<AgentSession["extensionRunner"]>;
   readonly registry: ModelRegistry;
-  readonly settings: Settings;
+  readonly selection: Selection;
   readonly nativeSource: boolean;
   readonly status: Status;
+  readonly handoff: HandoffSession;
   readonly raw: WeakMap<AbortSignal, Observation>;
   readonly restores: (() => void)[];
   readonly owned: (() => boolean)[];
+  readonly remoteOwned: (() => boolean)[];
+  readonly sideOwned: (() => boolean)[];
   active: boolean;
   epoch: number;
   reference?: Reference;
@@ -60,6 +84,38 @@ interface State {
   provider: string;
   unavailable?: string;
   sourceFailure?: string;
+}
+interface HandoffSession {
+  readonly enabled: boolean;
+  readonly status: HandoffStatus;
+  readonly operations: WeakMap<AbortSignal, SideOperation>;
+  reference?: SideReference;
+  unavailable?: string;
+}
+interface SideReference {
+  readonly id: number;
+  readonly body: ChatRequest;
+  readonly owner: Ownership;
+}
+interface SideOperation {
+  readonly id: number;
+  readonly state: State;
+  readonly epoch: number;
+  readonly root: AbortSignal;
+  readonly model: Model;
+  readonly persistent: string;
+  readonly provider: string;
+  readonly reference: SideReference;
+  sends: number;
+  revoked?: boolean;
+  memo?: { native: string; sent: ChatRequest; reason: string };
+}
+interface SidePending {
+  readonly id: number;
+  readonly state: State;
+  readonly owner: Ownership;
+  body?: ChatRequest;
+  failed?: string;
 }
 interface Observation {
   readonly id: number;
@@ -100,6 +156,10 @@ interface Patch {
   readonly owned: () => boolean;
   readonly restore: () => void;
 }
+/** Host payload and response hooks, named here so this module never publishes a `ReturnType` contract. */
+type PayloadHook = NonNullable<SimpleStreamOptions["onPayload"]>;
+type ResponseHook = NonNullable<SimpleStreamOptions["onResponse"]>;
+type PayloadArgs = Parameters<PayloadHook>;
 
 /** Preserve inherited properties and restore only wrappers still owned by this registration. */
 function patch<T extends object, K extends keyof T>(target: T, key: K, value: T[K]): Patch {
@@ -141,8 +201,35 @@ function initial(reason: string, state: Status["state"] = "awaiting-reference"):
     retained: 0,
   };
 }
-function target(settings: Settings, model: Model | undefined): boolean {
-  return model?.provider === settings.provider && model.api === "openai-responses";
+/** Remote alignment needs a selected Provider and the Responses V2 request shape. */
+function remoteTarget(state: State, model: Model | undefined): boolean {
+  const settings = state.selection.remote.settings;
+  return (
+    !!settings &&
+    settings.enabled &&
+    model !== undefined &&
+    model.provider === settings.provider &&
+    model.api === "openai-responses"
+  );
+}
+/** The ownership a reference was captured with; one changed field refuses the operation. */
+function ownerSnapshot(state: State): Ownership {
+  const agent = state.agent,
+    model: Model | undefined = agent.state.model;
+  return {
+    provider: model?.provider,
+    model: model?.id,
+    api: model?.api,
+    baseUrl: model?.baseUrl,
+    prompt: copy(agent.state.systemPrompt),
+    thinkingLevel: agent.state.thinkingLevel,
+    disableReasoning: agent.state.disableReasoning,
+    tools: agent.state.tools.map((tool) => ({
+      name: tool.name,
+      description: tool.description,
+      parameters: tool.parameters,
+    })),
+  };
 }
 function modelMatches(left: unknown, right: Model | undefined): boolean {
   return (
@@ -162,6 +249,17 @@ function endpoints(model: Model): [string, string] {
       ? `${base}/responses`
       : `${base}/v1/responses`;
   return [online, model.remoteCompaction?.v2Endpoint ?? model.remoteCompaction?.streamingEndpoint ?? online];
+}
+function remoteSelection(result: RemoteResult): RemoteSelection {
+  if (!result.ok) return { active: false, reason: result.reason, state: "unavailable" };
+  if (!result.settings.enabled) return { active: false, reason: "disabled", state: "disabled" };
+  if (!result.settings.provider) return { active: false, reason: "provider-not-selected", state: "unavailable" };
+  return { active: true, reason: "reference-not-sent", state: "awaiting-reference", settings: result.settings };
+}
+function handoffSelection(result: HandoffResult): HandoffSelection {
+  if (!result.ok) return { enabled: false, reason: result.reason, state: "unavailable" };
+  if (!result.settings.enabled) return { enabled: false, reason: "handoff-disabled", state: "disabled" };
+  return { enabled: true, reason: "reference-not-sent", state: "awaiting-reference" };
 }
 
 class Coordinator {
@@ -237,11 +335,12 @@ class Coordinator {
     return owner;
   }
   valid(state: State): boolean {
-    if (!state.active || this.closed) return false;
+    if (!state.active || this.closed || !state.selection.remote.active) return false;
     if (slots[OLD_QOL] !== undefined) return this.unavailable(state, "mixed-qol-owner");
     if (this.transport.some((installed) => !installed.owned()))
       return this.unavailable(state, "transport-wrapper-lost");
-    if (state.owned.some((owned) => !owned())) return this.unavailable(state, "session-wrapper-lost");
+    if (state.owned.some((owned) => !owned()) || state.remoteOwned.some((owned) => !owned()))
+      return this.unavailable(state, "session-wrapper-lost");
     const registry = this.registries.get(state.registry);
     if (!registry?.owned()) return this.unavailable(state, "registry-wrapper-lost");
     if (
@@ -253,6 +352,24 @@ class Coordinator {
       return this.unavailable(state, "session-identity-lost");
     return !state.unavailable;
   }
+  /** Handoff alignment depends on the session seams and the shared streaming wrapper, not on transport wrappers. */
+  validSide(state: State): boolean {
+    if (!state.active || this.closed || !state.handoff.enabled) return false;
+    if (state.handoff.unavailable) {
+      state.handoff.status.state = "unavailable";
+      return false;
+    }
+    if (state.owned.some((owned) => !owned()) || state.sideOwned.some((owned) => !owned()))
+      return this.unavailableSide(state, "session-wrapper-lost");
+    if (
+      AgentRegistry.global().get(state.agentId)?.session !== state.session ||
+      state.session.agent !== state.agent ||
+      state.session.sessionManager !== state.manager ||
+      state.session.extensionRunner !== state.runner
+    )
+      return this.unavailableSide(state, "session-identity-lost");
+    return true;
+  }
   unavailable(state: State, reason: string): false {
     if (!state.unavailable) {
       state.unavailable = reason;
@@ -261,12 +378,32 @@ class Coordinator {
     state.status.state = "unavailable";
     return false;
   }
+  unavailableSide(state: State, reason: string): false {
+    const handoff = state.handoff;
+    if (!handoff.unavailable) {
+      handoff.unavailable = reason;
+      handoff.reference = undefined;
+      handoff.status.reference = 0;
+      handoff.status.online = reason;
+    }
+    handoff.status.state = "unavailable";
+    return false;
+  }
   invalidate(state: State, reason: string): void {
     state.epoch = increment(state.epoch);
     state.reference = undefined;
     state.status.reference = 0;
-    state.status.online = state.unavailable ?? state.sourceFailure ?? reason;
-    if (!state.unavailable) state.status.state = "awaiting-reference";
+    if (state.selection.remote.active) {
+      state.status.online = state.unavailable ?? state.sourceFailure ?? reason;
+      if (!state.unavailable) state.status.state = "awaiting-reference";
+    }
+    const handoff = state.handoff;
+    handoff.reference = undefined;
+    handoff.status.reference = 0;
+    if (handoff.enabled) {
+      handoff.status.online = handoff.unavailable ?? reason;
+      if (!handoff.unavailable) handoff.status.state = "awaiting-reference";
+    }
   }
   failure(observation: Observation, reason: string): void {
     observation.failed = reason;
@@ -287,6 +424,18 @@ class Coordinator {
       op.revoked = true;
     return !op.revoked && this.valid(state) && !signal?.aborted && !state.session.isSessionTransitioning;
   }
+  sideOperationValid(op: SideOperation): boolean {
+    const state = op.state;
+    if (
+      op.epoch !== state.epoch ||
+      op.root.aborted ||
+      state.manager.getSessionId() !== op.persistent ||
+      state.session.sessionId !== op.provider ||
+      !modelMatches(op.model, state.session.model)
+    )
+      op.revoked = true;
+    return !op.revoked && this.validSide(state) && !state.session.isSessionTransitioning;
+  }
   registry(registry: ModelRegistry): RegistryPatch {
     const known = this.registries.get(registry);
     if (known) return known;
@@ -302,7 +451,7 @@ class Coordinator {
         const matches = [...users].filter(
           (state) =>
             coordinator.valid(state) &&
-            target(state.settings, state.session.model) &&
+            remoteTarget(state, state.session.model) &&
             modelMatches(model, state.session.model) &&
             state.session.sessionId === provider,
         );
@@ -366,7 +515,7 @@ class Coordinator {
         ? inherited
         : undefined;
     const state = op?.state ?? observation?.state;
-    if (!state || !target(state.settings, op?.model ?? observation?.model) || !state.active) return init;
+    if (!state || !remoteTarget(state, op?.model ?? observation?.model) || !state.active) return init;
     const [online, remote] = endpoints(op?.model ?? observation!.model);
     const url = input instanceof Request ? input.url : String(input);
     if (url !== online && url !== remote) return init;
@@ -416,7 +565,7 @@ class Coordinator {
     if (!this.operationValid(op, signal)) reason = state.unavailable ?? "operation-invalidated";
     else if (!op.reference) reason = "reference-not-sent";
     else {
-      const result = reuse(op.reference, value, state.settings.mode);
+      const result = reuse(op.reference, value, state.selection.remote.settings!.mode);
       reason = result.reason;
       reused = result.reused;
       retained = result.retained;
@@ -450,10 +599,165 @@ class Coordinator {
     }
   }
 
-  register(ctx: ExtensionContext, settings: Settings, construction: Construction, session: AgentSession): Registration {
+  sideRecord(op: SideOperation, reason: string, axes: number, unprojected: number): void {
+    const { status } = op.state.handoff;
+    const first = op.sends === 0;
+    op.sends = increment(op.sends);
+    status.sends = increment(status.sends);
+    if (first) status.operations = increment(status.operations);
+    else status.retries = increment(status.retries);
+    status.axes = Math.min(Number.MAX_SAFE_INTEGER, status.axes + axes);
+    status.unprojected = Math.min(Number.MAX_SAFE_INTEGER, status.unprojected + unprojected);
+    status.candidate = reason;
+    status.sending = reason === "rewritten" ? "rewritten-delegated" : "native-delegated";
+    if (reason === "rewritten" || reason === "already-aligned") {
+      status.state = reason;
+      if (first) {
+        status.aligned = increment(status.aligned);
+        if (reason === "rewritten") status.rewritten = increment(status.rewritten);
+      }
+    } else {
+      status.state = op.state.handoff.unavailable ? "unavailable" : "rejected";
+      if (first) status.rejected = increment(status.rejected);
+    }
+  }
+
+  /** A new ordinary dispatch is pending; only its confirmed 2xx response replaces the session's reference. */
+  sidePending(state: State): SidePending | undefined {
+    const handoff = state.handoff;
+    let owner: Ownership;
+    try {
+      owner = ownerSnapshot(state);
+    } catch {
+      handoff.status.online = "source-observation-failed";
+      return undefined;
+    }
+    handoff.status.online = "ordinary-dispatch-pending";
+    if (!handoff.unavailable) handoff.status.state = "awaiting-reference";
+    return { id: this.next(), state, owner };
+  }
+  sideCapture(pending: SidePending, returned: unknown, args: unknown[]): void {
+    const value = returned ?? args[0];
+    if (!object(value)) {
+      this.sideFailure(pending, "payload-proof-unconfirmed");
+      return;
+    }
+    if (pending.body !== undefined) {
+      // A retry must resend the same body; a changed payload invalidates the pending reference.
+      if (!equal(pending.body, value)) {
+        this.sideFailure(pending, "payload-retry-changed");
+        pending.body = undefined;
+      }
+      return;
+    }
+    pending.body = copy(value) as ChatRequest;
+  }
+  sideFailure(pending: SidePending, reason: string): void {
+    pending.failed = reason;
+    pending.state.handoff.status.online = reason;
+  }
+  sideConfirm(pending: SidePending, response: unknown): void {
+    const handoff = pending.state.handoff;
+    if (pending.failed || pending.body === undefined) return;
+    if (!object(response) || typeof response.status !== "number" || response.status < 200 || response.status >= 300)
+      return;
+    if (!Array.isArray(pending.body.messages)) {
+      handoff.status.online = "unsupported-payload-shape";
+      return;
+    }
+    handoff.reference = { id: pending.id, body: pending.body, owner: pending.owner };
+    handoff.status.reference = pending.id;
+    handoff.status.online = "ordinary-send-confirmed";
+    if (!handoff.unavailable) handoff.status.state = "awaiting-reference";
+  }
+  sideOwnershipConfirmed(state: State, reference: SideReference): boolean {
+    try {
+      return equal(reference.owner, ownerSnapshot(state));
+    } catch {
+      return false;
+    }
+  }
+  /** Bind the native handoff snapshot to its own operation signal, never to a shared or newer reference. */
+  sideBind(state: State, messages: AgentMessage[], signal?: AbortSignal): void {
+    const handoff = state.handoff;
+    if (!handoff.enabled || !signal || !state.session.isGeneratingHandoff || state.session.isSessionTransitioning)
+      return;
+    const tail: unknown = messages[messages.length - 1];
+    if (!object(tail) || tail.role !== "user" || tail.attribution !== "agent") return;
+    if (
+      messages.length !== state.agent.state.messages.length + 1 ||
+      !equal(messages.slice(0, -1), state.agent.state.messages)
+    )
+      return;
+    const reference = handoff.reference;
+    if (!reference) {
+      handoff.status.binding = "live-reference-unconfirmed";
+      return;
+    }
+    if (!this.sideOwnershipConfirmed(state, reference)) {
+      handoff.status.binding = "reference-owner-changed";
+      return;
+    }
+    handoff.operations.set(signal, {
+      id: this.next(),
+      state,
+      epoch: state.epoch,
+      root: signal,
+      model: copy(state.session.model!) as Model,
+      persistent: state.manager.getSessionId(),
+      provider: state.session.sessionId,
+      reference,
+      sends: 0,
+    });
+    handoff.status.binding = "reference-bound";
+  }
+  /** The side request is rewritten once, after the host's own payload hooks, or left exactly as it was. */
+  sideRewrite(op: SideOperation, returned: unknown, args: unknown[]): unknown {
+    const state = op.state;
+    const value = returned ?? args[0];
+    if (!object(value)) {
+      this.sideRecord(op, "unsupported-payload-shape", 0, 0);
+      return value;
+    }
+    const side = value as ChatRequest;
+    // An invalidated operation loses its eligibility before any earlier rewrite is reused.
+    if (!this.sideOperationValid(op)) {
+      this.sideRecord(op, op.state.handoff.unavailable ?? "operation-invalidated", 0, 0);
+      return side;
+    }
+    const memo = op.memo;
+    if (memo && memo.native === JSON.stringify(side)) {
+      this.sideRecord(op, memo.reason, 0, 0);
+      return memo.sent;
+    }
+    let outgoing: ChatRequest = side,
+      reason: string,
+      axes = 0,
+      unprojected = 0;
+    if (!op.reference) reason = "live-reference-unconfirmed";
+    else if (!this.sideOwnershipConfirmed(state, op.reference)) reason = "reference-owner-changed";
+    else {
+      const alignment = align(op.reference.body, side);
+      reason = alignment.reason;
+      axes = alignment.axes;
+      unprojected = alignment.unprojected;
+      if (alignment.body) outgoing = alignment.body;
+    }
+    op.memo = { native: JSON.stringify(side), sent: outgoing, reason };
+    this.sideRecord(op, reason, axes, unprojected);
+    return outgoing;
+  }
+
+  register(
+    ctx: ExtensionContext,
+    selection: Selection,
+    construction: Construction,
+    session: AgentSession,
+  ): Registration {
     const known = this.states.get(session);
     if (known) {
-      if (!equal(known.settings, settings)) return inactive("activation-conflict", "unavailable");
+      if (!equal(known.selection, selection))
+        return inactive("activation-conflict", "unavailable", "activation-conflict", "unavailable");
       return this.handle(known);
     }
     const state: State = {
@@ -464,12 +768,23 @@ class Coordinator {
       manager: session.sessionManager,
       runner: session.extensionRunner!,
       registry: ctx.modelRegistry,
-      settings,
+      selection,
       nativeSource: construction.confirms(session),
-      status: initial("reference-not-sent"),
+      status: selection.remote.active
+        ? initial("reference-not-sent")
+        : initial(selection.remote.reason, selection.remote.state),
+      handoff: {
+        enabled: selection.handoff.enabled,
+        status: selection.handoff.enabled
+          ? initialHandoff("reference-not-sent")
+          : initialHandoff(selection.handoff.reason, selection.handoff.state),
+        operations: new WeakMap(),
+      },
       raw: new WeakMap(),
       restores: [],
       owned: [],
+      remoteOwned: [],
+      sideOwned: [],
       active: true,
       epoch: 0,
       persistent: session.sessionManager.getSessionId(),
@@ -483,8 +798,9 @@ class Coordinator {
       session.addDisposer(() => this.close(state));
     } catch {
       this.unavailable(state, "host-interface");
+      this.unavailableSide(state, "host-interface");
       this.close(state);
-      return inactive("host-interface", "unavailable");
+      return inactive("host-interface", "unavailable", "host-interface", "unavailable");
     }
     return this.handle(state);
   }
@@ -509,45 +825,52 @@ class Coordinator {
       let observation: Observation | undefined;
       try {
         if (signal && pending.delete(signal)) {
-          state.reference = undefined;
-          state.sourceFailure = undefined;
-          state.status.reference = 0;
-          state.status.dispatch = 0;
-          state.status.online = "ordinary-dispatch-pending";
-          if (!state.unavailable) state.status.state = "awaiting-reference";
-          if (coordinator.valid(state) && target(state.settings, session.model) && !session.isSessionTransitioning) {
-            state.persistent = state.manager.getSessionId();
-            state.provider = session.sessionId;
-            const sourceTools = session.agent.state.tools;
-            const normalized =
-              normalizeTools(session.agent.state.tools, {
-                injectIntent: session.agent.intentTracing,
-                pruneDescriptions: session.agent.pruneToolDescriptions,
-              }) ?? [];
-            const model = copy(session.model!) as Model<"openai-responses">;
-            observation = {
-              id: coordinator.next(),
-              state,
-              epoch: state.epoch,
-              model,
-              raw: copy(messages),
-              sourceTools: copy(
-                convertTools(sourceTools, model.compat.supportsStrictMode, model as Model<"openai-responses">),
-              ),
-              expectedTools: copy(
-                convertTools(normalized, model.compat.supportsStrictMode !== false, model as Model<"openai-responses">),
-              ),
-              independent: state.nativeSource && nativeIndependent(session, messages),
-            };
-            state.raw.set(signal, observation);
-            state.status.dispatch = observation.id;
-          } else if (!state.unavailable)
-            state.status.online = session.isSessionTransitioning ? "navigation-unsettled" : "model-not-targeted";
+          // The remote section reports only its own capability while remote is not active.
+          if (state.selection.remote.active) {
+            state.reference = undefined;
+            state.sourceFailure = undefined;
+            state.status.reference = 0;
+            state.status.dispatch = 0;
+            state.status.online = "ordinary-dispatch-pending";
+            if (!state.unavailable) state.status.state = "awaiting-reference";
+            if (coordinator.valid(state) && remoteTarget(state, session.model) && !session.isSessionTransitioning) {
+              state.persistent = state.manager.getSessionId();
+              state.provider = session.sessionId;
+              const sourceTools = session.agent.state.tools;
+              const normalized =
+                normalizeTools(session.agent.state.tools, {
+                  injectIntent: session.agent.intentTracing,
+                  pruneDescriptions: session.agent.pruneToolDescriptions,
+                }) ?? [];
+              const model = copy(session.model!) as Model<"openai-responses">;
+              observation = {
+                id: coordinator.next(),
+                state,
+                epoch: state.epoch,
+                model,
+                raw: copy(messages),
+                sourceTools: copy(
+                  convertTools(sourceTools, model.compat.supportsStrictMode, model as Model<"openai-responses">),
+                ),
+                expectedTools: copy(
+                  convertTools(
+                    normalized,
+                    model.compat.supportsStrictMode !== false,
+                    model as Model<"openai-responses">,
+                  ),
+                ),
+                independent: state.nativeSource && nativeIndependent(session, messages),
+              };
+              state.raw.set(signal, observation);
+              state.status.dispatch = observation.id;
+            } else if (!state.unavailable)
+              state.status.online = session.isSessionTransitioning ? "navigation-unsettled" : "model-not-targeted";
+          }
         }
       } catch {
-        state.sourceFailure = state.status.online = "source-observation-failed";
+        if (state.selection.remote.active) state.sourceFailure = state.status.online = "source-observation-failed";
       }
-      const result = Reflect.apply(context, this, [messages, signal]) as ReturnType<typeof context>;
+      const result: Promise<AgentMessage[]> = Reflect.apply(context, this, [messages, signal]);
       if (observation) {
         const observed = observation;
         void result.then(
@@ -567,10 +890,41 @@ class Coordinator {
     };
     const contextPatch = patch(runner, "emitContext", wrappedContext);
     state.restores.push(contextPatch.restore);
-    state.owned.push(contextPatch.owned);
+    state.remoteOwned.push(contextPatch.owned);
     const stream = session.agent.streamFn;
     const wrappedStream: StreamFn = function (this: AgentSession["agent"], model, prepared, options) {
-      if (!target(state.settings, model)) return Reflect.apply(stream, this, [model, prepared, options]);
+      if (model?.api === "openai-completions") {
+        // Only an ordinary main-loop dispatch with tools supplies a reference: never a handoff window,
+        // never a dispatch without a tool set to bind the reference to.
+        if (!coordinator.validSide(state) || state.session.isGeneratingHandoff || !prepared.tools?.length)
+          return Reflect.apply(stream, this, [model, prepared, options]);
+        const observed = coordinator.sidePending(state);
+        if (!observed) return Reflect.apply(stream, this, [model, prepared, options]);
+        const prior = options?.onPayload,
+          priorResponse = options?.onResponse;
+        const onPayload: PayloadHook = function (this: unknown, ...args) {
+          const returned = prior ? Reflect.apply(prior, this, args) : undefined;
+          // Containment: a throw here would break the host's own request pipeline.
+          const capture = (value: unknown) => {
+            try {
+              coordinator.sideCapture(observed, value, args);
+            } catch {
+              coordinator.sideFailure(observed, "source-observation-failed");
+            }
+          };
+          if (returned instanceof Promise)
+            void returned.then(capture, () => coordinator.sideFailure(observed, "native-payload-rejected"));
+          else capture(returned);
+          return returned;
+        };
+        const onResponse: ResponseHook = function (this: unknown, ...args) {
+          const settled = priorResponse ? Reflect.apply(priorResponse, this, args) : undefined;
+          coordinator.sideConfirm(observed, args[0]);
+          return settled;
+        };
+        return Reflect.apply(stream, this, [model, prepared, { ...options, onPayload, onResponse }]);
+      }
+      if (!remoteTarget(state, model)) return Reflect.apply(stream, this, [model, prepared, options]);
       let observation: Observation | undefined;
       try {
         const matches = new Set(
@@ -598,7 +952,7 @@ class Coordinator {
       if (!observation?.source) return Reflect.apply(stream, this, [model, prepared, options]);
       const observed = observation;
       const prior = options?.onPayload;
-      const capture = (returned: unknown, args: Parameters<NonNullable<typeof prior>>): void => {
+      const capture = (returned: unknown, args: PayloadArgs): void => {
         try {
           if (observed.payload) {
             if (!equal(observed.payload, payload(returned ?? args[0]))) {
@@ -638,10 +992,8 @@ class Coordinator {
           coordinator.failure(observed, "payload-proof-unconfirmed");
         }
       };
-      const onPayload: NonNullable<typeof prior> = function (this: unknown, ...args) {
-        const returned = prior
-          ? (Reflect.apply(prior, this, args) as ReturnType<NonNullable<typeof prior>>)
-          : undefined;
+      const onPayload: PayloadHook = function (this: unknown, ...args) {
+        const returned: unknown = prior ? Reflect.apply(prior, this, args) : undefined;
         if (returned instanceof Promise) {
           void returned.then(
             (value) => capture(value, args),
@@ -670,12 +1022,69 @@ class Coordinator {
       state.restores.push(installed.restore);
       state.owned.push(installed.owned);
     }
+    if (state.handoff.enabled) {
+      // A handoff seam this host does not expose leaves the handoff capability unavailable only.
+      try {
+        this.observeSide(state);
+      } catch {
+        this.unavailableSide(state, "host-interface");
+      }
+    }
+  }
+  /** The two handoff-only seams. A missing interface leaves this capability unavailable, not the session. */
+  observeSide(state: State): void {
+    const { session } = state;
+    if (
+      typeof session.convertMessagesToLlm !== "function" ||
+      typeof session.prepareSimpleStreamOptions !== "function" ||
+      typeof session.isGeneratingHandoff !== "boolean"
+    ) {
+      this.unavailableSide(state, "session-interface");
+      return;
+    }
+    const convert = session.convertMessagesToLlm;
+    const coordinator = this;
+    const wrappedConvert: typeof convert = function (this: AgentSession, messages, signal) {
+      try {
+        coordinator.sideBind(state, messages, signal);
+      } catch {
+        state.handoff.status.binding = "binding-inspection-failed";
+      }
+      return Reflect.apply(convert, this, [messages, signal]);
+    };
+    const convertPatch = patch(session, "convertMessagesToLlm", wrappedConvert);
+    state.restores.push(convertPatch.restore);
+    state.sideOwned.push(convertPatch.owned);
+    const prepare = session.prepareSimpleStreamOptions;
+    const wrappedPrepare: typeof prepare = function (this: AgentSession, options, provider) {
+      const operation = options?.signal ? state.handoff.operations.get(options.signal) : undefined;
+      if (!operation) return Reflect.apply(prepare, this, [options, provider]);
+      const prior = options.onPayload;
+      const onPayload: PayloadHook = function (this: unknown, ...args) {
+        const returned = prior ? Reflect.apply(prior, this, args) : undefined;
+        // Containment: a throw here would break the host's own request pipeline.
+        const rewrite = (value: unknown) => {
+          try {
+            return coordinator.sideRewrite(operation, value, args);
+          } catch {
+            return value;
+          }
+        };
+        if (returned instanceof Promise) return returned.then(rewrite);
+        return rewrite(returned);
+      };
+      return Reflect.apply(prepare, this, [{ ...options, onPayload }, provider]);
+    };
+    const preparePatch = patch(session, "prepareSimpleStreamOptions", wrappedPrepare);
+    state.restores.push(preparePatch.restore);
+    state.sideOwned.push(preparePatch.owned);
   }
   handle(state: State): Registration {
     return {
       status: () => {
         this.valid(state);
-        return { ...state.status };
+        this.validSide(state);
+        return { remote: { ...state.status }, handoff: { ...state.handoff.status } };
       },
       invalidate: (reason) => this.invalidate(state, reason),
       close: () => this.close(state),
@@ -694,6 +1103,8 @@ class Coordinator {
     }
     state.restores.length = 0;
     state.owned.length = 0;
+    state.remoteOwned.length = 0;
+    state.sideOwned.length = 0;
     this.states.delete(state.session);
     const registry = this.registries.get(state.registry);
     registry?.states.delete(state);
@@ -710,14 +1121,33 @@ class Coordinator {
     }
   }
 }
-function inactive(reason: string, state: Status["state"] = "disabled"): Registration {
-  const value = initial(reason, state);
-  return { status: () => ({ ...value }), invalidate: () => {}, close: () => {} };
+function inactive(
+  remoteReason: string,
+  remoteState: Status["state"] = "disabled",
+  handoffReason = remoteReason,
+  handoffState: HandoffStatus["state"] = "disabled",
+): Registration {
+  const remote = initial(remoteReason, remoteState);
+  const handoff = initialHandoff(handoffReason, handoffState);
+  return {
+    status: () => ({ remote: { ...remote }, handoff: { ...handoff } }),
+    invalidate: () => {},
+    close: () => {},
+  };
 }
 export function register(ctx: ExtensionContext, settings: Settings, construction: Construction): Registration {
-  if (!settings.enabled) return inactive("disabled");
-  if (!settings.provider) return inactive("provider-not-selected", "unavailable");
-  if (slots[OLD_QOL] !== undefined) return inactive("mixed-qol-owner", "unavailable");
+  const remote = remoteSelection(settings.remote);
+  const handoff = handoffSelection(settings.handoff);
+  // Only a capability that is active reports a shared conflict as its own state.
+  const refuse = (reason: string): Registration =>
+    inactive(
+      remote.active ? reason : remote.reason,
+      remote.active ? "unavailable" : remote.state,
+      handoff.enabled ? reason : handoff.reason,
+      handoff.enabled ? "unavailable" : handoff.state,
+    );
+  if (!remote.active && !handoff.enabled) return inactive(remote.reason, remote.state, handoff.reason, handoff.state);
+  if (remote.active && slots[OLD_QOL] !== undefined) return refuse("mixed-qol-owner");
   const present = slots[SLOT];
   if (
     present !== undefined &&
@@ -730,13 +1160,13 @@ export function register(ctx: ExtensionContext, settings: Settings, construction
       !(present.roots instanceof WeakMap) ||
       !(present.parents instanceof WeakMap))
   )
-    return inactive("coordinator-conflict", "unavailable");
+    return refuse("coordinator-conflict");
   try {
     const session = AgentRegistry.global().get(ctx.agent.id)?.session;
     if (!session || session.sessionManager !== ctx.sessionManager || !session.extensionRunner)
-      return inactive("session-interface", "unavailable");
+      return refuse("session-interface");
     let coordinator = present as Coordinator | undefined;
-    if (coordinator?.closed && coordinator.retiredConflict) return inactive("transport-wrapper-lost", "unavailable");
+    if (remote.active && coordinator?.closed && coordinator.retiredConflict) return refuse("transport-wrapper-lost");
     if (!coordinator || coordinator.closed) {
       // Retaining weak ancestry/root knowledge prevents a new generation from rebinding old roots.
       const previous = coordinator;
@@ -749,8 +1179,8 @@ export function register(ctx: ExtensionContext, settings: Settings, construction
       }
       slots[SLOT] = coordinator;
     }
-    return coordinator.register(ctx, settings, construction, session);
+    return coordinator.register(ctx, { remote, handoff }, construction, session);
   } catch {
-    return inactive("host-interface", "unavailable");
+    return refuse("host-interface");
   }
 }

@@ -3,6 +3,8 @@
 Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [Maintain QoL model prompts and existing quality-of-life adjustments](../archived/2026-10-07-maintain-qol-model-prompts.md)
+Archived: 2026-10-12
+Reversed by: [Maintain the smart-cache extension](../decision/2026-10-12-maintain-smart-cache-extension.md)
 
 English | [中文](./2026-10-10-use-smart-cache-remote.zh.md)
 
@@ -24,13 +26,13 @@ The reuse boundary therefore supports complete retained ranges and independently
 
 ### Component and public configuration
 
-Maintain the self-contained package `@ruokee/omp-smart-cache` at `projects/omp-smart-cache`, with its own native `omp.extensions` entry, settings, checks, and English and Chinese documentation. Follow the [first-party boundary](./2026-08-20-establish-first-party-capability-kit.md) and [self-contained component contract](./2026-08-24-keep-components-self-contained.md). Do not import runtime code, settings readers, or documents from QoL or a local prototype.
+Maintain the self-contained package `@ruokee/omp-smart-cache` at `projects/omp-smart-cache`, with its own native `omp.extensions` entry, settings, checks, and English and Chinese documentation. Follow the [first-party boundary](../decision/2026-08-20-establish-first-party-capability-kit.md) and [self-contained component contract](../decision/2026-08-24-keep-components-self-contained.md). Do not import runtime code, settings readers, or documents from QoL or a local prototype.
 
 The remote public contract has native OMP settings `compactionCacheEnabled` defaulting to `false`, `compactionCacheProvider` defaulting to `""`, and `compactionCacheMode` defaulting to `"hooks"`. The mode accepts only `standard` and `hooks`; it does not enable the repair. A user explicitly selects one exact configured Provider name. No Provider list, extra mode, Handoff placeholder setting, or second configuration source is added.
 
 The mode set is closed for this remote contract because the two modes preserve distinct preparation and reuse promises; extending it requires a new contract decision. Multi-Provider selection and Handoff interfaces are outside this change, not permanent prohibitions on separately specified capabilities. Native settings remain the sole source to preserve host-owned precedence and restart semantics.
 
-OMP owns user values, project overrides, and parsing under the [native settings contract](./2026-09-10-use-codex-web-plugin-settings.md#native-settings-and-scopes). Read and validate the effective settings as one activation snapshot. Repeated activation events do not duplicate registration. Changes require restarting OMP; creating or navigating a session does not refresh an existing snapshot. Children use their own actual model, API, tools, prompt, and identities, not the parent's model or a freshly hot-read configuration. Invalid settings or unavailable interfaces affect the corresponding capability or registration, never unrelated live sessions. Diagnostics name a key and fixed rule without echoing its value.
+OMP owns user values, project overrides, and parsing under the [native settings contract](../decision/2026-09-10-use-codex-web-plugin-settings.md#native-settings-and-scopes). Read and validate the effective settings as one activation snapshot. Repeated activation events do not duplicate registration. Changes require restarting OMP; creating or navigating a session does not refresh an existing snapshot. Children use their own actual model, API, tools, prompt, and identities, not the parent's model or a freshly hot-read configuration. Invalid settings or unavailable interfaces affect the corresponding capability or registration, never unrelated live sessions. Diagnostics name a key and fixed rule without echoing its value.
 
 `/smart-cache` reports remote state without starting a model turn. Its states distinguish `disabled`, `unavailable`, `awaiting-reference`, `already-aligned`, `rewritten`, and `rejected`. Keep online confirmation, operation binding, candidate validation, and sending causes separately, so a later missing-reference result does not erase the original proof failure. Report logical operations separately from physical sends and retries; a rewrite, native result adoption, and a Provider cache hit are different outcomes. Diagnostics use bounded counters, local session and operation identifiers, and fixed reasons, with no request body, opaque content, credentials, raw endpoint, private path, or dynamic private key. Ship no body-sampling log, trial environment variable, sampling command, or special rate-limit abort policy.
 
@@ -70,11 +72,11 @@ OMP retains preparation, triggering, speculative startup and waiting, cancellati
 
 Do not register `session_before_compact`, keep it as a fallback, hide another handler, bypass a veto, or change another extension's settings. QoL's separately enabled deadline module and other extensions may still veto speculation under their own contracts. Remote alignment preserves the native speculative result's direct adoption, without a replacement request, but does not promise speculation is globally enabled.
 
-Apply the [shared OMP maintenance floor](./2026-10-04-raise-omp-host-floor.md), currently `18.5.0`. The component README pair owns its declaration, with no upper bound or version whitelist. Lock host development dependencies to the shared floor; do not narrow host peers or add an installation or activation version gate. Choose maintained behavior by capability and structure. Replace these adaptations when a maintained native interface provides equivalent results, configuration semantics, isolation, and failure behavior across the required paths, after behavioral verification rather than merely an upstream PR merge.
+Apply the [shared OMP maintenance floor](../decision/2026-10-04-raise-omp-host-floor.md), currently `18.5.0`. The component README pair owns its declaration, with no upper bound or version whitelist. Lock host development dependencies to the shared floor; do not narrow host peers or add an installation or activation version gate. Choose maintained behavior by capability and structure. Replace these adaptations when a maintained native interface provides equivalent results, configuration semantics, isolation, and failure behavior across the required paths, after behavioral verification rather than merely an upstream PR merge.
 
 ### Decision reversal and preserved contracts
 
-This decision and the [complete QoL successor](./2026-10-10-maintain-omp-experience-extension.md) reverse [Maintain QoL model prompts and existing quality-of-life adjustments](../archived/2026-10-07-maintain-qol-model-prompts.md). The conflicting choices are:
+This decision and the [complete QoL successor](../decision/2026-10-10-maintain-omp-experience-extension.md) reverse [Maintain QoL model prompts and existing quality-of-life adjustments](../archived/2026-10-07-maintain-qol-model-prompts.md). The conflicting choices are:
 
 | Effective clause in that decision | Replacement choice and conflict |
 | --- | --- |
@@ -87,7 +89,7 @@ This decision and the [complete QoL successor](./2026-10-10-maintain-omp-experie
 | Remote shutdown/navigation terminal state and no new owner in the process | Release one registration locally, restore after settled navigation with a new send, and permit a new coordinator generation after final release. Old epochs and operations never regain eligibility. |
 | Remote status and effective mode belong to `/qol` | `/smart-cache` owns remote state, modes, stage reasons, and counts; `/qol` retains only its remaining adjustments. |
 
-All non-conflicting rules remain binding. The [complete QoL successor](./2026-10-10-maintain-omp-experience-extension.md) preserves standalone wait delegation and deadlines, recovery safety exclusions and bounded continuations, the experimental compaction-deadline module's single-owner windows and `owner-stopped` terminal state, replay's separate process-wide ownership and release rules, [model prompt rules](./2026-10-07-use-qol-model-prompts.md), native settings authority, module isolation, privacy, documentation evidence, and host-maintenance obligations. In particular, this decision's remote recovery does not relax the deadline module's terminal owner rule or migrate replay merely because it is cache-related.
+All non-conflicting rules remain binding. The [complete QoL successor](../decision/2026-10-10-maintain-omp-experience-extension.md) preserves standalone wait delegation and deadlines, recovery safety exclusions and bounded continuations, the experimental compaction-deadline module's single-owner windows and `owner-stopped` terminal state, replay's separate process-wide ownership and release rules, [model prompt rules](../decision/2026-10-07-use-qol-model-prompts.md), native settings authority, module isolation, privacy, documentation evidence, and host-maintenance obligations. In particular, this decision's remote recovery does not relax the deadline module's terminal owner rule or migrate replay merely because it is cache-related.
 
 This decision retains online confirmation, immutable root snapshots, native lifecycle, explicit-policy preservation, bounded retention, ownership-conditional restoration, no-veto, two-mode, privacy, and native-interface replacement together with the choices above. Other current decisions are not reversed; smart-cache joins the shared floor through a non-conflicting addition.
 

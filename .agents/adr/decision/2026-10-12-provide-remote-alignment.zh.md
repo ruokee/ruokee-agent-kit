@@ -1,18 +1,18 @@
-# ADR 决定：由 smart-cache 提供 remote 对齐
+# ADR 决定：在 smart-cache 中提供 remote 对齐
 
 Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [维护 QoL 模型提示词与既有体验调整](../archived/2026-10-07-maintain-qol-model-prompts.zh.md)
 
-[English](./2026-10-10-use-smart-cache-remote.md) | 中文
+[English](./2026-10-12-provide-remote-alignment.md) | 中文
 
 ## 动机
 
-将远端压缩缓存对齐从 QoL 迁入独立扩展 `@ruokee/omp-smart-cache`，覆盖主会话、原生子会话及同进程导航。
+将远端压缩缓存对齐从 QoL 迁入扩展 `@ruokee/omp-smart-cache`，覆盖主会话、原生子会话及同进程导航。
 
 [原 QoL 决定](../archived/2026-10-07-maintain-qol-model-prompts.zh.md)把 remote 对齐绑定到唯一主会话 owner。子会话激活不能驱动该 owner 的修复，导航释放资格后也没有同进程恢复路径。普通请求在上下文处理器返回之后还会完成其他转换，而原生 V2 独立准备其保留历史。比较中间上下文或要求所有请求选项都相等，会拒绝有效的共同内容修复。
 
-缓存能力需要独立归属，同时保留 QoL 的等待、恢复、期限、重放及模型规则行为。Remote 与 Handoff 修复的协议和证据不同。迁移 remote 不批准 Handoff 集成，也不替换已安装的 Handoff 原型。
+缓存能力需要独立归属，同时保留 QoL 的等待、恢复、期限、重放及模型规则行为。Remote 与 Handoff 修复的协议和证据不同，因此 remote 的 Responses V2 规则只用于 remote 请求，不用于 Handoff。
 
 ## 分析
 
@@ -22,9 +22,9 @@ Reverses: [维护 QoL 模型提示词与既有体验调整](../archived/2026-10-
 
 ## 决定
 
-### 组件与公共配置
+### 公共配置与设置范围
 
-在 `projects/omp-smart-cache` 维护自包含包 `@ruokee/omp-smart-cache`，使用自己的原生 `omp.extensions` 入口、设置、检查及中英文文档。遵循[第一方边界](./2026-08-20-establish-first-party-capability-kit.zh.md)与[自包含组件合同](./2026-08-24-keep-components-self-contained.zh.md)。不从 QoL 或本地原型导入运行时代码、设置读取器或文档。
+Remote 对齐是 [smart-cache 扩展](./2026-10-12-maintain-smart-cache-extension.zh.md)的一项能力，扩展决定记录本包、能力模型及共同维护下限。
 
 Remote 公共合同使用 OMP 原生设置：`compactionCacheEnabled` 默认 `false`，`compactionCacheProvider` 默认 `""`，`compactionCacheMode` 默认 `"hooks"`。模式只接受 `standard` 和 `hooks`，不决定是否启用修复。用户显式选择一个准确的已配置 Provider 名称。不新增 Provider 列表、其他模式、Handoff 占位设置或第二种配置来源。
 
@@ -70,7 +70,7 @@ OMP 保留准备、触发、投机启动与等待、取消、认证及传输重�
 
 不注册 `session_before_compact`，不把它作为回退，不隐藏其他处理器、不绕过否决，也不修改其他扩展设置。QoL 单独启用的期限模块及其他扩展仍可按自身合同否决投机。Remote 对齐保留原生投机结果直接采用，不发替代请求，但不承诺投机已全局启用。
 
-遵循[共同 OMP 维护下限](./2026-10-04-raise-omp-host-floor.zh.md)，当前为 `18.5.0`。组件 README 双语页拥有下限声明，不设上限或版本白名单。宿主开发依赖锁定共同下限，不收窄宿主 peer，也不增加安装或激活版本门槛。按能力及结构选择受维护行为。受维护原生接口在所有必需路径提供等价结果、配置语义、隔离与失败行为时，通过行为验证后替换本地适配，不仅凭上游 PR 合并就替换。
+按能力及结构选择受维护行为。受维护原生接口在所有必需路径提供等价结果、配置语义、隔离与失败行为时，通过行为验证后替换本地适配，不仅凭上游 PR 合并就替换。
 
 ### 决定反转与保留合同
 
@@ -89,7 +89,7 @@ OMP 保留准备、触发、投机启动与等待、取消、认证及传输重�
 
 全部不冲突规则继续有效。[完整 QoL 后继决定](./2026-10-10-maintain-omp-experience-extension.zh.md)保留独立 wait 委派及期限、恢复的安全排除及受限续跑、实验性压缩期限模块的单 owner 窗口及 `owner-stopped` 终态、replay 的独立进程级归属及释放规则、[模型提示词规则](./2026-10-07-use-qol-model-prompts.zh.md)、原生设置权威、模块隔离、隐私、文档证据及宿主维护义务。尤其不能用本决定的 remote 恢复规则放松期限模块的 owner 终态，也不能因 replay 与缓存有关就迁走它。
 
-本决定与上述选择一起保留在线确认、不可变根信号快照、原生生命周期、显式策略保留、有界资源、按归属还原、无否决、双模式、隐私及原生接口替换合同。其他现行决定不反转；smart-cache 通过非冲突追加纳入共同下限。
+本决定与上述选择一起保留在线确认、不可变根信号快照、原生生命周期、显式策略保留、有界资源、按归属还原、无否决、双模式、隐私及原生接口替换合同。其他现行决定不反转。
 
 ### 直接切换与公共文档
 
@@ -99,7 +99,7 @@ OMP 保留准备、触发、投机启动与等待、取消、认证及传输重�
 
 公共迁移说明放在仓库 README 双语页，须覆盖用户与项目层，不能只处理合并后的有效对象：保留旧有效 Provider 与模式，且只有旧有效 QoL 总开关 `enabled` 和 `compactionCacheEnabled` 均合法且启用时，才启用新修复。默认值或非法设置不能开启此前未生效的修复。用户显式设置新包值，从每个适用 QoL 层移除全部三个旧 remote 键并保留其他设置。旧键会成为 QoL 未知键，可能使整个组件拒绝配置，因此必须在变更源码加载前协调删除、新安装及重启。运行时代码不回退读取 QoL 设置，也不编辑用户配置或安装。
 
-通过重启相关进程切换，不热转移在途 owner 或参照。误装共存旧 QoL remote 时保守报告冲突，不抢占其包装。Handoff 协议、支持、状态、收益证据及安装分别处理；本决定不替换其原型，不把 remote V2 规则用于 Handoff，也不新增 Handoff 占位接口。
+通过重启相关进程切换，不热转移在途 owner 或参照。误装共存旧 QoL remote 时保守报告冲突，不抢占其包装。本决定不把 remote V2 规则用于 Handoff，也不新增 Handoff 占位接口；该能力由 [Handoff 对齐](./2026-10-12-provide-handoff-alignment.zh.md)持有。
 
 组件文档以双语维护详细设置与命令、适用性、副作用、原生关闭表现、固定源码基线、实际运行版本及原生替换条件。源码检查、真实 CLI 覆盖、客户端对齐、原生采用和 Provider 测量分别标注。改变目标的实现变更同时更新 QoL 项目 Spec、新增 smart-cache Spec 及清单入口，并同步组件文档及检查注册。
 

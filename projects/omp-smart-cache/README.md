@@ -27,15 +27,17 @@ Install this package through OMP's native plugin manager. Its manifest declares 
 omp plugin config list @ruokee/omp-smart-cache
 omp plugin config set @ruokee/omp-smart-cache compactionCacheProvider example-provider
 omp plugin config set @ruokee/omp-smart-cache compactionCacheEnabled true
+omp plugin config set @ruokee/omp-smart-cache handoffCacheEnabled true
 ```
 
 | Key | Default | Accepted | Effect |
 | --- | --- | --- | --- |
 | `compactionCacheEnabled` | `false` | boolean | Enable remote alignment. |
 | `compactionCacheProvider` | `""` | string | Exact configured Provider name. An empty value keeps alignment unavailable. |
-| `compactionCacheMode` | `"hooks"` | `standard`, `hooks` | Select the reuse contract. Enabling alignment takes the switch and the exact Provider name. |
+| `compactionCacheMode` | `"hooks"` | `standard`, `hooks` | Select the remote reuse contract. Enabling remote alignment takes the switch and the exact Provider name. |
+| `handoffCacheEnabled` | `false` | boolean | Enable Handoff alignment. It takes this switch alone, with no Provider name and no mode. |
 
-OMP merges project overrides over user settings. It reads and validates the settings once for each activation, so restart OMP after a change; navigation does not refresh the snapshot, and a child uses its own actual model, tools, prompt, and session identities. A missing key takes its default. An explicit `null`, a wrong type, an unknown key, or an unsupported mode makes the capability unavailable, and the diagnostic reports a fixed reason without printing the rejected value. [Design](./docs/design.md#modes) describes the two modes.
+OMP merges project overrides over user settings. It reads and validates the settings once for each activation, so restart OMP after a change; navigation does not refresh the snapshot, and a child uses its own actual model, tools, prompt, and session identities. A missing key takes its default. An explicit `null`, a wrong type, or an unknown key makes the affected capability unavailable, and it fails the remote capability alone when the value belongs to a remote key; an unsupported mode fails remote alignment the same way. The diagnostic reports a fixed reason without printing the rejected value. [Design](./docs/design.md#modes) describes the two remote modes.
 
 ## Remote compaction alignment
 
@@ -45,9 +47,21 @@ An ordinary main-loop dispatch becomes a reference only when its source, complet
 
 Turn the setting off, or remove the package and restart OMP, to return to the native request path. Alignment rewrites the outgoing body on the client, and client alignment, native usability, and real Provider benefit stay separate outcomes. [Design](./docs/design.md) covers the full mechanism.
 
+## Handoff alignment
+
+Handoff writes its document or summary from the live conversation and sends that work as a side request that repeats the session's system prompt and tool definitions, which the ordinary main-loop dispatch already sent. This optimization rewrites that side request so it reuses the confirmed ordinary request: the online system segments, the online `reasoning_effort` when the reference holds one, and the online `tool_choice` when the reference holds no explicit choice. The side instruction, the new history, the cache keys, the cancellation signal, and every other request option stay as the host built them, and the body is replaced once, after the host's own payload hooks.
+
+Applicability follows the session's API. A session whose model API is `openai-completions` is a Handoff candidate, one whose API is `openai-responses` stays with remote alignment, and any other API uses neither capability. At most one capability takes a given request, and enabling one never enables the other. A prepared request that carries no tool set supplies no reference, so a session that never sends tools stays native.
+
+The capability rewrites a side request only when the side system is a prefix of the reference system, the reference's non-system history is a strict prefix of the side history, and the captured Provider, model identity, API, system prompt, thinking state, and tool set still match. A request outside that boundary is sent unchanged with a fixed reason, `rejected` means only that this capability did not rewrite it, and no request is blocked, delayed, or dropped. Projections are restored axis by axis, so an axis that cannot be restored is skipped and counted instead of abandoning the rewrite, and a known cache-sensitive field outside those axes is counted when it differs. An identical candidate is reported as already aligned without reserialization.
+
+Only a confirmed ordinary main-loop dispatch supplies a reference, and the calls this capability aligns never become one. Switch, branch, and tree navigation, compaction commits, and session release clear the reference and invalidate that session's epoch, and a new ordinary send restores eligibility without restarting OMP.
+
+While the local trial extension is still auto-discovered, the installed copy of this package, the candidate, and the trial extension can load in one process. A foreign coordinator version is reported as a conflict instead of being reused, another version's activation entry is never read because this version caches its own snapshot under its own key, and the cutover happens by restarting affected processes. The trial extension is replaced and disabled once this capability passes its own acceptance and an installation authorization follows. [Verification](./docs/verification.md) records the checked paths, the coexistence run, and the gaps that remain.
+
 ## Status
 
-`/smart-cache` starts no model turn. It reports the current session's state:
+`/smart-cache` starts no model turn. It reports each capability in its own section: the remote section keeps its wording and fields, and Handoff adds its own state, staged reasons, and bounded counters. The states below describe both sections:
 
 | State | Meaning |
 | --- | --- |

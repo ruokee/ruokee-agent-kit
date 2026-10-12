@@ -8,7 +8,7 @@
 
 An ordinary main-loop dispatch becomes a reference only when its source, completed preparation, existing callbacks, and actual outgoing payload belong to the same dispatch and reach transport unchanged. Raw history, preparation, and the payload must line up as one dispatch. Title, warming, advisor, and Handoff requests keep their native bodies, as do non-target requests.
 
-Each native operation freezes its initial reference, including a missing reference, across later online work and authentication or transport retries. Every AgentSession registers separately with its own actual model, tools, prompt, persistent identity, Provider identity, epoch, and dispatch. One process dispatcher and one wrapper per actual model registry serve concurrent sessions. Model equality, endpoint, cache key, timing, or text never define identity.
+Each native operation freezes its initial reference, including a missing reference, across later online work and authentication or transport retries. For remote alignment, title, warming, advisor, and Handoff requests keep their native bodies as side requests; [Handoff alignment](#handoff-alignment) is the capability that aligns a Handoff request against the ordinary send. Every AgentSession registers separately with its own actual model, tools, prompt, persistent identity, Provider identity, epoch, and dispatch. One process dispatcher and one wrapper per actual model registry serve concurrent sessions. Model equality, endpoint, cache key, timing, or text never define identity.
 
 ## Reuse
 
@@ -22,6 +22,22 @@ Both modes align recognized native common content, including valid tool-schema p
 
 - `standard` accepts recognized native preparation differences.
 - `hooks` additionally reuses proved already-sent handling results. A complete retained range supports lawful insertion, reordering, restoration, cross-range merging, images, and existing post-payload transformations. Stateful handlers run once.
+
+## Handoff alignment
+
+Handoff writes its document or summary from the live conversation and sends that work as a side request built from the session's history plus a base system prompt. That request repeats a prefix the ordinary main-loop dispatch already sent, so this capability aligns it against the confirmed ordinary request of the same session. Remote alignment treats those same requests as side requests with their own bodies; this capability is what gives a side request a shared prefix with the ordinary send.
+
+Applicability follows the session's API. A session whose model API is `openai-completions` is a candidate, one whose API is `openai-responses` stays with remote alignment, and any other API uses neither capability. One request is taken by at most one capability, and one switch never enables the other.
+
+The reference is the same kind of confirmed ordinary dispatch the remote capability requires, captured together with the ownership it was observed under: Provider, model identity, API, system prompt, thinking state, and tool set. It is immutable for the operation it belongs to; newer online work, an authentication refresh, a transport retry, and a handler-state advance cannot move it. Switch, branch, and tree navigation, a compaction commit, and session release clear it and invalidate that session's epoch, and a new ordinary send restores eligibility without restarting OMP. The calls this capability aligns never become a reference. A prepared request that carries no tool set supplies no reference, so a session that never sends tools stays native.
+
+Within the boundary the capability restores the online system segments, which are the serializer's prompt fragments under either the `system` or the `developer` role, the online `reasoning_effort` when the reference holds one, and the online `tool_choice` when the reference holds no explicit choice, replacing the body once after the host's own payload hooks and leaving the side instruction, the new history, the cache keys, the cancellation signal, and every other option untouched. Projections are restored axis by axis: an axis that cannot be restored is skipped and counted, a known cache-sensitive field outside those axes is compared with the reference and counted when it differs, and an unrelated difference never abandons the rewrite. Field equality is not the gate; the operation binding and the prefix checks are. An identical candidate is reported as `already-aligned` and is not reserialized.
+
+Outside the boundary the request is sent unchanged with a fixed reason: an invalidated operation, an unconfirmed reference, a reference whose captured ownership changed, or a changed system prefix or history projection. `rejected` means this capability did not rewrite the request, and it never means the request was blocked, delayed, or dropped.
+
+OMP keeps document generation, triggering, cancellation, authentication and transport retries, model and method fallback, document validation, history commits, and continuation. The capability adds no entry point, registers no `session_before_compact`, replaces no manual compaction, fabricates no summary, and adds no retry. Restoring the online tool choice can make the model call a tool instead of producing text, and that failure stays the host's own outcome rather than a capability success.
+
+The two capabilities share the package, the process coordinator, the per-session registration, and one wrapper per native method, and share no protocol rules, payload shapes, reason codes, or evidence; a refusal or a missing interface in one leaves the other working. The process-global coordinator and the activation entries carry a contract version, so a copy of another version is never read as this version's state: a foreign coordinator is reported as `coordinator-conflict` and left untouched, and the activation snapshot is cached under this version's own process-global key, so a copy of another version neither reads this entry nor writes one this version would reuse.
 
 ## Observation and ownership
 

@@ -2,7 +2,7 @@
 
 [English](./README.md)
 
-`@ruokee/omp-smart-cache` 是一个优化 OMP 缓存的拓展。它力求避免请求出现意料之外的缓存未命中，同时保持普通请求与原生请求路径不变。
+`@ruokee/omp-smart-cache` 是一个优化 OMP 缓存的扩展。它力求避免请求出现意料之外的缓存未命中，同时保持普通请求与原生请求路径不变。
 
 包内的各个优化项各自成节。
 
@@ -27,15 +27,17 @@ omp install . --scope user
 omp plugin config list @ruokee/omp-smart-cache
 omp plugin config set @ruokee/omp-smart-cache compactionCacheProvider example-provider
 omp plugin config set @ruokee/omp-smart-cache compactionCacheEnabled true
+omp plugin config set @ruokee/omp-smart-cache handoffCacheEnabled true
 ```
 
 | 设置 | 默认值 | 接受值 | 作用 |
 | --- | --- | --- | --- |
 | `compactionCacheEnabled` | `false` | boolean | 启用远端对齐。 |
 | `compactionCacheProvider` | `""` | string | 已配置 Provider 的精确名称，空值保持不可用。 |
-| `compactionCacheMode` | `"hooks"` | `standard`、`hooks` | 选择复用合同；启用对齐还需要开关和精确的 Provider 名称。 |
+| `compactionCacheMode` | `"hooks"` | `standard`、`hooks` | 选择远端复用合同；启用远端对齐还需要开关和精确的 Provider 名称。 |
+| `handoffCacheEnabled` | `false` | boolean | 启用 Handoff 对齐。只需要本开关，不需要 Provider 名称和模式。 |
 
-OMP 将项目覆盖合并到用户设置之上。每次激活只读取和验证一次设置，修改后需要重启 OMP；导航不刷新快照，子会话使用自己的实际模型、工具、提示词和会话身份。缺失键采用默认值。显式 `null`、错误类型、未知键或不受支持的模式会使本能力不可用，诊断只报告固定原因，不输出被拒绝的值。两个模式的说明见[设计](./docs/design.zh.md#模式)。
+OMP 将项目覆盖合并到用户设置之上。每次激活只读取和验证一次设置，修改后需要重启 OMP；导航不刷新快照，子会话使用自己的实际模型、工具、提示词和会话身份。缺失键采用默认值。显式 `null`、错误类型或未知键会使受影响的能力不可用，值属于远端键时只影响远端能力，不受支持的模式同样只使远端对齐不可用。诊断只报告固定原因，不输出被拒绝的值。两个远端模式的说明见[设计](./docs/design.zh.md#模式)。
 
 ## 远端压缩对齐
 
@@ -45,9 +47,21 @@ OMP 将项目覆盖合并到用户设置之上。每次激活只读取和验证�
 
 关闭设置，或移除本包并重启 OMP，即可恢复原生请求路径。对齐在客户端改写实际发出的请求体，客户端对齐、原生可用性与真实 Provider 收益是彼此独立的三个结果。[设计](./docs/design.zh.md)记录完整机制。
 
+## Handoff 对齐
+
+Handoff 依据当前会话生成文档或摘要，并把这项工作作为副请求发送，其中重复了普通主循环 dispatch 已经发送过的系统提示词和工具定义。本项改写该副请求，使其复用已经确认的普通请求：在线系统段、参照中存在时的在线 `reasoning_effort`，以及参照没有显式选择时的在线 `tool_choice`。副请求的指令、新增历史、缓存键、取消信号和其余请求选项保持宿主构建时的状态，正文在宿主自身的 payload hook 之后替换一次。
+
+适用范围取决于会话的 API。模型 API 为 `openai-completions` 的会话属于 Handoff 候选，API 为 `openai-responses` 的会话归远端对齐，其他 API 两项能力都不使用。一条请求最多由一项能力处理，启用其中一项不会启用另一项。不含工具集的准备请求不提供参照，因此从不发送工具的会话保持原生。
+
+只有当副请求的系统段是参照系统段的前缀、参照的非系统历史是副请求历史的严格前缀，且捕获的 Provider、模型身份、API、系统提示词、思考状态和工具集合仍然一致时，本项才改写该副请求。边界之外的请求携带固定原因原样发送，`rejected` 只表示本能力没有改写它，任何请求都不会被阻塞、延迟或丢弃。投影按轴还原：无法还原的轴跳过并计数，而不是放弃整次改写；轴之外的已知缓存敏感字段在存在差异时计数。候选与原生正文一致时报告为已经对齐，不重新序列化。
+
+只有已确认的普通主循环 dispatch 才提供参照，本能力对齐的请求永远不会成为参照。switch、branch、tree 导航、压缩提交和会话释放都会清除参照并使该会话的 epoch 失效，新的普通发送即可恢复资格，不需要重启 OMP。
+
+当本机试验扩展仍被自动发现时，本包已安装副本、候选与试验扩展可能在同一进程内加载。外部协调器版本会被报告为冲突而不被复用；本版本把激活快照缓存在自己的键下，因此不会读取其他版本的条目；切换通过重启相关进程完成；本能力通过自身验收、随后获得安装授权后，试验扩展会被替换并停用。[验证](./docs/verification.zh.md)记录已核对的路径、共存运行和仍然存在的空白。
+
 ## 状态
 
-`/smart-cache` 不启动模型 turn，报告当前会话状态：
+`/smart-cache` 不启动模型 turn，按能力分段报告：远端段保持原有措辞与字段，Handoff 段给出自己的状态、分阶段原因和有界计数。下表描述两段的共同状态：
 
 | 状态 | 含义 |
 | --- | --- |

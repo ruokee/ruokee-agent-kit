@@ -95,7 +95,7 @@ The adjustment's measured effect, the host details it depends on, and its limits
 
 ### Remote cutover
 
-[Smart-cache owns remote alignment](./2026-10-10-use-smart-cache-remote.md). Remote implementation, setting consumption, status entry, alias, re-export, and runtime dependency belong to that component. The repository README pair owns coordinated user/project migration and restart guidance. QoL keeps its own adjustments: the deadline experiment, including `owner-stopped`, and the process-wide replay ownership and release rules above. Remote recovery does not change those contracts.
+[Smart-cache owns remote alignment](./2026-10-12-provide-remote-alignment.md). Remote implementation, setting consumption, status entry, alias, re-export, and runtime dependency belong to that component. The repository README pair owns coordinated user/project migration and restart guidance. QoL keeps its own adjustments: the deadline experiment, including `owner-stopped`, and the process-wide replay ownership and release rules above. Remote recovery does not change those contracts.
 
 ### Documentation and version evidence
 
