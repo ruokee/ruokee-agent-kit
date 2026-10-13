@@ -19,7 +19,7 @@ These concerns need one maintainable Skill with shared preservation rules. Provi
 
 ## Decision
 
-### Capability and scope
+### Capability scope
 
 Provide a first-party Skill named `well-said`. The name uses familiar words and fits everyday requests such as "Use well-said to check this text."
 
@@ -29,7 +29,7 @@ Executable code and configuration are outside its editing scope. Distinguish com
 
 The Skill grants no additional file-editing authority. A review request remains read-only unless editing is authorized. Work within the user's requested files, text, and structure.
 
-### Component layout and content ownership
+### Content ownership
 
 The English component is [skills/well-said/SKILL.md](../../../skills/well-said/SKILL.md); its complete Chinese variant is [variants/zh/skills/well-said/SKILL.md](../../../variants/zh/skills/well-said/SKILL.md). Each provides all writing rules, preservation boundaries, and necessary examples in one `SKILL.md`, organized into readable sections.
 
@@ -43,7 +43,7 @@ Apply the [first-party capability decision](../decision/2026-08-20-establish-fir
 
 The retained unslop wording comes from [Cursor plugins / pstack](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/skills/unslop/SKILL.md), revision `99559f2f52047978602ef365589275831e76af07`, with a local Chinese-jargon category and corresponding renumbering. The source carries the [pstack MIT license](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/LICENSE), copyright Lauren Tan, 2026. Each language component includes the source attribution and full notice in its own `SKILL.md`. Capability ownership and source-use obligations are separate questions; verify provenance, permission, attribution, and notices for any further reused material before distribution.
 
-The [architect Skill](../decision/2026-09-18-make-architect-model-invoked.md#sources-and-adaptation) provides an existing example: it uses an external architecture repository as a topic map and source material while remaining an independently authored Skill. Its choice to rewrite that material is specific to architect; rewriting is not a general prerequisite for first-party status.
+The [architect Skill](../decision/2026-09-18-make-architect-model-invoked.md#source-adaptation) provides an existing example: it uses an external architecture repository as a topic map and source material while remaining an independently authored Skill. Its choice to rewrite that material is specific to architect; rewriting is not a general prerequisite for first-party status.
 
 The general ownership principle appears in `AGENTS.md` and under `Changes` in the first-party capability decision, which links to this contract. References to or reuse of third-party material within a first-party capability do not themselves import a third-party capability, fork, or mirror. The prohibition on those third-party capabilities and the source attribution and license obligations remain binding.
 
@@ -69,7 +69,7 @@ The leakage section handles visible writing-session residue: correction labels, 
 
 The proof-posture section handles text organized around proving the writer is entitled to make a claim: repeated self-justification, source-ranking or verification narration crowding out the subject, generic disclaimers, and unnecessary intermediate explanation. Reorder paragraphs when useful, consolidate repeated qualifications, and retain concrete evidence and limits where they matter. Tutorials, formal proofs, research methods, reproducibility instructions, audits, and consequential decisions still need their appropriate reasoning and risk information.
 
-### Loading and application
+### Loading
 
 Make the complete `SKILL.md` available before applying the Skill to output. A description, summary, or truncated excerpt is not the complete guidance; retrieve missing content when the host has not provided it. Reuse the full text already available in the current context without rereading it for every response. Restore needed content if context loss makes it unavailable.
 
@@ -77,7 +77,7 @@ Apply the relevant sections together while drafting or editing. Corrections, wit
 
 If loading fails, use the available rules and preservation boundaries, explain the affected review limit when relevant, and do not claim the missing content was applied. Verify host discovery, complete loading, and rule compliance separately. Complete loading alone does not establish writing quality.
 
-### Editing and delivery
+### Delivery
 
 Allow structural changes within the authorized scope, including reordering paragraphs, merging repetition, and rewriting openings or endings. For a very extensive change, the Agent may ask about a complete rewrite; prior authorization is sufficient, and no arbitrary change-percentage threshold is required. Preserve fixed structures and exact-wording requirements.
 

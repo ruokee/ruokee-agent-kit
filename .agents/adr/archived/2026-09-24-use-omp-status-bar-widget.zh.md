@@ -20,7 +20,7 @@ Reversed by: [随 OMP 宿主升级维护状态栏](./2026-09-28-maintain-omp-sta
 
 ## 决定
 
-### 保持一个自包含 Package，Host 与 Provider 分离
+### 保持单个自包含 Package
 
 `projects/omp-status-bar/` 是一个第一方、自包含的 OMP Plugin Package。[第一方能力套件决定](../decision/2026-08-20-establish-first-party-capability-kit.zh.md)允许真实能力使用 `projects/`，[组件自包含决定](../decision/2026-08-24-keep-components-self-contained.zh.md)要求每个可分发组件保持独立。`package.json` 通过 `omp.extensions` 声明原生扩展入口；Package 只使用公开的上游 OMP API，不包含、不修补、也不要求本地 Fork。
 
@@ -28,7 +28,7 @@ Reversed by: [随 OMP 宿主升级维护状态栏](./2026-09-28-maintain-omp-sta
 
 公开合同覆盖 Provider 身份、option 校验、实例创建和生命周期、片段发布和托管调度。Registry 存储、配置加载、组合、诊断和 OMP UI 调用保持私有。每个配置条目创建独立实例，同一个 Provider ID 可以带不同 options 出现多次。
 
-### 使用原生启停和 agent 目录配置
+### 使用原生配置
 
 OMP 原生 Plugin 启用状态是唯一的 Package 级开关，Package 不定义单独的 `enabled` 字段。
 
@@ -48,7 +48,7 @@ Host 先为组合行着色，再用 ANSI 感知的宽度测量从右侧截断到
 
 Widget 是原生 statusline 的补充：Package 不注册 statusline 段，也不替换任何段。Widget 的可见性既不依赖 `statusLine.showHookStatus`，也不依赖自定义 preset 的 `status` 段。目标 OMP 版本的每个内置 Composer shape 都使用同一个 belowEditor 挂载点。
 
-### 发布结构化且经过清理的片段
+### 发布结构化片段
 
 发布合同是结构化片段而不是字符串：
 

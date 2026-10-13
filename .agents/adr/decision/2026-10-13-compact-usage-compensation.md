@@ -23,7 +23,7 @@ The retirement surface is runtime-visible. [Pull request #15034](https://github.
 
 ## Decision
 
-### Capability and configuration
+### Public configuration
 
 The component gains one adjustment, the sixth of [omp-qol](./2026-10-10-maintain-omp-experience-extension.md). Its public contract is one native OMP setting, `compactionUsageEnabled`, boolean, defaulting to `true`, subordinate to the component's master switch. It is independently switchable, rejected or reported by the existing settings rules, and read in the same activation snapshot as every other key, so a change applies at the next OMP start.
 
@@ -49,7 +49,7 @@ An attempt that consumed no tokens writes nothing, so a cancelled or failed atte
 
 The adjustment is a compensation with a defined end. It reads the native recording export on activation and stays inactive with a reason on a host that records these requests itself, so a released fix stops the compensation instead of doubling its entries. The component documentation carries an upstream re-check section, like the one for [model prompt rules](./2026-10-07-use-qol-model-prompts.md), that names the surface to check. When a published OMP version records these requests itself, the adjustment's code, settings, documentation, and tests are removed, the component specification drops the capability, and a decision records the removal.
 
-### Documentation, specification, and version
+### Release evidence
 
 The implementation adds the adjustment to the [adjustments documentation](../../../projects/omp-qol/docs/adjustments.md), the README adjustment and settings tables, the `/qol` status report, and the `package.json` settings manifest, and updates the [component specification](../../spec/omp-qol.md) goals, public surface, invariants, and acceptance criteria. The component's `Z` version increases with the change.
 

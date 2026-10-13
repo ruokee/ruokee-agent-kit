@@ -2,9 +2,9 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
-Reverses: [分发 tk 运行时与 Harness 组件](../archived/2026-08-28-distribute-tk-runtime-components.zh.md)
+Reverses: [分发 tk 运行时组件](../archived/2026-08-28-distribute-tk-runtime-components.zh.md)
 Archived: 2026-09-03
-Reversed by: [分发 Harness 组件与自定义根目录 CLI Skill](../decision/2026-09-03-distribute-custom-cli-skills.zh.md)
+Reversed by: [分发 tk 组件](../decision/2026-09-03-distribute-custom-cli-skills.zh.md)
 
 [English](./2026-09-02-distribute-selectable-tk-harness-components.md) | 中文
 

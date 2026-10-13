@@ -23,7 +23,7 @@ Decision writer: OMP DeepSeek V4.1 Flash
 
 ## 决定
 
-### 能力与配置
+### 公共配置
 
 组件新增一项调整，作为 [omp-qol](./2026-10-10-maintain-omp-experience-extension.zh.md) 的第六项。其公开合同是一个原生 OMP 设置键 `compactionUsageEnabled`，boolean，默认 `true`，受组件总开关约束。它可独立开关，按既有设置规则被拒绝或报告，并与其他键在同一激活快照中读取，因此改动在下次启动 OMP 时生效。
 
@@ -49,7 +49,7 @@ Decision writer: OMP DeepSeek V4.1 Flash
 
 本调整是有明确终点的补偿。它在激活时读取原生记录导出，在自身记录这些请求的宿主上以原因保持停用，因此已发布的修复会让补偿停用，而不是把条目写两遍。组件文档带有上游复核小节，形式与[模型提示词规则](./2026-10-07-use-qol-model-prompts.zh.md)相同，并指明需要检查的界面。当已发布的 OMP 版本自己记录这些请求时，移除本调整的代码、设置、文档与测试，从组件规格中删除该能力，并用一条决定记录这次移除。
 
-### 文档、规格与版本
+### 发布证据
 
 实现会把该调整加入[调整项文档](../../../projects/omp-qol/docs/adjustments.zh.md)、README 的调整项与设置表、`/qol` 状态报告以及 `package.json` 的设置 manifest，并更新[组件规格](../../spec/omp-qol.zh.md)的目标、公共面、不变量与验收标准。组件 `Z` 版本随本次改动递增。
 

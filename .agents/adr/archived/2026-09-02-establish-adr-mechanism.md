@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
 Reverses: [Add the Agent Note mechanism](./2026-08-22-add-agent-notes.md)
 Archived: 2026-09-23
-Reversed by: [Clarify the ADR mechanism and content boundaries](../decision/2026-09-23-clarify-adr-content-boundaries.md)
+Reversed by: [Clarify the ADR content boundaries](../decision/2026-09-23-clarify-adr-content-boundaries.md)
 
 English | [中文](./2026-09-02-establish-adr-mechanism.zh.md)
 
@@ -18,7 +18,7 @@ The repository also needs proposals to reach `main` before implementation starts
 
 ## Decision
 
-### Terminology and location
+### Terminology
 
 Use **ADR** as the primary term for an architecture decision record. This repository uses `.agents/adr` as its ADR root.
 
@@ -28,7 +28,7 @@ Use `Create decision`, `Update decision`, and `Reverse decision` as action phras
 
 Maintain `glossary.md` and `glossary.zh.md` at the ADR root. The initial glossary contains exactly ADR, proposal, decision, `Update decision`, and `Reverse decision`. Each entry has one concise definition that names the corresponding term in the other language. New entries require the maintainer to establish their meaning explicitly.
 
-### Requirement intake and proposal integration
+### Proposal workflow
 
 Search active proposals and current decisions before planning a new requirement. Determine whether the requirement adds an unrelated capability, extends a current decision without conflict, or conflicts with a current decision.
 
@@ -36,7 +36,7 @@ Create one proposal for a requirement unless the maintainer requests another spl
 
 Merge an approved proposal to `main` as a dedicated change before implementation begins. Start implementation from that updated `main` on a new short-lived branch. After implementation, create the new decisions, update decisions that do not conflict, reverse conflicting decisions, and remove the consumed proposal in the implementation change. Git history preserves the independently merged proposal.
 
-### Formats and bilingual maintenance
+### Record format
 
 Each ADR is one same-directory English and Chinese pair with reciprocal language links. Both files are semantically authoritative and move together. A semantic conflict blocks merge until the maintainer resolves it.
 
@@ -50,7 +50,7 @@ A proposal records `Draft owner` and `Draft writer`; a decision records `Decisio
 
 The complete filename, including the date, language suffix, and extension, must not exceed 60 characters.
 
-### Update and reverse decisions
+### Decision lifecycle
 
 Use `Update decision` when new content does not conflict with a current decision. Append it under a final `Changes` section with a dated level-three heading. Link another decision when the addition deserves its own ADR.
 
@@ -58,7 +58,7 @@ Use `Reverse decision` for a conflicting choice. First merge a proposal that nam
 
 An archived decision adds `Archived: YYYY-MM-DD` to its header metadata block before an optional `Reversed by` and is no longer current authority. Current documentation must not cite it as current.
 
-### Authoring and maintenance
+### Maintenance rules
 
 Record only alternatives that existed before writing or were genuinely considered. Record only possible harmful outcomes as risks. Write `None` or `无` when the applicable section has no content.
 
@@ -94,6 +94,6 @@ The glossary stays deliberately small. Ordinary wording and unconfirmed synonyms
 
 ## Changes
 
-### 2026-09-03: Refine the authoring rules for alternatives and risks
+### 2026-09-03: Refine the entry authoring rules
 
 Agents must not invent alternatives or risks to fill required sections. Alternatives must have entered the actual choice and must describe another course of action rather than a fact, requirement, constraint, acceptance criterion, implementation detail, or restatement. Risks must name a plausible harmful outcome caused by the proposal or by an omission, rather than relabeling facts, requirements, constraints, invariants, acceptance criteria, or tasks. A section containing only `None` or `无` is complete when no entry qualifies.

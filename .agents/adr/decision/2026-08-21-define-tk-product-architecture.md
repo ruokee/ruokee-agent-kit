@@ -31,7 +31,7 @@ Harnesses own their model loop, prompts, context, permissions, hooks, Skill load
 
 Four self-contained Skills define Agent behavior for tools or CLI mode in English or Chinese. Public documentation records the current product contract. ADRs preserve long-lived decisions and their rationale.
 
-### Task and Harness boundary
+### Harness boundary
 
 A Harness is the software environment around a model that enables it to operate as an Agent. Codex, Claude Code, Pi, and OMP are the current integrations. Adding another Harness requires a self-contained component and integration contract, but it does not change the product definition.
 
@@ -44,7 +44,7 @@ The current platform contract is Linux. The runtime uses the fixed user-level pa
 The following ADRs own the detailed contracts within this architecture:
 
 - [Task data model](./2026-09-10-allow-closed-rename-filesystem-scan.md);
-- [runtime and CLI](./2026-08-28-define-tk-runtime-and-cli.md);
+- [runtime and CLI](./2026-08-28-define-tk-runtime.md);
 - [CLI-only mode](./2026-09-02-add-tk-cli-only-mode.md);
 - [Skill language selection](./2026-09-02-select-tk-skill-language.md);
 - [Harness tools integration](./2026-09-02-integrate-tk-tools-with-harnesses.md);
@@ -69,7 +69,7 @@ The runtime is a shared failure boundary. A defect in the executable can affect 
 
 ## Changes
 
-### 2026-09-02: Add selectable Skill modes and languages
+### 2026-09-02: Add selectable Skills
 
 The product now has four independently discoverable Skills and multiple Harness component selections. The ownership list above replaces the archived single-language Harness integration and distribution decisions with four focused current decisions.
 

@@ -15,7 +15,7 @@ A failed integration must not terminate the surrounding Agent session. At the sa
 
 ## Decision
 
-### Logical tools and schemas
+### Tool schemas
 
 tk defines exactly six transport-independent logical tools: search, read, create, update, log, and exec.
 

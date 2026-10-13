@@ -119,7 +119,7 @@ The first-release focus of each document is below. These short statements define
 
 Chapters 23 through 25 cover constraint expression, output review, and quality validation when AI participates in system-level architecture work, so they belong under `ai/`. Chapter 01 focuses on career and learning motivation, chapter 26 on general collaboration style, and chapters 35 through 40 on AI-native organizations. They are not priorities for the first release of a system architecture Skill. Templates and cases may supply examples, but the Skill does not copy them into a separate template catalogue.
 
-### Sources and adaptation
+### Source adaptation
 
 [`awesome-architecture`](https://github.com/study8677/awesome-architecture/tree/7f43e49b95ad9c255418733738fddab4eb0f6a68) is the topic map for the first release and determines which subjects the references cover. Project evidence, primary technical documentation, and other reliable architecture sources supplement and correct technical judgments. The Skill does not track the upstream directory structure or wording.
 

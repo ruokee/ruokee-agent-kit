@@ -19,7 +19,7 @@ This decision defines the first-party `omp-context-pin` component that supplies 
 
 ## Decision
 
-### Component and scope
+### Component scope
 
 Add the first-party package `projects/omp-context-pin/`, named `@ruokee/omp-context-pin`, under the [first-party capability boundary](./2026-08-20-establish-first-party-capability-kit.md) and the [self-contained component contract](./2026-08-24-keep-components-self-contained.md). The package declares its extension entry through `omp.extensions` metadata in `package.json`, keeps its runtime, checks, and bilingual `README.md` and `README.zh.md` inside the component directory, and uses only public OMP extension APIs. It does not import private host modules, patch upstream source or installed binaries, or require files from another repository component.
 
@@ -49,7 +49,7 @@ An accepted operation changes the effective set at once; for `/ctx-pin` that mom
 
 The first version pins text bodies supplied by the user or the Agent. It does not read files, fetch URLs, watch pinned content for changes, or pin anything whose body changes without an operation.
 
-### Interaction and acceptance
+### Interaction
 
 `/ctx-pin` is the user's entry point for browsing and editing: it opens the entry list for the current branch, shows bodies and revisions, and offers create, edit, and delete. `/ctx-pin add <body>` writes without opening a dialog, because sending that command is the confirmation. Listing, reading a body, and editing a draft are read only operations: they send no message, change no Pin state, and do not interrupt a running turn, and an abandoned draft leaves nothing behind.
 
@@ -83,7 +83,7 @@ A number that leaves the safe integer range, or an allocation state that cannot 
 
 An accepted operation is present in the host's in-memory branch journal. Public `appendEntry` returns no result and does not acknowledge persistence. Branch replay remains authoritative across requests, session changes, and recovery; tool results are receipts, not state storage. A receipt must not claim disk durability that the host has not confirmed. Non-persistent sessions retain Pins only for their in-process lifetime and must expose that limit to both entry points.
 
-### Session persistence and responsibility
+### Session persistence
 
 Canonical records live in the session journal the host maintains. Creating a session file, writing it, saving it on exit, restoring it, and copying its messages are host responsibilities. Pin reads the branch the host provides and replays the records in it. It does not create, repair, move, or write that file itself, and it does not promise outcomes the host never reports.
 
@@ -121,7 +121,7 @@ The snapshot carries the boundary identity and the pin contents, and no current 
 
 Verification compares provider-facing effective context, including the preceding requests when the host sends chained deltas. Attribute host-originated changes separately and check whether Pin introduces an avoidable prefix rewrite.
 
-### Capacity and reset
+### Capacity
 
 - An operation written through either `/ctx-pin` form has `source: user`; one written through `ctx_pin` has `source: agent`. `list` and `get` report the source recorded at creation. An operation the Agent performs in response to an ordinary user message is `source: agent`: the entry point decides the source, not the intent behind the request.
 - Capacity is measured in UTF-8 bytes and enforced by both entry points before any state change: 16,384 bytes per entry body, and 65,536 bytes across the active entries of a branch. An operation that would exceed either limit is rejected, changes nothing, and reports the limit and the current usage. Both limits are declared constants documented in the component README.
@@ -160,7 +160,7 @@ Verification compares provider-facing effective context, including the preceding
 
 ## Changes
 
-### 2026-09-28: Maintenance lower bound outside installation and activation
+### 2026-09-28: Maintenance lower bound outside installation
 
 The README compatibility section declares the maintenance lower bound under [Adapt first-party host components to host upgrades](../archived/2026-09-28-adapt-components-to-host-upgrades.md). The bound takes no part in installation or activation, and the safety boundaries above do not move: activation still reads the host's public API, and record integrity, entry identity, branch scope, delivery, and persistence ownership keep their rules.
 

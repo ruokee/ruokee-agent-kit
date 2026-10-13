@@ -58,7 +58,7 @@ Wrap the normal per-turn settings, command-metadata, transformation, and result-
 
 A missing or malformed activation-time template still registers the turn handler. Its first covered turn reports `template-unavailable` through the correct session channel and leaves the input unchanged.
 
-### State coverage and evidence boundaries
+### Evidence boundaries
 
 The hook covers ordinary main-session turns and ordinary subagent turns that rebind the parent's extensions. Restricted-tool and plan-mode children do not load extensions. Handoff, title generation, and difficulty classification use separate paths. Ephemeral side requests such as `/btw` do not independently run the hook and may use the currently active Agent prompt. A turn override can survive a mid-turn host rebuild until the next turn. Device mount notices may repeat because replacement changes the host's delivered-base-catalog state.
 

@@ -16,7 +16,7 @@ The public `before_agent_start` event exposes the current turn's system-prompt b
 
 ## Decision
 
-### Component, switches, and coexistence
+### Component switches
 
 The self-contained `@ruokee/omp-qol` owns the rules under [Keep components self-contained](./2026-08-24-keep-components-self-contained.md) and [Maintain the extension that improves the OMP experience](./2026-10-10-maintain-omp-experience-extension.md). `modelPromptsEnabled` is a native boolean setting, defaults to `false`, and is subordinate to `enabled`. Both switches must be on for the rule handler, rule directory access, and unused-file diagnostics. Settings are read once at activation; changes require restarting OMP, and navigation or a new session does not refresh the snapshot.
 
@@ -26,7 +26,7 @@ The same change removes all rule entry points, reads, diagnostics, tests, and un
 
 QoL works without system-prompt. Coexistence requires system-prompt before QoL in actual load order, with neither component depending on the other's files. Template failure preserves incoming blocks for rule append; rule failure preserves the template result. Later handlers retain authority to change the final input, with no cross-extension scheduler or guarantee. Users update both components together, then enable the new switch and restart. There is no mixed-old-version double-entry compatibility.
 
-### Rule documents and matching
+### Rule matching
 
 Read two fixed directories on every turn the hook runs:
 

@@ -2,7 +2,7 @@
 
 Decision owner: Ruokee
 Decision writer: OMP
-Reverses: [Maintain QoL model prompts and existing quality-of-life adjustments](../archived/2026-10-07-maintain-qol-model-prompts.md)
+Reverses: [Maintain QoL model prompts](../archived/2026-10-07-maintain-qol-model-prompts.md)
 
 English | [中文](./2026-10-10-maintain-omp-experience-extension.zh.md)
 
@@ -26,7 +26,7 @@ This decision defines the first-party `omp-qol` component, the responsibility sp
 
 ## Decision
 
-### Component and scope
+### Component scope
 
 Add `projects/omp-qol/`, named `@ruokee/omp-qol`, under the [first-party capability boundary](./2026-08-20-establish-first-party-capability-kit.md) and the [self-contained component contract](./2026-08-24-keep-components-self-contained.md). One package carries its independently switchable modules: continuing waits, continuation after an eligible model error, the experimental compaction deadline extension, native history replay, and model prompt rules. One installation, one configuration entry, and one set of checks cover them, while each module keeps its own switch, availability status, and failure reporting.
 
@@ -58,7 +58,7 @@ One monotonic total-deadline mechanism serves the entry. The deadline aborts onl
 
 Every unrelated setting retains its key, default, range, and validation. Remove `compactionCacheEnabled`, `compactionCacheProvider`, and `compactionCacheMode` from the manifest and settings reader; they are unknown QoL keys, not compatibility aliases. The separate model prompt module adds `modelPromptsEnabled: false`. `waitMessagesSeconds` and `waitProcessSeconds` remain accepted and validated and have no effect on supported hosts; the English and Chinese documentation and the setting descriptions in the manifest say so.
 
-### Interrupted and statusless errors
+### Errors without a verdict
 
 Extend the default recovery scope to interruptions that carry no classifier verdict, without matching provider text. In `knownTransient`, after the fixed exclusions and the terminal-client-status rule, accept an error when either condition holds:
 
@@ -69,7 +69,7 @@ The exclusions and the terminal-client-status rule keep precedence, so an exclud
 
 This adds no setting: `recoveryEnabled`, `recoveryMode`, the attempt and backoff keys, the fixed continuation body, and the chain rules keep their meaning, and the module and the host each keep their own cap. The component version moves with the new eligibility.
 
-### Compaction deadline experiment and host selection
+### Compaction deadline experiment
 
 Offer the compaction deadline extension as a default-off experiment: a bounded, process-wide timeout adjustment installed through a global registry, preserving the native compaction protocol, history replacement, retries, and fallback.
 
@@ -97,7 +97,7 @@ The adjustment's measured effect, the host details it depends on, and its limits
 
 [Smart-cache owns remote alignment](./2026-10-12-provide-remote-alignment.md). Remote implementation, setting consumption, status entry, alias, re-export, and runtime dependency belong to that component. The repository README pair owns coordinated user/project migration and restart guidance. QoL keeps its own adjustments: the deadline experiment, including `owner-stopped`, and the process-wide replay ownership and release rules above. Remote recovery does not change those contracts.
 
-### Documentation and version evidence
+### Release evidence
 
 Document each adjustment in the component's own `docs/` in English and Chinese, linked from both README files: the native behavior and what happens with the extension off, why the adjustment is needed and which native configuration or hook was checked, where it attaches and how configuration changes it, its side effects, cancellation, and failure behavior, the upstream change that would make it unnecessary, the source baseline with the OMP version and commit, the versions actually verified for automated checks and for real OMP CLI runs, and the applicability limits.
 

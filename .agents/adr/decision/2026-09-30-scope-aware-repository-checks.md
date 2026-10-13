@@ -1,4 +1,4 @@
-# ADR decision: Scope development checks and retain a complete merge gate
+# ADR decision: Scope development checks
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6.1 Sol
@@ -16,7 +16,7 @@ Working-directory isolation, dependency preparation, and check selection solve d
 
 ## Decision
 
-### Entry points, coverage, and gates
+### Check entry points
 
 The root [package.json](../../../package.json) provides `pnpm check:changed` for development and review, `pnpm check` for complete automation, `pnpm check:base` for the Markdown and Rust baseline, and `pnpm check:selector` for selection regression tests. Before requesting review, commit task changes, leave the working tree clean, and pass affected checks for the branch.
 
@@ -26,7 +26,7 @@ After all review changes, complete validation is mandatory on the clean, committ
 
 Affected success is not complete merge validation and grants no merge or push permission. Keep the short-lived branch and squash authorization boundaries of the [branch workflow decision](./2026-08-20-use-trunk-based-squash-workflow.md). Automated success does not establish real-model behavior, interactive UI correctness, or real-machine behavior; existing component scenario obligations remain in force.
 
-### Affected scope and failure behavior
+### Affected scope
 
 Select paths from the merge base of `HEAD` and local `main`, or an explicitly selected baseline ref. Include committed, staged, unstaged, and non-ignored untracked changes, deleted paths, and both sides of renames. The selector reads Git without fetching or changing its state.
 
@@ -36,7 +36,7 @@ Shared check inputs, selector changes, unknown scopes, unreliable baselines or h
 
 Report the baseline, path sources, selected scopes and commands, fallback reason, and failing step. Execute checks sequentially, preserve child output, and stop at the first failure with a nonzero exit status. Earlier success cannot hide later failure. Complete fallback does not call the selector recursively.
 
-### Working directories and environment ownership
+### Working directory ownership
 
 Use independent worktrees for code, configuration, scripts, parallel tasks, and uncertain exclusivity. A serial explanatory Markdown or ADR task may use the main working directory only when it is clean, no parallel work is active, and exclusive use is confirmed. Switch to a short-lived branch before editing; never edit or commit directly on `main`.
 
@@ -46,7 +46,7 @@ Environment setup remains explicit. Use the declared pnpm version and supported 
 
 Package-manager content caches may be reused within the same trust boundary, but branches must not share writable dependency directories or build output. Checks do not install dependencies, format source files, or upgrade tools. Successful checks leave tracked source and configuration unchanged; builds and tests may create their normal temporary and generated files. The pre-commit formatting hook retains its role.
 
-### Maintenance and compatibility
+### Maintenance
 
 Adding a component, changing required automated checks, or introducing a document consumer requires updating the explicit complete aggregate, selector mapping, and regression tests together. [README.md](../../../README.md), [README.zh.md](../../../README.zh.md), and `AGENTS.md` describe the same gates, preparation boundaries, directory exception, and success invalidation. Component documentation stays consistent with invoked commands.
 

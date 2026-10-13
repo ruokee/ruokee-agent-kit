@@ -129,7 +129,7 @@ A missing or supported empty Skill catalog stays absent or empty and needs no me
 
 Once the complete outer Skill catalog has been uniquely delimited, missing or malformed metadata, disabled Skill commands, unsupported description formatting, ambiguous description correspondence, or earlier-handler edits that prevent matching leave the entire original catalog byte-for-byte unchanged. Do not normalize only the entries that happened to match. Continue the supported static-policy, tool, device, internal-resource, and PROJECT transformations. Do not retry with a text-only entry heuristic or enable Skill commands on the user's behalf. Failure to delimit the outer catalog safely remains a structural failure, as specified below.
 
-### Preserve hidden Skills and manual invocation
+### Preserve manual invocation
 
 Hidden Skills remain absent from the automatic system catalog and retain the host's `skill://<name>` access and, when Skill commands are enabled, user invocation through `/skill:<name>`. Their presence in command metadata must not prevent normalization of a uniquely matched visible catalog or application of the other prompt transformations. Do not change hide flags or command settings, remove plugins, or hardcode Skill-name exclusions to obtain a match.
 

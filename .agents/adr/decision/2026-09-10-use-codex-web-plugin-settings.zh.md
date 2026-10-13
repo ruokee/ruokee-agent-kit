@@ -16,7 +16,7 @@ OMP 内置的 `web_search` 支持直接向 OMP 提供 Codex 订阅，但无法�
 
 ## 决定
 
-### 组件与工具
+### 组件工具
 
 仓库在 `projects/omp-codex-web-access` 维护自包含的 OMP 扩展包，包名为 `@ruokee/omp-codex-web-access`。运行时、包元数据、检查以及 `README.md` 与 `README.zh.md` 文档均位于组件目录内。两个 README 分别是对应语言下组件的完整文档，覆盖工具、安装、配置、加载模式、模型执行、开发检查和许可证。扩展入口通过 `package.json` 的 `omp.extensions` 声明。仓库 README 在 OMP 扩展列表中列出该组件，并分别链接对应语言的组件 README。
 
@@ -31,7 +31,7 @@ OMP 内置的 `web_search` 支持直接向 OMP 提供 Codex 订阅，但无法�
 
 fetch 工具在任何模型解析、凭据查询或网络动作之前验证 URL 协议为 HTTP 或 HTTPS。网页访问由模型完成；扩展不直接抓取目标 URL，也不执行 DNS 或私网地址探测。扩展包不修改 OMP 内置搜索或抓取工具的设置。
 
-### 原生设置与作用域
+### 原生设置
 
 OMP 原生插件设置是 `@ruokee/omp-codex-web-access` 的唯一配置来源。包的 `omp.settings` schema 声明以下扁平键：
 
@@ -56,7 +56,7 @@ omp plugin config set @ruokee/omp-codex-web-access fetchEnabled false
 
 OMP 在扩展看到设置前负责解析自己的配置。用户运行时 JSON 缺失时，用户级设置对象为空；有效的项目覆盖仍然可以提供值。用户运行时 JSON 损坏时，公开 getter 会拒绝。项目覆盖候选缺失时，OMP 会继续检查下一个候选目录。候选文件损坏时会跳过。如果没有有效项目候选文件，则不存在项目覆盖。扩展只校验 getter 返回的对象，不直接解析 OMP 文件来恢复 OMP 已吞掉或拒绝的错误。
 
-### 激活与校验
+### 激活
 
 factory 只安装 `session_start` 处理器。加载 factory 时不读取设置，也不注册任何工具。扩展激活后的第一次 `session_start` 中，处理器等待 `getPluginSettings(PACKAGE_NAME, ctx.cwd)` 返回，校验一份完整有效的设置对象，再根据这份快照注册启用的工具。模型选择器和两个工具定义都使用同一份快照。
 
@@ -66,7 +66,7 @@ factory 只安装 `session_start` 处理器。加载 factory 时不读取设置�
 
 配置校验完成后才调用注册 API，但注册 API 自身抛错时，异常前已经注册的工具可能保留。扩展报告错误并停止继续注册，不承诺对已经注册的前缀做全局回滚。
 
-### 迁移与呈现
+### 迁移
 
 扩展不读取、导入、删除或重写 `omp-codex-web-access.yml`，也不保留任何回退行为。现有用户按照上述映射手工转移值。旧 YAML 文件不会自动删除。迁移后必须重启 OMP 进程，让扩展重新激活并读取原生值。如果旧 YAML 是唯一配置来源，它不会产生任何效果，原生默认值生效，包括空模型选择器。
 

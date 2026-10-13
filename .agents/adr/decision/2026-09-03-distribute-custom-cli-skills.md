@@ -1,4 +1,4 @@
-# ADR decision: Distribute Harness components and custom CLI Skills
+# ADR decision: Distribute tk components
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
@@ -16,7 +16,7 @@ The `tk-cli` and `tk-cli-zh` Skills use only the public `tk` executable. They mu
 
 ## Decision
 
-### Runtime and embedded bundle
+### Runtime bundle
 
 The Linux runtime remains one regular executable with a Unix execution bit at `$HOME/.local/bin/tk`. Harness components and directly installed CLI Skills verify it but never install, update, remove, wrap, or copy it.
 
@@ -46,7 +46,7 @@ Each command requires exactly one of `--harness` and `--skill-root`. Harness ins
 
 Install and uninstall reject global `--cwd`. A relative Skill root resolves from the process working directory, and results report the absolute root.
 
-### Harness and custom-root ownership
+### Harness ownership
 
 The four supported Harnesses retain their official component lifecycle. Harness install checks the Harness executable, uses its official interface or fixed driver, converges the selected component, and removes known superseded targets and registrations. Harness uninstall removes all tk-specific targets and registration owned by that Harness while preserving unrelated content.
 
@@ -56,7 +56,7 @@ The custom lifecycle owns only those two exact CLI Skill targets. Installing one
 
 Custom-root operations do not require or invoke a Harness executable, install a Plugin, Package, extension, or MCP configuration, modify tk operation registration, or claim that a Harness loads the directory. Multiple custom roots may coexist. tk stores no root list, ownership record, installation history, or continuation state.
 
-### Planning, validation, and results
+### Lifecycle operations
 
 Lifecycle planning reads the selected embedded payload and every target within that lifecycle's ownership boundary. Dry-run and execution share complete preflight. Operations stage content, revalidate observed targets, commit in deterministic order, stop on error or cancellation, and report completed and uncompleted items without automatic rollback. GC remains limited to registered tk temporary operation content.
 

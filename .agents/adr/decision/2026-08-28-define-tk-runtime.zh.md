@@ -1,9 +1,9 @@
-# ADR 决定：定义 tk 运行时与 CLI
+# ADR 决定：定义 tk 运行时
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
 
-[English](./2026-08-28-define-tk-runtime-and-cli.md) | 中文
+[English](./2026-08-28-define-tk-runtime.md) | 中文
 
 ## 动机
 
@@ -15,7 +15,7 @@ Decision writer: OMP GPT-5.6 Sol
 
 ## 决定
 
-### 语言与可执行文件
+### 运行时实现
 
 tk 由 `projects/tk/` 下的一个 Rust Cargo package 实现，并生成一个名为 `tk` 的可执行文件。公开 Linux 运行时路径是 `$HOME/.local/bin/tk`。
 
@@ -61,7 +61,7 @@ actor 是 WAL 归因信息，不表示身份、授权或任务分配。直接 CL
 
 项目发现和 Git 策略相互独立。read、search 和诊断可以在不受 Git 策略拒绝的情况下定位并检查项目。持久写入会在首次写入前立即运行共享 Git 检查。
 
-### 进程与资源边界
+### 资源边界
 
 运行时限制 search 候选、进程 stdout 和 stderr、生成 schema、WAL 读取和协议帧的大小。每条子进程输出流和每个 MCP JSON 载荷限制为 1 MiB。MCP 输入超限时关闭传输，输出超限时返回失败，不发送不完整帧。
 
@@ -69,7 +69,7 @@ search 逐项处理候选，并最多保留 100 个最佳项。check、关系图
 
 单文件写入会在原子替换前响应取消。替换开始后，会完成当前替换再返回。多目标命令在提交点之间响应取消。首次写入前取消不会留下持久变更。提交点之后取消会使用与 I/O 失败相同的边界，报告已完成项和未完成项。
 
-### 失败与版本合同
+### 运行时合同
 
 预期的领域和环境失败使用公开统一结果。panic、进程被终止、传输输出损坏和协议连接中断仍属于传输或内部故障。运行时不会为这些情况虚构领域结果。
 
@@ -109,7 +109,7 @@ create 接口不再拥有正文输入。`tk create task` 把 `--body` 作为未�
 
 `tk rename` 新增 `--ignore-brokenlinks`。执行会移动任务路径且存在旧路径引用时，在首次持久写入前以 conflict 错误和退出码 3 停止。该参数允许此次移动继续且不改写引用文件。dry-run 报告计划和引用，不写入内容。CLI 与 `tk_exec rename` 采用相同规则，CLI 合同版本保持 2。
 
-### 2026-09-05：区分 read 返回限制与 WAL 完整检查
+### 2026-09-05：把 read 返回限制从 WAL 完整检查中分离
 
 `tk read` 现在使用 `minimal`、`summary` 和 `detailed`，默认使用 `summary`。`minimal` 不读取任务正文或 WAL。`summary` 返回完整任务正文和不含正文的最近 WAL 条目，默认最多 5 条、4000 字节。`detailed` 增加 WAL 正文，默认最多 50 条、16000 字节。显式预算可以在 0 到两种视图共用的上限 50 条、16000 字节之间取值。运行时在确定返回字段后，按紧凑 JSON 的 UTF-8 字节数计量，并静默省略预算之外的条目，不返回截断字段、警告或诊断。完整历史继续通过每日 WAL 文件提供，不增加分页或完整历史读取模式。
 

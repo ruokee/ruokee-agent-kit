@@ -48,7 +48,7 @@ The English and Chinese documentation describe the same rule.
 
 The separate proposal and decision templates both keep `Motivation` as their first required body section.
 
-### 2026-09-23: Require an independently understandable opening and allow optional analysis
+### 2026-09-23: Require an independently understandable opening
 
 The [mechanism decision](./2026-09-23-clarify-adr-content-boundaries.md) refines this rule without conflict. The first sentence of `Motivation` identifies the subject and the concrete problem, intended change, or goal without relying on the title, links, or later text, and an optional `## Analysis` section may follow `Motivation`.
 

@@ -19,7 +19,7 @@ The extensions that can act on these cases sit in a different place from the beh
 
 ## Decision
 
-### Component and scope
+### Component scope
 
 Add `projects/omp-qol/`, named `@ruokee/omp-qol`, under the [first-party capability boundary](../decision/2026-08-20-establish-first-party-capability-kit.md) and the [self-contained component contract](../decision/2026-08-24-keep-components-self-contained.md). One package carries three independently switchable modules: continuing hub waits, continuation after an eligible model error, and the experimental compaction deadline extension. One installation, one configuration entry, and one set of checks cover all three, while each module keeps its own switch, availability status, and failure reporting.
 
@@ -35,7 +35,7 @@ The wait module re-registers the native tool, delegates every call to it, and re
 
 The recovery module uses the native session-stop continuation request. Fixed safety exclusions take precedence over configuration, so no setting turns them into a continuation. They cover cancellations, refusals, authentication and quota outcomes, context overflow, and deterministic failures. Continuations are bounded both by the module and by the host's own cap, each requested continuation is reported with its attempt and delay, and the module does not claim that a re-run is idempotent or that a completed tool call is not repeated. The continuation body is fixed text that carries no provider error body.
 
-### Compaction experiment and its replacement
+### Compaction deadline experiment
 
 Offer the compaction deadline extension as a default-off experiment: a bounded, process-wide timeout adjustment installed through a global registry, preserving the native compaction protocol, history replacement, retries, and fallback.
 
@@ -43,7 +43,7 @@ Enabling it accepts its boundary. Within a compaction window, a matching timeout
 
 When OMP provides a supported request-level timeout setting or hook, use that interface and retire the global mechanism. Two owners of the same deadline policy are not kept.
 
-### Documentation and version evidence
+### Release evidence
 
 Document each adjustment in the component's own `docs/` in English and Chinese, linked from both README files: the native behavior and what happens with the extension off, why the adjustment is needed and which native configuration or hook was checked, where it attaches and how configuration changes it, its side effects, cancellation, and failure behavior, the upstream change that would make it unnecessary, the source baseline with the OMP version and commit, the versions actually verified for automated checks and for real OMP CLI runs, and the applicability limits.
 

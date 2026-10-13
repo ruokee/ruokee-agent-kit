@@ -16,7 +16,7 @@ The component also needs one OMP configuration contract that supports user value
 
 ## Decision
 
-### Component and tools
+### Component tools
 
 The repository maintains a self-contained OMP extension package at `projects/omp-codex-web-access`, named `@ruokee/omp-codex-web-access`. Its runtime, package metadata, checks, and `README.md` and `README.zh.md` documentation live inside the component directory. Each README is the component's complete document in its language, covering the tools, installation, configuration, load modes, model execution, development checks, and license. The extension entry is declared through `omp.extensions` in `package.json`. The repository READMEs list the component under OMP extensions and link to the corresponding component README in each language.
 
@@ -31,7 +31,7 @@ Page extraction may summarize or clean content. It is not raw HTML or a verbatim
 
 The fetch tool validates the URL protocol as HTTP or HTTPS before model resolution, credential lookup, or network work. The model performs web access. The extension does not fetch the target URL itself and does not perform DNS or private-address probing. The package does not change OMP's built-in search or fetch settings.
 
-### Native settings and scopes
+### Native settings
 
 OMP native plugin settings are the sole configuration source for `@ruokee/omp-codex-web-access`. The package declares these flat keys in its `omp.settings` schema:
 
@@ -56,7 +56,7 @@ omp plugin config set @ruokee/omp-codex-web-access fetchEnabled false
 
 OMP parses its own configuration before the extension sees it. A missing user runtime JSON produces an empty user-level settings object; a valid project override can still contribute values. Malformed user runtime JSON causes the public getter to reject. A missing project override candidate makes OMP continue to the next candidate directory. A malformed candidate is skipped. If no valid project candidate exists, there is no project override. The extension validates only the object returned by the getter and does not parse OMP files to recover errors that OMP has swallowed or rejected.
 
-### Activation and validation
+### Activation
 
 The factory only installs a `session_start` handler. It does not read settings or register either tool during factory loading. On the first `session_start` for an extension activation, the handler awaits `getPluginSettings(PACKAGE_NAME, ctx.cwd)`, validates one complete effective object, and registers enabled tools from that snapshot. The model selector and both tool definitions use the same snapshot.
 
@@ -66,7 +66,7 @@ The runtime defaults match the manifest, but manifest defaults alone do not repl
 
 The registration API is called after configuration validation, but a registration API failure may leave tools registered before the failure. The extension reports the failure and stops further registration; it does not promise global rollback of a partial registration prefix.
 
-### Migration and presentation
+### Migration
 
 The extension does not read, import, delete, or rewrite `omp-codex-web-access.yml`, including any fallback behavior. Existing users transfer values manually using the mapping above. The old YAML file is not automatically deleted. After migration, restart the OMP process so the extension activates again and reads the native values. If the old YAML file is the only configuration, it has no effect and the native defaults apply, including an empty model selector.
 

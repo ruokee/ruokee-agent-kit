@@ -62,7 +62,7 @@ Reversed by: [保留即将弃用扩展的模板功能](../decision/2026-10-07-re
 
 [projects/omp-system-prompt/README.zh.md](../../../projects/omp-system-prompt/README.zh.md#工作机制) 维护具体页脚合同，并区分 API 回归与真实宿主 Provider 观察。观察必须覆盖需要标记及无需标记的形态，包括普通子代理，不声称宿主全面认证。
 
-### 重复 turn 与设置变更
+### 重复 turn
 
 模板路线是幂等的。输入已经携带模板块、位于预期位置的自有 Delivery 章节和已修正页脚的 turn 会被识别，且在没有实际变化时不返回替换，因此设置不变时重复处理保留完整块数组。`renderDelivery` 在 turn 之间变化时只增减该章节，页脚已被转换过的提示词同样适用。
 

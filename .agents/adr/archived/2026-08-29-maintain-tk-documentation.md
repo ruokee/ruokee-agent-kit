@@ -41,7 +41,7 @@ Public documentation states the current formal contract as if it had been implem
 
 A real behavior change after release may include migration guidance when users need it. Development-only experiments do not become compatibility history and are not listed as removed features.
 
-### English and Chinese
+### Language pair
 
 Each guide and design topic links to its other-language counterpart immediately after the H1. Repository file links are relative to the current document. Paths in the current directory or below start with `./`; links outside the directory use the required `../` segments.
 
@@ -49,7 +49,7 @@ English and Chinese pages have equivalent meaning. Chinese uses natural Chinese 
 
 The glossary contains only terms with tk-specific meaning, fixed capitalization, or a translation that must remain stable. General technical vocabulary stays in its owning document. Fixed Chinese forms include `受管`, `临时记事区`, `人类可读`, `直接切换`, `支持的子命令`, `活动操作标记`, `表示切换`, `续跑令牌`, and `续跑状态`.
 
-### Skills and ADRs
+### Documentation layout
 
 The four authoritative Skill trees are `projects/tk/skills/tk/`, `projects/tk/skills/tk-zh/`, `projects/tk/skills/tk-cli/`, and `projects/tk/skills/tk-cli-zh/`. Each is self-contained. English and Chinese Skills in the same mode have equivalent semantic coverage.
 
@@ -83,11 +83,11 @@ Final-state wording keeps public documentation compact, but review history and i
 
 ## Changes
 
-### 2026-09-02: Adopt the proposal and decision model
+### 2026-09-02: Adopt the ADR document model
 
 tk documentation now refers to current ADRs under `decision/` rather than modeling current records through an `implemented` status. Proposals and decisions use separate formats without a `Status` field, while the maintainer retains lifecycle authority.
 
-### 2026-09-02: Document selectable Skills and components
+### 2026-09-02: Document selectable components
 
 Documentation covers tools and CLI modes, English and Chinese selection through `tk install`, four Skill identities, multiple component payloads, and the split routing contract. The four Skill paths above replace the earlier English Skill and the Chinese Skill that required manual installation.
 

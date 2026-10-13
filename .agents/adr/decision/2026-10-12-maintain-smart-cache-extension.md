@@ -16,7 +16,7 @@ Two optimizations in one package also need a boundary that keeps them independen
 
 ## Decision
 
-### Extension and self-containment
+### Extension self-containment
 
 Maintain the self-contained package `@ruokee/omp-smart-cache` at `projects/omp-smart-cache`, with its own native `omp.extensions` entry, settings, checks, and English and Chinese documentation. Follow the [first-party boundary](./2026-08-20-establish-first-party-capability-kit.md) and [self-contained component contract](./2026-08-24-keep-components-self-contained.md). Do not import runtime code, settings readers, or documents from QoL or a local prototype.
 
@@ -30,7 +30,7 @@ The capabilities share the package, the process coordinator, the per-session reg
 
 Recording the capability model delivers no capability. This decision neither integrates Handoff alignment nor replaces an installed Handoff trial extension; [Handoff alignment](./2026-10-12-provide-handoff-alignment.md) records that capability and its authorized cutover.
 
-### Status command and documentation
+### Status command
 
 `/smart-cache` is the status command of the package and stays one command. It starts no model turn and reports each capability in its own section, with that capability's states, staged reasons, and bounded counters.
 
@@ -50,7 +50,7 @@ This decision reverses [Use smart-cache for remote alignment](../archived/2026-1
 | Component and public configuration: the package, its entry, its checks, its documentation, and its settings source sit inside the remote decision | Those clauses move here, where an extension-level clause belongs; the remote settings stay with remote alignment. |
 | Handoff: the migration neither approves Handoff integration nor replaces the installed Handoff prototype, and remote V2 rules are not reused for Handoff | Carrying a Handoff capability is this package's subject, and [Handoff alignment](./2026-10-12-provide-handoff-alignment.md) records its switch, its boundary, and the trial extension's replacement condition. The rule that remote V2 rules are not reused for Handoff stays with [remote alignment](./2026-10-12-provide-remote-alignment.md), and no placeholder Handoff interface is added. |
 
-All non-conflicting rules of the archived decision remain binding, and they now live in this decision and in [remote alignment's decision](./2026-10-12-provide-remote-alignment.md). The reversal of [Maintain QoL model prompts and existing quality-of-life adjustments](../archived/2026-10-07-maintain-qol-model-prompts.md) moves with the clause it belongs to and is carried by the remote decision.
+All non-conflicting rules of the archived decision remain binding, and they now live in this decision and in [remote alignment's decision](./2026-10-12-provide-remote-alignment.md). The reversal of [Maintain QoL model prompts](../archived/2026-10-07-maintain-qol-model-prompts.md) moves with the clause it belongs to and is carried by the remote decision.
 
 ## Alternatives considered
 

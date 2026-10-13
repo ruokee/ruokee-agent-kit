@@ -15,7 +15,7 @@ Ruokee 需要一项持续提问能力，将不完整想法或已有方案收敛�
 
 ## 决定
 
-### 归属与分发
+### 归属
 
 `grill-me` 由 Ruokee 创作并独立维护，遵守[第一方仓库边界](./2026-08-20-establish-first-party-capability-kit.zh.md)。其持续提问概念受到 Matt Pocock 的 [skills 仓库](https://github.com/mattpocock/skills)启发，但本 Skill 由 Ruokee 另行独立编写，并非直接修改其实现所得。
 

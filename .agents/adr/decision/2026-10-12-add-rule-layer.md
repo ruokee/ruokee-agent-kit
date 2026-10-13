@@ -20,10 +20,10 @@ The same constraint often appears in two forms, which is not duplication: the sp
 The following current decisions bear on the layer, and none of them conflicts with it:
 
 - [Add a specification layer](./2026-10-04-add-spec-layer.md) recorded the division of work for specs, ADRs, and component documentation and left contributor instructions to the repository documentation, the README, and `AGENTS.md`. This decision adds a fourth document type to that division and reverses no part of it.
-- [Clarify the ADR mechanism and content boundaries](./2026-09-23-clarify-adr-content-boundaries.md) keeps ADR content rules, lifecycle, and glossary unchanged. A rule keeps no history, so it cannot replace a contract that a decision records.
+- [Clarify the ADR content boundaries](./2026-09-23-clarify-adr-content-boundaries.md) keeps ADR content rules, lifecycle, and glossary unchanged. A rule keeps no history, so it cannot replace a contract that a decision records.
 - [Keep distributable components self-contained](./2026-08-24-keep-components-self-contained.md) forbids references from inside a component to files outside it. The rule layer is repository documentation outside component directories, and the reference direction keeps every component independent of it.
-- [Colocate English and Chinese public documentation](./2026-09-07-colocate-bilingual-docs.md) requires same-directory language pairs for ordinary public pages, and rule pages follow it.
-- [Scope development checks and retain a complete merge gate](./2026-09-30-scope-aware-repository-checks.md) defines how affected checks are selected and how the complete gate is recorded. Rules state when those checks run and what evidence they leave.
+- [Colocate bilingual public documentation](./2026-09-07-colocate-bilingual-docs.md) requires same-directory language pairs for ordinary public pages, and rule pages follow it.
+- [Scope development checks](./2026-09-30-scope-aware-repository-checks.md) defines how affected checks are selected and how the complete gate is recorded. Rules state when those checks run and what evidence they leave.
 - [Review authorization](./2026-09-06-review-authorization.md) keeps a review request from authorizing edits to the reviewed files, and the Git rules state it for branch work.
 
 ## Decision

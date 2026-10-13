@@ -16,7 +16,7 @@ Reverses: [由 smart-cache 提供 remote 对齐](../archived/2026-10-10-use-smar
 
 ## 决定
 
-### 扩展与自包含
+### 扩展自包含
 
 在 `projects/omp-smart-cache` 维护自包含包 `@ruokee/omp-smart-cache`，使用自己的原生 `omp.extensions` 入口、设置、检查及中英文文档。遵循[第一方边界](./2026-08-20-establish-first-party-capability-kit.zh.md)与[自包含组件合同](./2026-08-24-keep-components-self-contained.zh.md)。不从 QoL 或本地原型导入运行时代码、设置读取器或文档。
 
@@ -30,7 +30,7 @@ Reverses: [由 smart-cache 提供 remote 对齐](../archived/2026-10-10-use-smar
 
 记录能力模型不等于交付能力。本决定既不集成 Handoff 对齐，也不替换已安装的 Handoff 试用扩展；[Handoff 对齐](./2026-10-12-provide-handoff-alignment.zh.md)记录该能力及其经授权的切换。
 
-### 状态命令与文档
+### 状态命令
 
 `/smart-cache` 是本包的状态命令，保持一条命令。它不启动模型 turn，按能力分节报告，每节给出该能力的状态、分阶段原因和有界计数。
 
@@ -50,7 +50,7 @@ Reverses: [由 smart-cache 提供 remote 对齐](../archived/2026-10-10-use-smar
 | 组件与公共配置：本包、入口、检查、文档及设置来源都写在 remote 决定里 | 这些条款移到本决定，组件级条款归这里；remote 的设置仍归 remote 对齐。 |
 | Handoff：该次迁移既不批准 Handoff 集成，也不替换已安装的 Handoff 原型，且 remote V2 规则不用于 Handoff | 承载 Handoff 能力是本包的主题，[Handoff 对齐](./2026-10-12-provide-handoff-alignment.zh.md)记录其开关、边界及试用扩展的替换条件。remote V2 规则不用于 Handoff 这条规则留在 [remote 对齐](./2026-10-12-provide-remote-alignment.zh.md)，也不新增 Handoff 占位接口。 |
 
-归档决定中所有不冲突的规则继续有效，现在分别落在本决定与 [remote 对齐决定](./2026-10-12-provide-remote-alignment.zh.md)。对[维护 QoL 模型提示词与既有体验调整](../archived/2026-10-07-maintain-qol-model-prompts.zh.md)的反转随所属条款迁移，由 remote 决定承载。
+归档决定中所有不冲突的规则继续有效，现在分别落在本决定与 [remote 对齐决定](./2026-10-12-provide-remote-alignment.zh.md)。对[维护 QoL 模型提示词](../archived/2026-10-07-maintain-qol-model-prompts.zh.md)的反转随所属条款迁移，由 remote 决定承载。
 
 ## 考虑过的替代方案
 

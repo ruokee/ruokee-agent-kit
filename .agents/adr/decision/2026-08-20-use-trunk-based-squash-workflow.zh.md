@@ -1,4 +1,4 @@
-# ADR 决定：使用短期分支并 squash 合入 main
+# ADR 决定：把短期分支 squash 合入 main
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -39,6 +39,6 @@ Squash 会从公开历史中移除中间提交 ID。因此，重要理由应写�
 
 ## 变更
 
-### 2026-09-02：将 ADR 提案与实现分开合入
+### 2026-09-02：ADR 提案单独合入
 
 获准的 ADR 提案在实现开始前作为独立 squash commit 进入 `main`。实现从更新后的 `main` 创建新的短期分支，并通过另一次审查和 squash 独立进入 `main`。

@@ -20,7 +20,7 @@ A reading derived from session activity can ship only as a builtin provider. The
 
 ## Decision
 
-### Keep one self-contained package with a Host and providers
+### Keep one self-contained package
 
 `projects/omp-status-bar/` is one first-party, self-contained OMP Plugin Package. The [first-party capability kit decision](../decision/2026-08-20-establish-first-party-capability-kit.md) permits a real capability to use `projects/`, and the [self-contained component decision](../decision/2026-08-24-keep-components-self-contained.md) requires every distributable component to remain independent. The `package.json` declares the native extension entry through `omp.extensions`, and the package uses only public upstream OMP APIs without containing, patching, or requiring a local fork.
 
@@ -28,7 +28,7 @@ The implementation splits into a status Host and registered status providers. Pr
 
 The public contract covers provider identity, option validation, instance creation and lifecycle, fragment publication, and managed scheduling. Registry storage, configuration loading, composition, diagnostics, and OMP UI calls stay private. Each configuration entry creates an independent instance, so the same provider ID may appear more than once with different options.
 
-### Use native enablement and agent-directory configuration
+### Use native configuration
 
 OMP's native plugin enable and disable state is the sole package-wide switch, and the package defines no separate `enabled` field.
 
@@ -48,7 +48,7 @@ The Host colors the composed line first, then truncates it from the right to the
 
 The widget supplements the native statusline: the package registers no statusline segment and replaces none. Widget visibility depends on neither `statusLine.showHookStatus` nor a custom preset's `status` segment. Every built-in Composer shape of the target OMP version uses the same belowEditor mount point.
 
-### Publish structured and sanitized fragments
+### Publish structured fragments
 
 The publication contract is a structured fragment instead of a string:
 

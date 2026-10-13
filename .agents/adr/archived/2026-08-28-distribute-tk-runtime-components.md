@@ -1,4 +1,4 @@
-# ADR decision: Distribute the tk runtime and Harness components
+# ADR decision: Distribute the tk runtime components
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -56,7 +56,7 @@ Dry-run and execution share complete preflight for the runtime, embedded compone
 
 Install and update stage content in a tk temporary location, revalidate targets and shared configuration, commit dedicated component targets, add or replace tk registration, remove superseded tk targets, then delete temporary content and markers. Configuration never points to staging.
 
-### Clean uninstall and failures
+### Clean uninstall
 
 Clean uninstall restores the Harness to the state it would have had if tk had never been installed while preserving unrelated content.
 

@@ -1,4 +1,4 @@
-# ADR 决定：分发 Harness 组件与自定义根目录 CLI Skill
+# ADR 决定：分发 tk 组件
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
@@ -16,7 +16,7 @@ Reverses: [分发可选择的 tk Harness 组件](../archived/2026-09-02-distribu
 
 ## 决定
 
-### 运行时与内嵌 bundle
+### 运行时 bundle
 
 Linux 运行时仍是位于 `$HOME/.local/bin/tk`、具有 Unix 执行位的一份常规可执行文件。Harness 组件和直接安装的 CLI Skill 会验证它，但不安装、更新、删除、包装或复制它。
 
@@ -46,7 +46,7 @@ tk uninstall --skill-root <directory> [--dry-run]
 
 install 与 uninstall 拒绝全局 `--cwd`。相对 Skill 根目录按进程当前工作目录解析，结果报告绝对根目录。
 
-### Harness 与自定义根目录所有权
+### Harness 所有权
 
 四个已支持 Harness 保留官方组件生命周期。Harness install 检查 Harness 可执行文件，使用官方接口或固定驱动，收敛所选组件，并删除已知的旧目标和注册。Harness uninstall 删除该 Harness 所有的 tk 专用目标与注册，同时保留无关内容。
 
@@ -56,7 +56,7 @@ install 与 uninstall 拒绝全局 `--cwd`。相对 Skill 根目录按进程当�
 
 自定义根目录操作不会要求或调用 Harness 可执行文件，不安装 Plugin、Package、extension 或 MCP 配置，不修改 tk 操作注册，也不声称 Harness 能加载该目录。多个自定义根目录可以并存。tk 不保存根目录列表、所有权记录、安装历史或续跑状态。
 
-### 计划、校验与结果
+### 生命周期操作
 
 生命周期计划读取所选内嵌载荷，以及该生命周期所有权边界内的全部目标。dry-run 与执行共享完整预检。操作先暂存内容，再重新检查已观察目标，随后按确定顺序提交。错误或取消会立即停止，结果报告已完成与未完成项，不自动回滚。GC 仍然只处理已登记的 tk 临时操作内容。
 

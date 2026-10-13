@@ -16,7 +16,7 @@ The earlier model used `subtasks_dir` for both child creation and discovery. Tha
 
 ## Decision
 
-### Project, paths, and representation
+### Data model
 
 A project uses sparse configuration at `.agents/tk_config.toml`. It selects one project-relative Task root, default child creation directory, Git policy, creation policy, and metadata mode. The default Task root is `.tk`. `subtasks_dir` controls only where later child Tasks are created and never limits discovery or moves existing data.
 
@@ -30,7 +30,7 @@ Schema 1 contains the immutable UUIDv7 `id`, normalized `name`, `planning`, `ope
 
 Every formally released schema transition retains an adjacent forward migrator. Migration applies those migrators in order, supports split and embed, and preserves the Task body. There is no downgrade path, schema 0, or compatibility contract for unreleased development formats.
 
-### Carrier discovery, identity, and lifecycle
+### Carrier discovery
 
 Top-level discovery first requires canonical topology, a valid calendar date, a non-empty slug, and a metadata name matching that slug. Descendant discovery then traverses real ordinary directories below each valid top-level Task.
 
@@ -46,7 +46,7 @@ UUIDv7 is authoritative identity. Paths locate Tasks and names describe them. Du
 
 A strict project requires current explicit authorization to create a top-level Task. A permissive project may create work worth preserving without treating creation as an execution commitment. Creating a planning Task still requires an expressed intent to save the early work.
 
-### Discovery graph, search, and Git policy
+### Discovery graph
 
 The Task root has no persistent index or cache. Each operation builds one carrier-based Task graph on demand. Search, exact path resolution, parent and descendant checks, relationship validation, `check`, schema migration, metadata mode switching, and sequence allocation use this graph.
 
@@ -56,7 +56,7 @@ Search classifies a query once as UUID or explicit Task path, existing material 
 
 Git policy runs only before persistent writes. `track` requires managed Task files not to be ignored, `ignore` requires the Task root to be ignored, and `none` does not invoke Git policy commands. tk does not modify Git configuration, ignore rules, the index, commits, or history.
 
-### Persistence and maintenance
+### Persistence
 
 A managed single-file change writes a complete same-directory temporary file and atomically replaces the target. Ordinary writes do not use locks, leases, compare-and-swap, or automatic merge. Concurrent replacements resolve to the operation that finishes last.
 

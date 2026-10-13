@@ -74,13 +74,13 @@ Business rules depend on the operations and data the component needs rather than
 
 Host coupling is organized as a change touches it. A difference has one owner, so two call sites do not decide the same thing separately, and the component documentation states the reason, the location, the selection condition, the failure behavior, and the verification basis of each difference. Components stay self-contained: no cross-component compatibility library is created, and a component does not link to another component or to repository-level material.
 
-### Select an implementation by capability, and by version only with evidence
+### Select an implementation by capability
 
 Where actual capabilities or input structure distinguish the behavior, they decide it. A version range is used only where the shape cannot distinguish the cases and a semantic difference is documented, and even then it is a local decision inside an adapter rather than a general gate on the component. The presence of a function does not prove that event order, field meaning, delivery, or persistence is unchanged.
 
 Stable interfaces may be selected when the entry binds to the host. Dynamic input, settings, session state, and the ownership of a process-wide patch are read and checked under their own lifecycle. A component does not freeze everything into an activation-time snapshot, and it does not re-resolve an unchangeable assumption on every call.
 
-### Keep loading and failure boundaries local
+### Keep the load boundary local
 
 Compatibility analysis covers the production entry and its transitive imports, because a runtime probe cannot repair a module resolution that fails before the factory runs. Modules that are known to exist can stay statically imported. A module with a real cross-version difference, whose absence a component must tolerate, moves the load failure inside that adapter's boundary; moving an unchanged static import elsewhere does not count as handling it.
 
@@ -116,11 +116,11 @@ Raising the OMP-facing components to 18.5.0 removes three behaviors that still w
 
 ## Alternatives considered
 
-### Keep numeric installation and activation gates
+### Keep numeric gates
 
 The maintenance lower bound could have remained in peer dependencies or become an activation condition. This rejects out-of-range hosts early, but also rejects hosts that have the required capabilities and could run the component. It does not meet the requirement that the maintenance lower bound must not obstruct use.
 
-### Always verify the lower-bound and target hosts
+### Always verify the host pair
 
 A fixed pair standardizes verification steps, but imposes the same requirement on small changes whose behavior is unaffected. It also leaves distinct adaptation paths outside that pair uncovered. Verification therefore follows actual impact while preserving existing component release requirements.
 

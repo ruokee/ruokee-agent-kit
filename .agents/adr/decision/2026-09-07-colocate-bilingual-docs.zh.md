@@ -1,8 +1,8 @@
-# ADR 决定：同目录维护中英文公开文档
+# ADR 决定：同目录维护双语公开文档
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
-Reverses: [维护中英文公开文档](../archived/2026-08-20-maintain-bilingual-public-documentation.zh.md)
+Reverses: [维护双语公开文档](../archived/2026-08-20-maintain-bilingual-public-documentation.zh.md)
 
 [English](./2026-09-07-colocate-bilingual-docs.md) | 中文
 
@@ -16,7 +16,7 @@ Reverses: [维护中英文公开文档](../archived/2026-08-20-maintain-bilingua
 
 ## 决定
 
-### 语言与范围
+### 语言范围
 
 代码、注释、配置和默认公开文档使用英文。公开行为和用法同步维护对应中文文档。普通公开 Markdown 页面采用同目录 `name.md` 和 `name.zh.md` 配对。仓库和组件入口页使用 `README.md` 和 `README.zh.md`，不按语言拆分目录。
 

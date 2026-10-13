@@ -14,7 +14,7 @@ Create or update an ADR when a choice has real alternatives and changes a long-l
 
 Do not create one for a local bug fix, mechanical refactor, ordinary documentation update, status report, or temporary plan unless it changes one of those boundaries.
 
-## Location and document types
+## Document layout
 
 This repository uses `.agents/adr` as its ADR root:
 
@@ -161,7 +161,7 @@ An archived decision keeps the decision format, adds `Archived: YYYY-MM-DD` to i
 
 The English file may add an optional `## Analysis` section, and the Chinese file an optional `## 分析` section, immediately after the motivation section and before `## Proposal`/`## 提议` or `## Decision`/`## 决定`. Omit it when there is no substantive analysis. Analysis records only observations, evidence, constraints, reasoning, and uncertainties that affect the choice. It is not an implementation plan or a copy of research notes, and it neither repeats the motivation section nor the alternatives section.
 
-### Necessary contract and implementation material
+### Necessary contract material
 
 An ADR records a coherent durable choice, its reasons, necessary boundaries and ownership, important public promises, and significant compatibility, safety, cost, and failure consequences. Include a technical detail only when omitting it would prevent the reader from understanding the choice or a material tradeoff, or would lose a contract that must be preserved, and use only the necessary fragment. Configuration authority, immutable identity, and process-wide side effects may be essential even when described with concrete identifiers.
 
@@ -169,7 +169,7 @@ Full API and configuration tables, schemas, command references, and maintained i
 
 Relocating a binding clause does not cancel it. Keep its meaning and an accessible reference, and retain enough original detail in a historical record to explain the choice at that time; a link to changing current documentation cannot replace the historical contract.
 
-### Closed constraints and defensive rules
+### Closed constraints
 
 Distinguish an intentionally closed protocol, ownership rule, or safety boundary from examples and a growing inventory. Prefer a link to the owning inventory over a fixed count or exhaustive file tree, and state the protected boundary and reason when a closed set or prohibition is necessary.
 
@@ -177,7 +177,7 @@ A present scope limit or an option not needed for an initial release is not auto
 
 Defensive rules must address the actual operation and harm. Ordinary validation, repair, lifecycle changes, and repeated activation may need different preconditions; preserve identity, permission, and side-effect protections instead of replacing them with blanket restrictions unrelated to the protected boundary.
 
-### Reviewing alternatives and risks
+### Reviewing the entries
 
 When reviewing `## Alternatives considered` and `## Risks`, require the ADR to identify the requirement discussion or analysis in which each alternative became a real option and to name the harmful outcome of each risk. Delete unsupported or misclassified entries instead of rewriting them to sound plausible.
 
@@ -209,6 +209,6 @@ The maintainer owns proposal approval, rejection, and decision archival. An Agen
 
 Move both language files together and repair inbound links in the same change. Keep current decisions accurate when factual paths, names, or verification entry points move. Never use factual maintenance to reverse a decision.
 
-Archived decisions freeze after relationship and factual link repairs, and rejected proposals freeze after factual link repairs. The [ADR mechanism decision](./decision/2026-09-23-clarify-adr-content-boundaries.md) records a one-time exception for the English and Chinese ADR pairs present when that cleanup began, which allowed structural and wording edits that preserve every recorded choice, reason, constraint, uncertainty, historical capability scope, authorship, date, and reversal relationship. That exception does not unfreeze any record and grants no continuing permission to edit frozen material.
+Archived decisions freeze after relationship and factual link repairs, and rejected proposals freeze after factual link repairs. The [ADR mechanism decision](./decision/2026-09-23-clarify-adr-content-boundaries.md) records one bounded exception for each cleanup it authorized, applying to the English and Chinese ADR pairs present when that cleanup began, and allowing structural and wording edits that preserve every recorded choice, reason, constraint, uncertainty, historical capability scope, authorship, date, and reversal relationship. Each exception is limited to its own cleanup, does not unfreeze any record, and grants no continuing permission to edit frozen material.
 
 The first version uses review, repository search, and Git history rather than a dedicated Skill, classification system, archive manifest, or custom checker. Add a mechanical check only after repeated maintenance or an observed failure identifies a concrete invariant.

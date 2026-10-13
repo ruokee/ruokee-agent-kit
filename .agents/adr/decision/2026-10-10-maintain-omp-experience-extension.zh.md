@@ -2,7 +2,7 @@
 
 Decision owner: Ruokee
 Decision writer: OMP
-Reverses: [维护 QoL 模型提示词与既有体验调整](../archived/2026-10-07-maintain-qol-model-prompts.zh.md)
+Reverses: [维护 QoL 模型提示词](../archived/2026-10-07-maintain-qol-model-prompts.zh.md)
 
 [English](./2026-10-10-maintain-omp-experience-extension.md) | 中文
 
@@ -26,7 +26,7 @@ Reverses: [维护 QoL 模型提示词与既有体验调整](../archived/2026-10-
 
 ## 决定
 
-### 组件与范围
+### 组件范围
 
 在 [第一方能力边界](./2026-08-20-establish-first-party-capability-kit.md)与[自包含组件合同](./2026-08-24-keep-components-self-contained.md)下新增 `projects/omp-qol/`，包名 `@ruokee/omp-qol`。一个包包含其可独立开关的模块：持续等待、可续跑模型错误后的续跑、实验性的压缩期限延长、原生历史重放，以及模型提示词规则。安装、配置入口与检查各只有一处，而每个模块保留自己的开关、可用状态与故障报告。
 
@@ -58,7 +58,7 @@ Reverses: [维护 QoL 模型提示词与既有体验调整](../archived/2026-10-
 
 全部无关设置保留键名、默认值、范围及校验。Manifest 和设置读取器移除 `compactionCacheEnabled`、`compactionCacheProvider` 与 `compactionCacheMode`；这些键是 QoL 未知键，不是兼容别名。独立模型提示词模块另增 `modelPromptsEnabled: false`。`waitMessagesSeconds` 与 `waitProcessSeconds` 仍被接受和校验，在受支持宿主上不起作用；中英文文档和 manifest 中的设置说明都写明这一点。
 
-### 中断与无状态错误
+### 无判定错误
 
 把默认恢复范围扩展到不带分类结论的中断，且不匹配服务端文本。在 `knownTransient` 中，固定排除项与终止性客户端状态规则之后，满足以下任一条件即接受该错误：
 
@@ -69,7 +69,7 @@ Reverses: [维护 QoL 模型提示词与既有体验调整](../archived/2026-10-
 
 这不新增任何设置：`recoveryEnabled`、`recoveryMode`、次数与退避键、固定续跑正文与链规则保持原义，模块与宿主各自保留自己的上限。组件版本随新增的判定条件递增。
 
-### 压缩期限实验与按宿主选择
+### 压缩期限实验
 
 压缩期限延长作为默认关闭的实验提供：一个受约束的进程级超时调整，通过全局注册表安装，保留原生压缩协议、历史替换、重试与回退。
 
@@ -97,7 +97,7 @@ Reverses: [维护 QoL 模型提示词与既有体验调整](../archived/2026-10-
 
 [Smart-cache 拥有 remote 对齐](./2026-10-12-provide-remote-alignment.zh.md)。remote 实现、设置消费、状态入口、别名、再导出和运行时依赖都归该组件。仓库 README 双语页维护用户与项目层协同迁移及重启说明。QoL 维护自己的调整：上述独立期限实验及其 `owner-stopped` 终态，以及进程级 replay 归属和释放规则。Remote 恢复不改变这些合同。
 
-### 文档与版本证据
+### 发布证据
 
 在组件自身的 `docs/` 中提供中英文对照的逐项说明，并由两个 README 相互链接：原生行为与关闭扩展时的表现；为什么需要调整、核对过哪些原生配置或 hook；介入位置以及配置如何影响行为；副作用、取消与失败行为；何种上游变化会使该调整不再必要；源码基线所用的 OMP 版本与提交；自动检查与真实 OMP CLI 运行各自验证过的版本；适用条件与边界。
 

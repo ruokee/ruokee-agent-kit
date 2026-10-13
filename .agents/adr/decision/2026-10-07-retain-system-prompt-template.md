@@ -24,7 +24,7 @@ In 18.5.0, [`discoverSystemPromptOverride`](https://github.com/can1357/oh-my-pi/
 
 ## Decision
 
-### Approaching deprecation and rule ownership
+### Approaching deprecation
 
 The component is marked as approaching deprecation, without a removal date, automatic uninstall, maintenance stop, or per-turn deprecation warning. The maintainer observed that recent OMP updates substantially reduced prompt text and supplied templates, reducing the need for additional strategy replacement. This does not assert an unchecked release number or that native templates automatically equal every component policy. The template, Delivery, footer, diagnostics, optional installation, and current maintenance remain.
 
@@ -65,7 +65,7 @@ Recognize converted footers through owned loading guidance or the comment at its
 
 [projects/omp-system-prompt/README.md](../../../projects/omp-system-prompt/README.md#how-it-works) owns the concrete footer contract and separates API regressions from real-host Provider observations. Those observations must cover required-marker and no-marker cases, including an ordinary subagent, without claiming general host certification.
 
-### Repeated turns and settings changes
+### Repeated turns
 
 The template route is idempotent. A turn whose input already carries the template block, the owned Delivery chapter in its expected position, and the corrected footer is recognized, and the extension returns no replacement when nothing would change, so reprocessing preserves the complete block array when settings are unchanged. A change of `renderDelivery` between turns adds or removes only that chapter, including on a prompt whose footer was already converted.
 

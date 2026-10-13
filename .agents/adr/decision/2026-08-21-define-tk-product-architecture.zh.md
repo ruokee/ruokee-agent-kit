@@ -31,7 +31,7 @@ Harness 负责模型循环、提示、上下文、权限、hooks、Skill 加载�
 
 四个自包含 Skill 分别定义 tools 或 CLI 模式下使用英文或中文时的 Agent 行为。公开文档记录当前产品合同。ADR 保存长期决定及其理由。
 
-### 任务与 Harness 边界
+### Harness 边界
 
 Harness 是围绕模型、使其能够作为 Agent 运行的软件环境。当前集成包括 Codex、Claude Code、Pi 和 OMP。增加其他 Harness 需要提供自包含组件和集成合同，但不改变产品定义。
 
@@ -44,7 +44,7 @@ Harness 是围绕模型、使其能够作为 Agent 运行的软件环境。当�
 以下 ADR 分别负责本架构中的详细合同：
 
 - [任务数据模型](./2026-09-10-allow-closed-rename-filesystem-scan.zh.md)；
-- [运行时与 CLI](./2026-08-28-define-tk-runtime-and-cli.zh.md)；
+- [运行时与 CLI](./2026-08-28-define-tk-runtime.zh.md)；
 - [纯 CLI 模式](./2026-09-02-add-tk-cli-only-mode.zh.md)；
 - [Skill 语言选择](./2026-09-02-select-tk-skill-language.zh.md)；
 - [Harness 工具集成](./2026-09-02-integrate-tk-tools-with-harnesses.zh.md)；
@@ -69,7 +69,7 @@ Harness 是围绕模型、使其能够作为 Agent 运行的软件环境。当�
 
 ## 变更
 
-### 2026-09-02：增加可选择的 Skill 模式与语言
+### 2026-09-02：增加可选择的 Skill
 
 产品现在包含四个可独立发现的 Skill 和多种 Harness 组件选择。上文的决定归属列表用四项聚焦的现行决定，替换了已经归档的单语言 Harness 集成与组件分发决定。
 

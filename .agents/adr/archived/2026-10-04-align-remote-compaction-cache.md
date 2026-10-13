@@ -26,7 +26,7 @@ This decision defines the first-party `omp-qol` component, the responsibility sp
 
 ## Decision
 
-### Component and scope
+### Component scope
 
 Add `projects/omp-qol/`, named `@ruokee/omp-qol`, under the [first-party capability boundary](../decision/2026-08-20-establish-first-party-capability-kit.md) and the [self-contained component contract](../decision/2026-08-24-keep-components-self-contained.md). One package carries five independently switchable modules: continuing waits, continuation after an eligible model error, the experimental compaction deadline extension, native history replay, and remote compaction cache alignment. One installation, one configuration entry, and one set of checks cover them, while each module keeps its own switch, availability status, and failure reporting.
 
@@ -42,7 +42,7 @@ The wait module re-registers the native tool, delegates every call to it, and re
 
 The recovery module uses the native session-stop continuation request. Fixed safety exclusions take precedence over configuration, so no setting turns them into a continuation. They cover cancellations, refusals, authentication and quota outcomes, context overflow, and deterministic failures. Continuations are bounded both by the module and by the host's own cap, each requested continuation is reported with its attempt and delay, and the module does not claim that a re-run is idempotent or that a completed tool call is not repeated. The continuation body is fixed text that carries no provider error body.
 
-### Interrupted and statusless errors
+### Errors without a verdict
 
 Extend the default recovery scope to interruptions that carry no classifier verdict, without matching provider text. In `knownTransient`, after the fixed exclusions and the terminal-client-status rule, accept an error when either condition holds:
 
@@ -53,7 +53,7 @@ The exclusions and the terminal-client-status rule keep precedence, so an exclud
 
 This adds no setting: `recoveryEnabled`, `recoveryMode`, the attempt and backoff keys, the fixed continuation body, and the chain rules keep their meaning, and the module and the host each keep their own cap. The component version moves with the new eligibility.
 
-### Compaction deadline experiment and host selection
+### Compaction deadline experiment
 
 Offer the compaction deadline extension as a default-off experiment: a bounded, process-wide timeout adjustment installed through a global registry, preserving the native compaction protocol, history replacement, retries, and fallback.
 
@@ -83,7 +83,7 @@ Provide an independently switchable cache module using native OMP plugin setting
 
 The module retains one preceding provider payload in memory and confirms that it reached the actual online transport unchanged. It may reuse tool definitions and a proven shared input prefix, including recognized host envelopes and replay identifier differences, while preserving the compaction-only tail, trigger, opaque data, explicit tool choice, cache key, routing, and model policy. Any unrecognized difference leaves the complete request unchanged. It never invents a second serializer or modifies the provider response or stored history.
 
-#### Ownership and lifecycle
+#### Wrapper ownership
 
 Use one process-owned set of wrappers over `fetch`, native signal composition, and the public manual compaction method. An operation belongs to the session identified by the event and its signal lineage, not to a time window. Preserve original signals, reasons, return values, promise identity, native retries, and fallback. Clear manual ownership only when the native operation settles; a failed transport attempt is not the end of that operation.
 
@@ -93,7 +93,7 @@ Enabling the module accepts the loss of speculative compaction in its owning ses
 
 When an equivalent maintained native request-preparation interface becomes available, use it instead of the wrappers. The component documentation records the source baseline and the limits of observed cache benefits.
 
-### Documentation and version evidence
+### Release evidence
 
 Document each adjustment in the component's own `docs/` in English and Chinese, linked from both README files: the native behavior and what happens with the extension off, why the adjustment is needed and which native configuration or hook was checked, where it attaches and how configuration changes it, its side effects, cancellation, and failure behavior, the upstream change that would make it unnecessary, the source baseline with the OMP version and commit, the versions actually verified for automated checks and for real OMP CLI runs, and the applicability limits.
 

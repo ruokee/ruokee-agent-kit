@@ -17,7 +17,7 @@ An Agent currently reconstructs the maintenance procedure from project instructi
 
 ## Proposal
 
-### Capability and activation
+### Capability scope
 
 Add a first-party, model-invoked Skill named `adr`. Its English component lives at `skills/adr/SKILL.md`, with a complete Chinese variant at `variants/zh/skills/adr/SKILL.md`.
 
@@ -25,7 +25,7 @@ Use the Skill when a task creates, reviews, updates, reverses, rejects, archives
 
 The Skill only maintains an already adopted ADR mechanism. Approval, rejection, archival, and the durable decision itself remain with the maintainer.
 
-### Local authority and reading order
+### Local authority
 
 Read applicable project instructions first. Then locate and read the project's ADR guide, terminology rules, active proposals, and current decisions relevant to the requirement. Read rejected proposals when checking whether the same requirement was rejected before. Read archived decisions and Git history only when a relationship, stable identity, original authorship, or prior rationale requires them.
 
@@ -43,9 +43,9 @@ Apply the local authoring rules to alternatives, risks, and empty sections. The 
 
 Complete independent work before requesting approval for a maintainer-owned lifecycle action. Before delivery, check the local structural, link, and semantic requirements and run the repository's current validation entry point.
 
-### Decision replacement and packaging
+### Decision replacement
 
-This proposal conflicts with the current ADR mechanism decision's choice not to add a dedicated ADR Skill. If accepted and implemented, it will reverse [Clarify the ADR mechanism and content boundaries](../decision/2026-09-23-clarify-adr-content-boundaries.md). The replacement decision must preserve all still-effective mechanism rules and add the Skill's role.
+This proposal conflicts with the current ADR mechanism decision's choice not to add a dedicated ADR Skill. If accepted and implemented, it will reverse [Clarify the ADR content boundaries](../decision/2026-09-23-clarify-adr-content-boundaries.md). The replacement decision must preserve all still-effective mechanism rules and add the Skill's role.
 
 Keep the first release to one `SKILL.md` in each language component. The procedure is short and used as a whole, so no `agents/`, `workflows/`, `references/`, examples, or glossary are needed. Document the Skill in the English and Chinese capability indexes during implementation.
 

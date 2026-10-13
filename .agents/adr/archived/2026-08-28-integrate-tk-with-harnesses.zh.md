@@ -1,9 +1,9 @@
-# ADR 决定：集成 tk 与 Harness
+# ADR 决定：为 Harness 集成 tk
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-02
-Reversed by: [集成 tk 工具与 Harness](../decision/2026-09-02-integrate-tk-tools-with-harnesses.zh.md)
+Reversed by: [把 tk 工具集成到 Harness](../decision/2026-09-02-integrate-tk-tools-with-harnesses.zh.md)
 
 [English](./2026-08-28-integrate-tk-with-harnesses.md) | 中文
 
@@ -15,7 +15,7 @@ tk 向 Codex、Claude Code、Pi 和 OMP 暴露同一套逻辑工具、请求和�
 
 ## 决定
 
-### 逻辑工具与 schema
+### 工具 schema
 
 tk 定义六个与传输无关的逻辑工具：search、read、create、update、log 和 exec。
 

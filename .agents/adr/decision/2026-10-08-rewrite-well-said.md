@@ -16,7 +16,7 @@ Writing guidance should tell the agent how to produce useful content. Source att
 
 ## Decision
 
-### Capability and writing guidance
+### Capability scope
 
 Keep `well-said` as an independently authored, model-invoked Skill. Its usage instruction is "Use when outputting anything", including replies, documentation, code comments, and agent communication. Explicit invocation remains supported. Applying writing guidance does not add permission to modify files or executable content.
 
@@ -26,7 +26,7 @@ Treat defensive phrasing as a possible sign of unfinished work as well as a writ
 
 Separate the responses to wording and work problems. State an evidence-supported conclusion clearly when the wording is merely too cautious. Complete missing required work or redo incorrect work within the authorized scope. For sound work, rewrite useful paragraphs around the reader's needs and delete empty ones. Keep facts, material risks, important unknowns, permission conditions, necessary reasoning, and status reports required by the user or applicable workflow.
 
-### Component files, authorship, and version
+### Component layout
 
 Keep the English component under `skills/well-said/` and the Chinese component under `variants/zh/skills/well-said/`. Each is a self-contained distributable with the same file set:
 
@@ -43,7 +43,7 @@ The [first-party capability decision](./2026-08-20-establish-first-party-capabil
 
 The complete writing guidance stays in one file. Extract substantial, infrequently used supplementary material only when actual content and loading measurements justify it. Ordinary writing must remain supported by the complete rules in `SKILL.md`.
 
-### Preservation and editing authority
+### Editing authority
 
 Executable code and configuration are outside its editing scope. Distinguish comments from executable content in mixed files. Preserve quotations, commands, identifiers, original logs, recorded outputs, and other literal material when their purpose or the request requires exact wording.
 
@@ -61,7 +61,7 @@ Allow structural changes within the authorized scope, including reordering parag
 
 Review the result against the original information and current request. In particular, do not turn an untested environment into an unsupported environment, an obligation into completed behavior, or a hypothetical design into an existing capability. Preserve concrete unknowns and investigate meaningful contradictions rather than polishing them away.
 
-### Loading and application
+### Loading
 
 Make the complete `SKILL.md` available before applying the Skill to output. A description, summary, or truncated excerpt is not the complete guidance; retrieve missing content when the host has not provided it. Reuse the full text already available in the current context without rereading it for every response. Restore needed content if context loss makes it unavailable.
 

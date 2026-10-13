@@ -29,7 +29,7 @@ With no rule files present, every turn behaves as before, so the change is addit
 
 Register two `before_agent_start` handlers in this order: the existing replacement first, the rule append second. The append step reads the array the replacement produced, so it does not re-classify blocks the replacement just wrote. The steps fail independently. A replacement failure leaves the incoming host array for the append step to extend, and an append failure leaves the replacement result in effect. Both report through the component's existing bounded, session-deduplicated diagnostic channel.
 
-### Rule documents and matching
+### Rule matching
 
 Read two fixed directories on every turn the hook runs:
 
@@ -86,7 +86,7 @@ Real-host checks record the exercised OMP release, the models, and the observed 
 
 ## Alternatives considered
 
-### Distribute a separate extension and document an ordering contract
+### Distribute a separate extension
 
 This option was considered when choosing where the capability lives. Two components transforming the same array make the visible result depend on installation order, because handlers run in extension order with no priority option, and they require the replacement to recognize or preserve text owned by another component. Merging into one component removes both dependencies.
 

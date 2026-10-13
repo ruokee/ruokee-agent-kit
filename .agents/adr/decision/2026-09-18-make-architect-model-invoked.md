@@ -16,7 +16,7 @@ The Agent should load architect when the task supplies clear system-level signal
 
 ## Decision
 
-### Capability and scope
+### Capability scope
 
 Keep a self-contained English Skill under `skills/architect/` and a complete Chinese variant under `variants/zh/skills/architect/`. Each component covers system-level architecture analysis, design, review, technology selection, and evolution.
 
@@ -112,13 +112,13 @@ Each document has the following responsibility:
 
 Chapters 23 through 25 cover constraint expression, output review, and quality validation when AI participates in system-level architecture work, so they belong under `ai/`. Chapter 01 focuses on career and learning motivation, chapter 26 on general collaboration style, and chapters 35 through 40 on AI-native organizations. They are not priorities for this system architecture Skill. Templates and cases may supply examples, but the Skill does not copy them into a separate template catalogue.
 
-### Evidence and output contract
+### Evidence contract
 
 The Skill distinguishes observed project facts, conclusions derived from those facts, unverified assumptions, recommendations, and user decisions. Project facts cite current code, configuration, runtime evidence, or observation windows. Derived estimates show inputs, formulas, and uncertainty. Version-sensitive external claims and numerical case studies use primary sources with dates or versions.
 
 Outputs present candidate options, tradeoffs, applicability conditions, and assumptions. They translate technical choices into consequences for cost, risk, and time. Analysis and design center on system views and boundaries; the user decides whether implementation proceeds.
 
-### Sources and adaptation
+### Source adaptation
 
 [`awesome-architecture`](https://github.com/study8677/awesome-architecture/tree/7f43e49b95ad9c255418733738fddab4eb0f6a68) is the topic map and source material for the reference coverage. Project evidence, primary technical documentation, and other reliable architecture sources supplement and correct technical judgments. The Skill does not track the upstream directory structure or wording.
 

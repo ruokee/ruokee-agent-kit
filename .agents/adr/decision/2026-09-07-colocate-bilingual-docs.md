@@ -1,8 +1,8 @@
-# ADR decision: Colocate English and Chinese public documentation
+# ADR decision: Colocate bilingual public documentation
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
-Reverses: [Maintain English and Chinese public documentation](../archived/2026-08-20-maintain-bilingual-public-documentation.md)
+Reverses: [Maintain bilingual public documentation](../archived/2026-08-20-maintain-bilingual-public-documentation.md)
 
 English | [中文](./2026-09-07-colocate-bilingual-docs.zh.md)
 
@@ -16,7 +16,7 @@ Repository and component entry pages also need clear responsibilities so readers
 
 ## Decision
 
-### Language and scope
+### Language scope
 
 Write code, comments, configuration, and default public documentation in English. Maintain corresponding Chinese documentation for public behavior and usage. Ordinary public Markdown pages use same-directory `name.md` and `name.zh.md` pairs. Repository and component entry pages use `README.md` and `README.zh.md`, not separate language directories.
 

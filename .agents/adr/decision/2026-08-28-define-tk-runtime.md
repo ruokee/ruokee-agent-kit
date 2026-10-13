@@ -1,9 +1,9 @@
-# ADR decision: Define the tk runtime and CLI
+# ADR decision: Define the tk runtime
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
 
-English | [中文](./2026-08-28-define-tk-runtime-and-cli.zh.md)
+English | [中文](./2026-08-28-define-tk-runtime.zh.md)
 
 ## Motivation
 
@@ -15,7 +15,7 @@ The runtime also needs a stable command boundary for scripts and adapters. It mu
 
 ## Decision
 
-### Language and executable
+### Runtime implementation
 
 tk is implemented as one Rust Cargo package under `projects/tk/` and produces one executable named `tk`. The public Linux runtime path is `$HOME/.local/bin/tk`.
 
@@ -61,7 +61,7 @@ actor is WAL attribution, not identity, authorization, or task assignment. Direc
 
 Project discovery and Git policy are separate. Reads, searches, and diagnostics locate and inspect a project without Git policy rejection. A persistent write runs the shared Git check immediately before its first write.
 
-### Process and resource boundaries
+### Resource boundaries
 
 The runtime bounds search candidates, process stdout and stderr, generated schemas, WAL reads, and protocol frames. Each subprocess stream and MCP JSON payload is limited to 1 MiB. Oversized MCP input closes the transport, and oversized output fails instead of emitting a partial frame.
 
@@ -69,7 +69,7 @@ Search processes candidates incrementally and keeps at most the best 100. Operat
 
 A single-file write observes cancellation before atomic replacement. Once replacement starts, it finishes that replacement before returning. Multi-target commands observe cancellation between commit points. Cancellation before the first write leaves no persistent change. Cancellation after a commit point reports the same completed and uncompleted boundary as an I/O failure.
 
-### Failure and version contracts
+### Runtime contracts
 
 Expected domain and environment failures use the public result envelope. Panics, killed processes, malformed transport output, and broken protocol connections remain transport or internal failures. The runtime does not fabricate a domain result for them.
 

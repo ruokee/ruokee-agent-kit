@@ -23,23 +23,23 @@ Evidence from the trial is narrow. It covered the seams and the three projection
 
 ## Decision
 
-### Capability and configuration
+### Public configuration
 
 Handoff alignment is one capability of the [smart-cache extension](./2026-10-12-maintain-smart-cache-extension.md), needs no separate installation, package, settings reader, or extension entry, and has its own decision, switch, state, counters, and acceptance.
 
 Its public contract is one native OMP setting, `handoffCacheEnabled`, boolean, defaulting to `false`. It enables this capability alone; remote keeps `compactionCacheEnabled`, `compactionCacheProvider`, and `compactionCacheMode` unchanged. A disabled switch leaves every request native. No Provider whitelist, mode, or second configuration source is added, and the switch is read in the same activation snapshot as the remote settings and requires restarting OMP. Remote needs an exact Provider name because V2 opaque data, trimming, and routing semantics vary by Provider; this capability depends on the chat-completions request shape and binds its reference to the same session, model, prompt, and tool set, so a Provider key would add configuration surface and a second Provider inventory without adding protection. Component documentation declares the verified matrix and its gaps instead.
 
-### Applicability and mutual exclusion
+### Applicability
 
 Applicability follows the session's API rather than a list of Providers. A session whose model API is `openai-completions` is a Handoff candidate, one whose API is `openai-responses` stays with remote alignment, and any other API uses neither capability. At most one capability takes a given request, and enabling one never enables the other.
 
-### Reference and operation binding
+### Reference binding
 
 Only a confirmed ordinary main-loop dispatch supplies a reference, and only after its HTTP response confirms the send. The calls this capability aligns never become a reference. Each session keeps its own reference together with the ownership it was captured with: Provider, model identity, API, system prompt, thinking state, and tool set. A prepared request that carries no tool set supplies no reference, so a session that never sends tools stays native.
 
 A reference is immutable for the operation it belongs to. Newer online work, an authentication refresh, a transport retry, and a handler-state advance cannot move it, and a retry cannot acquire a newer one. The binding is established at the preparation seam that identifies the operation and is resolved at the seam that prepares the outgoing request, using the signal both seams receive. Switch, branch, and tree navigation, compaction commits, and session release clear the reference and invalidate that session's epoch; an operation already bound keeps its own snapshot, and a new ordinary send restores eligibility without restarting the process.
 
-### Boundary and projection
+### Projection boundary
 
 The capability rewrites a side request only when the side system segments are a prefix of the reference system, the reference's non-system history is a strict prefix of the side history, and the reference still belongs to the same session, model, API, prompt, thinking state, and tool set. Within that boundary it restores the online system segments, the online `reasoning_effort` when the reference holds one, and the online `tool_choice` when the reference holds no explicit choice. It replaces the request body once, after the host's own payload hooks, and leaves the side instruction, the new history, the cache keys, the cancellation signal, and every other request option untouched.
 
@@ -47,7 +47,7 @@ Projections are restored axis by axis. An axis that cannot be restored is skippe
 
 A request outside the boundary is sent unchanged with a fixed reason: an invalidated operation, an unconfirmed reference, a reference whose session, model, API, prompt, thinking state, or tool set changed, or a changed system prefix or history projection. `rejected` means this capability did not rewrite the request and it never means the request was blocked, delayed, or dropped. An identical candidate is reported as already aligned without reserialization.
 
-### Independence and diagnostics
+### Independence
 
 The capability shares the package, the coordinator, the per-session registration, and one wrapper per native method with remote alignment, and shares nothing else: no protocol rules, payload shapes, reason codes, or benefit evidence. It does not reuse remote's Responses V2 rules, and a refusal or a missing interface in one capability leaves the other working.
 
@@ -59,7 +59,7 @@ OMP retains document generation, scheduling, triggering, cancellation, authentic
 
 Choose maintained behavior by capability and structure. Replace these adaptations when a maintained native interface provides equivalent results, configuration semantics, isolation, and failure behavior across the required paths, after behavioral verification rather than merely an upstream merge.
 
-### Trial extension and cutover
+### Trial extension cutover
 
 The local trial extension stays installed only until this capability passes its own acceptance and an installation authorization follows. That authorized cutover replaces and disables the trial; this decision does not perform it. While the trial extension is still auto-discovered, the package reports a conservative wrapper conflict instead of seizing a wrapper, and the cutover happens by restarting affected processes rather than by transferring in-flight state.
 

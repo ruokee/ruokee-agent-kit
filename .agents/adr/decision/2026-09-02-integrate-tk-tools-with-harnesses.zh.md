@@ -1,8 +1,8 @@
-# ADR 决定：集成 tk 工具与 Harness
+# ADR 决定：把 tk 工具集成到 Harness
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
-Reverses: [集成 tk 与 Harness](../archived/2026-08-28-integrate-tk-with-harnesses.zh.md)
+Reverses: [为 Harness 集成 tk](../archived/2026-08-28-integrate-tk-with-harnesses.zh.md)
 
 [English](./2026-09-02-integrate-tk-tools-with-harnesses.md) | 中文
 

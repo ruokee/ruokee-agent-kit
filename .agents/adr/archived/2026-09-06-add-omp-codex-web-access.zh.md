@@ -13,7 +13,7 @@ OMP 需要自己的网页搜索和页面提取工具来使用第三方转发 Pro
 
 ## 决定
 
-### 组件与工具
+### 组件工具
 
 仓库在 `projects/omp-codex-web-access` 维护自包含的 OMP 扩展包，包名为 `@ruokee/omp-codex-web-access`。运行时、包元数据、检查以及 `README.md` 与 `README.zh.md` 文档均位于组件目录内。两个 README 分别是该语言下组件的完整文档，覆盖工具、安装、配置、加载模式、模型执行、开发检查和许可证。扩展入口通过 `package.json` 的 `omp.extensions` 声明。仓库 `README.md` 和 `README.zh.md` 在 OMP 扩展列表中列出该组件，并分别链接对应语言的组件 README。
 

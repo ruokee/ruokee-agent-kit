@@ -78,7 +78,7 @@ omp plugin config set @ruokee/omp-system-prompt renderDelivery false
 
 默认值为 `true`，未配置时保留完整 Delivery 章节。只有确切的 boolean `false` 才会关闭它。读取失败或值不是 boolean 时安全回退为 `true`，保留 Delivery，通过现有有界且按会话去重的诊断通道报告，不能阻止模型请求。关闭范围精确到从 `# Delivery` 标题开始，直到最后 `## Pausing` 正文结束，包含 `Task scope`、`Completion`、`Evidence` 和 `Pausing` 四个子节；不得删除相邻动态槽位、PROJECT 内容或独立 blocks。
 
-### 分离静态策略与运行内容
+### 把静态策略从运行内容中分离
 
 仅在 Delivery 启用时，自有 Delivery 章节才定义范围、证据、完成和合理暂停要求。Delivery 关闭时，扩展不再提供这四项要求；适用的用户、项目或其他系统规则仍可提供它们。除 Delivery 要求外，自有提示词定义 OMP 身份、指令来源边界、上下文解释、工具可用性与恢复及授权内协作。不得宣称 XML 名称赋予内容权威，或所有用户内容都已净化。它不能代替宿主的消息来源和输入安全机制。
 
@@ -129,13 +129,13 @@ Provide each child its context, requirements, permissions, and expected result; 
 
 完整 Skill 目录的外层边界已被唯一确定后，元数据缺失或格式错误、Skill 命令关闭、description 排版不受支持、description 对应有歧义，或前序处理器修改导致无法匹配时，逐字节保留整个原始目录。不只归一化碰巧匹配成功的条目。继续执行受支持的静态策略、工具、设备、内部资源及 PROJECT 变换。不改用纯文本条目猜测，也不替用户启用 Skill 命令。无法安全确定目录外层边界仍属于下述结构失败。
 
-### 保留隐藏 Skill 与手动调用
+### 保留手动调用
 
 隐藏 Skill 继续不出现在自动系统目录中，并保留宿主的 `skill://<name>` 访问，以及在 Skill 命令启用时由用户通过 `/skill:<name>` 调用的能力。其存在于命令元数据中，不得阻止对唯一匹配的可见目录进行归一化，也不得阻止其他提示词变换。不得为获得匹配而修改隐藏标记或命令设置、移除插件，或硬编码 Skill 名称排除项。
 
 使用宿主已有的手动调用路径。保留被调用 Skill 的完整正文、用户提供的参数及用户归属，不对该消息执行目录 description 格式化。手动调用不要求将隐藏 Skill 暴露到自动目录中。扩展不另建调用机制，也不绕过已关闭的宿主命令。
 
-### 区分 Skill 回退与整份提示词失败
+### 把 Skill 回退从整份提示词失败中区分
 
 使用当前 `event.systemPrompt`，不得以启动时快照或 `ctx.getSystemPrompt()` 代替处理器链输入。每轮独立处理。自有模板在扩展激活时加载；模板编辑通过重新激活或新会话生效，不提供文件监听。
 

@@ -16,7 +16,7 @@ Reverses: [为系统提示词扩展增加模型级规则](../archived/2026-09-14
 
 ## 决定
 
-### 组件、开关与共存
+### 组件开关
 
 由自包含的 `@ruokee/omp-qol` 承载规则，遵循[保持组件自包含](./2026-08-24-keep-components-self-contained.zh.md)与[维护提高 OMP 使用体验的拓展](./2026-10-10-maintain-omp-experience-extension.zh.md)。`modelPromptsEnabled` 是原生布尔设置，默认 `false`，受总开关 `enabled` 控制。两个开关都开启时才注册规则 handler、访问规则目录并产生未使用文件诊断。设置在激活时读取一次；改动设置须重启 OMP，导航与新会话不刷新该快照。
 
@@ -26,7 +26,7 @@ Reverses: [为系统提示词扩展增加模型级规则](../archived/2026-09-14
 
 单独使用 QoL 不需要 system-prompt。共存时实际加载顺序必须是 system-prompt 在前、QoL 在后，组件内部不依赖另一个组件文件。模板失败为规则追加保留传入数组，规则失败保留模板结果。更晚的 handler 仍可修改最终输入，不增加跨扩展调度或保证。两组件须协调更新，再启用新开关并重启；不保留旧版本混用的双重入口。
 
-### 规则文档与匹配
+### 规则匹配
 
 在钩子运行的每个 turn 读取两个固定目录：
 

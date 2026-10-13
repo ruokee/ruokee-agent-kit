@@ -52,7 +52,7 @@
 - [将 Skill 打包为自包含语言变体](../adr/decision/2026-08-20-package-self-contained-skill-variants.zh.md)
 - [保持可分发组件自包含](../adr/decision/2026-08-24-keep-components-self-contained.zh.md)
 - [建立第一方 Agent 能力工具集](../adr/decision/2026-08-20-establish-first-party-capability-kit.zh.md)
-- [同目录维护中英文公开文档](../adr/decision/2026-09-07-colocate-bilingual-docs.zh.md)
+- [同目录维护双语公开文档](../adr/decision/2026-09-07-colocate-bilingual-docs.zh.md)
 - [添加用户主动调用的 grill-me Skill](../adr/decision/2026-09-06-add-grill-me-skill.zh.md)
 - [允许模型调用 architect](../adr/decision/2026-09-18-make-architect-model-invoked.zh.md)
 - [提供 deep-research Skill](../adr/decision/2026-09-06-migrate-deep-research.zh.md)

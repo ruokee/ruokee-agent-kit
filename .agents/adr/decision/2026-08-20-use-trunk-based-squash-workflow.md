@@ -1,4 +1,4 @@
-# ADR decision: Use short-lived branches and squash into main
+# ADR decision: Squash short-lived branches into main
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol

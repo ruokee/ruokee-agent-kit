@@ -55,7 +55,7 @@ A template that fails belongs to the route that read it. A strict template argum
 
 Each of these reports its own bounded result. One step failing does not suppress another, and no step's success stands for the others.
 
-### Repeated turns and settings changes
+### Repeated turns
 
 The template path is idempotent. A turn whose input already carries the template block, the owned Delivery chapter in its expected position, and the corrected footer is recognized, and the extension returns no replacement when nothing would change. A change of `renderDelivery` between turns adds or removes only that chapter on either route, including a prompt whose footer was already converted. The older path keeps its atomic contract, and a turn that matches neither path keeps its input unchanged with the bounded replacement diagnostic.
 

@@ -1,4 +1,4 @@
-# ADR decision: Clarify the ADR mechanism and content boundaries
+# ADR decision: Clarify the ADR content boundaries
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
@@ -20,13 +20,13 @@ The existing rules already exclude progress logs and copied implementation inven
 
 Following the current reversal rules can still leave an unnecessarily narrow promise in place. The archived QoL decisions ([2026-09-20](../archived/2026-09-20-add-omp-qol.md), [2026-09-21](../archived/2026-09-21-reuse-a-matching-compaction-patch.md)) show one record stopping a process-wide adjustment whenever another owner was registered, and its successor allowing a matching activation to preserve the installed patch. That successor changed an explicit rule, so a reversal was warranted. The tk documentation successor instead treated a single fixed translation as the conflict that required restating a whole documentation policy, which made the reversal broader than the changed term.
 
-The cleanup this decision records also ran into a limit in the predecessor decision. Its [Formats and bilingual maintenance](../archived/2026-09-02-establish-adr-mechanism.md#formats-and-bilingual-maintenance) section froze rejected proposals and allowed only relationship and factual link repairs to archived records. Structural and wording edits that preserved every recorded meaning still exceeded that authority, so this decision adds one exception limited to that cleanup and carries the predecessor's other effective rules forward.
+The cleanup this decision records also ran into a limit in the predecessor decision. Its [Record format](../archived/2026-09-02-establish-adr-mechanism.md#record-format) section froze rejected proposals and allowed only relationship and factual link repairs to archived records. Structural and wording edits that preserved every recorded meaning still exceeded that authority, so this decision adds one exception limited to that cleanup and carries the predecessor's other effective rules forward.
 
 The relevant questions are whether the new choice contradicts an accepted rule, and whether that rule belongs at that level of detail. Fewer reversals alone do not make a decision better, and existing explicit constraints remain binding until deliberately changed.
 
 ## Decision
 
-### Terminology and location
+### Terminology
 
 Use **ADR** as the primary term for an architecture decision record. This repository uses `.agents/adr` as its ADR root.
 
@@ -36,7 +36,7 @@ Use `Create decision`, `Update decision`, and `Reverse decision` as action phras
 
 Maintain `glossary.md` and `glossary.zh.md` at the ADR root. The initial glossary contains exactly ADR, proposal, decision, `Update decision`, and `Reverse decision`. Each entry has one concise definition that names the corresponding term in the other language. New entries require the maintainer to establish their meaning explicitly.
 
-### Requirement intake and proposal integration
+### Proposal workflow
 
 Search active proposals and current decisions before planning a new requirement. Determine whether the requirement adds an unrelated capability, extends a current decision without conflict, or conflicts with a current decision.
 
@@ -44,7 +44,7 @@ Create one proposal for a requirement unless the maintainer requests another spl
 
 Merge an approved proposal to `main` as a dedicated change before implementation begins. Start implementation from that updated `main` on a new short-lived branch. After implementation, create the new decisions, update decisions that do not conflict, reverse conflicting decisions, and remove the consumed proposal in the implementation change. Git history preserves the independently merged proposal.
 
-### Formats and bilingual maintenance
+### Record format
 
 Each ADR is one same-directory English and Chinese pair with reciprocal language links. Both files are semantically authoritative and move together. A semantic conflict blocks merge until the maintainer resolves it.
 
@@ -70,7 +70,7 @@ Distinguish an intentionally closed protocol, ownership rule, or safety boundary
 
 Record only alternatives that existed before writing or were genuinely considered, and only possible harmful outcomes as risks. An alternative must describe another course of action rather than a fact, requirement, constraint, acceptance criterion, implementation detail, or restatement. A risk must name a plausible harmful outcome caused by the proposal or by an omission, rather than relabeling facts, requirements, constraints, invariants, acceptance criteria, or tasks. Write `None` or `无` when the applicable section has no content. Descriptive level-three headings may organize a required section but never replace required level-two headings.
 
-### Update and reverse decisions
+### Decision lifecycle
 
 Use `Update decision` when new content does not conflict with a current decision. Append it under a final `Changes` section with a dated level-three heading. Link another decision when the addition deserves its own ADR. Purely editorial maintenance creates no new choice and needs no reversal.
 
@@ -121,3 +121,7 @@ The glossary stays deliberately small. Ordinary wording and unconfirmed synonyms
 ### 2026-09-29: Require a one-sentence opening paragraph
 
 `Motivation` now opens with one short sentence stating what is to be done, written as the action itself rather than as a description of the record, and the concrete problem, background, reasons, and evidence move to the paragraphs after it. This replaces the earlier requirement that the first sentence identify the concrete problem, intended change, or goal. The rule itself is stated in [the ADR guide](../README.md), and the [motivation decision](./2026-08-22-use-motivation-heading-in-adrs.md) records the same update.
+
+### 2026-10-14: Allow one bounded naming cleanup
+
+The [naming rules](../../rule/documentation.md) now apply to the records already in the tree, so a file name or heading names one subject. One bounded exception allows the headings and file names of archived decisions and rejected proposals to be reworded under those rules. Every record keeps its choice, reason, constraint, uncertainty, historical capability scope, authorship, date, and reversal relationship, and the exception neither unfreezes a record nor grants continuing permission to edit frozen material.

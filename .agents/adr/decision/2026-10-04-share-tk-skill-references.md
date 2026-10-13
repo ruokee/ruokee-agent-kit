@@ -39,7 +39,7 @@ A Task may use any combination of the four patterns or none. Formal decisions fo
 
 Patterns govern Agent behavior and ordinary materials. They add no tk metadata, schema fields, `extra` conventions, runtime states, commands, or automatic directory generation.
 
-### Adoption and shared maintenance
+### Pattern adoption
 
 - Suggest a pattern only after its signal has appeared, and explain the materials it introduces and the maintenance it requires. After the user adopts it, state the choice briefly in the `TASK.md` body and link its existing entry materials. An explicit user request to use a pattern is adoption authorization and needs no further confirmation.
 - Pattern adoption does not replace authorization to create a Task or change its lifecycle. Routine material creation and editing retain their existing permissions. Deleting or moving materials requires the applicable authorization, as does overwriting materials whose ownership or meaning is unclear. Adopting a pattern grants no cleanup permission.
@@ -74,7 +74,7 @@ Suggest Scratchpad when unfinished fragments, notes, outputs, small scripts, or 
 
 Allow arbitrary files and subdirectories under `scratchpad/`, without a mandatory template, filename, or depth. When useful content stabilizes, organize it into suitable ordinary materials and keep only necessary current conclusions and entry links in `TASK.md`. Distinguish obsolete content from current facts. Deletion and movement follow the applicable authorization rules.
 
-### Skill and contract ownership
+### Contract ownership
 
 The four Skill source directories are [tk](../../../projects/tk/skills/tk/SKILL.md), [tk-zh](../../../projects/tk/skills/tk-zh/SKILL.md), [tk-cli](../../../projects/tk/skills/tk-cli/SKILL.md), and [tk-cli-zh](../../../projects/tk/skills/tk-cli-zh/SKILL.md). Together with `projects/tk/skills/shared/en/` and `projects/tk/skills/shared/zh/`, they are the authoritative Skill sources. The six shared references live once per language in the shared directory. Each Skill source directory keeps `SKILL.md`, its mode-specific references, and any Agent metadata. Tools and CLI references in the same language have identical content; English and Chinese have equivalent meaning.
 
@@ -111,7 +111,7 @@ Public documentation states the current formal contract as if it had been implem
 
 A real behavior change after release may include migration guidance when users need it. Development-only experiments do not become compatibility history and are not listed as removed features.
 
-### English and Chinese
+### Language pair
 
 Each guide and design topic links to its other-language counterpart immediately after the H1. Repository file links are relative to the current document. Paths in the current directory or below start with `./`; links outside the directory use the required `../` segments.
 
@@ -121,11 +121,11 @@ Ordinary public Markdown pages use same-directory `name.md` and `name.zh.md` pai
 
 The glossary contains only terms with tk-specific meaning, fixed capitalization, or a translation that must remain stable. General technical vocabulary stays in its owning document. Fixed Chinese forms include `受管`, `草稿纸`, `人类可读`, `直接切换`, `支持的子命令`, `活动操作标记`, `表示切换`, `续跑令牌`, and `续跑状态`.
 
-### Component selection and distribution documentation
+### Distribution documentation
 
 Public documentation covers tools and CLI modes, English and Chinese selection through `tk install`, the four Skill identities, multiple Harness payloads, two Harness-independent CLI Skill payloads, the split routing contract, the mutually exclusive install targets, and the bounded custom-root lifecycle.
 
-### ADR format and lifecycle
+### ADR lifecycle
 
 ADR proposals and decisions use separate repository formats and directories. English and Chinese pairs remain semantically aligned, and the maintainer controls proposal approval, rejection, and decision archival. Current records live under `decision/`, and ADR files carry no `Status` field.
 

@@ -2,7 +2,7 @@
 
 Decision owner: Ruokee
 Decision writer: OMP
-Reverses: [Maintain QoL model prompts and existing quality-of-life adjustments](../archived/2026-10-07-maintain-qol-model-prompts.md)
+Reverses: [Maintain QoL model prompts](../archived/2026-10-07-maintain-qol-model-prompts.md)
 
 English | [中文](./2026-10-12-provide-remote-alignment.zh.md)
 
@@ -22,7 +22,7 @@ The reuse boundary therefore supports complete retained ranges and independently
 
 ## Decision
 
-### Public configuration and settings scope
+### Public configuration
 
 Remote alignment is one capability of the [smart-cache extension](./2026-10-12-maintain-smart-cache-extension.md), which records the package, its capability model, and the shared maintenance floor.
 
@@ -30,11 +30,11 @@ The remote public contract has native OMP settings `compactionCacheEnabled` defa
 
 The mode set is closed for this remote contract because the two modes preserve distinct preparation and reuse promises; extending it requires a new contract decision. Multi-Provider selection and Handoff interfaces are outside this change, not permanent prohibitions on separately specified capabilities. Native settings remain the sole source to preserve host-owned precedence and restart semantics.
 
-OMP owns user values, project overrides, and parsing under the [native settings contract](./2026-09-10-use-codex-web-plugin-settings.md#native-settings-and-scopes). Read and validate the effective settings as one activation snapshot. Repeated activation events do not duplicate registration. Changes require restarting OMP; creating or navigating a session does not refresh an existing snapshot. Children use their own actual model, API, tools, prompt, and identities, not the parent's model or a freshly hot-read configuration. Invalid settings or unavailable interfaces affect the corresponding capability or registration, never unrelated live sessions. Diagnostics name a key and fixed rule without echoing its value.
+OMP owns user values, project overrides, and parsing under the [native settings contract](./2026-09-10-use-codex-web-plugin-settings.md#native-settings). Read and validate the effective settings as one activation snapshot. Repeated activation events do not duplicate registration. Changes require restarting OMP; creating or navigating a session does not refresh an existing snapshot. Children use their own actual model, API, tools, prompt, and identities, not the parent's model or a freshly hot-read configuration. Invalid settings or unavailable interfaces affect the corresponding capability or registration, never unrelated live sessions. Diagnostics name a key and fixed rule without echoing its value.
 
 `/smart-cache` reports remote state without starting a model turn. Its states distinguish `disabled`, `unavailable`, `awaiting-reference`, `already-aligned`, `rewritten`, and `rejected`. Keep online confirmation, operation binding, candidate validation, and sending causes separately, so a later missing-reference result does not erase the original proof failure. Report logical operations separately from physical sends and retries; a rewrite, native result adoption, and a Provider cache hit are different outcomes. Diagnostics use bounded counters, local session and operation identifiers, and fixed reasons, with no request body, opaque content, credentials, raw endpoint, private path, or dynamic private key. Ship no body-sampling log, trial environment variable, sampling command, or special rate-limit abort policy.
 
-### Target requests and modes
+### Target requests
 
 Cover the selected Provider's non-Codex `openai-responses` native V2 requests in main sessions and native `task` and Eval children. Preserve first, subsequent, and process-restored compaction and the manual, automatic, in-turn, and speculative entry points the host supplies to each session class. An absent host entry point does not require a new extension entry point. Non-target Providers, models, APIs, Codex, V1, and unrecognized shapes remain native.
 
@@ -42,7 +42,7 @@ Both modes perform common alignment without context handlers and require final t
 
 Only an actual ordinary main-loop dispatch supplies a reference. Its source history, completed preparation, existing payload callbacks' final result, and actual transport must refer to the same dispatch and reach sending unchanged. Title, advisor, cache-warming, Handoff, and other side requests cannot become ordinary references. A new online candidate suspends future operation binding until it is confirmed; operations already bound keep their immutable old reference, including an explicitly missing reference. Observation failures stay local and do not swallow native callback, resolver, or transport exceptions. Ordinary and non-target requests remain byte-exact.
 
-### Reuse units and atomic safety
+### Reuse units
 
 A reuse unit is an independently extractable result already sent by that same ordinary request, with proved source correspondence, assembly boundaries, and all source dependencies retained unchanged in the native V2 range. The operation's captured reference and relevant processing conditions must remain valid. Matching output, array length, index, provenance alone, or apparent message independence is insufficient proof.
 
@@ -54,7 +54,7 @@ Validate the complete candidate before one atomic replacement. Preserve system c
 
 Classify fields by their native meaning instead of requiring all online and V2 options to be equal. Keep V2's own `max_output_tokens` value or omission; never copy the online limit into V2. Its known legitimate difference must not block unrelated common-content alignment. An implicit native `tool_choice: auto` can be normalized only when its default origin and the absence of an explicit online choice are proved. Preserve explicit tool choice, model policy, authentication, routing, cache keys, Provider responses, and stored history; reject when their differences invalidate the reference. Every unclassified difference preserves the entire original request. An identical candidate is `already-aligned`, not a rewrite or a reason to reserialize it.
 
-### Ownership, isolation, and recovery
+### Wrapper ownership
 
 Use one process-wide set of transport and native signal-composition wrappers, one thin resolver wrapper per actual model registry, and independent registrations for each actual session. A compatible repeat registration is idempotent; a second session is not an ownership conflict. Distinguish persistent session identity from Provider session identity, and bind session, model, dispatch, native root, epoch, and coordinator generation explicitly. Model equality, endpoint, cache key, timing, or similar text cannot establish ownership. Native endpoint and V2 shape checks remain independently required.
 
@@ -64,7 +64,7 @@ Before switch, branch, or tree navigation, revoke that session's old epoch and r
 
 Restore only still-owned functions and their original property shapes. A lost session wrapper affects that registration; lost shared transport or signal ownership affects registrations that depend on it. Mixed versions, unreadable registries, and external overwrites are reported conflicts, not permission to seize or reinstall another party's wrappers. Release shared resources when the last registration ends; a later fresh registration may create a new coordinator generation while old operations stay invalid. Retain only the latest per-session reference and snapshots reachable through native operations, using shared immutable data rather than large copies on each retry. Keep no growing completed-operation history, and do not parse bodies when no active target registration needs them.
 
-### Native responsibility and compatibility
+### Native responsibility
 
 OMP retains preparation, triggering, speculative startup and waiting, cancellation, authentication and transport retries, model and method fallback, result validation and adoption, history commits, and continuation. Forward native arguments, receivers, credential results, promises, exceptions, signals, and cancellation reasons unchanged. Do not read credential material, add authentication or reference requests, wrap the public manual compaction method, or treat one credential resolution or transport settlement as operation completion. A non-V2 fallback remains native and is not reported as V2 success.
 
@@ -72,9 +72,9 @@ Do not register `session_before_compact`, keep it as a fallback, hide another ha
 
 Choose maintained behavior by capability and structure. Replace these adaptations when a maintained native interface provides equivalent results, configuration semantics, isolation, and failure behavior across the required paths, after behavioral verification rather than merely an upstream PR merge.
 
-### Decision reversal and preserved contracts
+### Decision reversal
 
-This decision and the [complete QoL successor](./2026-10-10-maintain-omp-experience-extension.md) reverse [Maintain QoL model prompts and existing quality-of-life adjustments](../archived/2026-10-07-maintain-qol-model-prompts.md). The conflicting choices are:
+This decision and the [complete QoL successor](./2026-10-10-maintain-omp-experience-extension.md) reverse [Maintain QoL model prompts](../archived/2026-10-07-maintain-qol-model-prompts.md). The conflicting choices are:
 
 | Effective clause in that decision | Replacement choice and conflict |
 | --- | --- |
@@ -91,7 +91,7 @@ All non-conflicting rules remain binding. The [complete QoL successor](./2026-10
 
 This decision retains online confirmation, immutable root snapshots, native lifecycle, explicit-policy preservation, bounded retention, ownership-conditional restoration, no-veto, two-mode, privacy, and native-interface replacement together with the choices above. Other current decisions are not reversed.
 
-### Direct cutover and public documentation
+### Direct cutover
 
 Deliver remote directly in smart-cache, without a QoL multi-session interim release. Remove QoL's remote implementation, settings consumption, types, tests for obsolete behavior, aliases, re-exports, and public status entry. Keep no shim or runtime cross-component dependency. Preserve valid consumer-visible assertions and every unrelated QoL behavior.
 

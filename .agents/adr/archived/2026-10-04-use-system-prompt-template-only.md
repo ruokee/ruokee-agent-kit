@@ -62,7 +62,7 @@ Recognize converted footers through owned loading guidance or the comment at its
 
 [projects/omp-system-prompt/README.md](../../../projects/omp-system-prompt/README.md#how-it-works) owns the concrete footer contract and separates API regressions from real-host Provider observations. Those observations must cover required-marker and no-marker cases, including an ordinary subagent, without claiming general host certification.
 
-### Repeated turns and settings changes
+### Repeated turns
 
 The template route is idempotent. A turn whose input already carries the template block, the owned Delivery chapter in its expected position, and the corrected footer is recognized, and the extension returns no replacement when nothing would change, so reprocessing preserves the complete block array when settings are unchanged. A change of `renderDelivery` between turns adds or removes only that chapter, including on a prompt whose footer was already converted.
 

@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
 Archived: 2026-09-30
-Reversed by: [Scope development checks and retain a complete merge gate](../decision/2026-09-30-scope-aware-repository-checks.md)
+Reversed by: [Scope development checks](../decision/2026-09-30-scope-aware-repository-checks.md)
 
 English | [中文](./2026-09-12-unify-repository-checks.zh.md)
 
@@ -15,7 +15,7 @@ A Markdown and Rust check alone cannot detect failures in the TypeScript extensi
 
 ## Decision
 
-### Entry points and coverage
+### Check entry points
 
 `pnpm check`, run from the repository root, is the complete automated check. `pnpm check:base` provides the Markdown and Rust sequence for targeted work. The complete command includes that sequence exactly once, then runs the component checks in this order:
 
@@ -34,7 +34,7 @@ The root package scripts list explicit commands joined with `&&` and reuse compo
 
 `pnpm check:base` reports only its listed scope. The complete command is the repository check required before requesting review. Successful automation does not establish real-model behavior or interactive UI correctness; component-specific scenario validation retains its existing requirements.
 
-### Prerequisites and execution
+### Check execution
 
 Use the pnpm version declared by the root `packageManager`, a Rust toolchain with `rustfmt` and tk's build prerequisites, and Bun capable of installing the committed component lockfiles and running their tests.
 

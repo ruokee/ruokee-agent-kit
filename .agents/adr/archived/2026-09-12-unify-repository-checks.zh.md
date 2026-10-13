@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
 Archived: 2026-09-30
-Reversed by: [按范围执行开发检查并保留完整合并门禁](../decision/2026-09-30-scope-aware-repository-checks.zh.md)
+Reversed by: [按范围执行开发检查](../decision/2026-09-30-scope-aware-repository-checks.zh.md)
 
 [English](./2026-09-12-unify-repository-checks.md) | 中文
 
@@ -15,7 +15,7 @@ Reversed by: [按范围执行开发检查并保留完整合并门禁](../decisio
 
 ## 决定
 
-### 入口与覆盖范围
+### 检查入口
 
 仓库根目录的 `pnpm check` 是完整自动化检查入口。`pnpm check:base` 提供 Markdown 与 Rust 检查序列，用于局部工作。完整入口仅执行一次基础序列，然后按下列顺序运行组件检查：
 
@@ -34,7 +34,7 @@ Reversed by: [按范围执行开发检查并保留完整合并门禁](../decisio
 
 `pnpm check:base` 只报告所列基础范围。请求审查前必须执行的仓库检查为完整入口。自动化成功不能证明真实模型行为或交互界面正确性；组件特定的场景验证继续遵循已有要求。
 
-### 前置条件与执行
+### 检查执行
 
 使用根 `packageManager` 声明的 pnpm 版本、包含 `rustfmt` 且满足 tk 构建前提的 Rust 工具链，以及能够安装已提交组件锁文件并运行测试的 Bun。
 

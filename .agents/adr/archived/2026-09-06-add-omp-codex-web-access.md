@@ -13,7 +13,7 @@ OMP needs its own web search and page extraction tools to use a Codex subscripti
 
 ## Decision
 
-### Component and tools
+### Component tools
 
 The repository maintains a self-contained OMP extension package at `projects/omp-codex-web-access`, named `@ruokee/omp-codex-web-access`. Its runtime, package metadata, checks, and `README.md` and `README.zh.md` documentation live inside the component directory. Each README is the component's complete document in its language, covering the tools, installation, configuration, load modes, model execution, development checks, and license. The extension entry is declared through `omp.extensions` in `package.json`. The repository `README.md` and `README.zh.md` list the component under OMP extensions, linking each language to the corresponding component README.
 

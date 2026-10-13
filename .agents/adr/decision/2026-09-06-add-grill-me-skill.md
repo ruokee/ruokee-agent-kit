@@ -15,7 +15,7 @@ Sustained questioning is a deliberate interaction mode. Ordinary discussion, pla
 
 ## Decision
 
-### Ownership and distribution
+### Ownership
 
 `grill-me` is authored and independently maintained by Ruokee, consistent with the [first-party repository boundary](./2026-08-20-establish-first-party-capability-kit.md). Its questioning concept was inspired by Matt Pocock's [skills repository](https://github.com/mattpocock/skills), but this Skill was written independently rather than produced by modifying his implementation.
 
