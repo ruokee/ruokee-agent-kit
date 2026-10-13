@@ -47,7 +47,7 @@
 
 把不确定性挡在副作用之外的设计在这里又兑现了一次：确定的部分还能用确定的方法测。
 
-## eval 的成本与陷阱
+## eval 的成本
 
 把 eval 当架构组件，就要像对待任何组件一样看代价：
 
@@ -60,6 +60,6 @@ eval 可以充当 AI 系统的质量适应度函数，把在乎的答案质量�
 ## 与其他文档的关系
 
 - 非确定性这一根源约束的完整论述见 [AI 时代的判断](./01-ai-era-judgment.md)。
-- 影子运行（在线 eval 的载体）见[演进与迁移](../12-evolution-and-migration.md)。
-- 适应度函数（架构边界的自动检查）见[演进与迁移](../12-evolution-and-migration.md)。
-- 覆盖度 vs 成本的取舍框架见[思维与取舍](../01-thinking-and-tradeoffs.md)。
+- 影子运行（在线 eval 的载体）见[演进](../12-evolution.md)。
+- 适应度函数（架构边界的自动检查）见[演进](../12-evolution.md)。
+- 覆盖度 vs 成本的取舍框架见[架构判断](../01-architecture-judgment.md)。

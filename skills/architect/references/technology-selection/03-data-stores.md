@@ -74,6 +74,6 @@ The key is stating clearly **which read model was crushing which source of truth
 ## Relationship to other documents
 
 - The consistency engineering of read-model lag and compensation is in [Consistency](../09-consistency.md).
-- The general principles of data and state design are in [Data and state](../05-data-and-state.md).
+- The general principles of data and state design are in [Data ownership](../05-data-ownership.md).
 - The unified selection decision tree is in [Selection principles](./01-principles.md).
 - The overall design of RAG systems is in [AI system design](../ai/02-ai-system-design.md).

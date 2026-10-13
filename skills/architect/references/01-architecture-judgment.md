@@ -1,8 +1,8 @@
-# Thinking and Trade-offs
+# Architecture Judgment
 
 A framework for deriving architecture judgment from requirements, constraints, and quality attributes. Use it at the start of any architecture task: clarifying before design, cross-checking during review, positioning before selection.
 
-## Where functional requirements end and quality attributes begin
+## Two kinds of requirements
 
 Requirements come in two kinds. **Functional requirements** say what the system does: place orders, search, send messages. **Quality attributes** say how well it does it: how fast, how reliable, how cheap, how safe.
 
@@ -130,6 +130,6 @@ Practice feeling the pain of complexity: before adding any component, service, o
 ## Relationship to other documents
 
 - For the full design process, pair with [System design](./06-system-design.md).
-- The data-consistency side of quality attributes expands in [Consistency](./09-consistency.md) and [Data and state](./05-data-and-state.md).
+- The data-consistency side of quality attributes expands in [Consistency](./09-consistency.md) and [Data ownership](./05-data-ownership.md).
 - How decisions are recorded is covered in [Architecture decisions](./07-architecture-decisions.md).
 - For the general questions of selection scenarios, see [Selection principles](./technology-selection/01-principles.md).

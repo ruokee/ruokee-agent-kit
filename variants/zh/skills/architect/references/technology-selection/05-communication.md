@@ -1,4 +1,4 @@
-# API 与通信（API and Communication）
+# 通信（Communication）
 
 服务间通信的边界判断：同步/异步/流式、内部/外部、契约强度，然后才是 REST/gRPC/GraphQL/Webhook 的选择。适用于设计服务边界、对外 API、第三方集成。
 
@@ -51,6 +51,6 @@ API 最大的风险不是 HTTP 还是 protobuf，是**契约不清楚**：输入
 ## 与其他文档的关系
 
 - 重试纪律、超时预算、降级的完整工程见[韧性](../10-resilience.md)。
-- 异步事件与命令/事件的语义区分见[缓存、消息与事件](./04-cache-messaging-and-events.md)。
+- 异步事件与命令/事件的语义区分见[消息](./04-messaging.md)。
 - agent 工具接口的权限与人审边界见[面向 AI 的规格](../ai/03-specifications-for-ai.md)。
 - 统一选型决策树见[选型原则](./01-principles.md)。

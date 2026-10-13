@@ -73,4 +73,4 @@ Code 层通常跳过。代码本身和 IDE 生成的关系图就是最准确的 
 
 - 分析既有系统时，用[系统分析](./02-system-analysis.md)的四步法先读图再补图。
 - 设计新系统时，图服务于[系统设计](./06-system-design.md)的推导过程，与[系统设计]先 Context 后 Container 的顺序一致。
-- 边界即信任边界的地方，进一步展开在[安全与多租户](./14-security-and-tenancy.md)。
+- 边界即信任边界的地方，进一步展开在[安全](./14-security.md)。

@@ -44,4 +44,4 @@ AI 原生系统设计的一条实用原则：**用尽量低的自主性解决问
 - 三个新约束的理论总纲见 [AI 时代的判断](./01-ai-era-judgment.md)。
 - 评测集与门禁的工程化做法见[评测驱动架构](./05-evaluation-driven-architecture.md)。
 - 把约束写成规格喂给 AI 见[面向 AI 的规格](./03-specifications-for-ai.md)。
-- 提示注入与权限边界的完整防线见[安全与多租户](../14-security-and-tenancy.md)。
+- 提示注入与权限边界的完整防线见[安全](../14-security.md)。

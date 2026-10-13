@@ -53,7 +53,7 @@ MVP 故意欠技术债常常是正确的：短链第一版的单存储单机发�
 
 ## 与其他文档的关系
 
-- 决策的推导过程见[架构判断与取舍](./01-thinking-and-tradeoffs.md)和[系统设计](./06-system-design.md)的步骤⑧。
-- 升级和迁移的执行模式见[演进与迁移](./12-evolution-and-migration.md)，其触发信号与本页的重审尺子同源。
-- 组织约束如何影响决策见[组织与归属](./13-organization-and-ownership.md)。
+- 决策的推导过程见[架构判断](./01-architecture-judgment.md)和[系统设计](./06-system-design.md)的步骤⑧。
+- 升级和迁移的执行模式见[演进](./12-evolution.md)，其触发信号与本页的重审尺子同源。
+- 组织约束如何影响决策见[组织](./13-organization.md)。
 - 技术选型场景的决策框架见[选型原则](./technology-selection/01-principles.md)。

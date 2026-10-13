@@ -1,8 +1,8 @@
-# Observability and Reliability
+# Observability
 
 Deriving the observability stack backward from SLOs: metrics, logs, traces as three kinds of evidence, plus the response chain of alerting, on-call, and runbooks. Use for monitoring-system design, alert governance, and reliability process building.
 
-## Monitoring and observability are not the same thing
+## Monitoring is not observability
 
 Monitoring answers: I knew in advance what to watch—has it crossed the line now? (CPU over 90%, error rate over 5%, queue backlog over 10,000.) Observability answers: I do not know where problems will pop up, but does the system leave enough evidence to follow? (One user's checkout is slow; the request crosses gateway, orders, inventory, payments—where exactly is it stuck? Is it one tenant, one version, one availability zone, or one index?)
 

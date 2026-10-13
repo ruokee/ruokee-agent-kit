@@ -60,7 +60,7 @@ When the downstream simply will not recover, the last line of defense: losing a 
 
 The engineering lever is the degradation switch (feature flag): every non-core function is one-click disableable, so that in an incident its CPU, connections, and downstream quota are ceded to the critical path. Common forms: degrade to cache or defaults (when real-time stock cannot be fetched, show in-stock and verify at the backend); degrade feature richness (during a sale, switch off personalization and show everyone the same list); degrade to async (accept the request into a queue and return "processing"). Degradation plans must be finished while the sea is calm—never improvised at the incident scene. Without plans, an overloaded system has only full-on and full-off; with plans it holds a whole row of pressure-relief valves that can be loosened step by step.
 
-## SLI / SLO / SLA and the error budget
+## The error budget
 
 - **SLI** (indicator): the measured number, e.g., successful responses / total requests over the past 5 minutes.
 - **SLO** (objective): the internal passing line set on the SLI, e.g., success rate ≥ 99.9%.
@@ -68,7 +68,7 @@ The engineering lever is the degradation switch (feature flag): every non-core f
 
 The error budget brings the three to life: with the SLO at 99.9%, the 0.1% is the allowed failure quota (about 43 minutes a month). While budget remains, ship boldly and experiment; once it burns out, a common policy freezes non-reliability releases and turns everyone onto stability until the budget is rebuilt—the specific freeze window, exceptions, and recovery conditions are set by each team. It turns the dev-versus-SRE tug-of-war over stability and iteration speed from whoever shouts loudest into a shared number, and it exposes a counterintuitive truth: chasing 100% reliability is wrong—it means never daring to release or experiment, while users cannot tell 99.9% from 100%. The choice of nines returns to the business question: every additional nine is bought with iteration speed and real money.
 
-## Recovery design: RPO and RTO
+## Recovery design
 
 High availability is not disaster recovery, and backup is not recoverability. Three concepts habitually conflated: high availability (HA) eliminates single points with online redundancy, countering component failure; disaster recovery (DR) counters the loss of an entire region or datacenter; backup is the final backstop, countering the logic errors and mistaken deletions the first two cannot stop. RPO (recovery point objective) is the maximum data-rollback time window the business can tolerate; RTO (recovery time objective) is the maximum tolerable downtime—both are business-given targets. Backup and replication frequency, data size, dependency order, recovery-runbook automation, and drill maturity jointly determine actual recovery capability, and actual capability must cover the targets.
 
@@ -92,4 +92,4 @@ Chaos engineering injects failures into production actively and controllably, ex
 
 - The correctness basis of retries and idempotency is in [Consistency](./09-consistency.md).
 - The capacity view of overload and bottlenecks is in [Scaling](./11-scaling.md).
-- How observability tooling supports failure detection is in [Observability and reliability](./technology-selection/07-observability-and-reliability.md).
+- How observability tooling supports failure detection is in [Observability](./technology-selection/07-observability.md).

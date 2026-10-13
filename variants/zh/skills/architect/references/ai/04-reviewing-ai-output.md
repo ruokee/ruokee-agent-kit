@@ -15,7 +15,7 @@ AI 能写出健壮代码，也能交出一个 demo 很顺、故障路径一碰�
 | 碰钱/库存：幂等、并发、事务边界 | [一致性](../09-consistency.md) |
 | 调用外部/高并发：超时、重试、降级、资源上限 | [韧性](../10-resilience.md) |
 | 海量用户：热点、扇出、分页、尾延迟 | [扩展性](../11-scaling.md) |
-| 用户数据/多租户：鉴权、越权、隔离、密钥 | [安全与多租户](../14-security-and-tenancy.md) |
+| 用户数据/多租户：鉴权、越权、隔离、密钥 | [安全](../14-security.md) |
 
 以下只列 AI 特有的问题。
 
@@ -47,6 +47,6 @@ AI 能写出健壮代码，也能交出一个 demo 很顺、故障路径一碰�
 
 ## 与其他文档的关系
 
-- 清单各条的知识本体见[一致性](../09-consistency.md)、[韧性](../10-resilience.md)、[扩展性](../11-scaling.md)、[安全与多租户](../14-security-and-tenancy.md)。
-- 按质量属性挑着查的判断框架见[思维与取舍](../01-thinking-and-tradeoffs.md)。
+- 清单各条的知识本体见[一致性](../09-consistency.md)、[韧性](../10-resilience.md)、[扩展性](../11-scaling.md)、[安全](../14-security.md)。
+- 按质量属性挑着查的判断框架见[架构判断](../01-architecture-judgment.md)。
 - 事前把约束写给 AI 见[面向 AI 的规格](./03-specifications-for-ai.md)；机器持续把关见[评测驱动架构](./05-evaluation-driven-architecture.md)。

@@ -1,4 +1,4 @@
-# API and Communication
+# Communication
 
 Boundary judgment for inter-service communication: sync/async/streaming, internal/external, contract strength—and only then REST/gRPC/GraphQL/Webhook. Use for designing service boundaries, public APIs, and third-party integration.
 
@@ -51,6 +51,6 @@ For platform products, the API is not an implementation detail—it is part of t
 ## Relationship to other documents
 
 - The full engineering of retry discipline, timeout budgets, and degradation is in [Resilience](../10-resilience.md).
-- The semantic distinction of async events and command/event is in [Caching, messaging, and events](./04-cache-messaging-and-events.md).
+- The semantic distinction of async events and command/event is in [Messaging](./04-messaging.md).
 - The permission and human-review boundary of agent tool interfaces is in [Specifications for AI](../ai/03-specifications-for-ai.md).
 - The unified selection decision tree is in [Selection principles](./01-principles.md).

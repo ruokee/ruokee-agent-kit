@@ -75,4 +75,4 @@ Plain-text diagrams render anywhere, drop straight into Markdown and code commen
 
 - When analyzing existing systems, use the four-step method of [System analysis](./02-system-analysis.md): read diagrams first, then redraw.
 - When designing new systems, diagrams serve the derivation in [System design](./06-system-design.md); the Context-then-Container order matches.
-- Where boundaries are trust boundaries, the topic expands in [Security and tenancy](./14-security-and-tenancy.md).
+- Where boundaries are trust boundaries, the topic expands in [Security](./14-security.md).

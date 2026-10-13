@@ -1,4 +1,4 @@
-# 云与部署（Cloud and Deployment）
+# 部署（Deployment）
 
 部署平台选的是运维模型：省心还是控制权、团队能否养住。适用于 PaaS/容器/Serverless/K8s 的选择判断、部署策略设计、演进路径规划。
 
@@ -51,7 +51,7 @@ GitOps 把线上目标状态从人工点控制台变成版本化、可审查、�
 
 ## 与其他文档的关系
 
-- 平台工程与认知负荷的组织学基础见[组织与归属](../13-organization-and-ownership.md)。
-- 升级时机的信号纪律见[演进与迁移](../12-evolution-and-migration.md)。
-- 可观测性的技术栈见[可观测性与可靠性](./07-observability-and-reliability.md)。
+- 平台工程与认知负荷的组织学基础见[组织](../13-organization.md)。
+- 升级时机的信号纪律见[演进](../12-evolution.md)。
+- 可观测性的技术栈见[可观测性](./07-observability.md)。
 - 统一选型决策树见[选型原则](./01-principles.md)。

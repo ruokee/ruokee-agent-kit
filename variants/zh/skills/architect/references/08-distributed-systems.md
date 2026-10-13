@@ -74,4 +74,4 @@ CAP 说网络分区时只能选 C 或 A。但 PACELC 补全了漏掉的一半：
 
 - 光谱上的具体一致性工程（Saga、Outbox、事件溯源）见[一致性](./09-consistency.md)。
 - 超时、重试、幂等的韧性设计细节见[韧性](./10-resilience.md)。
-- 消息系统选型见[缓存、消息与事件](./technology-selection/04-cache-messaging-and-events.md)。
+- 消息系统选型见[消息](./technology-selection/04-messaging.md)。

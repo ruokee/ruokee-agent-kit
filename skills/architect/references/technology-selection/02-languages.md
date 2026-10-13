@@ -1,8 +1,8 @@
-# Languages and Frameworks
+# Languages
 
 Selection judgment across three layers—language, runtime, framework—using five rulers: business complexity, performance, ecosystem, team, evolution. Use for choosing a stack for a new project and evaluating a language/framework switch.
 
-## What language, runtime, and framework each affect
+## The three layers
 
 Novices conflate the three. The language decides expression, type system, and ecosystem entry; architecturally, watch team familiarity, long-term maintenance, and whether errors surface early. The runtime decides concurrency model, memory, startup speed, and deployment shape; watch latency, throughput, resource cost, cold start. The framework decides conventions, component composition, and development cadence; watch delivery speed, testability, plugin ecosystem, and team consistency.
 
@@ -42,7 +42,7 @@ A framework is essentially a set of conventions for the team: it provides routin
 
 First-round filter: many newcomers, long-term multi-person maintenance → convention-strong, well-documented, mature-ecosystem frameworks; extremely fast trial-and-error, unsettled business → lightweight frameworks plus clear module boundaries; heavy enterprise integration, transactions, permissions → mature enterprise frameworks; high-concurrency gateways → frameworks with low runtime overhead; AI/data-heavy services → near the Python ecosystem, wrapped in a stable API shell.
 
-## When to switch language/framework
+## When to switch stacks
 
 Do not switch because it looks old; switching is driven by trigger signals: P99 persistently over SLO with the bottleneck in the runtime (not a code-style problem—a model mismatch; carve the hot path into a better-fitting runtime); team delivery slowing with framework conventions in the way (modularize first, migrate locally); ecosystem gaps forcing mass in-house building (move to a more mature stack); hiring and code review struggling (converge languages); security and compliance rising (upgrade critical components alone).
 
@@ -55,5 +55,5 @@ In the decision record, do not write merely "we chose Go because Go is fast"; wr
 ## Relationship to other documents
 
 - The unified selection decision tree is in [Selection principles](./01-principles.md).
-- The gradual-migration techniques of stack switching (parallel run, shadow traffic) are in [Evolution and migration](../12-evolution-and-migration.md).
-- The cognitive tax of polyglot and organizational capacity are in [Organization and ownership](../13-organization-and-ownership.md).
+- The gradual-migration techniques of stack switching (parallel run, shadow traffic) are in [Evolution](../12-evolution.md).
+- The cognitive tax of polyglot and organizational capacity are in [Organization](../13-organization.md).

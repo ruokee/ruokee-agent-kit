@@ -1,4 +1,4 @@
-# Evolution and Migration
+# Evolution
 
 Planning splits, migrations, rollbacks, and retirement based on evolution trigger signals and technical-debt evidence. Use for modifying running systems: breaking up a monolith, replacing components, migrating data, decommissioning old implementations.
 
@@ -78,6 +78,6 @@ Architecture is not a statue finished when the diagram is drawn; it is a living 
 ## Relationship to other documents
 
 - The rulers for when to upgrade and how decisions are recorded are in [Architecture decisions](./07-architecture-decisions.md).
-- The relation between organizational boundaries and splitting is in [Organization and ownership](./13-organization-and-ownership.md).
+- The relation between organizational boundaries and splitting is in [Organization](./13-organization.md).
 - The consistency engineering of dual-write and backfill in migrations is in [Consistency](./09-consistency.md).
 - Full phased-evolution cases (MVP to scale) are in upstream chapters 20 and 21.

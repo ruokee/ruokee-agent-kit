@@ -1,4 +1,4 @@
-# 组织与归属（Organization and Ownership）
+# 组织（Organization）
 
 用康威定律解释系统形态与组织结构的关系，指导团队划分、服务归属和拆分的组织学判断。适用于设计团队结构、解释"解不开的耦合"、决定服务边界归属。
 
@@ -65,6 +65,6 @@ Spotify 模型（squads/tribes/chapters/guilds）被神化又被亲手祛魅：S
 
 ## 与其他文档的关系
 
-- 拆分的技术路线（模块化单体优先、绞杀者）见[演进与迁移](./12-evolution-and-migration.md)。
+- 拆分的技术路线（模块化单体优先、绞杀者）见[演进](./12-evolution.md)。
 - 何时拆的信号与决策记录见[架构决策](./07-architecture-decisions.md)。
 - 分布式复杂度的具体代价见[分布式系统](./08-distributed-systems.md)。

@@ -40,5 +40,5 @@ AI 把实现变成商品，把判断的稀缺性推到历史最高。一个能�
 
 - LLM 系统的完整设计约束展开见 [AI 系统设计](./02-ai-system-design.md)。
 - 评测驱动的工程化做法见[评测驱动架构](./05-evaluation-driven-architecture.md)。
-- agent 权限与提示注入的防御见[安全与多租户](../14-security-and-tenancy.md)。
-- 判断力的通用框架（与 AI 无关的部分）见[思维与取舍](../01-thinking-and-tradeoffs.md)。
+- agent 权限与提示注入的防御见[安全](../14-security.md)。
+- 判断力的通用框架（与 AI 无关的部分）见[架构判断](../01-architecture-judgment.md)。

@@ -47,7 +47,7 @@ Keep traditional tests for deterministic behavior and add semantic evaluation fo
 
 The design of caging uncertainty away from side effects pays off again here: the deterministic parts can still be tested with deterministic means.
 
-## Eval's costs and traps
+## Eval's costs
 
 Treating eval as an architectural component means weighing its costs like any component:
 
@@ -60,6 +60,6 @@ Eval can act as an AI system's quality fitness function, turning the answer qual
 ## Relationship to other documents
 
 - The full account of non-determinism, the root constraint, is in [AI-era judgment](./01-ai-era-judgment.md).
-- Shadow runs (the vehicle of online eval) are in [Evolution and migration](../12-evolution-and-migration.md).
-- Fitness functions (the automated check of architecture boundaries) are in [Evolution and migration](../12-evolution-and-migration.md).
-- The tradeoff framework of coverage versus cost is in [Thinking and tradeoffs](../01-thinking-and-tradeoffs.md).
+- Shadow runs (the vehicle of online eval) are in [Evolution](../12-evolution.md).
+- Fitness functions (the automated check of architecture boundaries) are in [Evolution](../12-evolution.md).
+- The tradeoff framework of coverage versus cost is in [Architecture judgment](../01-architecture-judgment.md).

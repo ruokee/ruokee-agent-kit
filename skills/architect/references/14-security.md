@@ -1,4 +1,4 @@
-# Security and Tenancy
+# Security
 
 Treating security as structure, not patches: threat modeling, trust boundaries, defense in depth, blast radius, multi-tenant isolation, secret management, supply chain, and compliance. Use when designing systems involving sensitive data, multiple tenants, an external attack surface, or agent tool permissions.
 
@@ -12,7 +12,7 @@ The soul is the **trust boundary**: every time data crosses a boundary (public i
 
 Security's structural nature differs from other attributes: performance and availability can launch first and optimize later; security's structural holes are often set at launch and cannot be patched in afterward.
 
-## Defense in depth and zero trust
+## Defense in depth
 
 The castle-and-moat model's fatal assumption is that the internal network is trusted by default. Once an attacker breaches the perimeter (phishing, a vulnerability, an insider), they walk freely inside (lateral movement)—SolarWinds amplified a single breach into total compromise exactly this way. Remote work, the cloud, and the explosion of east-west microservice traffic have collapsed that wall itself.
 

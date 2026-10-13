@@ -82,5 +82,5 @@ Writing constraints clearly and putting them where AI can read them is part of a
 ## Relationship to other documents
 
 - How to write decision records (ADRs) is in [Architecture decisions](../07-architecture-decisions.md).
-- The full practice of fitness functions against architecture rot is in [Evolution and migration](../12-evolution-and-migration.md).
+- The full practice of fitness functions against architecture rot is in [Evolution](../12-evolution.md).
 - Specifications govern before the fact; reviewing AI output after the fact is in [Reviewing AI output](./04-reviewing-ai-output.md).

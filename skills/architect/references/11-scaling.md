@@ -33,7 +33,7 @@ Detection relies on monitoring the per-key traffic distribution, not just totals
 
 Twitter's write-time fan-out (a tweet pushed into every follower's timeline cache) meets a top influencer with tens of millions of followers and it is a disaster (one tweet equals tens of millions of writes). The fix is a hybrid: ordinary users get write-time fan-out; a handful of mega-influencers get read-time pull. For hotspots, spreading the write across tens of millions of places at write time trades for pulling from one place at read time.
 
-## Multi-tier caching and stampedes
+## Multi-tier caching
 
 Real large-scale systems are multi-tier: CDN → edge → application-local → distributed cache → DB, each tier absorbing a batch of traffic. More tiers, less pressure on the DB—but each additional replica adds one more consistency problem (the DB changed; how do five tiers invalidate coherently?).
 
@@ -45,7 +45,7 @@ The most treacherous is the **cache stampede**: the instant a super-hot key expi
 
 Good cache design is half hit rate and half "when invalidation happens, do not let everyone pounce on the DB at once".
 
-## Tail latency and fan-out amplification
+## Tail latency
 
 Average latency dilutes the few extremely slow requests into nothing, and that 1% is precisely the experience that matters most. Latency is a distribution, not a number; external promises and internal SLOs use p99/p999.
 
@@ -63,6 +63,6 @@ Little's Law (requests in system = arrival rate × average residence time) deriv
 
 ## Relationship to other documents
 
-- The foundations of replication, sharding, and caching are in [Data and state](./05-data-and-state.md).
+- The foundations of replication, sharding, and caching are in [Data ownership](./05-data-ownership.md).
 - Load shedding and backpressure under overload are in [Resilience](./10-resilience.md); the flip side of the queueing explosion is refusing early.
-- Deployment shapes and region choice are in [Cloud and deployment](./technology-selection/06-cloud-and-deployment.md).
+- Deployment shapes and region choice are in [Deployment](./technology-selection/06-deployment.md).

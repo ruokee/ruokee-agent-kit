@@ -74,6 +74,6 @@ RAG 很容易被压扁成"文档切块 → 向量库 → topK → LLM 回答"。
 ## 与其他文档的关系
 
 - 读模型落后多久、怎么补偿的一致性工程见[一致性](../09-consistency.md)。
-- 数据与状态设计的通用原则见[数据与状态](../05-data-and-state.md)。
+- 数据与状态设计的通用原则见[数据归属](../05-data-ownership.md)。
 - 统一选型决策树见[选型原则](./01-principles.md)。
 - RAG 系统的整体设计见 [AI 系统设计](../ai/02-ai-system-design.md)。

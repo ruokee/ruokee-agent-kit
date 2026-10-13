@@ -1,4 +1,4 @@
-# Caching, Messaging, and Events
+# Messaging
 
 The semantic distinctions and selection among three middleware kinds: caches only accelerate and never usurp; queues shave peaks and turn sync into async; events propagate facts. Use for pressure analysis of read hotspots, write floods, and cross-boundary collaboration.
 

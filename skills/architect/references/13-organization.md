@@ -1,4 +1,4 @@
-# Organization and Ownership
+# Organization
 
 Using Conway's Law to explain how system shape relates to organization structure, guiding team division, service ownership, and the organizational judgment in splitting. Use when designing team structure, explaining "coupling that will not untangle", or deciding where service boundaries belong.
 
@@ -65,6 +65,6 @@ The Spotify model (squads/tribes/chapters/guilds) was deified and then debunked 
 
 ## Relationship to other documents
 
-- The technical routes of splitting (modular monolith first, strangler) are in [Evolution and migration](./12-evolution-and-migration.md).
+- The technical routes of splitting (modular monolith first, strangler) are in [Evolution](./12-evolution.md).
 - Signals for when to split and how decisions are recorded are in [Architecture decisions](./07-architecture-decisions.md).
 - The concrete costs of distributed complexity are in [Distributed systems](./08-distributed-systems.md).

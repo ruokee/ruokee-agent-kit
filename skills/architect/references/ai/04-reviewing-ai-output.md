@@ -15,7 +15,7 @@ The full checklists for general dimensions are not expanded here; route by signa
 | Touches money/inventory: idempotency, concurrency, transaction boundaries | [Consistency](../09-consistency.md) |
 | Calls external services/high concurrency: timeouts, retries, degradation, resource caps | [Resilience](../10-resilience.md) |
 | Massive users: hotspots, fan-out, pagination, tail latency | [Scaling](../11-scaling.md) |
-| User data/multi-tenant: authn, authz, isolation, secrets | [Security and tenancy](../14-security-and-tenancy.md) |
+| User data/multi-tenant: authn, authz, isolation, secrets | [Security](../14-security.md) |
 
 Below, only the AI-specific items.
 
@@ -47,6 +47,6 @@ The accountable reviewer makes the final acceptance judgment, especially for mon
 
 ## Relationship to other documents
 
-- The knowledge behind each checklist item is in [Consistency](../09-consistency.md), [Resilience](../10-resilience.md), [Scaling](../11-scaling.md), [Security and tenancy](../14-security-and-tenancy.md).
-- The judgment framework for picking checks by quality attribute is in [Thinking and tradeoffs](../01-thinking-and-tradeoffs.md).
+- The knowledge behind each checklist item is in [Consistency](../09-consistency.md), [Resilience](../10-resilience.md), [Scaling](../11-scaling.md), [Security](../14-security.md).
+- The judgment framework for picking checks by quality attribute is in [Architecture judgment](../01-architecture-judgment.md).
 - Writing constraints to the AI beforehand is in [Specifications for AI](./03-specifications-for-ai.md); continuous machine gating is in [Evaluation-driven architecture](./05-evaluation-driven-architecture.md).

@@ -1,4 +1,4 @@
-# Cloud and Deployment
+# Deployment
 
 A deployment platform is chosen for its operations model: peace of mind versus control, and whether the team can sustain it. Use for choosing among PaaS/containers/Serverless/K8s, designing deployment strategy, and planning the evolution path.
 
@@ -51,7 +51,7 @@ Get the business running first; then converge recurring operational complexity i
 
 ## Relationship to other documents
 
-- The organizational basis of platform engineering and cognitive load is in [Organization and ownership](../13-organization-and-ownership.md).
-- The signal discipline for upgrade timing is in [Evolution and migration](../12-evolution-and-migration.md).
-- The observability stack is in [Observability and reliability](./07-observability-and-reliability.md).
+- The organizational basis of platform engineering and cognitive load is in [Organization](../13-organization.md).
+- The signal discipline for upgrade timing is in [Evolution](../12-evolution.md).
+- The observability stack is in [Observability](./07-observability.md).
 - The unified selection decision tree is in [Selection principles](./01-principles.md).

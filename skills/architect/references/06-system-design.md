@@ -18,7 +18,7 @@ The steps are not a straight line but a loop that doubles back; when a problem s
 
 **③ Define core use cases and API boundaries.** Treat the system as a black box, list the actions the outside world can take, and pick one or two main channels (the highest-frequency actions that best express what the system is). With boundaries clear, every internal module gets a target: which use case does it serve? A module serving no use case is over-engineering.
 
-**④ Design the data model.** Once use cases are clear, design data immediately—not services first. Two things: draw the conceptual model (core entities and relationships, no DDL yet); assign each data class a storage shape (by access shape; see [Data and state](./05-data-and-state.md)). Get data modeling right and the rest mostly flows; get it wrong and no amount of cache saves you.
+**④ Design the data model.** Once use cases are clear, design data immediately—not services first. Two things: draw the conceptual model (core entities and relationships, no DDL yet); assign each data class a storage shape (by access shape; see [Data ownership](./05-data-ownership.md)). Get data modeling right and the rest mostly flows; get it wrong and no amount of cache saves you.
 
 **⑤ Draw the high-level architecture.** In C4 order, Context then Container (see [Views](./03-views.md)). The first sheet should be five or six boxes with arrows in broad strokes, enough to explain how data flows. Opening with twenty boxes is using drawing diligence to disguise unfinished thinking.
 

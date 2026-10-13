@@ -80,5 +80,5 @@ AI 看到这些什么也做不了——高质量到底多高？最佳实践是�
 ## 与其他文档的关系
 
 - 决策记录（ADR）的写法见[架构决策](../07-architecture-decisions.md)。
-- 适应度函数防架构腐化的完整做法见[演进与迁移](../12-evolution-and-migration.md)。
+- 适应度函数防架构腐化的完整做法见[演进](../12-evolution.md)。
 - 规格管事前，AI 产出的事后审查见[审查 AI 产出](./04-reviewing-ai-output.md)。

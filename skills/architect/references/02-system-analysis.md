@@ -26,7 +26,7 @@ If you cannot answer these three, you have learned the names of the boxes, not t
 
 The four steps produce one page of notes, not a full document. The notes' value is forcing you to answer the questions, not filing.
 
-## Gathering evidence from code and configuration
+## Gathering evidence from the repository
 
 Diagrams go stale; code does not. When analyzing a system, calibrate your picture against repository facts:
 
@@ -47,8 +47,8 @@ Runtime evidence matters just as much: logs, traces, and metrics answer "does th
 ## Legacy-system specifics
 
 - **Do not read legacy code with disgust as your lens.** The goal is understanding why it survived, not tallying best-practice violations. A live system got something right; find that first.
-- **Interfaces are promises.** A legacy system's most precious asset is its stabilized interfaces. List the interfaces external parties depend on; that list is the guardrail for later evolution (see [Evolution and migration](./12-evolution-and-migration.md)).
-- **Data is the hardest constraint.** Schema is the hardest part of a legacy system to change; data ownership and lifecycle bound what splits and migrations are feasible (see [Data and state](./05-data-and-state.md)).
+- **Interfaces are promises.** A legacy system's most precious asset is its stabilized interfaces. List the interfaces external parties depend on; that list is the guardrail for later evolution (see [Evolution](./12-evolution.md)).
+- **Data is the hardest constraint.** Schema is the hardest part of a legacy system to change; data ownership and lifecycle bound what splits and migrations are feasible (see [Data ownership](./05-data-ownership.md)).
 
 ## Calibrating later work with analysis results
 
@@ -56,5 +56,5 @@ The end of analysis is not the notes; it is input to what follows:
 
 - To take over development, confirm the fatal spots and anti-patterns first, so you do not fall where others already fell.
 - To review (see the topic documents), use the four-step notes as the factual basis, so a diagram-only review does not miss real data flows.
-- To evolve (see [Evolution and migration](./12-evolution-and-migration.md)), use the interface list and data ownership to draw the safe boundary of the first step.
+- To evolve (see [Evolution](./12-evolution.md)), use the interface list and data ownership to draw the safe boundary of the first step.
 - When analyzing AI systems, watch three extra constraints in the quality-attribute and tradeoff columns: cost (every call burns tokens), non-determinism (same input, not necessarily same output), and context (the model's working memory is finite and expensive). Judge whether each part saves money, prevents errors, or manages context (see [AI-era judgment](./ai/01-ai-era-judgment.md)).

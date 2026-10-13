@@ -44,4 +44,4 @@ A practical rule for AI-native system design: **solve the problem at the lowest 
 - The theoretical overview of the three new constraints is in [AI-era judgment](./01-ai-era-judgment.md).
 - The engineering practice of eval sets and gates is in [Evaluation-driven architecture](./05-evaluation-driven-architecture.md).
 - Writing constraints into specifications to feed the AI is in [Specifications for AI](./03-specifications-for-ai.md).
-- The full defense line against prompt injection and permission boundaries is in [Security and tenancy](../14-security-and-tenancy.md).
+- The full defense line against prompt injection and permission boundaries is in [Security](../14-security.md).

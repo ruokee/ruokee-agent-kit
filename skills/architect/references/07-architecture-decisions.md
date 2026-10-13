@@ -53,7 +53,7 @@ Upgrade not because the architecture is old or ugly, but because a quality attri
 
 ## Relationship to other documents
 
-- The derivation behind decisions is in [Thinking and tradeoffs](./01-thinking-and-tradeoffs.md) and step ⑧ of [System design](./06-system-design.md).
-- Execution patterns for upgrades and migrations are in [Evolution and migration](./12-evolution-and-migration.md); its trigger signals share the same source as this page's re-review rulers.
-- How organizational constraints shape decisions is in [Organization and ownership](./13-organization-and-ownership.md).
+- The derivation behind decisions is in [Architecture judgment](./01-architecture-judgment.md) and step ⑧ of [System design](./06-system-design.md).
+- Execution patterns for upgrades and migrations are in [Evolution](./12-evolution.md); its trigger signals share the same source as this page's re-review rulers.
+- How organizational constraints shape decisions is in [Organization](./13-organization.md).
 - The decision frame for selection scenarios is in [Selection principles](./technology-selection/01-principles.md).

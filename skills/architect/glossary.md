@@ -2,7 +2,7 @@
 
 These terms carry specific meanings within this Skill. When you need judgment rationale, derivations, or examples, use the routing table in [SKILL.md](./SKILL.md) to pick a reference document.
 
-## Reasoning and judgment
+## Reasoning
 
 **Fact**
 
@@ -34,7 +34,7 @@ The part of a decision where you give up B to get A. A proposal with no visible 
 
 A boundary the design cannot cross: team size, time, budget, compliance, existing systems. Distinct from quality-attribute targets you aim for.
 
-## Requirements and measurement
+## Measurement
 
 **Latency**
 
@@ -68,7 +68,7 @@ The probability that stored data is not lost.
 
 The unavailability allowance an SLO permits. Freezing releases when the budget is spent is a common budget policy; the policy is set separately from the budget amount itself.
 
-## Data and consistency
+## Data consistency
 
 **Transaction**
 
@@ -132,7 +132,7 @@ Disproportionate load concentrating on a single key or node, throwing sharding o
 
 A slowdown signal propagated upstream when the downstream is overloaded, preventing unbounded queue growth.
 
-## Architecture structure and evolution
+## Architecture structure
 
 **Monolith**
 
@@ -170,7 +170,7 @@ Architectural constraints written as automated tests that continuously verify th
 
 Observable evidence in load, organization, or failure modes that the architecture needs an upgrade.
 
-## Decisions and organization
+## Decisions
 
 **Architecture Decision Record (ADR)**
 

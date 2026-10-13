@@ -1,8 +1,8 @@
-# Data and State
+# Data Ownership
 
 State ownership, data lifecycles, and storage boundaries. Use for any architectural judgment involving "where data lives, how consistent it stays, how it scales"—the hardest and most worthwhile part of system design to think through early.
 
-## State is the hard part, and the value
+## State is the hard part
 
 Split what lives in a system into two kinds:
 
@@ -44,7 +44,7 @@ Which data needs stronger guarantees is a business judgment, not a technical one
 
 Strong consistency is expensive; spend the quota where things actually break. Building global strong consistency for like counts means paying steep performance and availability prices for rigor nobody needed. The systematic treatment of consistency models is in [Consistency](./09-consistency.md).
 
-## Transactions and design postures: ACID, BASE, CAP each govern one layer
+## Transaction design postures
 
 When several operations must all succeed or all fail, you need a transaction. Debiting A by 100 and crediting B by 100 must never half-happen. ACID (atomicity, consistency, isolation, durability) describes the execution and recovery guarantees of a single transaction; BASE (basically available, soft state, eventually consistent) is a family of design postures favoring availability and scale; CAP describes the observable guarantees a distributed service can offer between consistency and availability under network partition. The three sit at different layers and do not map onto each other: there is no "ACID leans CP, BASE leans AP" conversion; a single-machine ACID database never faces CAP's choice at all, and a distributed system can offer ACID transactions on some operations and eventual consistency on others. They compose: core transactions go through local ACID transactions; statistics, notifications, and streaming data go eventual; cross-service composition is stitched with the Saga and Outbox patterns from [Consistency](./09-consistency.md).
 

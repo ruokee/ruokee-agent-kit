@@ -46,7 +46,7 @@ The three-piece retrofit:
 
 **Retries and idempotency must appear in pairs.** Before writing "retry on failure", ask: is the retried operation idempotent? Non-idempotent plus automatic retry equals a random double-charge machine. Stripe makes `Idempotency-Key` a first-class request header in its API docs (https://docs.stripe.com/api/idempotent_requests) precisely because client networks will retry, so the server must be idempotent.
 
-## Event sourcing and CQRS
+## Event sourcing
 
 Two heavy weapons; the vast majority of CRUD systems need neither, and forcing them on adds congestion. Knowing when they are warranted suffices.
 
@@ -54,7 +54,7 @@ Two heavy weapons; the vast majority of CRUD systems need neither, and forcing t
 
 **CQRS.** One model for writes, another for reads, with read models continuously updated by event projection. Like a restaurant splitting kitchen from menu: the kitchen cooks and records accurately; the display layer shows things at a glance; each optimizes for itself, and the waiters keep them roughly in sync (the menu's sold-out tag may lag half a beat—eventual consistency). Its most practical use in microservices: with database-per-service, cross-service joins are impossible, so a read-view store subscribes to each service's events and pre-joins and flattens the data into it. The sweet: reads and writes optimize and scale independently (in read-heavy systems the read side clones replicas wildly while the write side stands still); one write model projects into any number of tailored read models; complex queries stop dragging the write store. The bitter: read models are eventually consistent (an order just placed may be missing from the list—the product must face this); component and ops complexity doubles; one more projection pipeline that must not lose or scramble. The worthy scenarios are narrow: severely asymmetric read/write load, or the same data queried in four ways—list, detail, search, report. A plain test: CQRS starts paying back when report queries force a pile of bizarre indexes onto the core write store and slow down ordering.
 
-## Schema and contract evolution
+## Contract evolution
 
 Logic changes easily; data does not. In the event-driven world this is amplified: once a schema, event structure, or API contract has dependents (other services, three years of accumulated old events, un-upgraded old clients), it cannot change at will. During rolling upgrades, old and new code are online simultaneously: new code must read old data (backward compatibility), and old code ignoring new data must at least not crash (forward compatibility).
 

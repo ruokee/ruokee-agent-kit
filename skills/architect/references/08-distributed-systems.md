@@ -74,4 +74,4 @@ Lessons: partial failure means you cannot tell dead from slow; consensus can rea
 
 - Concrete consistency engineering along the spectrum (Saga, Outbox, event sourcing) is in [Consistency](./09-consistency.md).
 - Timeout, retry, and idempotency details are in [Resilience](./10-resilience.md).
-- Message-system selection is in [Caching, messaging, and events](./technology-selection/04-cache-messaging-and-events.md).
+- Message-system selection is in [Messaging](./technology-selection/04-messaging.md).

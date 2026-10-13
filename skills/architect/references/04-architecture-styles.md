@@ -8,7 +8,7 @@ The same problems recur across countless systems, and proven solutions settle in
 
 But patterns have no high or low, only fitting and unfitting. A well-used monolith outranks a misused microservice system. Evaluating any style means answering three things: what problem it solves, what it looks like, and what it costs. If you cannot see the cost, you have not learned the pattern.
 
-## Applicability and cost per style
+## Style tradeoffs
 
 **Layered.** Cut the system horizontally by concern; each layer talks only to its neighbors: presentation, business, data. Solves "do not stir everything into one pot"—the plainest form of separation of concerns, almost always applicable. The cost is pass-through: a simple query crosses every layer, generating boilerplate that only forwards data. Note that layering is code organization; it does not mean each layer is an independently deployed service. Do not mistake layering for distribution.
 
@@ -44,6 +44,6 @@ Amazon Prime Video moved its video-quality monitoring from microservices and Ser
 
 ## Relationship to other documents
 
-- The organizational basis for splitting microservices expands in [Organization and ownership](./13-organization-and-ownership.md).
+- The organizational basis for splitting microservices expands in [Organization](./13-organization.md).
 - The eventual consistency and cross-service transaction problems these styles introduce expand in [Consistency](./09-consistency.md) and [Distributed systems](./08-distributed-systems.md).
-- Selection details for events, queues, and caches are in [Caching, messaging, and events](./technology-selection/04-cache-messaging-and-events.md).
+- Selection details for events, queues, and caches are in [Messaging](./technology-selection/04-messaging.md).

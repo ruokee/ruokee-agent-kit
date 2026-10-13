@@ -42,7 +42,7 @@ The fork is a cost decision, not a vanity decision: it asks four questions: can 
 
 The most common misjudgment: blaming the model for dumbness when retrieval was done poorly, or fine-tuning a "knowledge freshness" problem that RAG should have solved. The test sentence: **knowledge goes through retrieval; only behavior talks fine-tuning.** Need citations, updates, or permissions—get RAG right first.
 
-## Training and fine-tuning: when managed, when self-built
+## Training: managed or self-built
 
 Training infrastructure is not inference's extension; it is another ledger: data pipelines (cleaning, dedup, licensing compliance, versioning—or experiments cannot be reproduced), job orchestration (long-running jobs must be interruptible and resumable), GPUs and interconnect (multi-card training is sensitive to inter-card bandwidth and storage throughput, a different hardware profile from inference), checkpoints and model artifacts (resumable, version-traceable), experiment tracking (hyperparameters, datasets, metrics tied to each run), validation and promotion (offline metrics gate the eval set; the eval set gates the candidate release).
 
@@ -78,5 +78,5 @@ When the system touches money, user data, or autonomous actions, eval is not "ad
 - The full workflow-versus-agent judgment is in [AI system design](../ai/02-ai-system-design.md).
 - The eval trio and gates are in [Evaluation-driven architecture](../ai/05-evaluation-driven-architecture.md).
 - Vector storage and read-model selection are in [Data stores](./03-data-stores.md).
-- Training-data versioning and the eval-set lifecycle are in [Data and state](../05-data-and-state.md).
+- Training-data versioning and the eval-set lifecycle are in [Data ownership](../05-data-ownership.md).
 - The unified selection decision tree is in [Selection principles](./01-principles.md).

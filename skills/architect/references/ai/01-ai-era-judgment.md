@@ -40,5 +40,5 @@ AI commoditized implementation and pushed the scarcity of judgment to a historic
 
 - The full design constraints of LLM systems are in [AI system design](./02-ai-system-design.md).
 - The engineering practice of evaluation-driven development is in [Evaluation-driven architecture](./05-evaluation-driven-architecture.md).
-- Agent permissions and prompt-injection defense are in [Security and tenancy](../14-security-and-tenancy.md).
-- The general framework of judgment (the AI-independent part) is in [Thinking and tradeoffs](../01-thinking-and-tradeoffs.md).
+- Agent permissions and prompt-injection defense are in [Security](../14-security.md).
+- The general framework of judgment (the AI-independent part) is in [Architecture judgment](../01-architecture-judgment.md).
