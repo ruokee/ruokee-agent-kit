@@ -2,7 +2,7 @@
 name: architect
 description: Use for system-level architecture analysis, design, review, technology selection, or evolution across module, service, or deployment boundaries, especially system boundaries, data and state ownership, quality attributes, failure, scale, or long-term change. Do not use for single-module design, concrete implementation, code-level review, product behavior, priority ranking, general discussion, or a mention of architecture alone.
 metadata:
-  version: "1.0.2"
+  version: "1.0.3"
 ---
 
 # Architecture
@@ -36,18 +36,18 @@ Choose documents by the signals of the current question and read only what is ne
 | Team ownership, communication structure, and their relation to system boundaries | [Organization](./references/13-organization.md) | architecture-styles, evolution |
 | Trust boundaries, identity and permissions, data isolation, multi-tenant risks | [Security](./references/14-security.md) | data-ownership |
 | Uncertainty, cost, and capability boundaries introduced by AI components | [AI-era judgment](./references/ai/01-ai-era-judgment.md) | ai/ai-system-design |
-| System boundaries of models, context, tools, memory, and orchestration | [AI system design](./references/ai/02-ai-system-design.md) | ai/01-ai-era-judgment, ai/05-evaluation-driven |
-| Turning architecture constraints into AI-executable, verifiable specifications | [Specifications for AI](./references/ai/03-specifications-for-ai.md) | ai/04-reviewing-ai-output |
+| System boundaries of models, context, tools, memory, and orchestration | [AI system design](./references/ai/02-ai-system-design.md) | ai/ai-era-judgment, ai/evaluation-driven-architecture |
+| Turning architecture constraints into AI-executable, verifiable specifications | [Specifications for AI](./references/ai/03-specifications-for-ai.md) | ai/reviewing-ai-output |
 | Reviewing the omissions specific to AI architecture output | [Reviewing AI output](./references/ai/04-reviewing-ai-output.md) | consistency, resilience, scaling, security |
-| Defining AI system quality with evaluation targets, datasets, and feedback | [Evaluation-driven architecture](./references/ai/05-evaluation-driven-architecture.md) | ai/02-ai-system-design |
+| Defining AI system quality with evaluation targets, datasets, and feedback | [Evaluation-driven architecture](./references/ai/05-evaluation-driven-architecture.md) | ai/ai-system-design |
 | General questions, comparison dimensions, and exit conditions of technology selection | [Selection principles](./references/technology-selection/01-principles.md) | architecture-decisions |
-| Constraints, team fit, and maintenance cost of languages and backend frameworks | [Languages](./references/technology-selection/02-languages.md) | technology-selection/01-principles |
+| Constraints, team fit, and maintenance cost of languages and backend frameworks | [Languages](./references/technology-selection/02-languages.md) | technology-selection/principles |
 | Data model, consistency, and operational cost of data stores | [Data stores](./references/technology-selection/03-data-stores.md) | data-ownership, consistency |
 | What caches, message queues, and event systems each solve | [Messaging](./references/technology-selection/04-messaging.md) | consistency, resilience |
 | Coupling, performance, and evolution cost of API and service communication styles | [Communication](./references/technology-selection/05-communication.md) | architecture-styles |
 | Delivery, elasticity, and operational constraints of deployment shapes and cloud platforms | [Deployment](./references/technology-selection/06-deployment.md) | scaling, security |
 | How observability and reliability tooling supports failure detection and response | [Observability](./references/technology-selection/07-observability.md) | resilience |
-| AI infrastructure tradeoffs across training, inference, data, and cost | [AI infrastructure](./references/technology-selection/08-ai-infrastructure.md) | ai/01-ai-era-judgment, ai/05-evaluation-driven |
+| AI infrastructure tradeoffs across training, inference, data, and cost | [AI infrastructure](./references/technology-selection/08-ai-infrastructure.md) | ai/ai-era-judgment, ai/evaluation-driven-architecture |
 
 When terminology is unclear, read the [glossary](./glossary.md).
 
