@@ -45,20 +45,23 @@ When the total deadline aborts an in-flight native call, a native result that st
 - `waitMessagesSeconds` and `waitProcessSeconds` remain accepted and validated, and have no effect on supported hosts, which offer no message-only or named-process wait entry.
 - `/qol` reports the effective default and marks message continuation, named-process waiting, and service continuation as `not-applicable` instead of printing unused configured values.
 
-### Side effects and cancellation
+### Side effects
 
 - The module repeats a read-only native call. It starts no background work, cancels no job or process, and consumes no message or result on its own.
 - Reaching the deadline ends only the outer wait call. Background jobs and processes keep running. The deadline note points to another `wait` call and to `proc://`, which are routes the host exposes.
 - A caller cancellation outranks the component deadline and keeps its reason. A terminal host result wins even when the deadline signal arrived first.
+
+### Cancellation
+
 - Set `waitEnabled` to `false` and restart OMP to restore the native entry directly.
 
-### Applicability and limits
+### Limits
 
 - The module does not merge message-only empty windows, provide named-process waits, or merge service-only waits across the native ceiling. It does not simulate them with status polling or host-text classification.
 - The eligibility check depends on the builtin source and the empty object parameter structure. The continuation rule depends on `useless`, `details.op`, and the nonempty all-running `details.jobs` shape. A host change can make the module stay inactive or return a window early rather than guessing.
 - The module depends on same-name extension precedence and `ctx.invokeTool` reaching the shadowed builtin. A host upgrade requires re-checking those contracts.
 
-### Version and verification
+### Verification
 
 - **Source baseline**: OMP `18.5.0`, using the [wait tool](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/tools/wait.ts), [job control](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/async/job-control.ts), [extension API](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/extensibility/extensions/types.ts), and [proc protocol](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/internal-urls/proc-protocol.ts).
 - **Automated checks**: OMP `18.5.0`, `bun test` and `tsc --noEmit`, with a recording host. They cover the model-visible schema, `{}` delegation across running snapshots, default and explicit deadline selection, the structural continuation rule, terminal outcomes, cancellation, deadline/result races, registration refusals, and the real registered-tool adapter forwarding interruptibility, load mode, strict validation, and approval.
@@ -104,7 +107,7 @@ The continuation text is fixed and states that an upstream error ended the previ
 
 `recoveryEnabled`, `recoveryMode`, `recoveryMaxAttempts`, `recoveryBackoffBaseMs`, `recoveryBackoffMaxMs`, `recoveryNotify`; see the README for defaults and accepted values. `notify` prints one warning line per continuation with the attempt number and the delay, which is what makes the delay visible while it happens.
 
-### Side effects and cancellation
+### Side effects
 
 - The adjustment starts a model turn. It re-sends the conversation and spends provider quota.
 - The failed turn is not undone. Tool calls that ran before the error keep their effects, and calls from that turn that never ran may run in the continuation.
@@ -112,9 +115,12 @@ The continuation text is fixed and states that an upstream error ended the previ
 - The host cap of 8 continuations per chain applies independently of `recoveryMaxAttempts`, and the host counts a chain reset when a turn is not part of the active chain.
 - Esc during the delay cancels it, and a cancelled delay is not counted as an attempt.
 - A `session_stop` handler has 30 seconds. The validated delay range stops at 10 seconds for the doubling bound, so a default or configured delay stays well inside that budget.
+
+### Cancellation
+
 - Cancellation of the adjustment: set `recoveryEnabled` to `false` and restart OMP. The host then never sees a continuation request from this extension.
 
-### Applicability and limits
+### Limits
 
 - The module needs `session_stop` with `stop_hook_active`, `turn_id`, `last_assistant_message`, and the continuation result fields, plus the public error classifier. The host skips the hook for subagents, so recovery never applies there.
 - Safety exclusions win over the configured mode. A refusal, a quota limit, or a user interrupt cannot be turned into a continuation by configuration.
@@ -122,7 +128,7 @@ The continuation text is fixed and states that an upstream error ended the previ
 - A continuation can repeat a side effect. Nothing in the host or this module makes a re-run idempotent.
 - The adjustment becomes unnecessary when the host offers a setting that continues a turn after an eligible error, or when a stop hook can be registered with its own retry budget.
 
-### Version and verification
+### Verification
 
 - **Source baseline**: OMP `18.2.8` at `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`. Sources listed above.
 - **Automated checks**: OMP `18.5.0`, `bun test` and `tsc --noEmit`, with a recording host. They cover the classification matrix for both modes, the interruption mark with and without a status or a verdict, the statusless condition, the exclusions and the terminal status rule winning over the mark, the continuation of a marked turn, exclusion precedence, the chain and backoff arithmetic, duplicate events for one turn, consecutive runs that each fail on their first turn, a run starting while a delay is pending, a cancelled delay, session switching, the attempt cap across runs, the chain ending on a normal settle pass and on an unrecoverable error, a cancelled pass, the handled-turn marker surviving that end, the fixed continuation text, and no continuation when switches or settings keep recovery inactive. The error classifier is the installed `@oh-my-pi/pi-ai` code, not a stub.
@@ -174,7 +180,7 @@ The extension replaces `AbortSignal.timeout` with a wrapper that keeps a referen
 
 `compactionTimeoutEnabled` (off by default), `compactionTimeoutMs`, `compactionTimeoutFloorMs`, `compactionWindowGuardMs`, `compactionTimeoutNotify`; see the README for defaults and accepted values. `notify` prints one line the first time a window rewrites a deadline, and never repeats it inside the same window.
 
-### Side effects and cancellation
+### Side effects
 
 - The patch is process-wide. Every caller of `AbortSignal.timeout` in the process whose argument falls in the rewritten range during a window gets the longer deadline, not only the compaction request. This is the accepted price of the experiment, and the reason the default is off. It is visible without compaction: a matching call from any other code in the process changes too while a window is open.
 - It can only lengthen a deadline. A value below the floor and a value at or above `compactionTimeoutMs` are untouched, so the adjustment never shortens a wait.
@@ -182,9 +188,12 @@ The extension replaces `AbortSignal.timeout` with a wrapper that keeps a referen
 - The wrapper is installed while the patch is running and its owner has not exited, and is inert outside a window. A refused registration and the owner's exit both restore the native function. The guard bounds how long a window can stay armed when its closing event never arrives.
 - The window is opened from events, so it can cover calls made by unrelated work during that period, for example a provider request that happens to use a matching timeout.
 - Registering `session_before_compact` changes what the host does with its speculative compaction, because the host treats any handler of that event as an interceptor. In OMP `18.2.8` the handler's presence disables three things: a speculative run is not started ([`session-maintenance.ts:1982`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/session/session-maintenance.ts#L1982)), the threshold is not deferred to a speculation that is already running ([`session-maintenance.ts:2042`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/session/session-maintenance.ts#L2042)), and an armed speculation is not consumed ([`session-maintenance.ts:2251`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/session/session-maintenance.ts#L2251)). The host states its reason in the first of those places: a speculated result would bypass an interceptor's veto. The consequence for this adjustment is that enabling it gives up speculative compaction, so a compaction that would have been prepared in the background runs in the foreground and the session may wait for it. That is why the module registers the handler only while `compactionTimeoutEnabled` is on: with the default off, no handler is registered and the host's compaction scheduling is untouched. The module needs that hook because its `signal` is the cancellation entry point of a manual compaction.
+
+### Cancellation
+
 - Cancellation of the adjustment: set `compactionTimeoutEnabled` to `false` and restart OMP, or restart without the extension. Nothing is written to disk and nothing survives the process.
 
-### Applicability and limits
+### Limits
 
 - One process hosts one wrapper, owned by the activation that installed it, and only that activation's events open the window the wrapper rewrites in. A second activation with the same version and snapshot keeps the patch and reports `patch-owned-elsewhere` without driving the window; one that carries another snapshot stops the patch instead. Two sessions in one process therefore do not both drive the experiment.
 - The module depends on `AbortSignal.timeout` being writable and configurable, on the native function throwing `TypeError` for invalid input, and on the compaction paths using `AbortSignal.timeout` for their watchdog. Rewriting those paths to build their own signal, or to configure the timeout another way, makes the patch ineffective.
@@ -193,7 +202,7 @@ The extension replaces `AbortSignal.timeout` with a wrapper that keeps a referen
 - Values this module does not control: the deadline stays a single signal's deadline, not the total time of retries and fallbacks, and a compaction that needs more than the raised deadline is cut off as before. The module also does not control the host's speculative compaction, which the `session_before_compact` registration turns off.
 - The earlier-patch refusal guards the marker this module reads, the one on `globalThis`. The legacy compaction extension written for older hosts puts that marker on `AbortSignal` instead, so a real legacy extension is not refused: with both loaded, this module installs its wrapper over the legacy one, and at shutdown it restores the legacy wrapper rather than the native function. Two adjustments stack where the refusal was meant to stop two of them sharing one global. Treat the protection against a real legacy extension as unverified: the automated checks cover only a stand-in that writes the marker where this version looks for it.
 
-### Version and verification
+### Verification
 
 - **Source baseline**: OMP `18.2.8` at `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`. Sources listed above.
 - **Automated checks**: OMP `18.5.0`, `bun test` and `tsc --noEmit`, with a recording host and `AbortSignal.timeout` replaced by a recorder that delegates invalid input to the native function. They cover install order and every refusal reason (the earlier-patch marker case writes that marker where this version reads it; see the limits), idempotent install and release, a second activation keeping the installed patch (another cwd, no window events registered, the owner's window still rewriting deadlines, a call outside that window native and inside it extended, no conflict reported), a second activation stopping the installed patch (another snapshot, another package version, this module's switch off, the master switch off, invalid keys), a stopped patch staying stopped for a later matching activation, the owner's exit (window closed, the native function restored only while the global is still this module's wrapper, `owner-stopped` left in the registry, a later matching activation reporting it and installing nothing, a session switch closing only the window), `/qol` reporting the registry state after a later stop, a changed settings snapshot in the installing activation, a registry slot this version cannot read, a settings reader that throws, a settings root that is not an object, an unknown key, an invalid master switch, the rewrite range, `TypeError` behavior for invalid input, one notice per window, the process-level effect on a caller that is not compaction, one compaction operation whose methods fall back in series on one signal (window, kind, session id, guard lease and notice state kept, one listener, rewriting continuing until the commit, and a later operation starting fresh), the same for windows an auto round or `session.compacting` opened first, a different live signal inside one window, an auto round that starts again while one is open, window opening from each event, a before-compact signal bound to a window that was already open, a signal that already aborted, a stale listener, closing from guard, cancel, abort, switch, and shutdown, overlap and foreign-session refusal, restore-after-replacement, and the `/qol` report for a refused window registration and for a registry layout this version cannot read. A real OMP CLI run cannot replace these checks.
@@ -202,7 +211,7 @@ The extension replaces `AbortSignal.timeout` with a wrapper that keeps a referen
 
 ## Recording compaction request usage
 
-### Native behavior and intended result
+### Native behavior
 
 OMP sends its own summarization requests when a session compacts: the `soft` method's summary, short-summary, and turn-prefix calls and the `handoff` method's request, each with its own oneshot kind ([`compaction.ts:1012`](https://github.com/can1357/oh-my-pi/blob/9348320cc4a30a7195d36a1f05a6c11bcb701a17/packages/agent/src/compaction/compaction.ts#L1012), [`compaction.ts:1226`](https://github.com/can1357/oh-my-pi/blob/9348320cc4a30a7195d36a1f05a6c11bcb701a17/packages/agent/src/compaction/compaction.ts#L1226), [`compaction.ts:2098`](https://github.com/can1357/oh-my-pi/blob/9348320cc4a30a7195d36a1f05a6c11bcb701a17/packages/agent/src/compaction/compaction.ts#L2098), [`compaction.ts:1112`](https://github.com/can1357/oh-my-pi/blob/9348320cc4a30a7195d36a1f05a6c11bcb701a17/packages/agent/src/compaction/compaction.ts#L1112)). Each one reports the provider's tokens and per-component cost on the telemetry channel's chat-usage event ([`telemetry.ts:1489`](https://github.com/can1357/oh-my-pi/blob/9348320cc4a30a7195d36a1f05a6c11bcb701a17/packages/agent/src/telemetry.ts#L1489)), and each is only a request: the answer is what the method needs, and its billing is not part of it.
 
@@ -235,15 +244,18 @@ The adjustment replaces the `telemetry` accessor on the host's `Agent` prototype
 
 `compactionUsageEnabled` (on by default), under the master `enabled` switch; see the README for defaults and accepted values. An invalid value disables this adjustment and leaves the others alone. Restart OMP to apply a change.
 
-### Side effects and cancellation
+### Side effects
 
 - The patch is process-wide. Every agent in the process reads the configuration it supplies, which is the user's own configuration extended by the module's hooks, so the user's tracer, hooks, and export continue to serve every span they already served.
 - With no telemetry configured, the compensation makes the host create and run the instrumented wrapper for its compaction and handoff requests where it previously short-circuited. The wrapper's own work, not the export, is the cost: the inert tracer exports nothing, and the module adds no content attribute, no span link, and no event of its own.
 - Only the `telemetry` accessor is replaced, and only on the host's `Agent` prototype. The host's `setTelemetry` path, the private field the main turn reads, and every other class member are left as they are, so ordinary turns keep the behavior they had, including a turn on a host that configured telemetry.
 - A refused install restores the accessor it replaced. An activation whose own switches ask for the compensation off releases the accessor it finds in the process, an activation that cannot read its settings releases a patch another runtime installed, and an extension that replaces the installed accessor makes the module release it as replaced.
+
+### Cancellation
+
 - Cancellation of the adjustment: set `compactionUsageEnabled` to `false` and restart OMP, or restart without the extension. Nothing is written to disk and nothing survives the process; the entries already written stay in the sessions they belong to, as extra `model_usage` entries with a `compaction:` purpose.
 
-### Applicability and limits
+### Limits
 
 - Only the four purposes above are written. A native compaction, a branch summary, an evaluation completion, a skill description, and an image question keep their usage where it was.
 - An attempt that consumed no token, such as a cancelled or failed request whose snapshot is all zeros, writes nothing. An attempt that was billed despite an error status is written when it reports tokens.
@@ -254,7 +266,7 @@ The adjustment replaces the `telemetry` accessor on the host's `Agent` prototype
 - Usage attributed to the wrong branch would stay invisible to the statistics it was meant to correct. The entry follows the branch that is current when the request completes, which is the branch the compaction belonged to, because the compaction runs on that branch and blocks it until it finishes.
 - Known limit of the compensation: an attempt that was retried away inside the host's own wrapper is not recoverable from the event the module reads. The module reads the span the event names, and the host's retry runs inside that request.
 
-### Version and verification
+### Verification
 
 - **Source baseline**: OMP `18.5.0` at `9348320cc4a30a7195d36a1f05a6c11bcb701a17` for the telemetry channel, the oneshot kinds, the compaction and handoff sites, the usage-entry API, and the statistics reader; the provider-computed cost field was read at the installed `18.8.3` ([`a3cdfbdd58`](https://github.com/can1357/oh-my-pi/commit/a3cdfbdd58b6647e216bc5dd3d7df8519f74de9a)). Sources listed above.
 - **Retirement surface**: [pull request #15034](https://github.com/can1357/oh-my-pi/pull/15034) records these requests in the host itself and exports `compactionRequestUsage` from `@oh-my-pi/pi-agent-core` for that purpose; the adjustment reads that export.
@@ -302,15 +314,18 @@ The extension replaces `Map.prototype.set` with a wrapper that keeps a reference
 
 `replayEnabled` (on by default); see the README for the default and the accepted values.
 
-### Side effects and cancellation
+### Side effects
 
 - The wrapper is on the path of every `Map` write in the process. It compares a string key against a prefix and reads one field, and forwards everything else; a local benchmark of `2,000,000` string-keyed writes per round, five rounds, measured a median of `150.2` ms native against `154.1` ms wrapped, about 2 ns per call.
 - The value the host handed in is the value that changes, so the host's own state object carries the flag; no copy is made and nothing is written to the session file.
 - What the adjustment assumes: that the native items the previous process stored for this session are replayable by the endpoint that answers the resumed request. That is the assumption the previous process itself ended on, and the guard holds it back from a later process rather than proving it wrong. A session that carries items the endpoint rejects would fail its first request with the flag true, where the native path rebuilds and proceeds. The alternating runs of the paired measurement replayed and rebuilt the same history without a provider error.
 - The first request after a resume is the affected one. Within a process, the second request is replayed either way, and a session with no stored items is unaffected.
+
+### Cancellation
+
 - Cancellation of the adjustment: set `replayEnabled` to `false` and restart OMP, or restart without the extension. The wrapper is not written to disk, and nothing survives the process.
 
-### Applicability and limits
+### Limits
 
 - The adjustment covers `openai-responses` provider states only. `openai-codex-responses` keeps its own state key and its own rules ([`packages/ai/src/providers/openai-codex-responses.ts:1067`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-codex-responses.ts#L1067)); Anthropic and completions states are untouched.
 - It depends on three host details: the `openai-responses:` key prefix, the `nativeHistoryReplayWarmed` field, and the state being stored through `Map.prototype.set` on the map the session hands to the provider. A host that renames the key or the field, or that builds the state without a `Map` write, makes the wrapper inert without failing; the rewrite count in `/qol` is the signal.
@@ -319,7 +334,7 @@ The extension replaces `Map.prototype.set` with a wrapper that keeps a reference
 - The gain follows the size of the replayed region. A turn whose replayable items stayed under about `500` tokens resumed with `17,920` cached tokens in both arms, so a short session can show no measurable difference even though the request form still differs.
 - Not verified: the official OpenAI endpoint with `store` and `previous_response_id` chaining, `openai-codex-responses`, a session resumed after `/clear`, an interactive takeover, and a post-compaction rebuild. A state the host rebuilds without a map write is not covered by the wrapper.
 
-### Version and verification
+### Verification
 
 - **Source baseline**: OMP `18.2.8` at `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`. Sources listed above.
 - **Automated checks**: OMP `18.5.0`, `bun test` and `tsc --noEmit`, with the prototype accessors injected and a recording function standing in for the process's own `set`. They cover the rewrite (a matching key and an unwarmed value, the value that changes, the forwarded call, the count) and the forwarding matrix (other provider prefixes, a number key, a symbol key, values that are not objects, a value whose flag is missing or true), one wrapper per process (a second activation keeps it and reports `enabled` with the count, and writes no second wrapper), the releases (this module's switch off, the master switch off, invalid settings, and the master switch during activation), a stopped wrapper staying callable and inert, `stopForeignNativeReplayPatch` restoring the replaced function and reporting `runtime-conflict` only for another activation, the refusals (`registry-unrecognized`, `patch-overwritten` leaving a foreign function in place, `install-failed` publishing no registry), the `/qol` line for an installed wrapper, a released one, an overwritten one, and a registry this version cannot read, plus the activation path that installs the wrapper for a default settings object and stops it when the settings getter fails.
@@ -328,19 +343,25 @@ The extension replaces `Map.prototype.set` with a wrapper that keeps a reference
 
 ## Model prompt rules
 
-### Native behavior and intended result
+### Native behavior
 
-The public `before_agent_start` event exposes the current turn's system-prompt blocks and effective model. The module appends matching user-authored bodies through that event without changing the host, template, history, or Provider payload. The upstream model-scoped instruction request is [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739); this reference is not a claim that every current host lacks an equivalent feature.
+The public `before_agent_start` event exposes the current turn's system-prompt blocks and effective model.
+
+### Where it attaches
+
+The module appends matching user-authored bodies through that event without changing the host, template, history, or Provider payload. The upstream model-scoped instruction request is [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739); this reference is not a claim that every current host lacks an equivalent feature.
+
+### Settings
 
 Enable this opt-in module through [Model prompts settings](../README.md#model-prompts). Settings changes require restart; rule files refresh on each covered turn.
 
-### Composition, failures, and limits
+### Limits
 
 The [rule contract](../README.md#model-prompt-rules) defines discovery, matching, byte-exact append, and diagnostics. File and directory failures are isolated to their source; an unexpected handler failure preserves the incoming blocks.
 
 Template-processing extensions must load before this module; template and rule failures remain independent, and later handlers can replace the result. Enabled project rules become system instructions. Regexes have no sandbox or timeout, and rule bodies have no size budget.
 
-### Version and verification
+### Verification
 
 QoL `0.5.4` is checked against locked OMP `18.5.0` development types. Real OMP `18.6.3` CLI/TUI observations used explicit native entries and the `openai-completions` request family. They covered default/master/module-off requests, enabled rule-only requests, template-first coexistence with Delivery and corrected footer, ordinary child Agents, continuous file edits/additions/deletions/repairs and model re-matching. A registered tool-surface change in the first `before_provider_request` caused a directly observed native template render while the turn override was active. The effective blocks stayed unchanged and both real requests retained each rule once; this did not exercise prefix-binding freezes or updates after an assistant message. Request observations retained synthetic body bytes, block positions/counts, and hashes, not private request text. `/qol` was observed in the real TUI. The alternate model's request reached the Provider-facing boundary but that Provider returned insufficient credits; this proves re-matching, not successful completion by that Provider.
 

@@ -20,7 +20,7 @@ Spec for [projects/omp-context-pin](../../projects/omp-context-pin/README.md).
 ## Public surface
 
 - Command, tool actions, and confirmed writes: [Usage](../../projects/omp-context-pin/README.md#usage).
-- Record format, revisions, and numbering: [Records and revisions](../../projects/omp-context-pin/README.md#records-and-revisions).
+- Record format, revisions, and numbering: [Record model](../../projects/omp-context-pin/README.md#record-model).
 - Reset behavior: [Reset](../../projects/omp-context-pin/README.md#reset).
 - Size limits: [Limits](../../projects/omp-context-pin/README.md#limits).
 - Persistence and cache behavior: [Persistence](../../projects/omp-context-pin/README.md#persistence) and [Cache behavior](../../projects/omp-context-pin/README.md#cache-behavior).

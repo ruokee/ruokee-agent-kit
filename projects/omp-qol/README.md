@@ -123,7 +123,7 @@ Each covered turn reads `model-prompts` under the active profile's user agent di
 
 Names sort in JavaScript string order within each directory. User bodies precede project bodies. Project files do not shadow same-named user files; identical bodies from different files still contribute separate blocks. Read completion order cannot change this order.
 
-### Format and matching
+### Rule files
 
 ```markdown
 ---
@@ -149,7 +149,7 @@ Entries are alternatives; a file matching several entries contributes once. Matc
 
 Each matching file contributes one block at the end of the incoming turn array. The body starts after the closing delimiter's line ending and stays byte-for-byte, including headings, blank lines, LF/CRLF, indentation, HTML comments, template-like text, and trailing newlines. Frontmatter and the opening BOM are excluded. No wrapper, heading, trimming, template render, context rewrite, message, or history entry is added. Existing blocks keep their bytes and order.
 
-### Refresh and failures
+### Rule loading
 
 Rules and the effective model are read anew at each covered turn. Additions, edits, deletions, and repairs take effect next turn without restart. Failed files do not reuse an earlier body. With no model, no rules, or no match, the incoming prompt stays unchanged. OMP's turn-scoped override survives a mid-turn rebuild; its next turn starts from the host base prompt, so bodies do not accumulate. Settings still use the activation snapshot and need a restart.
 
@@ -157,9 +157,11 @@ An invalid document is skipped as a whole at its first failure: `frontmatter-mis
 
 Rule diagnostics carry a fixed reason and scope-relative source such as `project/20-rules.md`, deduplicated by session, source, and reason. Each turn uses its current UI notification channel, or the host logger when headless. Bodies, absolute directories, parser errors, regex source, and conversation content are not reported. New or forked sessions have separate histories; returning to a visited session retains that activation's history. Invalid switch types disable only this module; a rejected settings object follows the existing whole-component rejection rule. `/qol` shows state, effective switch, and reason, not model identities or rule bodies.
 
-### Coverage and trust
+### Coverage
 
 Ordinary main turns and ordinary child turns that run `before_agent_start` are covered. Each child matches its own effective model and keeps its role, independent blocks, and host protocol. Plan-mode children, Handoff, title generation, and difficulty classification gain no injection route. Side requests keep the host's treatment of the live Agent prompt. This is a turn-level contract, not independent refresh on every provider request, fallback, or temporary model switch. Later handlers can overwrite the result; the module neither reorders extensions nor claims final-provider precedence.
+
+### Trust
 
 When enabled, project rules become system instructions. This adds no project-trust gate or security isolation. JavaScript regular expressions have no sandbox or execution timeout. Matching bodies have no size or quota limit, so large files can consume prompt space and slow directories delay turn assembly. Keep personal rules in the user directory and inspect project rules before enabling them.
 

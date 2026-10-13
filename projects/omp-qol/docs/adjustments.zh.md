@@ -45,20 +45,23 @@
 - `waitMessagesSeconds` 与 `waitProcessSeconds` 照常接受并校验；受支持的宿主没有纯消息或命名进程等待入口，这两项不起作用。
 - `/qol` 报告生效的默认值，并把消息续接、命名进程等待与 service 续接标为 `not-applicable`，不显示没有被读取的配置值。
 
-### 副作用与取消
+### 副作用
 
 - 模块重复的是只读原生调用。它不启动后台工作、不取消任务或进程，也不自行消费消息或结果。
 - 到达期限只结束外层等待调用，后台任务与进程继续运行。期限说明指向再次调用 `wait` 与 `proc://`，这两个入口在宿主上确实存在。
 - 调用方取消优先于组件期限并保留自身原因。即使期限信号先到，终止性的宿主结果仍然优先。
+
+### 取消
+
 - 将 `waitEnabled` 设为 `false` 并重启 OMP，即可直接恢复原生入口。
 
-### 适用条件与边界
+### 边界
 
 - 模块不合并纯消息空窗口、不提供命名进程等待，也不跨原生上限合并纯 service 等待。模块不会用状态轮询或宿主正文分类模拟这些能力。
 - 资格检查依赖 builtin 来源与空对象参数结构，续接规则依赖 `useless`、`details.op` 与非空且全部运行中的 `details.jobs` 结构。宿主变化可能使模块保持不生效或提前返回窗口，但模块不会猜测。
 - 模块依赖同名扩展优先级，以及 `ctx.invokeTool` 能到达被遮蔽的内建工具。宿主升级后需重新核对这些合同。
 
-### 版本与验证
+### 验证
 
 - **源码基线**：OMP `18.5.0` 的[等待工具](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/tools/wait.ts)、[任务控制](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/async/job-control.ts)、[扩展 API](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/extensibility/extensions/types.ts) 与 [proc 协议](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/internal-urls/proc-protocol.ts)。
 - **自动检查**：OMP `18.5.0`，`bun test` 与 `tsc --noEmit`，使用记录宿主。覆盖模型可见 schema、跨运行快照的 `{}` 委派、缺省与显式期限选择、结构化续接规则、终止结果、取消、期限与结果竞态、注册拒绝，以及真实的已注册工具适配器对可中断性、加载模式、严格校验与审批的转发。
@@ -104,7 +107,7 @@
 
 `recoveryEnabled`、`recoveryMode`、`recoveryMaxAttempts`、`recoveryBackoffBaseMs`、`recoveryBackoffMaxMs`、`recoveryNotify`，默认值与取值见 README。`notify` 每次续跑显示一行提示，包含次数与等待时间，这也是延迟过程可见的方式。
 
-### 副作用与取消
+### 副作用
 
 - 该调整会启动模型轮次，重发会话内容并消耗服务额度。
 - 失败的轮次不会被撤销。错误之前已运行的工具调用保留其效果，该轮次中未运行的调用可能在续跑中执行。
@@ -112,9 +115,12 @@
 - 宿主每条链 8 次续跑的限制独立于 `recoveryMaxAttempts` 生效；不属于当前链的轮次会让宿主重置链计数。
 - 等待期间按 Esc 会取消等待，被取消的等待不计入次数。
 - `session_stop` 处理器有 30 秒预算。校验后的倍增上限为 10 秒，因此默认值与可配置值都远在预算之内。
+
+### 取消
+
 - 关闭该调整：将 `recoveryEnabled` 设为 `false` 并重启 OMP，宿主不再收到本扩展的续跑请求。
 
-### 适用条件与边界
+### 边界
 
 - 模块需要带 `stop_hook_active`、`turn_id`、`last_assistant_message` 与续跑结果字段的 `session_stop`，以及公开的错误分类器。宿主对子代理跳过该钩子，因此恢复不会作用于子代理。
 - 安全排除优先于配置的模式：拒绝、配额上限或用户中断无法通过配置变成续跑。
@@ -122,7 +128,7 @@
 - 续跑可能重复副作用。宿主与本模块都不保证重复执行是幂等的。
 - 当宿主提供在可续跑错误后继续轮次的设置，或允许 stop hook 拥有自己的重试预算时，该调整不再必要。
 
-### 版本与验证
+### 验证
 
 - **源码基线**：OMP `18.2.8`，提交 `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`，源码位置如上。
 - **自动检查**：OMP `18.5.0`，`bun test` 与 `tsc --noEmit`，以记录宿主替代真实宿主。覆盖两种模式的分类矩阵、带或不带状态与判定结论的中断标记、无状态条件、排除清单与终止性状态优先于标记、被标记轮次的续跑、排除优先级、链与退避计算、同一轮次的重复事件、连续多次运行都首个轮次失败、等待期间开始新运行、被取消的等待、会话切换、跨运行的次数上限、正常结束与不可恢复错误终止链、被取消的结束、终止后仍保留的已处理轮次标记、固定续跑文本，以及开关或配置让恢复停用时不请求续跑。错误分类器使用已安装的 `@oh-my-pi/pi-ai` 代码，不是替身。
@@ -174,7 +180,7 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 
 `compactionTimeoutEnabled`（默认关闭）、`compactionTimeoutMs`、`compactionTimeoutFloorMs`、`compactionWindowGuardMs`、`compactionTimeoutNotify`，默认值与取值见 README。`notify` 在窗口内首次改写期限时显示一行提示，同一窗口内不重复。
 
-### 副作用与取消
+### 副作用
 
 - 补丁在进程级生效。窗口期间任何调用 `AbortSignal.timeout` 且数值落在改写区间的代码都会得到更长期限，不只是压缩请求。这是该实验接受的代价，也是默认关闭的原因。这一点无需压缩即可观察：窗口打开时进程内其他代码的命中调用同样被改写。
 - 只能延长期限。低于下限的取值以及大于等于 `compactionTimeoutMs` 的取值都不受影响，因此该调整绝不会缩短等待。
@@ -182,9 +188,12 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 - 包装在补丁正在运行且 owner 尚未退出期间一直安装，窗口之外不起作用。注册失败与 owner 退出都会还原原生函数。关闭事件始终不到达时，守卫限制窗口保持生效的最长时间。
 - 窗口由事件打开，因此可能覆盖该时段内无关工作发出的调用，例如恰好使用命中数值的服务端请求。
 - 注册 `session_before_compact` 会改变宿主处理投机压缩的方式，因为宿主把该事件的任何处理器都视为拦截器。在 OMP `18.2.8` 中，处理器存在会关闭三件事：不启动投机运行（[`session-maintenance.ts:1982`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/session/session-maintenance.ts#L1982)）、不把阈值压缩推迟到正在运行的投机（[`session-maintenance.ts:2042`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/session/session-maintenance.ts#L2042)）、也不消费已就绪的投机结果（[`session-maintenance.ts:2251`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/session/session-maintenance.ts#L2251)）。宿主在第一处写明了原因：投机结果会绕过拦截器的否决。对本调整意味着启用它会放弃投机压缩，原本可在后台准备好的压缩改为在前台执行，会话可能需要等待。这也是模块只在 `compactionTimeoutEnabled` 开启时注册该处理器的原因：默认关闭时不注册处理器，宿主的压缩调度不受影响。模块需要该钩子，因为其中的 `signal` 是手动压缩的取消入口。
+
+### 取消
+
 - 关闭该调整：将 `compactionTimeoutEnabled` 设为 `false` 并重启 OMP，或不再加载扩展。不写磁盘，进程结束后不残留。
 
-### 适用条件与边界
+### 边界
 
 - 一个进程只有一个包装，归安装它的激活所有，且只有该激活的事件会打开包装改写的窗口。版本与快照一致的第二次激活保留补丁并报告 `patch-owned-elsewhere`，但不驱动窗口；携带其他快照的激活则停止补丁。因此同一进程中的两个会话不会都驱动该实验。
 - 模块依赖 `AbortSignal.timeout` 可写且可配置、原生函数对非法输入抛 `TypeError`，以及压缩路径用 `AbortSignal.timeout` 作为看门狗。宿主改为自行构造信号或改用其他方式配置超时，补丁即失效。
@@ -193,7 +202,7 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 - 本模块不控制的部分：期限只是单个信号的期限，不是重试与回退的总耗时；超过提高后期限的压缩仍会被中断，与之前一致。宿主的投机压缩同样不受本模块控制，`session_before_compact` 注册会将其关闭。
 - 早期补丁拒绝保护的是本模块读取的那个标记，即 `globalThis` 上的标记。为旧宿主编写的旧压缩扩展把同一标记写在 `AbortSignal` 上，因此真实的旧扩展不会被拒绝：两者同时加载时本模块会在旧包装之上安装自己的包装，关闭时还原旧包装而不是原生函数。本该阻止两份调整共用同一个全局对象的拒绝因此变成叠加。对真实旧扩展的保护应按未验证看待：自动检查只覆盖把标记写在本版本读取位置的替身。
 
-### 版本与验证
+### 验证
 
 - **源码基线**：OMP `18.2.8`，提交 `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`，源码位置如上。
 - **自动检查**：OMP `18.5.0`，`bun test` 与 `tsc --noEmit`，使用记录宿主，并把 `AbortSignal.timeout` 替换为记录器，记录器把非法输入委派给原生函数。覆盖安装顺序与每种拒绝原因（早期补丁标记一项是把标记写在本版本读取位置的替身，见边界说明）、幂等安装与释放、第二次激活保留已安装补丁（其他 cwd、不注册窗口事件、安装方窗口继续改写期限、窗口外调用保持原生而窗口内被延长、不报告冲突）、第二次激活停止已安装补丁（其他快照、其他包版本、本模块开关关闭、总开关关闭、键无效）、已停止的补丁对之后配置一致的激活保持停止、owner 退出（关闭窗口、仅当前全局函数仍是本模块包装时还原原生函数、注册表留下 `owner-stopped`、之后配置一致的激活报告该状态且不安装、会话切换只关闭窗口）、`/qol` 在之后停止后报告注册表状态、安装方激活配置快照变化、本版本无法读取的注册表槽位、读取设置抛错、设置根不是对象、未知键、总开关取值无效、改写区间、非法输入的 `TypeError` 行为、每个窗口一次提示、进程级副作用对非压缩调用方的影响、同一次压缩操作在同一个 signal 上串行回退后续方法（窗口、类型、会话 id、守卫租期与提示状态保持不变，只有一个监听器，改写持续到提交，之后的操作为全新一轮）、自动轮次或 `session.compacting` 先开启窗口时的同样情形、同一窗口内出现不同的活跃 signal、自动轮次进行中再次开始自动轮次、由各事件打开窗口、绑定到已打开窗口的 before-compact 信号、已经中止的信号、遗留监听器、守卫与取消与中止与切换与关闭结束窗口、重叠与外部会话拒绝、被替换后的还原，以及窗口事件注册失败与布局无法识别的注册表各自的 `/qol` 报告。真实 OMP CLI 运行无法替代这些检查。
@@ -202,7 +211,7 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 
 ## 补记压缩请求用量
 
-### 原生行为与预期结果
+### 原生行为
 
 会话压缩时，OMP 会发出自己的摘要请求：`soft` 方法的 summary、short-summary 与 turn-prefix 调用，以及 `handoff` 方法的请求，各自带自己的 oneshot 类型（[`compaction.ts:1012`](https://github.com/can1357/oh-my-pi/blob/9348320cc4a30a7195d36a1f05a6c11bcb701a17/packages/agent/src/compaction/compaction.ts#L1012)、[`compaction.ts:1226`](https://github.com/can1357/oh-my-pi/blob/9348320cc4a30a7195d36a1f05a6c11bcb701a17/packages/agent/src/compaction/compaction.ts#L1226)、[`compaction.ts:2098`](https://github.com/can1357/oh-my-pi/blob/9348320cc4a30a7195d36a1f05a6c11bcb701a17/packages/agent/src/compaction/compaction.ts#L2098)、[`compaction.ts:1112`](https://github.com/can1357/oh-my-pi/blob/9348320cc4a30a7195d36a1f05a6c11bcb701a17/packages/agent/src/compaction/compaction.ts#L1112)）。每个请求都会在遥测通道的 chat usage 事件上报告提供方的 token 数与分项成本（[`telemetry.ts:1489`](https://github.com/can1357/oh-my-pi/blob/9348320cc4a30a7195d36a1f05a6c11bcb701a17/packages/agent/src/telemetry.ts#L1489)），而它本身只是一次请求：方法要的是答案，账单不在其中。
 
@@ -235,15 +244,18 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 
 `compactionUsageEnabled`（默认开启），受总开关 `enabled` 约束；默认值与可接受取值见 README。取值非法时只停用本调整，其他模块不受影响。修改后需重启 OMP。
 
-### 副作用与取消
+### 副作用
 
 - 补丁是进程级的。进程里每个 agent 读到的都是它给出的配置，即用户自己的配置加上本模块的钩子，因此用户的 tracer、钩子与导出继续服务它们原本服务的每个 span。
 - 未配置遥测时，补偿会让宿主为压缩与 handoff 请求创建并运行插桩包装层，而此前它会直接短路。代价在包装层自身的工作，而不在导出：惰性 tracer 不导出任何内容，本模块也不添加内容属性、span 链接或自己的事件。
 - 只替换 `telemetry` 访问器，且只在宿主 `Agent` 原型上。宿主的 `setTelemetry` 路径、主回合读取的私有字段以及其他类成员保持原样，因此普通回合行为不变，包括在已配置遥测的宿主上的回合。
 - 拒绝安装时会还原它替换掉的访问器。自身开关要求关闭该补偿的激活会释放进程中已有的访问器；设置无法读取的激活会释放另一运行时安装的补丁；其他拓展替换掉已安装的访问器时，本模块按已被替换释放它。
+
+### 取消
+
 - 取消本调整：把 `compactionUsageEnabled` 设为 `false` 后重启 OMP，或直接不带该扩展启动。不写任何磁盘状态，进程结束即消失；已写入的条目留在所属会话中，作为带 `compaction:` purpose 的普通 `model_usage` 条目。
 
-### 适用范围与边界
+### 边界
 
 - 只写上述四种 purpose。原生压缩、分支摘要、评估补全、技能描述与图片问答的用量留在原处。
 - 未消耗任何 token 的尝试（例如快照全为零的取消或失败请求）不写任何内容。以错误状态结束但确实计费的尝试只要报告了 token 就会写入。
@@ -254,7 +266,7 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 - 归属到错误分支的用量会对它本应修正的统计不可见。条目跟随请求完成时的当前分支，也就是该压缩所属的分支，因为压缩在其分支上运行并阻塞该分支直到结束。
 - 补偿的已知边界：在宿主自身包装层内被重试掉的尝试无法从本模块读取的事件中恢复。本模块读取事件所指的 span，而宿主的重试在该请求内部进行。
 
-### 版本与验证
+### 验证
 
 - **源码基线**：遥测通道、oneshot 类型、压缩与 handoff 调用点、用量条目接口与统计读取方依据 OMP `18.5.0`，提交 `9348320cc4a30a7195d36a1f05a6c11bcb701a17`；提供方计算成本字段依据已安装的 `18.8.3` 阅读（[`a3cdfbdd58`](https://github.com/can1357/oh-my-pi/commit/a3cdfbdd58b6647e216bc5dd3d7df8519f74de9a)）。源码位置如上。
 - **退出条件所在界面**：[pull request #15034](https://github.com/can1357/oh-my-pi/pull/15034) 由宿主自己记录这些请求，并为此从 `@oh-my-pi/pi-agent-core` 导出 `compactionRequestUsage`；本调整读取该导出。
@@ -302,15 +314,18 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 
 `replayEnabled`（默认开启），默认值与取值见 README。
 
-### 副作用与取消
+### 副作用
 
 - 包装位于进程内每次 `Map` 写入的路径上。它把字符串键与前缀比较、读取一个字段，其余原样转发；本机基准测试每轮 `2,000,000` 次字符串键写入、共五轮，原生中位数 `150.2` ms，包装后 `154.1` ms，约合每次调用 2 ns。
 - 发生变化的就是宿主传入的那个值，因此标志落在宿主自己的状态对象上；不产生副本，也不写入会话文件。
 - 该调整的前提：上一个进程为本会话存下的原生条目对响应恢复请求的服务端仍可重放。这也是上一个进程结束时已经作出的假设，守卫只是不让后续进程继续沿用，并没有证明它不成立。若会话携带的条目被服务端拒绝，标志为 `true` 时第一次请求会失败，而原生路径会重建并继续。配对测量中的交替运行对同一段历史反复重建与重放，均未出现服务端错误。
 - 受影响的是恢复后的第一次请求。进程中随后的请求两种方式都是重放，未携带已存条目的会话也不受影响。
+
+### 取消
+
 - 关闭该调整：将 `replayEnabled` 设为 `false` 并重启 OMP，或不再加载扩展。包装不写磁盘，进程结束后不残留。
 
-### 适用条件与边界
+### 边界
 
 - 该调整只覆盖 `openai-responses` 的提供方状态。`openai-codex-responses` 使用自己的状态键与规则（[`packages/ai/src/providers/openai-codex-responses.ts:1067`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-codex-responses.ts#L1067)），Anthropic 与 completions 的状态不受影响。
 - 它依赖三个宿主细节：`openai-responses:` 键前缀、`nativeHistoryReplayWarmed` 字段，以及状态通过会话交给提供方的 map 上的 `Map.prototype.set` 存放。宿主改名键或字段，或不经 map 写入直接构造状态，包装会静默失效而不会报错；`/qol` 中的改写次数是唯一的信号。
@@ -319,7 +334,7 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 - 收益随可重放区域的大小出现。可重放条目不足约 `500` token 的轮次在恢复后两组都命中 `17,920`，因此短会话即使请求形态不同，也量不到差别。
 - 未验证：带 `store` 与 `previous_response_id` 链式调用的官方 OpenAI 端点、`openai-codex-responses`、`/clear` 之后恢复的会话、交互式接管，以及压缩后的状态重建。宿主不经 map 写入而重建的状态不在包装覆盖范围内。
 
-### 版本与验证
+### 验证
 
 - **源码基线**：OMP `18.2.8`，提交 `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`，源码位置如上。
 - **自动检查**：OMP `18.5.0`，`bun test` 与 `tsc --noEmit`，注入原型访问器，并以记录函数代替进程自身的 `set`。覆盖改写（键命中且值未变热、被修改的是传入的值、转发的调用、计数）与转发矩阵（其他提供方前缀、数字键、symbol 键、不是对象的值、标志缺失或为 true 的值）、每进程一个包装（第二次激活保留并以计数报告 `enabled`，且不再写入第二个包装）、释放（本模块开关关闭、总开关关闭、键无效、激活期间总开关关闭）、已停止的包装仍可调用但不改写、`stopForeignNativeReplayPatch` 只对其他激活还原被替换的函数并报告 `runtime-conflict`、各类拒绝（`registry-unrecognized`、`patch-overwritten` 保留外来函数不动、`install-failed` 不发布注册表）、`/qol` 对已安装、已释放、已被替换、以及本版本无法读取的注册表的行，以及默认配置下安装包装、设置 getter 失败时停止包装的激活路径。
@@ -328,19 +343,25 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 
 ## 模型提示词规则
 
-### 原生行为与预期结果
+### 原生行为
 
-公开的 `before_agent_start` 事件提供当前 turn 的系统提示词块与有效模型。模块通过该事件追加匹配的用户正文，不修改宿主、模板、历史或 Provider 载荷。上游模型级指令请求见 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739)，该引用不意味着任意当前宿主都缺少等价能力。
+公开的 `before_agent_start` 事件提供当前 turn 的系统提示词块与有效模型。
+
+### 介入位置
+
+模块通过该事件追加匹配的用户正文，不修改宿主、模板、历史或 Provider 载荷。上游模型级指令请求见 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739)，该引用不意味着任意当前宿主都缺少等价能力。
+
+### 设置
 
 通过[模型提示词设置](../README.zh.md#模型提示词)选择启用本模块。设置改动须重启，规则文件在每个覆盖 turn 刷新。
 
-### 组合、失败与边界
+### 边界
 
 [规则合同](../README.zh.md#模型提示词规则)定义发现、匹配、逐字节追加和诊断。文件与目录失败只影响其来源，handler 意外失败保留传入的块。
 
 模板处理扩展须先于本模块加载；模板与规则失败互不影响，后续 handler 仍可替换结果。启用后项目规则成为系统指令。正则没有沙箱或超时，正文没有大小预算。
 
-### 版本与验证
+### 验证
 
 QoL `0.5.4` 针对锁定的 OMP `18.5.0` 开发类型检查。真实 OMP `18.6.3` CLI/TUI 使用原生显式入口与 `openai-completions` 请求族，覆盖默认、总开关和模块关闭请求、启用后的独立规则请求、模板在前且保留 Delivery 与修正页脚的共存、普通子 Agent、连续编辑/增加/删除/修复及模型重新匹配。在首个 `before_provider_request` 改变已注册的工具表面，直接观察到 turn override 生效期间的原生模板渲染。有效块保持不变，两次真实请求的每条规则仍各一次；未覆盖 prefix-binding 冻结或已有 assistant 消息后的更新。请求观察只保留合成正文、块位置/次数和哈希，不保留私人请求文本；在真实 TUI 观察 `/qol`。切换后的模型到达 Provider-facing 请求边界，但该 Provider 返回余额不足；这证明重新匹配，不证明该 Provider 成功完成响应。
 

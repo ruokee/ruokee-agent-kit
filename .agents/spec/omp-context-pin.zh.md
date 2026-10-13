@@ -20,7 +20,7 @@
 ## 公共面
 
 - 命令、工具动作和确认的写入：[用法](../../projects/omp-context-pin/README.zh.md#用法)。
-- 记录格式、revision 和编号：[记录与 revision](../../projects/omp-context-pin/README.zh.md#记录与-revision)。
+- 记录格式、revision 和编号：[记录模型](../../projects/omp-context-pin/README.zh.md#记录模型)。
 - 重置行为：[重置](../../projects/omp-context-pin/README.zh.md#重置)。
 - 大小上限：[上限](../../projects/omp-context-pin/README.zh.md#上限)。
 - 持久化与缓存行为：[持久化](../../projects/omp-context-pin/README.zh.md#持久化)和[缓存行为](../../projects/omp-context-pin/README.zh.md#缓存行为)。

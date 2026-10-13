@@ -107,13 +107,13 @@ omp plugin config delete @ruokee/omp-codex-web-access model
 
 OMP 会将项目包条目合并到用户包条目之上。项目覆盖缺失时，用户设置保持不变。OMP loader 负责文件解析：用户运行时 JSON 缺失时产生空的用户设置，用户运行时 JSON 损坏时公开 getter 会拒绝；项目候选文件缺失或损坏时会跳过并继续检查其他候选目录。如果没有有效项目候选文件，则不存在项目覆盖。扩展只校验 `getPluginSettings` 返回的对象，不解析 OMP 文件来恢复已被 OMP 吞掉或拒绝的文件错误。getter 失败时不注册任何工具，并输出有界诊断，不转储原始异常或配置值。
 
-### 激活与设置快照
+### 激活
 
 扩展 factory 只安装 `session_start` 处理器，加载 factory 时不读取设置也不注册工具。第一次 `session_start` 会等待 `getPluginSettings(PACKAGE_NAME, ctx.cwd)`，校验一份完整有效的设置对象，再根据这份快照注册启用的工具。同一次激活中的重复或并发 `session_start` 共享一个 Promise，不刷新设置，也不重复注册工具。下一次扩展激活才会重新读取；激活期间修改文件不是热重载。初始化错误会使本次激活失败，同一次激活不会重试。
 
 OMP 模式会在第一次 prompt 前等待扩展初始化。直接 OMP SDK 调用方必须显式初始化 OMP 扩展运行时，在调用 `prompt` 前发出 `session_start` 并等待该事件处理器完成。扩展不增加独立初始化 API，注册阶段也不会发起模型请求。
 
-### 启用与发现
+### 工具可用性
 
 旧文件中的 `enabled: false` 映射到对应的原生 `*Enabled: false` 键。工具不会注册，顶层工具和 `xd://` 都不能调用它。`essential` 与 `discoverable` 只影响已启用的工具。`essential` 让工具保持在 OMP 顶层呈现中；`discoverable` 注册工具供 OMP 发现，在 OMP 传输可用时可能通过 `xd://` 使用。发现不可用时，OMP 可以回退到顶层呈现。`discoverable` 不表示禁用。
 

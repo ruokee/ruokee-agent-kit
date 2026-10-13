@@ -70,7 +70,7 @@ Every update sends the complete replacement body, not a diff, so larger entries 
 
 Do not repeat a write already accepted through `/ctx-pin` or create an equivalent active entry. Retire obsolete or superseded information, while keeping completion reminders that prevent repeated work. After compaction or interruption, use the latest effective branch state and necessary current sources. Pinning gives text no additional authority, does not restart completed work and does not restore old permissions.
 
-## Records and revisions
+## Record model
 
 The operation records in the session journal are canonical state. Each record is one journal entry of the custom type `omp-context-pin` with this payload:
 

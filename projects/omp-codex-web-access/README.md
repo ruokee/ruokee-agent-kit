@@ -107,13 +107,13 @@ Place a project override at `.omp/plugin-overrides.json`. Keep the other plugin 
 
 OMP merges the project package entry over the user package entry. A missing project override leaves user settings unchanged. OMP's loader handles file parsing: a missing user runtime JSON produces empty user settings, malformed user runtime JSON rejects the public getter, and missing or malformed project candidates are skipped while OMP checks its candidate directories. If no valid project candidate exists, there is no project override. The extension validates only the object returned by `getPluginSettings`; it does not parse OMP files to recover swallowed or rejected file errors. A getter failure registers neither tool and emits a bounded diagnostic without dumping raw exceptions or configuration values.
 
-### Activation and snapshots
+### Activation
 
 The extension factory installs a `session_start` handler and does not read settings or register tools during factory loading. The first `session_start` awaits `getPluginSettings(PACKAGE_NAME, ctx.cwd)`, validates one complete effective object, and registers enabled tools from that snapshot. Repeated or concurrent `session_start` events in the same activation share one promise, do not refresh settings, and do not duplicate tools. A later extension activation reads again; changing a file during an existing activation is not hot reload. An initialization error fails that activation and is not retried within the same activation.
 
 OMP modes wait for extension initialization before their first prompt. A direct OMP SDK caller must explicitly initialize the OMP extension runtime and emit `session_start` before calling `prompt`, then await that event handler. This extension does not add a separate initialization API or make a model request during registration.
 
-### Enablement and discovery
+### Tool availability
 
 `enabled: false` in the old file maps to the corresponding native `*Enabled: false` key. The tool is not registered and cannot be called through top-level tools or `xd://`. `essential` and `discoverable` apply only to enabled tools. `essential` keeps a tool in OMP's top-level presentation; `discoverable` registers it for OMP discovery and may use `xd://` when the OMP transport is available. OMP can fall back to top-level presentation when discovery is unavailable. `discoverable` does not disable a tool.
 

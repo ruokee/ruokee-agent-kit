@@ -39,9 +39,11 @@ OMP keeps document generation, triggering, cancellation, authentication and tran
 
 The two capabilities share the package, the process coordinator, the per-session registration, and one wrapper per native method, and share no protocol rules, payload shapes, reason codes, or evidence; a refusal or a missing interface in one leaves the other working. The process-global coordinator and the activation entries carry a contract version, so a copy of another version is never read as this version's state: a foreign coordinator is reported as `coordinator-conflict` and left untouched, and the activation snapshot is cached under this version's own process-global key, so a copy of another version neither reads this entry nor writes one this version would reuse.
 
-## Observation and ownership
+## Observation
 
 The implementation observes native CLI/SDK publication before `session_start` and continuously checks the original agent, runner, and stream identities. That observation is not an authentication API for arbitrary constructed Agent instances. An unobserved or changed chain may keep a complete-range proof, but it cannot gain local native independence from matching lengths or outputs. History-dependent image preparation and later date/cwd reminders also need a complete-range proof when local dependencies are not established.
+
+## Ownership
 
 A switch, branch, or tree navigation revokes the old epoch first. After the native transition settles, a new ordinary send restores eligibility, whether the transition succeeded, was cancelled, or failed. A child's finish or replacement releases only its own registration. Cleanup restores only the wrappers this package still owns and never takes over a competing wrapper. Shared resources are released after the last registration, and retention is limited to current references and snapshots reachable through live native operations.
 
