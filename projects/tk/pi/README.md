@@ -29,7 +29,7 @@ The adapter reads the runtime version document and the native tool contract thro
 
 The Package declares `@earendil-works/pi-coding-agent` as an unrestricted peer (`*`). It names the host package the adapter imports. It is not a maintenance range, and it does not establish that any host version can load or run the component.
 
-## Loading and failure behavior
+## Load behavior
 
 In `tools` mode the entry point completes these preflight checks before registering the first operation:
 
@@ -58,7 +58,7 @@ Real Pi validation ran on Pi `0.84.4` with the tk runtime built from these same 
 
 Earlier tk releases shipped this component in different versions, and Pi itself moved to a new package name during its history. Those records describe other versions, not this one.
 
-## Installation and update
+## Installation
 
 Install and remove the component with the runtime that carries it:
 

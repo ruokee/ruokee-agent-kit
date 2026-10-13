@@ -2,7 +2,7 @@
 
 These patterns describe ways to organize ordinary materials inside a Task directory. They are not tk-managed formats and add no metadata, schema fields, `extra` conventions, runtime states, commands, or automatic directory generation. Create files for the work that exists; do not prebuild empty directories or placeholder documents to match an example.
 
-## Adoption and shared maintenance
+## Adoption
 
 A Task may combine any of these patterns or use none. Before suggesting one, confirm that its signal has appeared and explain which materials it adds and what maintenance it requires. After the user adopts it, state the choice briefly in the `TASK.md` body and link the existing entry materials. An explicit request to use a pattern is adoption authorization itself; do not ask for a separate confirmation.
 

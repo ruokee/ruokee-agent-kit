@@ -4,7 +4,7 @@ Read this file when Task identity, paths, content, relationships, or lifecycle a
 
 ## Task model
 
-### Identity and paths
+### Task identity
 
 A UUIDv7 is the stable Task identity. Names and directories aid recognition and may change through `rename`; they are not identity.
 

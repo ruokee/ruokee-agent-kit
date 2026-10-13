@@ -85,7 +85,7 @@ tk init --creation-policy permissive --metadata-mode embed
 
 旧配置无法解析时，`init --force` 仍会根据本次显式参数和默认值重写项目配置。它不读取或修改任务数据。
 
-## 创建和查找任务
+## 创建任务
 
 创建顶层任务：
 
@@ -96,6 +96,8 @@ tk create task "调查启动延迟"
 CLI 创建本身就是用户明确操作，因此 strict 项目把它视为已确认。Agent 通过 MCP 或原生工具创建时，必须传入当前对话中真实的授权状态。
 
 tk 创建任务时，运行时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。创建完成后可用普通文件工具扩展正文；create 命令和 create 工具不接受正文输入。
+
+## 查找任务
 
 search 默认包含 planning、open 和 closed：
 

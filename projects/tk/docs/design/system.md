@@ -22,7 +22,7 @@ The system consists of the following parts:
 
 One Cargo package builds one `tk` executable. Short-lived commands exit after execution. The MCP server exists only for the duration of one stdio connection and does not cache project state.
 
-## Task and Harness boundary
+## Harness boundary
 
 A Harness is the software environment around a model that enables the model to operate as an Agent. It includes the model interaction loop, system prompts, context management, tools, permissions, and hooks. Codex, Claude Code, Pi, and OMP are the currently supported Harnesses. Hermes, DSH, and other Harnesses can be added without changing the definition of Harness.
 
@@ -43,7 +43,7 @@ The Rust runtime is responsible for:
 
 A Harness must not duplicate the Task domain rules. Pi and OMP adapters do not implement semantic version range parsing. Rust determines compatibility.
 
-## Source and distribution boundary
+## Distribution boundary
 
 `projects/tk/` contains one Rust runtime, four self-contained Skills, native component source for the current Harnesses, and public documentation. The specific directory layout is an implementation detail, not a public contract.
 

@@ -22,7 +22,7 @@ tk 使用项目文件保存状态，不建立数据库、全局任务注册表�
 
 一个 Cargo package 生成一个 `tk` 可执行文件。短生命周期命令执行后退出。MCP 服务器只在一个 stdio 连接期间存活，不缓存项目状态。
 
-## 任务与 Harness 边界
+## Harness 边界
 
 Harness 是围绕模型、使模型能够作为 Agent 运行的软件环境，包括模型交互循环、系统提示、上下文管理、工具、权限和 hooks。Codex、Claude Code、Pi 和 OMP 是当前支持的 Harness。未来可以增加 Hermes、DSH 或其他 Harness，不需要改变 Harness 的定义。
 
@@ -43,7 +43,7 @@ Rust 运行时负责：
 
 Harness 不能复制一套任务领域规则。Pi 和 OMP 适配器不实现语义版本范围解析，兼容性判断由 Rust 完成。
 
-## 源码和分发边界
+## 分发边界
 
 `projects/tk/` 包含一个 Rust 运行时、四个自包含 Skill、当前 Harness 的原生组件源码和公开文档。具体目录属于实现组织方式，不是公共合同。
 

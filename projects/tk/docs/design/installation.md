@@ -91,7 +91,7 @@ Harness operations additionally verify Harness availability, official interfaces
 
 Preflight checks do not read Task projects, project configuration, WAL, Git state, or earlier installation history.
 
-## Installation and update
+## Commit order
 
 Commit an installation or update in this deterministic order:
 
@@ -142,7 +142,7 @@ Complete all reads and parsing before uninstall modifies anything. Harness unins
 
 Partial completion is a failure state, not an optional partial-uninstall feature. tk does not preserve modified tk-specific files based on content digests.
 
-## Temporary content and GC
+## GC
 
 Component operations use the [minimal cleanup manifest](./data-model.md#minimal-cleanup-manifest). The manifest records only the process identity, creation time, and tk temporary paths.
 

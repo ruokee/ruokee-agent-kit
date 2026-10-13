@@ -94,7 +94,7 @@ Modification results include the following as needed:
 
 The runtime does not fabricate domain error results for panics, transport interruptions, malformed stdout, or killed processes.
 
-## Error categories and stable codes
+## Error codes
 
 | Category | Typical error codes |
 | --- | --- |

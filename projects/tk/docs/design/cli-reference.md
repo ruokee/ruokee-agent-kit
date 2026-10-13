@@ -2,7 +2,7 @@
 
 [简体中文](./cli-reference.zh.md)
 
-This page is the single source of truth for public CLI spellings, defaults, options, and exit statuses. For detailed data semantics, see [Data model and persistence](./data-model.md). For logical JSON requests, see [Tool API](./tool-api.md).
+This page is the single source of truth for public CLI spellings, defaults, options, and exit statuses. For detailed data semantics, see [Data model](./data-model.md). For logical JSON requests, see [Tool API](./tool-api.md).
 
 ## Invocation rules
 
@@ -270,7 +270,7 @@ Exactly one target option is required. Uninstall takes no mode or language selec
 
 The result action is `would_uninstall`, `uninstalled`, or `no_change`. Results contain exactly one target field and list planned or actual changes. Custom-root results report `mode: cli` and omit `language` and `skill` because both CLI Skill identities are removed.
 
-## Version and help
+## Tool information
 
 ```text
 tk [--output <text|json>] --version

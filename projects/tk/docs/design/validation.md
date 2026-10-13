@@ -60,7 +60,7 @@ Cover valid entry encoding and parsing, actor, message, body, and budget. WAL fa
 
 Do not add an escaping format or a dedicated test contract for body text that exactly resembles a complete entry header.
 
-## Write and concurrency tests
+## Write tests
 
 Cover:
 
@@ -75,11 +75,13 @@ Cover:
 - read, search, and diagnostic-only operations are not blocked by activity markers;
 - Single-file updates do not create project activity markers.
 
-## Migration and representation switching
+## Migration tests
 
 When multiple official schemas exist, test each adjacent migrator separately and test composed chains. The current initial version is 1.
 
 Cover stepwise forward migration for split and embed, body preservation, preflight checks for all targets, skipping the current version, unknown versions, missing conversions, and downgrade rejection.
+
+## Representation switching tests
 
 Representation switching covers split→embed, embed→split, committing configuration last, completed and incomplete items after intermediate failures, and no WAL append.
 
@@ -100,7 +102,7 @@ Cover name and path updates, unchanged results for repeated identical rename ope
 - `--ignore-brokenlinks` lets the move complete, leaves reference files byte for byte unchanged, and keeps the references in the result;
 - A path move without references completes. A non-generated child rename completes without moving its directory, and repeating an identical rename returns no change; neither returns `broken_reference_conflict`.
 
-## check and GC
+## Maintenance tests
 
 check tests cover fully valid projects, domain diagnostics, and fail-fast behavior for required I/O. After a required read fails, check must not continue producing an apparently complete diagnostic set.
 
@@ -114,7 +116,7 @@ GC tests cover:
 - Task, WAL, project configuration, and Harness configuration are not modified;
 - Deletion errors report deleted and undeleted items.
 
-## Tools and CLI
+## Interface tests
 
 Generated contract tests cover the six MCP tools and Pi and OMP native tools, confirming names, fields, defaults, union types, and the OMP-specific `loadMode`.
 
@@ -154,7 +156,7 @@ Repeated builds must produce the same set of Harness payloads, two standalone CL
 
 Validate builds both with and without `TK_SOURCE_REVISION`. Build scripts must not invoke Git or write generated artifacts outside Cargo-managed directories.
 
-## Installation and uninstallation
+## Installation tests
 
 Isolated tests cover all Harness, mode, and language selections:
 
@@ -185,7 +187,7 @@ Each Harness validates all four mode and language selections. OMP tools mode add
 
 Real tests must observe the Harness's actual loading result and post-uninstallation state. Checking assembled files alone is insufficient.
 
-## Skill and documentation
+## Skill tests
 
 Skill scenarios cover strict/permissive creation, planning/open selection, Task parsing, catchup, WAL, authorization for manual repair, close/reopen, the four material patterns, tools routing without direct CLI retry, and CLI-only command use. The four Skill identities must present the same pattern semantics, and each Skill component stays self-contained.
 
@@ -201,5 +203,7 @@ Material pattern scenarios observe:
 Adopting a pattern adds no metadata, schema, `extra`, state, or commands, and does not extend Task creation or lifecycle authorization. An existing project layout may override the default directories. No scenario requires creating empty materials.
 
 Markdown and Rust baseline checks cannot prove Agent behavior on their own; the patterns are confirmed through Harness scenarios with the candidate Skill installed.
+
+## Documentation tests
 
 Public documentation checks cover language links, semantic correspondence, terminology, and naturalness across the English and Chinese pages. Use existing repository checks and manual review without adding a custom documentation structure checker.

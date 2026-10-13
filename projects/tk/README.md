@@ -12,7 +12,7 @@ One Rust runtime provides the `tk` CLI, a stdio MCP server, and native tool inte
 
 The runtime owns Task rules and persistence. Harness components expose those operations without implementing a second set of rules.
 
-## Runtime and components
+## Distribution
 
 The runtime is one executable at the fixed user-level path `$HOME/.local/bin/tk`. Harness components and standalone CLI Skills are separate from it: `tk install` writes them into a Harness or a Skill root, and they follow the runtime's rules.
 

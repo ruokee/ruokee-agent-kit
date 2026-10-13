@@ -6,10 +6,10 @@ These pages define tk's current public contracts. They describe current behavior
 
 The [user guide](../guide.md) covers installation and routine use. The [CLI reference](./cli-reference.md) owns command syntax, options, defaults, and exit statuses.
 
-## Architecture and data
+## Architecture
 
 - [System architecture](./system.md) defines product scope, system components, the Task and Harness boundary, and global invariants.
-- [Data model and persistence](./data-model.md) defines Task schema, representations, discovery, WAL, writes, migration, rename, cleanup, and check behavior.
+- [Data model](./data-model.md) defines Task schema, representations, discovery, WAL, writes, migration, rename, cleanup, and check behavior.
 - [Runtime architecture](./runtime.md) defines layers, processes, request context, failure boundaries, adapters, and version dimensions.
 
 ## Interfaces
@@ -18,9 +18,12 @@ The [user guide](../guide.md) covers installation and routine use. The [CLI refe
 - [CLI reference](./cli-reference.md) defines the complete command tree and public spelling.
 - [Harness integration](./harnesses.md) defines the Codex, Claude Code, Pi, and OMP components, native adapters, and build-time assembly.
 
-## Installation and Agent behavior
+## Installation
 
 - [Installation](./installation.md) defines embedded components, install, update, clean uninstall, and compatibility.
+
+## Skill behavior
+
 - [Skill behavior](./skill.md) defines when Agents use tk, authorization, Task navigation, WAL practice, and material organization.
 
 ## Maintenance

@@ -123,7 +123,7 @@ tk create task <name>
 
 tk 运行时在创建任务时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。任务需要持久内容时，只在创建完成后单独写入 `TASK.md`。
 
-命名、授权和任务字段规则见[任务概念](./task-concept.md)与[项目和存储](./project-storage.md)。
+命名、授权和任务字段规则见[任务概念](./task-concept.md)与[项目存储](./project-storage.md)。
 
 ## `tk create subtask`
 
@@ -197,7 +197,7 @@ tk init
 
 普通初始化拒绝已经初始化的项目。没有非默认配置时，只创建默认 `.tk/`，不创建多余配置文件。
 
-`--force` 使用本次显式值和默认值重写稀疏项目配置，即使旧配置无法解析。它不读取、迁移、移动、删除或改写任务数据。完整参数和初始化场景见[项目和存储](./project-storage.md)。
+`--force` 使用本次显式值和默认值重写稀疏项目配置，即使旧配置无法解析。它不读取、迁移、移动、删除或改写任务数据。完整参数和初始化场景见[项目存储](./project-storage.md)。
 
 ## `tk check`
 
@@ -268,7 +268,7 @@ tk metadata switch --to <split|embed>
 
 该命令作用于整个项目，不支持只切换部分任务。它先预检全部任务，再按确定顺序提交，最后更新项目配置。失败结果列出已完成和未完成任务。
 
-模式切换不会替代 schema 迁移。载体规则和操作顺序见[项目和存储](./project-storage.md)。
+模式切换不会替代 schema 迁移。载体规则和操作顺序见[项目存储](./project-storage.md)。
 
 ## `tk install`
 

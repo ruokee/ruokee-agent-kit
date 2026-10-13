@@ -29,7 +29,7 @@ The adapter reads the runtime version document and the native tool contract thro
 
 The Package declares `@oh-my-pi/pi-coding-agent` as an unrestricted peer (`*`). It names the host package the adapter imports. It is not a maintenance range, and it does not establish that any host version can load or run the component.
 
-## Loading and failure behavior
+## Load behavior
 
 In `tools` mode the entry point completes these preflight checks before registering the first operation:
 
@@ -60,7 +60,7 @@ A second run covered OMP `18.4.3` with the same component sources and a runtime 
 
 Earlier tk releases shipped this component in different versions. Their installation records describe those versions, not this one.
 
-## Installation and update
+## Installation
 
 Install and remove the component with the runtime that carries it:
 

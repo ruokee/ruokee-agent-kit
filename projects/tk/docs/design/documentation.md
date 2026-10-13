@@ -45,7 +45,7 @@ Do not include commands, arguments, files, compatibility layers, or design exper
 
 Documentation states the final state. It does not describe the change process, review debates, or Agent work records.
 
-## English and Chinese
+## Bilingual pages
 
 Public Markdown pages use same-directory `name.md` and `name.zh.md` pairs, including the component `README.md` and `README.zh.md`. Each design topic and guide provides a link to the other language immediately after its H1. Links are relative to the current document.
 

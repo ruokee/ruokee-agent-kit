@@ -4,7 +4,7 @@
 
 This glossary includes only terms that have a special meaning in tk, require fixed capitalization, or are easy to confuse. General technical terms and implementation-specific details remain in the relevant design documents.
 
-## Products and integrations
+## Products
 
 | Term | Chinese form | Meaning |
 | --- | --- | --- |
@@ -49,7 +49,7 @@ This glossary includes only terms that have a special meaning in tk, require fix
 | representation switch | 表示切换 | A project-wide conversion between split and embed. |
 | rename | 重命名 | Changing a Task's own name, directory, and metadata, and reporting external references. |
 
-## Operations and maintenance
+## Operations
 
 | Term | Chinese form | Meaning |
 | --- | --- | --- |
@@ -61,7 +61,7 @@ This glossary includes only terms that have a special meaning in tk, require fix
 | runtime compatibility | 运行时兼容范围 | The `runtime_compat` declared by a component and evaluated by Rust. |
 | clean uninstall | 干净卸载 | Restoring a Harness to the state it would have had if tk had never been installed, while preserving all unrelated content. |
 
-## Documentation and materials
+## Materials
 
 | Term | Chinese form | Meaning |
 | --- | --- | --- |

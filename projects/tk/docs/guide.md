@@ -85,7 +85,7 @@ tk init --creation-policy permissive --metadata-mode embed
 
 `init --force` rewrites project configuration from explicit values and defaults even when the previous configuration cannot be parsed. It does not inspect or modify Task data.
 
-## Create and find Tasks
+## Create a Task
 
 Create a top-level Task:
 
@@ -96,6 +96,8 @@ tk create task "Investigate startup latency"
 CLI creation is an explicit user action, so strict projects treat it as confirmed. Agents using MCP or native tools must pass the actual current authorization state.
 
 When tk creates a Task, the runtime automatically writes `# <normalized-name>` as the initial `TASK.md` body. Use ordinary file tools to extend it after creation; the create command and create tool accept no body input.
+
+## Find Tasks
 
 Search includes planning, open, and closed Tasks by default:
 

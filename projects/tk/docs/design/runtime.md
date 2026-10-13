@@ -46,7 +46,7 @@ actor applies only to update, log, and rename requests that append to WAL. Direc
 
 Context is never persisted as Task state.
 
-## Project discovery and Git
+## Project resolution
 
 Project discovery is separate from Git policy checks.
 
@@ -64,7 +64,7 @@ check, relationship validation, schema migration, and representation switching r
 
 Process stdout, stderr, tool schemas, `tk read` WAL responses, frontmatter, and protocol frames have explicit byte or entry limits. Each subprocess stream and each MCP JSON payload is limited to 1 MiB. Oversized MCP input closes the stdio transport. Oversized MCP output fails the transport instead of emitting a partial frame. `tk check` separately streams complete WAL input without fixed total file, byte, or entry limits.
 
-## Writes and cancellation
+## Write behavior
 
 A single-file write responds to cancellation before atomic replacement. After atomic replacement begins, it completes the current replacement before returning a result.
 
@@ -112,7 +112,7 @@ Validation failure before the first registration guarantees that zero tools are 
 
 OMP marks search, read, create, update, and log as essential. Exec is discoverable. Pi does not set a `loadMode` that is absent from its public API.
 
-## Component builds and runtime sources
+## Component assembly
 
 Cargo builds use a single Rust assembly implementation to generate multiple self-contained Harness payloads from four Skill trees, the reference files shared by Skills of the same language, and the source code for each Harness, plus two standalone payloads containing only `tk-cli` or `tk-cli-zh`. Generation writes only to Cargo `OUT_DIR` and Cargo's own target directory.
 

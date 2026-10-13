@@ -90,7 +90,7 @@ Each log entry must use a non-empty, single-line summary, with details in the Ma
 
 Do not log routine reads, temporary plans, tool execution traces, or speculation that is still taking shape.
 
-## Updating, closing, and reopening
+## State changes
 
 Read the current Task before updating it. Change relationships, extra, and lifecycle through tk update.
 

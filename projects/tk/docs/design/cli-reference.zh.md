@@ -2,7 +2,7 @@
 
 [English](./cli-reference.md)
 
-本文是公开 CLI 拼写、默认值、选项和退出状态的唯一归属文档。深层数据语义见[数据模型与持久化](./data-model.zh.md)，逻辑 JSON 请求见[工具 API](./tool-api.zh.md)。
+本文是公开 CLI 拼写、默认值、选项和退出状态的唯一归属文档。深层数据语义见[数据模型](./data-model.zh.md)，逻辑 JSON 请求见[工具 API](./tool-api.zh.md)。
 
 ## 调用规则
 
@@ -270,7 +270,7 @@ tk uninstall --skill-root <directory>
 
 结果 action 为 `would_uninstall`、`uninstalled` 或 `no_change`。结果必须且只能包含一个目标字段，并列出计划或实际变更。自定义根目录结果报告 `mode: cli`，但省略 `language` 和 `skill`，因为两个 CLI Skill 身份都会被删除。
 
-## 版本和帮助
+## 工具信息
 
 ```text
 tk [--output <text|json>] --version

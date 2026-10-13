@@ -46,7 +46,7 @@ actor 只属于会追加 WAL 的 update、log 和 rename 请求。CLI 直接调�
 
 上下文从不持久化为任务状态。
 
-## 项目发现和 Git
+## 项目定位
 
 项目发现与 Git 策略检查分离。
 
@@ -64,7 +64,7 @@ check、关系校验、schema 迁移和表示切换复用发现任务图。运�
 
 进程 stdout、stderr、工具 schema、`tk read` WAL 返回、frontmatter 和协议帧使用明确的字节或条目上限。每个子进程输出流和每个 MCP JSON 载荷的上限都是 1 MiB。MCP 输入超限时关闭 stdio 传输；输出超限时传输失败，不发送残缺帧。`tk check` 另行流式读取完整 WAL，不设置固定的总文件数、总字节数或总条目数上限。
 
-## 写入和取消
+## 写入行为
 
 单文件写入在原子替换前响应取消。开始原子替换后完成当前替换，再返回结果。
 
@@ -112,7 +112,7 @@ Pi 和 OMP 适配器在首次注册工具前完成：
 
 OMP 把 search、read、create、update 和 log 设置为 essential，exec 为 discoverable。Pi 不设置不存在于其公开 API 的 `loadMode`。
 
-## 组件构建和运行时来源
+## 组件组装
 
 Cargo 构建使用唯一的 Rust 组装逻辑，从四个 Skill 目录、同语言 Skill 共用的参考文件和各 Harness 源码生成多份自包含 Harness 载荷，并生成两份只含 `tk-cli` 或 `tk-cli-zh` 的独立载荷。生成过程只写 Cargo `OUT_DIR` 和 Cargo 自身目标目录。
 

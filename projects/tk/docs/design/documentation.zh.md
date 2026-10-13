@@ -45,7 +45,7 @@
 
 文档陈述最终状态，不叙述修改过程、审查争论或 Agent 工作记录。
 
-## 英文和中文
+## 双语页面
 
 公开 Markdown 页面采用同目录 `name.md` 和 `name.zh.md` 配对，包括组件 `README.md` 和 `README.zh.md`。每个 design 专题和 guide 在一级标题后提供指向另一语言的链接。链接相对于当前文档。
 

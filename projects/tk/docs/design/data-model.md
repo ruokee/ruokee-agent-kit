@@ -1,8 +1,8 @@
-# Data model and persistence
+# Data model
 
 [简体中文](./data-model.zh.md)
 
-## Project and Task root directories
+## Project configuration
 
 Project configuration is stored in `.agents/tk_config.toml`. The configuration is sparse TOML relative to the defaults:
 
@@ -55,7 +55,7 @@ The schema does not include `parent`, `branch`, `updated_at`, the most recent cl
 
 Unknown fields, incorrect types, missing versions, and unsupported versions are invalid. Ordinary content does not become a candidate even if it resembles Task metadata.
 
-## split and embed
+## Metadata modes
 
 split uses this layout:
 
@@ -101,9 +101,11 @@ Traversal order is deterministic. One scan accepts at most 100,000 real director
 
 `subtasks_dir` controls only where new children are written. Sequence allocation examines all discovered direct children whose leaf has a valid generated `NN--slug`, takes the largest sequence, and does not fill gaps. New names remain two digits wide. If sequence `99` is already present, creation fails before writing.
 
-## Identity, names, and relationships
+## Task identity
 
 UUIDv7 is the authoritative identity. Paths are locators and may change through rename. Names are normalized using NFKC, restricted characters, and a limit of 32 terminal display columns.
+
+## Relationships
 
 `depends_on` and `related_to` may reference only Tasks within the same Task root. A Task cannot reference itself, and `depends_on` cannot form a cycle. Relationships are sorted by UUID and deduplicated.
 
