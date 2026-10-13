@@ -48,7 +48,7 @@ The unsuffixed file is English and the default public link. The `.zh.md` file is
 
 Authors may begin in either language, but both files must be complete in the same change. A semantic conflict blocks merge until the maintainer resolves it. Paths, commands, API names, metadata field names, and code identifiers retain their repository spelling.
 
-Place reciprocal language links immediately below the complete metadata block. Keep the owner and writer fields identical across the pair. A proposal names them `Draft owner` and `Draft writer`; a decision names them `Decision owner` and `Decision writer`. The owner field names the accountable maintainer, and the writer field records the original writer, which does not change during later maintenance. Put relationship and lifecycle fields such as `Reverses`, `Archived`, and `Reversed by` after the writer field and before the language links.
+Place reciprocal language links immediately below the complete metadata block. Keep the owner and writer fields identical across the pair. A proposal names them `Draft owner` and `Draft writer`; a decision names them `Decision owner` and `Decision writer`. The owner field names the accountable maintainer, and the writer field records the original writer, which does not change during later maintenance. When a writer field names a model, omit provider, router, and channel prefixes. A host or product name such as `OMP` may remain. Put relationship and lifecycle fields such as `Reverses`, `Archived`, and `Reversed by` after the writer field and before the language links.
 
 ## Proposal format
 

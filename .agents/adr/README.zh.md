@@ -48,7 +48,7 @@ yyyy-mm-dd-topic-title.zh.md
 
 作者可以从任一语言开始，但两份文件必须在同一变更中补齐。语义冲突会阻止合入，直到维护者解决该冲突。路径、命令、API 名称、元数据字段名和代码标识符保留仓库原有拼写。
 
-在完整元数据块后紧接着放置双向语言链接。文件对中的负责人字段与起草者字段必须一致：提案为 `Draft owner` 和 `Draft writer`，决定为 `Decision owner` 和 `Decision writer`。负责人字段记录负责维护者，起草者字段记录最初起草者，后续维护时不改变。`Reverses`、`Archived` 和 `Reversed by` 等关系与生命周期字段位于起草者字段之后、语言链接之前。
+在完整元数据块后紧接着放置双向语言链接。文件对中的负责人字段与起草者字段必须一致：提案为 `Draft owner` 和 `Draft writer`，决定为 `Decision owner` 和 `Decision writer`。负责人字段记录负责维护者，起草者字段记录最初起草者，后续维护时不改变。起草者字段写明模型时不写提供方、路由器和渠道前缀。产品或宿主名可以保留，例如 `OMP`。`Reverses`、`Archived` 和 `Reversed by` 等关系与生命周期字段位于起草者字段之后、语言链接之前。
 
 ## 提案格式
 
