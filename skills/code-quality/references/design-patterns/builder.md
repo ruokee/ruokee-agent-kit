@@ -8,7 +8,7 @@ Separate the construction of a complex object from its final representation, so 
 
 Some objects are awkward to create in a single constructor call: many optional parameters, construction that happens in stages, inputs that arrive from several sources, or validation that depends on combinations of fields. Stuffing all of this into one constructor produces long parameter lists, telescoping constructors, and validation logic tangled with assignment. Builder gives the assembly process its own named home where it can be tested and reused.
 
-## Structure and participants
+## Participants
 
 The classic form has a **director** that drives a sequence of steps against a **builder** interface; **concrete builders** accumulate state and produce a **product**. In practice the director often collapses into a plain function, and the builder is whatever accumulates the partial state.
 

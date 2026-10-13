@@ -10,7 +10,7 @@
 
 这是其区分性约束。[factory.md](./factory.md) 回答"我该构建哪一个具体类？"抽象工厂回答"我该构建哪一整套类，使它们能够协同工作？"
 
-## 结构和参与者
+## 参与者
 
 - **抽象工厂（Abstract factory）**：为族中的每个产品声明创建方法（`make_reader`, `make_writer`）。
 - **具体工厂（Concrete factories）**：每个族一个（`S3Storage`, `LocalStorage`），每个工厂生产自己变体的产品。

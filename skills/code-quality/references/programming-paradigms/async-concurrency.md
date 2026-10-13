@@ -1,4 +1,4 @@
-# Async and Concurrency
+# Async Concurrency
 
 Concurrency lets a program make progress on several things at once. Async concurrency in Python (`async`/`await`, `asyncio`) is one model among several; it interleaves many I/O-bound tasks on a single thread by suspending at `await` points. It is not parallelism, and it is not free: it splits your code into a coloured world where async functions can only be awaited from other async functions. The central design question is not "how do I make this async" but "does every concurrent task have a clear owner, a lifecycle, and an error-handling policy."
 
@@ -15,7 +15,7 @@ async def fetch_all(urls: list[str]) -> list[Response]:
 
 The `async with` block does not complete until all child tasks complete. If any task raises, the group cancels the rest and propagates the error. This gives concurrent code the same guarantee a normal block has: when you leave the scope, nothing you started is still running in the background. Tasks have a clear owner (the group) and a clear lifetime (the block).
 
-## Cancellation and timeouts
+## Cancellation
 
 Cancellation is delivered as a `CancelledError` raised inside the task at its next `await`. It is part of the control-flow mechanism, not an ordinary error to swallow. If you catch it to run cleanup, re-raise it afterward: suppressing it breaks timeouts, `TaskGroup` shutdown, and cancellation propagation throughout the system.
 

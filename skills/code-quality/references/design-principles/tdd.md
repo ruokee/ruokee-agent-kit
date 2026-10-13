@@ -63,7 +63,7 @@ Treat TDD as a high-value feedback strategy, not a moral obligation for every li
 working, well-designed software with adequate behavior coverage, not a test-first ritual or a
 coverage-percentage trophy. A test with no meaningful assertion adds coverage and nothing else.
 
-## Relationship to "test after" and behavior coverage
+## Relationship to test after
 
 Writing tests after the code is not a sin; the important property is that behavior is covered
 and the tests assert something real. What TDD adds over test-after is the design pressure of the

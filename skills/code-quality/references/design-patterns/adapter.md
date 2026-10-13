@@ -10,7 +10,7 @@ You depend on a class, a third-party SDK, a legacy module, an external service c
 
 This is the runtime expression of the Dependency Inversion Principle: high-level code depends on an abstraction it defines, and the adapter makes a concrete external thing satisfy it.
 
-## Structure and participants
+## Participants
 
 - **Target**: the interface the client wants to use (in Python, usually a `Protocol` or an informal duck-typed contract).
 - **Adaptee**: the existing object with the incompatible interface.

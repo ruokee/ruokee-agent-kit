@@ -1,4 +1,4 @@
-# Dependency Inversion and Dependency Injection
+# Dependency Inversion
 
 Two related but distinct ideas, often confused:
 

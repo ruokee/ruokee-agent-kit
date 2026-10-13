@@ -1,4 +1,4 @@
-# 依赖反转与依赖注入（Dependency Inversion and Dependency Injection）
+# 依赖反转（Dependency Inversion）
 
 两个相关但不同的概念，经常被混淆：
 

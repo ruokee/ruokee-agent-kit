@@ -10,7 +10,7 @@ Attach additional responsibilities to an object dynamically by wrapping it in an
 
 You have a component and several optional, independent behaviors you might add to it: buffering, compression, encryption, metrics, retries. Subclassing every combination explodes: `BufferedCompressedStream`, `BufferedEncryptedStream`, and so on. Decorator lets each behavior be its own wrapper that conforms to the component's interface and delegates to the wrapped object. You compose the behaviors you want at runtime by nesting wrappers, in whatever order and combination the situation needs.
 
-## Structure and participants
+## Participants
 
 - **Component**: the interface shared by raw objects and their decorators.
 - **Concrete component**: the base object being decorated.

@@ -31,7 +31,7 @@ Refactoring is not a separate phase you schedule for later. It is woven into ord
 - **Code you are about to delete or replace wholesale.** Polishing structure you will throw away next week is wasted effort. YAGNI applies to cleanup too.
 - **When it would change behavior you cannot verify.** If the code touches a public API, a serialization schema, or CLI arguments, "just tidying" can break consumers silently. Define the observable contract first, or treat the work as a behavior change rather than a refactoring.
 
-## Smells point, refactorings cut
+## Choosing refactorings
 
 The relationship between the two catalogs is diagnostic. A smell, a long function, duplicated code, a feature-envious method, is a _symptom_, not a verdict. It tells you to look closely, not to act mechanically. Once you have confirmed the underlying structural problem, you pick a named refactoring that addresses it and apply it in small steps. The smell is the question; the refactoring is one possible answer. This keeps you from "fixing" things that are not actually broken and from reaching for a heavy transformation when a rename would do.
 

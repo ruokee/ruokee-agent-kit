@@ -34,6 +34,6 @@ DIP: high-level policy should not depend on low-level detail; both depend on an 
 
 The common error is equating DIP with a DI container, or inverting dependencies on stable standard-library code that will never need substitution. In Python, prefer constructor parameters, function parameters, small `Protocol`s, and a factory function, wiring concrete dependencies at a composition root (`main()`, app startup, framework entry).
 
-## SOLID tensions and overuse
+## SOLID overuse
 
 Each principle pulls toward more structure: more interfaces, more indirection, more injection points. Applied without judgment, the set produces exactly the over-engineered, hard-to-read code that [kiss.md](./kiss.md) and [yagni.md](./yagni.md) warn against. Specific tensions: OCP vs YAGNI (extension points vs speculation), ISP vs simplicity (interface count), DIP vs simple wiring (indirection vs traceability). The discipline is to apply SOLID where change is frequent and costly, long-lived business systems, libraries, frameworks, SDKs, plugin points, and to leave small scripts and stable modules alone. Treat SOLID as a set of review questions about change and coupling, and let Python's functions, Protocols, composition, and parameter injection be the default answers rather than ABCs and containers.

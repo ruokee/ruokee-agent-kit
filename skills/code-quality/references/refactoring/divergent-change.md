@@ -22,7 +22,7 @@ Divergent Change is the signal to **split responsibilities**. The module is doin
 
 After the split, each resulting module has a single axis of change: you edit the persistence module only when persistence changes, the rules module only when rules change. That is the practical meaning of cohesion.
 
-## Relationship to SRP and Shotgun Surgery
+## Relationship to SRP
 
 Divergent Change is the **Single Responsibility Principle** stated as a smell. Uncle Martin framed SRP as "a module should have one reason to change." Divergent Change violates that property because the module has many reasons to change. The cure is to find the distinct actors or forces that drive change and give each its own module. See [solid](../design-principles/solid.md).
 

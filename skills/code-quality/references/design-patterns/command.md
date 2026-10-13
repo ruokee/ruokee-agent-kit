@@ -8,7 +8,7 @@ Encapsulate a request as an object, so that requests can be passed around, store
 
 A direct call, `service.send_email(to, template, context)`, executes immediately and leaves no trace. You cannot put it on a queue, persist it for later, record it in an audit log, replay it after a crash, or reverse it. When a request needs a life beyond the instant of its invocation, it has to become data. Command turns "do this" into a value you can hold and inspect.
 
-## Structure and participants
+## Participants
 
 - **Command**: an object carrying everything needed to perform a request: the operation and its parameters.
 - **Receiver**: the object that knows how to carry out the work.

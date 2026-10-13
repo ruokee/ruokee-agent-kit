@@ -28,7 +28,7 @@ contexts let each subdomain keep its own coherent model, with explicit translati
 seams. This aligns with [Single Responsibility](./solid.md): a context has one source of change
 because it answers to one part of the business.
 
-## Entities and value objects
+## Domain data modeling
 
 Two ways to model domain data, distinguished by identity:
 

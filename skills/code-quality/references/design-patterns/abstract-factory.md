@@ -10,7 +10,7 @@ Some objects only make sense in combination. An S3 reader pairs with an S3 write
 
 This is the distinguishing constraint. [factory.md](./factory.md) answers "which one concrete class do I build?" Abstract Factory answers "which whole _set_ of classes do I build, such that they fit together?"
 
-## Structure and participants
+## Participants
 
 - **Abstract factory**: declares creation methods for each product in the family (`make_reader`, `make_writer`).
 - **Concrete factories**: one per family (`S3Storage`, `LocalStorage`), each producing products from its own variant.

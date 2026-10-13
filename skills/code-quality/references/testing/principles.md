@@ -53,7 +53,7 @@ Production code leans DRY: remove duplicate _knowledge_ so a rule lives in one p
 
 This does not license copy-paste. The reconciliation is precise: eliminate duplication that hurts _maintenance_ (a value-object builder, a helper that removes noise), tolerate duplication that aids _reading_ (the specific inputs and expected outputs stated in the test body). Meszaros's [Test Code Duplication](./test-smells.md#test-code-duplication) smell targets structural duplication where one behavior change forces edits in many places; DAMP targets surface repetition that makes each test self-contained. They agree more than they conflict: both want a change to one behavior to touch few tests, and both want a reader to understand a test without leaving it.
 
-## Isolation and Determinism Are Non-Negotiable
+## Determinism is non-negotiable
 
 A test that passes or fails depending on order, timing, environment, or a previous test's leftovers doesn't just fail itself; it corrodes trust in the whole suite, and a suite people don't trust gets ignored, which is worse than having no suite. Fowler's rule is blunt: eradicate non-determinism, don't tolerate it. The recurring root causes are shared mutable state between tests, reliance on real external resources (network, clock, filesystem, remote services), unmanaged asynchrony, and unseeded randomness.
 

@@ -28,7 +28,7 @@ Each step should be small enough to be obviously correct and easy to undo. Renam
 
 Commit frequently. A clean commit per refactoring step, or per small group of related steps, means `git` itself is part of your rollback strategy.
 
-## IDE and tool support
+## Tool support
 
 Automated refactorings (rename symbol, [extract function](./extract-function.md), [inline](./inline-function.md), [move](./move-function.md)) are safer than manual editing because the tool performs the transformation mechanically across all references, without the typos and missed call sites that manual edits introduce. Use them when available.
 

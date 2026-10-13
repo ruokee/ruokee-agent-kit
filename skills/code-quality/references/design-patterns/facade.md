@@ -8,7 +8,7 @@ Provide a single, simple interface to a complex subsystem. A facade defines a hi
 
 A subsystem accumulates many classes and steps that must be coordinated in the right order: fetch the customer, create an invoice from order lines, publish an event, update a ledger. If every caller orchestrates these steps itself, the coordination logic is duplicated, the calling code is coupled to internal structure, and changing the workflow means editing every call site. A facade names the common use case ("invoice this order") and owns the orchestration in one place.
 
-## Structure and participants
+## Participants
 
 - **Facade**: exposes a small set of high-level operations and delegates to subsystem objects, sequencing their interactions.
 - **Subsystem classes**: the real work; they don't know about the facade and remain usable directly.

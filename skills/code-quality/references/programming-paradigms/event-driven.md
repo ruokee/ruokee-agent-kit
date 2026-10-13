@@ -28,7 +28,7 @@ Event-driven systems trade explicit control flow for decoupling, and that trade 
 - **Error context.** When a consumer fails, the failure is far from the producer in both code and time. Reconstructing "what led to this" requires correlation IDs and good event metadata.
 - **Event storms / cascades.** One event triggers handlers that emit more events, which trigger more handlers. Without care this fans out unboundedly or forms cycles.
 
-## Consumer failure and delivery guarantees
+## Consumer failure
 
 A direct function call has one obvious failure path: the caller sees the exception. An event has none of that clarity, so consumer failure needs an explicit policy. Three questions decide the design:
 

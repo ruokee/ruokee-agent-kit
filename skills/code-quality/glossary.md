@@ -50,7 +50,7 @@ A module whose small interface hides substantial implementation detail or policy
 
 A module whose interface exposes nearly as much complexity as its implementation.
 
-## Refactoring and testing
+## Refactoring
 
 **Knowledge duplication**
 
@@ -63,6 +63,8 @@ A shared abstraction that combines code whose reasons or directions of change di
 **Thin wrapper**
 
 A forwarding function or type that adds no policy, semantic name, isolation, or stable interface.
+
+## Testing
 
 **Change-detector test**
 

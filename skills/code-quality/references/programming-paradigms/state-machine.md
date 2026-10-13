@@ -48,7 +48,7 @@ A state machine captures a workflow as data: the modes a thing can occupy, the t
 - **Avoid boolean combinations** as implicit state. `is_active`, `is_locked`, `has_failed`, `is_retrying` as four independent booleans encode 16 combinations, most of them illegal and none of them defined. Collapse them into one named state enum.
 - Model **events as verbs or facts** (`pay`, `OrderPaid`), distinct from states. Confusing the two ("the `paying` event") is a sign the model is muddy.
 
-## Transition Table / Diagram
+## Transition Representation
 
 Every non-trivial workflow deserves an explicit transition table or diagram. It can be code (a literal dict the program executes) or documentation (a Markdown table or a state diagram). The code form is best because it cannot drift from behavior. The point is that someone can see the whole legal-move set in one place and ask "is this complete? is this correct?" without tracing scattered conditionals across the codebase.
 

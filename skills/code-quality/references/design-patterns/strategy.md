@@ -8,7 +8,7 @@ Define a family of interchangeable algorithms behind a stable interface, so the 
 
 When a single operation has several variant algorithms (ways to sort, score, price, route, retry, compress), embedding them as a growing `if/elif` block couples the caller to every variant and makes adding a new one an edit to shared code. Strategy isolates each algorithm so the caller depends only on "something that scores an item", not on the specific scoring rule.
 
-## Structure and participants
+## Participants
 
 The classic form has a **context** that holds a reference to a **strategy** interface, with **concrete strategies** implementing it. The context delegates the variable part of its work to the injected strategy. The context owns the stable workflow; the strategy owns the part that varies.
 

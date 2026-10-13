@@ -25,7 +25,7 @@ def save_report(path: str, rows: list[Row]) -> None:
 
 The borrowing function never calls `out.close()`; that would release a resource it does not own and surprise the caller. Keeping borrow-versus-own consistent across an interface is what makes leaks easy to reason about.
 
-## RAII and context managers
+## RAII
 
 RAII (Resource Acquisition Is Initialization) ties release to the end of a scope rather than to a manual cleanup call you might forget. Python expresses this with the context manager protocol and `with` / `async with`: the resource is acquired on entry and released on exit, whether the block returns normally or raises.
 
@@ -61,17 +61,17 @@ Cleanup must run when things go wrong, which is exactly when it is most often mi
 
 Async resources (connections, sessions, async generators) follow the same ownership rules but use `async with` and `__aenter__` / `__aexit__`. Two extra hazards: an async generator that holds a resource may be suspended and never resumed, so use `contextlib.aclosing()` to guarantee its cleanup runs; and a resource owned by a task is only released if that task is properly awaited or cancelled, so background tasks need explicit lifecycle management (see [async-concurrency.md](./async-concurrency.md)).
 
-## Application startup and shutdown
+## Application lifespan
 
 The longest-lived resources, connection pools, clients, thread pools, caches, are owned by the application itself. Acquire them during startup and release them during shutdown, in reverse order. Framework lifespan hooks (ASGI lifespan, app factories, dependency-injection scopes) are the right place. Avoid acquiring these at import time: import-time side effects make modules unsafe to import for testing or tooling and tie resource lifecycle to import order rather than application lifecycle (see [imperative.md](./imperative.md) on entry-point structure).
 
-## Partial initialization and release order
+## Release order
 
 A subtle failure mode appears when several resources are acquired in sequence and one of the later acquisitions fails. The resources already opened must still be released, in reverse order, even though setup never completed. Hand-written code tends to get this wrong; the cleanup path for "we got halfway" is the path least likely to be tested.
 
 This is the other reason to prefer `with` and `ExitStack` over manual setup: they release exactly the resources that were successfully entered, in reverse order, regardless of where setup failed. Acquire in dependency order (the connection before the transaction that rides on it) and the automatic reverse-order release tears down correctly: transaction first, then connection. When you must order release explicitly, the rule is last-acquired-first-released, because later resources may depend on earlier ones still being alive during their own cleanup.
 
-## Pooling and lease patterns
+## Pooling
 
 When acquisition is expensive (database connections, HTTP sessions), a pool owns a set of long-lived resources and _leases_ them to callers for the duration of a unit of work. The lease, not the resource, is what the caller acquires and releases: typically via a context manager that checks the resource out on entry and returns it to the pool on exit. The discipline is identical: the leased resource has a clear scope, and it returns to the pool on every path out, including exceptions. A leaked lease is worse than a leaked file, because it permanently shrinks the pool until exhaustion.
 

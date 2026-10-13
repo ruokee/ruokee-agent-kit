@@ -1,4 +1,4 @@
-# Deep Modules and Information Hiding
+# Deep Modules
 
 This document draws on John Ousterhout's _A Philosophy of Software Design_. Its central idea is
 a way to judge the quality of an abstraction by comparing the cost of its interface against the
@@ -51,7 +51,7 @@ another method with the same signature. It adds interface surface and indirectio
 nothing, making the module shallower. The same applies to thin wrapper functions that rename a
 single expression: see [DRY](./dry.md) on shallow helpers.
 
-## Relationship to KISS and interface design
+## Relationship to KISS
 
 Deep modules sharpen [KISS](./kiss.md). "Keep it simple" does not mean every function must be
 short; it means minimizing the complexity a reader must hold in mind. A few deep modules with

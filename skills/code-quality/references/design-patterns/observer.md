@@ -8,7 +8,7 @@ Let one object (the subject) notify many dependents (observers) when its state c
 
 When several parts of a system must react to something happening, a cache must invalidate, a UI must refresh, an audit log must record, wiring direct calls from the source to each reactor couples the source to all of them. Adding a new reactor means editing the source. Observer inverts this: reactors subscribe, and the source only publishes.
 
-## Structure and participants
+## Participants
 
 - **Subject / publisher**: holds the subscription list and emits notifications.
 - **Observer / subscriber**: registers interest and handles notifications.
