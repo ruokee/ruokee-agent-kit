@@ -1,4 +1,4 @@
-# 来源与许可
+# 来源
 
 [English](./SOURCES.md) | 中文
 

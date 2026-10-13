@@ -2,7 +2,7 @@
 name: well-said
 description: 输出任何内容时使用。自然、直接地表达。为读者考虑，把想法说清楚，只保留读者需要的内容。去掉套话、内心念头、对话中啰唆无用的话、防御性表达和不必要的自我证明。
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # Well said
@@ -47,7 +47,7 @@ metadata:
 11. **同义词轮换。** 在同一段中用 protagonist、main character、central figure、hero 指同一对象。选定一个称谓，重复使用即可，并删去解释其他称谓含义相同的文字。
 12. **虚假范围。** "从 X 到 Y"的两端没有有意义的尺度关系时，直接列出主题。
 
-### 格式与标点
+### 风格
 
 13. **破折号。** 完全避免使用破折号。只用句号或逗号，不用括号、半字线或连字符替代。破折号是 AI 文风的典型特征，改用括号只是换了一种特征。需要分隔想法时，结束句子或使用逗号。
 14. **过度使用冒号。** 冒号适合放在列表或例子前，不适合连接句中内容。"If you're coming from traditional automation: instead of registering event handlers, you describe conditions"中的冒号没有作用。改写时直接陈述要点，不需要这种比较框架："Describing when the scheduler should fire works best as plain English." 意思相同，也不依赖连接标点。
@@ -69,7 +69,7 @@ metadata:
 24. **过度保留。** "could potentially possibly be argued that it might"改为"may"。
 25. **空泛结论。** "未来一片光明。" 陈述具体计划或事实。
 
-### 术语与黑话
+### 行话
 
 26. **抽象隐喻名词。** Substrate、wedge、vector、locus、vantage、nexus、作名词的 primitive、隐喻用法的 harness、"API surface"中的 surface、bedrock、隐喻用法的 scaffolding、modality、paradigm、gold-plating、隐喻用法的 ratchet、用于搬迁代码的 evacuate、endgame、north star、flywheel。这些词看似技术化，通常有更具体的说法。"Substrate"改为"base"；"Wedge in"改为"add"；"Vector"改为"way"或"method"；"Gold-plating"改为"more than the job needs"；"Ratchet"改为机制真实名称或"a limit that only tightens"；"Evacuate"改为"move out"；"Endgame"改为"the last phase"。选具体的词，并保留比喻原本描述的对象。
 27. **中文黑话。** 例如"赋能、助力、驱动、抓手、闭环、链路、全链路、拉通、对齐、反哺、颗粒度、组合拳、生态位、赛道、破圈、降维打击、天花板、长期主义、情绪价值"。按第 26 条的方法处理。

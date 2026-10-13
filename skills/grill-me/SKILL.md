@@ -3,7 +3,7 @@ name: grill-me
 description: Turn an incomplete idea or existing plan into shared understanding and an action-ready specification through sustained, evidence-first questioning. Discover goals, scenarios, preferences, and assumptions; keep a durable record and global question numbering; work by dependency; report qualitative readiness.
 disable-model-invocation: true
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # Grill Me
@@ -37,7 +37,7 @@ Build a stable provisional review map for the dimensions that can affect the goa
 
 Classify information as fact, inference, user experience, preference, decision, pending evidence, or risk, and map dependencies. The **frontier** contains items whose prerequisites are settled and that can advance without guessing. Work in the order orient, discover intent and boundaries, verify facts, decide, audit, returning upstream when an answer changes the basis. This is a sequencing lens, not another structure or a fixed round count; continuously turn confirmed answers into requirements, boundaries, or acceptance criteria.
 
-## Research facts, ask for what only the user knows
+## Ask only what evidence cannot settle
 
 Resolve checkable project, code, upstream, and historical facts from evidence; ask the user directly for goals, lived experience, examples, terminology, preferences, authorization, and risk acceptance. Before each substantive question, research relevant checkable facts with effort proportional to their impact. Evidence-first applies to facts, not to the user's unexpressed mind.
 
@@ -150,7 +150,7 @@ A progress update gives the stage (orientation, discovery, verification, decisio
 
 Update after the initial map, about every five completed rounds, after a major branch or scope change, on request, and before finishing. Include confirmed decisions, evidence and inferences, corrections, open or deferred items, and the next frontier. Skip an update while one question remains under discussion; otherwise it may accompany the next batch.
 
-## Audit shared understanding and finish
+## Closing the review
 
 Before proposing to finish, ensure each relevant top-level branch is settled by evidence or a user statement or decision; safely defaulted with conditions, risk, and reversibility; deferred with a trigger and no current blocker; or excluded as not applicable.
 

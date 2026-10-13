@@ -2,7 +2,7 @@
 name: well-said
 description: Use when outputting anything. Express yourself naturally and directly. Consider the reader. Articulate your ideas clearly and retain only what is essential for the audience. Eliminate stock phrasing, internal musings, conversational filler, defensive language, and unnecessary self-justification.
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # Well said

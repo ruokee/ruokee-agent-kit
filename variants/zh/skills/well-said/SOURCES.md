@@ -1,4 +1,4 @@
-# Sources and license
+# Sources
 
 English | [中文](./SOURCES.zh.md)
 
