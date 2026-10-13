@@ -47,7 +47,7 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 - **[omp-codex-web-access](./projects/omp-codex-web-access/README.md)** lets OMP use a Codex subscription through a forwarding Provider for web search and page extraction. It is approaching deprecation while its two tools, settings, and current maintenance remain.
 - **[omp-system-prompt](./projects/omp-system-prompt/README.md)** applies a maintained English strategy to OMP's system prompt through a host template the user selects; any other system prompt stays as the host built it. It is approaching deprecation while its template, Delivery, footer, and current maintenance remain.
 - **[omp-context-pin](./projects/omp-context-pin/README.md)** keeps a small set of pinned text entries present word for word in every ordinary model request on the current session branch, and restores them after each committed compaction.
-- **[omp-qol](./projects/omp-qol/README.md)** provides independently switchable wait deadlines, bounded model-error recovery, experimental compaction deadlines, native history replay, and opt-in model prompt rules.
+- **[omp-qol](./projects/omp-qol/README.md)** provides independently switchable wait deadlines, bounded model-error recovery, experimental compaction deadlines, compaction request usage, native history replay, and opt-in model prompt rules.
 - **[omp-smart-cache](./projects/omp-smart-cache/README.md)** aligns proved shared content in native remote compaction with the same session's already-sent ordinary request. It is opt-in, supports main and native child sessions, and does not claim Provider cache benefit from client alignment.
 
 ## Install

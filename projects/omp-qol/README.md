@@ -13,10 +13,11 @@ Jobs, messages, processes, turns, and compaction stay with OMP. Every adjustment
 | [Continuing waits](./docs/adjustments.md#continuing-waits) | on | A `wait` call continues across all-running job snapshots to one total deadline, 20 minutes by default, instead of returning each empty native window. |
 | [Continuing after a transient model error](./docs/adjustments.md#continuing-after-a-transient-model-error) | on | A turn that ended with an eligible upstream error continues in the same session after 1 s and again with a doubling delay up to 8 s, at most 8 continuation turns per failure chain. Eligible covers classifier-flagged transient and timeout failures, turns the host marked as interrupted mid-stream, and errors carrying neither a status nor a classification. |
 | [Extending one compaction deadline](./docs/adjustments.md#extending-one-compaction-deadline) | **off** | Within one compaction window, a matching `AbortSignal.timeout` call gets a longer deadline, so a remote compaction that needs more than the native 5 minutes is not cut off. Process-wide and experimental. |
+| [Recording compaction request usage](./docs/adjustments.md#recording-compaction-request-usage) | on | Each completed `soft` summarization and `handoff` request is written to the session journal as a `model_usage` entry with the provider's tokens and per-component cost, so the session statistics count what those requests cost. Process-wide; a host that records them itself leaves it inactive. |
 | [Replaying native history in a resumed session](./docs/adjustments.md#replaying-native-history-in-a-resumed-session) | on | A resumed session's first request replays the native provider items the previous process ended with, instead of rebuilding the conversation from its generic content, so a prompt cache over that form can serve it. Process-wide, one flag, no body rewrite. |
 | [Model prompt rules](#model-prompt-rules) | **off** | Append matching user-authored Markdown bodies to each covered turn's system prompt, without requiring a template or another component. |
 
-The wait adjustment adds an optional `timeout`; replay chooses the stored native items. Neither changes the model, cache key, stored history, or session file. Recovery starts a turn and wait repeats a call the model already made; provider quota is spent when the model runs.
+The wait adjustment adds an optional `timeout`; replay chooses the stored native items. Neither changes the model, cache key, or stored history. The compaction usage adjustment adds session entries and therefore changes the session file; it changes no request. Recovery starts a turn and wait repeats a call the model already made; provider quota is spent when the model runs.
 
 ## Configuration
 
@@ -66,6 +67,12 @@ Settings are read once per activation. Restart OMP after a change. A running pro
 | `compactionWindowGuardMs` | `3600000` | integer from `compactionTimeoutMs` up to `14400000` | Longest lifetime of one compaction window, counted from the event that opened it. |
 | `compactionTimeoutNotify` | `true` | boolean | Show a warning line the first time a window rewrites a deadline. |
 
+### Compaction usage
+
+| Key | Default | Accepted | Effect |
+| --- | --- | --- | --- |
+| `compactionUsageEnabled` | `true` | boolean | Record the token usage of the compaction and handoff requests the host does not journal itself. A host that records them itself leaves the adjustment inactive. |
+
 ### Replay
 
 | Key | Default | Accepted | Effect |
@@ -96,13 +103,14 @@ Restart OMP after changing the switch. Existing rule files need no path or forma
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.5.5
+@ruokee/omp-qol 0.5.6
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
 wait: enabled (entry=wait effectiveDefaultSeconds=1200 messageContinuation=not-applicable processWait=not-applicable serviceContinuation=not-applicable) — enabled=true continueEmptyWindows=true
 recovery: enabled — enabled=true mode=knownTransient maxAttempts=8 backoffBaseMs=1000 backoffMaxMs=8000 notify=true
 compaction: disabled (compaction-disabled) — enabled=false timeoutMs=900000 floorMs=300000 windowGuardMs=3600000 notify=true
+compactionUsage: enabled (entries=2) — enabled=true
 replay: enabled (rewrites=0) — enabled=true
 modelPrompts: disabled (model-prompts-disabled) enabled=false
 ```
@@ -166,15 +174,16 @@ Each adjustment lists its own limits in [Adjustments](./docs/adjustments.md). Th
 - [Wait](./docs/adjustments.md#continuing-waits). Only nonempty all-running job snapshots continue. Message-only continuation, named-process waiting, and service-only continuation are not provided. A deadline ends the call, not background work.
 - [Recovery](./docs/adjustments.md#continuing-after-a-transient-model-error). Safety exclusions and the host's independent cap apply, with at most 8 continuations per failure chain. Continuing can repeat tool side effects and spends provider quota.
 - [Compaction](./docs/adjustments.md#extending-one-compaction-deadline). The experimental process-wide `AbortSignal.timeout` patch can extend unrelated calls within its window. On OMP `18.5.0`, enabling it disables speculative compaction. Lifecycle conflicts or owner shutdown can stop the patch until restart.
+- [Compaction usage](./docs/adjustments.md#recording-compaction-request-usage). Only the `soft` summarization requests and the `handoff` request are written, only when they consumed tokens. A request whose api or session this process cannot name is skipped and counted in `/qol` rather than guessed. The patch is process-wide.
 - [Replay](./docs/adjustments.md#replaying-native-history-in-a-resumed-session). The process-wide `Map.prototype.set` wrapper covers only `openai-responses` states. A resumed request can fail if its endpoint rejects stored native items. Host changes can make the wrapper silently inactive.
 
 ## Compatibility
 
 The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound. This section states the maintenance commitment; it is not an installation or runtime requirement. An earlier host may still run the package without gaining a maintenance commitment. The declaration does not promise that later releases keep working, and it does not mean every version at or above the minimum was verified.
 
-The package declares `@oh-my-pi/pi-ai`, `@oh-my-pi/pi-coding-agent`, and `@oh-my-pi/pi-utils` as unrestricted host peers (`*`). Those declarations name the host packages the component imports; they carry no maintenance range, no runtime check, and no claim about any host version.
+The package declares `@oh-my-pi/pi-agent-core`, `@oh-my-pi/pi-ai`, `@oh-my-pi/pi-coding-agent`, and `@oh-my-pi/pi-utils` as unrestricted host peers (`*`). Those declarations name the host packages the component imports; they carry no maintenance range, no runtime check, and no claim about any host version.
 
-The automated type check and test suite run against OMP `18.5.0`. Source baselines are path-specific: recovery, the compaction deadline, and replay cite `18.2.8`, where those mechanisms were first read; continuing waits cite `18.5.0`. [Adjustments](./docs/adjustments.md) separates each source baseline, actual check or CLI run, and untested scenario.
+The automated type check and test suite run against OMP `18.5.0`. Source baselines are path-specific: recovery, the compaction deadline, and replay cite `18.2.8`, where those mechanisms were first read; continuing waits and compaction usage cite `18.5.0`, with compaction usage reading the provider-computed cost on the installed `18.8.3`. [Adjustments](./docs/adjustments.md) separates each source baseline, actual check or CLI run, and untested scenario.
 
 Each adjustment checks the host interface, structure, or ownership it depends on, and stays inactive with a reason when that check does not hold, which leaves that adjustment on the host's own behavior. The checks cover what the modules inspect, and not the entry's own imports or a difference no module looks at, so an unrecognized host change can also alter behavior without disabling the adjustment.
 
@@ -218,7 +227,7 @@ bun run typecheck
 bun test
 ```
 
-The test suite replaces the host with a small recording host and keeps the package boundaries real: the settings getter from the installed `@oh-my-pi/pi-coding-agent`, the error classifier from the installed `@oh-my-pi/pi-ai`, and `AbortSignal.timeout` and `Map.prototype.set` in both their native and patched form. It covers activation and validation, `wait` registration and its model-visible parameters, the structural continuation rule and deadline races, the recovery classification matrix and continuation chain, the compaction install order, window lifecycle, and restore path, and the replay wrapper's rewrite and forwarding matrix, ownership and release paths, refusals, and `/qol` line.
+The test suite replaces the host with a small recording host and keeps the package boundaries real: the settings getter from the installed `@oh-my-pi/pi-coding-agent`, the error classifier from the installed `@oh-my-pi/pi-ai`, and `AbortSignal.timeout` and `Map.prototype.set` in both their native and patched form. It covers activation and validation, the compaction usage module's purpose table, write gating, refusal set, and `/qol` line, `wait` registration and its model-visible parameters, the structural continuation rule and deadline races, the recovery classification matrix and continuation chain, the compaction install order, window lifecycle, and restore path, and the replay wrapper's rewrite and forwarding matrix, ownership and release paths, refusals, and `/qol` line.
 
 Model-rule checks cover discovery, matching, body fidelity, next-turn refresh, failure isolation, configuration boundaries, and session-scoped diagnostics. Real CLI and TUI observations, with their limits, are recorded in [Model prompt rules](./docs/adjustments.md#model-prompt-rules).
 

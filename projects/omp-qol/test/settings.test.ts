@@ -37,6 +37,7 @@ describe("settings ranges", () => {
       compactionWindowGuardMs: COMPACTION_GUARD_MAX_MS,
       compactionTimeoutNotify: false,
       replayEnabled: false,
+      compactionUsageEnabled: false,
     });
     expect(problems).toEqual([]);
     expect(settings.enabled).toBe(false);
@@ -44,6 +45,7 @@ describe("settings ranges", () => {
     expect(settings.recovery.mode).toBe("unclassified");
     expect(settings.compaction.timeoutMs).toBe(COMPACTION_TIMEOUT_MAX_MS);
     expect(settings.compaction.guardMs).toBe(COMPACTION_GUARD_MAX_MS);
+    expect(settings.compactionUsage.enabled).toBe(false);
   });
 });
 
@@ -67,6 +69,7 @@ describe("rejected values", () => {
     ["guard above the maintenance bound", { compactionWindowGuardMs: 14_400_001 }, "compactionWindowGuardMs=range"],
     ["fractional timeout", { compactionTimeoutMs: 900_000.5 }, "compactionTimeoutMs=integer"],
     ["a non-boolean replay switch", { replayEnabled: "on" }, "replayEnabled=type"],
+    ["a non-boolean compaction usage switch", { compactionUsageEnabled: "on" }, "compactionUsageEnabled=type"],
   ];
 
   for (const [label, raw, expected] of cases) {

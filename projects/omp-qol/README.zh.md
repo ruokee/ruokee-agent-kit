@@ -13,10 +13,11 @@
 | [持续等待](./docs/adjustments.zh.md#持续等待) | 开 | `wait` 调用在全部任务仍运行的快照之间持续到同一个总期限，默认 20 分钟，而不是每个空的原生窗口都返回。 |
 | [上游错误后续跑](./docs/adjustments.zh.md#上游错误后续跑) | 开 | 以可续跑的上游错误结束的轮次在同一会话内继续，首次等待 1 秒并按倍增延长至上限 8 秒，每条失败链最多 8 次续跑。可续跑的判据包括：分类器判定为瞬时或超时、宿主标记为流中途中断，以及既无状态也无分类结论的错误。 |
 | [延长单个压缩期限](./docs/adjustments.zh.md#延长单个压缩期限) | **关** | 在一个压缩窗口内，命中的 `AbortSignal.timeout` 调用获得更长期限，使超过原生 5 分钟的远端压缩不被中断。进程级生效，实验性质。 |
+| [补记压缩请求用量](./docs/adjustments.zh.md#补记压缩请求用量) | 开 | 每个完成的 `soft` 摘要请求与 `handoff` 请求都会作为 `model_usage` 条目写入会话文件，带提供方的 token 数与分项成本，会话统计因此计入这些请求的开销。进程级生效；宿主自己记录这些请求时该项保持不生效。 |
 | [恢复会话时沿用原生历史](./docs/adjustments.zh.md#恢复会话时沿用原生历史) | 开 | 恢复会话的首次请求沿用上一个进程结束时的原生提供方条目，而不是按通用内容重建对话，使基于该形式的提示缓存可以服务这次请求。进程级生效，只设置一个标志，不改写请求体。 |
 | [模型提示词规则](#模型提示词规则) | **关** | 向每个受覆盖 turn 的系统提示词追加命中的用户 Markdown 正文，无需模板或其他组件。 |
 
-等待调整新增可选 `timeout`，重放选择已存的原生条目。两者均不改模型、缓存键、已存历史或会话文件。恢复启动模型轮次，等待重复模型已经发出的调用，模型运行时会消耗服务额度。
+等待调整新增可选 `timeout`，重放选择已存的原生条目。两者均不改模型、缓存键或已存历史。压缩请求用量调整会新增会话条目，因此会改动会话文件；它不改动任何请求。恢复启动模型轮次，等待重复模型已经发出的调用，模型运行时会消耗服务额度。
 
 ## 配置
 
@@ -66,6 +67,12 @@ omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 | `compactionWindowGuardMs` | `3600000` | 不小于 `compactionTimeoutMs`，上限 `14400000` 的整数 | 一个压缩窗口的最长存活时间，从打开窗口的事件开始计算。 |
 | `compactionTimeoutNotify` | `true` | boolean | 窗口内首次改写期限时显示一行提示。 |
 
+### 压缩请求用量
+
+| 键 | 默认 | 取值 | 效果 |
+| --- | --- | --- | --- |
+| `compactionUsageEnabled` | `true` | boolean | 记录宿主自己不入账的压缩与 handoff 请求的 token 用量。宿主自己记录这些请求时，该项保持不生效。 |
+
 ### 重放
 
 | 键 | 默认 | 取值 | 效果 |
@@ -96,13 +103,14 @@ omp plugin config set @ruokee/omp-qol modelPromptsEnabled true
 `/qol` 打印当前状态，不做任何修改。它不启动模型轮次，也不读取设置 schema 之外的值。
 
 ```
-@ruokee/omp-qol 0.5.5
+@ruokee/omp-qol 0.5.6
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
 wait: enabled (entry=wait effectiveDefaultSeconds=1200 messageContinuation=not-applicable processWait=not-applicable serviceContinuation=not-applicable) — enabled=true continueEmptyWindows=true
 recovery: enabled — enabled=true mode=knownTransient maxAttempts=8 backoffBaseMs=1000 backoffMaxMs=8000 notify=true
 compaction: disabled (compaction-disabled) — enabled=false timeoutMs=900000 floorMs=300000 windowGuardMs=3600000 notify=true
+compactionUsage: enabled (entries=2) — enabled=true
 replay: enabled (rewrites=0) — enabled=true
 modelPrompts: disabled (model-prompts-disabled) enabled=false
 ```
@@ -166,15 +174,16 @@ OMP 通过 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) 或等
 - [等待](./docs/adjustments.zh.md#持续等待)。只有非空、全部任务仍运行的快照会继续。不提供纯消息续接、命名进程等待或纯 service 续接。期限只结束本次调用，不取消后台工作。
 - [恢复](./docs/adjustments.zh.md#上游错误后续跑)。安全排除条件与宿主的独立上限仍适用，每条失败链最多续跑 8 次。续跑可能重复工具副作用，并消耗提供方额度。
 - [压缩](./docs/adjustments.zh.md#延长单个压缩期限)。实验对整个进程包装 `AbortSignal.timeout`，可能延长窗口内无关调用的期限。在 OMP `18.5.0` 上启用会关闭投机压缩。生命周期冲突或 owner 关闭可能使补丁停止，重启后才恢复。
+- [补记压缩请求用量](./docs/adjustments.zh.md#补记压缩请求用量)。只写 `soft` 的摘要请求与 `handoff` 请求，且仅在这些请求消耗了 token 时写入。api 或会话无法由本进程命名的请求会被跳过并在 `/qol` 中计数，而不是猜测。补丁为进程级。
 - [重放](./docs/adjustments.zh.md#恢复会话时沿用原生历史)。进程级 `Map.prototype.set` 包装只覆盖 `openai-responses` 状态。若服务端拒绝存储的原生条目，恢复后的请求可能失败。宿主变化可能使包装静默失效。
 
 ## 兼容性
 
 最低维护 OMP 版本为 `18.5.0`，不设置维护版本上限。本小节声明维护责任，不作为安装或运行条件。更早的宿主仍可能运行本包，但不因此获得维护承诺。这一声明不保证后续版本继续可用，也不表示下限及以上的每个版本都已验证。
 
-包的 peer 以无限制的范围 `*` 声明 `@oh-my-pi/pi-ai`、`@oh-my-pi/pi-coding-agent` 与 `@oh-my-pi/pi-utils`。该声明只列出组件导入的宿主包，不构成维护范围，不带运行时检查，也不表示任何宿主版本可用。
+包的 peer 以无限制的范围 `*` 声明 `@oh-my-pi/pi-agent-core`、`@oh-my-pi/pi-ai`、`@oh-my-pi/pi-coding-agent` 与 `@oh-my-pi/pi-utils`。该声明只列出组件导入的宿主包，不构成维护范围，不带运行时检查，也不表示任何宿主版本可用。
 
-自动化类型检查与测试套件针对 OMP `18.5.0` 运行。源码基线按路径区分：上游错误后续跑、压缩期限与原生历史重放引用最初阅读这些机制时的 `18.2.8`，持续等待引用 `18.5.0`。[调整项](./docs/adjustments.zh.md)分别记录源码基线、实际检查或 CLI 运行，以及未经测试的场景。
+自动化类型检查与测试套件针对 OMP `18.5.0` 运行。源码基线按路径区分：上游错误后续跑、压缩期限与原生历史重放引用最初阅读这些机制时的 `18.2.8`，持续等待与压缩请求用量引用 `18.5.0`，其中压缩请求用量的提供方计算成本依据已安装的 `18.8.3` 阅读。[调整项](./docs/adjustments.zh.md)分别记录源码基线、实际检查或 CLI 运行，以及未经测试的场景。
 
 每项调整会检查它所依赖的宿主接口、结构或归属，检查不成立时保持不生效并给出原因，该调整因而停留在宿主自身的行为上。这些检查只覆盖各模块实际查看的内容，不覆盖入口自身的导入，也不覆盖没有任何模块检查的差异，因此无法识别的宿主变化也可能在不被停用的情况下改变行为。
 
@@ -218,7 +227,7 @@ bun run typecheck
 bun test
 ```
 
-测试套件用一个小型记录宿主替代宿主，同时保留真实的包边界：来自已安装 `@oh-my-pi/pi-coding-agent` 的设置 getter、来自已安装 `@oh-my-pi/pi-ai` 的错误分类器，以及原生与已替换两种状态的 `AbortSignal.timeout` 与 `Map.prototype.set`。覆盖范围包括激活与校验、`wait` 注册及其模型可见参数、结构化续接规则与期限竞态、恢复的分类矩阵与续跑链、压缩模块的安装顺序与窗口生命周期与还原路径，以及重放包装的改写与转发矩阵、归属与释放路径、各类拒绝与 `/qol` 行。
+测试套件用一个小型记录宿主替代宿主，同时保留真实的包边界：来自已安装 `@oh-my-pi/pi-coding-agent` 的设置 getter、来自已安装 `@oh-my-pi/pi-ai` 的错误分类器，以及原生与已替换两种状态的 `AbortSignal.timeout` 与 `Map.prototype.set`。覆盖范围包括激活与校验、压缩请求用量模块的 purpose 表与写入门禁与拒绝集合与 `/qol` 行、`wait` 注册及其模型可见参数、结构化续接规则与期限竞态、恢复的分类矩阵与续跑链、压缩模块的安装顺序与窗口生命周期与还原路径，以及重放包装的改写与转发矩阵、归属与释放路径、各类拒绝与 `/qol` 行。
 
 模型规则检查覆盖发现、匹配、正文保真、下一 turn 刷新、故障隔离、配置边界及会话级诊断。真实 CLI/TUI 观察及其边界见[模型提示词规则](./docs/adjustments.zh.md#模型提示词规则)。
 

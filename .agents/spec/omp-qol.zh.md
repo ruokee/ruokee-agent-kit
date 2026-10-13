@@ -10,12 +10,14 @@
 - 这些调整共用一次安装、一个配置入口和一套检查，每项调整有各自的开关、可用状态和失败报告。
 - 符合恢复条件的流提前关闭后，在同一主会话中自动继续未完成工作。
 - 本组件直接提供用户自有的模型规则。
+- 在宿主自己不入账期间，补记压缩与 handoff 请求的用量，直到宿主自己记录为止。
 
 ## 非目标
 
 - 外部工具的守卫，以及与这些调整无关的宿主行为。
 - 替用户安装或迁移，或修改其他扩展、用户配置或已安装的宿主文件。
 - 在等待入口上提供只含消息的续等、按进程名等待或只含服务的续等。
+- 为压缩与 handoff 之外的请求类型记录用量，或编造本组件无法读取的 api、价格或分支。
 - 在 remote 切换中精简无关设置。
 - 改变宿主轮次内的原生重试、宿主分类器、提供方选择或子代理恢复。
 - 匹配服务端错误正文、新增恢复设置，或恢复所有错误。
@@ -44,6 +46,16 @@ Error: Upstream provider closed the connection before the response completed: st
 
 这使用原生 session-stop 续跑，不是原失败请求的原样重发。设置及完整排除清单仍由[恢复行为说明](../../projects/omp-qol/docs/adjustments.zh.md#上游错误后续跑)维护。
 
+### 压缩请求用量
+
+- 原生布尔键 `compactionUsageEnabled` 默认为 `true`，受 `enabled` 约束。取值非法时只停用本调整。设置沿用既有的全局/项目优先级与激活快照；重启 OMP 生效，切换会话不生效。
+- 本调整替换宿主 `Agent` 原型上的 `telemetry` 访问器，因为压缩与 handoff 的调用点解析的正是该值。用户已设置的配置会被保留并挂接，且不增加自己的导出；没有配置时提供惰性配置。不延迟、重试、改道或改写任何请求，也不读取或存储请求内容、摘要或交接文档。
+- 一个完成的请求通过会话管理器自身的接口写入一条 `model_usage` 条目：解析出的 purpose、实际运行的 api、provider 与 model、按会话文件形状整理的提供方 token 数、提供方给出的分项成本（宿主携带时）、从该请求自身 span 读到的停止原因，以及请求所属会话的分支位置。请求身份由 provider 与 model id 共同确定，经会话自身的模型注册表解析：宿主报告遥测归一化之前的原始 provider id 时按该 id 解析，否则只有注册表中该 model id 唯一对应一个 provider 时才接受。事件的 provider 是多个 provider id 可能归一化成的遥测标签，本身不作为身份，写入的 provider 是解析出的 provider id。解析结果指向别的 provider、在两个提供同一 model id 的 provider 之间择一，或依赖与注册 provider 同名的标签，都予以拒绝而不是写入。
+- 范围内共四种 purpose：`compaction:summary`、`compaction:short-summary`、`compaction:turn-prefix`、`compaction:handoff`，由宿主盖在该请求自己 span 上的 oneshot 类型解析。列表封闭；`compaction_native`、`branch_summary` 及所有非压缩类型都不写入。
+- 未消耗任何 token 的尝试不写入。会话不在本进程，或身份无法解析到该请求自己模型的请求不写入，并在 `/qol` 中计数，而不是给出猜测的 api。提供方成本未到达 estimator 路径的请求以零成本写入并计数；本组件从不自行估算价格。
+- 补丁为进程级，放在一个注册表槽位中。安装方只有一个；同一 runtime 或其他 runtime 的后续激活把自身会话注册到已安装的补丁上，不再安装。切换日志的会话保持在补丁中：目标跟随会话管理器的当前 id，它离开的 id 被丢弃。设置无法读取或被拒绝的激活会停止其他激活安装的补丁，自己什么都不安装。
+- 从 `@oh-my-pi/pi-agent-core` 导出 `compactionRequestUsage` 的宿主自己记录这些请求。本调整在激活时读取该导出，并以 `host-records-usage` 保持停用，因此已发布的修复会让补偿停用，而不是把条目写两遍。移除该能力需按调整项文档中的上游复核执行，并用一条决定记录这次移除。
+
 ### 模型提示词规则
 
 - 原生 boolean `modelPromptsEnabled` 默认 `false`，受 `enabled` 控制。两个开关都开启时才注册 handler、读取规则、追加正文和诊断未使用文件。设置沿用全局与项目优先级及激活快照，重启 OMP 生效，切换会话不刷新。
@@ -64,6 +76,10 @@ Error: Upstream provider closed the connection before the response completed: st
 - `waitMessagesSeconds` 和 `waitProcessSeconds` 在受支持的宿主上不起作用，中英文文档和 manifest 的设置说明写明这一点。
 - 续等只服务独立的 `wait` 入口。入口缺失、属于他方或无法识别时，保留原生行为并报告有界的原因。
 - 压缩期限补丁保留所有权检查：拒绝与带有 `Symbol.for("ruokee.omp.compaction-timeout.patched")` 标记的补丁共存，后续的同类激活也不会接管已有的所有者。
+- 压缩请求用量调整只写范围内四种 purpose，只写消耗了 token 的请求，且只写其会话注册表能解析到本身份的请求。压缩与 handoff 请求的时序、路由与内容保持不变。
+- 本组件写入的 `model_usage` 条目与宿主为自己辅助请求写入的形状一致，因此宿主的会话统计会在活动分支上计入它；追加跟随请求所属的会话。
+- 压缩请求用量补丁保留所有权检查：一个注册表槽位、一个安装方，本版本无法读取的槽位或被其他扩展替换的访问器一律拒绝，释放时还原它替换掉的访问器。
+- 自己记录这些请求的宿主会让本调整保持停用并报告有界原因。该能力的退休以已核实原生记录为前提，届时移除其代码、设置、文档与测试。
 - 配置只来自 OMP 插件设置，每次激活读取一次。
 - 一项调整出错不会停用其他调整。被拒绝的设置只给出键名和规则，不回显其值。
 - 组件保留的每条代码路径都服务 OMP 18.5.0 及更高宿主，包括服务独立 `wait` 入口的等待路径。
@@ -83,6 +99,8 @@ OMP `18.5.0`，声明在[兼容性](../../projects/omp-qol/README.zh.md#兼容�
 - 在组件目录运行 `bun run typecheck` 和 `bun test` 通过。
 - 无关设置保留键名、默认值、范围及校验。三个旧 remote 键均触发既有未知键拒绝，不再配置任何调整。
 - `waitMessagesSeconds` 和 `waitProcessSeconds` 的说明写明它们不起作用。
+- 受维护宿主的真实 CLI 会话通过 `soft` 压缩时，为该次运行实际发出的每个摘要请求写入一条条目；执行 handoff 的会话为其请求写入一条；每条都带提供方的 token、分项成本、api、provider 与 model；宿主自身的会话统计计入这些条目，且增量等于写入的内容。该运行未发出的请求不产生条目。切换日志（`/new` 或恢复）之后再次压缩的会话继续写入条目，且写进它切换到的日志。
+- 行为检查覆盖 purpose 表、零 token 与非压缩类型的跳过、成本认领的一次性、每种拒绝原因、保留用户 tracer 与用户自己的钩子、惰性 tracer、注册表的访问器身份、请求身份解析、写入的 provider、切换日志的会话，以及 `/qol` 行。被取消、失败或零 token 的尝试不产生条目，开关关闭时不安装配置也不写入。
 - 每项调整的真实 OMP CLI 证据记录在 [projects/omp-qol/docs/adjustments.zh.md](../../projects/omp-qol/docs/adjustments.zh.md) 对应的验证小节，未运行的场景标为未验证。
 - 受维护宿主的真实 OMP CLI 证明符合恢复条件的上游流关闭后，使用默认恢复设置，且不经用户消息便在同一主会话自动续跑。仅有原生重试或 `/qol` 启用状态不能证明该行为。
 - 行为检查覆盖原始报错的真实宿主字段在默认模式下的恢复。新的真实会话再次出现其精确措辞不是开发前提；未运行的精确报错场景仍标为未验证。
@@ -99,6 +117,7 @@ OMP `18.5.0`，声明在[兼容性](../../projects/omp-qol/README.zh.md#兼容�
 
 - [维护提高 OMP 使用体验的拓展](../adr/decision/2026-10-10-maintain-omp-experience-extension.zh.md)
 - [在 QoL 提供选择启用的模型提示词规则](../adr/decision/2026-10-07-use-qol-model-prompts.zh.md)
+- [在 QoL 中补记压缩请求用量](../adr/decision/2026-10-13-compact-usage-compensation.zh.md)
 - [Codex 网页访问使用原生插件设置](../adr/decision/2026-09-10-use-codex-web-plugin-settings.zh.md)
 - [宿主内组件按共同的 OMP 下限维护](../adr/decision/2026-10-04-raise-omp-host-floor.zh.md)
 - [保持可分发组件自包含](../adr/decision/2026-08-24-keep-components-self-contained.zh.md)

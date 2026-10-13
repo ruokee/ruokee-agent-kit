@@ -47,7 +47,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 - **[omp-codex-web-access](./projects/omp-codex-web-access/README.zh.md)**：让 OMP 支持通过转发 Provider 使用 Codex 订阅，接入网页搜索与页面提取工具。组件即将弃用，两个工具、设置与当前维护仍保留。
 - **[omp-system-prompt](./projects/omp-system-prompt/README.zh.md)**：通过用户选择的宿主模板把维护的英文策略应用到 OMP 系统提示词，其他系统提示词保持宿主构建的原样。组件即将弃用，模板、Delivery、页脚和当前维护仍保留。
 - **[omp-context-pin](./projects/omp-context-pin/README.zh.md)**：让少量固定条目在当前会话分支的每次普通模型请求中原样出现，并在每次提交后的压缩之后恢复这些条目。
-- **[omp-qol](./projects/omp-qol/README.zh.md)**：提供可独立开关的等待期限、模型错误后的受限续跑、实验性的压缩期限延长、原生历史重放，以及可选择启用的模型提示词规则。
+- **[omp-qol](./projects/omp-qol/README.zh.md)**：提供可独立开关的等待期限、模型错误后的受限续跑、实验性的压缩期限延长、压缩请求用量补记、原生历史重放，以及可选择启用的模型提示词规则。
 - **[omp-smart-cache](./projects/omp-smart-cache/README.zh.md)**：使用同一会话已发送的普通请求，对齐原生远端压缩中经过证明的共同内容。默认关闭，覆盖主会话及原生子会话，不把客户端对齐视为 Provider 缓存收益。
 
 ## 安装

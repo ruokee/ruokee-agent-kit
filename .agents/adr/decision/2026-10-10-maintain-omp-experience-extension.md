@@ -139,3 +139,9 @@ Verified claims stay separate per adjustment. The component README compatibility
 - After the installing activation exits, the process extends no compaction deadline until it restarts, and the status keeps reporting the released patch. That is the chosen terminal state: releasing the patch without letting a later activation install one costs the adjustment for the rest of that process's life.
 - Documentation is maintained against a fixed host baseline, so a host upgrade requires re-reading the cited source and updating the affected sections; editing the declared maintenance bound does not replace that work.
 - On a host that still offers the builtin `hub` tool, which is below the maintenance lower bound, the total-deadline wait no longer applies. The module finds no standalone `wait` entry there and leaves native behavior in place with its bounded reason.
+
+## Changes
+
+### 2026-10-13: Compaction request usage
+
+[Compensate compaction request usage in QoL](./2026-10-13-compact-usage-compensation.md) adds a sixth module to the package: `compactionUsage`, on by default and subordinate to the master switch, writing the usage of the compaction and handoff requests the host does not journal itself. It stays inactive on a host that records those requests itself. The module lists in this decision read with that module included.

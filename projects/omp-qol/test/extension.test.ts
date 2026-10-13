@@ -196,6 +196,7 @@ describe("the /qol command", () => {
     expect(text).toContain("recovery: ");
     expect(text).toContain("compaction: ");
     expect(text).toContain("replay: ");
+    expect(text).toContain("compactionUsage: incompatible");
     expect(text).toContain("enabled=false timeoutMs=900000");
     expect(text).not.toContain("user:");
     expect(text).not.toContain("project:");
@@ -247,8 +248,35 @@ describe("the /qol command", () => {
         compaction: { status: "enabled" },
         replay: { status: "enabled" },
         modelPrompts: { status: "disabled" },
+        compactionUsage: { status: "disabled", reason: "compactionUsage-disabled" },
       },
     });
     expect(defaults).not.toContain("no longer matches");
+  });
+
+  test("reports the compaction usage line from its own branch, not from the compaction values", () => {
+    const text = describeState(
+      {
+        cwd: "/x",
+        settings: defaultSettings(),
+        problems: [],
+        global: { status: "ok" },
+        modules: {
+          wait: { status: "enabled" },
+          recovery: { status: "enabled" },
+          compaction: { status: "enabled" },
+          replay: { status: "enabled" },
+          modelPrompts: { status: "disabled" },
+          compactionUsage: { status: "enabled" },
+        },
+      },
+      undefined,
+      (id, recorded) =>
+        id === "compactionUsage" ? { status: "enabled", detail: "entries=2 costMissing=1" } : recorded,
+    );
+
+    const line = text.split("\n").find((entry) => entry.startsWith("compactionUsage: "));
+    expect(line).toBe("compactionUsage: enabled (entries=2 costMissing=1) — enabled=true");
+    expect(line).not.toContain("timeoutMs");
   });
 });

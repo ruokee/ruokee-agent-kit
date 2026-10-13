@@ -15,7 +15,7 @@
  */
 
 /** The modules this package can switch on and off. */
-export const MODULE_IDS = ["wait", "recovery", "compaction", "replay", "modelPrompts"] as const;
+export const MODULE_IDS = ["wait", "recovery", "compaction", "compactionUsage", "replay", "modelPrompts"] as const;
 export type ModuleId = (typeof MODULE_IDS)[number];
 
 /** Recovery eligibility modes. */
@@ -52,6 +52,7 @@ export const SETTINGS_DEFAULTS = {
   compactionTimeoutNotify: true,
   replayEnabled: true,
   modelPromptsEnabled: false,
+  compactionUsageEnabled: true,
 } as const;
 
 /**
@@ -97,6 +98,7 @@ export interface QolSettings {
   compaction: CompactionSettings;
   replay: ReplaySettings;
   modelPrompts: { enabled: boolean };
+  compactionUsage: { enabled: boolean };
 }
 
 /** Why one key failed validation. Rules are named so diagnostics never echo a value. */
@@ -287,6 +289,12 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     "modelPrompts",
     SETTINGS_DEFAULTS.modelPromptsEnabled,
   );
+  const compactionUsageEnabled = readBoolean(
+    raw,
+    "compactionUsageEnabled",
+    "compactionUsage",
+    SETTINGS_DEFAULTS.compactionUsageEnabled,
+  );
 
   const reads: Read<unknown>[] = [
     waitEnabled,
@@ -307,6 +315,7 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     compactionNotify,
     replayEnabled,
     modelPromptsEnabled,
+    compactionUsageEnabled,
   ];
   const problems: FieldProblem[] = [];
   for (const read of reads) if (!read.ok) problems.push(read.problem);
@@ -346,6 +355,9 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
       },
       modelPrompts: {
         enabled: modelPromptsEnabled.ok ? modelPromptsEnabled.value : SETTINGS_DEFAULTS.modelPromptsEnabled,
+      },
+      compactionUsage: {
+        enabled: compactionUsageEnabled.ok ? compactionUsageEnabled.value : SETTINGS_DEFAULTS.compactionUsageEnabled,
       },
     },
   };
