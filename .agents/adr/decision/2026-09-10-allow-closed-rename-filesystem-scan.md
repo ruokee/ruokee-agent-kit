@@ -1,7 +1,7 @@
 # ADR decision: Define the tk Task data model with closed rename and file system reference scanning
 
 Decision owner: Ruokee
-Decision writer: deepseek/deepseek-v4.1-flash
+Decision writer: OMP DeepSeek V4.1 Flash
 Reverses: [Define the tk Task data model with name repair](../archived/2026-09-08-repair-names-through-tk-rename.md)
 
 English | [中文](./2026-09-10-allow-closed-rename-filesystem-scan.zh.md)

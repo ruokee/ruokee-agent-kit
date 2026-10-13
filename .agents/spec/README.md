@@ -45,8 +45,10 @@ A spec links to the page that owns a detail instead of restating it. Command and
 
 - A spec states what its subject should be.
 - An ADR records a durable choice, its reasons, its alternatives, and its consequences.
+- A [rule](../rule/README.md) states the constraint that binds an action: what a contributor or an Agent must do, in what order, with which permission, and what is forbidden.
 - Component documentation tells users how to install and use the component.
-- The repository instructions and README tell contributors how to work in the repository.
+- The repository documentation and the README tell contributors how to work in the repository.
+- `AGENTS.md` provides navigation and non-trivial rules.
 
 A spec must not conflict with a current decision. A target change that conflicts with a current decision goes through the [ADR process](../adr/README.md) before the spec changes. A spec change that alters no durable choice needs no ADR, and the ADR rules decide when one is required. A decision may link to a spec, but the link does not replace the contract the decision records.
 
@@ -54,7 +56,7 @@ A change that alters a component's target updates the spec, the component, and t
 
 ## Reference direction
 
-References run one way. A spec may link to component files, component documentation, and ADRs. No file inside a distributable component links to, names a path in, or depends on `.agents/spec/`, so an installed component stays usable without the repository.
+References run one way. A spec may link to component files, component documentation, ADRs, and rules. No file inside a distributable component links to, names a path in, or depends on `.agents/spec/`, so an installed component stays usable without the repository.
 
 Specs are explanatory documentation. No component depends on them to run, build, or be distributed, and repository checks treat them like other Markdown documentation.
 

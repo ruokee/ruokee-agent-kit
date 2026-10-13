@@ -45,7 +45,7 @@ The retained unslop wording comes from [Cursor plugins / pstack](https://github.
 
 The [architect Skill](../decision/2026-09-18-make-architect-model-invoked.md#sources-and-adaptation) provides an existing example: it uses an external architecture repository as a topic map and source material while remaining an independently authored Skill. Its choice to rewrite that material is specific to architect; rewriting is not a general prerequisite for first-party status.
 
-The general ownership principle appears in [AGENTS.md](../../../AGENTS.md) and under `Changes` in the first-party capability decision, which links to this contract. References to or reuse of third-party material within a first-party capability do not themselves import a third-party capability, fork, or mirror. The prohibition on those third-party capabilities and the source attribution and license obligations remain binding.
+The general ownership principle appears in `AGENTS.md` and under `Changes` in the first-party capability decision, which links to this contract. References to or reuse of third-party material within a first-party capability do not themselves import a third-party capability, fork, or mirror. The prohibition on those third-party capabilities and the source attribution and license obligations remain binding.
 
 Develop the leakage section from the maintainer's existing writing-session cleanup rules, expressed as standalone guidance. Other examples may inform its preservation boundaries without importing their host or repository procedures. Write the proof-posture section around the concrete behavior described below. Consolidate shared rules and keep all sections consistent.
 

@@ -1,7 +1,7 @@
 # ADR 决定：为系统提示词扩展增加模型级规则
 
 Decision owner: Ruokee
-Decision writer: deepseek/deepseek-v4.1-flash
+Decision writer: OMP DeepSeek V4.1 Flash
 Archived: 2026-10-07
 Reversed by: [由 QoL 提供默认关闭的模型提示词规则](../decision/2026-10-07-use-qol-model-prompts.zh.md)
 

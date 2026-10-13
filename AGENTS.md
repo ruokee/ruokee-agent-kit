@@ -1,76 +1,67 @@
 # Project Agent guidelines
 
-Ruokee Agent Kit is Ruokee's public repository for original Agent capabilities and their first-party development, validation, packaging, and distribution support.
+Ruokee Agent Kit provides Agent Skills and extensions.
 
-Keep this file focused on repository knowledge that cannot be inferred from the files and tool configuration.
+## Project structure
 
-## Repository boundary
+- `./projects/`: Extensions, executables, and host packages, with source, documentation, and checks organized for their host or build system.
+- `./skills/`: Ordinary English Skills, each with `SKILL.md` and any supporting references and workflows.
+- `./variants/`: Language variants of components, with the same purpose and separate distributable directories.
+- `./docs/`: Repository-wide user documentation, such as installation and maintenance instructions.
+- `./scripts/`: Repository-wide installation, maintenance, and check scripts; component-specific scripts stay with their component.
+- `./.agents/`: Decisions, specifications, and rules for repository development.
+    - `adr/`: Durable choices and their reasons, including proposals and decisions.
+    - `spec/`: Goals, boundaries, and acceptance criteria for components or repository areas.
+    - `rule/`: Working rules organized by activity, governing actions, order, and permissions.
 
-- Keep only capabilities authored and maintained by Ruokee in this repository.
-- Do not add third-party capabilities, forks, or upstream mirrors. A first-party capability may cite, quote, or adapt third-party material. Determine fork status from whether the third-party capability itself is the subject of development and maintenance, not from the presence or amount of reused content alone. Preserve source authorship and comply with applicable licenses and attribution requirements.
-- Do not add machine inventories, profiles, host selections, Fleet configuration, credentials, private hostnames, or internal service URLs.
-- Do not add the device's model, provider, or channel configuration to tracked files, including documentation and test fixtures; describe models generically.
-- First-party manifests, adapters, installers, and validation tools may live here when they support a repository capability.
+## Rules
 
-## Content layout
+### Boundary
 
-- Keep each capability in its host-native or build-native format. Do not force Plugins, extensions, executables, or host packages into `./skills/`.
-- Store English Skills under `./skills/<name>/` and Chinese variants under `./variants/zh/skills/<name>/`.
-- Keep pure Skill trees limited to host-discoverable Skill material such as `SKILL.md`, workflows, references, examples, and glossaries. Do not copy Plugin manifests, marketplace metadata, package changelogs, or host-specific Agent definitions into them.
-- Treat each Skill, Extension, Plugin, and Package, including each language variant, as a self-contained distributable component. Its files may reference only files within that component directory and must not link to, depend on, or instruct use of another repository component.
-- Write links inside variants for the installed `skills/<name>/` path, without the source-only `variants/zh/` prefix.
-- Add a top-level area only when a real component requires it. Do not prebuild empty capability categories.
+[Boundary rules](./.agents/rule/boundary.md)
+
+- Keep only components authored by the maintainer in this repository. Do not add third-party capabilities, forks, or upstream mirrors.
+- Keep every distributable component self-contained. Its files may reference only files inside that component and must not link to, depend on, or instruct use of other repository content.
+- Avoid tracking local directories, sensitive information, credentials, private hostnames, internal service URLs, or the device's model, provider, or channel configuration.
+- Commit a component's `X.Y.Z` version update together with the functional change it ships. Increment `Z` by default; the maintainer decides changes to `X` or `Y`.
+
+### Document
+
+[Documentation rules](./.agents/rule/documentation.md)
+
+- Provide English and Chinese project documentation as same-directory `name.md` and `name.zh.md` pairs. Keep translations and reciprocal links aligned.
+- Keep documentation in sync with the code it describes. Update affected documents in the same change.
+- Write a file name and each heading as a short imperative sentence, a short phrase, or a noun unless an additional requirement calls for another form. Keep one subject, and add a second one or list its parts only when an additional requirement calls for it.
+- Specs define each component's goals and live in `./.agents/spec`. Read the [spec rules](./.agents/spec/README.md) when editing specs.
+- ADRs record choices, including proposals and decisions, and live in `./.agents/adr`. Read the [ADR rules](./.agents/adr/README.md) when editing ADRs.
+- Rules define repository working rules and live in `./.agents/rule`. Read the [rule layer's rules](./.agents/rule/README.md) when editing rules.
+
+### Git
+
+[Git rules](./.agents/rule/git.md)
+
+- Use trunk-based development.
+- Create a short-lived branch from current `main` for each change. Never edit or commit directly on `main`.
+- Write commit messages in English and follow Conventional Commits. Use types from the standard set.
+- Let `git commit` run the quality hooks. If a hook modifies task files, review and restage them before retrying the commit.
+- Use `git commit --amend` only to edit a commit message. Never use amend to add, remove, or replace committed file changes.
+- Squash-merge task branches into `main`. Do not use a plain merge, fast-forward merge, rebase-and-fast-forward, or direct ref movement.
+- Before requesting code review, commit task changes and leave the related working tree clean. Ensure tests and quality checks pass.
 
 ## Development
 
-- Keep changes limited to the requested capability. Do not prebuild structure for hypothetical Skills or hosts.
+[Development rules](./.agents/rule/development.md)
 
-## Documentation
+### Planning
 
-- Read the relevant documentation before analyzing requirements or starting development.
-- Keep documentation in sync with the code it describes. Update affected documents in the same change.
-- Write code, comments, configuration, and default public documentation in English.
-- Pair ordinary public Markdown documentation in the same directory as `name.md` and `name.zh.md`; use `README.md` and `README.zh.md` for repository and component entry pages. Keep Skill language variants in their existing component layouts.
-- Keep language links between corresponding English and Chinese documents.
+- Search the relevant ADR proposals and decisions, specs, and rules before planning changes to a component's or repository area's goals, boundaries, or acceptance criteria.
+- Limit changes to the requested capability or fix. Do not prebuild for hypothetical requirements.
 
-## ADRs
+### Validation
 
-- Use `ADR` as the repository term for an architecture decision record. This repository uses `.agents/adr` as its ADR root.
-- Search existing proposals and current decisions before planning a requirement.
-- Read [the ADR rules](./.agents/adr/README.md) and [glossary](./.agents/adr/glossary.md) before proposing or changing a durable architecture, contract, format, or repository-process decision.
-- Specifications in `.agents/spec/` state the current target of each component and repository area; ADRs record the decisions behind them. Read [the spec rules](./.agents/spec/README.md) and the affected specs before changing a component's or repository area's goals, boundaries, or acceptance, and update them in the same change.
-- Do not invent alternatives or risks to fill required sections; write `None` or `无` when nothing qualifies.
-- Keep each English ADR and its Chinese counterpart semantically aligned in the same change.
-- Update non-conflicting content under `Changes`. For a conflicting choice, merge a proposal first and create a complete decision that reverses the old one.
-- The maintainer owns proposal approval, rejection, and decision archival. Agents may draft a proposal within authorized work but must not make those lifecycle decisions without explicit approval.
-
-## File paths
-
-- Use Markdown links for repository file references that readers should follow, with each destination relative to the Markdown document containing it.
-- Prefix destinations in the current directory or a descendant directory with `./`. Use as many `../` segments as needed to reach files outside that tree.
-- Do not use a leading `/`, a repository-root-relative destination, or an absolute GitHub URL for a file in this repository.
-- When the link text names a file, write it from the repository root without a leading `/`. For example, an ADR under `.agents/adr/decision/` links to the `<skill>` Skill as `[skills/<skill>/SKILL.md](../../../skills/<skill>/SKILL.md)`.
-
-## Validation
-
-- Install the Git hooks with `pnpm hooks:install`. It sets up the pre-commit formatting stage and the commit-msg message check.
-- Prepare root tools and only the selected component environments as described in [README.md](./README.md#check-prerequisites). Use locked versions and independent writable dependency and build directories for each branch. Do not share `node_modules` or build output across branches; package-manager content caches may be reused within the same trust boundary.
-- Run `pnpm check:changed` from the repository root during development and before requesting review. It includes committed and working-state changes relative to the merge base with local `main`, retains deletion and rename paths, and selects a deduplicated check union. Known Markdown consumers include their checks; unknown or shared inputs and unreliable classification fall back to one complete `pnpm check`.
-- After all review changes, run complete `pnpm check` on the clean, committed final candidate before merge. The candidate must contain target `main`; record its commit and tree, the target commit, and the result. Further tracked changes, pending changes, candidate changes, or target advancement invalidate success. An authorized squash merge must produce the validated tree against the unchanged target.
-- Use `pnpm check:base` for targeted Markdown and Rust checks; it does not cover component checks. Check commands do not install dependencies or format source files.
-- Keep component-specific checks beside their component. When adding a component or document consumer, or changing required automated checks, update the complete aggregate, explicit selector mapping, and selector regression tests together. Automated success does not replace required real-model or interactive UI validation.
-- Missing selected tools or local dependencies fail checks; do not install automatically or use global tools to conceal missing local setup.
-
-## Git workflow
-
-- Use trunk-based development. `main` is the only long-lived branch.
-- Develop each feature, fix, or documentation change on a short-lived branch created from current `main`. Do not modify `main` directly.
-- Use an independent worktree under `.worktrees/` for code, configuration, scripts, parallel tasks, or uncertain exclusivity. Only clean, serial explanatory Markdown or ADR tasks with confirmed exclusive use may use the main working directory, after switching to a short-lived branch. Runtime templates do not qualify; explanatory documents consumed by tests can qualify but retain their consumer checks. If scope expands or exclusivity is lost, stop shared-directory editing and preserve the work in an independent worktree before continuing.
-- Commit each atomic task to its branch by default. Stage only files that belong to the current task.
-- Write commit messages in English and follow the Conventional Commits specification. Types come from the standard set, and the optional scope is one of `skills`, `extensions`, `adr`, or `repo`; a change that spans two areas carries no scope. The commit-msg hook rejects a message that breaks these rules.
-- Let `git commit` run the quality hooks. If hooks modify task files, review and restage them before retrying the commit.
-- Use `git commit --amend` only to edit a commit message. Never use amend to add, remove, or replace committed file changes.
-- Before requesting review, commit the task changes and leave the related working tree clean.
-- A request to commit authorizes a branch commit only. Merging into `main` requires explicit user review and authorization.
-- Squash-merge task branches into `main`. Do not use a plain merge, fast-forward merge, rebase-and-fast-forward, or direct ref movement.
-- Do not push without explicit authorization.
+- Install Git hooks with `pnpm hooks:install`. This configures pre-commit formatting and commit-msg validation.
+- Prepare root tools and only the selected component environments as described in [README.md](./README.md#check-prerequisites).
+- Run `pnpm check:changed` from the repository root during development and before requesting review. It selects checks for changed components. Use targeted `pnpm check:*` commands only when needed.
+- Let missing prerequisites fail the check. Do not skip tests or rewrite hooks to hide the problem.
+- Keep component-specific checks beside their component.
+- Automated success does not establish real runtime behavior or interactive UI correctness. As far as possible, consult applicable specs, ADRs, and rules when validating or evaluating work.

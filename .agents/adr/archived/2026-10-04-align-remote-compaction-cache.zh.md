@@ -1,7 +1,7 @@
 # ADR 决定：维护包含远端压缩缓存对齐的 OMP 体验调整
 
 Decision owner: Ruokee
-Decision writer: pro-20x/gpt-6-astra
+Decision writer: OMP GPT-6 Astra
 Reverses: [随 OMP 宿主升级维护 OMP 体验调整](./2026-09-28-maintain-omp-qol.zh.md)
 Archived: 2026-10-04
 Reversed by: [维护 OMP 体验调整并保留投机压缩](./2026-10-04-preserve-speculative-cache.zh.md)

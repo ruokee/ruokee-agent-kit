@@ -91,13 +91,7 @@ Coordinate this migration before loading updated linked source, then restart eve
 
 ### Git
 
-The project follows [Trunk-Based Development](https://trunkbaseddevelopment.com/). `main` is the only long-lived branch. Start work on a short-lived branch from current `main`, use English Conventional Commit messages, and merge into `main` through squash merge after explicit authorization.
-
-Commit messages use the Conventional Commits types, and scope is optional. A message that carries a scope uses one of `skills`, `extensions`, `adr`, or `repo`; a change that spans two areas carries no scope.
-
-Use an independent worktree under `.worktrees/` for code, configuration, scripts, parallel tasks, and any task whose exclusive use of the main working directory cannot be confirmed. A serial explanatory Markdown or ADR task may use the main working directory only when it is clean, no parallel work is active, and exclusive use is confirmed. Create and switch to a short-lived branch before editing; never edit or commit directly on `main`.
-
-Documentation read by a test can still qualify for this directory exception, but must run its consumer checks. Runtime templates are source inputs, not explanatory documentation. If the task expands beyond explanatory Markdown or loses exclusive use, stop editing in the shared directory and preserve the work in an independent worktree before continuing.
+The project follows [Trunk-Based Development](https://trunkbaseddevelopment.com/). `main` is the only long-lived branch, work happens on a short-lived branch from current `main`, and integration happens through squash merge after explicit authorization. Commit messages are English Conventional Commits. The [Git rules](./.agents/rule/git.md) cover branches, working directories, commits, and the authorization each action needs.
 
 Before development, install the Git hooks:
 
@@ -106,7 +100,7 @@ pnpm install --frozen-lockfile
 pnpm hooks:install
 ```
 
-The hooks format staged files before each commit and check the commit message. A message that breaks the type or scope rules stops the commit and prints the violated rule.
+The hooks format staged files before each commit and check the commit message. A message that breaks the type or scope rules stops the commit and prints the violated rule. The [validation rules](./.agents/rule/development.md#validation) cover environments, checks, and the complete merge gate.
 
 ### Repository layout
 
@@ -116,7 +110,7 @@ Plugins, extensions, executables, and Harness packages keep the layout their Har
 
 Ordinary public documentation uses same-directory `name.md` and `name.zh.md` pairs. Repository and component entry pages use `README.md` and `README.zh.md`.
 
-Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/README.md). Bilingual [specifications](./.agents/spec/README.md) state the current target of each component and repository area, linking to the decisions and documents that own the details.
+Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/README.md). Bilingual [specifications](./.agents/spec/README.md) state the current target of each component and repository area, linking to the decisions and documents that own the details. The bilingual [rule layer](./.agents/rule/README.md) states how work is done here: what a contributor or an Agent must do, in what order, with which permission, and what is forbidden.
 
 ### Component host maintenance
 
@@ -157,7 +151,7 @@ The [selector](./scripts/check-changed.mjs) maintains an explicit mapping:
 
 | Changed scope | Selected checks |
 | --- | --- |
-| Known explanatory Markdown, including ADRs, specifications, root READMEs, Skills, and component documentation | Prettier for changed files that still exist, using the repository configuration and ignore rules |
+| Known explanatory Markdown, including ADRs, specifications, rule pages, root READMEs, Skills, and component documentation | Prettier for changed files that still exist, using the repository configuration and ignore rules |
 | Registered OMP component non-Markdown files, or Markdown under its `src/` or `test/` | That component's `typecheck` and `test`, plus changed Markdown formatting |
 | tk non-Markdown files, or Markdown in its `skills/`, `claude/`, `pi/`, or `omp/` packaging trees | Rust formatting and tests, native adapter tests, and changed Markdown formatting |
 | [docs/installation.md](./docs/installation.md), its Chinese counterpart, or the Skill installation and lifecycle scripts | Skill lifecycle tests, plus changed Markdown formatting |

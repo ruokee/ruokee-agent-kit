@@ -1,7 +1,7 @@
 # ADR decision: Enforce commit message conventions
 
 Decision owner: Ruokee
-Decision writer: deepseek/deepseek-v4.1-flash
+Decision writer: OMP DeepSeek V4.1 Flash
 
 English | [中文](./2026-09-17-enforce-commit-message-conventions.zh.md)
 
@@ -44,7 +44,7 @@ The remaining rules keep their `config-conventional` defaults. That choice carri
 
 ### Documentation
 
-The Git sections of [AGENTS.md](../../../AGENTS.md), [README.md](../../../README.md), and [README.zh.md](../../../README.zh.md) name the scope set and the commit-msg check, beside the existing Conventional Commits requirement, and the hook installation step covers both hook stages. The ADR process and the change workflow are unchanged.
+The Git sections of `AGENTS.md`, [README.md](../../../README.md), and [README.zh.md](../../../README.zh.md) name the scope set and the commit-msg check, beside the existing Conventional Commits requirement, and the hook installation step covers both hook stages. The ADR process and the change workflow are unchanged.
 
 ## Alternatives considered
 

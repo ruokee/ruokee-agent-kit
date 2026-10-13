@@ -1,7 +1,7 @@
 # ADR decision: Align tk usage patterns
 
 Decision owner: Ruokee
-Decision writer: OMP anyrouter/gpt-6-astra
+Decision writer: OMP GPT-6 Astra
 Reverses: [Maintain tk documentation](./2026-08-29-maintain-tk-documentation.md)
 Archived: 2026-10-04
 Reversed by: [Align tk usage patterns with shared Skill reference sources](../decision/2026-10-04-share-tk-skill-references.md)

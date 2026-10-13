@@ -1,7 +1,7 @@
 # ADR decision: Add configurable OMP quality-of-life adjustments
 
 Decision owner: Ruokee
-Decision writer: deepseek/deepseek-v4.1-flash
+Decision writer: OMP DeepSeek V4.1 Flash
 Reverses: [Add configurable OMP quality-of-life adjustments](../archived/2026-09-21-reuse-a-matching-compaction-patch.md)
 Archived: 2026-09-28
 Reversed by: [Maintain the OMP quality-of-life adjustments across OMP host upgrades](./2026-09-28-maintain-omp-qol.md)

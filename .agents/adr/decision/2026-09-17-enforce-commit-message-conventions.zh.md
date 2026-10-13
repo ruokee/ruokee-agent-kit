@@ -1,7 +1,7 @@
 # ADR 决定：强制执行提交信息规范
 
 Decision owner: Ruokee
-Decision writer: deepseek/deepseek-v4.1-flash
+Decision writer: OMP DeepSeek V4.1 Flash
 
 [English](./2026-09-17-enforce-commit-message-conventions.md) | 中文
 
@@ -44,7 +44,7 @@ scope 可选。提交信息带 scope 时，必须精确等于下表四个取值�
 
 ### 文档
 
-[AGENTS.md](../../../AGENTS.md)、[README.md](../../../README.md) 与 [README.zh.md](../../../README.zh.md) 的 Git 章节在现有 Conventional Commits 要求旁列出 scope 集合与 commit-msg 校验，钩子安装步骤覆盖两个钩子阶段。ADR 流程与变更流程不变。
+`AGENTS.md`、[README.md](../../../README.md) 与 [README.zh.md](../../../README.zh.md) 的 Git 章节在现有 Conventional Commits 要求旁列出 scope 集合与 commit-msg 校验，钩子安装步骤覆盖两个钩子阶段。ADR 流程与变更流程不变。
 
 ## 考虑过的替代方案
 

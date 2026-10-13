@@ -1,7 +1,7 @@
 # ADR decision: Add model-scoped prompt rules to the system prompt extension
 
 Decision owner: Ruokee
-Decision writer: deepseek/deepseek-v4.1-flash
+Decision writer: OMP DeepSeek V4.1 Flash
 Archived: 2026-10-07
 Reversed by: [Provide opt-in model prompt rules through QoL](../decision/2026-10-07-use-qol-model-prompts.md)
 

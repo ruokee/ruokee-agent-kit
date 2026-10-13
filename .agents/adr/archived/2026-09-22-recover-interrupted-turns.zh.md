@@ -1,7 +1,7 @@
 # ADR 决定：新增可配置的 OMP 体验调整
 
 Decision owner: Ruokee
-Decision writer: deepseek/deepseek-v4.1-flash
+Decision writer: OMP DeepSeek V4.1 Flash
 Reverses: [新增可配置的 OMP 体验调整](../archived/2026-09-21-reuse-a-matching-compaction-patch.zh.md)
 Archived: 2026-09-28
 Reversed by: [随 OMP 宿主升级维护 OMP 体验调整](./2026-09-28-maintain-omp-qol.zh.md)

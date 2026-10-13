@@ -1,7 +1,7 @@
 # ADR 决定：统一 tk 使用模式
 
 Decision owner: Ruokee
-Decision writer: OMP anyrouter/gpt-6-astra
+Decision writer: OMP GPT-6 Astra
 Reverses: [维护 tk 文档](./2026-08-29-maintain-tk-documentation.zh.md)
 Archived: 2026-10-04
 Reversed by: [以共享的 Skill 参考文件源码统一 tk 使用模式](../decision/2026-10-04-share-tk-skill-references.zh.md)

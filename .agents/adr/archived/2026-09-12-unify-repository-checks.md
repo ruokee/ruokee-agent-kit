@@ -46,7 +46,7 @@ The aggregate runs existing automation without adding a CI platform, coverage th
 
 ### Documentation
 
-[README.md](../../../README.md), [README.zh.md](../../../README.zh.md), and [AGENTS.md](../../../AGENTS.md) distinguish complete checks from baseline checks and explain the prerequisites. Component documentation must remain consistent with the commands the aggregate invokes.
+[README.md](../../../README.md), [README.zh.md](../../../README.zh.md), and `AGENTS.md` distinguish complete checks from baseline checks and explain the prerequisites. Component documentation must remain consistent with the commands the aggregate invokes.
 
 This repository verification policy complements [the Markdown formatting decision](../decision/2026-09-02-format-markdown-with-prettier.md). That decision's formatter and formatting requirements remain in force.
 

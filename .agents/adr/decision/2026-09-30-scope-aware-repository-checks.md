@@ -48,7 +48,7 @@ Package-manager content caches may be reused within the same trust boundary, but
 
 ### Maintenance and compatibility
 
-Adding a component, changing required automated checks, or introducing a document consumer requires updating the explicit complete aggregate, selector mapping, and regression tests together. [README.md](../../../README.md), [README.zh.md](../../../README.zh.md), and [AGENTS.md](../../../AGENTS.md) describe the same gates, preparation boundaries, directory exception, and success invalidation. Component documentation stays consistent with invoked commands.
+Adding a component, changing required automated checks, or introducing a document consumer requires updating the explicit complete aggregate, selector mapping, and regression tests together. [README.md](../../../README.md), [README.zh.md](../../../README.zh.md), and `AGENTS.md` describe the same gates, preparation boundaries, directory exception, and success invalidation. Component documentation stays consistent with invoked commands.
 
 This decision reverses the complete-before-review clause of the previous check decision and preserves its complete coverage, explicit order, baseline, separate dependency trees, visible failure propagation, non-mutating checks, and scenario obligations. The [Markdown formatting decision](./2026-09-02-format-markdown-with-prettier.md) remains in force. This change does not migrate component layouts or introduce a workspace, task-graph dependency, CI platform, coverage threshold, testing framework, model-service invocation, or Harness installation operation.
 

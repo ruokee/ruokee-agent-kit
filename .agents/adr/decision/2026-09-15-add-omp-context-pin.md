@@ -1,7 +1,7 @@
 # ADR decision: Add the omp-context-pin extension
 
 Decision owner: Ruokee
-Decision writer: deepseek/deepseek-v4.1-flash
+Decision writer: OMP DeepSeek V4.1 Flash
 
 English | [中文](./2026-09-15-add-omp-context-pin.zh.md)
 

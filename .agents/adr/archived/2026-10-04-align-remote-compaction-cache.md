@@ -1,7 +1,7 @@
 # ADR decision: Maintain OMP quality-of-life adjustments with remote compaction cache alignment
 
 Decision owner: Ruokee
-Decision writer: pro-20x/gpt-6-astra
+Decision writer: OMP GPT-6 Astra
 Reverses: [Maintain the OMP quality-of-life adjustments across OMP host upgrades](./2026-09-28-maintain-omp-qol.md)
 Archived: 2026-10-04
 Reversed by: [Maintain OMP quality-of-life adjustments while preserving speculative compaction](./2026-10-04-preserve-speculative-cache.md)

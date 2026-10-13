@@ -91,13 +91,7 @@ Skill 安装与下方的开发环境准备相互独立，不需要开发依赖�
 
 ### Git
 
-项目遵循 [Trunk-Based](https://trunkbaseddevelopment.com/) 开发模式。`main` 是唯一长期分支。所有工作都从当前 `main` 创建短期分支，使用英文 Conventional Commit 消息，并在明确授权后通过 squash merge 进入 `main`。
-
-提交信息使用 Conventional Commits 类型，scope 可选。带 scope 的信息使用 `skills`、`extensions`、`adr`、`repo` 之一；跨越两个区域的改动不带 scope。
-
-代码、配置、脚本、并行任务，以及无法确认独占主工作目录的任务，使用 `.worktrees/` 下的独立 worktree。只有主工作目录干净、没有并行工作且能够确认独占时，串行说明性 Markdown 或 ADR 任务才可以使用主工作目录。编辑前创建并切换到短期分支，任何任务都不直接在 `main` 上编辑或提交。
-
-被测试读取的说明文档仍可以适用该目录例外，但必须运行消费者检查。运行时模板是源输入，不是说明文档。任务范围扩展到说明性 Markdown 之外或失去独占条件时，先停止共享目录编辑，并在继续前将已有工作保存在独立 worktree 中。
+项目遵循 [Trunk-Based](https://trunkbaseddevelopment.com/) 开发模式。`main` 是唯一长期分支，工作从当前 `main` 创建的短期分支开始，并在明确授权后通过 squash merge 集成。提交信息使用英文 Conventional Commits。[Git 规则](./.agents/rule/git.zh.md)说明分支、工作目录、提交、scope 以及每个动作需要的授权。
 
 开始开发之前，先确保安装了 Git 钩子：
 
@@ -106,7 +100,7 @@ pnpm install --frozen-lockfile
 pnpm hooks:install
 ```
 
-钩子在每次提交前格式化暂存文件，并校验提交信息。信息不符合类型或 scope 规则时会阻止提交，并打印违反的规则。
+钩子在每次提交前格式化暂存文件，并校验提交信息。信息不符合类型或 scope 规则时会阻止提交，并打印违反的规则。[验证规则](./.agents/rule/development.zh.md#验证)说明环境、检查和完整合并门。
 
 ### 仓库布局
 
@@ -116,7 +110,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 
 普通公开文档采用同目录的 `name.md` 和 `name.zh.md` 配对。仓库和组件入口页使用 `README.md` 和 `README.zh.md`。
 
-长期仓库决定通过双语 [ADRs](./.agents/adr/README.zh.md) 记录。双语[规格](./.agents/spec/README.zh.md)说明每个组件和仓库领域的当前目标，并链接到拥有细节的决定和文档。
+长期仓库决定通过双语 [ADRs](./.agents/adr/README.zh.md) 记录。双语[规格](./.agents/spec/README.zh.md)说明每个组件和仓库领域的当前目标，并链接到拥有细节的决定和文档。双语[规则层](./.agents/rule/README.zh.md)说明在这个仓库里工作要怎么做：贡献者或 Agent 必须做什么、按什么顺序、持哪项授权，以及什么被禁止。
 
 ### 组件宿主维护
 
@@ -157,7 +151,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 
 | 变更范围 | 选中检查 |
 | --- | --- |
-| 已知说明性 Markdown，包括 ADR、规格、根 README、Skill 和组件文档 | 对仍存在的变更文件运行 Prettier，保留仓库配置和忽略规则 |
+| 已知说明性 Markdown，包括 ADR、规格、规则页面、根 README、Skill 和组件文档 | 对仍存在的变更文件运行 Prettier，保留仓库配置和忽略规则 |
 | 已登记 OMP 组件的非 Markdown 文件，或其 `src/`、`test/` 下的 Markdown | 该组件的 `typecheck`、`test`，以及变更 Markdown 格式检查 |
 | tk 非 Markdown 文件，或其 `skills/`、`claude/`、`pi/`、`omp/` 打包树中的 Markdown | Rust 格式与测试、原生适配器测试，以及变更 Markdown 格式检查 |
 | [docs/installation.md](./docs/installation.md)、对应中文版，或 Skill 安装与生命周期脚本 | Skill 生命周期测试，以及变更 Markdown 格式检查 |
