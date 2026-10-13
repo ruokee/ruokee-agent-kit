@@ -2,7 +2,7 @@
 
 Every dependency is a standing liability as much as a convenience: it must be resolved, locked, installed, audited, and eventually upgraded, and each one widens the surface on which the project can break. Dependency management is the discipline of declaring _where_ each dependency lives, _why_ it is there, _how tightly_ it is constrained, and _whether_ the full resolution is pinned. The goal is an install that is reproducible where it must be, minimal for each use case, and honest about what is truly required at runtime versus what only the developers need.
 
-## Runtime, Dev, Optional, And Workspace-Internal
+## Dependency categories
 
 The first decision for any dependency is which bucket it belongs in, because the buckets ship to different audiences.
 
@@ -28,7 +28,7 @@ The tension in every constraint is between flexibility and reproducibility. A co
 
 The general rule is to constrain as widely as is safe. Pin exactly where reproducibility is the goal (applications, via the lockfile rather than the spec where possible); use compatible ranges where the package will be composed with others (libraries). A pin tighter than necessary should carry a reason, because a future reader will otherwise have to guess whether it guards a real incompatibility or is just stale caution.
 
-## Weight And Justification
+## Justifying a dependency
 
 Each new dependency should clear a justification bar: could the need be met by the standard library, a smaller library, or a few lines of local code? The standard library is the default dependency; reach past it only when a stdlib mechanism is genuinely insufficient. Pulling a heavy framework in for a single utility function trades a large install, a larger attack surface, and an ongoing upgrade burden for something a short helper would cover.
 

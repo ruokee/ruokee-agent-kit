@@ -81,7 +81,7 @@ Two idioms bridge parametrization and fixtures, beyond the basics:
 
 The limit: parametrize only when the cases are the _same check over different data_. When cases need genuinely different setup or different assertions, forcing them through one body produces branching logic that is harder to read than separate tests. Different behaviors want different tests.
 
-## Asserting Exceptions and Warnings
+## Diagnostic assertions
 
 ```python
 def test_zero_timeout_is_rejected() -> None:
@@ -95,7 +95,7 @@ def test_zero_timeout_is_rejected() -> None:
 - **`pytest.warns(SomeWarning, match=...)`** for warnings; `pytest.deprecated_call()` specifically for deprecation warnings; the `recwarn` fixture records warnings for inspection.
 - Assert on the raised exception's _observable_ attributes, not on internal state built while raising it.
 
-## Capturing Logs and Output: caplog, capsys
+## Capture fixtures
 
 When the observable behavior _is_ a log line or console output, assert on it through pytest's capture fixtures rather than by hand-wiring handlers or redirecting streams.
 
@@ -111,7 +111,7 @@ def test_warns_on_retry(caplog: pytest.LogCaptureFixture) -> None:
 
 A caveat worth knowing: logging is easy to over-test. A log line is often incidental, not a contract; assert on it only when emitting it is the behavior someone depends on (an audit trail, an operator alert), not merely because the code happens to log.
 
-## monkeypatch and tmp_path: State You Don't Clean Up by Hand
+## Automatic state cleanup
 
 Prefer pytest's built-in state manipulators over hand-rolled setup/cleanup. `monkeypatch` **reverts automatically** after the test; `tmp_path` is **managed by pytest** rather than left for you to delete. Either way, there is no manual restore step that gets skipped when the test fails.
 

@@ -30,7 +30,7 @@ After `pre-commit install`, the hooks run automatically on `git commit` against 
 
 A typical Python set: file-hygiene hooks (`trailing-whitespace`, `end-of-file-fixer`, `check-yaml`, `check-added-large-files`), [`ruff-format`](./ruff.md) and `ruff` for formatting and linting, and a custom [Flake8 plugin](./flake8-plugin.md) for project-specific rules. A type-checking hook can be included, but a whole-repo type check is often too slow for every commit and fits CI better, with the editor LSP providing fast local feedback.
 
-## Autofixing Hooks and File Modification
+## Autofixing hooks
 
 Some hooks modify files: `ruff-format`, `ruff --fix`, `end-of-file-fixer`, and `trailing-whitespace` rewrite content in place. When a hook changes a file, pre-commit reports failure and leaves the fix unstaged, so you review the change and re-stage before committing again. This is intentional; you see what was rewritten rather than committing machine edits blindly.
 

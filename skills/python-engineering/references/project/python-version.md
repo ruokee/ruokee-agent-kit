@@ -2,7 +2,7 @@
 
 A project does not run on "Python" in the abstract; it runs on a range of versions, and that range is a design decision with consequences for syntax, dependencies, and deployment. Two numbers matter, and they are not the same: the _minimum_ version the code must support, and the _target_ version development and CI assume.
 
-## Minimum Versus Target
+## Version baselines
 
 The minimum version is the floor; the oldest interpreter on which the code is guaranteed to import and run. It is declared with `requires-python` and it constrains which syntax and standard-library APIs are available everywhere. If the floor is 3.10, you cannot use `type X = ...` aliases or PEP 695 generic parameters anywhere in the shipped code, because a 3.10 interpreter will raise a `SyntaxError` before any logic runs.
 
@@ -39,7 +39,7 @@ A feature being available is not a reason to use it. Pattern matching, exception
 
 Keep `requires-python`, the local `.python-version`, and the CI matrix consistent. When they drift, `requires-python = ">=3.10"` but every developer runs 3.12 and CI never tests 3.10, the floor becomes fiction, and 3.10-incompatible syntax can slip in undetected.
 
-## Docker And Base Images
+## Base images
 
 When the deployment artifact is a container, the base image tag _is_ part of the version policy. Pin a specific minor version (`python:3.12-slim`), not a floating `python:3` or `python:latest`, so the runtime cannot shift under you between builds. The image's interpreter should match the target version, and it must satisfy the declared floor. Slim and distroless variants reduce surface area but change which system libraries are present, which can matter for packages with compiled extensions.
 

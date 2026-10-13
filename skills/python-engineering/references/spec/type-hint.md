@@ -101,7 +101,7 @@ reveal_type(value)  # str
 value = cast(str, value)
 ```
 
-## Protocol And Structural Subtyping
+## Structural subtyping
 
 `Protocol` formalizes duck typing. A class satisfies a `Protocol` by having the right methods and attributes, with no explicit inheritance; the same "if it has `.read()`, it's file-like" reasoning Python always used, now made checkable.
 
@@ -121,7 +121,7 @@ Any object with a matching `read` satisfies `Readable`, a file, a socket wrapper
 
 Choose `Protocol` when you want to accept anything matching a shape, especially types you do not own and cannot make inherit from your base. Choose an abstract base class (ABC) when you own the hierarchy, want to share implementation, and want explicit, registered membership. The rule of thumb: `Protocol` for accepting external shapes structurally; ABC for defining a closed hierarchy you control. Protocols also keep the dependency arrow pointing the right way; the _consumer_ defines the narrow interface it needs, instead of every producer being forced to import and subclass a base class. This is the typed expression of "depend on abstractions," and it is why a well-placed `Protocol` decouples modules that an ABC would have coupled.
 
-## TYPE_CHECKING And Runtime Isolation
+## Runtime isolation
 
 Some imports exist only to satisfy annotations and have no business running at import time; they may be heavy, or they would create a circular import. The `typing.TYPE_CHECKING` constant (always `False` at runtime, `True` to a type checker) isolates them:
 

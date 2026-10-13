@@ -2,7 +2,7 @@
 
 coverage.py measures which lines and branches of code execute while tests run. It is not a test framework and not a quality metric on its own; it is an observability layer over test execution that answers "what did the tests actually reach", not "did the tests check the right things".
 
-## Statement vs Branch Coverage
+## Coverage granularity
 
 Statement coverage records which lines ran. Branch coverage also records which edges of each conditional were taken, so an `if` whose `else` path is never exercised shows as a partial branch even when every line ran. Branch coverage catches untested decision paths that statement coverage hides and is worth enabling for core logic and libraries.
 
@@ -38,7 +38,7 @@ fail_under = 80
 
 `fail_under` fails the run when total coverage drops below a percentage. Start from a realistic, currently-reachable number and raise it gradually; a threshold set far above current reality just trains people to bypass it. A high number is also not proof of quality, since coverage counts execution, not assertion strength.
 
-## What Coverage Measures and What It Does Not
+## Coverage limits
 
 Coverage tells you a line or branch was executed during the suite. It says nothing about whether an assertion checked the result, whether boundary values were tested, or whether error paths were verified meaningfully. Code can reach 100% coverage with tests that assert nothing. Treat coverage as a floor that flags clearly untested code, not as evidence of behavioral correctness.
 

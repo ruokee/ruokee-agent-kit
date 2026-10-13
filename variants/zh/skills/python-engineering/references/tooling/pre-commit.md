@@ -30,7 +30,7 @@ repos:
 
 一个典型的 Python 钩子集合：文件卫生钩子（`trailing-whitespace`、`end-of-file-fixer`、`check-yaml`、`check-added-large-files`）、用于格式化和代码检查的 [`ruff-format`](./ruff.md) 和 `ruff`，以及用于项目特定规则的自定义 [Flake8 插件](./flake8-plugin.md)。可以包含类型检查钩子，但全仓库类型检查通常太慢，不适合每次提交，更适合 CI，而编辑器 LSP 提供快速的本地反馈。
 
-## 自动修复钩子与文件修改
+## 自动修复钩子
 
 一些钩子会修改文件：`ruff-format`、`ruff --fix`、`end-of-file-fixer` 和 `trailing-whitespace` 会就地重写内容。当钩子更改文件时，pre-commit 报告失败并将修复保留为未暂存状态，因此你可以查看更改并在再次提交之前重新暂存。这是有意为之；你能够看到被重写的内容，而不是盲目地提交机器编辑。
 

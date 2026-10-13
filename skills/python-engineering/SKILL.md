@@ -2,7 +2,7 @@
 name: python-engineering
 description: Use when evaluating or improving Python engineering practices, including project structure, dependencies and version policy, typing, testing, language features, standard-library mechanisms, and tooling.
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # Python Engineering

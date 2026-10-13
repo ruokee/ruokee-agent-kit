@@ -69,6 +69,6 @@ A workspace groups multiple related packages under one lockfile and shared resol
 
 uv downloads and manages standalone CPython builds, so `requires-python` and `.python-version` are enough to get a matching interpreter without a separate tool like pyenv. `uv python install 3.12` provisions a version, and the resolver respects the project's declared bounds when selecting one.
 
-## Relationship to pip, pipx, and Poetry
+## Relationship to other tools
 
 uv covers what pip (install), pip-tools (lock), pipx (tool isolation), virtualenv (environments), and a version manager each did separately. Compared to Poetry it overlaps on project and dependency management but emphasizes speed and a broader environment role. The tool being fast and unified is the reason to adopt it; it does not replace type checking, tests, coverage, or CI, which still gate correctness. Existing Poetry or Hatch projects, published libraries with their own constraints, and organization-standard setups are migrated on their own merits, not automatically.

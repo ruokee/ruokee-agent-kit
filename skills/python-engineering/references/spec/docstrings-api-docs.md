@@ -1,4 +1,4 @@
-# Docstrings And API Docs
+# Docstrings
 
 Once type annotations carry the static contract, a docstring's job changes. It is no longer the place to record parameter types and return types, the signature already does that, machine-checkably, and repeating it only creates a second copy that drifts out of sync. The docstring's job is everything the signature _cannot_ express: what the function means in the domain, what it promises and assumes, what it touches in the outside world, and how to use it correctly. The core skill is placing each piece of information where it belongs and writing a docstring only when it adds something the reader could not already see.
 
@@ -75,6 +75,6 @@ class CreateOrderRequest(BaseModel):
 
 The constraints and per-field descriptions live in `Field(...)`, which feeds the schema directly. A docstring on the endpoint then explains what the operation _does_, "reserves inventory before writing the order; on reservation failure no order is created", which no field metadata can capture. The failure mode to guard against is maintaining the same sentence in `Field(description=...)`, the model docstring, and a hand-written OpenAPI description at once. Pick the source of truth and let the others reference it.
 
-## Documentation Sites Versus Docstrings
+## Documentation layers
 
 A docstring documents one object; it cannot replace a documentation site. Tutorials, how-to guides, design rationale, and migration notes are narrative documents that no amount of per-function docstring adds up to. A tool like Sphinx with `autodoc` can pull docstrings into an API reference, but an auto-generated reference is not the same as good documentation; the narrative still has to be written by hand. One practical caution: `autodoc` imports the module to read it, so any import-time side effect will run during the doc build; keep module import clean (the same discipline [structure](../project/structure.md) asks for) and the doc build stays predictable.

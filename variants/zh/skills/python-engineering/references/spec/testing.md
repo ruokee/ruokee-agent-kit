@@ -81,7 +81,7 @@ def test_normalize_username(raw: str, expected: str) -> None:
 
 限度是：只在案例是*对不同数据的同一检查*时才参数化。当案例需要真正不同的 setup 或不同的断言时，强行把它们塞进一个测试体会产生分支逻辑，这比独立的测试更难读。不同的行为想要不同的测试。
 
-## 断言异常和警告
+## 诊断断言
 
 ```python
 def test_zero_timeout_is_rejected() -> None:
@@ -95,7 +95,7 @@ def test_zero_timeout_is_rejected() -> None:
 - **`pytest.warns(SomeWarning, match=...)`** 用于警告；`pytest.deprecated_call()` 专用于弃用警告；`recwarn` fixture 记录警告供检查。
 - 断言所引发异常的*可观察*属性，而不是在抛出过程中构建的内部状态。
 
-## 捕获日志和输出：caplog、capsys
+## 捕获夹具
 
 当可观察行为*就是*日志行或控制台输出时，通过 pytest 的捕获 fixture 来断言，而不是手写 handler 或重定向流。
 
@@ -111,7 +111,7 @@ def test_warns_on_retry(caplog: pytest.LogCaptureFixture) -> None:
 
 一个值得注意的陷阱：日志很容易过度测试。日志行往往是附带产物，不是契约；只有在发出日志本身就是别人依赖的行为时才断言（审计追踪、运维告警），而不是仅仅因为代码恰好写了日志。
 
-## monkeypatch 和 tmp_path：不用手写清理的状态
+## 自动状态清理
 
 优先用 pytest 内建的状态操纵器，而不是手写 setup/cleanup。`monkeypatch` 在测试后**自动恢复**；`tmp_path` 由 **pytest 托管**而非留给你删除。无论哪种，都没有在测试失败时会被跳过的手动恢复步骤。
 

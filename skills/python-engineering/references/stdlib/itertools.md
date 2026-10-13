@@ -26,7 +26,7 @@ The cost is that laziness is easy to lose. Wrapping a stage in `list()`, `sorted
 - `batched(it, n)` (3.12+) yields tuples of up to `n` items, the standard way to chunk a stream for paged requests or bulk writes. Before 3.12, an `islice`-based helper fills the same role.
 - `accumulate`, `takewhile`, `dropwhile`, `count`, `cycle`, `repeat`, `tee`, `zip_longest`, `compress`, `filterfalse` cover running totals, conditional slicing, and stream alignment.
 
-## When It Helps vs Obscures
+## When to use itertools
 
 itertools improves clarity when it names a recognized operation: `batched` says "chunk", `pairwise` says "adjacent windows", `chain` says "concatenate". Readers who know the vocabulary grasp intent faster than they would from hand-rolled index arithmetic. It also matters when the data does not fit in memory or the source is unbounded; there a lazy pipeline is the only sensible shape.
 

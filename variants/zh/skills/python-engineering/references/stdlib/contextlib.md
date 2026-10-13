@@ -2,7 +2,7 @@
 
 `contextlib` 提供构建和组合上下文管理器的辅助工具，无需编写完整的 `__enter__`/`__exit__` 类。它是对 [`with` 协议](../grammar/context-manager.md)的补充：语法文档涵盖协议是什么以及何时使用它；本文档涵盖廉价生成上下文管理器的标准工具。
 
-## @contextmanager 和 @asynccontextmanager
+## 上下文管理器装饰器
 
 `@contextmanager` 将生成器转换为上下文管理器。`yield` 之前的代码在进入时运行，yield 的值成为 `as` 目标，`yield` 之后的代码在退出时运行。要处理异常，请将 `yield` 包装在 `try`/`finally` 中：
 
@@ -22,7 +22,7 @@ def acquired(resource):
 
 这种装饰器形式是顺序设置/清理逻辑的默认选择。仅在需要作为实例重用、多个方法或可重入性时才使用完整的类。
 
-## ExitStack 和 AsyncExitStack
+## 退出栈
 
 `ExitStack` 管理*动态*的上下文管理器集合，当资源的数量在解析时未知，或资源在循环中获取时：
 
@@ -50,7 +50,7 @@ with suppress(FileNotFoundError):
 
 将主体限制为你想忽略其失败的单个操作。包装多个语句可能会让后续不相关的同类失败静默通过。
 
-## redirect_stdout 和 redirect_stderr
+## 标准流重定向
 
 这些在块的持续时间内临时将 `sys.stdout` / `sys.stderr` 重新绑定到任何类文件对象。它们适用于捕获你无法控制的代码的输出：
 
@@ -79,7 +79,7 @@ with cm as out:
 
 这保持了一个 `with` 块，而不是在 `if`/`else` 中复制主体。
 
-## closing 和 aclosing
+## 关闭辅助函数
 
 `closing(thing)` 在退出时调用 `thing.close()`，适配那些有 `close()` 方法但自身未实现上下文管理器协议的对象。`aclosing(thing)`（3.10+）调用 `await thing.aclose()`，是确定性地终结异步生成器的推荐方式。
 

@@ -19,7 +19,7 @@ Prefer `Path` over `os.path` string manipulation: `config / "settings.toml"` is 
 
 Accept `os.PathLike[str]` (or `str | Path`) at API boundaries so callers can pass either a string or a `Path`; convert to `Path` once on entry. Do not assume POSIX separators in path literals; let `pathlib` handle the difference between `/` and `\`. Reserve raw strings for paths that cross a boundary requiring text, such as serialization or subprocess arguments.
 
-## enum / StrEnum
+## Enumerations
 
 `enum` defines a finite, named set of values. Use it when a field has a closed domain, states, modes, categories, instead of bare strings or magic integers that the type checker cannot constrain.
 

@@ -28,7 +28,7 @@ mixin 应该小型、无状态、命名清晰，并且仅依赖宿主有文档�
 - 实体不一定是 ORM 类。当持久化关注点扭曲模型时，将领域模型与持久化模型分离。
 - 仅当你确实需要事务边界、存储的测试替身或与 ORM 的隔离时才引入仓库和工作单元，而不是默认这样做。
 
-### 深模块与信息隐藏（Deep Modules and Information Hiding）
+### 深模块（Deep modules）
 
 - Python 没有强制的 `private`。使用命名约定（`_internal`）、模块结构、`__all__`、明确设计的
   公共 API、`property` 和 `Protocol` 而非访问修饰符来表达边界。
@@ -37,7 +37,7 @@ mixin 应该小型、无状态、命名清晰，并且仅依赖宿主有文档�
   错误和性能特征。这是防腐层和适配器模式
   的结构基础。
 
-### 依赖反转与依赖注入（Dependency Inversion and Dependency Injection）
+### 依赖反转（Dependency inversion）
 
 Python 很少需要 DIP 在其他生态中获得的那种重型装置。轻量级工具通常就足够了：
 
@@ -170,7 +170,7 @@ class EventBus:
 - 将不稳定的依赖项，时钟、随机性、文件系统、HTTP 客户端、数据库会话，作为函数参数、构造函数参数、小型 `Protocol` 或通过组合根注入，而不是在核心内部获取它们。
 - 核心应接受纯数据并返回纯数据；外壳拥有 `with`/`async with` 资源生命周期。
 
-### 命令式/过程式编程（Imperative / Procedural Programming）
+### 命令式编程（Imperative programming）
 
 - 在显式的入口点中承载命令式胶水代码，例如 `main(argv: Sequence[str] | None = None) -> int`，并通过 `if __name__ == "__main__":` 将其隔离。
 - 让入口层解析参数、加载配置、配置日志、构建依赖，并将异常转换为退出码。核心逻辑接收显式参数，并保持可导入和可测试。
@@ -215,6 +215,6 @@ class EventBus:
 
 基本类型偏执经常与依恋情结（嫉妒一个无法附加行为的基本类型）和数据泥团同时出现；引入缺失的类型常能同时解决多个坏味。
 
-### 薄包装（Thin Wrapper / Trivial Helper）
+### 薄包装（Thin wrappers）
 
 Python 中的函数调用不是免费的。每次调用构建一个栈帧，解释器为它做真正的工作。对大多数代码来说这无关紧要：清晰性胜出。但在热路径和紧循环中，围绕每个元素操作的一层薄包装可能在性能分析中显现出来。这是避免它们的次要原因，从来不是主要原因：主要成本始终是毫无回报的间接所带来的认知开销。

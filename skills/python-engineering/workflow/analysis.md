@@ -31,7 +31,7 @@ Lead with a recommendation, then show the reasoning. A useful analysis is not an
 3. **Recommend.** State which option you would choose and _why_, in terms of the constraints from step 1. A recommendation with a reason the user can push back on is more useful than a neutral menu.
 4. **Name the tradeoff.** Every real choice gives something up. Say what the recommended path costs so the user is deciding with open eyes.
 
-## Recommend Versus Ask
+## Handling decisions
 
 - **Recommend and proceed to detail** when the constraints point clearly to one option and the cost of being wrong is low or reversible.
 - **Stop and ask** when the decision hinges on information only the user has (deployment targets, team conventions, future plans), when options trade off along an axis only the user can weigh (speed vs. simplicity, flexibility vs. clarity), or when the change is large or hard to reverse.

@@ -29,7 +29,7 @@ def traced(func: Callable[P, R]) -> Callable[P, R]:
 
 `ParamSpec` and `TypeVar` let the wrapper preserve the wrapped signature for type checkers, so callers still see the original parameters and return type.
 
-## functools.wraps And Signature Preservation
+## Preserving function metadata
 
 Without help, the wrapper closure replaces the original's identity: `__name__`, `__doc__`, `__module__`, `__qualname__`, `__annotations__`, and `__wrapped__` all describe `wrapper`, not `func`. This breaks introspection, documentation generation, logging that prints function names, and some frameworks that read metadata.
 
@@ -83,7 +83,7 @@ class RateLimited:
 
 Distinguish a _decorator class_ (its `__call__` takes a function) from a class used to wrap an _instance_. The former decorates; the latter is plain composition.
 
-## Stacking And Execution Order
+## Execution order
 
 Stacked decorators apply bottom-up at definition time and the resulting wrappers execute top-down at call time:
 
@@ -99,7 +99,7 @@ Here `retry` wraps `fetch` first, then `cache` wraps that. At call time `cache` 
 
 A wrapper erases type information unless you preserve it deliberately. Use `ParamSpec` plus a return `TypeVar` for signature-preserving wrappers. Decorators that _change_ the signature, adding an injected argument, changing the return type, cannot be expressed by simple `ParamSpec` passthrough and need a hand-written return type or `typing.overload`. A decorator that turns a function into a different kind of object (a descriptor, a registered handler) should annotate that new type so callers are not misled.
 
-## When Decorators Help And When They Hurt
+## When to use decorators
 
 Decorators are the right tool for stable, cross-cutting concerns where the name says exactly what changes: registration, routing, caching (`@cache`), retry or timeout policy, authorization, metrics, tracing, and deprecation markers. The standard library ships several you should recognize: `@property`, `@staticmethod`, and `@classmethod` shape attribute and method binding; `@functools.cached_property` memoizes per instance; `@dataclass` generates boilerplate; `@typing.overload` declares multiple signatures; `@functools.singledispatch` provides type-based dispatch.
 

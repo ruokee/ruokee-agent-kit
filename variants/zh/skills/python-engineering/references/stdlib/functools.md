@@ -39,7 +39,7 @@ conn = connect_local(8080)
 
 当你只是固定参数时，优先使用 `partial` 而非 `lambda`；它是可 pickle 的、可内省的（`.func`、`.args`、`.keywords`），并且读起来就是意图。对于复杂签名，类型检查器推断 `partial` 结果不完美，因此在推断类型不明确时注解绑定点。将其用于回调、依赖注入和为特定调用点配置泛型函数；避免将许多 `partial` 堆叠成不透明的链条。
 
-## lru_cache / cache
+## 记忆化（Memoization）
 
 `@lru_cache(maxsize=...)` 以参数为键记忆化结果；`@cache`（3.9+）是 `lru_cache(maxsize=None)`：一个无界记忆化。它们加速具有可哈希参数的纯函数，且这些函数被重复调用：
 

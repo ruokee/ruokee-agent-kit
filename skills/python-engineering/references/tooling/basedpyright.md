@@ -10,7 +10,7 @@ Pyright supplies the foundation: a fast type checker with strong language-server
 
 The headline difference is that basedpyright is strict by default where Pyright is not. It promotes to errors many diagnostics Pyright leaves as warnings or disables, so a codebase clean under Pyright can surface a wave of new findings under basedpyright. This is the point of the fork: it expresses a more demanding stance out of the box.
 
-## reportUnusedX and Extra Diagnostics
+## Extra diagnostics
 
 basedpyright adds and enables diagnostics beyond Pyright's set, including stricter `reportUnused*` rules (unused imports, variables, expressions, and similar) and reporting around `Any` usage that escapes detection elsewhere. These rules catch dead code and silent `Any` leakage, but on a large existing codebase they need a baseline to avoid an unmanageable initial report.
 

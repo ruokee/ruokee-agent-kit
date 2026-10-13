@@ -110,7 +110,7 @@ Do not reach for a workspace just because there are many directories, or to spli
 
 When in doubt between flat and src for anything that will outlive the week, prefer src: the import-safety guarantee is cheap insurance against packaging surprises.
 
-## Test Directory, Config, And Entry Points
+## Where supporting files live
 
 Across all packaged forms, keep tests in a top-level `tests/` directory, not inside the production package, unless the ecosystem has a strong contrary convention. Name tests after behaviors and boundaries rather than mechanically mirroring every implementation file; for large frameworks and SDKs a loose mirror of the package tree aids navigation. Point the test runner at the test directory explicitly (`testpaths = ["tests"]`) so it never wanders into temporary directories or built docs. Coverage source should point at the actual package path so tooling and scripts do not pollute production coverage numbers. Detailed test conventions live in [testing](../spec/testing.md).
 

@@ -22,7 +22,7 @@ A good custom rule is **mechanical, static, and low-false-positive**, and it is 
 - **A clear, prefixed error code.** Give the rule a stable code with a project prefix (for example `PRJ001`), so it can be referenced, selectively disabled with a justification, and recognized in output. The accompanying message should state what is wrong and what to do instead.
 - **Documented and tested.** A custom rule is code: it needs a test that proves it fires on the violation and stays silent on valid code, and a line of documentation explaining its purpose. An undocumented rule that only its author understands becomes an invisible trap for everyone else.
 
-## Ruff Versus Flake8 Plugins
+## Lint extension mechanisms
 
 Two practical mechanisms exist for project-specific rules.
 

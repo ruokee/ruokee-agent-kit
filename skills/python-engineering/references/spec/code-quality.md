@@ -39,7 +39,7 @@ or a specific init sequence, that is a signal to use composition instead.
 - Introduce repositories and unit of work only when you actually need a transaction boundary,
   a test double for storage, or isolation from the ORM, not by default.
 
-### Deep Modules and Information Hiding
+### Deep modules
 
 - Python has no hard `private`. Express boundaries with naming conventions (`_internal`), module
   structure, `__all__`, a deliberate public API, `property`, and `Protocol` rather than access
@@ -51,7 +51,7 @@ or a specific init sequence, that is a signal to use composition instead.
   account for. This is the structural basis of the anti-corruption layer and the
   Adapter pattern.
 
-### Dependency Inversion and Dependency Injection
+### Dependency inversion
 
 Python rarely needs the heavy apparatus that DIP acquired in other ecosystems. The lightweight
 tools are usually enough:
@@ -196,7 +196,7 @@ This is the whole pattern at the smallest scale: the publisher knows the event n
 - Inject unstable dependencies, clock, randomness, filesystem, HTTP client, database session, as function arguments, constructor arguments, a small `Protocol`, or via the composition root, rather than reaching for them inside the core.
 - The core should accept plain data and return plain data; the shell owns `with` / `async with` resource lifecycles.
 
-### Imperative / Procedural Programming
+### Imperative programming
 
 - Carry imperative wiring in an explicit entry point, for example `main(argv: Sequence[str] | None = None) -> int`, and isolate it behind `if __name__ == "__main__":`.
 - Let the entry layer parse arguments, load config, configure logging, build dependencies, and translate exceptions into exit codes. Core logic receives explicit parameters and stays importable and testable.
@@ -241,6 +241,6 @@ The transformation itself is usually Extract Function; the reverse, when you dis
 
 Primitive Obsession often co-occurs with Feature Envy (behavior that envies a primitive it cannot attach to) and Data Clumps; introducing the missing type frequently resolves several smells at once.
 
-### Thin Wrapper / Trivial Helper
+### Thin wrappers
 
 Function calls in Python are not free. Each call builds a frame, and the interpreter does real work for it. For most code this is irrelevant: clarity wins. But in hot paths and tight loops, a layer of thin wrappers around a per-element operation can show up in a profile. This is a secondary reason to avoid them, never the primary one: the main cost is always the cognitive overhead of indirection that buys nothing.

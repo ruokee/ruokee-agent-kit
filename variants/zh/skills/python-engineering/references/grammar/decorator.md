@@ -29,7 +29,7 @@ def traced(func: Callable[P, R]) -> Callable[P, R]:
 
 `ParamSpec` 和 `TypeVar` 让包装器为类型检查器保留被包装的签名，因此调用者仍然能看到原始的参数和返回类型。
 
-## functools.wraps 与签名保留
+## 保留函数元数据
 
 没有辅助工具时，包装闭包会替换原始对象的身份：`__name__`、`__doc__`、`__module__`、`__qualname__`、`__annotations__` 和 `__wrapped__` 都描述 `wrapper`，而不是 `func`。这会破坏内省、文档生成、打印函数名称的日志记录以及某些读取元数据的框架。
 
@@ -83,7 +83,7 @@ class RateLimited:
 
 区分*装饰器类*（其 `__call__` 接受函数）和用于包装*实例*的类。前者是装饰；后者是普通组合。
 
-## 堆叠与执行顺序
+## 执行顺序
 
 堆叠的装饰器在定义时从下到上应用，生成的包装器在调用时从上到下执行：
 
@@ -99,7 +99,7 @@ def fetch(key: str) -> bytes: ...
 
 除非你有意保留，否则包装器会擦除类型信息。对于保留签名的包装器，使用 `ParamSpec` 加上返回 `TypeVar`。*改变*签名的装饰器，添加注入的参数、更改返回类型，无法通过简单的 `ParamSpec` 透传来表达，需要手写的返回类型或 `typing.overload`。将函数转变为不同类型对象（描述符、注册处理函数）的装饰器应注解该新类型，以免误导调用者。
 
-## 何时有帮助，何时有害
+## 何时使用装饰器
 
 装饰器适用于稳定的、横切关注点（cross-cutting concerns），其名称确切说明了变化内容：注册、路由、缓存（`@cache`）、重试或超时策略、授权、指标、追踪和弃用标记。标准库提供了几个你应该认识的装饰器：`@property`、`@staticmethod` 和 `@classmethod` 塑造属性和方法绑定；`@functools.cached_property` 按实例记忆化；`@dataclass` 生成样板代码；`@typing.overload` 声明多个签名；`@functools.singledispatch` 提供基于类型的分发。
 

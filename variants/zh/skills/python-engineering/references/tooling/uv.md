@@ -69,6 +69,6 @@ uv tool install pre-commit
 
 uv 下载并管理独立的 CPython 构建，因此 `requires-python` 和 `.python-version` 就足以获得匹配的解释器，无需 pyenv 等独立工具。`uv python install 3.12` 提供某个版本，解析器在选择版本时会尊重项目声明的范围。
 
-## 与 pip、pipx 和 Poetry 的关系
+## 与其他工具的关系
 
 uv 覆盖了 pip（安装）、pip-tools（锁定）、pipx（工具隔离）、virtualenv（环境）和版本管理器各自独立完成的工作。与 Poetry 相比，它在项目和依赖管理上有重叠，但强调速度和更广泛的环境角色。该工具快速且统一是采用它的理由；它不能替代类型检查、测试、覆盖率或 CI，这些仍然是正确性的门禁。现有的 Poetry 或 Hatch 项目、有自身约束的已发布库以及组织标准配置，应根据其自身情况进行迁移，而非自动迁移。

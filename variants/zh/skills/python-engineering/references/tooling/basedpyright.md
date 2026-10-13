@@ -10,7 +10,7 @@ Pyright 提供了基础：一个具有强大语言服务器支持、CLI 执行�
 
 最显著的区别在于，basedpyright 默认是严格的，而 Pyright 则不是。它将许多 Pyright 视为警告或禁用的诊断提升为错误，因此在 Pyright 下干净的代码库在 basedpyright 下可能会浮现出一波新的发现。这正是该分支的要点：它开箱即用表达了更严格的要求。
 
-## reportUnusedX 与额外诊断
+## 额外诊断（Extra diagnostics）
 
 basedpyright 添加并启用了超出 Pyright 范围的诊断，包括更严格的 `reportUnused*` 规则（未使用的导入、变量、表达式等），以及对逃逸其他检测的 `Any` 使用的报告。这些规则捕获死代码和静默的 `Any` 泄漏，但在大型现有代码库上，它们需要一个基线来避免不可管理的初始报告。
 

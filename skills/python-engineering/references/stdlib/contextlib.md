@@ -2,7 +2,7 @@
 
 `contextlib` provides helpers for building and combining context managers without writing a full `__enter__`/`__exit__` class. It complements the [`with` protocol](../grammar/context-manager.md): the grammar document covers what the protocol is and when to use it; this document covers the standard tools for producing context managers cheaply.
 
-## @contextmanager and @asynccontextmanager
+## Context manager decorators
 
 `@contextmanager` turns a generator into a context manager. Code before `yield` runs on entry, the yielded value becomes the `as` target, and code after `yield` runs on exit. To handle exceptions you wrap the `yield` in `try`/`finally`:
 
@@ -22,7 +22,7 @@ The generator must yield exactly once. An exception raised inside the `with` bod
 
 This decorator form is the right default for sequential setup/teardown logic. Reach for a full class only when you need reuse as an instance, multiple methods, or reentrancy.
 
-## ExitStack and AsyncExitStack
+## Exit stacks
 
 `ExitStack` manages a _dynamic_ set of context managers: when the number of resources is not known at parse time, or resources are acquired in a loop:
 
@@ -50,7 +50,7 @@ with suppress(FileNotFoundError):
 
 Keep the body to the single operation whose failure you mean to ignore. Wrapping several statements lets a later, unrelated failure of the same type slip through silently.
 
-## redirect_stdout and redirect_stderr
+## Stream redirection
 
 These temporarily rebind `sys.stdout` / `sys.stderr` to any file-like object for the duration of the block. They suit capturing output from code you do not control:
 
@@ -79,7 +79,7 @@ with cm as out:
 
 This keeps one `with` block instead of duplicating the body across an `if`/`else`.
 
-## closing and aclosing
+## Closing helpers
 
 `closing(thing)` calls `thing.close()` on exit, adapting objects that have a `close()` method but do not implement the context-manager protocol themselves. `aclosing(thing)` (3.10+) calls `await thing.aclose()` and is the recommended way to deterministically finalize async generators.
 

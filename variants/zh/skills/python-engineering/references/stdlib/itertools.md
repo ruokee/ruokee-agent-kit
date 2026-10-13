@@ -26,7 +26,7 @@ first_errors = islice((ln for ln in log_file if "ERROR" in ln), 10)
 - `batched(it, n)`（3.12+）产生最多 `n` 个项的元组，是分块流以进行分页请求或批量写入的标准方式。在 3.12 之前，基于 `islice` 的辅助工具扮演相同角色。
 - `accumulate`、`takewhile`、`dropwhile`、`count`、`cycle`、`repeat`、`tee`、`zip_longest`、`compress`、`filterfalse` 涵盖运行总计、条件切片和不同长度流的补齐。
 
-## 何时有助 vs 混淆
+## 何时使用 itertools
 
 itertools 在命名一个公认操作时提高清晰度：`batched` 表示"分块"，`pairwise` 表示"相邻窗口"，`chain` 表示"连接"。熟悉这些词汇的读者理解意图的速度比理解手动的索引运算更快。当数据不适合内存或源是无界的时，itertools 也很重要：此时惰性管道是唯一合理的形式。
 

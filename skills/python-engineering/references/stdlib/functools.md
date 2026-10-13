@@ -39,7 +39,7 @@ conn = connect_local(8080)
 
 Prefer `partial` over `lambda` when you are only fixing arguments; it is picklable, introspectable (`.func`, `.args`, `.keywords`), and reads as intent. Type checkers infer `partial` results imperfectly for complex signatures, so annotate the binding site when the inferred type is unclear. Use it for callbacks, dependency wiring, and configuring generic functions for a specific call site; avoid stacking many partials into an opaque chain.
 
-## lru_cache / cache
+## Memoization
 
 `@lru_cache(maxsize=...)` memoizes results keyed by arguments; `@cache` (3.9+) is `lru_cache(maxsize=None)`: an unbounded memo. They speed up pure, repeatedly called functions with hashable arguments:
 

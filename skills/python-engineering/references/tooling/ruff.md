@@ -45,6 +45,6 @@ line-length = 88
 select = ["E", "F", "I", "UP", "B"]
 ```
 
-## What Ruff Handles vs What Needs Human Review
+## Automation boundaries
 
 Ruff settles formatting and a wide band of mechanical lint, which is exactly the noise that should never reach a human reviewer. It does not judge naming quality, module responsibility, exception context, type-boundary design, docstring information value, or architecture; those need a type checker, tests, and human review. Ruff's security rules (`S`, from Bandit) are low-cost static reminders, not a full SAST or dependency-vulnerability scan, and do not replace dedicated tools or human security review.

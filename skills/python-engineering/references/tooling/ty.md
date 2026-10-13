@@ -14,18 +14,18 @@ ty does the work expected of a static type checker: full type coverage across a 
 ty check
 ```
 
-## Maturity and Limitations
+## Maturity
 
 ty is newer than mypy and pyright, so it sits on an early-adoption path. It does not yet provably cover every typing scenario the older checkers handle, and coverage of every third-party stub, edge-case inference, and the newest Python semantics needs project-level verification rather than assumption. Treat it as high-potential and capable, but verify behavior on the specific project rather than trusting it blindly.
 
-## Relationship to mypy and pyright
+## Relationship to other checkers
 
 ty competes with [mypy](./mypy.md) and [basedpyright](./basedpyright.md) as the primary checker. The tradeoff is concrete: ty offers speed and editor responsiveness today, while mypy and pyright/basedpyright offer more mature ecosystems and, in basedpyright's case, stricter defaults. Choosing ty as the default gate is a judgment that fast feedback outweighs the maturity gap for the project at hand; the older checkers remain available as a comparison layer when publishing a library, collaborating externally, or migrating.
 
-## Configuration and Adoption
+## Adoption
 
 Configure ty in `pyproject.toml` under its `[tool.ty]` table, and define rule strictness explicitly rather than enabling every experimental diagnostic at once. The risk-control approach for early adoption is to pin the tool version, keep a project-level config, validate in CI, and keep mypy or basedpyright reachable as a cross-check when a specific type question needs a second opinion. Lock the version so a tool update does not silently change which diagnostics fire.
 
-## What It Catches vs Misses
+## Detection scope
 
 ty catches the broad class of static type errors: mismatched arguments, bad returns, `None` handling, narrowing failures, and unreachable branches. What it can miss are scenarios involving immature third-party stubs, the most recent language semantics, or inference corners the older checkers have spent years hardening. When ty and a mature checker disagree on a hard case, investigate rather than assuming ty is wrong or right.
