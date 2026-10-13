@@ -15,7 +15,7 @@ msgspec supports multiple serialization protocols:
 
 ## Basic usage
 
-### Simple encoding and decoding
+### Simple round trip
 
 ```python
 import msgspec
@@ -56,9 +56,9 @@ toml_data = msgspec.toml.encode(user)
 user = msgspec.toml.decode(toml_data, type=User)
 ```
 
-## Encoders and decoders
+## Codecs
 
-### Creating encoders and decoders
+### Creating codecs
 
 For better performance, create reusable encoder/decoder instances:
 
@@ -74,7 +74,7 @@ encoded = encoder.encode(user)
 decoded = decoder.decode(encoded)
 ```
 
-### Reusing encoders/decoders
+### Reusing codecs
 
 **Efficient.**
 
@@ -123,7 +123,7 @@ with open("users.jsonl", "rb") as f:
         print(user)
 ```
 
-### Encoding/Decoding options
+### Codec options
 
 **Encoder options.**
 
@@ -146,7 +146,7 @@ decoder = msgspec.json.Decoder(
 
 ## Custom type handling
 
-### Using enc_hook and dec_hook
+### Using hooks
 
 For types not natively supported (like `pathlib.Path`):
 
@@ -212,7 +212,7 @@ MessagePack is a binary format and supports extension values through `msgspec.ms
 msgspec.msgpack.encode(data)
 ```
 
-### YAML and TOML
+### Other protocols
 
 YAML and TOML support require optional dependencies. Install `msgspec[yaml]`, `msgspec[toml]`, or both before using their encode and decode functions.
 

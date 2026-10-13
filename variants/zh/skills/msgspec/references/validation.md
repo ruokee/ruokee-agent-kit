@@ -1,4 +1,4 @@
-# msgspec 验证与约束
+# msgspec 验证
 
 本文档详细介绍 msgspec 的验证机制和约束功能。
 

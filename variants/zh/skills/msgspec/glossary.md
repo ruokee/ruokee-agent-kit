@@ -49,7 +49,7 @@ Struct 中具有名称和类型注解的值。`msgspec.field` 可以配置默认
 
 标签 Struct 编码后的判别字段。默认名称为 `type`，可以通过 `tag_field` 修改。
 
-## 序列化与转换
+## 序列化
 
 **序列化协议（Serialization protocol）**
 
@@ -74,6 +74,8 @@ Struct 中具有名称和类型注解的值。`msgspec.field` 可以配置默认
 **解码钩子（Decoding hook，`dec_hook`）**
 
 将已解码的受支持值映射为指定自定义类型的回调。
+
+## 转换
 
 **转换（Conversion）**
 

@@ -472,7 +472,7 @@ def dec_hook(type, obj):
     raise NotImplementedError(f"不支持类型 {type}")
 ```
 
-### 错误处理和回退
+### 错误处理
 
 ```python
 from pathlib import Path

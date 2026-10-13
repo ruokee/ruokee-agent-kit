@@ -72,7 +72,7 @@ yaml_encoded = msgspec.yaml.encode(user)
 yaml_decoded = msgspec.yaml.decode(yaml_encoded, type=User)
 ```
 
-## 编码器和解码器
+## 编解码器
 
 对于重复使用的场景，创建编码器/解码器实例可以获得更好的性能：
 
@@ -86,7 +86,7 @@ encoded = encoder.encode(user)
 user = decoder.decode(encoded)
 ```
 
-### 重用编码器/解码器
+### 重用编解码器
 
 在循环或频繁调用的场景中，重用编码器/解码器实例：
 

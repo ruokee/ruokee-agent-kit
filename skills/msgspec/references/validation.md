@@ -1,4 +1,4 @@
-# msgspec validation and constraints
+# msgspec validation
 
 This guide covers msgspec's validation capabilities using `msgspec.Meta` for declarative constraints.
 
@@ -443,7 +443,7 @@ class Product(msgspec.Struct):
     )]
 ```
 
-### Non-Empty list
+### Non-empty list
 
 ```python
 from typing import Annotated
@@ -456,7 +456,7 @@ class Order(msgspec.Struct):
     )]
 ```
 
-### SKU/Code pattern
+### SKU code pattern
 
 ```python
 from typing import Annotated

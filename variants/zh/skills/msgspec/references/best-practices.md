@@ -1,4 +1,4 @@
-# msgspec 最佳实践与常见陷阱
+# msgspec 最佳实践
 
 本文档提供 msgspec 使用过程中的最佳实践指南和常见错误避免方法。
 
@@ -99,7 +99,7 @@ point = Point(x=1.0, y=2.0)
 point.x = 3.0  # AttributeError: cannot set attribute
 ```
 
-## 5. 重用编码器/解码器
+## 5. 重用编解码器
 
 **推荐。**在循环或频繁调用的场景中，创建并重用编码器/解码器实例以提升性能。
 

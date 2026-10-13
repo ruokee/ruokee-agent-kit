@@ -2,7 +2,7 @@
 
 应根据数据边界和所需行为选择工具，不要依据缺少上下文的整体性能倍数。实际性能取决于模式、协议、载荷、验证工作和基准测试方法。
 
-## msgspec 与 Pydantic
+## 与 Pydantic 的对比
 
 当主要边界是类型化序列化或反序列化，并且应用需要 JSON、MessagePack、YAML 或 TOML API 时，可以选择 msgspec。`msgspec.Struct` 让数据模型贴近传输格式，类型化解码会在一个步骤中完成转换和验证。
 
@@ -10,7 +10,7 @@
 
 两个库都支持 JSON Schema 和标签联合，但配置及验证模型不同。比较时应检查项目实际使用的具体能力。
 
-## msgspec 与 dataclasses
+## 与 dataclasses 的对比
 
 `dataclasses` 属于 Python 标准库，适合普通的内存数据容器。它本身不提供序列化协议或类型化解码器。
 

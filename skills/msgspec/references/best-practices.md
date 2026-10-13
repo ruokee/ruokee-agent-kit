@@ -1,4 +1,4 @@
-# msgspec best practices and common pitfalls
+# msgspec best practices
 
 This document provides best practice guidelines and common error avoidance methods when using msgspec.
 
@@ -99,7 +99,7 @@ point = Point(x=1.0, y=2.0)
 point.x = 3.0  # AttributeError: cannot set attribute
 ```
 
-## 5. Reusing encoders/decoders
+## 5. Reusing codecs
 
 **Recommended.** In loops or frequently called scenarios, create and reuse encoder/decoder instances for better performance.
 

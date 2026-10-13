@@ -2,7 +2,7 @@
 
 Choose by boundary and required behavior, not by a library-wide speed ratio. Performance depends on the schema, protocol, payload, validation work, and benchmark method.
 
-## msgspec and Pydantic
+## Comparison with Pydantic
 
 Choose msgspec when the main boundary is typed serialization or deserialization and the application benefits from its JSON, MessagePack, YAML, or TOML APIs. `msgspec.Struct` keeps the model close to the wire format, and typed decoding performs conversion and validation in one step.
 
@@ -10,7 +10,7 @@ Choose Pydantic when the project already depends on its model API, validators, s
 
 Both libraries support JSON Schema and tagged unions. Their configuration and validation models differ, so compare the exact features the project uses.
 
-## msgspec and dataclasses
+## Comparison with dataclasses
 
 `dataclasses` is part of the Python standard library and works well for ordinary in-memory data containers. It does not provide a serialization protocol or typed decoder by itself.
 

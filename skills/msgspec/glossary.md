@@ -28,7 +28,7 @@ A union whose Struct variants carry a discriminator so a decoder can select one 
 
 The encoded discriminator field for a tagged Struct. Its default name is `type`, and `tag_field` can change it.
 
-## Serialization and conversion
+## Serialization
 
 **Serialization protocol**
 
@@ -53,6 +53,8 @@ A callback that maps an otherwise unsupported Python object to a value msgspec c
 **Decoding hook (`dec_hook`)**
 
 A callback that maps a decoded supported value to a requested custom type.
+
+## Conversion
 
 **Conversion**
 

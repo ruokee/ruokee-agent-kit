@@ -19,7 +19,7 @@ msgspec natively supports the following Python built-in types without custom con
 - `set` / `typing.Set`
 - `frozenset` / `typing.FrozenSet`
 
-## msgspec-Specific types
+## msgspec-specific types
 
 - `msgspec.msgpack.Ext`: MessagePack extension type
 - `msgspec.Raw`: Raw unparsed message data
@@ -72,7 +72,7 @@ Abstract base classes are supported as type hints, and msgspec automatically sel
 
 ## Important notes
 
-### Native support vs custom hooks
+### Hook requirements
 
 **Natively supported types.**
 

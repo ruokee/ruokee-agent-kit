@@ -8,7 +8,7 @@ This guide covers `msgspec.Struct`, a typed data structure designed for serializ
 
 `msgspec.Struct` defines fields through type annotations and supports JSON, MessagePack, YAML, and TOML through msgspec's protocol modules.
 
-## Initialization and `__post_init__` hook
+## Initialization
 
 Structs support a `__post_init__` method that runs after initialization:
 
@@ -287,7 +287,7 @@ class ChildKwOnly(Base, kw_only=True):
     required_field: str
 ```
 
-## Comparison and hashing
+## Value semantics
 
 Structs support equality comparison by default:
 
@@ -446,7 +446,7 @@ print(new_point)  # Point(x=3.0, y=2.0)
 - Prevents accidental modification
 - Ideal for config objects, coordinates, constants
 
-### kw_only=True (keyword-Only arguments)
+### kw_only=True (keyword-only arguments)
 
 ```python
 class Config(msgspec.Struct, kw_only=True):

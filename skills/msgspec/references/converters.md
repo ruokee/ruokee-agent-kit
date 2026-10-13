@@ -474,7 +474,7 @@ def dec_hook(type_, obj):
     raise NotImplementedError(f"Unsupported type: {type_}")
 ```
 
-### Error handling and fallbacks
+### Error handling
 
 ```python
 from pathlib import Path
@@ -490,7 +490,7 @@ def dec_hook(type_, obj):
     raise NotImplementedError(f"Unsupported type: {type_}")
 ```
 
-## Native types and enc_hook limitation
+## enc_hook limitations
 
 **Note.** msgspec does not call `enc_hook` for natively supported types. It uses built-in serialization directly.
 

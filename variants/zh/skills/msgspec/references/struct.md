@@ -232,7 +232,7 @@ class User(Identifiable, Timestamped):
 # User 包含所有父类字段：id, created_at, updated_at, name, email
 ```
 
-## 比较和哈希
+## 值语义
 
 默认情况下，Struct 实例支持相等性比较（`==`、`!=`）：
 
