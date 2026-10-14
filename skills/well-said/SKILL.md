@@ -2,7 +2,7 @@
 name: well-said
 description: Use when outputting anything. Express yourself naturally and directly. Consider the reader. Articulate your ideas clearly and retain only what is essential for the audience. Eliminate stock phrasing, internal musings, conversational filler, defensive language, and unnecessary self-justification.
 metadata:
-  version: "1.0.2"
+  version: "1.0.3"
 ---
 
 # Well said
@@ -57,31 +57,32 @@ Detect the following patterns and fix them.
 18. **Decorative emojis.** Remove from headings and bullets.
 19. **Curly quotes.** Replace with straight quotes. Do not add them while editing.
 20. **Long text in tables.** Reserve tables for numbers and classification text, such as enumerations. Long text belongs in a list, nested as needed. Prose spread across cells is hard to scan as source and renders unevenly.
+21. **Heading wording.** Prefer a short imperative sentence, a phrase, or a noun, in plain, familiar words. Leave punctuation out, and do not join two subjects with a conjunction such as "and". The only exception is a symbol a name or literal cannot do without, as in "well-said" or "grill-me"; an English compound that carries a hyphen gets rewritten instead. Name the one subject at a level that covers its parts instead of listing them: "Adjust the Task directory layout" rather than "tk Task directory tree and subtask layout adjustment and rename", "Data definitions" rather than "Data structures and lifecycles". The same rules apply to a file name and any other name, such as a task name. An article with its own conventions, such as a popular-science piece, may break these rules, for instance with a short question that draws the reader in.
 
 ### Communication artifacts
 
-21. **Chatbot phrases.** "I hope this helps!", "Let me know if...", "Of course!", "Certainly!", "Found the smoking gun!" Remove.
-22. **Cutoff disclaimers.** "While specific details are limited..." Find sources or remove.
-23. **Sycophantic tone.** "Great question! You're absolutely right!" Respond directly.
+22. **Chatbot phrases.** "I hope this helps!", "Let me know if...", "Of course!", "Certainly!", "Found the smoking gun!" Remove.
+23. **Cutoff disclaimers.** "While specific details are limited..." Find sources or remove.
+24. **Sycophantic tone.** "Great question! You're absolutely right!" Respond directly.
 
 ### Filler
 
-24. **Filler phrases.** "In order to" becomes "To". "Due to the fact that" becomes "Because". "It is important to note that" gets deleted.
-25. **Excessive hedging.** "could potentially possibly be argued that it might" becomes "may".
-26. **Generic conclusions.** "The future looks bright." State specific plans or facts.
+25. **Filler phrases.** "In order to" becomes "To". "Due to the fact that" becomes "Because". "It is important to note that" gets deleted.
+26. **Excessive hedging.** "could potentially possibly be argued that it might" becomes "may".
+27. **Generic conclusions.** "The future looks bright." State specific plans or facts.
 
 ### Jargon
 
-27. **Abstract metaphor nouns.** Substrate, wedge, vector, locus, vantage, nexus, primitive (as noun), harness (as metaphor), surface (as in "API surface"), bedrock, scaffolding (as metaphor), modality, paradigm, gold-plating, ratchet (as metaphor), evacuate (for moving code), endgame, north star, flywheel. These read as technical but usually have a plainer concrete word. "Substrate" becomes "base". "Wedge in" becomes "add". "Vector" becomes "way" or "method". "Gold-plating" becomes "more than the job needs". "Ratchet" becomes the mechanism's real name or "a limit that only tightens". "Evacuate" becomes "move out". "Endgame" becomes "the last phase". Pick the concrete word, and keep the object the metaphor described.
-28. **Chinese jargon.** Such as "赋能、助力、驱动、抓手、闭环、链路、全链路、拉通、对齐、反哺、颗粒度、组合拳、生态位、赛道、破圈、降维打击、天花板、长期主义、情绪价值". Apply the same approach as in pattern 27.
+28. **Abstract metaphor nouns.** Substrate, wedge, vector, locus, vantage, nexus, primitive (as noun), harness (as metaphor), surface (as in "API surface"), bedrock, scaffolding (as metaphor), modality, paradigm, gold-plating, ratchet (as metaphor), evacuate (for moving code), endgame, north star, flywheel. These read as technical but usually have a plainer concrete word. "Substrate" becomes "base". "Wedge in" becomes "add". "Vector" becomes "way" or "method". "Gold-plating" becomes "more than the job needs". "Ratchet" becomes the mechanism's real name or "a limit that only tightens". "Evacuate" becomes "move out". "Endgame" becomes "the last phase". Pick the concrete word, and keep the object the metaphor described.
+29. **Chinese jargon.** Such as "赋能、助力、驱动、抓手、闭环、链路、全链路、拉通、对齐、反哺、颗粒度、组合拳、生态位、赛道、破圈、降维打击、天花板、长期主义、情绪价值". Apply the same approach as in pattern 28.
 
 ### Plain speech
 
-29. **Say what it does, not how it feels.** "the database stays close at hand", "SQL you can read", "types that follow your schema" name a feeling. The fix names the mechanism or a number: "`.toSQL()` returns the exact string sent to the database", "a column rename fails the build". Ask what the sentence tells the reader to do or know, then write that. If you can't restate it as a concrete instruction, fact, or number, cut it. One more check: if the sentence could appear unchanged in another project's docs, it says nothing about this one. Cut it.
-30. **Shorten or split dense sentences.** If the reader has to backtrack to parse a sentence, break it in two or drop clauses. One idea per sentence.
-31. **Active voice.** Prefer it. Catch "is/are/was/were + past participle" and name the actor: "queries are validated" becomes "the compiler validates queries", "the file is parsed by the loader" becomes "the loader parses the file". Passive is fine only when the actor is unknown or genuinely doesn't matter.
-32. **Cut adverbs, or use a stronger verb.** "runs quickly" becomes "is fast" or the number. "significantly improves" becomes the measured delta. An adverb propping up a weak verb means the verb is wrong. Keep the measurement and its conditions next to the claim, so the sentence still does not read as a general guarantee.
-33. **Prefer the plain word.** "utilize" becomes "use". "leverage" becomes "use". "facilitate" becomes "help". "numerous" becomes "many". "in the event that" becomes "if". The fancier synonym is rarely clearer.
+30. **Say what it does, not how it feels.** "the database stays close at hand", "SQL you can read", "types that follow your schema" name a feeling. The fix names the mechanism or a number: "`.toSQL()` returns the exact string sent to the database", "a column rename fails the build". Ask what the sentence tells the reader to do or know, then write that. If you can't restate it as a concrete instruction, fact, or number, cut it. One more check: if the sentence could appear unchanged in another project's docs, it says nothing about this one. Cut it.
+31. **Shorten or split dense sentences.** If the reader has to backtrack to parse a sentence, break it in two or drop clauses. One idea per sentence.
+32. **Active voice.** Prefer it. Catch "is/are/was/were + past participle" and name the actor: "queries are validated" becomes "the compiler validates queries", "the file is parsed by the loader" becomes "the loader parses the file". Passive is fine only when the actor is unknown or genuinely doesn't matter.
+33. **Cut adverbs, or use a stronger verb.** "runs quickly" becomes "is fast" or the number. "significantly improves" becomes the measured delta. An adverb propping up a weak verb means the verb is wrong. Keep the measurement and its conditions next to the claim, so the sentence still does not read as a general guarantee.
+34. **Prefer the plain word.** "utilize" becomes "use". "leverage" becomes "use". "facilitate" becomes "help". "numerous" becomes "many". "in the event that" becomes "if". The fancier synonym is rarely clearer.
 
 ## Defensive phrasing
 

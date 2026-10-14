@@ -2,7 +2,7 @@
 name: well-said
 description: 输出任何内容时使用。自然、直接地表达。为读者考虑，把想法说清楚，只保留读者需要的内容。去掉套话、内心念头、对话中啰唆无用的话、防御性表达和不必要的自我证明。
 metadata:
-  version: "1.0.2"
+  version: "1.0.3"
 ---
 
 # Well said
@@ -57,31 +57,32 @@ metadata:
 18. **装饰性表情。** 从标题和列表项中删除。
 19. **弯引号。** 改用直引号，编辑时也不要新增。
 20. **表格中的长文本。** 表格只用于数字和分类文字，例如枚举。长文本改用列表，需要时嵌套。成段文字摊在单元格里，源码难扫读，渲染也不整齐。
+21. **标题措辞。** 各级标题优先写成简短祈使句、短语或名词，用词平凡通用。标题不写标点符号，也不用"和""且""与""并""and"等连词连接两个主题。只有名称或字面量里不得不用的符号保留，例如"well-said""grill-me"；英文复合词里的连字符不豁免，改写措辞。标题只点出能覆盖其组成部分的那一个主题，把细节留给正文："调整 Task 目录布局"，而不是"tk Task 目录树与子任务布局调整及重命名"；"数据定义"，而不是"数据结构与生命周期"。文件名、任务名等名称同样遵循以上要求。科普向等有自身约定的文章可以不遵循，例如用一个引起读者兴趣的简短问句。
 
 ### 对话痕迹
 
-21. **聊天机器人套话。** "希望这能帮到你！"、"如果……请告诉我"、"当然！"、"没问题！"、"找到了确凿证据！"。删除。
-22. **知识限制套话。** "虽然具体细节有限……"。寻找来源，或删除。
-23. **奉承。** "问得好！你说得完全正确！" 直接回应。
+22. **聊天机器人套话。** "希望这能帮到你！"、"如果……请告诉我"、"当然！"、"没问题！"、"找到了确凿证据！"。删除。
+23. **知识限制套话。** "虽然具体细节有限……"。寻找来源，或删除。
+24. **奉承。** "问得好！你说得完全正确！" 直接回应。
 
 ### 冗余
 
-24. **填充短语。** "In order to"改为"To"；"Due to the fact that"改为"Because"；删除"It is important to note that"。
-25. **过度保留。** "could potentially possibly be argued that it might"改为"may"。
-26. **空泛结论。** "未来一片光明。" 陈述具体计划或事实。
+25. **填充短语。** "In order to"改为"To"；"Due to the fact that"改为"Because"；删除"It is important to note that"。
+26. **过度保留。** "could potentially possibly be argued that it might"改为"may"。
+27. **空泛结论。** "未来一片光明。" 陈述具体计划或事实。
 
 ### 行话
 
-27. **抽象隐喻名词。** Substrate、wedge、vector、locus、vantage、nexus、作名词的 primitive、隐喻用法的 harness、"API surface"中的 surface、bedrock、隐喻用法的 scaffolding、modality、paradigm、gold-plating、隐喻用法的 ratchet、用于搬迁代码的 evacuate、endgame、north star、flywheel。这些词看似技术化，通常有更具体的说法。"Substrate"改为"base"；"Wedge in"改为"add"；"Vector"改为"way"或"method"；"Gold-plating"改为"more than the job needs"；"Ratchet"改为机制真实名称或"a limit that only tightens"；"Evacuate"改为"move out"；"Endgame"改为"the last phase"。选具体的词，并保留比喻原本描述的对象。
-28. **中文黑话。** 例如"赋能、助力、驱动、抓手、闭环、链路、全链路、拉通、对齐、反哺、颗粒度、组合拳、生态位、赛道、破圈、降维打击、天花板、长期主义、情绪价值"。按第 27 条的方法处理。
+28. **抽象隐喻名词。** Substrate、wedge、vector、locus、vantage、nexus、作名词的 primitive、隐喻用法的 harness、"API surface"中的 surface、bedrock、隐喻用法的 scaffolding、modality、paradigm、gold-plating、隐喻用法的 ratchet、用于搬迁代码的 evacuate、endgame、north star、flywheel。这些词看似技术化，通常有更具体的说法。"Substrate"改为"base"；"Wedge in"改为"add"；"Vector"改为"way"或"method"；"Gold-plating"改为"more than the job needs"；"Ratchet"改为机制真实名称或"a limit that only tightens"；"Evacuate"改为"move out"；"Endgame"改为"the last phase"。选具体的词，并保留比喻原本描述的对象。
+29. **中文黑话。** 例如"赋能、助力、驱动、抓手、闭环、链路、全链路、拉通、对齐、反哺、颗粒度、组合拳、生态位、赛道、破圈、降维打击、天花板、长期主义、情绪价值"。按第 28 条的方法处理。
 
 ### 直白表达
 
-29. **说明它做什么，而不是让人感觉如何。** "the database stays close at hand"、"SQL you can read"、"types that follow your schema"描述的是感受。修改时说明机制或数字，例如"`.toSQL()` returns the exact string sent to the database"、"a column rename fails the build"。问这句话让读者知道什么或做什么，然后把它写出来。如果无法改述为具体指令、事实或数字，就删掉。再检查它能否原封不动地出现在另一个项目的文档中；如果能，它就没有说明本项目的信息，应删除。
-30. **缩短或拆开密集长句。** 读者需要回头才能理解时，拆句或删去从句。一句表达一个想法。
-31. **主动语态。** 优先使用。检查"is/are/was/were + 过去分词"并明确主体："queries are validated"改为"the compiler validates queries"；"the file is parsed by the loader"改为"the loader parses the file"。只有主体未知或确实不重要时，才保留被动语态。
-32. **删副词，或换更有力的动词。** "runs quickly"改为"is fast"或具体数字；"significantly improves"改为测得的变化量。需要副词撑住的动词往往不够准确。保留测量及其条件，并放在论断旁边，避免把该句写成普遍保证。
-33. **优先普通词。** "utilize"改为"use"；"leverage"改为"use"；"facilitate"改为"help"；"numerous"改为"many"；"in the event that"改为"if"。华丽的同义词很少更清楚。
+30. **说明它做什么，而不是让人感觉如何。** "the database stays close at hand"、"SQL you can read"、"types that follow your schema"描述的是感受。修改时说明机制或数字，例如"`.toSQL()` returns the exact string sent to the database"、"a column rename fails the build"。问这句话让读者知道什么或做什么，然后把它写出来。如果无法改述为具体指令、事实或数字，就删掉。再检查它能否原封不动地出现在另一个项目的文档中；如果能，它就没有说明本项目的信息，应删除。
+31. **缩短或拆开密集长句。** 读者需要回头才能理解时，拆句或删去从句。一句表达一个想法。
+32. **主动语态。** 优先使用。检查"is/are/was/were + 过去分词"并明确主体："queries are validated"改为"the compiler validates queries"；"the file is parsed by the loader"改为"the loader parses the file"。只有主体未知或确实不重要时，才保留被动语态。
+33. **删副词，或换更有力的动词。** "runs quickly"改为"is fast"或具体数字；"significantly improves"改为测得的变化量。需要副词撑住的动词往往不够准确。保留测量及其条件，并放在论断旁边，避免把该句写成普遍保证。
+34. **优先普通词。** "utilize"改为"use"；"leverage"改为"use"；"facilitate"改为"help"；"numerous"改为"many"；"in the event that"改为"if"。华丽的同义词很少更清楚。
 
 ## 防御性表述
 
