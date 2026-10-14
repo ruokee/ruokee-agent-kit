@@ -15,8 +15,12 @@ The [repository spec](../spec/repository.md) states the language, pairing, and l
 ## Naming
 
 - Write a file name and a heading of any level as a short imperative sentence, a short phrase, or a noun, unless an additional requirement calls for another form.
-- Do not join two subjects in a file name or a heading with a conjunction such as `and`, `和`, `且`, `与`, or `并`, unless an additional requirement calls for both subjects.
-- Keep a file name and a heading to the one subject they name, and leave its parts to the body. Write `Adjust the Task directory layout` rather than `tk Task directory tree and subtask layout adjustment and rename`.
+- In a file name, the hyphens and the dot of a language suffix are the symbols the naming form requires rather than punctuation.
+- Leave punctuation out of a heading of any level, apart from a symbol that a name, a version, a date, or code cannot do without, such as `well-said`, `pre-commit`, or `2026-09-05`. Rewrite an English compound that carries a hyphen, and keep the dot in the number of a numbered heading, as in `9. Testing`.
+- Do not join two subjects in a file name or a heading with a conjunction such as `and`, `和`, `且`, `与`, or `并`, unless an additional requirement calls for both subjects. A prepositional phrase within one relation, as in `Relationship to other documents`, is not a joined pair.
+- Keep a file name and a heading to the one subject they name, and leave its parts to the body. Write `Adjust the Task directory layout` rather than `tk Task directory tree and subtask layout adjustment and rename`. A slash between two names, as in `Observer / Pub-Sub`, lists two subjects rather than one.
+- Write the English term of a Chinese variant heading at the first occurrence of that term in the body rather than in parentheses inside the heading.
+- An anchor declaration is an anchor rather than heading punctuation. This repository writes none, because its renderer derives a heading's anchor from the heading text, so renaming a heading requires updating the links that point at it in the same change.
 
 ## Cleanup
 
