@@ -67,7 +67,6 @@ This is a native session-stop continuation, not an exact replay of the failed re
 - Re-read and re-match the effective model every covered turn. Add, edit, delete, and repair changes apply next turn without restart; an invalid or unreadable file contributes an empty body on the next turn. With no model, rules, or match, the input passes through unchanged and the module stays silent. Consecutive turns do not accumulate bodies and native mid-turn rebuilds do not duplicate them.
 - A file failure affects one file; a directory failure affects one directory. A handler exception keeps the incoming prompt, including earlier components' results, and other QoL modules keep running. Fixed-reason diagnostics use locatable scope-relative sources and session/source/reason deduplication. Use the current turn's UI notification or otherwise the host logger; disclose no body, absolute path, raw parser error, regex source, or conversation content.
 - Ordinary main and child turns running public `before_agent_start` are covered. Children match their own effective model and retain roles, independent blocks, and host protocols. Add no route for plan-mode children, Handoff, titles, classification, or other bypasses. Side requests, temporary switches, fallback, and individual provider requests keep the host's live-prompt behavior. Later handlers retain their authority.
-- With both updated components, actual load order puts system-prompt before QoL. Only QoL appends rules; template and rule failures remain independent. Coordinated-update guidance warns against enabling QoL rules alongside the old system-prompt rule handler and does not treat installation-command order as a guarantee.
 - Project rules can become system instructions. Add no trust gate, security isolation, regex sandbox/timeout, or body size/quota restriction. When OMP offers equivalent model instructions, re-check matching, composition/block order, refresh timing, and discovery before deciding to retain, narrow, or remove the local capability.
 
 ## Invariants
@@ -110,13 +109,13 @@ OMP `18.5.0`, declared in [Compatibility](../../projects/omp-qol/README.md#compa
 - Behavioral checks cover every matching key, case sensitivity, complete ids containing `/`, OR-once semantics, ignored top-level metadata, strict entry keys, discovery filters, user/project ordering, same-name sources, and identical bodies retained independently.
 - Real request observations and behavioral checks preserve incoming blocks, tools, dynamic content, BOM exclusion, and byte-exact bodies. Continuous turns, file additions/edits/deletions/repairs, a model switch, and a native mid-turn rebuild satisfy refresh and no-accumulation/no-duplication.
 - Checks cover missing model/no match, invalid files, file/directory read failures, unexpected handler errors, diagnostic privacy and session/context deduplication, module-local and global settings rejection, restart-only settings, and next-turn file changes. Actual `/qol` TUI shows default-off and enabled state without a model run.
-- Ordinary child Provider-facing requests retain the child's own model, role, and independent blocks. Real coexistence requests retain the owned template, Delivery, footer, and once-only rules in documented actual order; both failure directions preserve the other component's result. Unrun bypasses remain explicitly unverified.
+- Ordinary child Provider-facing requests retain the child's own model, role, and independent blocks. Unrun bypasses remain explicitly unverified.
 - Component descriptions, manifests, root guidance, paired documentation, and current project Specs agree on ownership and approaching deprecation. Preserve all remaining adjustments and every unrelated valid requirement.
 
 ## Related ADRs
 
 - [Maintain the extension that improves the OMP experience](../adr/decision/2026-10-10-maintain-omp-experience-extension.md)
-- [Provide model prompt rules that are off by default in QoL](../adr/decision/2026-10-07-use-qol-model-prompts.md)
+- [Provide model prompt rules that are off by default in QoL](../adr/decision/2026-10-15-use-qol-model-prompts.md)
 - [Compensate compaction request usage in QoL](../adr/decision/2026-10-13-compact-usage-compensation.md)
 - [Use native plugin settings for Codex web access](../adr/decision/2026-09-10-use-codex-web-plugin-settings.md)
 - [Maintain host components against a shared OMP floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)

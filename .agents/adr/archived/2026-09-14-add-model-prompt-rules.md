@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
 Archived: 2026-10-07
-Reversed by: [Provide model prompt rules that are off by default through QoL](../decision/2026-10-07-use-qol-model-prompts.md)
+Reversed by: [Provide model prompt rules that are off by default through QoL](./2026-10-07-use-qol-model-prompts.md)
 
 English | [中文](./2026-09-14-add-model-prompt-rules.zh.md)
 

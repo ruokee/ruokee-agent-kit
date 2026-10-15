@@ -67,7 +67,6 @@ Error: Upstream provider closed the connection before the response completed: st
 - 每个受覆盖 turn 重新读取并按有效模型匹配。新增、编辑、删除和修复在下一 turn 生效，无需重启；无效或不可读文件在下一 turn 按空正文处理。没有模型、规则或命中时，输入原样传递，模块保持静默。连续 turn 不累积正文，原生轮内重建不重复。
 - 文件失败只影响该文件，目录失败只影响该目录，handler 异常保留输入及更早组件结果，其他 QoL 模块继续运行。固定原因诊断使用可定位的作用域相对来源，按会话/来源/原因去重。使用当前 turn UI 通知，否则宿主 logger；不泄露正文、绝对路径、原始解析错误、正则源码或对话内容。
 - 覆盖运行公开 `before_agent_start` 的普通主/子 turn。子 Agent 按自身有效模型匹配，保留角色、独立块与宿主协议。不为 plan-mode 子 Agent、Handoff、标题、分类或其他旁路新增入口。旁路请求、临时切换、回退及单次 Provider 请求沿用宿主当前提示词行为。后续 handler 保留其权力。
-- 两个更新组件共存时，实际加载顺序为 system-prompt 在前、QoL 在后。仅 QoL 追加规则，模板和规则失败相互隔离。协调更新指引警示旧 system-prompt 规则 handler 与 QoL 同时启用的风险，不把安装命令顺序当作保证。
 - 项目规则可以成为系统指令，不增加信任门槛、安全隔离、正则沙箱/超时或正文大小/额度限制。OMP 提供等价模型指令后，核对匹配、组合/块顺序、刷新时机与发现，再决定保留、收窄或移除。
 
 ## 不变量
@@ -110,13 +109,13 @@ OMP `18.5.0`，声明在[兼容性](../../projects/omp-qol/README.zh.md#兼容�
 - 行为检查覆盖全部匹配键、大小写、含 `/` 完整 id、或关系一次、顶层元数据忽略、条目键严格校验、发现过滤、用户/项目顺序、同名来源及相同正文独立保留。
 - 真实请求观察及行为检查保留传入块、工具、动态内容、BOM 排除和逐字正文。连续 turn、文件新增/编辑/删除/修复、模型切换及原生轮内重建符合刷新、不累积和不重复要求。
 - 检查覆盖无模型/未命中、无效文件、文件/目录读取失败、意外 handler 异常、诊断隐私及会话/上下文去重、模块局部和整体设置拒绝、设置仅重启生效及文件下一 turn 生效。真实 `/qol` TUI 显示默认关闭和启用状态，不启动模型运行。
-- 普通子 Agent 的 Provider-facing 请求保留自身模型、角色和独立块。真实共存请求按文档顺序保留自有模板、Delivery、页脚和单次规则；两个失败方向保留另一组件结果。未运行旁路明确标为未验证。
+- 普通子 Agent 的 Provider-facing 请求保留自身模型、角色和独立块。未运行旁路明确标为未验证。
 - 组件说明、manifest、仓库指引、双语文档及现行项目 Spec 的归属和即将弃用状态一致，保留全部剩余调整及每项无关有效要求。
 
 ## 相关 ADR
 
 - [维护提高 OMP 使用体验的拓展](../adr/decision/2026-10-10-maintain-omp-experience-extension.zh.md)
-- [在 QoL 提供选择启用的模型提示词规则](../adr/decision/2026-10-07-use-qol-model-prompts.zh.md)
+- [在 QoL 提供选择启用的模型提示词规则](../adr/decision/2026-10-15-use-qol-model-prompts.zh.md)
 - [在 QoL 中补记压缩请求用量](../adr/decision/2026-10-13-compact-usage-compensation.zh.md)
 - [Codex 网页访问使用原生插件设置](../adr/decision/2026-09-10-use-codex-web-plugin-settings.zh.md)
 - [宿主内组件按共同的 OMP 下限维护](../adr/decision/2026-10-04-raise-omp-host-floor.zh.md)

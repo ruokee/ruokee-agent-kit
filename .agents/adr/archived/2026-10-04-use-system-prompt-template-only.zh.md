@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
 Reverses: [由宿主模板渲染系统提示词策略](../archived/2026-09-30-render-system-prompt-from-host-template.zh.md)
 Archived: 2026-10-07
-Reversed by: [保留即将弃用扩展的模板功能](../decision/2026-10-07-retain-system-prompt-template.zh.md)
+Reversed by: [保留即将弃用扩展的模板功能](./2026-10-07-retain-system-prompt-template.zh.md)
 
 [English](./2026-10-04-use-system-prompt-template-only.md) | 中文
 

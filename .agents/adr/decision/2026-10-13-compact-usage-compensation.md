@@ -47,7 +47,7 @@ An attempt that consumed no tokens writes nothing, so a cancelled or failed atte
 
 ### Retirement
 
-The adjustment is a compensation with a defined end. It reads the native recording export on activation and stays inactive with a reason on a host that records these requests itself, so a released fix stops the compensation instead of doubling its entries. The component documentation carries an upstream re-check section, like the one for [model prompt rules](./2026-10-07-use-qol-model-prompts.md), that names the surface to check. When a published OMP version records these requests itself, the adjustment's code, settings, documentation, and tests are removed, the component specification drops the capability, and a decision records the removal.
+The adjustment is a compensation with a defined end. It reads the native recording export on activation and stays inactive with a reason on a host that records these requests itself, so a released fix stops the compensation instead of doubling its entries. The component documentation carries an upstream re-check section, like the one for [model prompt rules](./2026-10-15-use-qol-model-prompts.md), that names the surface to check. When a published OMP version records these requests itself, the adjustment's code, settings, documentation, and tests are removed, the component specification drops the capability, and a decision records the removal.
 
 ### Release evidence
 

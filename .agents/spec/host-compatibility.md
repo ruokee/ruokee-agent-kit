@@ -6,7 +6,7 @@ Spec for the maintenance lower bounds of repository components that load code in
 
 ## Goals
 
-- Maintain every OMP-facing component against one shared maintenance lower bound, OMP `18.5.0`. The OMP-facing components are `omp-context-pin`, `omp-system-prompt`, `omp-qol`, `omp-smart-cache`, `omp-status-bar`, `omp-codex-web-access`, and the OMP adapter of `tk`.
+- Maintain every OMP-facing component against one shared maintenance lower bound, OMP `18.5.0`. The OMP-facing components are `omp-context-pin`, `omp-qol`, `omp-smart-cache`, `omp-status-bar`, `omp-codex-web-access`, and the OMP adapter of `tk`.
 - Let each component state its own bound where its users read it.
 - Keep components working on maintained hosts across host upgrades without carrying code for hosts outside the maintained range.
 
@@ -22,7 +22,6 @@ Spec for the maintenance lower bounds of repository components that load code in
 Each component's bound is declared in the compatibility section of its own README pair, and that section is authoritative:
 
 - [projects/omp-context-pin/README.md](../../projects/omp-context-pin/README.md#compatibility)
-- [projects/omp-system-prompt/README.md](../../projects/omp-system-prompt/README.md#compatibility)
 - [projects/omp-qol/README.md](../../projects/omp-qol/README.md#compatibility)
 - [projects/omp-smart-cache/README.md](../../projects/omp-smart-cache/README.md#compatibility)
 - [projects/omp-status-bar/README.md](../../projects/omp-status-bar/README.md#compatibility)
@@ -55,7 +54,6 @@ The repository README summarizes the policy in [Component host maintenance](../.
 
 - [Maintain host components against a shared OMP floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)
 - [Keep distributable components self contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
-- [Retain the template functionality of an extension approaching deprecation](../adr/decision/2026-10-07-retain-system-prompt-template.md)
 - [Maintain the OMP status bar with a static context glyph](../adr/decision/2026-10-04-show-static-context-glyph.md)
 - [Maintain the extension that improves the OMP experience](../adr/decision/2026-10-10-maintain-omp-experience-extension.md)
 - [Maintain the smart-cache extension](../adr/decision/2026-10-12-maintain-smart-cache-extension.md)

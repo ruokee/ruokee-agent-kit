@@ -6,7 +6,6 @@
 
 - [tk](../projects/tk/README.zh.md)
 - [omp-status-bar](../projects/omp-status-bar/README.zh.md)
-- [omp-system-prompt](../projects/omp-system-prompt/README.zh.md)
 - [omp-codex-web-access](../projects/omp-codex-web-access/README.zh.md)
 - [omp-context-pin](../projects/omp-context-pin/README.zh.md)
 

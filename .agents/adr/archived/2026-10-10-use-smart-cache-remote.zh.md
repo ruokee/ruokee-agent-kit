@@ -89,7 +89,7 @@ OMP 保留准备、触发、投机启动与等待、取消、认证及传输重�
 | Remote 关闭及导航终态，同进程不接管新 owner | 局部释放登记，导航结算后凭新发送恢复，最后释放后允许新协调器代次。旧 epoch 与操作始终不恢复资格。 |
 | Remote 状态及有效模式属于 `/qol` | `/smart-cache` 拥有 remote 状态、模式、分阶段原因及计数；`/qol` 只保留其余调整。 |
 
-全部不冲突规则继续有效。[完整 QoL 后继决定](../decision/2026-10-10-maintain-omp-experience-extension.zh.md)保留独立 wait 委派及期限、恢复的安全排除及受限续跑、实验性压缩期限模块的单 owner 窗口及 `owner-stopped` 终态、replay 的独立进程级归属及释放规则、[模型提示词规则](../decision/2026-10-07-use-qol-model-prompts.zh.md)、原生设置权威、模块隔离、隐私、文档证据及宿主维护义务。尤其不能用本决定的 remote 恢复规则放松期限模块的 owner 终态，也不能因 replay 与缓存有关就迁走它。
+全部不冲突规则继续有效。[完整 QoL 后继决定](../decision/2026-10-10-maintain-omp-experience-extension.zh.md)保留独立 wait 委派及期限、恢复的安全排除及受限续跑、实验性压缩期限模块的单 owner 窗口及 `owner-stopped` 终态、replay 的独立进程级归属及释放规则、[模型提示词规则](./2026-10-07-use-qol-model-prompts.zh.md)、原生设置权威、模块隔离、隐私、文档证据及宿主维护义务。尤其不能用本决定的 remote 恢复规则放松期限模块的 owner 终态，也不能因 replay 与缓存有关就迁走它。
 
 本决定与上述选择一起保留在线确认、不可变根信号快照、原生生命周期、显式策略保留、有界资源、按归属还原、无否决、双模式、隐私及原生接口替换合同。其他现行决定不反转；smart-cache 通过非冲突追加纳入共同下限。
 

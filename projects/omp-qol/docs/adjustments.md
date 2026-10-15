@@ -359,7 +359,7 @@ Enable this opt-in module through [Model prompts settings](../README.md#model-pr
 
 The [rule contract](../README.md#model-prompt-rules) defines discovery, matching, byte-exact append, and diagnostics. File and directory failures are isolated to their source; an unexpected handler failure preserves the incoming blocks.
 
-Template-processing extensions must load before this module; template and rule failures remain independent, and later handlers can replace the result. Enabled project rules become system instructions. Regexes have no sandbox or timeout, and rule bodies have no size budget.
+Later handlers can replace the result. Enabled project rules become system instructions. Regexes have no sandbox or timeout, and rule bodies have no size budget.
 
 ### Verification
 

@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
 Archived: 2026-10-07
-Reversed by: [由 QoL 提供默认关闭的模型提示词规则](../decision/2026-10-07-use-qol-model-prompts.zh.md)
+Reversed by: [由 QoL 提供默认关闭的模型提示词规则](./2026-10-07-use-qol-model-prompts.zh.md)
 
 [English](./2026-09-14-add-model-prompt-rules.md) | 中文
 

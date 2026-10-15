@@ -250,12 +250,12 @@ test("cross-component rename and deleted input preserve old consumers", () =>
     (cwd) => {
       git(cwd, "switch", "-qc", "feature");
       mkdirSync(join(cwd, "projects/omp-qol/test"), { recursive: true });
-      git(cwd, "mv", "projects/omp-system-prompt/src/prompt.md", "projects/omp-qol/test/moved.md");
+      git(cwd, "mv", "projects/omp-status-bar/src/prompt.md", "projects/omp-qol/test/moved.md");
       git(cwd, "rm", "projects/tk/skills/tk/SKILL.md");
       const changes = collectChanges(cwd);
       assert.deepEqual(changes.paths, [
         "projects/omp-qol/test/moved.md",
-        "projects/omp-system-prompt/src/prompt.md",
+        "projects/omp-status-bar/src/prompt.md",
         "projects/tk/skills/tk/SKILL.md",
       ]);
       const commands = buildCommands(selectChecks(changes.paths), cwd);
@@ -265,15 +265,15 @@ test("cross-component rename and deleted input preserve old consumers", () =>
         [
           "rust:fmt",
           "rust:test",
-          "omp-system-prompt:typecheck",
-          "omp-system-prompt:test",
+          "omp-status-bar:typecheck",
+          "omp-status-bar:test",
           "omp-qol:typecheck",
           "omp-qol:test",
           "tk:adapters",
         ],
       );
     },
-    { "projects/omp-system-prompt/src/prompt.md": "# Rename\n", "projects/tk/skills/tk/SKILL.md": "# Delete\n" },
+    { "projects/omp-status-bar/src/prompt.md": "# Rename\n", "projects/tk/skills/tk/SKILL.md": "# Delete\n" },
   ));
 
 test("unusual real Git filenames remain independent literal argv entries", () =>

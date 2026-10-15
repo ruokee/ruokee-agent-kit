@@ -3,6 +3,8 @@
 Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [为系统提示词扩展增加模型级规则](../archived/2026-09-14-add-model-prompt-rules.zh.md)
+Archived: 2026-10-15
+Reversed by: [由 QoL 提供默认关闭的模型提示词规则](../decision/2026-10-15-use-qol-model-prompts.zh.md)
 
 [English](./2026-10-07-use-qol-model-prompts.md) | 中文
 
@@ -18,7 +20,7 @@ Reverses: [为系统提示词扩展增加模型级规则](../archived/2026-09-14
 
 ### 组件开关
 
-由自包含的 `@ruokee/omp-qol` 承载规则，遵循[保持组件自包含](./2026-08-24-keep-components-self-contained.zh.md)与[维护提高 OMP 使用体验的拓展](./2026-10-10-maintain-omp-experience-extension.zh.md)。`modelPromptsEnabled` 是原生布尔设置，默认 `false`，受总开关 `enabled` 控制。两个开关都开启时才注册规则 handler、访问规则目录并产生未使用文件诊断。设置在激活时读取一次；改动设置须重启 OMP，导航与新会话不刷新该快照。
+由自包含的 `@ruokee/omp-qol` 承载规则，遵循[保持组件自包含](../decision/2026-08-24-keep-components-self-contained.zh.md)与[维护提高 OMP 使用体验的拓展](../decision/2026-10-10-maintain-omp-experience-extension.zh.md)。`modelPromptsEnabled` 是原生布尔设置，默认 `false`，受总开关 `enabled` 控制。两个开关都开启时才注册规则 handler、访问规则目录并产生未使用文件诊断。设置在激活时读取一次；改动设置须重启 OMP，导航与新会话不刷新该快照。
 
 错误布尔值只停用本模块；未知设置键、非对象设置或设置读取失败按 QoL 既有合同拒绝全部模块。`/qol` 显示本模块有效状态、开关值与不可用原因，不运行模型，也不显示规则正文或模型标识。
 
@@ -121,4 +123,4 @@ Reverses: [为系统提示词扩展增加模型级规则](../archived/2026-09-14
 
 ### 2026-10-04 宿主合同来自只用模板的后继决定
 
-组件沿用[只由组件模板渲染系统提示词策略](../archived/2026-10-04-use-system-prompt-template-only.zh.md)中的宿主合同，维护下限按[宿主内组件按共同的 OMP 下限维护](./2026-10-04-raise-omp-host-floor.zh.md)为 OMP 18.5.0。追加步骤仍在替换步骤之后运行。没有组件模板的轮次对替换步骤是空操作而不是失败，追加步骤在该轮次仍然扩展宿主的系统提示词数组。
+组件沿用[只由组件模板渲染系统提示词策略](../archived/2026-10-04-use-system-prompt-template-only.zh.md)中的宿主合同，维护下限按[宿主内组件按共同的 OMP 下限维护](../decision/2026-10-04-raise-omp-host-floor.zh.md)为 OMP 18.5.0。追加步骤仍在替换步骤之后运行。没有组件模板的轮次对替换步骤是空操作而不是失败，追加步骤在该轮次仍然扩展宿主的系统提示词数组。

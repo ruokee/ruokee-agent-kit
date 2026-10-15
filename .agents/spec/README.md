@@ -13,7 +13,6 @@ A specification, or spec, states the current target state of one component or re
 | [.agents/spec/skills.md](./skills.md) | The Skill system: `skills/` and the Chinese variants under `variants/zh/skills/` |
 | [.agents/spec/tk.md](./tk.md) | `projects/tk` as a whole |
 | [.agents/spec/omp-context-pin.md](./omp-context-pin.md) | `projects/omp-context-pin` |
-| [.agents/spec/omp-system-prompt.md](./omp-system-prompt.md) | `projects/omp-system-prompt` |
 | [.agents/spec/omp-qol.md](./omp-qol.md) | `projects/omp-qol` |
 | [.agents/spec/omp-smart-cache.md](./omp-smart-cache.md) | `projects/omp-smart-cache` |
 | [.agents/spec/omp-status-bar.md](./omp-status-bar.md) | `projects/omp-status-bar` |

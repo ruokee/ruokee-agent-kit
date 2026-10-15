@@ -13,7 +13,6 @@
 | [.agents/spec/skills.zh.md](./skills.zh.md) | Skill 体系：`skills/` 及 `variants/zh/skills/` 下的中文变体 |
 | [.agents/spec/tk.zh.md](./tk.zh.md) | `projects/tk` 整体 |
 | [.agents/spec/omp-context-pin.zh.md](./omp-context-pin.zh.md) | `projects/omp-context-pin` |
-| [.agents/spec/omp-system-prompt.zh.md](./omp-system-prompt.zh.md) | `projects/omp-system-prompt` |
 | [.agents/spec/omp-qol.zh.md](./omp-qol.zh.md) | `projects/omp-qol` |
 | [.agents/spec/omp-smart-cache.zh.md](./omp-smart-cache.zh.md) | `projects/omp-smart-cache` |
 | [.agents/spec/omp-status-bar.zh.md](./omp-status-bar.zh.md) | `projects/omp-status-bar` |

@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 export const OMP_COMPONENTS = [
   "omp-status-bar",
-  "omp-system-prompt",
   "omp-codex-web-access",
   "omp-context-pin",
   "omp-qol",

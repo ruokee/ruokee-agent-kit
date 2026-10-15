@@ -45,7 +45,6 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 
 - **[omp-status-bar](./projects/omp-status-bar/README.md)** adds an OMP status bar with extra context information, including current session context usage as a number rather than the native percentage, total tokens, input tokens, cached tokens, output tokens, cache-hit rate, and the number of model requests the session has answered.
 - **[omp-codex-web-access](./projects/omp-codex-web-access/README.md)** lets OMP use a Codex subscription through a forwarding Provider for web search and page extraction. It is approaching deprecation while its two tools, settings, and current maintenance remain.
-- **[omp-system-prompt](./projects/omp-system-prompt/README.md)** applies a maintained English strategy to OMP's system prompt through a host template the user selects; any other system prompt stays as the host built it. It is approaching deprecation while its template, Delivery, footer, and current maintenance remain.
 - **[omp-context-pin](./projects/omp-context-pin/README.md)** keeps a small set of pinned text entries present word for word in every ordinary model request on the current session branch, and restores them after each committed compaction.
 - **[omp-qol](./projects/omp-qol/README.md)** provides independently switchable wait deadlines, bounded model-error recovery, experimental compaction deadlines, compaction request usage, native history replay, and opt-in model prompt rules.
 - **[omp-smart-cache](./projects/omp-smart-cache/README.md)** aligns proved shared content in native remote compaction with the same session's already-sent ordinary request. It is opt-in, supports main and native child sessions, and does not claim Provider cache benefit from client alignment.
@@ -134,7 +133,6 @@ For complete validation, install each OMP component's locked dependencies:
 
 ```bash
 (cd projects/omp-status-bar && bun install --frozen-lockfile)
-(cd projects/omp-system-prompt && bun install --frozen-lockfile)
 (cd projects/omp-codex-web-access && bun install --frozen-lockfile)
 (cd projects/omp-context-pin && bun install --frozen-lockfile)
 (cd projects/omp-qol && bun install --frozen-lockfile)
@@ -180,14 +178,13 @@ The complete command runs the selector's complete check list, `node scripts/chec
 
 1. Markdown formatting, tk Rust formatting, and Rust tests, the sequence `pnpm check:base` runs.
 2. TypeScript checks and tests for [omp-status-bar](./projects/omp-status-bar/package.json).
-3. TypeScript checks and tests for [omp-system-prompt](./projects/omp-system-prompt/package.json).
-4. TypeScript checks and tests for [omp-codex-web-access](./projects/omp-codex-web-access/package.json).
-5. TypeScript checks and tests for [omp-context-pin](./projects/omp-context-pin/package.json).
-6. TypeScript checks and tests for [omp-qol](./projects/omp-qol/package.json).
-7. TypeScript checks and tests for [omp-smart-cache](./projects/omp-smart-cache/package.json).
-8. tk native adapter tests with `bun test projects/tk/adapter-tests`.
-9. Skill lifecycle tests with `sh scripts/tests/skills.sh` through `pnpm check:skills`.
-10. Affected-selector regression tests through `pnpm check:selector`.
+3. TypeScript checks and tests for [omp-codex-web-access](./projects/omp-codex-web-access/package.json).
+4. TypeScript checks and tests for [omp-context-pin](./projects/omp-context-pin/package.json).
+5. TypeScript checks and tests for [omp-qol](./projects/omp-qol/package.json).
+6. TypeScript checks and tests for [omp-smart-cache](./projects/omp-smart-cache/package.json).
+7. tk native adapter tests with `bun test projects/tk/adapter-tests`.
+8. Skill lifecycle tests with `sh scripts/tests/skills.sh` through `pnpm check:skills`.
+9. Affected-selector regression tests through `pnpm check:selector`.
 
 Before the first command, the complete entry point verifies every listed tool and local input. The first failed command stops the sequence and returns a nonzero exit status. Missing executables or dependencies also fail the check. Commands and component output identify the failing step. Checks do not install dependencies or format source files; builds and tests can create their normal generated and temporary files. The complete entry point never selects affected checks, so fallback cannot recurse.
 

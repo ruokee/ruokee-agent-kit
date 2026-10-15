@@ -3,6 +3,8 @@
 Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [Render the system prompt strategy only from the component template](../archived/2026-10-04-use-system-prompt-template-only.md)
+Archived: 2026-10-15
+Reversed by: [Remove the omp-system-prompt extension](../decision/2026-10-15-remove-omp-system-prompt.md)
 
 English | [中文](./2026-10-07-retain-system-prompt-template.zh.md)
 
@@ -12,7 +14,7 @@ Have `@ruokee/omp-system-prompt` apply its strategy only to a host render of the
 
 The extension maintains its own policy text in OMP's instruction block; QoL independently provides model rules. It used to support two routes: the host rendering the component's template, and a conversion that recognized the host's default block and rebuilt it from the component's template. The conversion recognized only the identity lines OMP used before 18.3.0. On 18.3.0 and later it found no main block, reported a failure on every turn, and left the host prompt unchanged, so users who selected no template got no strategy text and one diagnostic per session.
 
-The OMP-facing components now share the maintenance lower bound OMP 18.5.0 under [Maintain host components against a shared OMP floor](./2026-10-04-raise-omp-host-floor.md), so no maintained host still uses the conversion. The template route covers the job on every maintained host, and a turn without the component's template is a session the component does not serve rather than a failure.
+The OMP-facing components now share the maintenance lower bound OMP 18.5.0 under [Maintain host components against a shared OMP floor](../decision/2026-10-04-raise-omp-host-floor.md), so no maintained host still uses the conversion. The template route covers the job on every maintained host, and a turn without the component's template is a session the component does not serve rather than a failure.
 
 ## Analysis
 
@@ -71,7 +73,7 @@ The template route is idempotent. A turn whose input already carries the templat
 
 ### Compatibility boundary
 
-The compatibility object is the extension, not the host. The component's maintenance lower bound is the shared OMP bound recorded in [Maintain host components against a shared OMP floor](./2026-10-04-raise-omp-host-floor.md) and stated in its README. The default host peer dependency stays unrestricted, and the extension reads no host version to decide eligibility, activation, transformation, diagnostics, or fallback. Structural recognition of the turn input remains the compatibility boundary. The component does not vendor host-authored prompt text, and it documents the fixture its automated checks render and the release each observation came from.
+The compatibility object is the extension, not the host. The component's maintenance lower bound is the shared OMP bound recorded in [Maintain host components against a shared OMP floor](../decision/2026-10-04-raise-omp-host-floor.md) and stated in its README. The default host peer dependency stays unrestricted, and the extension reads no host version to decide eligibility, activation, transformation, diagnostics, or fallback. Structural recognition of the turn input remains the compatibility boundary. The component does not vendor host-authored prompt text, and it documents the fixture its automated checks render and the release each observation came from.
 
 ### Rules preserved from earlier decisions
 
