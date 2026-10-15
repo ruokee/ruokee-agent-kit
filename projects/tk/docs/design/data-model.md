@@ -97,6 +97,8 @@ A marked directory becomes a Task only after its carrier, schema, UUIDv7 identit
 
 The nearest enclosing valid Task is the discovered parent. Invalid marked directories and ordinary material directories do not replace that ancestor. Symbolic links, special files, WAL directories, `.tk-tmp`, cleanup data, and paths outside the Task root do not participate in discovery.
 
+Ordinary Task materials may contain file or directory symbolic links, directly or in nested material directories. Relative and absolute links may point inside or outside the project. Discovery and `check` do not resolve or read their targets, including missing, unreadable, or cyclic targets. Linked Task markers and duplicate identities do not enter the graph; real nested children still do. A material link's name alone does not make it a managed carrier or runtime path.
+
 Traversal order is deterministic. One scan accepts at most 100,000 real directories and 256 descendant levels. Crossing either limit or encountering a required I/O failure returns `task_discovery_limit_exceeded` or the relevant storage error instead of a partial Task graph. `check` reports such a scan as incomplete.
 
 `subtasks_dir` controls only where new children are written. Sequence allocation examines all discovered direct children whose leaf has a valid generated `NN--slug`, takes the largest sequence, and does not fill gaps. New names remain two digits wide. If sequence `99` is already present, creation fails before writing.
@@ -291,5 +293,7 @@ If an I/O error occurs during deletion, GC stops and reports deleted and undelet
 ## check
 
 check strictly validates project configuration, marked Task carriers, schema, representation consistency, generated name-path agreement, UUID uniqueness, direct-child sequence uniqueness, relationships, WAL, activity markers, and temporary manifests. It reports the resolved parent path for logical sibling-sequence conflicts.
+
+Ordinary material links produce no diagnostic. Task roots, recognized Task carriers, each discovered Task's WAL, and the project Task root's `.tk-tmp` data retain their managed type requirements. `check` reports links in WAL and temporary runtime data without following them. It does not inspect ordinary link validity or grant managed storage a link alias.
 
 If a required directory or file cannot be read, discovery crosses a resource limit, or the scan is interrupted, check immediately returns an incomplete check and does not continue collecting diagnostics. The failed I/O path is included when available. Valid WAL size alone does not make the check incomplete. If marked carrier, format, or domain errors are found after a complete read, the check is complete but failed. check does not modify any content.

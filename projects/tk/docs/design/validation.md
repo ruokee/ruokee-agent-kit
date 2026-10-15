@@ -106,6 +106,10 @@ Cover name and path updates, unchanged results for repeated identical rename ope
 
 check tests cover fully valid projects, domain diagnostics, and fail-fast behavior for required I/O. After a required read fails, check must not continue producing an apparently complete diagnostic set.
 
+In both metadata modes, exercise the public CLI with ordinary file and directory links at direct and nested material locations. Cover relative and absolute links, targets inside and outside the project, missing and genuinely unreadable targets, self-cycles and mutual cycles. `check` must succeed without link diagnostics and must not discover invalid carriers or duplicate identities through linked directories. Read and search must retain the original Task identities and nearest-parent relationships, including real nested children. Ordinary links named `TASK.md`, `tk.toml`, `wal`, or `.tk-tmp` do not acquire managed roles by basename.
+
+Counterexamples retain managed Task root and carrier rules, representation conflicts, WAL root and entry types, and temporary root, operation, manifest, and payload types. These errors must remain observable alongside ordinary links. Preserve complete-failed and required-I/O-incomplete exit contracts. Compare stored link paths, target bytes, and Task data before and after checking; the check must not change them.
+
 GC tests cover:
 
 - Version, process identity, time, and temporary paths in the minimal cleanup manifest;

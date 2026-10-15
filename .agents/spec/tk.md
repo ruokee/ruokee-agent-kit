@@ -35,6 +35,7 @@ Spec for [projects/tk](../../projects/tk/README.md). It states tk's goals, bound
 
 - `projects/tk/` is the only maintained source area. One Cargo package builds one `tk` executable, and the Rust build is the only bundle assembler.
 - Project files are the only authoritative Task state.
+- Ordinary Task materials support symbolic links without link diagnostics or target traversal during discovery and integrity checking. Managed storage retains its type requirements. See [Task discovery and check](../../projects/tk/docs/design/data-model.md).
 - Harness components register tools and configuration but do not duplicate Task validation or storage. They start the fixed public runtime directly and never install a second runtime, wrapper, or private executable.
 - Adapters map operations through the public CLI. They do not parse version ranges; the runtime evaluates compatibility.
 - An adapter whose preflight fails registers no operation and reports one bounded diagnostic without ending the session.

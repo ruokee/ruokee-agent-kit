@@ -505,8 +505,9 @@ fn inspect_root(project: &Project, diagnostics: &mut Vec<Diagnostic>) -> Result<
             Some(project.task_root.clone()),
         ));
     }
-    inspect_cleanup_markers(project, diagnostics)?;
-    inspect_symlinks(&project.task_root, diagnostics)?;
+    if inspect_runtime_symlinks(&project.task_root.join(".tk-tmp"), diagnostics)? {
+        inspect_cleanup_markers(project, diagnostics)?;
+    }
 
     let task_store::TaskGraph {
         tasks: discovered,
@@ -545,14 +546,16 @@ fn inspect_root(project: &Project, diagnostics: &mut Vec<Diagnostic>) -> Result<
                 .or_default()
                 .push(task.directory.clone());
         }
-        for warning in wal::inspect(&task.directory)? {
-            diagnostics.push(Diagnostic {
-                severity: Severity::Warning,
-                code: warning.code,
-                message: warning.message,
-                path: Some(warning.path),
-                details: None,
-            });
+        if inspect_runtime_symlinks(&task.directory.join("wal"), diagnostics)? {
+            for warning in wal::inspect(&task.directory)? {
+                diagnostics.push(Diagnostic {
+                    severity: Severity::Warning,
+                    code: warning.code,
+                    message: warning.message,
+                    path: Some(warning.path),
+                    details: None,
+                });
+            }
         }
     }
     for (id, paths) in ids.iter().filter(|(_, paths)| paths.len() > 1) {
@@ -580,9 +583,6 @@ fn inspect_root(project: &Project, diagnostics: &mut Vec<Diagnostic>) -> Result<
 
 fn inspect_cleanup_markers(project: &Project, diagnostics: &mut Vec<Diagnostic>) -> Result<()> {
     let root = project.task_root.join(".tk-tmp");
-    if !root.exists() {
-        return Ok(());
-    }
     for entry in fs::read_dir(&root)
         .map_err(|error| storage_error("scan_temporary_operations", &root, error))?
     {
@@ -601,6 +601,9 @@ fn inspect_cleanup_markers(project: &Project, diagnostics: &mut Vec<Diagnostic>)
             continue;
         }
         let manifest = entry.path().join(crate::gc::MANIFEST_FILE);
+        if manifest.is_symlink() {
+            continue;
+        }
         let text = fs::read_to_string(&manifest)
             .map_err(|error| storage_error("read_cleanup_manifest", &manifest, error))?;
         if crate::gc::is_recognized_manifest(&text) {
@@ -685,7 +688,24 @@ fn inspect_relations(tasks: &[StoredTask], diagnostics: &mut Vec<Diagnostic>) {
     }
 }
 
-fn inspect_symlinks(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> Result<()> {
+fn inspect_runtime_symlinks(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> Result<bool> {
+    let metadata = match fs::symlink_metadata(root) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+        Err(error) => return Err(storage_error("inspect_runtime_directory", root, error)),
+    };
+    if metadata.file_type().is_symlink() {
+        diagnostics.push(diagnostic(
+            Severity::Error,
+            "symlink_in_task_root",
+            "Symlinks are not allowed in tk runtime data",
+            Some(root.to_path_buf()),
+        ));
+        return Ok(false);
+    }
+    if !metadata.is_dir() {
+        return Ok(true);
+    }
     let mut pending = vec![root.to_path_buf()];
     while let Some(directory) = pending.pop() {
         for entry in fs::read_dir(&directory)
@@ -700,7 +720,7 @@ fn inspect_symlinks(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> Result<()
                 diagnostics.push(diagnostic(
                     Severity::Error,
                     "symlink_in_task_root",
-                    "Symlinks are not allowed in the managed Task tree",
+                    "Symlinks are not allowed in tk runtime data",
                     Some(entry.path()),
                 ));
             } else if file_type.is_dir() {
@@ -708,7 +728,7 @@ fn inspect_symlinks(root: &Path, diagnostics: &mut Vec<Diagnostic>) -> Result<()
             }
         }
     }
-    Ok(())
+    Ok(true)
 }
 
 fn metadata_path(directory: &Path, mode: MetadataMode) -> PathBuf {
@@ -854,6 +874,195 @@ mod tests {
             depends_on: Vec::new(),
             related_to: Vec::new(),
             extra: BTreeMap::new(),
+        }
+    }
+
+    #[test]
+    fn check_allows_material_symlinks_without_discovering_targets() {
+        use std::os::unix::fs::symlink;
+
+        for mode in [MetadataMode::Split, MetadataMode::Embed] {
+            let root = std::env::temp_dir().join(format!("tk-material-links-{}", Uuid::now_v7()));
+            fs::create_dir(&root).unwrap();
+            let project = crate::project::init(
+                &root,
+                crate::project::InitOptions {
+                    metadata_mode: Some(mode),
+                    ..Default::default()
+                },
+            )
+            .unwrap()
+            .project;
+            let parent = project.task_root.join("2026/10/15-01--parent");
+            let child = parent.join("materials/child");
+            let parent_metadata = task_metadata("parent");
+            let child_metadata = task_metadata("child");
+            for (path, metadata) in [(&parent, &parent_metadata), (&child, &child_metadata)] {
+                task_store::create_task_files(path, metadata, b"# material links\n", mode).unwrap();
+            }
+            let outside = root.join("outside");
+            task_store::create_task_files(&outside, &parent_metadata, b"# duplicate ID\n", mode)
+                .unwrap();
+            fs::create_dir(outside.join("invalid")).unwrap();
+            fs::write(outside.join("invalid/TASK.md"), "---\nid: invalid\n---\n").unwrap();
+            fs::write(outside.join("invalid/tk.toml"), "not toml [").unwrap();
+            fs::write(outside.join("article"), "shared article\n").unwrap();
+            symlink(&outside, parent.join("absolute-directory")).unwrap();
+            symlink(outside.join("article"), parent.join("absolute-file")).unwrap();
+            symlink("materials/child", parent.join("child-alias")).unwrap();
+            symlink(".", parent.join("cycle")).unwrap();
+            symlink("missing", parent.join("dangling")).unwrap();
+            let links = parent.join("materials/links");
+            fs::create_dir(&links).unwrap();
+            for name in ["TASK.md", "tk.toml", "wal", ".tk-tmp"] {
+                symlink("../../TASK.md", links.join(name)).unwrap();
+            }
+
+            let result = check(&root);
+            assert!(result.complete);
+            assert!(result.ok, "{mode:?}: {:?}", result.diagnostics);
+            assert!(result.diagnostics.is_empty(), "{:?}", result.diagnostics);
+            let graph = task_store::discover_tasks(&project.task_root, mode).unwrap();
+            assert!(graph.invalid_candidates.is_empty());
+            let identities: HashSet<_> = graph
+                .tasks
+                .iter()
+                .map(|entry| entry.task.metadata.id)
+                .collect();
+            assert_eq!(
+                identities,
+                HashSet::from([parent_metadata.id, child_metadata.id])
+            );
+            let parent_index = graph.task_index(&parent).unwrap();
+            let child_index = graph.task_index(&child).unwrap();
+            assert_eq!(graph.tasks[parent_index].parent, None);
+            assert_eq!(graph.tasks[child_index].parent, Some(parent_index));
+            fs::remove_dir_all(root).unwrap();
+        }
+    }
+
+    #[test]
+    fn check_rejects_symlinks_in_runtime_data() {
+        use std::os::unix::fs::symlink;
+
+        for mode in [MetadataMode::Split, MetadataMode::Embed] {
+            for case in [
+                "wal-root",
+                "wal-file",
+                "temporary-root",
+                "operation",
+                "manifest",
+                "payload",
+            ] {
+                let root =
+                    std::env::temp_dir().join(format!("tk-runtime-links-{}", Uuid::now_v7()));
+                fs::create_dir(&root).unwrap();
+                let project = crate::project::init(
+                    &root,
+                    crate::project::InitOptions {
+                        metadata_mode: Some(mode),
+                        ..Default::default()
+                    },
+                )
+                .unwrap()
+                .project;
+                let task = project.task_root.join("2026/10/15-01--task");
+                task_store::create_task_files(&task, &task_metadata("task"), b"# task\n", mode)
+                    .unwrap();
+                let target = root.join("target");
+                fs::create_dir(&target).unwrap();
+                fs::write(target.join(crate::gc::MANIFEST_FILE), "unknown manifest\n").unwrap();
+                fs::write(target.join("entry.md"), "outside content\n").unwrap();
+                let temporary = project.task_root.join(".tk-tmp");
+                let operation = temporary.join("operation");
+                let link = match case {
+                    "wal-root" => task.join("wal"),
+                    "wal-file" => {
+                        fs::create_dir(task.join("wal")).unwrap();
+                        task.join("wal/2026-10-15.md")
+                    }
+                    "temporary-root" => temporary.clone(),
+                    "operation" => {
+                        fs::create_dir(&temporary).unwrap();
+                        operation.clone()
+                    }
+                    "manifest" | "payload" => {
+                        fs::create_dir_all(&operation).unwrap();
+                        if case == "payload" {
+                            fs::write(
+                                operation.join(crate::gc::MANIFEST_FILE),
+                                "unknown manifest\n",
+                            )
+                            .unwrap();
+                            operation.join("payload")
+                        } else {
+                            operation.join(crate::gc::MANIFEST_FILE)
+                        }
+                    }
+                    _ => unreachable!(),
+                };
+                let destination = match case {
+                    "wal-file" => target.join("entry.md"),
+                    "manifest" => target.join(crate::gc::MANIFEST_FILE),
+                    _ => target.clone(),
+                };
+                symlink(destination, &link).unwrap();
+                let result = check(&root);
+                assert!(!result.ok, "{mode:?}/{case}");
+                assert!(
+                    result.diagnostics.iter().any(|diagnostic| {
+                        matches!(diagnostic.severity, Severity::Error)
+                            && diagnostic.path.as_deref() == Some(link.as_path())
+                    }),
+                    "{mode:?}/{case}: {:?}",
+                    result.diagnostics
+                );
+                fs::remove_dir_all(root).unwrap();
+            }
+        }
+    }
+
+    #[test]
+    fn check_preserves_non_directory_runtime_errors() {
+        for mode in [MetadataMode::Split, MetadataMode::Embed] {
+            for (name, code) in [
+                ("wal", "invalid_wal_directory"),
+                (".tk-tmp", "scan_temporary_operations_failed"),
+            ] {
+                let root =
+                    std::env::temp_dir().join(format!("tk-runtime-types-{}", Uuid::now_v7()));
+                fs::create_dir(&root).unwrap();
+                let project = crate::project::init(
+                    &root,
+                    crate::project::InitOptions {
+                        metadata_mode: Some(mode),
+                        ..Default::default()
+                    },
+                )
+                .unwrap()
+                .project;
+                let task = project.task_root.join("2026/10/15-01--task");
+                task_store::create_task_files(&task, &task_metadata("task"), b"# task\n", mode)
+                    .unwrap();
+                let invalid = if name == "wal" {
+                    task.join(name)
+                } else {
+                    project.task_root.join(name)
+                };
+                fs::write(invalid, b"not a directory\n").unwrap();
+                let result = check(&root);
+                assert!(!result.complete, "{mode:?}/{name}");
+                assert!(!result.ok, "{mode:?}/{name}");
+                assert!(
+                    result
+                        .diagnostics
+                        .iter()
+                        .any(|diagnostic| diagnostic.code == code),
+                    "{mode:?}/{name}: {:?}",
+                    result.diagnostics
+                );
+                fs::remove_dir_all(root).unwrap();
+            }
         }
     }
 
