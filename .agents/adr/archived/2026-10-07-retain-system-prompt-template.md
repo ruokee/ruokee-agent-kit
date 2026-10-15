@@ -65,7 +65,7 @@ Insert a neutral, non-instructional ownership comment only when all three condit
 
 Recognize converted footers through owned loading guidance or the comment at its validated structural position, never through marker text inside opaque data. Keep the `<project-context>` block start, array position, and static-prefix cache boundary; use no process-local ownership cache or new setting. This remains textual recognition, not provenance or a security boundary.
 
-[projects/omp-system-prompt/README.md](../../../projects/omp-system-prompt/README.md#how-it-works) owns the concrete footer contract and separates API regressions from real-host Provider observations. Those observations must cover required-marker and no-marker cases, including an ordinary subagent, without claiming general host certification.
+`projects/omp-system-prompt/README.md#how-it-works` owns the concrete footer contract and separates API regressions from real-host Provider observations. Those observations must cover required-marker and no-marker cases, including an ordinary subagent, without claiming general host certification.
 
 ### Repeated turns
 

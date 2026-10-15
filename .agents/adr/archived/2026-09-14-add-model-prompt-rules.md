@@ -126,7 +126,7 @@ The component keeps the host contract it inherits from [Render the system prompt
 
 ### 2026-09-30 A restricted tool child runs both handlers
 
-On OMP 18.4.3, the `scout` agent spawned through the `task` tool carries a restricted tool set and sends a provider request that contains both the replacement result and the matching model-rule body, so the replacement handler and the rule append handler both run for that child. The verification entry above therefore describes the environment exercised when it was written, a plan-mode restricted subagent, rather than restricted subagents in general. Whether an OMP 18.4.3 plan-mode child runs the handlers stays unverified, and the two subagent classes keep separate statements in this decision. Evidence: the OMP 18.4.3 host checks recorded in the [component README](../../../projects/omp-system-prompt/README.md) verification scope.
+On OMP 18.4.3, the `scout` agent spawned through the `task` tool carries a restricted tool set and sends a provider request that contains both the replacement result and the matching model-rule body, so the replacement handler and the rule append handler both run for that child. The verification entry above therefore describes the environment exercised when it was written, a plan-mode restricted subagent, rather than restricted subagents in general. Whether an OMP 18.4.3 plan-mode child runs the handlers stays unverified, and the two subagent classes keep separate statements in this decision. Evidence: the OMP 18.4.3 host checks recorded in the component README (`projects/omp-system-prompt/README.md`) verification scope.
 
 ### 2026-10-04 Host contract from the template only successor
 

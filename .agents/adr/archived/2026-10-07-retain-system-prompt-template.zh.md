@@ -65,7 +65,7 @@ Reversed by: [移除 omp-system-prompt 扩展](../decision/2026-10-15-remove-omp
 
 通过自有加载说明或位于已校验结构位置的注释识别已转换页脚，不从不透明数据中的标记文字判断归属。保持 `<project-context>` 块首、数组位置及静态前缀缓存边界，不使用进程内归属缓存或新增设置。识别仍依赖文本，不是来源证明或安全边界。
 
-[projects/omp-system-prompt/README.zh.md](../../../projects/omp-system-prompt/README.zh.md#工作机制) 维护具体页脚合同，并区分 API 回归与真实宿主 Provider 观察。观察必须覆盖需要标记及无需标记的形态，包括普通子代理，不声称宿主全面认证。
+`projects/omp-system-prompt/README.zh.md#工作机制` 维护具体页脚合同，并区分 API 回归与真实宿主 Provider 观察。观察必须覆盖需要标记及无需标记的形态，包括普通子代理，不声称宿主全面认证。
 
 ### 重复 turn
 

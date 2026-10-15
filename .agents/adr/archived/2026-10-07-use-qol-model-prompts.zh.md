@@ -119,7 +119,7 @@ Reversed by: [由 QoL 提供默认关闭的模型提示词规则](../decision/20
 
 ### 2026-09-30 受限工具子 Agent 会运行两个处理器
 
-在 OMP 18.4.3 上，通过 `task` 工具派发、工具集受限的 `scout` 子 Agent 发出的 Provider 请求同时包含替换结果与匹配的模型规则正文，因此替换处理器与规则追加处理器都会为它运行。上文的验证条目描述的是写下它时所处的环境，即一个 plan-mode 受限子 Agent，而不是关于受限子 Agent 的一般结论。OMP 18.4.3 的 plan-mode 子 Agent 是否运行这两个处理器仍未验证，本决定继续把两类子 Agent 分开陈述。证据见[组件 README](../../../projects/omp-system-prompt/README.zh.md) 的已验证范围。
+在 OMP 18.4.3 上，通过 `task` 工具派发、工具集受限的 `scout` 子 Agent 发出的 Provider 请求同时包含替换结果与匹配的模型规则正文，因此替换处理器与规则追加处理器都会为它运行。上文的验证条目描述的是写下它时所处的环境，即一个 plan-mode 受限子 Agent，而不是关于受限子 Agent 的一般结论。OMP 18.4.3 的 plan-mode 子 Agent 是否运行这两个处理器仍未验证，本决定继续把两类子 Agent 分开陈述。证据见组件 README（`projects/omp-system-prompt/README.zh.md`）的已验证范围。
 
 ### 2026-10-04 宿主合同来自只用模板的后继决定
 

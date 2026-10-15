@@ -23,7 +23,7 @@ This decision defines the first-party `omp-context-pin` component that supplies 
 
 ### Component scope
 
-Add the first-party package `projects/omp-context-pin/`, named `@ruokee/omp-context-pin`, under the [first-party capability boundary](./2026-08-20-establish-first-party-capability-kit.md) and the [self-contained component contract](./2026-08-24-keep-components-self-contained.md). The package declares its extension entry through `omp.extensions` metadata in `package.json`, keeps its runtime, checks, and bilingual `README.md` and `README.zh.md` inside the component directory, and uses only public OMP extension APIs. It does not import private host modules, patch upstream source or installed binaries, or require files from another repository component.
+Add the first-party package `projects/omp-context-pin/`, named `@ruokee/omp-context-pin`, under the [first-party capability boundary](../decision/2026-08-20-establish-first-party-capability-kit.md) and the [self-contained component contract](../decision/2026-08-24-keep-components-self-contained.md). The package declares its extension entry through `omp.extensions` metadata in `package.json`, keeps its runtime, checks, and bilingual `README.md` and `README.zh.md` inside the component directory, and uses only public OMP extension APIs. It does not import private host modules, patch upstream source or installed binaries, or require files from another repository component.
 
 The package registers exactly one slash command, `/ctx-pin`, and exactly one native tool, `ctx_pin`. `/pin` is a reserved built-in command name used for session pinning in the resume list, and OMP filters extension commands that reuse a reserved name while logging a conflict warning, so this extension uses a distinct name.
 
@@ -168,4 +168,4 @@ The README compatibility section declares the maintenance lower bound under [Ada
 
 ### 2026-10-04 Shared OMP floor
 
-The maintenance lower bound is OMP 18.5.0 under [Maintain host components against a shared OMP floor](./2026-10-04-raise-omp-host-floor.md). The component removes its pre-activation checks for host members, its `getEntries` capability probe, and its count fallback for user messages without a timestamp; each only guarded hosts below the earlier bound of 18.1.8. Activation still uses the host's public API, and record integrity, entry identity, branch scope, delivery, and persistence ownership keep their rules.
+The maintenance lower bound is OMP 18.5.0 under [Maintain host components against a shared OMP floor](../decision/2026-10-04-raise-omp-host-floor.md). The component removes its pre-activation checks for host members, its `getEntries` capability probe, and its count fallback for user messages without a timestamp; each only guarded hosts below the earlier bound of 18.1.8. Activation still uses the host's public API, and record integrity, entry identity, branch scope, delivery, and persistence ownership keep their rules.
