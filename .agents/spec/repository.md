@@ -17,7 +17,7 @@ The [rule layer](../rule/README.md) states how work is done here.
 - State the repository's working rules as bilingual pages under `.agents/rule/`, so each normative statement has one owning layer.
 - Develop on short-lived branches squash-merged into `main`, with affected checks during development and a complete check on the final candidate.
 
-## Non-goals
+## Out of scope
 
 - Third-party capabilities, forks, or upstream mirrors.
 - Developer-local directories, machine inventories, deployment and recovery configuration, sensitive information, credentials, private hostnames, internal service URLs, or the device's model, provider, or channel configuration.

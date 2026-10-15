@@ -6,7 +6,7 @@
 
 Maintain one self-contained native OMP package, `@ruokee/omp-smart-cache`, under `projects/omp-smart-cache`, avoiding unexpected cache misses in OMP requests while the ordinary and native request paths stay unchanged. It carries remote alignment and Handoff alignment as two independent capabilities, each with its own switch, state, and acceptance. Reuse already-sent ordinary results to align the selected Provider's non-Codex Responses V2 remote compaction, including main, native task, and Eval sessions, and align Handoff side requests with the ordinary request that was already sent. Keep client alignment, native usability, and real Provider benefit as separate outcomes.
 
-## Non-goals
+## Out of scope
 
 Do not modify the host or Provider, replace native maintenance, or add a conversion cooperation protocol. Cache residency, fixed hit rates, and guaranteed savings are outside the contract.
 

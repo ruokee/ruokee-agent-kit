@@ -10,7 +10,7 @@ Spec for the maintenance lower bounds of repository components that load code in
 - Let each component state its own bound where its users read it.
 - Keep components working on maintained hosts across host upgrades without carrying code for hosts outside the maintained range.
 
-## Non-goals
+## Out of scope
 
 - Using the bound as an installation, activation, or runtime gate. A host below the bound is not blocked, and a component may still work there without a maintenance commitment.
 - A maintenance upper bound, a supported-version whitelist, or a public support matrix.

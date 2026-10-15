@@ -35,7 +35,7 @@ Each component under `projects/`, including `projects/tk` as a whole, has a spec
 
 Each spec is one same-directory `name.md` and `name.zh.md` pair with reciprocal language links. Both languages are updated in the same change and describe the same target.
 
-A spec uses these sections where they apply: goals, non-goals, public surface, invariants, host lower bound, acceptance criteria, and related ADRs. A section that does not apply to the subject, such as a host lower bound for repository conventions, is omitted.
+A spec uses these sections where they apply: goals, out of scope, public surface, invariants, host lower bound, acceptance criteria, and related ADRs. A section that does not apply to the subject, such as a host lower bound for repository conventions, is omitted.
 
 A spec describes the current target state. It is edited in place and keeps no revision history, review notes, or task records.
 

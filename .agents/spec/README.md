@@ -28,7 +28,7 @@ Each spec is a same-directory pair, `name.md` and `name.zh.md`, with reciprocal 
 A spec uses these sections, in this order, where they apply to its subject:
 
 - Goals
-- Non-goals
+- Out of scope
 - Public surface
 - Invariants
 - Host lower bound

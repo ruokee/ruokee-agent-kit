@@ -11,7 +11,7 @@ Spec for [projects/omp-system-prompt](../../projects/omp-system-prompt/README.md
 - Mark the component as approaching deprecation while keeping its template, Delivery, footer, and current maintenance, without a removal date or automatic uninstall.
 - Let the `renderDelivery` plugin setting switch the owned `# Delivery` chapter.
 
-## Non-goals
+## Out of scope
 
 - Recognizing, converting, or rewriting the text structure of the host's default system prompt.
 - Writing, copying, or selecting a template file, writing user configuration or installed host files, or modifying or deleting any of the user's system prompt inputs.

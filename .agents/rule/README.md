@@ -10,7 +10,7 @@ When a reader needs the reason behind a rule, the rule links the decision that o
 
 | Page | Activity |
 | --- | --- |
-| [boundary.md](./boundary.md) | First-party scope, content layout, public content, and component versions |
+| [boundary.md](./boundary.md) | First party scope, content layout, public content, and component versions |
 | [git.md](./git.md) | Branches, working directories, commits, authorizations, merges, and teardown |
 | [development.md](./development.md) | Planning, environments, hooks, checks, and evidence |
 | [documentation.md](./documentation.md) | Documents, specs, decisions, bilingual pairs, naming, cleanup, and file references |

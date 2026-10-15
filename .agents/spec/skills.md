@@ -11,7 +11,7 @@ Spec for the ordinary Skills under `skills/` and their Chinese variants under `v
 - Keep each Skill understandable on its own. A link to another Skill may only point to related reading.
 - Mark each Skill in the repository capability index as user-invoked or Agent-invoked.
 
-## Non-goals
+## Out of scope
 
 - Plugin manifests, marketplace metadata, package changelogs, host-specific Agent definitions, or package README files inside a Skill tree.
 - Third-party Skills, forks, or upstream mirrors. A Skill may cite, quote, or adapt third-party material.

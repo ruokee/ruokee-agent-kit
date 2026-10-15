@@ -11,7 +11,7 @@ Spec for [projects/omp-status-bar](../../projects/omp-status-bar/README.md).
 - Let other extensions add providers through the public provider contract.
 - Mark the context window with a static glyph next to the context status.
 
-## Non-goals
+## Out of scope
 
 - Registering or replacing a native statusline segment.
 - Amount, cost, or premium-request readings.

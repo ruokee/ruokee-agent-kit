@@ -12,7 +12,7 @@ Spec for [projects/tk](../../projects/tk/README.md). It states tk's goals, bound
 - Ship four Skills, tools or CLI mode in English or Chinese, from one shared reference source per language. See [projects/tk/docs/design/skill.md](../../projects/tk/docs/design/skill.md).
 - Install, update, and remove Harness components and standalone CLI Skills offline from one embedded bundle. See [projects/tk/docs/design/installation.md](../../projects/tk/docs/design/installation.md) and [projects/tk/docs/design/harnesses.md](../../projects/tk/docs/design/harnesses.md).
 
-## Non-goals
+## Out of scope
 
 - A database, global Task registry, background index, remote service, or resident daemon.
 - Priorities, scheduling, inboxes, boards, Issue mirroring, Agent coordination, workflow execution, or session binding.

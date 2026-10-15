@@ -12,7 +12,7 @@ Spec for [projects/omp-qol](../../projects/omp-qol/README.md).
 - Provide user-authored model rules from this component directly.
 - Record the compaction and handoff request usage a host does not journal itself, until a host does.
 
-## Non-goals
+## Out of scope
 
 - Guards for external tools, and host behavior unrelated to these adjustments.
 - Installing or migrating on the user's behalf, or modifying other extensions, user configuration, or installed host files.

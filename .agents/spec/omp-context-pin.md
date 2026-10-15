@@ -10,7 +10,7 @@ Spec for [projects/omp-context-pin](../../projects/omp-context-pin/README.md).
 - Give the user the `/ctx-pin` command and the Agent the `ctx_pin` tool as the two entry points.
 - Keep the canonical record of pins in the session journal; change messages and tool results are projections of it.
 
-## Non-goals
+## Out of scope
 
 - Reading files, fetching URLs, watching pinned content, or changing an entry without an operation.
 - Turning natural language into pin operations.

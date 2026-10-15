@@ -4,7 +4,7 @@ English | [中文](./boundary.zh.md)
 
 The [repository spec](../spec/repository.md) states what this repository should contain, what it should not, and the form in which its components ship. These rules bind the actions that keep it that way.
 
-## First-party scope
+## First party scope
 
 - Keep only capabilities Ruokee authors and maintains in this repository.
 - Do not add third-party capabilities, forks, or upstream mirrors. A first-party capability may cite, quote, or adapt third-party material.

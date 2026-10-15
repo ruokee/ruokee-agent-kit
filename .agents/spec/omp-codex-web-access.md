@@ -9,7 +9,7 @@ Spec for [projects/omp-codex-web-access](../../projects/omp-codex-web-access/REA
 - Add web search and page extraction to OMP through a model that OMP has registered for the `openai-responses` API, alongside OMP's built-in tools.
 - Configure the component through OMP native plugin settings and keep credentials in OMP's model registry.
 
-## Non-goals
+## Out of scope
 
 - Launching Codex CLI or changing OMP's built-in search and fetch settings.
 - Fetching the target URL itself, or probing DNS or private addresses.
