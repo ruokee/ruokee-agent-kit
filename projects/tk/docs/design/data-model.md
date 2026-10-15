@@ -189,7 +189,7 @@ Metadata is committed first, then the automatic WAL entry is appended. If the WA
 
 `tk check` uses a separate streaming inspector. It reads every regular daily WAL Markdown file and every entry in deterministic order without fixed total file, byte, or entry limits. A required I/O failure or cancellation makes the check incomplete rather than returning a successful partial scan.
 
-## Single-file writes
+## Writes to one file
 
 A managed single-file update uses a temporary file in the same directory followed by atomic replacement:
 
@@ -202,7 +202,7 @@ A managed single-file update uses a temporary file in the same directory followe
 
 Normal writes do not use locks, leases, compare-and-swap, or automatic merging. Concurrent complete replacements of the same file are resolved by whichever operation finishes last.
 
-## Multi-target operations
+## Operations over multiple targets
 
 Batch creation, schema migration, representation switching, rename, and Harness component operations follow the same failure boundary:
 

@@ -342,7 +342,7 @@ tk <command> <subcommand> --help
 
 Help text is for people and is not a stable machine interface.
 
-## Multi-target failures
+## Failures over multiple targets
 
 Batch creation, migration, mode switching, and component operations may commit only some targets before failure. In that case:
 

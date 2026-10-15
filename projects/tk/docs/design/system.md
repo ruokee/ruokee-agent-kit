@@ -80,7 +80,7 @@ User selects a Harness
 
 The target result of uninstall is to restore the Harness to the state it would have had if tk had never been installed, while preserving all preexisting content and later changes unrelated to tk.
 
-## System-level invariants
+## Invariants at the system level
 
 1. UUIDv7 is the authoritative identity of a Task. Names describe Tasks, and paths locate them.
 2. The only Task states are `planning`, `open`, and `closed`.

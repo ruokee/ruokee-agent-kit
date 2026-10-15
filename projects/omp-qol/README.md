@@ -165,7 +165,7 @@ Ordinary main turns and ordinary child turns that run `before_agent_start` are c
 
 When enabled, project rules become system instructions. This adds no project-trust gate or security isolation. JavaScript regular expressions have no sandbox or execution timeout. Matching bodies have no size or quota limit, so large files can consume prompt space and slow directories delay turn assembly. Keep personal rules in the user directory and inspect project rules before enabling them.
 
-### Upstream re-check
+### Upstream recheck
 
 When OMP ships model-scoped instructions, through [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) or an equivalent facility, re-check matching dimensions, replacement/append composition and block position, refresh timing, and directory discovery/precedence/order. Decide whether to retain the local capability, keep only the missing parts, or remove it, and record the corresponding version change. Host templates alone do not establish equivalent model-rule behavior.
 

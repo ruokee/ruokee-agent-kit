@@ -276,7 +276,7 @@ The adjustment replaces the `telemetry` accessor on the host's `Agent` prototype
 - **Real OMP CLI, label conflict**: after the identity rule stopped consulting the telemetry label, a further run on the same host compacted one session. The `compaction:turn-prefix` (input 135, output 169, cache read 128) and `compaction:short-summary` (input 323, output 173) entries it wrote, and the host's own main-turn entry in that journal, all named `api: openai-completions`, the same `provider` and `model`, and `/qol` reported `compactionUsage: enabled (entries=2)` with no `costMissing` and no `unrecorded`. The deployment's label and provider id are the same string, so this run shows that the stricter rule keeps resolving a request whose identity is reachable, not that it decides a normalized label.
 - **未验证 / not verified**: `compaction_native` and `branch_summary` requests (out of scope by design), a host that already records these requests (the retirement path runs against a stubbed export, not a released fixed host), a session resumed across a compaction other than the one exercised, a non-TUI mode, and a process with two sessions compacting concurrently. A real request whose identity its session's registry cannot resolve is not exercised either: the skip is covered by the recording host and by independent probes against the locked host's telemetry. The provider of this deployment does not normalize its label, so on the live runs the raw provider id and the label are the same string. A host that normalizes the label and reports no raw provider id beside it is covered by the recording host and by those probes only, and it leaves a request unrecorded whenever the session serves that model id under more than one provider, rather than deciding from the label.
 
-### Upstream re-check
+### Upstream recheck
 
 When a published OMP version records compaction and handoff usage itself, check that the host exports `compactionRequestUsage` from `@oh-my-pi/pi-agent-core`, that its purposes and per-component cost match the ones this module writes, and that the statistics count its entries in the active window. Then remove this adjustment's code, settings, documentation, and tests, drop the capability from the component specification, and record the removal in a decision, as the model prompt rules section does for its own upstream facility.
 
@@ -367,9 +367,9 @@ QoL `0.5.4` is checked against locked OMP `18.5.0` development types. Real OMP `
 
 Behavior tests cover parser/matching boundaries, zero access when off or without a model, configuration isolation and restart snapshots, directory/file failures, body fidelity, dynamic cwd/model inputs, diagnostic privacy/session ownership, and non-accumulation. These checks do not certify every host or extension combination. OMP `18.5.0` is a type/test baseline, not a new real-host matrix. Plan-mode, Handoff, titles, classification, automatic fallback, other request families, and long-term reliability remain unverified.
 
-### Upstream re-check
+### Upstream recheck
 
-When OMP offers native model-scoped instructions, follow the [upstream re-check](../README.md#upstream-re-check) before retaining, narrowing, or removing this capability.
+When OMP offers native model-scoped instructions, follow the [upstream recheck](../README.md#upstream-recheck) before retaining, narrowing, or removing this capability.
 
 ## Upstream references
 

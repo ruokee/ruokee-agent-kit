@@ -37,7 +37,7 @@ Review records, revision numbers, Task paths, and local materials do not appear 
 
 A behavior's parameter table or algorithm appears only on its primary owning page. Other pages link to it instead of duplicating the contract.
 
-## Current-state wording
+## Wording for the current state
 
 Public documentation describes only the current commands and behavior after official release.
 

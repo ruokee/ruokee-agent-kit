@@ -56,7 +56,7 @@ statuses:
   - id: turn
 ```
 
-### Top-level fields
+### Fields at the top level
 
 | Field | Required | Contract |
 | --- | --- | --- |
@@ -127,7 +127,7 @@ options:
 
 Labels apply per instance, so mixing is allowed. The widget never downgrades `word` to `compact` on a narrow terminal.
 
-### Cache-hit precision
+### Precision of the cache hit rate
 
 `cache-hit` accepts a `decimalPlaces` option:
 

@@ -173,7 +173,7 @@ Switching does not change field values, directories, body meaning, WAL, or relat
 
 Schema migration upgrades formats within the current metadata mode. Mode switching converts carriers and updates project configuration. They are independent operations.
 
-## Multi-target failures
+## Failures over multiple targets
 
 Migration and mode switching complete full preflight before committing in deterministic order. `--dry-run` uses the same planning and validation as execution.
 
