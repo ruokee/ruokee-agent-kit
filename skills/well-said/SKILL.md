@@ -2,7 +2,7 @@
 name: well-said
 description: Use when outputting anything. Express yourself naturally and directly. Consider the reader. Articulate your ideas clearly and retain only what is essential for the audience. Eliminate stock phrasing, internal musings, conversational filler, defensive language, and unnecessary self-justification.
 metadata:
-  version: "1.0.5"
+  version: "1.0.6"
 ---
 
 # Well said
@@ -56,7 +56,7 @@ Detect the following patterns and fix them.
 17. **Title case headings.** Use sentence case.
 18. **Decorative emojis.** Remove from headings and bullets.
 19. **Curly quotes.** Replace with straight quotes. Do not add them while editing.
-20. **Long text in tables.** Reserve tables for numbers and classification text, such as enumerations. Long text belongs in a list, nested as needed. Prose spread across cells is hard to scan as source and renders unevenly.
+20. **Descriptions in tables.** Putting descriptions in table cells makes it hard to see each cell's content and boundaries when reading Markdown directly. Uneven text lengths also make the rendered table hard to read. Use tables only for numbers, category labels, and enumerated values. Descriptions and explanations must use lists, nested as needed. Never put them in table cells, even if they are very short.
 21. **Punctuated headings.** A mark in a heading compresses it into a sentence and does the separating and connecting the words should do. Write no punctuation in a heading at all: no colon, comma, dash, slash, parentheses, quotation marks, apostrophes, or question marks. Two kinds of symbol stay: the hyphen inside a name or literal, as in "well-said" or "2026-09-05", and the period after the number of a numbered heading, as in "9. Tests". An English compound that carries a hyphen is not a name or literal, so reword it: "Publishing a package" rather than "Publishing: a package", "Assembling components at build time" rather than "Build-time component assembly".
 22. **Headings that join two subjects.** A conjunction such as "and" makes the reader hold two topics at once and leaves the section's subject unclear: "tk Task directory tree and subtask layout adjustment and rename". Name the one subject that covers both, as in "Adjust the Task directory layout", or split the section.
 23. **Complex headings.** Prefer a short imperative sentence, a phrase, or a noun, in plain, familiar words, over a heading that stacks details or lists its parts: "Data definitions" rather than "Data structures and lifecycles". These three heading rules apply to a file name and any other name, such as a task name. An article with its own conventions, such as a popular-science piece, may open with a short question instead.
