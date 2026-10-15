@@ -1,4 +1,4 @@
-# ADR 决定：按范围执行开发检查
+# 按范围执行开发检查
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6.1 Sol

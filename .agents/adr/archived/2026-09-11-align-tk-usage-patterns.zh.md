@@ -1,4 +1,4 @@
-# ADR 决定：统一 tk 使用模式
+# 统一 tk 使用模式
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra

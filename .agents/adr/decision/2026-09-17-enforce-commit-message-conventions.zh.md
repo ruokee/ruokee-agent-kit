@@ -1,4 +1,4 @@
-# ADR 决定：强制执行提交信息规范
+# 强制执行提交信息规范
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash

@@ -116,8 +116,8 @@ OMP `18.5.0`, declared in [Compatibility](../../projects/omp-qol/README.md#compa
 ## Related ADRs
 
 - [Maintain the extension that improves the OMP experience](../adr/decision/2026-10-10-maintain-omp-experience-extension.md)
-- [Provide opt-in model prompt rules in QoL](../adr/decision/2026-10-07-use-qol-model-prompts.md)
+- [Provide model prompt rules that are off by default in QoL](../adr/decision/2026-10-07-use-qol-model-prompts.md)
 - [Compensate compaction request usage in QoL](../adr/decision/2026-10-13-compact-usage-compensation.md)
 - [Use native plugin settings for Codex web access](../adr/decision/2026-09-10-use-codex-web-plugin-settings.md)
 - [Maintain host components against a shared OMP floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)
-- [Keep distributable components self-contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
+- [Keep distributable components self contained](../adr/decision/2026-08-24-keep-components-self-contained.md)

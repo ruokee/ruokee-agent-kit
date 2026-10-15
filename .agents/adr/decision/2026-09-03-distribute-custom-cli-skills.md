@@ -1,4 +1,4 @@
-# ADR decision: Distribute tk components
+# Distribute tk components
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee

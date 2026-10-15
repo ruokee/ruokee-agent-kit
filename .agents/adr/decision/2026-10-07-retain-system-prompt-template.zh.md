@@ -1,4 +1,4 @@
-# ADR 决定：保留即将弃用扩展的模板功能
+# 保留即将弃用扩展的模板功能
 
 Decision owner: Ruokee
 Decision writer: OMP

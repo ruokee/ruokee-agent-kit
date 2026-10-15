@@ -1,4 +1,4 @@
-# ADR 决定：定义 tk 产品架构
+# 定义 tk 产品架构
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -69,10 +69,10 @@ Harness 是围绕模型、使其能够作为 Agent 运行的软件环境。当�
 
 ## 变更
 
-### 2026-09-02：增加可选择的 Skill
+### 2026-09-02 增加可选择的 Skill
 
 产品现在包含四个可独立发现的 Skill 和多种 Harness 组件选择。上文的决定归属列表用四项聚焦的现行决定，替换了已经归档的单语言 Harness 集成与组件分发决定。
 
-### 2026-09-03：增加自定义 CLI Skill 根目录
+### 2026-09-03 增加自定义 CLI Skill 根目录
 
 产品仍包含四个可独立发现的 Skill 和多种 Harness 组件选择。runtime 还携带两份与 Harness 无关的 CLI Skill 载荷，用于把 `tk-cli` 和 `tk-cli-zh` 安装到显式指定的 Skill 根目录。

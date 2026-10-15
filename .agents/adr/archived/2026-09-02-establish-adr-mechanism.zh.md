@@ -1,10 +1,10 @@
-# ADR 决定：建立 ADR 机制
+# 建立 ADR 机制
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
 Reverses: [添加 Agent Note 机制](./2026-08-22-add-agent-notes.zh.md)
 Archived: 2026-09-23
-Reversed by: [明确 ADR 内容边界](../decision/2026-09-23-clarify-adr-content-boundaries.zh.md)
+Reversed by: [明确 ADR 内容边界](./2026-09-23-clarify-adr-content-boundaries.zh.md)
 
 [English](./2026-09-02-establish-adr-mechanism.md) | 中文
 
@@ -94,6 +94,6 @@ ADR 的查找依赖简短文件名和仓库搜索，而不是中央索引。只�
 
 ## 变更
 
-### 2026-09-03：细化条目编写规则
+### 2026-09-03 细化条目编写规则
 
 Agent 不得为了填充必需章节而编造替代方案或风险。替代方案必须真实进入过选择范围，并描述另一种做法，而不是事实、要求、约束、验收标准、实现细节或对当前方案的复述。风险必须写明提议或遗漏可能造成的可信不良后果，不能把事实、要求、约束、不变量、验收标准或待办改称为风险。没有合格条目时，只写 `None` 或 `无` 的章节就是完整章节。

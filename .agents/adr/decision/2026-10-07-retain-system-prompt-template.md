@@ -1,4 +1,4 @@
-# ADR decision: Retain the approaching-deprecation extension's template functionality
+# Retain the template functionality of an extension approaching deprecation
 
 Decision owner: Ruokee
 Decision writer: OMP
@@ -28,7 +28,7 @@ In 18.5.0, [`discoverSystemPromptOverride`](https://github.com/can1357/oh-my-pi/
 
 The component is marked as approaching deprecation, without a removal date, automatic uninstall, maintenance stop, or per-turn deprecation warning. The maintainer observed that recent OMP updates substantially reduced prompt text and supplied templates, reducing the need for additional strategy replacement. This does not assert an unchecked release number or that native templates automatically equal every component policy. The template, Delivery, footer, diagnostics, optional installation, and current maintenance remain.
 
-Rules move completely under [Provide opt-in model prompt rules through QoL](./2026-10-07-use-qol-model-prompts.md), with no read, append, forwarding, or compatibility alias retained and no user rule file changed. The template functionality does not depend on QoL. Coexistence requires the template handler before the rule handler in actual load order; installation-command order guarantees no load order. The components fail independently.
+Rules move completely under [Provide model prompt rules that are off by default through QoL](./2026-10-07-use-qol-model-prompts.md), with no read, append, forwarding, or compatibility alias retained and no user rule file changed. The template functionality does not depend on QoL. Coexistence requires the template handler before the rule handler in actual load order; installation-command order guarantees no load order. The components fail independently.
 
 ### One recognized instruction block
 

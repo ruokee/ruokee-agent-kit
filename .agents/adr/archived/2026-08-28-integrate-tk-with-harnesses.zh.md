@@ -1,4 +1,4 @@
-# ADR 决定：为 Harness 集成 tk
+# 为 Harness 集成 tk
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol

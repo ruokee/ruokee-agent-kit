@@ -1,4 +1,4 @@
-# ADR 决定：随 OMP 宿主升级维护状态栏
+# 随 OMP 宿主升级维护状态栏
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash

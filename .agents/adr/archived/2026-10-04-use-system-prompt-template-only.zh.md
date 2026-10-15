@@ -1,4 +1,4 @@
-# ADR 决定：只由组件模板渲染系统提示词策略
+# 只由组件模板渲染系统提示词策略
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5

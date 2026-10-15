@@ -46,4 +46,4 @@ OMP `18.5.0`, declared in [Compatibility](../../projects/omp-codex-web-access/RE
 
 - [Use native plugin settings for Codex web access](../adr/decision/2026-09-10-use-codex-web-plugin-settings.md)
 - [Maintain host components against a shared OMP floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)
-- [Keep distributable components self-contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
+- [Keep distributable components self contained](../adr/decision/2026-08-24-keep-components-self-contained.md)

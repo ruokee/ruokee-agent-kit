@@ -1,4 +1,4 @@
-# ADR decision: Provide Handoff alignment through smart-cache
+# Provide Handoff alignment through smart-cache
 
 Decision owner: Ruokee
 Decision writer: OMP

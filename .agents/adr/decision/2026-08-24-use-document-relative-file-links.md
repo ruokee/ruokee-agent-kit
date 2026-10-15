@@ -1,4 +1,4 @@
-# ADR decision: Use document-relative links for file paths
+# Use document relative links for file paths
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol

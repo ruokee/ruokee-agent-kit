@@ -1,10 +1,10 @@
-# ADR decision: Maintain OMP quality-of-life adjustments with remote compaction cache alignment
+# Maintain OMP quality of life adjustments with remote compaction cache alignment
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
-Reverses: [Maintain the OMP quality-of-life adjustments across OMP host upgrades](./2026-09-28-maintain-omp-qol.md)
+Reverses: [Maintain the OMP quality of life adjustments across OMP host upgrades](./2026-09-28-maintain-omp-qol.md)
 Archived: 2026-10-04
-Reversed by: [Maintain OMP quality-of-life adjustments while preserving speculative compaction](./2026-10-04-preserve-speculative-cache.md)
+Reversed by: [Maintain OMP quality of life adjustments while preserving speculative compaction](./2026-10-04-preserve-speculative-cache.md)
 
 English | [中文](./2026-10-04-align-remote-compaction-cache.zh.md)
 
@@ -69,7 +69,7 @@ The component reports the compaction state from the process registry when it is 
 
 The deadline implementation is selected by the host at hand. Where a host provides an equivalent request-level timeout setting or hook, the user-visible result, the configuration, and the failure behavior are compared first, and that interface is used instead of installing the wrapper. A host that is still maintained and has no equivalent interface keeps the implementation that provides the deadline, so the experiment above remains the implementation there. One runtime keeps one owner of the deadline policy: while the native interface is in use, no process-wide wrapper is installed beside it.
 
-### Keep a resumed process's first request in the native replay form
+### Keep the first request of a resumed process in the native replay form
 
 `omp-qol` ships `replay`, an independently switchable module that keeps a resumed process's first request in the native replay form. Its switch is `replayEnabled`, on by default under the component's master `enabled`. It installs one process-wide wrapper over `Map.prototype.set` that sets `nativeHistoryReplayWarmed` on the state the host creates for an `openai-responses` provider; every other write reaches the replaced function unchanged. `/qol` reports the module with its effective switch and the number of state writes the wrapper rewrote.
 
@@ -143,7 +143,7 @@ Verified claims stay separate per adjustment. The component README compatibility
 
 ## Changes
 
-### 2026-09-29: Select the wait entry by capability
+### 2026-09-29 Select the wait entry by capability
 
 The wait module selects the builtin entry the session exposes instead of comparing host versions. A builtin `hub` keeps the established behavior unchanged. When `hub` is absent, a builtin `wait` with the recognized empty object parameter structure is re-registered under its own name with one optional finite `timeout` in seconds, in `(0, 3600]`; native delegation receives `{}` only. A missing, foreign, or structurally unrecognized entry leaves native behavior in place with a bounded reason.
 

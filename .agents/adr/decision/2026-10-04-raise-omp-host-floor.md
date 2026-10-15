@@ -1,8 +1,8 @@
-# ADR decision: Maintain host components against a shared OMP floor
+# Maintain host components against a shared OMP floor
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
-Reverses: [Adapt first-party host components to host upgrades](../archived/2026-09-28-adapt-components-to-host-upgrades.md)
+Reverses: [Adapt first party host components to host upgrades](../archived/2026-09-28-adapt-components-to-host-upgrades.md)
 
 English | [中文](./2026-10-04-raise-omp-host-floor.zh.md)
 
@@ -44,7 +44,7 @@ Each component states its maintenance lower bound in the compatibility section o
 
 The bound states maintenance responsibility. It does not promise that later host releases keep working, it does not claim that every release at or above it was verified, and it adds no maintenance promise below it. A host below the bound is not blocked: a component that can work there may work there, without a maintenance commitment, and it may lose behavior that code removed for older hosts provided.
 
-### One shared lower bound for OMP-facing components
+### One shared lower bound for components that face OMP
 
 Every OMP-facing component declares OMP 18.5.0 as its maintenance lower bound. For `tk`, the bound covers the host-side code of the OMP adapter in `tools` mode; the `cli` mode component and the Pi adapter keep their own statements.
 
@@ -110,7 +110,7 @@ Raising the OMP-facing components to 18.5.0 removes three behaviors that still w
 
 - [Render the system prompt strategy only from the component template](../archived/2026-10-04-use-system-prompt-template-only.md) removes the default-block route that served hosts before 18.3.0.
 - [Maintain the OMP status bar with a static context glyph](./2026-10-04-show-static-context-glyph.md) replaces the speculation band estimate that needs `Settings.getGroup`, which hosts before 18.4.0 provide.
-- [Maintain OMP quality-of-life adjustments on the standalone wait entry](../archived/2026-10-04-use-standalone-qol-wait.md) removes the `hub` wait path that served hosts before 18.3.0.
+- [Maintain OMP quality of life adjustments on the standalone wait entry](../archived/2026-10-04-use-standalone-qol-wait.md) removes the `hub` wait path that served hosts before 18.3.0.
 
 `omp-context-pin`, `omp-codex-web-access`, and the `tk` OMP adapter remove no behavior that a host from their earlier bound up to 18.5.0 used. [The context pin decision](./2026-09-15-add-omp-context-pin.md), [the model prompt rules decision](../archived/2026-09-14-add-model-prompt-rules.md), [the tk integration decision](./2026-09-02-integrate-tk-tools-with-harnesses.md), and [the self-contained component decision](./2026-08-24-keep-components-self-contained.md) record the bound or the inherited contract under their changes. [Use native plugin settings for Codex web access](./2026-09-10-use-codex-web-plugin-settings.md) records no bound and needs no change.
 
@@ -124,11 +124,11 @@ The maintenance lower bound could have remained in peer dependencies or become a
 
 A fixed pair standardizes verification steps, but imposes the same requirement on small changes whose behavior is unaffected. It also leaves distinct adaptation paths outside that pair uncovered. Verification therefore follows actual impact while preserving existing component release requirements.
 
-### Approve lower-bound raises only in implementation records
+### Approve lower bound raises only in implementation records
 
 This retains maintainer approval but leaves no separate public rationale for each reduction in host support. Each raise therefore still requires its own ADR.
 
-### Raise each OMP-facing component's bound only when it cannot serve both hosts
+### Raise the bound of a component facing OMP only when it cannot serve both hosts
 
 This was the rule before this decision. It keeps hosts down to each component's earlier bound wherever the code still serves them, but it leaves the six components on different bounds below the development host, and the components keep maintaining the default-block route and the speculation band estimate, which work only on older hosts.
 
@@ -147,6 +147,6 @@ This was suggested while analyzing why the bounds drifted. It removes the decisi
 
 ## Changes
 
-### 2026-10-10: Include smart-cache
+### 2026-10-10 Include smart-cache
 
 The self-contained `omp-smart-cache` component follows every maintenance, peer, adaptation, failure, and verification rule in this decision. Its README pair declares the same OMP `18.5.0` lower bound; this addition does not raise the bound or alter another component's contract. The [extension decision](./2026-10-12-maintain-smart-cache-extension.md) records the component's floor obligation, and the [remote decision](./2026-10-12-provide-remote-alignment.md) owns its behavior and independent protocol boundaries.

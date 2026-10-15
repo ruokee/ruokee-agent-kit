@@ -1,4 +1,4 @@
-# ADR decision: Package Skills as self-contained language variants
+# Package Skills as self contained language variants
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -41,6 +41,6 @@ Imports preserve body meaning and distinguish path adaptations from editorial ch
 
 ## Changes
 
-### 2026-09-02: Record independently named tk language Skills
+### 2026-09-02 Record independently named tk language Skills
 
 tk uses the independently discoverable Skills `tk`, `tk-zh`, `tk-cli`, and `tk-cli-zh`. They are separate Skill identities rather than same-name language variants, so all four live under `projects/tk/skills/<name>/`. This does not change the same-name variant rule for other Skills.

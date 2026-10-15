@@ -1,4 +1,4 @@
-# ADR 决定：新增 tk 纯 CLI 模式
+# 新增 tk 纯 CLI 模式
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
@@ -37,6 +37,6 @@ tk 通过自包含的 `tk-cli` 和 `tk-cli-zh` Skill 提供纯 CLI 模式。这�
 
 ## 变更
 
-### 2026-09-03：增加直接安装 CLI Skill
+### 2026-09-03 增加直接安装 CLI Skill
 
 同一份自包含 CLI Skill 现在可以安装到显式指定的 Skill 根目录，不需要 Harness 包装、原生 manifest 或注册变更。固定 runtime 前置条件仍然适用。

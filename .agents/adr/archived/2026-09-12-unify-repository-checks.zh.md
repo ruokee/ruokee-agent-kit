@@ -1,4 +1,4 @@
-# ADR 决定：统一仓库检查入口
+# 统一仓库检查入口
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
@@ -62,14 +62,14 @@ Reversed by: [按范围执行开发检查](../decision/2026-09-30-scope-aware-re
 
 ## 变更
 
-### 2026-09-15：纳入 omp-context-pin 组件检查
+### 2026-09-15 纳入 omp-context-pin 组件检查
 
 聚合入口增加 `pnpm --dir projects/omp-context-pin run typecheck` 与 `run test`，排在原生 tk 适配器之前，适配器顺延为第 6 项。覆盖表按执行顺序列出受检组件，正文不写死组件数量。
 
-### 2026-09-20：纳入 omp-qol 组件检查
+### 2026-09-20 纳入 omp-qol 组件检查
 
 聚合入口增加 `pnpm --dir projects/omp-qol run typecheck` 与 `run test`，作为第 6 项排在原生 tk 适配器之前，适配器顺延为第 7 项，Skill 生命周期测试顺延为第 8 项。omp-qol 的测试用记录宿主替换宿主，同时从已安装的宿主包读取设置 getter、错误分类器和 `AbortSignal.timeout`。
 
-### 2026-09-20：纳入 Skill 生命周期测试
+### 2026-09-20 纳入 Skill 生命周期测试
 
 聚合入口在原生 tk 适配器之后增加第 8 项 `pnpm check:skills`，执行 `sh scripts/tests/skills.sh`。测试通过合成的 fixture 仓库检查 [scripts/skills.sh](../../../scripts/skills.sh) 的安装、更新与卸载命令，只需要 POSIX shell、`diff` 和常见系统文件工具，该步骤不安装任何依赖。测试还会检查拒绝边界与不可读目录树，后者报告为失败，而不是差异或一致。

@@ -1,4 +1,4 @@
-# ADR decision: Add the well-said writing Skill
+# Add the well-said writing Skill
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
@@ -122,7 +122,7 @@ Copying source text without verifying its provenance and license can omit requir
 
 ## Changes
 
-### 2026-09-14: Agent handoff messages in scope
+### 2026-09-14 Agent handoff messages in scope
 
 The writing scope explicitly includes natural-language messages between agents: delegation, task handoff, and review feedback. These messages are written for the agent that will act on them and for whoever reads them later.
 

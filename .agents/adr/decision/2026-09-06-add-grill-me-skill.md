@@ -1,4 +1,4 @@
-# ADR decision: Add the user-invoked grill-me Skill
+# Add the grill-me Skill that a user invokes
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra

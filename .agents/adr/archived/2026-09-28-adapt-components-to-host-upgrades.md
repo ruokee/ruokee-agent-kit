@@ -1,4 +1,4 @@
-# ADR decision: Adapt first-party host components to host upgrades
+# Adapt first party host components to host upgrades
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
@@ -108,7 +108,7 @@ The maintenance lower bound could have remained in peer dependencies or become a
 
 A fixed pair standardizes verification steps, but imposes the same requirement on small changes whose behavior is unaffected. It also leaves distinct adaptation paths outside that pair uncovered. Verification therefore follows actual impact while preserving existing component release requirements.
 
-### Approve lower-bound raises only in implementation records
+### Approve lower bound raises only in implementation records
 
 This retains maintainer approval but leaves no separate public rationale for each reduction in host support. Each raise therefore still requires its own ADR.
 

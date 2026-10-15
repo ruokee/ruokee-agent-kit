@@ -71,7 +71,7 @@
 - [审查授权](../adr/decision/2026-09-06-review-authorization.zh.md)
 - [同目录维护双语公开文档](../adr/decision/2026-09-07-colocate-bilingual-docs.zh.md)
 - [强制执行提交信息规范](../adr/decision/2026-09-17-enforce-commit-message-conventions.zh.md)
-- [明确 ADR 内容边界](../adr/decision/2026-09-23-clarify-adr-content-boundaries.zh.md)
 - [按范围执行开发检查](../adr/decision/2026-09-30-scope-aware-repository-checks.zh.md)
 - [增加规格层](../adr/decision/2026-10-04-add-spec-layer.zh.md)
 - [新增规则层](../adr/decision/2026-10-12-add-rule-layer.zh.md)
+- [明确 ADR 内容边界](../adr/decision/2026-10-15-clarify-adr-content-boundaries.zh.md)

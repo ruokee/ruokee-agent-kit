@@ -1,4 +1,4 @@
-# ADR decision: Compensate compaction request usage in QoL
+# Compensate compaction request usage in QoL
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash

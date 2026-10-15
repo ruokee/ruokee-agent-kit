@@ -1,10 +1,10 @@
-# ADR decision: Render the system prompt strategy only from the component template
+# Render the system prompt strategy only from the component template
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
 Reverses: [Render the system prompt strategy from a host template](../archived/2026-09-30-render-system-prompt-from-host-template.md)
 Archived: 2026-10-07
-Reversed by: [Retain the approaching-deprecation extension's template functionality](../decision/2026-10-07-retain-system-prompt-template.md)
+Reversed by: [Retain the template functionality of an extension approaching deprecation](../decision/2026-10-07-retain-system-prompt-template.md)
 
 English | [中文](./2026-10-04-use-system-prompt-template-only.zh.md)
 

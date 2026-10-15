@@ -1,4 +1,4 @@
-# ADR decision: Use a persistent widget for the OMP status bar
+# Use a persistent widget for the OMP status bar
 
 Decision owner: Ruokee
 Decision writer: OMP GLM-5.3 Flash
@@ -21,7 +21,7 @@ The earlier proposal's still-valid architecture carries over: one self-contained
 
 ## Decision
 
-### Keep one self-contained package
+### Keep one self contained package
 
 `projects/omp-status-bar/` is one first-party, self-contained OMP Plugin Package. The [first-party capability kit decision](../decision/2026-08-20-establish-first-party-capability-kit.md) permits a real capability to use `projects/`, and the [self-contained component decision](../decision/2026-08-24-keep-components-self-contained.md) requires every distributable component to remain independent. The `package.json` declares the native extension entry through `omp.extensions`, and the package uses only public upstream OMP APIs without containing, patching, or requiring a local fork.
 
@@ -69,7 +69,7 @@ The Host sanitizes every span: it strips ANSI and VT escape sequences, replaces 
 
 Providers never call OMP UI methods, never obtain the widget or theme, and never emit separators.
 
-### Ship the built-in metric providers
+### Ship the built in metric providers
 
 The built-in IDs are exactly `total`, `input`, `cache`, `output`, `cache-hit`, and `context`. The earlier `tokens` ID disappears without an alias. There is no `cost` provider: amounts are excluded from the package scope by product decision, and the package reads, formats, and configures no cost, subscription, or premium-request amounts.
 

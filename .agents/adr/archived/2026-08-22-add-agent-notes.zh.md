@@ -1,4 +1,4 @@
-# ADR 决定：添加 Agent Note 机制
+# 添加 Agent Note 机制
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -88,10 +88,10 @@ Reversed by: [建立 ADR 机制](./2026-09-02-establish-adr-mechanism.zh.md)
 
 ## 变更
 
-### 2026-08-22：将 Consequences 译为中性的结果
+### 2026-08-22 将 Consequences 译为中性的结果
 
 `## Consequences` 在中文格式中译为 `## 结果`，不译为 `## 后果`。`后果` 在中文语境下强调不良影响或负面结果，通常与错误或不当行为有关；`结果` 是更普遍、常用且中性的词汇。
 
-### 2026-08-22：使用动机作为起始章节
+### 2026-08-22 使用动机作为起始章节
 
 第一个必需正文标题由 `## 问题` 改为 `## 动机`（英文由 `## Problem` 改为 `## Motivation`）。`Motivation` 同时容纳已经观察到的问题、需求、希望获得的能力和其他具体变更理由。所有现有 Note 在同一变更中一并迁移，仓库中不再有以旧标题开始的 Note 正文。

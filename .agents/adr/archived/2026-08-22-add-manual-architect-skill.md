@@ -1,4 +1,4 @@
-# ADR decision: Add a manually invoked architect Skill
+# Add a manually invoked architect Skill
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol

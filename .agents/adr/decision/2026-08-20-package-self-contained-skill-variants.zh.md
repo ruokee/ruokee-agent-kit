@@ -1,4 +1,4 @@
-# ADR 决定：将 Skill 打包为自包含语言变体
+# 将 Skill 打包为自包含语言变体
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -41,6 +41,6 @@ Decision writer: OMP GPT-5.6 Sol
 
 ## 变更
 
-### 2026-09-02：记录使用独立名称的 tk 语言 Skill
+### 2026-09-02 记录使用独立名称的 tk 语言 Skill
 
 tk 使用可独立发现的 `tk`、`tk-zh`、`tk-cli` 和 `tk-cli-zh`。它们是不同的 Skill 身份，不属于同名语言 variant，因此四者都位于 `projects/tk/skills/<name>/`。其他 Skill 的同名 variant 规则保持不变。

@@ -1,4 +1,4 @@
-# ADR 决定：使用 Prettier 格式化 Markdown
+# 使用 Prettier 格式化 Markdown
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee

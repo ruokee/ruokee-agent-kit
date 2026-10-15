@@ -1,4 +1,4 @@
-# ADR 决定：在独立等待入口上维护 OMP 体验调整
+# 在独立等待入口上维护 OMP 体验调整
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
@@ -167,7 +167,7 @@ OMP 18.5.1 中，使用 `session_before_compact` 绑定缓存归属，即使只�
 
 ## 变更
 
-### 2026-10-05：通用上下文处理模式
+### 2026-10-05 通用上下文处理模式
 
 提供原生 `compactionCacheMode`，取值为 `standard` 和 `hooks`，默认 `hooks`。模式选择上下文处理方式，不决定是否开启缓存。既有的默认关闭、显式提供方选择、激活时设置快照、整条请求边界与原生生命周期继续有效。非法模式只影响缓存模块；有效模式参与 owner 兼容判断，并由 `/qol` 报告。设置合同属于 [projects/omp-qol/README.zh.md](../../../projects/omp-qol/README.zh.md)。
 

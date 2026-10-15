@@ -1,4 +1,4 @@
-# ADR decision: Distribute selectable tk Harness components
+# Distribute selectable tk Harness components
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee

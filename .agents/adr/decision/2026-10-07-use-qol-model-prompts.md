@@ -1,8 +1,8 @@
-# ADR decision: Provide opt-in model prompt rules through QoL
+# Provide model prompt rules that are off by default through QoL
 
 Decision owner: Ruokee
 Decision writer: OMP
-Reverses: [Add model-scoped prompt rules to the system prompt extension](../archived/2026-09-14-add-model-prompt-rules.md)
+Reverses: [Add model scoped prompt rules to the system prompt extension](../archived/2026-09-14-add-model-prompt-rules.md)
 
 English | [中文](./2026-10-07-use-qol-model-prompts.zh.md)
 
@@ -66,7 +66,7 @@ Regular expressions run as JavaScript regular expressions with no timeout and no
 
 Each turn uses its effective event model and current cwd; no model means no rule read. Model switches, file additions, edits, deletions, and repairs re-match on the next covered turn without a body snapshot or cache. Coverage is ordinary main sessions and ordinary child Agents that run the hook, preserving each child's own model, role, and independent blocks. No new injection route serves plan-mode, Handoff, titles, classification, or other bypasses. Refresh is per turn, not per Provider request, temporary mid-turn switch, or automatic fallback. Unexpected processing errors preserve the input, and diagnostic failure cannot stop the model turn.
 
-### Upstream re-check
+### Upstream recheck
 
 The component documents the re-check it needs when the host provides model-scoped instructions itself, through upstream issue #6739 or an equivalent capability:
 
@@ -111,14 +111,14 @@ The append step reads both rule directories on every turn the hook runs, so a sl
 
 ## Changes
 
-### 2026-09-28: Maintenance declaration inherited with the host contract
+### 2026-09-28 Maintenance declaration inherited with the host contract
 
-The component keeps the host contract it inherits from [Render the system prompt strategy from a host template](../archived/2026-09-30-render-system-prompt-from-host-template.md): the README compatibility section declares the maintenance lower bound under [Adapt first-party host components to host upgrades](../archived/2026-09-28-adapt-components-to-host-upgrades.md), while the host peer stays unrestricted. Appending matching rule documents, the settings the component reads, and the check of the native capability it depends on stay unchanged.
+The component keeps the host contract it inherits from [Render the system prompt strategy from a host template](../archived/2026-09-30-render-system-prompt-from-host-template.md): the README compatibility section declares the maintenance lower bound under [Adapt first party host components to host upgrades](../archived/2026-09-28-adapt-components-to-host-upgrades.md), while the host peer stays unrestricted. Appending matching rule documents, the settings the component reads, and the check of the native capability it depends on stay unchanged.
 
-### 2026-09-30: A restricted-tool child on OMP 18.4.3 runs both handlers
+### 2026-09-30 A restricted tool child on OMP 18.4.3 runs both handlers
 
 On OMP 18.4.3, the `scout` agent spawned through the `task` tool carries a restricted tool set and sends a provider request that contains both the replacement result and the matching model-rule body, so the replacement handler and the rule append handler both run for that child. The verification entry above therefore describes the environment exercised when it was written, a plan-mode restricted subagent, rather than restricted subagents in general. Whether an OMP 18.4.3 plan-mode child runs the handlers stays unverified, and the two subagent classes keep separate statements in this decision. Evidence: the OMP 18.4.3 host checks recorded in the [component README](../../../projects/omp-system-prompt/README.md) verification scope.
 
-### 2026-10-04: Host contract from the template-only successor
+### 2026-10-04 Host contract from the template only successor
 
 The component inherits its host contract from [Render the system prompt strategy only from the component template](../archived/2026-10-04-use-system-prompt-template-only.md), and its maintenance lower bound is OMP 18.5.0 under [Maintain host components against a shared OMP floor](./2026-10-04-raise-omp-host-floor.md). The append step still runs after the replacement step. A turn without the component template is a no-op for the replacement step rather than a failure, and the append step still extends the host's system prompt array on that turn.

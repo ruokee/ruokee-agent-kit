@@ -1,4 +1,4 @@
-# ADR decision: Add a tk CLI-only mode
+# Add a mode that uses only the tk CLI
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
@@ -37,6 +37,6 @@ The CLI-only Skills must stay synchronized with the public CLI contract and rema
 
 ## Changes
 
-### 2026-09-03: Add direct CLI Skill installation
+### 2026-09-03 Add direct CLI Skill installation
 
 The same self-contained CLI Skills can now be installed into an explicit Skill root without a Harness wrapper, native manifest, or registration change. The fixed runtime prerequisite still applies.

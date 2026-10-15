@@ -1,4 +1,4 @@
-# ADR decision: Allow model invocation of architect
+# Allow model invocation of architect
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol

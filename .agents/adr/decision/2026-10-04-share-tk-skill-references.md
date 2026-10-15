@@ -1,4 +1,4 @@
-# ADR decision: Align tk usage patterns with shared Skill reference sources
+# Align tk usage patterns with shared Skill reference sources
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
@@ -105,7 +105,7 @@ A parameter table, algorithm, or normative field definition appears only on its 
 
 ADRs preserve durable decisions, alternatives, and consequences. They link to current public contracts instead of copying full command, field, or test inventories.
 
-### Final-state wording
+### Final state wording
 
 Public documentation states the current formal contract as if it had been implemented in that form from the beginning. It does not narrate design revisions, review debates, discarded development commands, compatibility with unreleased formats, or Agent work history.
 

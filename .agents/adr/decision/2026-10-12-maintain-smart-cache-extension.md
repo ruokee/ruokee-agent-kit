@@ -1,4 +1,4 @@
-# ADR decision: Maintain the smart-cache extension
+# Maintain the smart-cache extension
 
 Decision owner: Ruokee
 Decision writer: OMP
@@ -16,7 +16,7 @@ Two optimizations in one package also need a boundary that keeps them independen
 
 ## Decision
 
-### Extension self-containment
+### Extension self containment
 
 Maintain the self-contained package `@ruokee/omp-smart-cache` at `projects/omp-smart-cache`, with its own native `omp.extensions` entry, settings, checks, and English and Chinese documentation. Follow the [first-party boundary](./2026-08-20-establish-first-party-capability-kit.md) and [self-contained component contract](./2026-08-24-keep-components-self-contained.md). Do not import runtime code, settings readers, or documents from QoL or a local prototype.
 

@@ -1,4 +1,4 @@
-# ADR 决定：维护 tk 文档
+# 维护 tk 文档
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -83,18 +83,18 @@ ADR 提案和决定使用独立的仓库格式与目录。英文和中文文件�
 
 ## 变更
 
-### 2026-09-02：采用 ADR 文档模型
+### 2026-09-02 采用 ADR 文档模型
 
 tk 文档现在引用 `decision/` 下的当前 ADR，不再用 `implemented` 状态表示当前记录。提案和决定分别使用不含 `Status` 字段的独立格式，生命周期权限仍归维护者。
 
-### 2026-09-02：记录可选择的组件
+### 2026-09-02 记录可选择的组件
 
 文档覆盖 tools 与 CLI 模式、通过 `tk install` 选择英文或中文、四个 Skill 身份、多份组件载荷和分离的路由合同。上方四个 Skill 路径取代此前的英文 Skill，以及需要手动安装的中文 Skill。
 
-### 2026-09-03：记录自定义 CLI Skill 根目录
+### 2026-09-03 记录自定义 CLI Skill 根目录
 
 文档现在覆盖多份 Harness 载荷、两份与 Harness 无关的 CLI Skill 载荷、互斥的安装目标，以及有限范围的自定义根目录生命周期。
 
-### 2026-09-07：定义组件 README 导航
+### 2026-09-07 定义组件 README 导航
 
 公开文档集合包括组件[英文 README](../../../projects/tk/README.md) 和[中文 README](../../../projects/tk/README.zh.md)。它们介绍 tk 并链接现有指南和设计页面，不重复详细命令或规范性合同。仓库 README 文件对链接到这些组件入口页。公开 Markdown 文档遵循[公开文档决定](../decision/2026-09-07-colocate-bilingual-docs.zh.md)，采用同目录 `name.md` 和 `name.zh.md` 配对；主题归属保持不变。

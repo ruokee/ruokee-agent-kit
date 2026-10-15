@@ -1,4 +1,4 @@
-# ADR 决定：添加用户主动调用的 grill-me Skill
+# 添加用户主动调用的 grill-me Skill
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra

@@ -1,4 +1,4 @@
-# ADR decision: Add the Agent Note mechanism
+# Add the Agent Note mechanism
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -88,10 +88,10 @@ Without classifications or an index, discovery depends on good slugs and reposit
 
 ## Changes
 
-### 2026-08-22: Use a neutral Chinese translation for Consequences
+### 2026-08-22 Use a neutral Chinese translation for Consequences
 
 The Chinese format translates `## Consequences` as `## 结果`, not `## 后果`. In Chinese, `后果` usually emphasizes harmful effects or negative outcomes associated with errors or improper conduct. `结果` is the broader, more common, and neutral term.
 
-### 2026-08-22: Use Motivation as the opening section
+### 2026-08-22 Use Motivation as the opening section
 
 The first required body heading changed from `## Problem` to `## Motivation` in English and from `## 问题` to `## 动机` in Chinese. `Motivation` covers observed problems, requirements, desired capabilities, and other concrete reasons for change. Every existing note was migrated in the same change, so the repository no longer contains a note body that opens with the earlier heading.

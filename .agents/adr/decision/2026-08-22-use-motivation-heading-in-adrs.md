@@ -1,4 +1,4 @@
-# ADR decision: Use Motivation as the opening section
+# Use Motivation as the opening section
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -22,7 +22,7 @@ The first required body heading in every ADR template is `## Motivation` in Engl
 
 `Motivation` records why the decision is being considered. Its content may describe an observed problem, a requirement, a desired capability, or another concrete reason for change. It does not weaken the expectation that the section state the reason precisely.
 
-The fixed-format examples and authoring rules in [`.agents/adr/README.md`](../README.md) and [`.agents/adr/README.zh.md`](../README.zh.md) use the new heading, and the surrounding rules define motivation broadly enough to include problems, requirements, and desired additions. The current [ADR mechanism decision](./2026-09-23-clarify-adr-content-boundaries.md) applies the heading to both proposals and decisions.
+The fixed-format examples and authoring rules in [`.agents/adr/README.md`](../README.md) and [`.agents/adr/README.zh.md`](../README.zh.md) use the new heading, and the surrounding rules define motivation broadly enough to include problems, requirements, and desired additions. The current [ADR mechanism decision](./2026-10-15-clarify-adr-content-boundaries.md) applies the heading to both proposals and decisions.
 
 Every current proposal and decision template opens with `Motivation`. Historical Git revisions may retain references to the earlier `Problem` heading.
 
@@ -44,14 +44,14 @@ The English and Chinese documentation describe the same rule.
 
 ## Changes
 
-### 2026-09-02: Apply Motivation to both ADR types
+### 2026-09-02 Apply Motivation to both ADR types
 
 The separate proposal and decision templates both keep `Motivation` as their first required body section.
 
-### 2026-09-23: Require an independently understandable opening
+### 2026-09-23 Require an independently understandable opening
 
-The [mechanism decision](./2026-09-23-clarify-adr-content-boundaries.md) refines this rule without conflict. The first sentence of `Motivation` identifies the subject and the concrete problem, intended change, or goal without relying on the title, links, or later text, and an optional `## Analysis` section may follow `Motivation`.
+The [mechanism decision](./2026-10-15-clarify-adr-content-boundaries.md) refines this rule without conflict. The first sentence of `Motivation` identifies the subject and the concrete problem, intended change, or goal without relying on the title, links, or later text, and an optional `## Analysis` section may follow `Motivation`.
 
-### 2026-09-29: Require a one-sentence opening paragraph
+### 2026-09-29 Require a single sentence opening paragraph
 
-The [mechanism decision](./2026-09-23-clarify-adr-content-boundaries.md) refines this rule. The first paragraph of `Motivation` is one short sentence stating what is to be done, written as the action itself rather than as a description of the record, and the concrete problem, background, reasons, and evidence follow in later paragraphs.
+The [mechanism decision](./2026-10-15-clarify-adr-content-boundaries.md) refines this rule. The first paragraph of `Motivation` is one short sentence stating what is to be done, written as the action itself rather than as a description of the record, and the concrete problem, background, reasons, and evidence follow in later paragraphs.

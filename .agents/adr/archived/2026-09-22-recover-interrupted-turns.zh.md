@@ -1,4 +1,4 @@
-# ADR 决定：新增可配置的 OMP 体验调整
+# 新增可配置的 OMP 体验调整
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
@@ -109,7 +109,7 @@ Reversed by: [随 OMP 宿主升级维护 OMP 体验调整](./2026-09-28-maintain
 
 ## 变更
 
-### 2026-09-22：原生历史重放模块
+### 2026-09-22 原生历史重放模块
 
 `omp-qol` 现在同时发布 `replay` 模块，独立开关的第四个模块，让恢复的进程仍以原生重放形式发出第一条请求。开关为 `replayEnabled`，在组件总开关 `enabled` 之下默认开启。它在进程内包装一次 `Map.prototype.set`，对宿主为 `openai-responses` 提供方创建的状态设置 `nativeHistoryReplayWarmed`，其余写入原样交给被替换的函数。`/qol` 报告该模块的生效开关与被包装改写过的状态写入次数。
 

@@ -1,4 +1,4 @@
-# ADR decision: Scope development checks
+# Scope development checks
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6.1 Sol

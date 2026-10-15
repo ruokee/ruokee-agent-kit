@@ -1,4 +1,4 @@
-# ADR decision: Colocate bilingual public documentation
+# Colocate bilingual public documentation
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
@@ -24,7 +24,7 @@ Keep reciprocal language links. Each document must make sense on its own. Update
 
 Internal implementation notes, comments, generated files, and maintainer-only artifacts require translation only when their audience needs it. Define a real file pair when public behavior or usage first requires Chinese documentation; do not create empty language placeholders.
 
-ADRs use the stricter paired format defined by [the ADR mechanism decision](./2026-09-23-clarify-adr-content-boundaries.md). Both files remain semantically authoritative and move together, with the existing metadata and lifecycle rules.
+ADRs use the stricter paired format defined by [the ADR mechanism decision](./2026-10-15-clarify-adr-content-boundaries.md). Both files remain semantically authoritative and move together, with the existing metadata and lifecycle rules.
 
 ### Skill packaging
 

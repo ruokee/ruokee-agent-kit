@@ -1,4 +1,4 @@
-# ADR 决定：审查授权
+# 审查授权
 
 Decision owner: Ruokee
 Decision writer: OMP

@@ -1,4 +1,4 @@
-# ADR decision: Maintain the extension that improves the OMP experience
+# Maintain the extension that improves the OMP experience
 
 Decision owner: Ruokee
 Decision writer: OMP
@@ -34,9 +34,9 @@ Configure the component through OMP plugin settings only, following the [native 
 
 Keep the component limited to these behavior adjustments. External tool guards, including Herdr guards, and unrelated host behavior stay outside it. Installation and migration remain with the user: the component does not modify existing extensions, user configuration, or installed host files.
 
-### Opt-in model prompt rules
+### Model prompt rules that are off by default
 
-Maintain the independent module under [Provide opt-in model prompt rules through QoL](./2026-10-07-use-qol-model-prompts.md). `modelPromptsEnabled: false` is subordinate to the master switch and follows the same per-module boolean validation and fault isolation. The remaining modules retain their setting keys, defaults, ranges, process-wrapper ownership and release rules, and native-interface adaptation obligations. The remote cutover touches only its three settings and leaves every other preservation contract in force.
+Maintain the independent module under [Provide model prompt rules that are off by default through QoL](./2026-10-07-use-qol-model-prompts.md). `modelPromptsEnabled: false` is subordinate to the master switch and follows the same per-module boolean validation and fault isolation. The remaining modules retain their setting keys, defaults, ranges, process-wrapper ownership and release rules, and native-interface adaptation obligations. The remote cutover touches only its three settings and leaves every other preservation contract in force.
 
 On covered turns, rules read fixed user/project directories using the current effective model and cwd and append byte-exact bodies. Both switches must be on for the handler, directory reads, and unused-file diagnostics. Activation-snapshot changes require restart, rule files refresh next turn, and `/qol` reports effective state. Rules need neither system-prompt nor a template and do not join other modules' process-wrapper lifecycle. The model-rule decision fully specifies format, ordering, diagnostics, main/child sessions, failures, and upstream re-check.
 
@@ -85,7 +85,7 @@ The component reports the compaction state from the process registry when it is 
 
 The deadline implementation is selected by the host at hand. Where a host provides an equivalent request-level timeout setting or hook, the user-visible result, the configuration, and the failure behavior are compared first, and that interface is used instead of installing the wrapper. A host that is still maintained and has no equivalent interface keeps the implementation that provides the deadline, so the experiment above remains the implementation there. One runtime keeps one owner of the deadline policy: while the native interface is in use, no process-wide wrapper is installed beside it.
 
-### Keep a resumed process's first request in the native replay form
+### Keep the first request of a resumed process in the native replay form
 
 `omp-qol` ships `replay`, an independently switchable module that keeps a resumed process's first request in the native replay form. Its switch is `replayEnabled`, on by default under the component's master `enabled`. It installs one process-wide wrapper over `Map.prototype.set` that sets `nativeHistoryReplayWarmed` on the state the host creates for an `openai-responses` provider; every other write reaches the replaced function unchanged. `/qol` reports the module with its effective switch and the number of state writes the wrapper rewrote.
 
@@ -142,6 +142,6 @@ Verified claims stay separate per adjustment. The component README compatibility
 
 ## Changes
 
-### 2026-10-13: Compaction request usage
+### 2026-10-13 Compaction request usage
 
 [Compensate compaction request usage in QoL](./2026-10-13-compact-usage-compensation.md) adds a sixth module to the package: `compactionUsage`, on by default and subordinate to the master switch, writing the usage of the compaction and handoff requests the host does not journal itself. It stays inactive on a host that records those requests itself. The module lists in this decision read with that module included.

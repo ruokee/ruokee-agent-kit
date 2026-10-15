@@ -1,4 +1,4 @@
-# ADR 决定：提供 deep-research Skill
+# 提供 deep-research Skill
 
 Decision owner: Ruokee
 Decision writer: OMP

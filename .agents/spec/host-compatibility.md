@@ -54,8 +54,8 @@ The repository README summarizes the policy in [Component host maintenance](../.
 ## Related ADRs
 
 - [Maintain host components against a shared OMP floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)
-- [Keep distributable components self-contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
-- [Retain the approaching-deprecation extension's template functionality](../adr/decision/2026-10-07-retain-system-prompt-template.md)
+- [Keep distributable components self contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
+- [Retain the template functionality of an extension approaching deprecation](../adr/decision/2026-10-07-retain-system-prompt-template.md)
 - [Maintain the OMP status bar with a static context glyph](../adr/decision/2026-10-04-show-static-context-glyph.md)
 - [Maintain the extension that improves the OMP experience](../adr/decision/2026-10-10-maintain-omp-experience-extension.md)
 - [Maintain the smart-cache extension](../adr/decision/2026-10-12-maintain-smart-cache-extension.md)

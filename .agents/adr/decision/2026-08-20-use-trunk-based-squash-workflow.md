@@ -1,4 +1,4 @@
-# ADR decision: Squash short-lived branches into main
+# Squash short lived branches into main
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -39,6 +39,6 @@ A large task can still produce an oversized squash commit. Such work must be spl
 
 ## Changes
 
-### 2026-09-02: Separate ADR proposals from implementation
+### 2026-09-02 Separate ADR proposals from implementation
 
 An approved ADR proposal reaches `main` as its own squash commit before implementation begins. Implementation starts from that updated `main` on a new short-lived branch and reaches `main` through a separate review and squash.

@@ -1,4 +1,4 @@
-# ADR decision: Maintain bilingual public documentation
+# Maintain bilingual public documentation
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -37,6 +37,6 @@ Some public documents have no obvious counterpart. A change defines the pair whe
 
 ## Changes
 
-### 2026-09-02: Apply the ADR pair format
+### 2026-09-02 Apply the ADR pair format
 
 ADRs use the stricter English and Chinese pair format defined by [Establish the ADR mechanism](./2026-09-02-establish-adr-mechanism.md). Both files remain semantically authoritative and move together.

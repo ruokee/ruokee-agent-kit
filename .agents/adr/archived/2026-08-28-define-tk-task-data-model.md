@@ -1,4 +1,4 @@
-# ADR decision: Define the tk Task data model
+# Define the tk Task data model
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol

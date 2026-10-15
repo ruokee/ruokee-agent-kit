@@ -1,4 +1,4 @@
-# ADR decision: Maintain the OMP status bar with a static context glyph
+# Maintain the OMP status bar with a static context glyph
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
@@ -28,7 +28,7 @@ The session-wide total has no per-purpose split and no per-entry breakdown, so n
 
 ## Decision
 
-### Keep one self-contained package
+### Keep one self contained package
 
 `projects/omp-status-bar/` is one first-party, self-contained OMP Plugin Package. The [first-party capability kit decision](./2026-08-20-establish-first-party-capability-kit.md) permits a real capability to use `projects/`, and the [self-contained component decision](./2026-08-24-keep-components-self-contained.md) requires every distributable component to remain independent. The `package.json` declares the native extension entry through `omp.extensions`, and the package uses only public upstream OMP APIs without containing, patching, or requiring a local fork.
 

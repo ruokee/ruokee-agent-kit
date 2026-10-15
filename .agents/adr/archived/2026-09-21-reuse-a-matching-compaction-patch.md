@@ -1,10 +1,10 @@
-# ADR decision: Add configurable OMP quality-of-life adjustments
+# Add configurable OMP quality of life adjustments
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
-Reverses: [Add configurable OMP quality-of-life adjustments](../archived/2026-09-20-add-omp-qol.md)
+Reverses: [Add configurable OMP quality of life adjustments](../archived/2026-09-20-add-omp-qol.md)
 Archived: 2026-09-22
-Reversed by: [Add configurable OMP quality-of-life adjustments](../archived/2026-09-22-recover-interrupted-turns.md)
+Reversed by: [Add configurable OMP quality of life adjustments](../archived/2026-09-22-recover-interrupted-turns.md)
 
 English | [中文](./2026-09-21-reuse-a-matching-compaction-patch.zh.md)
 

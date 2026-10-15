@@ -1,10 +1,10 @@
-# ADR decision: Establish the ADR mechanism
+# Establish the ADR mechanism
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
 Reverses: [Add the Agent Note mechanism](./2026-08-22-add-agent-notes.md)
 Archived: 2026-09-23
-Reversed by: [Clarify the ADR content boundaries](../decision/2026-09-23-clarify-adr-content-boundaries.md)
+Reversed by: [Clarify the ADR content boundaries](./2026-09-23-clarify-adr-content-boundaries.md)
 
 English | [中文](./2026-09-02-establish-adr-mechanism.zh.md)
 
@@ -94,6 +94,6 @@ The glossary stays deliberately small. Ordinary wording and unconfirmed synonyms
 
 ## Changes
 
-### 2026-09-03: Refine the entry authoring rules
+### 2026-09-03 Refine the entry authoring rules
 
 Agents must not invent alternatives or risks to fill required sections. Alternatives must have entered the actual choice and must describe another course of action rather than a fact, requirement, constraint, acceptance criterion, implementation detail, or restatement. Risks must name a plausible harmful outcome caused by the proposal or by an omission, rather than relabeling facts, requirements, constraints, invariants, acceptance criteria, or tasks. A section containing only `None` or `无` is complete when no entry qualifies.

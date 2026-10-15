@@ -1,4 +1,4 @@
-# ADR 决定：OMP 状态栏使用常驻 Widget
+# OMP 状态栏使用常驻 Widget
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash

@@ -1,9 +1,9 @@
-# ADR decision: Add configurable OMP quality-of-life adjustments
+# Add configurable OMP quality of life adjustments
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
 Archived: 2026-09-21
-Reversed by: [Add configurable OMP quality-of-life adjustments](../archived/2026-09-21-reuse-a-matching-compaction-patch.md)
+Reversed by: [Add configurable OMP quality of life adjustments](../archived/2026-09-21-reuse-a-matching-compaction-patch.md)
 
 English | [中文](./2026-09-20-add-omp-qol.zh.md)
 

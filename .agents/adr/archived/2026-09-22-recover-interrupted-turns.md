@@ -1,10 +1,10 @@
-# ADR decision: Add configurable OMP quality-of-life adjustments
+# Add configurable OMP quality of life adjustments
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
-Reverses: [Add configurable OMP quality-of-life adjustments](../archived/2026-09-21-reuse-a-matching-compaction-patch.md)
+Reverses: [Add configurable OMP quality of life adjustments](../archived/2026-09-21-reuse-a-matching-compaction-patch.md)
 Archived: 2026-09-28
-Reversed by: [Maintain the OMP quality-of-life adjustments across OMP host upgrades](./2026-09-28-maintain-omp-qol.md)
+Reversed by: [Maintain the OMP quality of life adjustments across OMP host upgrades](./2026-09-28-maintain-omp-qol.md)
 
 English | [中文](./2026-09-22-recover-interrupted-turns.zh.md)
 
@@ -109,7 +109,7 @@ Verified claims stay separate per adjustment. A package-wide peer range is metad
 
 ## Changes
 
-### 2026-09-22: Native history replay
+### 2026-09-22 Native history replay
 
 `omp-qol` also ships `replay`, a fourth independently switchable module that keeps a resumed process's first request in the native replay form. Its switch is `replayEnabled`, on by default under the component's master `enabled`. It installs one process-wide wrapper over `Map.prototype.set` that sets `nativeHistoryReplayWarmed` on the state the host creates for an `openai-responses` provider; every other write reaches the replaced function unchanged. `/qol` reports the module with its effective switch and the number of state writes the wrapper rewrote.
 

@@ -1,4 +1,4 @@
-# ADR 决定：文件路径使用文档相对链接
+# 文件路径使用文档相对链接
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol

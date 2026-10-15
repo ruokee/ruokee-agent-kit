@@ -1,4 +1,4 @@
-# ADR 决定：允许模型调用 architect
+# 允许模型调用 architect
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol

@@ -1,4 +1,4 @@
-# ADR 决定：维护 smart-cache 扩展
+# 维护 smart-cache 扩展
 
 Decision owner: Ruokee
 Decision writer: OMP

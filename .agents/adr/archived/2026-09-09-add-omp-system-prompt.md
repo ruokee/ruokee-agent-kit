@@ -1,4 +1,4 @@
-# ADR decision: Add an OMP system prompt extension
+# Add an OMP system prompt extension
 
 Decision owner: Ruokee
 Decision writer: OMP
@@ -20,7 +20,7 @@ The peer dependency and runtime activation are not tied to a specific OMP releas
 
 ## Decision
 
-### Distribute one self-contained extension
+### Distribute one self contained extension
 
 Place the package, owned English prompt, runtime code, tests, and bilingual public documentation in `projects/omp-system-prompt/`. Declare the entry through native `omp.extensions` metadata. Use the unmodified OMP distribution and public extension APIs only. Do not import private prompt builders, rescan resources, vendor upstream templates, patch installed files, create an SDK-owned replacement session, or write `SYSTEM.md` for the user.
 
@@ -92,10 +92,10 @@ Structural coverage and fail-open behavior are load-bearing: changes to recogniz
 
 ## Changes
 
-### 2026-09-14: Append model-scoped prompt rules
+### 2026-09-14 Append model scoped prompt rules
 
-The component also appends user-authored rule documents that match the turn's model. It reads `model-prompts` under the user and project agent directories and appends one block per matching file after the array the replacement step produced; a replacement failure still lets the append step extend the incoming host array. The replacement contract above stays unchanged, and the capability is recorded in [Add model-scoped prompt rules to the system prompt extension](./2026-09-14-add-model-prompt-rules.md).
+The component also appends user-authored rule documents that match the turn's model. It reads `model-prompts` under the user and project agent directories and appends one block per matching file after the array the replacement step produced; a replacement failure still lets the append step extend the incoming host array. The replacement contract above stays unchanged, and the capability is recorded in [Add model scoped prompt rules to the system prompt extension](./2026-09-14-add-model-prompt-rules.md).
 
-### 2026-09-28: Maintenance declaration in the component README
+### 2026-09-28 Maintenance declaration in the component README
 
-The component's README compatibility section declares its maintenance lower bound under [Adapt first-party host components to host upgrades](./2026-09-28-adapt-components-to-host-upgrades.md). The declaration changes none of the rules above: the host peer stays unrestricted, the component still never reads the host version to decide eligibility, activation, transformation, diagnostics, or fallback, and structural recognition, the fail-open fallback, and the provider evidence contract keep their meaning.
+The component's README compatibility section declares its maintenance lower bound under [Adapt first party host components to host upgrades](./2026-09-28-adapt-components-to-host-upgrades.md). The declaration changes none of the rules above: the host peer stays unrestricted, the component still never reads the host version to decide eligibility, activation, transformation, diagnostics, or fallback, and structural recognition, the fail-open fallback, and the provider evidence contract keep their meaning.

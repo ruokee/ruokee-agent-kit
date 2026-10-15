@@ -1,4 +1,4 @@
-# ADR decision: Add a specification layer
+# Add a specification layer
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
@@ -18,10 +18,10 @@ ADRs are not meant to fill that role. The [ADR guide](../README.md) defines an A
 The following current decisions bear on the layer. None of them conflicts with it, so this decision reverses no decision.
 
 - [Colocate bilingual public documentation](./2026-09-07-colocate-bilingual-docs.md) requires same-directory `name.md` and `name.zh.md` pairs with reciprocal links for ordinary public pages, and `README.md` and `README.zh.md` for entry pages. Maintainer-only artifacts need translation only when their audience needs it. Specs are written for maintainers and Agents, and making them bilingual is within that decision. Its rule that detailed commands, parameters, and normative behavior stay on their owning pages also applies to specs.
-- [Clarify the ADR content boundaries](./2026-09-23-clarify-adr-content-boundaries.md) defines what an ADR must contain. It states that relocating a binding clause does not cancel it and that a link to changing current documentation cannot replace the historical contract. A spec changes directly and keeps no history, so it cannot replace the contract recorded in a decision. ADR content rules, lifecycle, and glossary stay unchanged.
-- [Keep distributable components self-contained](./2026-08-24-keep-components-self-contained.md) forbids references from inside a component to files outside it and allows repository-wide documentation outside component directories to reference components. A spec under `.agents/spec/` is such documentation. Its `Changes` entry keeps each component's maintenance declaration inside the component.
+- [Clarify the ADR content boundaries](./2026-10-15-clarify-adr-content-boundaries.md) defines what an ADR must contain. It states that relocating a binding clause does not cancel it and that a link to changing current documentation cannot replace the historical contract. A spec changes directly and keeps no history, so it cannot replace the contract recorded in a decision. ADR content rules, lifecycle, and glossary stay unchanged.
+- [Keep distributable components self contained](./2026-08-24-keep-components-self-contained.md) forbids references from inside a component to files outside it and allows repository-wide documentation outside component directories to reference components. A spec under `.agents/spec/` is such documentation. Its `Changes` entry keeps each component's maintenance declaration inside the component.
 - [Align tk usage patterns with shared Skill reference sources](./2026-10-04-share-tk-skill-references.md) gives each tk behavior one primary owning page under `projects/tk/docs/`, including system boundaries, invariants, and validation. A tk spec that restated them would create a second owner, so a spec links to an owning page instead.
-- [Establish a first-party Agent capability kit](./2026-08-20-establish-first-party-capability-kit.md) adds new top-level structure only with a real component. `.agents/` already exists, so the layer adds no top-level area.
+- [Establish a first party Agent capability kit](./2026-08-20-establish-first-party-capability-kit.md) adds new top-level structure only with a real component. `.agents/` already exists, so the layer adds no top-level area.
 
 ## Decision
 

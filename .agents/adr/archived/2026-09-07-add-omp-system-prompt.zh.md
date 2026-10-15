@@ -1,4 +1,4 @@
-# ADR 决定：添加 OMP 系统提示词扩展
+# 添加 OMP 系统提示词扩展
 
 Decision owner: Ruokee
 Decision writer: OMP

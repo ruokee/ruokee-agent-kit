@@ -1,4 +1,4 @@
-# ADR decision: Format Markdown with Prettier
+# Format Markdown with Prettier
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee

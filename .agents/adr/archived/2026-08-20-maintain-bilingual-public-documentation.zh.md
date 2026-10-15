@@ -1,4 +1,4 @@
-# ADR 决定：维护双语公开文档
+# 维护双语公开文档
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -37,6 +37,6 @@ Reversed by: [同目录维护双语公开文档](../decision/2026-09-07-colocate
 
 ## 变更
 
-### 2026-09-02：采用 ADR 文件对格式
+### 2026-09-02 采用 ADR 文件对格式
 
 ADR 使用 [建立 ADR 机制](./2026-09-02-establish-adr-mechanism.zh.md) 定义的严格中英文文件对格式。两份文件在语义上具有同等权威，并且一起移动。

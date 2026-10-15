@@ -1,4 +1,4 @@
-# ADR decision: Add an OMP system prompt extension
+# Add an OMP system prompt extension
 
 Decision owner: Ruokee
 Decision writer: OMP
@@ -29,7 +29,7 @@ The evidence baseline is OMP `v18.1.11`, commit `e3106be68f778635da3a17106835ce2
 
 ## Decision
 
-### Distribute one self-contained extension
+### Distribute one self contained extension
 
 Add `projects/omp-system-prompt/` as the first-party package `@ruokee/omp-system-prompt`. Declare its entry through native `omp.extensions` metadata. Keep its runtime, maintainer-owned English prompt, checks, and bilingual README documentation inside the component. This follows the [first-party capability boundary](../decision/2026-08-20-establish-first-party-capability-kit.md) and [self-contained component contract](../decision/2026-08-24-keep-components-self-contained.md); neither decision needs reversal.
 
@@ -135,7 +135,7 @@ Hidden Skills remain absent from the automatic system catalog and retain the hos
 
 Use the host's existing manual-invocation path. Preserve the invoked Skill's full body, user-supplied arguments, and user attribution; do not apply catalog description formatting to that message. Manual invocation does not require exposing the hidden Skill in the automatic catalog. The extension neither adds its own invocation mechanism nor bypasses disabled host commands.
 
-### Separate Skill fallback from whole-prompt failure
+### Separate Skill fallback from a whole prompt failure
 
 Use the current `event.systemPrompt`, never a startup snapshot or `ctx.getSystemPrompt()` as a substitute for the handler-chain input. Process each turn independently. Load the owned template when the extension activates; template edits require reactivation or a new session, not a file watcher.
 
@@ -167,7 +167,7 @@ Earlier extensions' independent blocks remain intact. An earlier edit that makes
 
 A CLI flag would affect one invocation, would not persist the choice, and would not provide a project-level override. It does not meet the requirement for a durable user setting that projects can shadow, so it was rejected.
 
-### Use a component-owned config file or parse the lockfile
+### Use a config file owned by the component or parse the lockfile
 
 A component-owned file would create a second configuration source. Parsing `omp-plugins.lock.json` or another host file directly would copy OMP's configuration responsibility and bypass the public API. Both approaches were rejected in favor of the native plugin setting and public effective-settings lookup.
 

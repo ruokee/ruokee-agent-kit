@@ -1,8 +1,8 @@
-# ADR decision: Maintain OMP quality-of-life adjustments on the standalone wait entry
+# Maintain OMP quality of life adjustments on the standalone wait entry
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
-Reverses: [Maintain OMP quality-of-life adjustments while preserving speculative compaction](../archived/2026-10-04-preserve-speculative-cache.md)
+Reverses: [Maintain OMP quality of life adjustments while preserving speculative compaction](../archived/2026-10-04-preserve-speculative-cache.md)
 Archived: 2026-10-07
 Reversed by: [Maintain QoL model prompts](./2026-10-07-maintain-qol-model-prompts.md)
 
@@ -83,7 +83,7 @@ The component reports the compaction state from the process registry when it is 
 
 The deadline implementation is selected by the host at hand. Where a host provides an equivalent request-level timeout setting or hook, the user-visible result, the configuration, and the failure behavior are compared first, and that interface is used instead of installing the wrapper. A host that is still maintained and has no equivalent interface keeps the implementation that provides the deadline, so the experiment above remains the implementation there. One runtime keeps one owner of the deadline policy: while the native interface is in use, no process-wide wrapper is installed beside it.
 
-### Keep a resumed process's first request in the native replay form
+### Keep the first request of a resumed process in the native replay form
 
 `omp-qol` ships `replay`, an independently switchable module that keeps a resumed process's first request in the native replay form. Its switch is `replayEnabled`, on by default under the component's master `enabled`. It installs one process-wide wrapper over `Map.prototype.set` that sets `nativeHistoryReplayWarmed` on the state the host creates for an `openai-responses` provider; every other write reaches the replaced function unchanged. `/qol` reports the module with its effective switch and the number of state writes the wrapper rewrote.
 
@@ -167,7 +167,7 @@ Verified claims stay separate per adjustment. The component README compatibility
 
 ## Changes
 
-### 2026-10-05: Generic context processing modes
+### 2026-10-05 Generic context processing modes
 
 Provide native `compactionCacheMode` values `standard` and `hooks`, defaulting to `hooks`. The mode selects context processing, not whether caching is enabled. The existing disabled default, explicit provider selection, activation-time settings snapshot, whole-request boundary, and native lifecycle remain binding. Invalid modes affect only the cache module; effective modes participate in owner compatibility and `/qol` status. The setting contract belongs to [projects/omp-qol/README.md](../../../projects/omp-qol/README.md).
 

@@ -1,4 +1,4 @@
-# ADR 决定：新增可配置的 OMP 体验调整
+# 新增可配置的 OMP 体验调整
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash

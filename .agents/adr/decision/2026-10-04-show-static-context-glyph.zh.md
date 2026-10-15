@@ -1,4 +1,4 @@
-# ADR 决定：以静态上下文字形维护 OMP 状态栏
+# 以静态上下文字形维护 OMP 状态栏
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5

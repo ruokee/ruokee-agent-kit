@@ -1,4 +1,4 @@
-# ADR 决定：在 QoL 中补记压缩请求用量
+# 在 QoL 中补记压缩请求用量
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash

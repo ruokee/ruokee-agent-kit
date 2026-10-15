@@ -1,4 +1,4 @@
-# ADR 决定：增加 well-said 写作 Skill
+# 增加 well-said 写作 Skill
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
@@ -122,7 +122,7 @@ Skill 内部规则与现有写作指令可能重叠或冲突，导致修改不�
 
 ## 变更
 
-### 2026-09-14：将 Agent 交接消息纳入适用范围
+### 2026-09-14 将 Agent 交接消息纳入适用范围
 
 写作范围明确包括 Agent 之间的自然语言消息：委派、任务交接和评审反馈。这类消息面向将要执行任务的 Agent，也面向之后阅读它的人。
 

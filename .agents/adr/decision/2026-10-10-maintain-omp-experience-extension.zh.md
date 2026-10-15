@@ -1,4 +1,4 @@
-# ADR 决定：维护提高 OMP 使用体验的拓展
+# 维护提高 OMP 使用体验的拓展
 
 Decision owner: Ruokee
 Decision writer: OMP
@@ -142,6 +142,6 @@ Reverses: [维护 QoL 模型提示词](../archived/2026-10-07-maintain-qol-model
 
 ## 变更
 
-### 2026-10-13：压缩请求用量
+### 2026-10-13 压缩请求用量
 
 [在 QoL 中补记压缩请求用量](./2026-10-13-compact-usage-compensation.zh.md)为本包新增第六个模块：`compactionUsage`，默认开启并受总开关约束，记录宿主自己不入账的压缩与 handoff 请求的用量。宿主自己记录这些请求时它保持停用。本决定中的模块清单视为包含该模块。

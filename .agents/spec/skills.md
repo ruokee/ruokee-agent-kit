@@ -49,11 +49,11 @@ None. Skills are instructions and do not load code into a host process, so they 
 
 ## Related ADRs
 
-- [Package Skills as self-contained language variants](../adr/decision/2026-08-20-package-self-contained-skill-variants.md)
-- [Keep distributable components self-contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
-- [Establish a first-party Agent capability kit](../adr/decision/2026-08-20-establish-first-party-capability-kit.md)
+- [Package Skills as self contained language variants](../adr/decision/2026-08-20-package-self-contained-skill-variants.md)
+- [Keep distributable components self contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
+- [Establish a first party Agent capability kit](../adr/decision/2026-08-20-establish-first-party-capability-kit.md)
 - [Colocate bilingual public documentation](../adr/decision/2026-09-07-colocate-bilingual-docs.md)
-- [Add the user-invoked grill-me Skill](../adr/decision/2026-09-06-add-grill-me-skill.md)
+- [Add the grill-me Skill that a user invokes](../adr/decision/2026-09-06-add-grill-me-skill.md)
 - [Allow model invocation of architect](../adr/decision/2026-09-18-make-architect-model-invoked.md)
 - [Provide the deep-research Skill](../adr/decision/2026-09-06-migrate-deep-research.md)
 - [Rewrite the well-said Skill](../adr/decision/2026-10-08-rewrite-well-said.md)

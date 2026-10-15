@@ -1,4 +1,4 @@
-# ADR decision: Define the tk product architecture
+# Define the tk product architecture
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -69,10 +69,10 @@ The runtime is a shared failure boundary. A defect in the executable can affect 
 
 ## Changes
 
-### 2026-09-02: Add selectable Skills
+### 2026-09-02 Add selectable Skills
 
 The product now has four independently discoverable Skills and multiple Harness component selections. The ownership list above replaces the archived single-language Harness integration and distribution decisions with four focused current decisions.
 
-### 2026-09-03: Add custom CLI Skill roots
+### 2026-09-03 Add custom CLI Skill roots
 
 The product still has four independently discoverable Skills and multiple Harness component selections. The runtime also carries two Harness-independent CLI Skill payloads so `tk-cli` and `tk-cli-zh` can be installed into an explicit Skill root.

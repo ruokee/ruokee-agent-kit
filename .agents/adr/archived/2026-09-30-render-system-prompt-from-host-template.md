@@ -1,4 +1,4 @@
-# ADR decision: Render the system prompt strategy from a host template
+# Render the system prompt strategy from a host template
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
@@ -61,7 +61,7 @@ The template path is idempotent. A turn whose input already carries the template
 
 ### Compatibility boundary
 
-The compatibility object is the extension, not the host. The default host peer dependency stays unrestricted, and the extension still reads no host version to decide eligibility, activation, transformation, diagnostics, or fallback. Structural recognition of the turn input remains the compatibility boundary. The component does not require the host to keep its older default block, does not carry the template route back to hosts that lack it, does not vendor host-authored prompt text, and raises no maintenance bound. The component's documented maintenance declaration stays as recorded in [Adapt first-party host components to host upgrades](./2026-09-28-adapt-components-to-host-upgrades.md), and the component documents the fixture its automated checks render and the release each observation came from.
+The compatibility object is the extension, not the host. The default host peer dependency stays unrestricted, and the extension still reads no host version to decide eligibility, activation, transformation, diagnostics, or fallback. Structural recognition of the turn input remains the compatibility boundary. The component does not require the host to keep its older default block, does not carry the template route back to hosts that lack it, does not vendor host-authored prompt text, and raises no maintenance bound. The component's documented maintenance declaration stays as recorded in [Adapt first party host components to host upgrades](./2026-09-28-adapt-components-to-host-upgrades.md), and the component documents the fixture its automated checks render and the release each observation came from.
 
 ### Rules preserved from the archived decision
 
@@ -95,7 +95,7 @@ Text recognition remains no provenance or security boundary. Real-host verificat
 
 ## Changes
 
-### 2026-10-03: Conditional footer ownership
+### 2026-10-03 Conditional footer ownership
 
 The template footer contract recognizes the exactly known main-agent and subagent critical tails at the validated outer boundary. Unknown tails and ambiguous outer structure retain their existing preservation and diagnostic behavior. The strict older `PROJECT` path is unchanged.
 

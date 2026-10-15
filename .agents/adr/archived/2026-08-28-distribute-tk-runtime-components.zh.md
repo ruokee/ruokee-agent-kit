@@ -1,4 +1,4 @@
-# ADR 决定：分发 tk 运行时组件
+# 分发 tk 运行时组件
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol

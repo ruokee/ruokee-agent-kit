@@ -1,4 +1,4 @@
-# ADR 决定：将 Skill 语言选择集成到 tk install
+# 将 Skill 语言选择集成到 tk install
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
@@ -44,6 +44,6 @@ Decision writer: OMP GPT-5.6 Sol, Ruokee
 
 ## 变更
 
-### 2026-09-03：把语言选择用于自定义根目录
+### 2026-09-03 把语言选择用于自定义根目录
 
 自定义根目录 install 使用相同的 `--language <en|zh>` 选择和 `en` 默认值。自定义根目录 uninstall 没有语言选择项，并删除两个已知 CLI Skill 身份。

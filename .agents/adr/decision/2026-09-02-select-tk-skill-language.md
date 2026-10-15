@@ -1,4 +1,4 @@
-# ADR decision: Integrate Skill language selection into tk install
+# Integrate Skill language selection into tk install
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
@@ -44,6 +44,6 @@ The two language implementations in each mode must remain semantically aligned, 
 
 ## Changes
 
-### 2026-09-03: Apply language selection to custom roots
+### 2026-09-03 Apply language selection to custom roots
 
 Custom-root install uses the same `--language <en|zh>` selection and `en` default. Custom-root uninstall has no language selector and removes both known CLI Skill identities.

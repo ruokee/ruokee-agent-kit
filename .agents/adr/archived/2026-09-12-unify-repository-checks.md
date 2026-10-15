@@ -1,4 +1,4 @@
-# ADR decision: Unify repository checks
+# Unify repository checks
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
@@ -62,14 +62,14 @@ The complete check needs every component dependency tree and takes longer than t
 
 ## Changes
 
-### 2026-09-15: Cover the omp-context-pin component checks
+### 2026-09-15 Cover the omp-context-pin component checks
 
 The aggregate also runs `pnpm --dir projects/omp-context-pin run typecheck` and `run test` as order 5, before the native tk adapter, which becomes order 6. The table lists the covered components in execution order and the surrounding text does not count them.
 
-### 2026-09-20: Cover the omp-qol component checks
+### 2026-09-20 Cover the omp-qol component checks
 
 The aggregate also runs `pnpm --dir projects/omp-qol run typecheck` and `run test` as order 6, before the native tk adapter, which becomes order 7 and the Skill lifecycle tests order 8. The omp-qol tests replace the host with a recording host while reading the settings getter, the error classifier, and `AbortSignal.timeout` from the installed host packages.
 
-### 2026-09-20: Cover the Skill lifecycle tests
+### 2026-09-20 Cover the Skill lifecycle tests
 
 The aggregate also runs `pnpm check:skills`, which executes `sh scripts/tests/skills.sh`, as order 8 after the native tk adapter. The tests exercise the [scripts/skills.sh](../../../scripts/skills.sh) installation, update, and uninstall commands through synthetic fixture repositories, and require only a POSIX shell, `diff`, and common system file tools; the step installs no dependencies. The tests also cover the refusal boundaries and unreadable trees, which are reported as failures rather than as differences or matches.

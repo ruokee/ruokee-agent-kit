@@ -1,4 +1,4 @@
-# ADR 决定：添加手动启用的 architect Skill
+# 添加手动启用的 architect Skill
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol

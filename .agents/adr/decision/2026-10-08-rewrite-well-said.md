@@ -1,4 +1,4 @@
-# ADR decision: Rewrite the well-said Skill
+# Rewrite the well-said Skill
 
 Decision owner: Ruokee
 Decision writer: OMP

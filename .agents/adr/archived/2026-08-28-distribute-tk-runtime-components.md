@@ -1,4 +1,4 @@
-# ADR decision: Distribute the tk runtime components
+# Distribute the tk runtime components
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -21,7 +21,7 @@ The Linux runtime is a regular executable with a Unix execution bit at `$HOME/.l
 
 There is one runtime path and one executable version. Harness components do not contain another runtime, wrapper, or private binary.
 
-### Build-time component assembly
+### Build time component assembly
 
 `projects/tk/build.rs` is the only component assembler. Cargo builds one self-contained component tree, deterministic `tar.zst` archive, and manifest for each supported Harness under `OUT_DIR`. The executable embeds every archive and manifest with `include_bytes!`.
 

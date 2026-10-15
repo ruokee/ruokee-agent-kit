@@ -1,4 +1,4 @@
-# ADR 决定：以共享的 Skill 参考文件源码统一 tk 使用模式
+# 以共享的 Skill 参考文件源码统一 tk 使用模式
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5

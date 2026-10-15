@@ -1,4 +1,4 @@
-# ADR 决定：用 closed 改名定义 tk 任务数据模型
+# 用 closed 改名定义 tk 任务数据模型
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
@@ -122,15 +122,15 @@ closed 任务在 rename 修复名称时保持其生命周期状态，名称维�
 
 ## 变更
 
-### 2026-09-05：创建不再接受正文输入
+### 2026-09-05 创建不再接受正文输入
 
 `TASK.md` 仍是由 Agent 维护的普通内容，因此 create 接口不接受通过 `tk create task --body`、顶层 create 请求或子任务 item 传入的正文。运行时创建任务时自动生成 `# <规范化名称>` 作为初始正文：split 模式下单独存在，embed 模式下位于受管 frontmatter 之后。创建之后由调用方维护正文，rename 和子任务重试匹配不把正文作为输入或匹配条件。调用方在创建完成后用普通文件操作写入 `TASK.md`。`tk log --body` 保持不变，因为 WAL 条目不属于任务正文。持久元数据 schema 和组件格式均未变化。
 
-### 2026-09-05：rename 防止断链引用
+### 2026-09-05 rename 防止断链引用
 
 会移动任务路径的 rename 在发现旧路径引用时，于首次持久写入前以 conflict 错误停止。错误 details 中包含旧路径、规范化后的新名称、绝对目标路径，以及每个引用的路径和行号。`--ignore-brokenlinks` 允许此次移动且不改写引用。dry-run 报告计划和引用，不写入内容。扫描范围包括项目 Markdown、任务根目录下的普通 Markdown，以及 split 和 embed 正文。
 
-### 2026-09-05：把有界 WAL 读取从完整检查中分离
+### 2026-09-05 把有界 WAL 读取从完整检查中分离
 
 `tk read` 按调用方设置的预算返回最近 WAL，上限为 50 条、16000 字节；字节数按紧凑 JSON 的 UTF-8 编码计算。`summary` 默认使用 5 条和 4000 字节，并省略 WAL 正文。`detailed` 默认使用 50 条和 16000 字节，并包含 WAL 正文。两种视图都返回完整的当前任务正文。`minimal` 不读取正文或 WAL。运行时从最新条目开始选择完整的返回条目，静默省略其余条目且不返回截断标记，最后按时间正序返回。完整历史仍保存在普通的 `wal/YYYY-MM-DD.md` 文件中。
 

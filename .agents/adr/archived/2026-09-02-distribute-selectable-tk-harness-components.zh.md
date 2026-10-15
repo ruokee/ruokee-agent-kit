@@ -1,4 +1,4 @@
-# ADR 决定：分发可选择的 tk Harness 组件
+# 分发可选择的 tk Harness 组件
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee

@@ -1,4 +1,4 @@
-# ADR 决定：由 smart-cache 提供 remote 对齐
+# 由 smart-cache 提供 remote 对齐
 
 Decision owner: Ruokee
 Decision writer: OMP

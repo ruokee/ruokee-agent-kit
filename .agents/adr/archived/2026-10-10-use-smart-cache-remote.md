@@ -1,4 +1,4 @@
-# ADR decision: Use smart-cache for remote alignment
+# Use smart-cache for remote alignment
 
 Decision owner: Ruokee
 Decision writer: OMP

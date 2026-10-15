@@ -1,4 +1,4 @@
-# ADR decision: Maintain tk documentation
+# Maintain tk documentation
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -35,7 +35,7 @@ A parameter table, algorithm, or normative field definition appears only on its 
 
 ADRs preserve durable decisions, alternatives, and consequences. They link to current public contracts instead of copying full command, field, or test inventories.
 
-### Final-state wording
+### Final state wording
 
 Public documentation states the current formal contract as if it had been implemented in that form from the beginning. It does not narrate design revisions, review debates, discarded development commands, compatibility with unreleased formats, or Agent work history.
 
@@ -83,18 +83,18 @@ Final-state wording keeps public documentation compact, but review history and i
 
 ## Changes
 
-### 2026-09-02: Adopt the ADR document model
+### 2026-09-02 Adopt the ADR document model
 
 tk documentation now refers to current ADRs under `decision/` rather than modeling current records through an `implemented` status. Proposals and decisions use separate formats without a `Status` field, while the maintainer retains lifecycle authority.
 
-### 2026-09-02: Document selectable components
+### 2026-09-02 Document selectable components
 
 Documentation covers tools and CLI modes, English and Chinese selection through `tk install`, four Skill identities, multiple component payloads, and the split routing contract. The four Skill paths above replace the earlier English Skill and the Chinese Skill that required manual installation.
 
-### 2026-09-03: Document custom CLI Skill roots
+### 2026-09-03 Document custom CLI Skill roots
 
 Documentation now covers multiple Harness payloads, two Harness-independent CLI Skill payloads, the mutually exclusive install targets, and the bounded custom-root lifecycle.
 
-### 2026-09-07: Define component README navigation
+### 2026-09-07 Define component README navigation
 
 The public documentation set includes the component [English README](../../../projects/tk/README.md) and [Chinese README](../../../projects/tk/README.zh.md). They introduce tk and link to the existing guides and design pages without duplicating detailed commands or normative contracts. The repository README pair links to these component entry pages. Public Markdown counterparts use same-directory `name.md` and `name.zh.md` pairs under the [public documentation decision](../decision/2026-09-07-colocate-bilingual-docs.md); topic ownership remains unchanged.

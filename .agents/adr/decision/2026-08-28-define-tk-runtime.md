@@ -1,4 +1,4 @@
-# ADR decision: Define the tk runtime
+# Define the tk runtime
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -101,20 +101,20 @@ The CLI is a public compatibility boundary. Command names, argument ownership, J
 
 ## Changes
 
-### 2026-09-05: Creation no longer accepts body input
+### 2026-09-05 Creation no longer accepts body input
 
 The create interface owns no body input. `tk create task` rejects `--body` as an unknown argument, and create tool requests and child Task items reject `body` as an unknown field. When the runtime creates a Task, it automatically writes `# <normalized-name>` as the initial body. The CLI contract version rises to 2.
 
-### 2026-09-05: Rename guards against broken references
+### 2026-09-05 Rename guards against broken references
 
 `tk rename` gains `--ignore-brokenlinks`. An execution that would move the Task path stops with a conflict error and exit status 3 before the first persistent write when references to the old path exist. The flag permits that move without touching the reference files. Dry-run reports the plan and references without writing. CLI and `tk_exec rename` use the same rule, and the CLI contract version stays at 2.
 
-### 2026-09-05: Separate read response limits from complete WAL checks
+### 2026-09-05 Separate read response limits from complete WAL checks
 
 `tk read` now uses `minimal`, `summary`, and `detailed`, with `summary` as the default. `minimal` reads neither Task body nor WAL. `summary` returns the complete Task body and recent WAL entries without bodies, defaulting to 5 entries and 4000 bytes. `detailed` adds WAL bodies and defaults to 50 entries and 16000 bytes. Explicit budgets may range from 0 to the shared maximum of 50 entries and 16000 bytes. The runtime measures compact JSON UTF-8 bytes after selecting the returned fields and silently omits entries outside the budgets without a truncation field, warning, or diagnostic. Complete history remains available through the daily WAL files rather than pagination or a full-history read mode.
 
 `tk check` uses a separate streaming WAL inspector. It reads every regular daily WAL file and every entry without fixed total file, byte, or entry limits. Required I/O failures identify the failed path, cancellation makes the check incomplete, and valid WAL size alone never produces `wal_truncated`. The CLI contract version rises to 3, and generated schemas plus OMP and Pi adapters reject version 2 contracts.
 
-### 2026-09-08: Rename restores name repair
+### 2026-09-08 Rename restores name repair
 
 `tk rename` and `tk_exec rename` accept the existing exact reference forms for an eligible Task whose old string name or recognizable generated suffix needs repair. They retain the same command arguments, result shape, reference protection, validation outside the repair scope, and CLI contract version.

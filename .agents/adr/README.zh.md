@@ -52,14 +52,14 @@ yyyy-mm-dd-topic-title.zh.md
 
 ## 提案格式
 
-先说明活跃格式，再说明被拒绝格式。
+先说明活跃格式，再说明被拒绝格式。标题在两种语言中都只写主题，类型与状态由目录表达。
 
 ### 活跃提案
 
 英文文件头：
 
 ```markdown
-# ADR proposal: <title>
+# <title>
 
 Draft owner: <name>
 Draft writer: <writer>
@@ -70,7 +70,7 @@ English | [中文](./<filename>.zh.md)
 中文文件头：
 
 ```markdown
-# ADR 提案：<标题>
+# <标题>
 
 Draft owner: <name>
 Draft writer: <writer>
@@ -107,7 +107,7 @@ Draft writer: <writer>
 英文文件头：
 
 ```markdown
-# ADR decision: <title>
+# <title>
 
 Decision owner: <name>
 Decision writer: <writer>
@@ -118,7 +118,7 @@ English | [中文](./<filename>.zh.md)
 中文文件头：
 
 ```markdown
-# ADR 决定：<标题>
+# <标题>
 
 Decision owner: <name>
 Decision writer: <writer>
@@ -209,6 +209,6 @@ ADR 记录一项完整且连贯的长期选择、理由、必要边界与归属�
 
 两种语言文件必须一起移动，并在同一变更中修复入站链接。事实路径、名称或验证入口变化时，更新当前决定。不得借事实维护反转决定。
 
-归档决定在修复关系链接和事实链接后冻结，被拒绝的提案在修复事实链接后冻结。[ADR 机制决定](./decision/2026-09-23-clarify-adr-content-boundaries.zh.md)对它授权的每次清理各记一次有界例外，适用于该次清理开始时已有的中英文 ADR 配对，允许在不改变已记录的选择、理由、约束、不确定性、历史能力范围、作者、日期和反转关系的前提下调整结构与措辞。每次例外都只限于该次清理，不解除任何记录的冻结，也不是持续修改冻结材料的许可。
+归档决定在修复关系链接和事实链接后冻结，被拒绝的提案在修复事实链接后冻结。[ADR 机制决定](./decision/2026-10-15-clarify-adr-content-boundaries.zh.md)记录了三次有界例外，每次都限于所属清理开始时已有的语言对：产生前身决定的那次清理获得结构与措辞调整，2026-10-14 条目的命名清理获得标题与文件名的改写，产生该决定的标题清理获得标题与小节标题的改写。清理获准本身不带来例外；每次例外都单独授予并单独记录，只适用于所属的那次清理，不解除任何记录的冻结，也不是持续修改冻结材料的许可。
 
 第一版依靠评审、仓库搜索和 Git 历史，不增加专用 Skill、分类体系、归档 manifest 或自定义检查器。只有重复维护或实际错误证明某项机械约束确有必要时，才增加最小检查。

@@ -1,4 +1,4 @@
-# ADR decision: Establish a first-party Agent capability kit
+# Establish a first party Agent capability kit
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
@@ -35,7 +35,7 @@ Skills, Plugins, extensions, executables, variants, and host packages may use fo
 
 ## Changes
 
-### 2026-09-12: Capability ownership
+### 2026-09-12 Capability ownership
 
 Identify the capability that is the subject of development and maintenance. A first-party capability may cite, quote, or adapt third-party material. Fork status depends on whether the third-party capability itself is that subject, not on the presence or amount of reused content alone. Third-party capabilities, forks, and upstream mirrors remain outside the repository.
 

@@ -55,4 +55,4 @@ OMP `18.5.0`, declared in [Compatibility](../../projects/omp-system-prompt/READM
 
 - [Retain the system prompt template while approaching deprecation](../adr/decision/2026-10-07-retain-system-prompt-template.md)
 - [Maintain host components against a shared OMP floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)
-- [Keep distributable components self-contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
+- [Keep distributable components self contained](../adr/decision/2026-08-24-keep-components-self-contained.md)

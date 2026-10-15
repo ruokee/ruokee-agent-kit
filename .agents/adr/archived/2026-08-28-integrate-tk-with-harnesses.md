@@ -1,4 +1,4 @@
-# ADR decision: Integrate tk with Harnesses
+# Integrate tk with Harnesses
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol

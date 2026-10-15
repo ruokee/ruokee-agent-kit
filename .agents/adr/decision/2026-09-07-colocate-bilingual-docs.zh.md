@@ -1,4 +1,4 @@
-# ADR 决定：同目录维护双语公开文档
+# 同目录维护双语公开文档
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
@@ -24,7 +24,7 @@ Reverses: [维护双语公开文档](../archived/2026-08-20-maintain-bilingual-p
 
 内部实现笔记、注释、生成文件和仅面向维护者的材料，只在目标读者需要时翻译。公开行为或用法首次需要中文文档时定义真实文件对，不创建空的语言占位文件。
 
-ADR 使用 [ADR 机制决定](./2026-09-23-clarify-adr-content-boundaries.zh.md)定义的更严格文件对格式。两份文件在语义上具有同等权威，并且一起移动，保留现有元数据和生命周期规则。
+ADR 使用 [ADR 机制决定](./2026-10-15-clarify-adr-content-boundaries.zh.md)定义的更严格文件对格式。两份文件在语义上具有同等权威，并且一起移动，保留现有元数据和生命周期规则。
 
 ### Skill 打包
 

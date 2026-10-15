@@ -1,4 +1,4 @@
-# ADR decision: Review authorization
+# Review authorization
 
 Decision owner: Ruokee
 Decision writer: OMP

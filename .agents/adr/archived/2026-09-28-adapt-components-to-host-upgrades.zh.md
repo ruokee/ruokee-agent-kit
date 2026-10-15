@@ -1,4 +1,4 @@
-# ADR 决定：宿主内组件随宿主升级保持适配
+# 宿主内组件随宿主升级保持适配
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash

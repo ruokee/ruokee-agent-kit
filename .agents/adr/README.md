@@ -52,14 +52,14 @@ Place reciprocal language links immediately below the complete metadata block. K
 
 ## Proposal format
 
-Document the active form before the rejected form.
+Document the active form before the rejected form. A title carries the topic alone in both languages, and the directory states the type and state.
 
 ### Active proposal
 
 English header:
 
 ```markdown
-# ADR proposal: <title>
+# <title>
 
 Draft owner: <name>
 Draft writer: <writer>
@@ -70,7 +70,7 @@ English | [中文](./<filename>.zh.md)
 Chinese header:
 
 ```markdown
-# ADR 提案：<标题>
+# <标题>
 
 Draft owner: <name>
 Draft writer: <writer>
@@ -107,7 +107,7 @@ Document the current form before the archived form.
 English header:
 
 ```markdown
-# ADR decision: <title>
+# <title>
 
 Decision owner: <name>
 Decision writer: <writer>
@@ -118,7 +118,7 @@ English | [中文](./<filename>.zh.md)
 Chinese header:
 
 ```markdown
-# ADR 决定：<标题>
+# <标题>
 
 Decision owner: <name>
 Decision writer: <writer>
@@ -209,6 +209,6 @@ The maintainer owns proposal approval, rejection, and decision archival. An Agen
 
 Move both language files together and repair inbound links in the same change. Keep current decisions accurate when factual paths, names, or verification entry points move. Never use factual maintenance to reverse a decision.
 
-Archived decisions freeze after relationship and factual link repairs, and rejected proposals freeze after factual link repairs. The [ADR mechanism decision](./decision/2026-09-23-clarify-adr-content-boundaries.md) records one bounded exception for each cleanup it authorized, applying to the English and Chinese ADR pairs present when that cleanup began, and allowing structural and wording edits that preserve every recorded choice, reason, constraint, uncertainty, historical capability scope, authorship, date, and reversal relationship. Each exception is limited to its own cleanup, does not unfreeze any record, and grants no continuing permission to edit frozen material.
+Archived decisions freeze after relationship and factual link repairs, and rejected proposals freeze after factual link repairs. The [ADR mechanism decision](./decision/2026-10-15-clarify-adr-content-boundaries.md) records three bounded exceptions, each limited to the language pairs present when its own cleanup began: structural and wording edits for the cleanup that produced the predecessor decision, rewording of headings and file names for the naming cleanup under 2026-10-14, and rewording of titles and subheadings for the cleanup that produced that decision. Approval of a cleanup does not grant an exception; each one is granted and recorded on its own, applies only to its own cleanup, does not unfreeze any record, and grants no continuing permission to edit frozen material.
 
 The first version uses review, repository search, and Git history rather than a dedicated Skill, classification system, archive manifest, or custom checker. Add a mechanical check only after repeated maintenance or an observed failure identifies a concrete invariant.

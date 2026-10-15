@@ -1,4 +1,4 @@
-# ADR decision: Enforce commit message conventions
+# Enforce commit message conventions
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash

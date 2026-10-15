@@ -1,4 +1,4 @@
-# ADR 决定：宿主内组件按共同的 OMP 下限维护
+# 宿主内组件按共同的 OMP 下限维护
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
@@ -147,6 +147,6 @@ OMP 下限是共同的维护基线，即组件实际开发和验证所用的 OMP
 
 ## 变更
 
-### 2026-10-10：纳入 smart-cache
+### 2026-10-10 纳入 smart-cache
 
 自包含 `omp-smart-cache` 组件遵循本决定的全部维护、peer、适配、失败与验证规则。其 README 双语页声明相同的 OMP `18.5.0` 下限；该追加不提高下限，也不改变其他组件合同。[扩展决定](./2026-10-12-maintain-smart-cache-extension.zh.md)记录组件的下限义务，[remote 决定](./2026-10-12-provide-remote-alignment.zh.md)拥有其行为与独立协议边界。

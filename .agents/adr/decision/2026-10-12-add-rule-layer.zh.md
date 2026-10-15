@@ -1,4 +1,4 @@
-# ADR 决定：新增规则层
+# 新增规则层
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
@@ -20,7 +20,7 @@ Decision writer: OMP DeepSeek V4.1 Flash
 以下现行决定与规则层有关，且都不与它冲突：
 
 - [增加规格层](./2026-10-04-add-spec-layer.zh.md)记录了规格、ADR 与组件文档的分工，并把贡献者说明留给仓库文档、README 和 `AGENTS.md`。本决定在这套分工中增加第四种文档类型，不反转其中任何部分。
-- [明确 ADR 内容边界](./2026-09-23-clarify-adr-content-boundaries.zh.md)保持 ADR 的内容规则、生命周期和术语表不变。规则不保留历史，因此不能替代决定所记录的契约。
+- [明确 ADR 内容边界](./2026-10-15-clarify-adr-content-boundaries.zh.md)保持 ADR 的内容规则、生命周期和术语表不变。规则不保留历史，因此不能替代决定所记录的契约。
 - [保持可分发组件自包含](./2026-08-24-keep-components-self-contained.zh.md)禁止组件内部引用组件以外的文件。规则层是组件目录之外的仓库文档，引用方向让每个组件都不依赖它。
 - [同目录维护双语公开文档](./2026-09-07-colocate-bilingual-docs.zh.md)要求普通公开页面使用同目录语言配对，规则页面遵循它。
 - [按范围执行开发检查](./2026-09-30-scope-aware-repository-checks.zh.md)定义了受影响检查的选择方式和完整门的记录方式。规则说明这些检查在什么时机运行、留下什么证据。
