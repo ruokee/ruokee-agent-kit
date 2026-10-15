@@ -14,7 +14,7 @@ addopts = "-ra"
 
 Keeping tests under a top-level `tests/` directory separates them from the importable production package and makes discovery predictable. Whether tests are included in an sdist or wheel is controlled by the build backend's package discovery and include/exclude configuration.
 
-## conftest.py
+## Shared Configuration
 
 `conftest.py` holds fixtures, hooks, and plugin configuration shared across a directory subtree without being imported explicitly. pytest loads it automatically. A root `conftest.py` shares fixtures project-wide; nested ones scope helpers to a subtree. Use it for shared fixtures and hook implementations, not as a dumping ground for test helpers that would read more clearly as plain imported modules.
 

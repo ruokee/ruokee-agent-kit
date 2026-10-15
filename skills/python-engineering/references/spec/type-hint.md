@@ -137,7 +137,7 @@ def load(user_id: int) -> "User": ...
 
 The checker sees the import and validates the annotation; the interpreter never runs it. This is the preferred tool for breaking annotation-only import cycles and deferring expensive imports, and it is the right answer to most situations where `from __future__ import annotations` is reached for; it solves the forward-reference and cycle problem locally, without committing the whole module to stringized-annotation semantics. The one caveat: a name imported under `TYPE_CHECKING` does not exist at runtime, so any code that _reads_ annotations at runtime (frameworks, ORMs, serializers, DI containers) cannot resolve it the naive way. When runtime introspection matters, the version-specific behavior in [python-version](../project/python-version.md) governs how annotations should be read.
 
-## collections.abc For Interface Boundaries
+## Abstract Types For Interface Boundaries
 
 When typing what a function _accepts_, prefer the abstract types in `collections.abc` over concrete ones. A function that only iterates should take `Iterable[T]`, not `list[T]`; one that only looks things up should take `Mapping[K, V]`, not `dict[K, V]`:
 

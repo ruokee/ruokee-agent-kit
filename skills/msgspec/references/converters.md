@@ -10,7 +10,7 @@ This guide covers msgspec's converter system for handling custom types and type 
 
 See [supported-types.md](./supported-types.md) for the complete list of natively supported types.
 
-## Encoding hooks with enc_hook
+## Encoding hooks
 
 Encoding hooks serialize custom types to msgspec-supported basic types.
 
@@ -97,7 +97,7 @@ encoded = encoder.encode({"config": config})
 # b'{"config":{"name":"MyProject","root":"/home/user/projects/myproject"}}'
 ```
 
-## Decoding hooks with dec_hook
+## Decoding hooks
 
 Decoding hooks deserialize data into custom types.
 
@@ -269,7 +269,7 @@ print(user_dto)
 # UserDTO(id=1, name='Alice', email='alice@example.com')
 ```
 
-## msgspec.convert function
+## The convert function
 
 `msgspec.convert` converts between data structures without serialization/deserialization.
 
@@ -490,7 +490,7 @@ def dec_hook(type_, obj):
     raise NotImplementedError(f"Unsupported type: {type_}")
 ```
 
-## enc_hook limitations
+## Encoding hook limitations
 
 **Note.** msgspec does not call `enc_hook` for natively supported types. It uses built-in serialization directly.
 
@@ -525,7 +525,7 @@ print(encoded.decode())
 # {"created":"2024-01-15T10:30:00","birthday":"1990-05-20","status":"active","balance":"19.99"}
 ```
 
-### enc_hook is not called for native types
+### Encoding hooks are not called for native types
 
 ```python
 from datetime import datetime

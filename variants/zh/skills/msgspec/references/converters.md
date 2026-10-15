@@ -267,7 +267,7 @@ print(user_dto)
 # UserDTO(id=1, name='Alice', email='alice@example.com')
 ```
 
-## msgspec.convert 函数
+## 转换函数
 
 `msgspec.convert` 用于在不同数据结构间转换，无需序列化和反序列化。
 

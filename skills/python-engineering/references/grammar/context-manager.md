@@ -38,7 +38,7 @@ class Transaction:
         return False
 ```
 
-## Exception Handling In `__exit__`
+## Exception handling in the exit method
 
 The return value of `__exit__` is a control-flow decision, and it is the single most misunderstood part of the protocol. Returning a falsy value (including `None`) lets any in-flight exception propagate normally. Returning a truthy value _suppresses_ the exception, as if it never happened.
 

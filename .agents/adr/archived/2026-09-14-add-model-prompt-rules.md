@@ -124,7 +124,7 @@ The append step reads both rule directories on every turn the hook runs, so a sl
 
 The component keeps the host contract it inherits from [Render the system prompt strategy from a host template](../archived/2026-09-30-render-system-prompt-from-host-template.md): the README compatibility section declares the maintenance lower bound under [Adapt first party host components to host upgrades](../archived/2026-09-28-adapt-components-to-host-upgrades.md), while the host peer stays unrestricted. Appending matching rule documents, the settings the component reads, and the check of the native capability it depends on stay unchanged.
 
-### 2026-09-30 A restricted tool child on OMP 18.4.3 runs both handlers
+### 2026-09-30 A restricted tool child runs both handlers
 
 On OMP 18.4.3, the `scout` agent spawned through the `task` tool carries a restricted tool set and sends a provider request that contains both the replacement result and the matching model-rule body, so the replacement handler and the rule append handler both run for that child. The verification entry above therefore describes the environment exercised when it was written, a plan-mode restricted subagent, rather than restricted subagents in general. Whether an OMP 18.4.3 plan-mode child runs the handlers stays unverified, and the two subagent classes keep separate statements in this decision. Evidence: the OMP 18.4.3 host checks recorded in the [component README](../../../projects/omp-system-prompt/README.md) verification scope.
 

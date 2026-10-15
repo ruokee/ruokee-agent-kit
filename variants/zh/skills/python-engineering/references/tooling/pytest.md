@@ -14,7 +14,7 @@ addopts = "-ra"
 
 将测试放在顶层 `tests/` 目录下，可以使其与可导入的生产包分开，并使发现过程可预测。测试是否包含在 sdist 或 wheel 中，取决于构建后端的包发现和 include/exclude 配置。
 
-## conftest.py
+## 共享配置
 
 `conftest.py` 包含跨目录子树共享的 fixture、钩子和插件配置，而无需显式导入。pytest 会自动加载它。根级别的 `conftest.py` 项目范围共享 fixture；嵌套的 `conftest.py` 将辅助函数限定到子树。将其用于共享 fixture 和钩子实现，而不是作为测试辅助函数的垃圾场：后者作为普通导入的模块会更清晰。
 

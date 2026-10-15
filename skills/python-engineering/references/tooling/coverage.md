@@ -1,4 +1,4 @@
-# coverage.py
+# Coverage
 
 coverage.py measures which lines and branches of code execute while tests run. It is not a test framework and not a quality metric on its own; it is an observability layer over test execution that answers "what did the tests actually reach", not "did the tests check the right things".
 

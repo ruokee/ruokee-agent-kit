@@ -38,7 +38,7 @@ Guard adds a boolean condition that runs only after the pattern structurally mat
 
 Patterns nest freely, so `case Response(status=200, body={"items": [first, *_]}):` matches type, an attribute value, a nested mapping key, and a non-empty sequence in one expression.
 
-## When It Is Better Than if/elif
+## When It Is Better Than a Conditional Chain
 
 `match` earns its place when branching depends on the _structure_ of data rather than a single scalar:
 

@@ -137,7 +137,7 @@ def load(user_id: int) -> "User": ...
 
 检查器能看到导入并验证注解；解释器从不运行它。这是打破仅注解的导入循环和延迟昂贵导入的首选工具，并且是对大多数人们使用 `from __future__ import annotations` 场景的正确答案；它在本地解决了前向引用和循环问题，而无需将整个模块提交给字符串化注解的语义。唯一要注意的是：在 `TYPE_CHECKING` 下导入的名称在运行时不存在，因此在运行时*读取*注解的代码（框架、ORM、序列化器、DI 容器）无法以简单方式解析它。当运行时自省很重要时，[python-version](../project/python-version.md) 中的版本特定行为规定了应如何读取注解。
 
-## collections.abc 用于接口边界
+## 抽象类型用于接口边界
 
 在类型化函数*接受*的参数时，优先选择 `collections.abc` 中的抽象类型而不是具体类型。仅迭代的函数应接受 `Iterable[T]`，而不是 `list[T]`；仅查找的函数应接受 `Mapping[K, V]`，而不是 `dict[K, V]`：
 

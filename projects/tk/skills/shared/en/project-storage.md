@@ -29,7 +29,7 @@ metadata_mode = "split"
 
 A project using every default normally has no configuration file. The `.tk/` directory is the project marker.
 
-## `task_root`
+## Task root
 
 `task_root` selects the Task storage directory below the project root. Its default is `.tk`.
 
@@ -43,7 +43,7 @@ task_root = "tasks"
 
 A custom Task root requires the configuration file. Creating `tasks/` alone does not tell discovery that it is the Task root.
 
-## `subtasks_dir`
+## Subtasks directory
 
 `subtasks_dir` selects the default relative directory used to create subtasks below each parent. Its default is the empty path, which creates subtasks directly below the parent directory.
 
@@ -57,7 +57,7 @@ New subtasks then default to `<parent>/children/`. This setting controls creatio
 
 An empty value is valid. A non-empty value must be a safe relative path without an absolute path or `.` or `..` components.
 
-## `git_policy`
+## Git policy
 
 `git_policy` controls checks before writes:
 
@@ -71,7 +71,7 @@ Read operations do not run write-policy checks. Create, update, log, and other w
 
 `track` verifies only that paths are not ignored. It does not run `git add` or commit. `ignore` does not edit `.gitignore`.
 
-## `creation_policy`
+## Creation policy
 
 `creation_policy` controls the authorization an Agent needs to create a top-level Task:
 
@@ -82,7 +82,7 @@ Read operations do not run write-policy checks. Create, update, log, and other w
 
 The policy does not restrict a terminal user who invokes the CLI directly and does not let a caller fabricate `user_confirmed`. Subtask creation still follows the current parent and invocation-entry authorization rules.
 
-## `metadata_mode`
+## Metadata mode
 
 `metadata_mode` selects the Task metadata carrier for the whole project:
 

@@ -29,7 +29,7 @@ metadata_mode = "split"
 
 全默认项目通常没有配置文件，`.tk/` 本身就是项目标记。
 
-## `task_root`
+## 任务根
 
 `task_root` 指定项目根下的任务存储目录。默认值是 `.tk`。
 
@@ -43,7 +43,7 @@ task_root = "tasks"
 
 配置自定义任务根时必须保留配置文件。仅创建 `tasks/` 不足以让项目发现逻辑知道该目录是任务根。
 
-## `subtasks_dir`
+## 子任务目录
 
 `subtasks_dir` 指定在每个父任务下创建子任务时使用的默认相对目录。默认值是空路径，表示直接在父任务目录下创建。
 
@@ -57,7 +57,7 @@ subtasks_dir = "children"
 
 空值有效；非空值必须是安全的相对路径，不能包含绝对路径、`.` 或 `..` 分量。
 
-## `git_policy`
+## Git 策略
 
 `git_policy` 控制写操作前执行的 Git 检查：
 
@@ -71,7 +71,7 @@ subtasks_dir = "children"
 
 `track` 只验证路径未被忽略，不等于自动执行 `git add` 或提交。`ignore` 也不会替项目修改 `.gitignore`。
 
-## `creation_policy`
+## 创建策略
 
 `creation_policy` 控制 Agent 创建顶层任务时需要的授权：
 
@@ -82,7 +82,7 @@ subtasks_dir = "children"
 
 该策略不改变终端用户直接调用 CLI 的能力，也不允许调用方伪造 `user_confirmed`。创建子任务仍应服从当前父任务和调用入口的授权规则。
 
-## `metadata_mode`
+## 元数据模式
 
 `metadata_mode` 选择整个项目使用的任务元数据载体：
 

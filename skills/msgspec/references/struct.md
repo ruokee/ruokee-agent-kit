@@ -424,7 +424,7 @@ print(decoded.address.city)  # "Boston"
 
 ## Struct options
 
-### frozen=True for immutable data
+### Immutable structs
 
 ```python
 class Point(msgspec.Struct, frozen=True):
@@ -446,7 +446,7 @@ print(new_point)  # Point(x=3.0, y=2.0)
 - Prevents accidental modification
 - Ideal for config objects, coordinates, constants
 
-### kw_only=True for keyword only arguments
+### Requiring keyword arguments
 
 ```python
 class Config(msgspec.Struct, kw_only=True):
@@ -467,7 +467,7 @@ config = Config(api_key="secret-123")
 - Allows fields with defaults before required fields
 - Prevents argument order mistakes
 
-### omit_defaults=True to omit default values
+### Omitting default values
 
 ```python
 class User(msgspec.Struct, omit_defaults=True):
@@ -490,7 +490,7 @@ encoded2 = msgspec.json.encode(user2)
 - Cleaner JSON output
 - Useful for partial updates
 
-### forbid_unknown_fields=True for strict validation
+### Rejecting unknown fields
 
 ```python
 class User(msgspec.Struct, forbid_unknown_fields=True):

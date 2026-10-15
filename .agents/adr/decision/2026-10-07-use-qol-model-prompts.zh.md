@@ -115,7 +115,7 @@ Reverses: [为系统提示词扩展增加模型级规则](../archived/2026-09-14
 
 组件沿用[由宿主模板渲染系统提示词策略](../archived/2026-09-30-render-system-prompt-from-host-template.zh.md)中的宿主合同：README 兼容性小节按[宿主内组件随宿主升级保持适配](../archived/2026-09-28-adapt-components-to-host-upgrades.zh.md)声明维护下限，宿主 peer 保持不受限制。追加匹配规则、组件读取的设置，以及它所依赖的原生能力复核保持不变。
 
-### 2026-09-30 OMP 18.4.3 上的受限工具子 Agent 会运行两个处理器
+### 2026-09-30 受限工具子 Agent 会运行两个处理器
 
 在 OMP 18.4.3 上，通过 `task` 工具派发、工具集受限的 `scout` 子 Agent 发出的 Provider 请求同时包含替换结果与匹配的模型规则正文，因此替换处理器与规则追加处理器都会为它运行。上文的验证条目描述的是写下它时所处的环境，即一个 plan-mode 受限子 Agent，而不是关于受限子 Agent 的一般结论。OMP 18.4.3 的 plan-mode 子 Agent 是否运行这两个处理器仍未验证，本决定继续把两类子 Agent 分开陈述。证据见[组件 README](../../../projects/omp-system-prompt/README.zh.md) 的已验证范围。
 

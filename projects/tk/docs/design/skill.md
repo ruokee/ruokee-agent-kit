@@ -68,7 +68,7 @@ A genuine work unit under an open Task may be created as a child Task without ob
 
 Use batch creation only for independent, genuine work units under the same parent Task, not to import an entire backlog.
 
-## `TASK.md`
+## Task file contents
 
 `TASK.md` stores concise current facts and important entry points:
 
@@ -103,7 +103,7 @@ Before closing, confirm that:
 
 Both close and reopen require a non-empty reason and explicit confirmation from the current user. A closed Task is read-only by default except for rename and repair. New work should normally use a related Task. Reopen the original Task only when the user explicitly confirms that the new work still belongs to it.
 
-## Manually repairing `tk.toml`
+## Manually repairing Task metadata
 
 Always use public tk operations for routine changes.
 
