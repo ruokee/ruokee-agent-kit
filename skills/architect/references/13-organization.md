@@ -2,7 +2,7 @@
 
 Using Conway's Law to explain how system shape relates to organization structure, guiding team division, service ownership, and the organizational judgment in splitting. Use when designing team structure, explaining "coupling that will not untangle", or deciding where service boundaries belong.
 
-## Conway's Law: the system is the organization's print
+## The system mirrors the organization
 
 Melvin Conway's 1968 observation: any organization designing a system will produce a design whose structure copies the organization's communication structure. Conway's own example: assign four groups to write a compiler and you get a four-pass compiler—the boundaries between groups naturally become compiler phase boundaries.
 
@@ -18,7 +18,7 @@ Organizational boundaries are harder than code boundaries. A boundary drawn in c
 
 The most common death: teams split by technical function (frontend team / backend team / DBA team) while expecting services cut along business verticals to emerge. Functional boundaries ≠ architecture boundaries; the result is a distributed monolith—one feature needs three teams to ship, services split but still releasing together. Want a vertically sliced architecture? First build vertically sliced teams.
 
-## Cognitive load: the real basis for splitting
+## Cognitive load as the real basis for splitting
 
 The system complexity one team can hold in its head has a hard ceiling (the core contribution of Skelton & Pais, _Team Topologies_, 2019, https://teamtopologies.com/key-concepts). Past the ceiling, the team degrades from proactive design to firefighting: nobody can explain the whole, and every one-line change is made trembling.
 
@@ -41,7 +41,7 @@ The core problem microservices solve is not running faster but letting many team
 
 The price is voluntarily swallowing the whole mountain of distributed complexity (partial failure, eventual consistency, sharply higher observability demands). The trade pays only when its benefits exceed that complexity. With three to five people on one release line, splitting services solely for team autonomy is usually a loss: you pay the distributed-systems cost and gain little autonomy. The team-autonomy benefit of microservices grows with team count, so it is limited when few teams are involved. A module may still be worth extracting when it genuinely needs independent scaling, release cadence, or fault isolation.
 
-## Scaling the big organization: small teams + stable contracts
+## Scaling big organizations with small teams
 
 Two-pizza teams (an Amazon principle, roughly 6–10 people): as a team grows, internal communication's O(n²) link count explodes and alignment alone eats the brain capacity. Small team = controllable internal communication = genuine autonomy.
 

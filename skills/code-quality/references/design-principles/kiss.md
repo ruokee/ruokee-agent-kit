@@ -1,4 +1,4 @@
-# KISS: Keep It Simple
+# Keep it simple
 
 ## What it is
 
@@ -15,13 +15,13 @@ This distinction is the whole principle.
 
 KISS targets accidental complexity. It does not ask you to pretend a hard problem is easy. When the domain is genuinely complex, the goal is to _contain_ that complexity inside a well-bounded module with a simple interface (see [deep-modules.md](./deep-modules.md)), not to spread it thin across the whole system.
 
-## Simplicity is "fewer concepts," not "fewer lines"
+## Simplicity means fewer concepts rather than fewer lines
 
 Two clear, slightly repetitive copies are often simpler than one generic function with three boolean flags and a callback. A flat sequence of statements is often simpler than a chain of tiny helpers that force the reader to jump around the file. A plain `dict` lookup is often simpler than a registry with a plugin protocol. When you compress lines but multiply concepts, you have made the code shorter and harder: the opposite of KISS.
 
 This is why KISS is in tension with naive [dry.md](./dry.md) and with a blanket "small functions" preference: both can trade a concrete, readable repetition for an abstract, harder-to-hold structure.
 
-## Over-engineering symptoms
+## Symptoms of over engineering
 
 - Abstractions, interfaces, or base classes with exactly one implementation.
 - Configuration options, flags, or extension points that no current caller uses (this is also a [yagni.md](./yagni.md) violation).

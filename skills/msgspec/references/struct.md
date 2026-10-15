@@ -85,7 +85,7 @@ print(user2.tags)  # Each instance has a separate list
 
 Use `msgspec.field(default_factory=...)` for dynamic defaults, non-empty mutable values, or custom mutable types.
 
-## Special types (UNSET type)
+## Special types with UNSET
 
 `msgspec.UNSET` represents a field that can be omitted during serialization:
 
@@ -337,7 +337,7 @@ point_map = {p1: "origin area"}
 print(point_map[p2])  # "origin area"; same hash
 ```
 
-## Union types (tagged unions)
+## Union types as tagged unions
 
 Tagged unions allow discriminating between multiple struct types:
 
@@ -424,7 +424,7 @@ print(decoded.address.city)  # "Boston"
 
 ## Struct options
 
-### frozen=True (immutable)
+### frozen=True for immutable data
 
 ```python
 class Point(msgspec.Struct, frozen=True):
@@ -446,7 +446,7 @@ print(new_point)  # Point(x=3.0, y=2.0)
 - Prevents accidental modification
 - Ideal for config objects, coordinates, constants
 
-### kw_only=True (keyword-only arguments)
+### kw_only=True for keyword only arguments
 
 ```python
 class Config(msgspec.Struct, kw_only=True):
@@ -467,7 +467,7 @@ config = Config(api_key="secret-123")
 - Allows fields with defaults before required fields
 - Prevents argument order mistakes
 
-### omit_defaults=True (omit default values)
+### omit_defaults=True to omit default values
 
 ```python
 class User(msgspec.Struct, omit_defaults=True):
@@ -490,7 +490,7 @@ encoded2 = msgspec.json.encode(user2)
 - Cleaner JSON output
 - Useful for partial updates
 
-### forbid_unknown_fields=True (strict validation)
+### forbid_unknown_fields=True for strict validation
 
 ```python
 class User(msgspec.Struct, forbid_unknown_fields=True):

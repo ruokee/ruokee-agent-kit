@@ -1,4 +1,4 @@
-# Tell, Don't Ask
+# Tell rather than ask
 
 Tell, Don't Ask says: instead of pulling data out of an object and making decisions about it
 from the outside, push the decision into the object that owns the data. Tell the object what

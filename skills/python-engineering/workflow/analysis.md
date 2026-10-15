@@ -1,4 +1,4 @@
-# Analysis: Python Engineering
+# Analysis for Python engineering
 
 Collaborative exploration, not grading. Use this mode when the user wants to _decide what to do_ rather than learn _what is wrong_: brainstorming an approach, designing a mechanism, analyzing how existing code behaves, or planning a refactor. There is no diff to score and no findings list to produce. The goal is a shared, well-reasoned decision.
 

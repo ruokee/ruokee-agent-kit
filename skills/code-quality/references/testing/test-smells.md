@@ -18,7 +18,7 @@ The unifying principle behind almost every smell here is Kent Beck's: **a test s
 
 **False-positive boundary.** Some tests are _supposed_ to be sensitive to a specific implementation choice because that choice is the behavior: verifying a request is served from cache rather than the origin, or that a query uses an index, is a legitimate implementation assertion. Google's guidance allows these but expects them to be rare and clearly labeled as such. The smell is structural coupling that nobody chose; a deliberate, documented implementation test is not fragile, it is precise.
 
-## Change-Detector Test
+## Change detector test
 
 **What it is.** A test that merely restates the production code in a second form, typically all mocks and call-sequence verification, so that _any_ change to the code changes the test, but the test verifies no independent notion of correctness. Google names this explicitly: a test whose expectations are a mirror of the implementation is a change detector, not a correctness check.
 
@@ -58,7 +58,7 @@ The unifying principle behind almost every smell here is Kent Beck's: **a test s
 
 **False-positive boundary.** Asserting several properties of _one_ result object is not roulette: checking that a parsed record has the right name, age, and id is one behavior ("parsing produces the right record") and reads clearly. The smell is undescribed assertions across _different_ behaviors, not a handful of related checks on a single outcome.
 
-## Erratic / Non-Deterministic Test
+## Erratic non deterministic test
 
 **What it is.** A test that passes sometimes and fails other times without any code change. Meszaros' Erratic Test groups the causes: interacting tests (one test's leftover state affects another), test-run wars (shared external resource contended by parallel runs), unrepeatable tests (pass once then fail on re-run), resource leakage, and genuinely non-deterministic logic (clock, randomness, network, ordering, concurrency). Fowler's essay on eradicating non-determinism treats this as an existential threat to the suite.
 

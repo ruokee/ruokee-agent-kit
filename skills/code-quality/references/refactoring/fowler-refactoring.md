@@ -1,4 +1,4 @@
-# Fowler-Style Refactoring
+# Fowler style refactoring
 
 ## What it is
 
@@ -8,7 +8,7 @@ This is narrower than the casual "I refactored the code" that often means "I rew
 
 Fowler's _Refactoring_ pairs a catalog of **code smells** (symptoms that suggest a structural problem) with a catalog of **named refactorings** (small, behavior-preserving transformations that address them). The smells tell you _where_ to look; the refactorings tell you _how_ to fix it in controlled steps. See [code-smells.md](./code-smells.md) for the smell side and the individual technique documents like [extract-function.md](./extract-function.md) for the transformation side.
 
-## The discipline: small steps, one thing at a time
+## The discipline of small steps
 
 The defining practice is the size of each step. A refactoring is a sequence of tiny transformations, each one small enough that it is obviously correct, and after each one the tests are green again. You rename a variable, run the tests. You extract a function, run the tests. You move it to another class, run the tests. If a step breaks something, you know exactly which change caused it, because you only made one.
 

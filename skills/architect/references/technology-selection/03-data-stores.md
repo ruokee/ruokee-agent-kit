@@ -22,7 +22,7 @@ Before choosing a database, draw one data class from birth to archive: write →
 
 Size the data, the read/write ratio, and the retention period before talking tools.
 
-## Primary storage: relational is still the default start
+## Relational as the default primary storage
 
 | Type | Fits | Does not fit |
 | --- | --- | --- |
@@ -47,7 +47,7 @@ When the query shape departs from what the primary store is good at, consider a 
 
 The easiest mistake is treating the read model as the source of truth. The correct relation: primary store = source of truth; search/analytical/vector stores = read models synced from the primary store or object storage. A read model may lag, but you must state clearly **how long it may lag, how to compensate, and how to rebuild**. A user updating their profile writing only to the search index while the primary store knows nothing—that is an incident.
 
-## RAG: a vector store is not the only answer
+## A vector store is not the only answer for RAG
 
 RAG easily gets flattened into "chunk documents → vector store → topK → LLM answers". A real system also includes: raw-text object storage, parsing and chunking, a metadata primary store, a keyword index (hybrid retrieval), and permission/tenant filtering.
 

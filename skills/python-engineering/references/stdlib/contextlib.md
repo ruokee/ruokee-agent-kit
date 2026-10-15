@@ -83,6 +83,6 @@ This keeps one `with` block instead of duplicating the body across an `if`/`else
 
 `closing(thing)` calls `thing.close()` on exit, adapting objects that have a `close()` method but do not implement the context-manager protocol themselves. `aclosing(thing)` (3.10+) calls `await thing.aclose()` and is the recommended way to deterministically finalize async generators.
 
-## Common Mistake: Swallowing Exceptions
+## Common mistake of swallowing exceptions
 
 The recurring contextlib error is silently discarding exceptions during cleanup. A generator-based manager returns control after `yield`; if its teardown raises or if `__exit__` returns a truthy value, the original error can be masked. `suppress` makes this explicit and intentional, which is fine, but an over-broad `suppress`, a `finally` that raises, or an `__exit__` that returns `True` by accident hides real failures. Suppress only the specific exception you understand, keep the suppressed region minimal, and never let cleanup code swallow the error that triggered it.

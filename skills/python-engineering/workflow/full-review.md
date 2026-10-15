@@ -1,4 +1,4 @@
-# Full Review: Python Engineering
+# Full review of Python engineering
 
 A systematic, evidence-driven Python engineering review. It reads in stages, verifies high-severity findings, and reports recommendations directly. Risky changes require authorization before execution. Run only when the user asks for a full review.
 

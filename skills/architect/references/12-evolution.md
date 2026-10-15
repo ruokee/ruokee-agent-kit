@@ -8,7 +8,7 @@ Every engineer inheriting a mess has nursed the "tear it down and rewrite" thoug
 
 The biggest cost of rewriting is not writing the code again; it is stepping into the same pits while slowing current delivery. Netscape rewrote the browser from scratch and shipped no usable new version for nearly three years while IE devoured the market. For a running system that is still evolving, default to incremental replacement: old and new coexist; old blocks shrink; new blocks grow; every step can stop, roll back, and keep the system online. A rewrite can still be reasonable when the system is small, has no live traffic yet, or its total replacement cost is demonstrably lower than an incremental migration.
 
-## Trigger signals: measure before moving
+## Measuring trigger signals before moving
 
 Upgrading the architecture is "a decision triggered by real signals and backed by evidence", not "a scheduled refactoring ritual". The numbers are experience-based heuristics (rough orders of magnitude from common engineering practice, not verified on this project)—not iron laws. The real basis is always some quality attribute capped by a real, measured bottleneck, attributed to a concrete workload (which query class, which path)—not jumping from a CPU number to a solution:
 
@@ -21,13 +21,13 @@ Upgrading the architecture is "a decision triggered by real signals and backed b
 
 Discipline: measure before judging—talking about upgrades without monitoring data is guessing; solve one bottleneck at a time, never a big-bang refactor; write one decision record per upgrade, the context column full of signals; do not move without a trigger—upgrading without signals is nine-times-out-of-ten over-engineering or fashion-chasing.
 
-## Strangler Fig: intercepting around the old system
+## The strangler fig
 
 Put a facade/router around the old system and gradually shift traffic to the new implementation: the routing table's "go to new" entries grow, the old monolith gets hit less and less, until it receives no traffic at all and is strangled offline.
 
 The fundamental difference from the big rewrite: old and new always coexist; traffic switches block by block; each block switched is one small, rollback-able release—not one giant version betting the system's life. The pattern's vital point is the facade: all external requests must pass through it before anyone can decide old-or-new. Without it, you do not even have the switch to quietly move one function onto the new implementation. The strangler does not chase speed—two implementations often coexist for a while—but it splits the one-shot mega-risk of betting the whole system into a sequence of controllable risks, one block at a time.
 
-## Branch by abstraction: swapping implementations behind an abstraction
+## Branch by abstraction
 
 When the replacement target is a core component called from countless places inside the system (the cache layer, the ORM, the model provider), you cannot intercept from outside. The novice instinct is to hide in a long-lived feature branch for two months of changes—the longer the branch lives, the further it drifts from the trunk, the final merge is a disaster, and the trunk cannot ship that part the whole time.
 
@@ -35,7 +35,7 @@ Branch by abstraction flips it: no long-lived branch; all changes on the trunk, 
 
 An AI-system example: when a model-provider migration affects many callers, gather calls behind a shared `ModelClient`, adapt old and new implementations there, route traffic, and retain a rollback switch. The seam has a job and a bill: another interface to maintain, and the risk of sanding provider-specific features down to a lowest common denominator. A small tool with one provider and one call site can call it directly. Do not build a motorway for an imaginary house move. When a concrete migration or repeated cross-cutting need appears, judge whether the shared boundary earns its cost. An AI gateway is another tradeoff, not a free accessory bundled with `ModelClient`.
 
-## Parallel run: let real traffic be the judge
+## The parallel run
 
 Strangler and branch-by-abstraction give you the switch. Before flipping it, you still need grounds for trusting the new implementation. Unit and contract tests guard explicit invariants; real traffic adds awkward cases the test author did not anticipate. Compare AI output accordingly: amounts, permissions, and structured contracts keep their precise checks, while an open-ended summary can change wording without losing quality. Passing tests still leaves the question of how users actually use the system. See [Evaluation-driven architecture](./ai/05-evaluation-driven-architecture.md) for release criteria.
 
@@ -43,7 +43,7 @@ Parallel run (shadow traffic / dark launch): old and new run simultaneously on t
 
 The greatest fear in refactoring a critical path is "I thought it was equivalent, but it was not". The parallel run turns fear into quantified data—real traffic as judge, not confidence as judge. It fits critical computations with complex logic, high error costs, and unknowable boundary cases (billing, permissions, risk control). The cost is running two systems at once; it is a critical-path heavy weapon, not a daily tool. GitHub's open-sourced Scientist library from its permission-check refactor is a living template (GitHub Engineering blog, 2016-02-03, https://github.blog/2016-02-03-scientist/); in the AI era its value rises instead of falling: AI produces new implementations fast, and the parallel run judges their correctness with data—speed to the model, confidence to the data.
 
-## Zero-downtime data migration
+## Zero downtime data migration
 
 Data is the hardest to change: code can blue-green roll back; data has one copy, and a botched change is unrecoverable. When swapping databases, changing table structure, or splitting stores, follow the expand-contract five steps, each rollback-able:
 
@@ -55,7 +55,7 @@ Data is the hardest to change: code can blue-green roll back; data has one copy,
 
 Through the first four steps the old store remains authoritative and fresh, so you can retreat instantly at any point. Data-migration disasters almost all come from one-shot cuts: stop service at midnight, run the migration script, deploy, pray.
 
-## Splitting the monolith: modularize first, extract services on demand
+## Modularizing before extracting services
 
 Treating microservice extraction as progress itself is the novice's most common error. The correct strategic order:
 
@@ -69,7 +69,7 @@ Segment's warning bell: they split for failure isolation until the system was ov
 
 When new and old models fight, use an anti-corruption layer: build a translating isolation wall between the new services and the old system; the new services talk only to cleanly translated interfaces, and the old model's rot cannot seep in.
 
-## Preventing rot: fitness functions
+## Fitness functions that prevent rot
 
 Do not let the next few hundred commits knead those hard-won boundaries back into mud. Write important, reliably checkable constraints as tests that fail and can block CI: the orders module must not import billing internals, p99 must meet its target under a defined workload, and API contracts must hold. If a project adopted a shared model boundary for a real migration or similar need, a dependency check can prevent bypassing it too. Start with a boundary worth guarding, then guard it. Do not invent an abstraction just to give a check something to do.
 

@@ -8,7 +8,7 @@ Many architecture diagrams run App → Redis → MQ → Kafka → Worker in one 
 
 **The value of middleware lies not in its name but in which quality attributes it changes**: latency, throughput, availability, coupling, consistency, recovery cost. They address three different pressures: read hotspots, write floods, cross-boundary collaboration.
 
-## Cache: accelerate only, never usurp
+## Use cache only to accelerate
 
 Fits read hotspots. The three most common errors: treating the cache as the source of truth (cache lost, data lost); no invalidation strategy (users see stale, dirty data); all requests penetrating together (the primary store gets crushed).
 
@@ -22,7 +22,7 @@ Cache types by data shape: local caches fit config, dictionaries, infrequently c
 
 The test sentence: **if the cache is lost, the system should become slower, not wrong. If it becomes wrong, you have smuggled business state into the cache.**
 
-## Message queue: turning must-do-now into can-queue
+## Message queues turn must do now into can queue
 
 The most common value is peak shaving: instantaneous pressure becomes controllable queuing. Typical scenes: ticket-notification after locking a seat, coupon/SMS/email after an order succeeds, parse-and-index after document upload, transcoding after video upload.
 
@@ -30,7 +30,7 @@ But once a queue enters, the synchronous world becomes asynchronous, and five ne
 
 A queue does not stabilize by existing; it converts the problem from request latency into **async consistency and recovery**.
 
-## Event systems: recording what happened, not commanding what to do
+## Event systems record what happened rather than commanding
 
 | Category | What it means | Examples | Who owns the outcome |
 | --- | --- | --- | --- |
@@ -39,7 +39,7 @@ A queue does not stabilize by existing; it converts the problem from request lat
 
 Events fit propagating facts across boundaries: the order service publishes `OrderPaid`; inventory confirms deduction, notifications send SMS, the data platform updates reports, risk control logs behavior—and the order service need not know all its downstreams. The costs: once an event schema is published, downstreams depend on it and upgrades must stay compatible; when a downstream handler fails, the fact has already happened and cannot simply roll back; events too fine drown the system, too coarse fail to express; long event chains make debugging hard—tracing is mandatory.
 
-## Product selection: semantics before names
+## Choose products by semantics before names
 
 First sort into four semantics, then pick a product:
 
@@ -50,7 +50,7 @@ First sort into four semantics, then pick a product:
 
 Four questions when selecting: do messages need to be **replayable** (if yes, lean event stream)? Do you need complex routing and delivery confirmation (task queue fits better)? Can the team operate the cluster (if not, managed)? Are messages core audit facts (if so, take persistence, retention, and schema governance seriously)?
 
-## Outbox: do not split writing facts from emitting events
+## Do not split writing facts from emitting events
 
 The classic pit: the order write succeeds and the `OrderCreated` send fails—the order sits in the primary store and downstream never knows; or the reverse, the message goes out and the order write fails—downstream receives an order that does not exist.
 

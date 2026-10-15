@@ -33,7 +33,7 @@ Detection relies on monitoring the per-key traffic distribution, not just totals
 
 Twitter's write-time fan-out (a tweet pushed into every follower's timeline cache) meets a top influencer with tens of millions of followers and it is a disaster (one tweet equals tens of millions of writes). The fix is a hybrid: ordinary users get write-time fan-out; a handful of mega-influencers get read-time pull. For hotspots, spreading the write across tens of millions of places at write time trades for pulling from one place at read time.
 
-## Multi-tier caching
+## Multitier caching
 
 Real large-scale systems are multi-tier: CDN → edge → application-local → distributed cache → DB, each tier absorbing a batch of traffic. More tiers, less pressure on the DB—but each additional replica adds one more consistency problem (the DB changed; how do five tiers invalidate coherently?).
 
@@ -53,7 +53,7 @@ The real killer is **fan-out amplification**: one user request fans out into doz
 
 Hedged requests treat tail latency: send the same request to two replicas and use whichever returns first. Doubling everything doubles load; the smart version is the delayed hedge—send to replica A first, and only if A has not answered within p95 time send to B. Only the slowest 5% of requests get a second copy, roughly 5% extra load, and a large chunk of the tail is gone.
 
-## Queueing: why approaching saturation explodes
+## Why approaching saturation explodes
 
 The system is fine at 70% utilization; add a little traffic to 95% and latency suddenly spikes tenfold. Because request arrivals are random (peaks and valleys), a highly utilized system has no headroom to absorb bursts: a peak arrives, requests queue, the queue slows down everything behind it—positive feedback. Queueing theory gives the intuition (assuming simplified models like M/M/1; real systems deviate, but the trend direction holds): average queueing time is proportional to 1/(1−ρ)—at ρ=50% the factor is 2, at 90% it is 10, at 99% it is 100, and the curve rises nearly vertically as it approaches 100%.
 

@@ -1,8 +1,8 @@
-# Evaluation-Driven Architecture
+# Evaluation driven architecture
 
 Turn "good enough" in an LLM system into criteria you can check. Use exact checks for explicit contracts, and representative cases with semantic scoring where several answers can be valid. Match evaluation effort to failure costs. For a small tool, a repeatable comparison beats waiting forever for an evaluation platform.
 
-## Verbatim assertion cannot cover non-deterministic output
+## Verbatim assertion cannot cover non deterministic output
 
 `assert summarize(x) == "the expected sentence"` looks reassuring, but an open-ended summary can make it a trap for valid paraphrases. Sampling, model versions, and context change the wording; both answers may mean the same thing, yet a literal comparison reports a bug. Use semantic criteria such as factual accuracy and coverage of key points. Keep precision where it belongs: output formats, allowed values, authorization, refund idempotency, and state transitions can retain their assertion and contract tests. A model's freedom to rephrase does not extend to the refund amount.
 
@@ -31,7 +31,7 @@ Practice: rules first where rules can judge; LLM-as-judge for the subjective; re
 - Report effect size and uncertainty where the sample supports them; otherwise state the evidence limit and gather more cases before claiming a regression;
 - Calibrate the LLM judge against a human-labeled set and monitor its bias (e.g., the long-answer preference).
 
-## Start small, from real failures
+## Start small from real failures
 
 A newcomer hears "eval set" and dreams of thousands of items—then never starts. The correct posture:
 
@@ -41,13 +41,13 @@ A newcomer hears "eval set" and dreams of thousands of items—then never starts
 
 Do not wait for the perfect eval set; get the loop running with a rough one first.
 
-## Eval does not replace traditional testing; it adds a layer
+## Eval adds a layer rather than replacing traditional testing
 
 Keep traditional tests for deterministic behavior and add semantic evaluation for open-ended quality. A refund recommendation needs judgment about policy fit and reasoning. Execution needs explicit assertions and contract tests for authorization, the amount, and executing a repeated request only once. The same business path can need both. Adding an LLM is no reason to march the existing tests out of the building.
 
 The design of caging uncertainty away from side effects pays off again here: the deterministic parts can still be tested with deterministic means.
 
-## Eval's costs
+## The costs of eval
 
 Treating eval as an architectural component means weighing its costs like any component:
 

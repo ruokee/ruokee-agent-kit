@@ -1,4 +1,4 @@
-# Python-specific code quality guidance
+# Python specific code quality guidance
 
 This reference collects Python-specific guidance for design principles, programming paradigms, and refactoring.
 
@@ -28,7 +28,7 @@ or a specific init sequence, that is a signal to use composition instead.
 - For shared code, prefer a module-level helper function or a composed collaborator over a base
   class whose only purpose is to hold the shared method.
 
-### Domain-Driven Design Essentials
+### Domain driven design essentials
 
 - Small projects can borrow just the ubiquitous language, value objects, and invariant thinking
   without the full layered architecture.
@@ -78,7 +78,7 @@ else depends on abstractions.
 - Manage dependency lifecycles (connections, files, locks) with context managers, kept out of
   the domain logic itself.
 
-### DRY: Don't Repeat Yourself
+### Do not repeat yourself
 
 - Deduplicate domain concepts, schemas, and protocols first, not local code shapes.
 - For repeated schema/API/model definitions, use a single source of truth: `dataclass`, `TypedDict`, Pydantic, an OpenAPI spec, or code generation.
@@ -86,11 +86,11 @@ else depends on abstractions.
 - Prefer module-level functions, table-driven mappings, `Protocol`, and strategy functions over building a class hierarchy just to share code.
 - Tables and dispatch maps are an excellent way to collapse genuinely repeated knowledge (one row per case) without inventing an inheritance tree.
 
-### GRASP: General Responsibility Assignment Software Patterns
+### GRASP responsibility assignment patterns
 
 Behavior goes near the data that owns it (Information Expert). CLI and API handlers stay as thin Controllers, with rules in the core. Services, adapters, mappers, and policy functions are all reasonable Pure Fabrications. Once a variation point is genuinely identified, Protected Variations is realized with a `Protocol`, an adapter, or a deep module. Throughout, balance Low Coupling against High Cohesion rather than maximizing either alone.
 
-### KISS: Keep It Simple
+### Keep it simple
 
 - Default to clear data structures, direct control flow, the standard library, and a small number of well-named functions.
 - When complexity is unavoidable, isolate it inside a module, adapter, or deep module so callers stay simple.
@@ -113,7 +113,7 @@ Behavior goes near the data that owns it (Information Expert). CLI and API handl
 - Third occurrence, or clear variation direction: extract. The result is often a module-level function with explicit parameters, a table-driven mapping, or a small `Protocol`, not necessarily a class.
 - When you later realize you abstracted too early, prefer to inline / flatten / duplicate again, then look for the real axis of change. This is a normal refactoring move, not a failure.
 
-### Test-Driven Development
+### Test driven development
 
 - `pytest` suits small-step TDD well; keep fixtures direct and avoid building an invisible
   framework around them.
@@ -123,7 +123,7 @@ Behavior goes near the data that owns it (Information Expert). CLI and API handl
   boundary over patching deep internals; the need to patch deep is a sign a dependency should
   have been injected.
 
-### Tell, Don't Ask
+### Tell rather than ask
 
 - Give domain objects semantic command methods: `invoice.mark_paid()`, `order.cancel()`,
   `account.debit(amount)`. These maintain state transitions and invariants internally.
@@ -135,7 +135,7 @@ Behavior goes near the data that owns it (Information Expert). CLI and API handl
   without forcing object-orientation. Tell, Don't Ask is about co-locating rules and data, not
   about insisting on methods.
 
-### YAGNI: You Aren't Gonna Need It
+### You are not gonna need it
 
 - Satisfy the real call sites first with plain functions, explicit parameters, a `dataclass`, or a simple mapping.
 - Wait for the second real point of variation before abstracting; before extracting, picture how cheap the future refactor would be: usually cheap enough to wait.
@@ -144,7 +144,7 @@ Behavior goes near the data that owns it (Information Expert). CLI and API handl
 
 ## Programming paradigms
 
-### Data-Oriented Design
+### Data oriented design
 
 - Prefer `dataclass` for plain data records; reach for `frozen=True` when the record is a value object with no identity (see the dataclass guidance in the stdlib references).
 - Use `TypedDict` when data arrives as dicts (JSON, config) and you want shape-checking without converting to objects.
@@ -160,7 +160,7 @@ Behavior goes near the data that owns it (Information Expert). CLI and API handl
 - For declarative mechanisms that hide control flow, decorators, route registration, signal handlers, make sure the real execution path can still be traced so registration does not become invisible wiring.
 - Keep an imperative escape hatch. The best declarative designs let the rare irregular case drop back to plain code instead of forcing every exception into the declaration's vocabulary. A routing table that maps paths to handlers stays declarative; a routing table that grows a `condition` mini-language to express "only on Tuesdays for premium users" has started reinventing a programming language badly. Declare the regular cases, and let an ordinary function handle the irregular one.
 
-### Event-Driven Architecture
+### Event driven architecture
 
 - In-process: a simple dict of `event_name -> list[callable]` is often all you need; do not pull in a message broker for local decoupling.
 
@@ -189,7 +189,7 @@ This is the whole pattern at the smallest scale: the publisher knows the event n
 - Keep the audit value honest: if events are your source of truth, treat the event schema with the same care as a database schema.
 - Resist using events for flow that is really a direct request-response. If the producer needs the result, blocks on it, or only ever has one consumer, a plain function call is clearer than an event round-trip.
 
-### Functional Core, Imperative Shell
+### Functional core with imperative shell
 
 - Entry layers may use argparse, Click, Typer, FastAPI, or Django, but core business functions should not depend on framework objects; pass plain data across the boundary.
 - Carry boundary data in `dataclass`, `TypedDict`, a Pydantic model, or a plain dict, chosen by the project's complexity.
@@ -204,7 +204,7 @@ This is the whole pattern at the smallest scale: the publisher knows the event n
 - When a procedure grows past readability, split it by phase into named steps (`load_config()`, `build_client()`, `run_job()`) before reaching for a framework. Linear, well-named steps are a feature, not a smell.
 - Resist the urge to wrap a simple three-line sequence in a class or a pipeline abstraction; straightforward imperative code is often the KISS-correct answer.
 
-### Object-Oriented Programming
+### Object oriented programming
 
 - Use `@dataclass` for simple data carriers; reach for a plain class when there are real invariants or a lifecycle to manage.
 - For substitutability across a boundary, prefer a small `typing.Protocol` (structural typing) over a nominal base class. The collaborator just needs to provide the right methods.

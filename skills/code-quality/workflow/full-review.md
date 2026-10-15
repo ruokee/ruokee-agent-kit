@@ -1,4 +1,4 @@
-# Full Review: Code Quality
+# Full review of code quality
 
 Heavy, systematic review. **User-triggered only**, never enter this mode on your own. Slower and more thorough than fast review, with staged reading and self-verification.
 
@@ -32,7 +32,7 @@ Work through these dimensions, recording evidence per finding:
 - Paradigm fit, does imperative/OO/functional-core/data-oriented/state-machine match the problem, or fight it.
 - Test coverage, is behavior pinned well enough to refactor safely.
 
-### 4. Self-verify high-severity findings
+### 4. Self verify high severity findings
 
 For each high-severity finding, re-check the evidence, state your confidence, and actively consider the false positive: could the structure be deliberate, or driven by a reason-to-change you have not seen? Downgrade or drop findings that don't survive this.
 

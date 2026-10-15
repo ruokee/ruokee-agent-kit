@@ -1,4 +1,4 @@
-# State Pattern (GoF)
+# State pattern
 
 The GoF State Pattern eliminates conditional logic for state-dependent behavior by delegating to polymorphic state objects. A Context holds a reference to a current State object. Each concrete State class implements the same interface, providing behavior specific to that state. State transitions replace the Context's current state reference.
 

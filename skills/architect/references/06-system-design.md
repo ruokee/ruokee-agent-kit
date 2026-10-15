@@ -28,7 +28,7 @@ The steps are not a straight line but a loop that doubles back; when a problem s
 
 **⑧ Review tradeoffs; list risks and open questions.** Look back at every decision and put the costs on the table: what each choice gave up; which assumption, if wrong, collapses the design; what remains unresolved and needs flagging. Being able to name your design's weaknesses is precisely the proof you have thought it through. These tradeoff rationales should become decision records (see [Architecture decisions](./07-architecture-decisions.md)).
 
-## Example highlights: URL shortener
+## URL shortener highlights
 
 Running the shortener through the eight steps, a few key derivations:
 
@@ -36,7 +36,7 @@ Running the shortener through the eight steps, a few key derivations:
 - Data model: one core entity (short code → original URL + expiry), a pure key lookup. A small team defaults to a relational database (one table plus a unique index covers transactions and operational familiarity); when read/write volume or latency demands actually arrive, migrate to a KV store (pure key-lookup shape, replaceable smoothly). Both steps are right; the difference is only the evidence.
 - Main channel: redirects carry 100× the traffic of creation; every design decision serves that path first.
 
-## Full case: should the Rails monolith be split into microservices?
+## Splitting the Rails monolith into microservices
 
 A realistically shaped task showing how the steps combine across documents.
 

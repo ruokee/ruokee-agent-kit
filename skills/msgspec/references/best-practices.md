@@ -67,7 +67,7 @@ class User(msgspec.Struct):
     name: str  # Required field
 ```
 
-## 4. Immutable data (frozen)
+## 4. Immutable data
 
 **Recommended.** For data structures that shouldn't be modified (like config objects, constants, coordinates), use `frozen=True`.
 

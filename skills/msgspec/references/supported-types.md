@@ -2,7 +2,7 @@
 
 msgspec uses Python type annotations to describe expected types. Most combinations of the following types are supported (with some limitations):
 
-## Built-in types
+## Built in types
 
 msgspec natively supports the following Python built-in types without custom conversion hooks:
 
@@ -19,7 +19,7 @@ msgspec natively supports the following Python built-in types without custom con
 - `set` / `typing.Set`
 - `frozenset` / `typing.FrozenSet`
 
-## msgspec-specific types
+## msgspec specific types
 
 - `msgspec.msgpack.Ext`: MessagePack extension type
 - `msgspec.Raw`: Raw unparsed message data
@@ -89,7 +89,7 @@ Abstract base classes are supported as type hints, and msgspec automatically sel
 - Third-party library types (e.g., ORM models)
 - Custom classes (not msgspec.Struct or dataclass)
 
-### Example: natively supported types
+### Natively supported types
 
 ```python
 from datetime import datetime, date
@@ -125,7 +125,7 @@ encoded = msgspec.json.encode(record)
 decoded = msgspec.json.decode(encoded, type=Record)
 ```
 
-### Example: types requiring custom hooks
+### Types requiring custom hooks
 
 ```python
 from pathlib import Path

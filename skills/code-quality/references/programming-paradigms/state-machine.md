@@ -1,4 +1,4 @@
-# State Machine / Finite-State Model
+# State machine
 
 A state machine models a process as a finite set of named states, a set of events, and the rules governing movement between them. It answers concrete questions: which states can the system be in, which events does it accept, which transitions are legal, how are illegal transitions rejected, and which side effects run during a transition. This model is useful because many everyday bugs are illegal-state bugs.
 
@@ -105,6 +105,6 @@ Reach for this model when you see:
 - `if/elif` ladders that check both current state _and_ incoming event inline, repeated across several functions.
 - Repeated events causing duplicate effects; a sign actions are not idempotent and transitions are not gated.
 
-## False-Positive Boundary
+## False positive boundary
 
 A status enum on its own is **not** a state machine; it is just a named value until there are transition rules governing how it changes. Adding a transition table to genuinely trivial branching is over-engineering; if there is one obvious linear path and no illegal-state concern, the table is ceremony. The model earns its weight when illegal transitions are real and correctness matters. Apply it there, not everywhere a status field appears. See [object-oriented.md](./object-oriented.md) for when state plus behavior belongs in an object, and [declarative.md](./declarative.md) for why the table form is so reviewable.

@@ -2,7 +2,7 @@
 
 A long-lived Python project should never be just "a directory that the current working directory happens to be able to import." Structure exists so that the importable package, the tests, the tool configuration, the run entry points, the dependency declarations, and the deployment boundary each have an unambiguous home. The right shape depends on how the project is used and how long it is expected to live; this document covers every common form and the signals that move a project from one to the next.
 
-## Single-File Script
+## Single file script
 
 A single `.py` file is the right shape for one-off automation, small tools, and experiments. With PEP 723 inline script metadata, even a standalone file can declare its dependencies and required Python version in a comment block, so a runner like `uv run script.py` can build an isolated environment without a surrounding project:
 

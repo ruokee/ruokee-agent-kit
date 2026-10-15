@@ -12,7 +12,7 @@ Two related but distinct ideas, often confused:
 DIP is the design goal; DI is a mechanism. You can follow DIP without an elaborate framework,
 and you can use DI without any "DI container" at all.
 
-## High-level modules depend on abstractions
+## High level modules depend on abstractions
 
 The problem DIP addresses: business rules that directly call a database driver, an HTTP client,
 the system clock, or `random` are welded to those details. The policy can no longer be read,

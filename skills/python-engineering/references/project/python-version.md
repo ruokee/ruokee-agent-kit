@@ -21,7 +21,7 @@ The floor is not a preference; it is the maximum of several hard constraints. De
 
 The floor is the highest of these lower bounds. Lower than that and something breaks; higher than necessary and you exclude users or environments for no benefit.
 
-## Version-Gated Features
+## Version gated features
 
 Each recent release adds capabilities that become usable only once the floor reaches that version. Choosing a floor is therefore also choosing which of these are on the table:
 

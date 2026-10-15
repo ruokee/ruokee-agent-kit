@@ -1,4 +1,4 @@
-# Test-Driven Development
+# Test driven development
 
 Test-Driven Development (TDD) is a workflow in which tests drive the development feedback loop.
 You sketch a list of behaviors, pick one, write a small runnable test that fails, write just
@@ -10,7 +10,7 @@ TDD is not primarily a testing technique. It is a design technique that happens 
 behind. The act of writing the test first forces you to use the interface before it exists,
 which surfaces awkward signatures and unclear responsibilities early.
 
-## The Red-Green-Refactor cycle
+## The red green refactor cycle
 
 1. **Red.** Write a test for one small behavior and watch it fail. The failure confirms the test
    actually exercises something and is not silently passing.

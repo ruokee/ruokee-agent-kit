@@ -10,7 +10,7 @@ SRP is usually stated as "a module should have only one reason to change." The r
 
 The smell SRP catches: one module that mixes business rules, presentation formatting, persistence, and external-API adaptation, so that a change to any one of them risks the others. The mistake people make _applying_ SRP: shattering a cohesive object into many anemic helpers, which scatters logic and lowers cohesion. Ask "does this code respond to more than one kind of rule, role, or external system?", not "does this function do more than one small thing?" At an entry point, parsing, config, logging, and dependency wiring can sit together; business rules should move out to a core.
 
-## Open/Closed Principle
+## The open closed principle
 
 OCP: a stable core should be open to extension but closed to modification; you add behavior by adding new implementations, strategies, or config, not by reopening and editing the core every time. The modern, practical reading is conditional: an extension point is worth building only when the _direction_ of variation is stable and the variation actually recurs.
 

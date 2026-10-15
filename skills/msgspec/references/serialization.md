@@ -194,7 +194,7 @@ with open("users.jsonl", "rb") as file:
         process(user)
 ```
 
-## Protocol-specific features
+## Protocol specific features
 
 ### JSON
 

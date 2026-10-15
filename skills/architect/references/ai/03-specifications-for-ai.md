@@ -61,7 +61,7 @@ Five disciplines:
 
 When design chooses A over B, keep the tradeoff in the decision record. Distill recurring, actionable constraints into the rule file and link to that rationale. AGENTS.md states the boundaries the AI must respect while working; detailed arguments stay in their primary document. Stuffing the entire decision history into standing context charges you by the token for every small question, while duplicate copies drift into competing accounts.
 
-## If a machine can enforce it, do not settle for a document
+## Do not settle for a document when a machine can enforce it
 
 The pyramid's bottom layer is the hardest. Constraints sort by machine-verifiability into their destination:
 

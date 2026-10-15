@@ -1,4 +1,4 @@
-# Functional Core, Imperative Shell
+# Functional core with imperative shell
 
 ## What it is
 

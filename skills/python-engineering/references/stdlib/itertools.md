@@ -32,7 +32,7 @@ itertools improves clarity when it names a recognized operation: `batched` says 
 
 It obscures when a plain comprehension or loop would read more directly. A deep stack of `chain`/`filter`/`starmap`/`takewhile` can hide the actual transformation behind composition; a single `for` loop with a clear body is often better. Reach for itertools when it removes bookkeeping, not when it adds a layer of indirection over simple logic.
 
-## Multiple-Consumption Pitfall
+## Multiple consumption pitfall
 
 An iterator is exhausted after one pass. This is the most common itertools bug:
 

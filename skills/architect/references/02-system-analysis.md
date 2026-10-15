@@ -14,7 +14,7 @@ Recognizing the words is not the same as reading the system. Recognizing is seei
 
 If you cannot answer these three, you have learned the names of the boxes, not the system.
 
-## The four-step method
+## The four step method
 
 **① Grasp the essence.** State the business in one sentence; name the two heaviest quality attributes and the single hardest constraint. Everyone sees the features; quality attributes and constraints are the forces that shaped the system into its current shape.
 
@@ -44,7 +44,7 @@ Runtime evidence matters just as much: logs, traces, and metrics answer "does th
 - **What it is from how good it is.** Describe what the system is before judging what is wrong with it. Skipping description and jumping to judgment leaves readers unable to check the conclusion.
 - **Design intent from historical baggage.** A strange design may be deliberate (constraints existed at the time) or simply untouched because nobody dared. The way to tell them apart is records (ADRs, commit history, comments); when no record exists, say "reason unknown" explicitly rather than inventing a plausible story.
 
-## Legacy-system specifics
+## Legacy system specifics
 
 - **Do not read legacy code with disgust as your lens.** The goal is understanding why it survived, not tallying best-practice violations. A live system got something right; find that first.
 - **Interfaces are promises.** A legacy system's most precious asset is its stabilized interfaces. List the interfaces external parties depend on; that list is the guardrail for later evolution (see [Evolution](./12-evolution.md)).

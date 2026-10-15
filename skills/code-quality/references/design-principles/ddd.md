@@ -1,4 +1,4 @@
-# Domain-Driven Design Essentials
+# Domain driven design essentials
 
 Domain-Driven Design (DDD) is an approach to modeling complex business domains around the
 language and boundaries of the domain itself, rather than around database tables or framework
@@ -62,7 +62,7 @@ the order context announces `OrderPlaced` without knowing that shipping and anal
 listen. Use them when reactions genuinely span boundaries; do not turn every state change into
 an event for its own sake.
 
-## Anti-corruption layer
+## Anti corruption layer
 
 When integrating with an external system or a legacy model whose concepts do not match yours, an
 anti-corruption layer (ACL) translates between the two so the foreign model does not leak into

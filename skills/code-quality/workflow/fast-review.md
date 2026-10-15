@@ -1,4 +1,4 @@
-# Fast Review: Code Quality
+# Fast review of code quality
 
 Default mode. A quick, high-signal self-check after development or on a small diff. Optimized for few, confident findings, not coverage. Bias toward leaving good-enough code alone.
 

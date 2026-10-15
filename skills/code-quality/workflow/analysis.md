@@ -1,4 +1,4 @@
-# Analysis Mode: Code Quality
+# Analysis mode for code quality
 
 Advisory mode. The user is asking _what to do_, not _what is wrong_. No diff to grade. Help reason through a design or refactoring decision and converge on one.
 

@@ -25,7 +25,7 @@ In the classic form a command exposes `execute()` and sometimes `undo()`. The po
 - **Macro recording / replay**: a sequence of commands captured and re-run.
 - **Decoupling UI from action**: menu items, buttons, and shortcuts hold commands rather than calling services directly.
 
-## When NOT to use (overkill)
+## When it is overkill
 
 - A simple, immediate function call suffices and the request needs no storage, replay, or reversal. Wrapping it in a command class is pure ceremony.
 - The command has no stable schema, so it cannot actually be persisted or replayed; then it gives none of the benefits it costs you to build.

@@ -42,7 +42,7 @@ Two kinds of debt:
 
 MVP debt taken deliberately is often correct: the first version of a shortener trading single-store, single-machine code generation for fast validation is a good deal. The error is not knowing the debt exists, not recording it, and only ever borrowing. Three repayment disciplines: borrow consciously (state explicitly that this is an expedient); write it down (one debt is one decision record, context explaining why it is temporary for now); schedule repayment (fix a trigger "repay when X happens" rather than "when we have time").
 
-## When to re-review a decision
+## When to revisit a decision
 
 Whether the architecture should move is decided neither by feeling ("this code looks ugly" is not a reason; ugliness that harms no quality attribute can be tolerated) nor by fashion (other people's bottlenecks are not yours; copying a big company's maturity-stage architecture onto your growth-stage system is the number-one over-engineering). Measure with two rulers:
 

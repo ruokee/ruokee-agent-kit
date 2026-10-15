@@ -2,7 +2,7 @@
 name: deep-research
 description: Use for structured evidence-first deep research when the user asks for deep research, broad research surveys, source-backed reports, or research packages that need source collection, cross-validation, claim boundaries, unresolved questions, and sub-agent parallelization.
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # Deep Research
@@ -76,7 +76,7 @@ Research requires the production of reports and documents by default, unless oth
 
 Document the source material, evidence comparisons, and unresolved gaps needed to support the conclusions.
 
-## Sub-Agents
+## Sub agents
 
 - Use sub-agents as much as possible for parallel collection, processing, and analysis.
 - The maximum number of sub-agents that can run concurrently depends on the limitations of the environment.

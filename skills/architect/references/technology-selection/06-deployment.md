@@ -2,7 +2,7 @@
 
 A deployment platform is chosen for its operations model: peace of mind versus control, and whether the team can sustain it. Use for choosing among PaaS/containers/Serverless/K8s, designing deployment strategy, and planning the evolution path.
 
-## You are not choosing machines; you are choosing an operations model
+## Choosing an operations model rather than machines
 
 Novices ask "VMs or containers, Serverless or K8s, self-hosted or cloud". Architects ask first: who runs releases? who runs scaling? who handles alerts? when a new version breaks, who rolls back? who manages certificates, secrets, config, logs, metrics, permissions? when something breaks, can the team read the platform?
 
@@ -10,7 +10,7 @@ A deployment platform is not a machine or a console; it is **the entire path fro
 
 The more worry-free the platform, usually the less control and the stronger the vendor lock-in; the more controllable, the more it eats team operations capacity. There is no high or low—only whether this complexity is worth paying for now.
 
-## Four steps are a complexity price list, not a maturity ranking
+## Four steps priced by complexity rather than maturity
 
 PaaS/managed app platforms are the most worry-free, fitting MVPs, small teams, and standard web apps. Managed container platforms stay worry-free but add container and service boundaries. Serverless fits event-driven, bursty traffic, background jobs. K8s has the strongest control and the steepest platform-capability demand.
 

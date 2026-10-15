@@ -1,4 +1,4 @@
-# AI-era Judgment
+# AI era judgment
 
 Two fundamental changes AI brings to the architect's work: implementation getting cheap (vibe coding) and LLM systems as a new species. This document is the overview, giving the judgment baseline of "what changed, what did not"; the concrete design constraints of LLM systems are in [AI system design](./02-ai-system-design.md).
 
@@ -8,7 +8,7 @@ Shift A: AI changed "how we build". Natural language to code—implementation co
 
 The combined core claim: **implementation gets ever cheaper, judgment gets ever more valuable.** When AI produces running code in seconds, the moat is no longer "can write" but "can judge"—judging, before acting, what this system should look like, where it will die, and what is being traded for what.
 
-## Vibe coding amplifies everything, including architectural errors
+## Vibe coding amplifies everything including architectural errors
 
 Simon Willison's distinction: not all AI-assisted coding is vibe coding—the term specifically means **accepting AI-produced code without review**. For toys and prototypes it is brilliant; pushed straight to production, it hands users an unread house to live in.
 

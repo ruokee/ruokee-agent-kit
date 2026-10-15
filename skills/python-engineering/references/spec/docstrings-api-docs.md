@@ -63,7 +63,7 @@ Three formats are in wide use, and the skill does not force one; the choice foll
 
 Whatever the style, with annotations present the rule is constant: do not write the types into the prose. Let the signature own the types and let the docstring own the meaning.
 
-## Schema-Driven Documentation
+## Schema driven documentation
 
 For web APIs and data models built on tools like Pydantic and FastAPI, the type annotations and field metadata become the single source of truth for validation, serialization, _and_ generated documentation. A field's type, its constraints (`Field(gt=0, le=100)`), and its description (`Field(description=...)`) flow into the generated OpenAPI/JSON schema. In this world the docstring's territory shrinks to the part schema cannot express: the higher-level business semantics, transaction behavior, and cross-field relationships:
 

@@ -8,7 +8,7 @@ The first question of selection is never "PostgreSQL or MongoDB", "REST or gRPC"
 
 If the existing stack can solve the problem within the target performance, cost, reliability, and delivery window, default to keeping it. Any new technology brings learning cost, integration cost, operations cost, and future migration cost. This is the same restraint as "monolith unless you must not", "workflow unless you must not", "managed API before self-built GPUs". Read selection as: **paying a definite cost for a definite problem.**
 
-## First cut: which stage are you in
+## First cut on the project stage
 
 The same system has completely different answers at different stages:
 
@@ -21,7 +21,7 @@ The same system has completely different answers at different stages:
 
 A technology that is the right answer at maturity may be over-engineering at MVP. Validating demand: fewest components; sustaining growth: controllability; optimizing at scale: only then is complexity worth paying for unit cost and deep customization.
 
-## Second cut: where does the system die first
+## Second cut on where the system dies first
 
 Once the existing stack is confirmed insufficient, do not reach for a tool immediately—locate the failure mode first:
 
@@ -38,13 +38,13 @@ Once the existing stack is confirmed insufficient, do not reach for a tool immed
 
 **Tools are only the shell of the answer; the failure mode is the actual question of selection.**
 
-## Third cut: can the team sustain it
+## Third cut on what the team can sustain
 
 Many technologies look great in benchmarks but the team may not afford the upkeep: can they deploy it? Debug it? Is there monitoring? Who fixes it at 3 a.m.? Will version upgrades explode? Are there enough people who understand it?
 
 A "higher-performing system nobody can repair" routinely loses in production to a "sufficient-performance system the team knows well". Selection is not a lab contest; it is a long-term operations contract. Leave operability and key-person risk out of the judgment, and what you selected is not a technology but a future incident.
 
-## Fourth cut: can you exit
+## Fourth cut on the exit plan
 
 A mature selection always has an exit plan: how is the new database's data migrated, how is dual-write verified, rolled back to where? Can the model vendor's API be adapted; can prompts and evals be reused? Is business logic swallowed by the framework; can it be layered away? How do a message system's topics/schemas/consumer offsets migrate? Can the cloud platform's images, configs, secrets, storage, and networks be moved out?
 
@@ -63,7 +63,7 @@ Should we introduce a new technology?
 
 The record's point is not format but writing "why chosen" and "how to retreat if wrong" clearly: context (current state and pain, ideally with numbers), goal (the failure mode to solve), candidates (at least two, each with its cost), choice and what was given up (what was gained, what was paid), re-review conditions (which signals trigger re-evaluation), exit plan (how to move it out).
 
-## The "ask first" of the seven domains
+## The question to ask first in each domain
 
 | Domain | Do not ask first | Ask first |
 | --- | --- | --- |

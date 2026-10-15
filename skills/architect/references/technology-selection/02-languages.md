@@ -36,7 +36,7 @@ Not a ranking—a lens for forming judgment:
 
 A system need not use one language: main business services in Java/Go/TS; AI inference and data processing in Python; high-performance proxies or storage engines in Rust/Go; frontend and BFF in TypeScript. But polyglot brings a **cognitive tax**: builds, deploys, monitoring, debugging, hiring, and code review all multiply. A small team picking "the most fitting language" per module and introducing five stacks is usually overdrawing organizational capacity ahead of schedule.
 
-## Frameworks: default mature, unless clear evidence against
+## Default to mature frameworks without clear evidence against
 
 A framework is essentially a set of conventions for the team: it provides routing, dependency injection, configuration, data access, auth, testing, and observability hooks; in return, it reduces freedom, adds learning and upgrade costs, and can make debugging less transparent. At MVP, prioritize lowering delivery risk; for long-term multi-person maintenance, prioritize lowering collaboration risk. Very often, a mature and slightly clumsy framework beats a cool, lightweight one that runs on team discipline alone.
 

@@ -1,4 +1,4 @@
-# Comparing msgspec with other data-modeling tools
+# Comparing msgspec with other data modeling tools
 
 Choose by boundary and required behavior, not by a library-wide speed ratio. Performance depends on the schema, protocol, payload, validation work, and benchmark method.
 

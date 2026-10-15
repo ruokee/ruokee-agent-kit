@@ -1,4 +1,4 @@
-# Imperative / Procedural Programming
+# Imperative programming
 
 ## What it is
 
@@ -81,7 +81,7 @@ Procedural style is not just "one long function." Its discipline is decomposing 
 
 Keep each procedure at one level of abstraction. Mixing high-level orchestration (`run_job`) with low-level byte-twiddling in the same function forces the reader to constantly shift altitude. Push the details down into their own procedures and let the caller stay a readable summary.
 
-## Relationship to functional core / imperative shell
+## Relationship to the functional core pattern
 
 The cleanest resolution is to keep imperative style but confine it to a thin outer layer. This is the imperative shell of [functional-core.md](./functional-core.md): the shell sequences I/O, transactions, retries, and logging; the core takes plain data, applies the rules, and returns plain data. The shell stays imperative on purpose; that is where ordered side effects live. What you move out is the decision-making, not the orchestration.
 

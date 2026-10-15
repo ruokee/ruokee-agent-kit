@@ -44,7 +44,7 @@ The return value of `__exit__` is a control-flow decision, and it is the single 
 
 Suppressing exceptions silently is almost always a bug. The transaction above returns `False` so a failed block still raises; it rolls back _and_ propagates. Only return `True` when swallowing the exception is the manager's explicit purpose (and even then, prefer [`contextlib.suppress`](../stdlib/contextlib.md) for clarity). A manager that cleans up should not also hide the failure that triggered the cleanup.
 
-## Generator-Based Context Managers
+## Generator based context managers
 
 For the common case where you do not need a class, `@contextlib.contextmanager` turns a generator into a context manager. Code before `yield` is the setup, the yielded value becomes the `as` target, and code after `yield` is the teardown:
 

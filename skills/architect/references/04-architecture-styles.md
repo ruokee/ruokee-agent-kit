@@ -2,7 +2,7 @@
 
 Comparing the applicability conditions and tradeoffs of common architecture styles. Use when choosing the overall structure for a new system, evaluating the evolution direction of an existing one, or reviewing whether a style choice matches the constraints.
 
-## Patterns are tools, not goals
+## Patterns are tools rather than goals
 
 The same problems recur across countless systems, and proven solutions settle into patterns. The value of learning patterns: you hold cards when a problem arrives instead of inventing from zero, and communication gets a shared vocabulary—one word saves half an hour of explanation.
 

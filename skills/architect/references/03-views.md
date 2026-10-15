@@ -15,7 +15,7 @@ Drawing is also thinking. When you try to put the system on paper, "which of the
 - **Mixed abstraction levels.** The whole payment system and one utility function on the same sheet; readers cannot tell what granularity to think in. The most hidden and most fatal disease.
 - **Too many boxes.** Forty squares crammed into one page; readers give up.
 
-## C4: layers as zoom levels
+## C4 layers as zoom levels
 
 The C4 model splits diagrams into four zoom levels, like a map app zooming in:
 
@@ -32,7 +32,7 @@ The first two levels carry the daily value. Context aligns the system's relation
 
 The Code level is usually skipped. The code itself and the IDE's generated relationship views are the most accurate Code view; a hand-drawn one is stale the moment code changes. Do not hand-maintain documents destined to rot; spend the effort on the relatively stable levels that need communicating.
 
-## Beyond static structure: pick the view that answers the question
+## Pick the view that answers the question
 
 C4 expresses static structure; it cannot answer every question. Choose by question:
 

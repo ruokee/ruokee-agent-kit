@@ -11,7 +11,7 @@ High availability is not praying that nothing happens. Disks fail, cables get du
 
 Pushing MTBF from 30 days to 60 days costs money and effort that grow exponentially and still meets surprises; cutting MTTR from 30 minutes to 30 seconds relies on engineerable, drillable means: automatic detection, automatic failover, blast-radius isolation. The availability lever presses overwhelmingly on the MTTR side. A system with daily small glitches that self-heals in seconds has far higher availability than one that runs clean for half a year and then drops dead for a day. Resilience is not never falling; it is getting up at once when you fall, with only a scrape.
 
-## Cascading failure: slow is deadlier than dead
+## In cascading failure slow is deadlier than dead
 
 Major production incidents are rarely caused directly by one component dying; almost all of them start with one component slowing down and triggering a chain reaction that drags healthy parts down. The classic script: the database slows; calls rise from 50ms to 5 seconds; B's threads block waiting on the database and the pool fills; A calling B starts timing out too, and A's pool drains; clients begin retrying, so request volume rises instead of falling; the whole chain exhausts its resources and the site 503s. One slow database drags the whole platform down in ten minutes.
 
@@ -35,7 +35,7 @@ The first line of defense is not eliminating failure but controlling the blast r
 
 The isolation judgment starts with the failure-domain boundary: what must die together, and what must never drag each other. The most important bulkhead is always core versus non-core—do not let a dead "you may also like" take checkout and payment with it. Isolation is not free (more idle resources, more complex capacity planning); spend isolation granularity on the critical paths that must not be dragged down.
 
-## Active self-protection
+## Active self protection
 
 **Circuit breaker.** When a dependency's failure rate crosses a threshold, trip: subsequent calls fail fast without being sent—protecting the barely-alive downstream while releasing your own resources immediately. Three states: closed (normal pass-through) → open (tripped; everything fails fast) → half-open (after cooling, one probe request goes through; only on success does it close). The half-open state is the soul: no blind recovery—confirm the downstream is truly alive first.
 
@@ -76,13 +76,13 @@ Derive from business loss: first ask "how much does an hour of lost data cost, a
 
 Four iron laws: **recovery tooling must not depend on the system being recovered** (in Meta's 2021 outage, the normal means of accessing the data centers were unavailable, and getting engineers onsite was delayed); **recovery order must be predefined** (DNS first or database first—wrong order causes a second incident); **backups must be verified through regular restore drills**—an unverified backup does not equal recoverability; **point-in-time recovery (PITR) is the key capability against logic errors**—backing up only current state means mistaken deletions and tampering are faithfully replicated into the backups too.
 
-## Chaos engineering: proving resilience
+## Chaos engineering proves resilience
 
 The code paths triggered only by failure (breaker logic, degradation branches, failover switching) are precisely the ones that run least and are tested thinnest in normal times—the most likely to rot silently. Only when a real incident arrives do you discover the degradation switch died three months ago. An undrilled disaster-recovery plan is roughly equivalent to none.
 
 Chaos engineering injects failures into production actively and controllably, exposing weaknesses early in small controlled explosions (Netflix's Chaos Monkey kills production instances at random, forcing every team to assume instances can die at any moment until redundancy and self-healing become default habits). Its essence is the scientific method: define steady-state metrics, hypothesize (killing one instance should not drop the success rate), inject the fault and test, and fix what fails. It turns "hope it holds" into "verified that it holds". Strict preconditions: monitoring that can see the impact, blast-radius control for timely abort, one-click stop. Injecting faults into production without guardrails is not chaos engineering; it is an incident.
 
-## Case: how a shaky hand took down half the internet
+## How a shaky hand took down half the internet
 
 **AWS S3 (2017).** An engineer ran a documented command to take servers offline and mistyped the parameter, hitting a large batch of machines supporting the index and placement subsystems. Restarting the index subsystem and validating the integrity of its metadata took far longer than expected; much of the internet depending on us-east-1 S3 was down about 4 hours (official AWS post-incident report, "Summary of the Amazon S3 Service Disruption", 2017-03-02). Lessons: shaky hands are the norm ("everything fails" includes people); a command able to hit that wide a range means the blast radius is out of control; the post-incident hardening was precisely adding guardrails to dangerous operations.
 

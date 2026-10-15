@@ -1,4 +1,4 @@
-# Thin Wrapper / Trivial Helper
+# Thin wrapper as trivial helper
 
 ## What it is
 
@@ -25,7 +25,7 @@ A wrapper earns its place when it does real work beyond forwarding:
 - **A cross-cutting concern.** Wrappers that add logging, retry, caching, metrics, or a transaction boundary do add behavior. These are decorators, not thin wrappers.
 - **A named domain concept.** `requires_tax_review(order)` wrapping a boolean expression makes the rule searchable and gives it one home. The name _is_ the value.
 
-## When they're noise
+## When they are noise
 
 - A single caller and no abstraction boundary: inline it.
 - The wrapper name is a synonym of the wrapped call (`fetch_data` for `requests.get`), adding no domain meaning.

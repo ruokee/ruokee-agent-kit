@@ -1,4 +1,4 @@
-# Fast Review: Python Engineering
+# Fast review of Python engineering
 
 Default mode. A quick, high-signal self-check after development or on a small diff. Optimized for low cost and few, confident findings, not coverage.
 

@@ -37,7 +37,7 @@ with open(path) as f:
 
 Do not rely on `__del__` or CPython reference counting to release files, locks, transactions, or connections. Destructor timing varies across implementations, breaks under reference cycles, and is unreliable on the exception path. Make release explicit and scope-bound.
 
-## Scope-bound vs dynamic resource sets
+## Scope bound vs dynamic resource sets
 
 For a fixed, statically known set of resources, nested `with` statements (or a single `with` with multiple managers) are the clearest expression. When the _number_ of resources is dynamic, opening one file per input path, acquiring a variable set of connections, use `contextlib.ExitStack` (or `AsyncExitStack`) instead of hand-writing a nested cleanup stack:
 

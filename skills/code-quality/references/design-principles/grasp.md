@@ -1,4 +1,4 @@
-# GRASP: General Responsibility Assignment Software Patterns
+# GRASP responsibility assignment patterns
 
 ## What it is
 

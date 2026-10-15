@@ -12,7 +12,7 @@ With only two examples, you cannot see the axis of variation. Any abstraction yo
 
 Three concrete instances let you extract a parameter set that reflects actual variation rather than imagined variation. The abstraction's shape is discovered, not invented.
 
-## Relationship to DRY: complementary, not contradictory
+## Complementary relationship to DRY
 
 On the surface DRY and the Rule of Three look opposed: DRY says remove duplication, the Rule of Three says wait. They are reconciled by remembering what each one targets.
 

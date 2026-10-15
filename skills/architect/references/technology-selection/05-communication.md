@@ -8,7 +8,7 @@ The same "order notifies inventory to deduct" can be a synchronous REST call, a 
 
 **Fix the interaction semantics first, then the protocol.** Do not start with "we will use gRPC"; first judge whether this path must know the result synchronously.
 
-## First cut: synchronous or asynchronous
+## Choosing synchronous or asynchronous
 
 | Style | Fits | Cost |
 | --- | --- | --- |
@@ -18,7 +18,7 @@ The same "order notifies inventory to deduct" can be a synchronous REST call, a 
 
 Rules of thumb: the user must know immediately whether to proceed → sync; only needs to know it was accepted → async; needs to see change continuously → streaming.
 
-## Protocols each have their edge; they are not substitutes
+## Every protocol has its niche
 
 | Style | Better for | Not for |
 | --- | --- | --- |
@@ -36,13 +36,13 @@ An API's biggest risk is not HTTP versus protobuf but an **unclear contract**: i
 
 Without contract governance, REST becomes messy URLs, GraphQL becomes arbitrary database exposure, and gRPC becomes a strongly typed ball of mud.
 
-## Internal communication: do not let call chains grow unbounded
+## Do not let internal call chains grow unbounded
 
 The most common microservice performance problem is not one slow service but call-chain fan-out: user request → A → B/C → D/E/F/G. Each extra hop adds network latency, timeout and retry-storm risk, dependency-failure propagation, and trace-debugging cost.
 
 Internal APIs need three companions: **timeout budgets** (upstream 500ms does not mean giving every downstream 500ms); **retry discipline** (retry only idempotent requests, with backoff and jitter); **degradation strategy** (return partial results or fallbacks when non-critical dependencies fail).
 
-## External APIs: stability beats elegance
+## Stability beats elegance in external APIs
 
 A public API is a promise the moment it ships: backward compatibility (adding fields is usually safe; removing or changing meaning is dangerous); stable error codes (customers write logic against your error semantics); docs and examples (if external developers cannot understand it, elegance is worthless); signing and replay defense (especially payments, Webhooks, agent tool calls); audit and rate limiting (traceable when things break, containable when abused).
 

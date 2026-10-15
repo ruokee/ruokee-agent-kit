@@ -36,7 +36,7 @@ def client(config: Config) -> Iterator[Client]:
     c.close()                   # teardown, runs even on failure
 ```
 
-### Factory-as-Fixture for Varying Instances
+### Factory as fixture for varying instances
 
 When a test needs _several_ objects of the same kind, or an object whose fields vary per test, return a _function_ from the fixture instead of an object. This replaces a swarm of near-identical fixtures with one, and keeps the varying values visible in the test body (DAMP):
 
@@ -57,7 +57,7 @@ def test_admins_can_publish(make_user: Callable[..., User]) -> None:
 
 An `autouse=True` fixture applies to every test in its scope without being requested. It fits a genuine cross-cutting side effect (patching a clock for a whole module), but it creates an _implicit_ dependency the test body does not show, which works against readability. Prefer an explicitly requested fixture unless the setup truly must apply everywhere.
 
-## Parametrization: Cases as Data
+## Parametrized cases as data
 
 [pytest](../tooling/pytest.md) covers the `@pytest.mark.parametrize` mechanics. For test quality, use parametrization to express the same check over different data as a visible table instead of copying test bodies. This produces fewer, stronger tests.
 
@@ -149,7 +149,7 @@ async def test_fetch_returns_payload() -> None:
 
 Pin behavior, not the plugin's dev-version API surface: the concepts (marker, async fixture, loop scope) are stable, but specific fixtures have churned across versions.
 
-## Anti-Patterns, in pytest Terms
+## Anti patterns in pytest terms
 
 These are common test-smell shapes in pytest:
 

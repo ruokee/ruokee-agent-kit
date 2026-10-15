@@ -8,7 +8,7 @@ Monitoring answers: I knew in advance what to watch—has it crossed the line no
 
 Small systems survive on monitoring; distributed systems go blind on monitoring alone. The more services, the longer the call chains, the more frequent the releases, the more you need observability—not more dashboards.
 
-## Derive from SLO, not from tools
+## Derive from SLO rather than tools
 
 Step one defines three things: SLIs (what to measure: success rate, P99 latency, error rate, availability); SLOs (the internal promise: 99.9% of requests < 300ms); the error budget (the allowed failure quota: while unspent, keep shipping; once burned, fix stability first).
 
@@ -24,13 +24,13 @@ This vocabulary turns "is the system stable" from a feeling into discussable num
 
 OpenTelemetry's value is decoupling instrumentation from the backend: generate telemetry in a relatively standard way first, and later switching the backend from open source to commercial, vendor A to vendor B, costs little. **Tools can be swapped; instrumentation habits barely can.** Getting the evidence formats right first—trace ids, structured logs, key business metrics—matters more than dashboard color schemes.
 
-## Reliability is not just seeing; it is also closing out
+## Reliability also means closing out
 
 Teams that buy observability tooling without improving reliability miss this: seeing a problem is not handling it. Reliability also needs a response chain: alerting (wake only people who can act) → on-call (who owns the response) → runbooks (what to do first when the alert fires) → incident management (severity levels, communication, escalation, retrospectives) → release governance (gradual rollout, rollback, feature flags, circuit breaking and degradation).
 
 Selection is not just the monitoring backend; it is the incident process. Serious systems at minimum: actionable alerts, an owner per service, runbooks for critical alerts, a retrospective after incidents, and retrospective findings written back into alerts, code, or the platform.
 
-## Alerting: few and precise
+## Alerting with few precise alerts
 
 Low-quality alerts: CPU high, memory high, disk at 80%, thread count up. These are clues, not necessarily incidents. Better alerts center on user symptoms: login failures → login success rate below SLO; slow checkout → checkout P99 over target for 10 straight minutes; messages not delivering → backlog pushing notification delay past the promise.
 

@@ -1,4 +1,4 @@
-# Object-Oriented Programming
+# Object oriented programming
 
 ## What it is
 

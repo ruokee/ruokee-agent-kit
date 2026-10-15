@@ -2,7 +2,7 @@
 
 Treating security as structure, not patches: threat modeling, trust boundaries, defense in depth, blast radius, multi-tenant isolation, secret management, supply chain, and compliance. Use when designing systems involving sensitive data, multiple tenants, an external attack surface, or agent tool permissions.
 
-## Threat modeling: systematically thinking about bad things
+## Threat modeling as systematic thinking about attacks
 
 A newcomer does security by remembering to add things: add a login, add HTTPS, run a scan before launch. That is patch thinking—scattered and reactive. An architect does security by spreading the system out and systematically interrogating every data flow and trust boundary about how it would be attacked.
 
@@ -26,7 +26,7 @@ Perfect security cannot guarantee never being breached; the mature security view
 
 Blast-radius-shrinking means: least privilege, network segmentation (only necessary ports between services), credential isolation (one key set per service), short-lived credentials (tokens expiring in minutes—theft buys little time). Fault isolation and security isolation use the same structural weapons—bulkheads, rate limiting, and circuit breakers, viewed from another angle, also stop attack propagation: a compromised component firing requests wildly and a faulty component retrying wildly have the same injury shape. The bulkheads built for availability moonlight for security.
 
-## The multi-tenant isolation spectrum
+## Multi tenant isolation spectrum
 
 Multi-tenancy is SaaS's foundation; the benefit is cost (shared infrastructure), and the number-one nightmare is tenant crossover: company A's data seen by company B—the most severe, most headline-prone, most customer-losing failure.
 
@@ -44,7 +44,7 @@ The deadliest error is secrets in the repository: once committed, they live fore
 
 **Any plaintext that can be grepped, committed, or printed into logs should be assumed already leaked.**
 
-## Supply-chain security
+## Supply chain security
 
 In modern software, the code you write yourself may be 5%; the other 95% is dependencies: open-source libraries, base images, CI/CD tooling, build scripts. The vast majority of the attack surface is other people's code. Trust is transitive: trusting a library means trusting all its dependencies, its maintainers, and its build pipeline—any link breached, and poison flows downstream to the whole network.
 

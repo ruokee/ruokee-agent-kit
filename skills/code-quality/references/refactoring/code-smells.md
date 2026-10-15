@@ -18,7 +18,7 @@ Fowler and Beck group smells into families. Knowing the family helps you reach f
 
 These categories overlap and a single piece of code can exhibit several. The point of the taxonomy is recall: when something feels off, the families prompt you to name what you are seeing.
 
-## How to triage: is it worth fixing now?
+## Deciding what to fix now
 
 Finding a smell is the easy part. The judgment is whether to act, and the answer is frequently "not now." Run a quick triage:
 
@@ -29,7 +29,7 @@ Finding a smell is the easy part. The judgment is whether to act, and the answer
 
 The goal of triage is to spend your refactoring effort where it reduces real future cost, not to drive every smell count to zero.
 
-## Smells in agent-assisted development
+## Smells in agent assisted development
 
 Agentic coding raises both the speed of code production and the speed at which smells appear. The characteristic problems are not "the code looks non-human" but structural: repeated adapters, thin wrapper helpers, over-wide Protocols, speculative registries, deep mocks, the same domain rule written separately in schema, service, and test fixture. Because the volume is higher, smell detection has to be more active and more deliberate than in traditional hand-written code, but the triage discipline above matters more too, since the temptation is to mechanically "clean up" everything an agent produced.
 

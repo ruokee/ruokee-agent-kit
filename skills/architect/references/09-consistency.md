@@ -2,7 +2,7 @@
 
 Consistency models, transaction boundaries, and conflict handling as engineering practice. Use for choosing approaches to cross-service data operations, fixing dual-write problems, and designing reliable events and state.
 
-## The problem: the network cuts the transaction boundary
+## The network cuts the transaction boundary
 
 In the single-machine era, one `BEGIN…COMMIT` made "deduct stock, create order, issue coupon" all-succeed or all-fail. Once those three things sit in three services with three databases, no single local transaction can enclose them. Stock was deducted and the order created, but the coupon never went out—data half-done.
 
@@ -10,7 +10,7 @@ The scheme for re-enclosing three databases in one transaction is two-phase comm
 
 2PC is not unusable: inside a single database or among a few tightly coupled resources (multiple shards of one database, say) it still has a place. Across multiple independent services under high concurrency, the mainstream answer is not a stronger transaction but giving up cross-service strong transactions for eventual-consistency schemes that tolerate intermediate states.
 
-## Saga: a chain of local transactions plus compensation
+## Saga as a chain of local transactions with compensation
 
 Split the big transaction into a chain of local transactions, each step running only in its own service's database. On failure, there is no rollback—instead, compensation actions run in reverse to offset what was done: money already paid to the merchant is compensated by initiating a refund and logging a reverse entry; an email already sent cannot be unsent, so a correction email goes out; stock already deducted is added back—but by then someone else may have bought it, which is compensation's built-in trouble.
 
@@ -23,7 +23,7 @@ Two chaining styles and how to choose:
 
 A plain rule: when you must read through several services' logs to piece together what happened to one order, it is time for an orchestrator. Uber introduced its self-built persistent workflow platform in "Announcing Cadence 1.0" (2023-06-22, https://www.uber.com/us/en/blog/announcing-cadence/); DoorDash documented its practice of adopting Cadence as a fallback for reliable asynchronous flows in "Building Reliable Workflows: Cadence as a Fallback for Event-Driven Processing" (2022-10-21, https://careersatdoordash.com/blog/building-reliable-workflows-cadence-as-a-fallback-for-event-driven-processing/). Turning the Saga orchestrator into platform-level infrastructure is the shared route of both.
 
-## Outbox: the transactional answer to dual writes
+## Outbox as the transactional answer to dual writes
 
 A service finishes handling a request and must both update its own database and emit a message. Those two actions live in two systems—a database and a message middleware—no transaction can enclose both. Write the database first, then send: a crash between the two loses the message. Send first, then write: a failed write births a phantom message. The insidious part: this almost never shows in test environments, yet keeps producing database-versus-downstream mismatches in production's long tail.
 

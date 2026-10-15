@@ -19,7 +19,7 @@ The full checklists for general dimensions are not expanded here; route by signa
 
 Below, only the AI-specific items.
 
-## The AI-specific checklist
+## The AI specific checklist
 
 **Non-determinism backstop.** When the model output is wrong or unstable, is there a fallback? Are there guardrails or human review before side effects?
 
@@ -39,7 +39,7 @@ Below, only the AI-specific items.
 
 Walking the entire checklist item by item is its own over-engineering. First ask what accident-prone things the code or design touches. Money needs consistency and authorization checks, external calls need timeout and failure handling, and model use needs the applicable quality, permission, and injection checks. A read-only summarizer does not need a refund transaction system. Use the checklist as a question template, not a box-ticking ceremony. Answers need files, tests, or runtime evidence; "fully considered" is not evidence.
 
-## Feed the checklist back for AI self-review; humans make the final judgment
+## Feed the checklist back for AI self review
 
 Put applicable checks in the prompt, or in project rules that truly need to persist, and ask AI to check its output against concrete files, tests, and runtime observations. "Which line sets the timeout?" and "Where is the duplicate-request test?" are more useful than asking it to declare the design robust. Self-review may catch a missing timeout or idempotency check, but it may also reuse the original mistaken assumptions. Verify consequential claims independently. Stamping your own certificate harder does not add evidence.
 

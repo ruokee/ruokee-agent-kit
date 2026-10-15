@@ -1,4 +1,4 @@
-# Observer / Pub-Sub
+# Observer pattern
 
 ## Intent
 

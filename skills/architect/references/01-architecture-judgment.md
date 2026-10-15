@@ -40,7 +40,7 @@ Constraints are boundaries the design cannot cross. The difference from quality 
 
 Constraints are helpers, not obstacles. Without constraints, a design problem has infinite options and nowhere to start; knowing it is a three-person team, three months, must-pass compliance kills most fancy options on the spot. Map the constraints before drawing anything, and you will usually beat the person who starts drawing immediately—faster and steadier.
 
-## The quality-attribute checklist
+## The quality attribute checklist
 
 Given a system, walk this checklist item by item. For each, ask two questions: does it matter to this system, and what is the target? Most items rating low is itself important information—it tells you not to over-engineer.
 
@@ -56,7 +56,7 @@ Given a system, walk this checklist item by item. For each, ask two questions: d
 
 Cost deserves its own emphasis: it is the most overlooked attribute and often the real constraint. Redundancy costs money, caching costs money, strong consistency costs money because it is hard to scale. An inefficient design burns a few hundred extra yuan a month at ten thousand users—nobody notices—and millions a month at a hundred million, the same flaw amplified by scale. Strip most architecture arguments to the bottom and the dispute is not whether something is technically possible, but whether the money and people are worth it.
 
-## No silver bullets, only tradeoffs
+## Tradeoffs rather than silver bullets
 
 Almost every choice that makes a system better in one way makes it worse in another:
 
@@ -80,7 +80,7 @@ Quality attributes and constraints are mostly implicit; they have to be asked ou
 
 There is no best architecture, only the most fitting one under this set of answers. The same chat feature has wildly different answers for a three-person internal tool and a billion-user product; the difference is not engineer skill but different answers to the six questions. When the answers change, the optimum moves.
 
-## Example: three features grow a quality-target table
+## How three features grow a quality target table
 
 Requirement: a URL shortener—long URLs to short codes, click to redirect, maybe click stats.
 
@@ -114,7 +114,7 @@ The ranking of tradeoffs belongs to people who understand the business. Translat
 - Tie quality attributes to business metrics. Not "four nines of availability" but "at our average order value, an hour down costs roughly this much, so this is what availability is worth".
 - Separate the floor from nice-to-haves. Security compliance and money correctness are usually non-negotiable; shaving latency from 200ms to 100ms may be polish. Calling everything equally urgent destroys your credibility.
 
-## Taste: choosing right among defensible options
+## Taste in choosing among defensible options
 
 Frameworks converge to a few candidates that all sound reasonable; choosing among them takes taste. Taste is not mysticism; it has operable facets:
 

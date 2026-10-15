@@ -1,4 +1,4 @@
-# DRY: Don't Repeat Yourself
+# Do not repeat yourself
 
 ## What it is
 
@@ -31,7 +31,7 @@ Examples of coincidental similarity, usually safe to keep separate:
 - Two request handlers with parallel boilerplate whose business logic is unrelated.
 - Test setup that looks repetitive but pins down distinct scenarios.
 
-## When to abstract, when to tolerate repetition
+## Abstracting versus tolerating repetition
 
 Deduplicate immediately when the duplicated thing is genuinely one rule, especially for high-risk knowledge: security, permissions, money, protocol contracts, data consistency, and any single source of truth for a schema. For these, do not wait; the cost of divergence is too high. See [rule-of-three.md](./rule-of-three.md) for the exception structure.
 

@@ -4,7 +4,7 @@ This document draws on John Ousterhout's _A Philosophy of Software Design_. Its 
 a way to judge the quality of an abstraction by comparing the cost of its interface against the
 value of what it hides.
 
-## Depth: interface cost vs implementation value
+## Judging depth by interface cost vs implementation value
 
 Every module has two faces: an **interface** (what callers must understand to use it) and an
 **implementation** (everything behind that interface). Ousterhout frames module quality as the

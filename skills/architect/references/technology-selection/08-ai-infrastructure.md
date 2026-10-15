@@ -2,7 +2,7 @@
 
 The five-layer decomposition of the AI stack and its upgrade signals: managed APIs as the default start, gateways, RAG/vector stores, self-hosted inference, training and fine-tuning, and the gatekeeping layer. Use for infrastructure selection in LLM-bearing systems.
 
-## What are you actually self-hosting?
+## What you actually self host
 
 Hearing "AI infrastructure" one thinks of GPUs, vector stores, agent frameworks, model gateways, inference engines, training and fine-tuning, evaluation platforms. But step one is not listing components; it is asking: **are you actually building infrastructure, or just making an AI application?**
 
@@ -22,7 +22,7 @@ AI infrastructure is not "deeper is more advanced". The deeper you go, the more 
 
 Not all five layers exist from day one. The correct order: **see the risk that cannot be skipped first, then add the layer that answers it**: cannot see cost—add the gateway or usage logging first; retrieval quality caps the answers—add RAG eval first; multiple teams calling models—add the unified gateway; GPU cost exceeding API cost—consider self-hosted inference; a genuine need to change model behavior—only then fine-tuning or training; agents executing side effects—permissions, human review, and audit are mandatory.
 
-## API or self-hosted inference: a cost decision, not a vanity decision
+## API or self hosted inference as a cost decision
 
 | Approach | Strength | Cost |
 | --- | --- | --- |
@@ -32,7 +32,7 @@ Not all five layers exist from day one. The correct order: **see the risk that c
 
 The fork is a cost decision, not a vanity decision: it asks four questions: can the data leave the domain? can the managed API meet the latency target? is the call volume big enough that self-hosting is cheaper? can the team operate GPU serving? One yes usually does not justify self-hosting; hitting two or three together is when sinking the infrastructure makes sense.
 
-## RAG, long context, fine-tuning: adding knowledge or changing behavior?
+## Adding knowledge or changing behavior
 
 | Route | Solves | Choose when |
 | --- | --- | --- |
@@ -42,13 +42,13 @@ The fork is a cost decision, not a vanity decision: it asks four questions: can 
 
 The most common misjudgment: blaming the model for dumbness when retrieval was done poorly, or fine-tuning a "knowledge freshness" problem that RAG should have solved. The test sentence: **knowledge goes through retrieval; only behavior talks fine-tuning.** Need citations, updates, or permissions—get RAG right first.
 
-## Training: managed or self-built
+## Managed or self built training
 
 Training infrastructure is not inference's extension; it is another ledger: data pipelines (cleaning, dedup, licensing compliance, versioning—or experiments cannot be reproduced), job orchestration (long-running jobs must be interruptible and resumable), GPUs and interconnect (multi-card training is sensitive to inter-card bandwidth and storage throughput, a different hardware profile from inference), checkpoints and model artifacts (resumable, version-traceable), experiment tracking (hyperparameters, datasets, metrics tied to each run), validation and promotion (offline metrics gate the eval set; the eval set gates the candidate release).
 
 The fork: **when managed fine-tuning (API-provided services) meets the need, default to managed; only when training jobs are frequent enough that a self-built cluster pays off, or data/models cannot leave the domain, or deep customization of the training pipeline is required, build training infrastructure.** Most teams making AI applications never need the latter. Before self-building, also ask: does anyone on the team debug distributed training? How much does one training run cost, and how often do you iterate? These are the same account as self-hosted inference, at a higher threshold.
 
-## Agent frameworks: workflow first, autonomy second
+## Workflow first for agent frameworks
 
 The first question stays the same: can a deterministic workflow solve it? Yes → workflow first (more predictable, testable, auditable); no → agent, but with permissions, budgets, human review, tracing, and eval mandatory.
 

@@ -1,4 +1,4 @@
-# Event-Driven Architecture
+# Event driven architecture
 
 ## What it is
 

@@ -10,7 +10,7 @@ This guide covers msgspec's converter system for handling custom types and type 
 
 See [supported-types.md](./supported-types.md) for the complete list of natively supported types.
 
-## Encoding hooks (enc_hook)
+## Encoding hooks with enc_hook
 
 Encoding hooks serialize custom types to msgspec-supported basic types.
 
@@ -97,7 +97,7 @@ encoded = encoder.encode({"config": config})
 # b'{"config":{"name":"MyProject","root":"/home/user/projects/myproject"}}'
 ```
 
-## Decoding hooks (dec_hook)
+## Decoding hooks with dec_hook
 
 Decoding hooks deserialize data into custom types.
 
@@ -193,7 +193,7 @@ decoder = msgspec.json.Decoder(type=dict[str, Any], dec_hook=dec_hook)
 
 ## Complete examples
 
-### Example 1: Path type handling
+### Path type handling
 
 ```python
 from pathlib import Path
@@ -233,7 +233,7 @@ print(decoded)
 # FileInfo(name='document.pdf', path=Path('/home/user/documents/document.pdf'), size=1024000)
 ```
 
-### Example 2: ORM object handling
+### ORM object handling
 
 ```python
 import msgspec
@@ -494,7 +494,7 @@ def dec_hook(type_, obj):
 
 **Note.** msgspec does not call `enc_hook` for natively supported types. It uses built-in serialization directly.
 
-### Native types (no hook needed)
+### Native types without hooks
 
 ```python
 from datetime import datetime, date

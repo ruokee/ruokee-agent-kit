@@ -1,4 +1,4 @@
-# Data-Oriented Design
+# Data oriented design
 
 ## What it is
 

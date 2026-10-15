@@ -2,7 +2,7 @@
 name: well-said
 description: Use when outputting anything. Express yourself naturally and directly. Consider the reader. Articulate your ideas clearly and retain only what is essential for the audience. Eliminate stock phrasing, internal musings, conversational filler, defensive language, and unnecessary self-justification.
 metadata:
-  version: "1.0.3"
+  version: "1.0.4"
 ---
 
 # Well said
@@ -104,7 +104,7 @@ If the work is sound, edit the wording. Ask what question the paragraph answers 
 
 If the content is useful but starts from the wrong question or is written to defend the writer, drop the original structure and rewrite it around what the reader needs. Put useful facts beside the relevant conclusion or action. Rewrite affected paragraphs and sections around it too. Keep facts, real risks, important unanswered questions, permission requirements, and explanations and evidence that affect the reader's judgment or action. Put this information beside the relevant conclusions so the reader can see their basis and the conditions under which they hold. Remove claims that have no evidence and the excuses used to defend them.
 
-## Trimming chain-of-thought leakage
+## Trimming chain of thought leakage
 
 Chain-of-thought leakage is prose whose vantage is the authoring session rather than the document. It cites artifacts that only that session could see, narrates changes instead of the resulting state, argues with a reviewer who has left, or includes control-flow narration, hedges, or untranslated working-language fragments.
 

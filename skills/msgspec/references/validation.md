@@ -415,7 +415,7 @@ class Contact(msgspec.Struct):
     )]
 ```
 
-### Percentage (0-100)
+### Percentage from 0 to 100
 
 ```python
 from typing import Annotated
@@ -443,7 +443,7 @@ class Product(msgspec.Struct):
     )]
 ```
 
-### Non-empty list
+### Non empty list
 
 ```python
 from typing import Annotated
