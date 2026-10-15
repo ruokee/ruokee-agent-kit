@@ -49,6 +49,6 @@ OMP `18.5.0`, declared in [Compatibility](../../projects/omp-context-pin/README.
 
 ## Related ADRs
 
-- [Add the omp-context-pin extension](../adr/decision/2026-09-15-add-omp-context-pin.md)
+- [Maintain the omp-context-pin extension](../adr/decision/2026-10-15-maintain-omp-context-pin.md)
 - [Maintain host components against a shared OMP floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)
 - [Keep distributable components self contained](../adr/decision/2026-08-24-keep-components-self-contained.md)

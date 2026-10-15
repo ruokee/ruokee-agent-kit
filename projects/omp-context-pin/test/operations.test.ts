@@ -95,15 +95,14 @@ describe("createPin", () => {
 describe("updatePin", () => {
   test("measures a branch overflow against the bodies the operation keeps", () => {
     const { env, journal } = environment();
-    const full = "a".repeat(MAX_ENTRY_BYTES);
-    for (let index = 1; index <= 3; index += 1) createPin(env, { body: full, source: "user" });
-    createPin(env, { body: "b", source: "user" });
-    const replaced = createPin(env, { body: "c", source: "user" });
-    // 3 * 16,384 + 1 + 1 bytes are active; replacing the last 1-byte body with
-    // a full one would reach 65,537 bytes.
+    const half = "a".repeat(MAX_ENTRY_BYTES / 2);
+    createPin(env, { body: half, source: "user" });
+    const replaced = createPin(env, { body: half, source: "user" });
+    // The two half bodies fill the branch; replacing the last one with a full
+    // body stays inside the entry limit and still overflows the branch.
     const outcome = updatePin(env, {
       entryId: replaced.entryId ?? 0,
-      body: full,
+      body: "a".repeat(MAX_ENTRY_BYTES),
       source: "user",
       expectedRevision: 1,
     });
@@ -111,10 +110,10 @@ describe("updatePin", () => {
     expect(outcome.code).toBe("rejected");
     expect(outcome.text).toContain(`Limit: ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes of active bodies per branch.`);
     expect(outcome.text).toContain(
-      `Other active bodies: ${3 * MAX_ENTRY_BYTES + 1} UTF-8 bytes; with this body the branch would hold ${3 * MAX_ENTRY_BYTES + MAX_ENTRY_BYTES + 1} UTF-8 bytes.`,
+      `Other active bodies: ${MAX_ENTRY_BYTES / 2} UTF-8 bytes; with this body the branch would hold ${MAX_ENTRY_BYTES + MAX_ENTRY_BYTES / 2} UTF-8 bytes.`,
     );
-    // The five creates above; the refused replacement appends nothing.
-    expect(journal).toHaveLength(5);
+    // The two creates above; the refused replacement appends nothing.
+    expect(journal).toHaveLength(2);
   });
 
   test("replaces the body and keeps the creating source", () => {
@@ -201,7 +200,7 @@ describe("deletePin", () => {
 describe("reads", () => {
   test("lists nothing for an empty branch", () => {
     const { env } = environment();
-    expect(listPins(env).text).toBe(`No pinned text on this branch (0 of 65,536 UTF-8 bytes).`);
+    expect(listPins(env).text).toBe(`No pinned text on this branch (0 of ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes).`);
   });
 
   test("returns the body verbatim with its metadata", () => {

@@ -701,21 +701,21 @@ describe("planUpdate", () => {
   });
 
   test("excludes the replaced body from the branch total", () => {
-    const filler = "a".repeat(MAX_ENTRY_BYTES);
+    const half = "a".repeat(MAX_ENTRY_BYTES / 2);
     let state = fresh();
-    for (let index = 1; index <= 3; index += 1) {
+    for (let index = 1; index <= 2; index += 1) {
       const plan = planCreate(state, {
         operationId: index,
         entryId: index,
-        body: filler,
+        body: half,
         source: "user",
       });
       if (plan.kind !== "append") throw new Error("expected an append");
       state = plan.next;
     }
-    expect(state.usedBytes).toBe(3 * MAX_ENTRY_BYTES);
+    expect(state.usedBytes).toBe(MAX_BRANCH_BYTES);
 
-    const replaced = "b".repeat(MAX_ENTRY_BYTES);
+    const replaced = "b".repeat(MAX_ENTRY_BYTES / 2);
     const plan = planUpdate(state, {
       operationId: 5,
       entryId: 1,

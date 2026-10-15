@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-context-pin",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "OMP extension keeping pinned text entries present in later requests of the current session branch",
   "license": "MIT",
   "type": "module",

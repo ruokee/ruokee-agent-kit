@@ -13,7 +13,7 @@ describe("byteLength", () => {
 describe("checkCapacity", () => {
   test("declares the documented limits", () => {
     expect(MAX_ENTRY_BYTES).toBe(16_384);
-    expect(MAX_BRANCH_BYTES).toBe(65_536);
+    expect(MAX_BRANCH_BYTES).toBe(16_384);
   });
 
   test("accepts bodies inside both limits", () => {

@@ -9,7 +9,7 @@
 export const MAX_ENTRY_BYTES = 16_384;
 
 /** Maximum UTF-8 size of all active bodies on one branch. */
-export const MAX_BRANCH_BYTES = 65_536;
+export const MAX_BRANCH_BYTES = 16_384;
 
 /** Declared limits as they are written in user-facing text. */
 export const MAX_ENTRY_BYTES_LABEL = MAX_ENTRY_BYTES.toLocaleString("en-US");

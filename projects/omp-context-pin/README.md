@@ -124,7 +124,7 @@ The active set is the range after the latest reset boundary, and damage is judge
 
 ## Limits
 
-One body may not exceed 16,384 UTF-8 bytes, and the active bodies on one branch may not exceed 65,536 UTF-8 bytes. A write that exceeds either limit changes nothing, and the refusal reports the limit, the current usage and the size the operation would reach.
+A single body and the active bodies of one branch may not exceed 16,384 UTF-8 bytes. A write that exceeds a limit changes nothing, and the refusal reports the limit, the current usage and the size the operation would reach.
 
 ## Persistence
 

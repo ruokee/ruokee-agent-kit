@@ -2,6 +2,8 @@
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
+Archived: 2026-10-15
+Reversed by: [Maintain the omp-context-pin extension](../decision/2026-10-15-maintain-omp-context-pin.md)
 
 English | [中文](./2026-09-15-add-omp-context-pin.zh.md)
 

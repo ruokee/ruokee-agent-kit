@@ -758,7 +758,8 @@ describe("an operation that was refused", () => {
     const host = creatingHost("previously-refused-body");
     activate(host.pi);
     const full = "a".repeat(MAX_ENTRY_BYTES);
-    for (let index = 0; index < MAX_BRANCH_BYTES / MAX_ENTRY_BYTES; index += 1) {
+    const filled = MAX_BRANCH_BYTES / MAX_ENTRY_BYTES;
+    for (let index = 0; index < filled; index += 1) {
       await callTool(host, `capacity-${index}`, { action: "create", content: full });
     }
     host.drain();
@@ -766,7 +767,7 @@ describe("an operation that was refused", () => {
     await runCommand(host);
     const refused = consume(host);
 
-    expect(recordsOf(host)).toHaveLength(4);
+    expect(recordsOf(host)).toHaveLength(filled);
     expect(String(resultsOf(refused).at(-1)?.content)).toContain("not applied");
 
     // The user frees capacity, and the refused message is still in the branch.
@@ -778,7 +779,7 @@ describe("an operation that was refused", () => {
     });
     consume(host);
 
-    expect(recordsOf(host)).toHaveLength(5);
+    expect(recordsOf(host)).toHaveLength(filled + 1);
     expect(replay(host.journal).entries.some((entry) => entry.body === "previously-refused-body")).toBe(false);
 
     const restored = fakeHost({ journal: structuredClone(host.journal) });
@@ -788,7 +789,7 @@ describe("an operation that was refused", () => {
     // No new confirmation was given, so nothing was pinned for the old draft.
     expect(restored.submitted).toEqual([]);
     expect(restored.appended).toEqual([]);
-    expect(recordsOf(restored)).toHaveLength(5);
+    expect(recordsOf(restored)).toHaveLength(filled + 1);
     expect(replay(restored.journal).entries.some((entry) => entry.body === "previously-refused-body")).toBe(false);
   });
 
