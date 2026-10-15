@@ -7,6 +7,8 @@ This guide covers the ordinary Skills in this repository. Extensions keep their 
 - [tk](../projects/tk/README.md)
 - [omp-status-bar](../projects/omp-status-bar/README.md)
 - [omp-context-pin](../projects/omp-context-pin/README.md)
+- [omp-qol](../projects/omp-qol/README.md)
+- [omp-smart-cache](../projects/omp-smart-cache/README.md)
 
 ## Choose what to install
 

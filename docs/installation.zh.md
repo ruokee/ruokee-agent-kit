@@ -7,6 +7,8 @@
 - [tk](../projects/tk/README.zh.md)
 - [omp-status-bar](../projects/omp-status-bar/README.zh.md)
 - [omp-context-pin](../projects/omp-context-pin/README.zh.md)
+- [omp-qol](../projects/omp-qol/README.zh.md)
+- [omp-smart-cache](../projects/omp-smart-cache/README.zh.md)
 
 ## 选择要安装的内容
 
