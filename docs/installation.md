@@ -62,7 +62,7 @@ Without Skill names, `check` compares every Skill that is installed under the ro
 
 It compares the whole directory, so a changed reference file, an added file, and a deleted file are all found. Equal versions with different content are still a difference. A tree that cannot be read is a failure, not a difference and not a match: `check` never reports an unreadable target as identical, and a comparison that cannot complete exits `2`.
 
-## Install or update
+## Install a Skill
 
 ```sh
 sh scripts/skills.sh install code-quality --language en --target "$HOME/.omp/agent/skills"

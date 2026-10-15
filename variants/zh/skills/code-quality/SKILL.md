@@ -2,7 +2,7 @@
 name: code-quality
 description: 当需要评估或改善代码质量时使用，涵盖可维护性、抽象、设计原则与模式、重构、代码坏味、测试设计和架构。
 metadata:
-  version: "1.0.2"
+  version: "1.0.3"
 ---
 
 # 代码质量

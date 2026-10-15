@@ -2,7 +2,7 @@
 
 Turning the three LLM constraints (non-determinism, context, the cost triangle) and the hard problems of autonomous agents into concrete design: the workflow-versus-agent judgment, brakes on the action loop, guardrails and human review. Use when designing chat products, RAG, agent platforms, and other LLM-bearing systems.
 
-## Workflow or autonomous agent as the first judgment
+## Choose the workflow shape first
 
 Make this decision before drawing any box—it outweighs all the design that follows. Anthropic's core advice in "Building Effective Agents": **if a deterministic workflow can solve it, do not use an autonomous agent.**
 

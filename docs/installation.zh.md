@@ -62,7 +62,7 @@ sh scripts/skills.sh check code-quality --language zh --target "$HOME/.omp/agent
 
 比较覆盖整个目录，因此参考文件被修改、新增文件、删除文件都能被发现。版本相同而内容不同同样算差异。无法读取的目录树属于失败，既不是差异也不是一致：`check` 绝不会把无法读取的目标报告为 `identical`，比较无法完成时退出状态为 `2`。
 
-## 安装或更新
+## 安装 Skill
 
 ```sh
 sh scripts/skills.sh install code-quality --language en --target "$HOME/.omp/agent/skills"

@@ -167,7 +167,7 @@ Earlier extensions' independent blocks remain intact. An earlier edit that makes
 
 A CLI flag would affect one invocation, would not persist the choice, and would not provide a project-level override. It does not meet the requirement for a durable user setting that projects can shadow, so it was rejected.
 
-### Use a config file owned by the component or parse the lockfile
+### Use an alternate configuration source
 
 A component-owned file would create a second configuration source. Parsing `omp-plugins.lock.json` or another host file directly would copy OMP's configuration responsibility and bypass the public API. Both approaches were rejected in favor of the native plugin setting and public effective-settings lookup.
 

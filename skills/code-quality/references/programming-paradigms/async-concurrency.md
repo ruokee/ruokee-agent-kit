@@ -68,7 +68,7 @@ Without the semaphore, a list of 100,000 URLs would open 100,000 sockets at once
 
 A resource acquired inside a task is released only if the task completes or is cancelled cleanly, so async resources must be owned with `async with` and cleaned up on the cancellation path too. Async generators that hold resources need `contextlib.aclosing()` to guarantee their finalization, because a suspended generator may otherwise never resume. This is the async face of [resource-lifecycle.md](./resource-lifecycle.md).
 
-## Where async helps or hurts
+## When to use async
 
 Async is the right tool for I/O-bound work with many concurrent operations: network requests, database queries, many simultaneous connections, fan-out to several services. The single thread spends its time waiting on I/O, and async lets it overlap that waiting.
 

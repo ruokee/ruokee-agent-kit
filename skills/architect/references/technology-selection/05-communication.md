@@ -8,7 +8,7 @@ The same "order notifies inventory to deduct" can be a synchronous REST call, a 
 
 **Fix the interaction semantics first, then the protocol.** Do not start with "we will use gRPC"; first judge whether this path must know the result synchronously.
 
-## Choosing synchronous or asynchronous
+## Interaction style tradeoffs
 
 | Style | Fits | Cost |
 | --- | --- | --- |

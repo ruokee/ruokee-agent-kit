@@ -68,7 +68,7 @@ async def fetch_all(urls: list[str]) -> list[Response]:
 
 在任务内部获取的资源只有在任务完成或被正常取消时才会被释放，因此异步资源必须使用 `async with` 拥有，并且也在取消路径上进行清理。持有资源的异步生成器需要 `contextlib.aclosing()` 来保证其终结，因为挂起的生成器可能永远不会恢复。这是 [resource-lifecycle.md](./resource-lifecycle.md) 的异步表现。
 
-## 异步何时有帮助何时有害
+## 何时使用异步
 
 异步是处理具有大量并发操作的 I/O 密集型工作的正确工具：网络请求、数据库查询、许多同时连接、向多个服务扇出。单线程花时间等待 I/O，异步让它可以重叠这段等待。
 

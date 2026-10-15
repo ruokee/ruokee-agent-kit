@@ -47,7 +47,7 @@ Two-pizza teams (an Amazon principle, roughly 6–10 people): as a team grows, i
 
 Interfaces are contracts not to be broken casually (Bezos's 2002 API mandate): all teams communicate only through each other's public service interfaces; back doors like direct database connections and shared memory are forbidden. With contracts stable and taken seriously, team A can rewrite its internals without notifying team B—the contract buys freedom. API governance (versioning, backward compatibility, contract tests, deprecation process) is not bureaucracy; it is the foundation that makes autonomy possible. Once contracts rot, every team is forced into daily alignment, and microservices degrade back into a distributed monolith.
 
-## Build or buy
+## Choose a sourcing method
 
 The ruler: is this capability your differentiating core? If core (recommendation algorithms, search ranking): build it and staff a team—the cognitive load is worth it. If not (sending email, taking payments, monitoring): buy / use open source / outsource, and hold it outside the organizational boundary with a stable contract; do not couple deeply.
 
