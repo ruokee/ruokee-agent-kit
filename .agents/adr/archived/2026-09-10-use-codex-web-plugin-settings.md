@@ -3,6 +3,8 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
 Reverses: [Add OMP Codex web access](../archived/2026-09-06-add-omp-codex-web-access.md)
+Archived: 2026-10-15
+Reversed by: [Remove the omp-codex-web-access extension](../decision/2026-10-15-remove-omp-codex-web-access.md)
 
 English | [中文](./2026-09-10-use-codex-web-plugin-settings.zh.md)
 

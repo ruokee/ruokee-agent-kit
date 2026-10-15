@@ -6,7 +6,7 @@ Spec for the maintenance lower bounds of repository components that load code in
 
 ## Goals
 
-- Maintain every OMP-facing component against one shared maintenance lower bound, OMP `18.5.0`. The OMP-facing components are `omp-context-pin`, `omp-qol`, `omp-smart-cache`, `omp-status-bar`, `omp-codex-web-access`, and the OMP adapter of `tk`.
+- Maintain every OMP-facing component against one shared maintenance lower bound, OMP `18.5.0`. The OMP-facing components are `omp-context-pin`, `omp-qol`, `omp-smart-cache`, `omp-status-bar`, and the OMP adapter of `tk`.
 - Let each component state its own bound where its users read it.
 - Keep components working on maintained hosts across host upgrades without carrying code for hosts outside the maintained range.
 
@@ -25,7 +25,6 @@ Each component's bound is declared in the compatibility section of its own READM
 - [projects/omp-qol/README.md](../../projects/omp-qol/README.md#compatibility)
 - [projects/omp-smart-cache/README.md](../../projects/omp-smart-cache/README.md#compatibility)
 - [projects/omp-status-bar/README.md](../../projects/omp-status-bar/README.md#compatibility)
-- [projects/omp-codex-web-access/README.md](../../projects/omp-codex-web-access/README.md#compatibility)
 - [projects/tk/omp/README.md](../../projects/tk/omp/README.md#compatibility) for the tk OMP adapter in `tools` mode
 - [projects/tk/pi/README.md](../../projects/tk/pi/README.md#compatibility) for the tk Pi adapter in `tools` mode
 

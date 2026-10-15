@@ -16,7 +16,6 @@ A specification, or spec, states the current target state of one component or re
 | [.agents/spec/omp-qol.md](./omp-qol.md) | `projects/omp-qol` |
 | [.agents/spec/omp-smart-cache.md](./omp-smart-cache.md) | `projects/omp-smart-cache` |
 | [.agents/spec/omp-status-bar.md](./omp-status-bar.md) | `projects/omp-status-bar` |
-| [.agents/spec/omp-codex-web-access.md](./omp-codex-web-access.md) | `projects/omp-codex-web-access` |
 
 Each component under `projects/` has a spec named after its directory. A change that adds or removes a component, or a repository area that needs its own spec, updates this list in the same change.
 

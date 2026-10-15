@@ -12,7 +12,7 @@ Maintain every OMP-facing component against one shared maintenance lower bound, 
 
 First-party components load code into a host process and must keep working as that host upgrades. Maintenance responsibility, implementation selection, and verification evidence need distinct meanings rather than a single version range, so these components follow common rules: a component declares its maintenance lower bound in its own documentation, its host peer declarations keep naming the host packages without carrying that bound, an update preserves the results a maintained older host had, verification follows the actual behavioral change, and a bound is raised only through a decision. The rules require no common implementation.
 
-The OMP-facing components are `omp-context-pin`, `omp-qol`, `omp-smart-cache`, `omp-status-bar`, `omp-codex-web-access`, and the OMP adapter of `tk`. Raising their bounds one component at a time, and only when a component could no longer serve both hosts, left them on bounds between 18.1.8 and 18.2.8 while development and real-host checks had moved to 18.4.x and 18.5.x. Each component kept code for the hosts at the bottom of that range, and two features had stopped working on current hosts: the default-block route of `omp-system-prompt` and the speculation band indicator of `omp-status-bar`. The OMP-facing components trade support for those older hosts for a smaller maintained surface and one baseline they are developed and verified against.
+The OMP-facing components are `omp-context-pin`, `omp-qol`, `omp-smart-cache`, `omp-status-bar`, and the OMP adapter of `tk`. Raising their bounds one component at a time, and only when a component could no longer serve both hosts, left them on bounds between 18.1.8 and 18.2.8 while development and real-host checks had moved to 18.4.x and 18.5.x. Each component kept code for the hosts at the bottom of that range, and two features had stopped working on current hosts: the default-block route of `omp-system-prompt` and the speculation band indicator of `omp-status-bar`. The OMP-facing components trade support for those older hosts for a smaller maintained surface and one baseline they are developed and verified against.
 
 ## Analysis
 
@@ -112,7 +112,7 @@ Raising the OMP-facing components to 18.5.0 removes three behaviors that still w
 - [Maintain the OMP status bar with a static context glyph](./2026-10-04-show-static-context-glyph.md) replaces the speculation band estimate that needs `Settings.getGroup`, which hosts before 18.4.0 provide.
 - [Maintain OMP quality of life adjustments on the standalone wait entry](../archived/2026-10-04-use-standalone-qol-wait.md) removes the `hub` wait path that served hosts before 18.3.0.
 
-`omp-context-pin`, `omp-codex-web-access`, and the `tk` OMP adapter remove no behavior that a host from their earlier bound up to 18.5.0 used. [The context pin decision](../archived/2026-09-15-add-omp-context-pin.md), [the model prompt rules decision](../archived/2026-09-14-add-model-prompt-rules.md), [the tk integration decision](./2026-09-02-integrate-tk-tools-with-harnesses.md), and [the self-contained component decision](./2026-08-24-keep-components-self-contained.md) record the bound or the inherited contract under their changes. [Use native plugin settings for Codex web access](./2026-09-10-use-codex-web-plugin-settings.md) records no bound and needs no change.
+`omp-context-pin` and the `tk` OMP adapter remove no behavior that a host from their earlier bound up to 18.5.0 used. [The context pin decision](../archived/2026-09-15-add-omp-context-pin.md), [the model prompt rules decision](../archived/2026-09-14-add-model-prompt-rules.md), [the tk integration decision](./2026-09-02-integrate-tk-tools-with-harnesses.md), and [the self-contained component decision](./2026-08-24-keep-components-self-contained.md) record the bound or the inherited contract under their changes.
 
 ## Alternatives considered
 
@@ -150,3 +150,7 @@ This was suggested while analyzing why the bounds drifted. It removes the decisi
 ### 2026-10-10 Include smart-cache
 
 The self-contained `omp-smart-cache` component follows every maintenance, peer, adaptation, failure, and verification rule in this decision. Its README pair declares the same OMP `18.5.0` lower bound; this addition does not raise the bound or alter another component's contract. The [extension decision](./2026-10-12-maintain-smart-cache-extension.md) records the component's floor obligation, and the [remote decision](./2026-10-12-provide-remote-alignment.md) owns its behavior and independent protocol boundaries.
+
+### 2026-10-15 Drop omp-codex-web-access
+
+The [removal decision](./2026-10-15-remove-omp-codex-web-access.md) deletes the `omp-codex-web-access` component. Its name leaves the OMP-facing component inventory here, and the statement that it removed no behavior below 18.5.0 leaves with it, because neither has a subject once the component is gone. The shared bound, the rules in this decision, and every other component's contract are unchanged.

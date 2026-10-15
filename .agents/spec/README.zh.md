@@ -16,7 +16,6 @@
 | [.agents/spec/omp-qol.zh.md](./omp-qol.zh.md) | `projects/omp-qol` |
 | [.agents/spec/omp-smart-cache.zh.md](./omp-smart-cache.zh.md) | `projects/omp-smart-cache` |
 | [.agents/spec/omp-status-bar.zh.md](./omp-status-bar.zh.md) | `projects/omp-status-bar` |
-| [.agents/spec/omp-codex-web-access.zh.md](./omp-codex-web-access.zh.md) | `projects/omp-codex-web-access` |
 
 `projects/` 下的每个组件都有一份以其目录命名的 spec。增加或删除组件，或者增加需要单独 spec 的仓库领域时，在同一次变更中更新这份清单。
 

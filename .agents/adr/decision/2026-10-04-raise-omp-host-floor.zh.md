@@ -12,7 +12,7 @@ Reverses: [宿主内组件随宿主升级保持适配](../archived/2026-09-28-ad
 
 第一方组件把代码加载进宿主进程运行，需要随宿主升级继续可用。维护责任、实现选择与验证证据需要各自明确，不能用同一个版本范围代替，因此这些组件遵循统一规则：组件在自身文档中声明维护下限，宿主 peer 声明继续列出宿主包但不承载该下限，更新保留受维护旧宿主原有的结果，验证强度随实际行为影响确定，提高下限只能通过决定。本决定不要求这些组件采用相同实现。
 
-面向 OMP 的组件是 `omp-context-pin`、`omp-qol`、`omp-smart-cache`、`omp-status-bar`、`omp-codex-web-access`，以及 `tk` 的 OMP 适配器。逐个组件提高下限、且只在组件无法同时服务两个宿主时才提高，使它们的下限停在 18.1.8 到 18.2.8 之间，而开发和真实宿主检查已经转到 18.4.x 和 18.5.x。每个组件都保留着服务这一范围底部宿主的代码，其中两项功能在当前宿主上已经不工作：`omp-system-prompt` 的默认块路线和 `omp-status-bar` 的投机区间指示器。面向 OMP 的组件用对这些旧宿主的支持，换取更小的维护面和一个实际开发、验证所用的共同基线。
+面向 OMP 的组件是 `omp-context-pin`、`omp-qol`、`omp-smart-cache`、`omp-status-bar`，以及 `tk` 的 OMP 适配器。逐个组件提高下限、且只在组件无法同时服务两个宿主时才提高，使它们的下限停在 18.1.8 到 18.2.8 之间，而开发和真实宿主检查已经转到 18.4.x 和 18.5.x。每个组件都保留着服务这一范围底部宿主的代码，其中两项功能在当前宿主上已经不工作：`omp-system-prompt` 的默认块路线和 `omp-status-bar` 的投机区间指示器。面向 OMP 的组件用对这些旧宿主的支持，换取更小的维护面和一个实际开发、验证所用的共同基线。
 
 ## 分析
 
@@ -112,7 +112,7 @@ OMP 下限是共同的维护基线，即组件实际开发和验证所用的 OMP
 - [以静态上下文字形维护 OMP 状态栏](./2026-10-04-show-static-context-glyph.zh.md)取代了依赖 `Settings.getGroup` 的投机区间估算，只有 18.4.0 以前的宿主提供该方法。
 - [在独立等待入口上维护 OMP 体验调整](../archived/2026-10-04-use-standalone-qol-wait.zh.md)删除了服务 18.3.0 以前宿主的 `hub` 等待路径。
 
-`omp-context-pin`、`omp-codex-web-access` 和 `tk` OMP 适配器没有删除从各自原有下限到 18.5.0 之间宿主用到的行为。[Pin 决定](../archived/2026-09-15-add-omp-context-pin.zh.md)、[模型提示词规则决定](../archived/2026-09-14-add-model-prompt-rules.zh.md)、[tk 集成决定](./2026-09-02-integrate-tk-tools-with-harnesses.zh.md)和[组件自包含决定](./2026-08-24-keep-components-self-contained.zh.md)在各自的变更中记录下限或继承的合同。[Codex 网页访问使用原生插件设置](./2026-09-10-use-codex-web-plugin-settings.zh.md)没有记录下限，不需要修改。
+`omp-context-pin` 和 `tk` OMP 适配器没有删除从各自原有下限到 18.5.0 之间宿主用到的行为。[Pin 决定](../archived/2026-09-15-add-omp-context-pin.zh.md)、[模型提示词规则决定](../archived/2026-09-14-add-model-prompt-rules.zh.md)、[tk 集成决定](./2026-09-02-integrate-tk-tools-with-harnesses.zh.md)和[组件自包含决定](./2026-08-24-keep-components-self-contained.zh.md)在各自的变更中记录下限或继承的合同。
 
 ## 考虑过的替代方案
 
@@ -150,3 +150,7 @@ OMP 下限是共同的维护基线，即组件实际开发和验证所用的 OMP
 ### 2026-10-10 纳入 smart-cache
 
 自包含 `omp-smart-cache` 组件遵循本决定的全部维护、peer、适配、失败与验证规则。其 README 双语页声明相同的 OMP `18.5.0` 下限；该追加不提高下限，也不改变其他组件合同。[扩展决定](./2026-10-12-maintain-smart-cache-extension.zh.md)记录组件的下限义务，[remote 决定](./2026-10-12-provide-remote-alignment.zh.md)拥有其行为与独立协议边界。
+
+### 2026-10-15 移除 omp-codex-web-access
+
+[移除决定](./2026-10-15-remove-omp-codex-web-access.zh.md)删除 `omp-codex-web-access` 组件。它的名称从本决定的面向 OMP 组件清单中去掉，关于它没有删除 18.5.0 以下宿主所用行为的陈述也随之去掉，因为组件不存在后两者都没有对象。共同下限、本决定的规则以及其他组件合同都不变。

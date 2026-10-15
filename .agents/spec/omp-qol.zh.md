@@ -117,6 +117,5 @@ OMP `18.5.0`，声明在[兼容性](../../projects/omp-qol/README.zh.md#兼容�
 - [维护提高 OMP 使用体验的拓展](../adr/decision/2026-10-10-maintain-omp-experience-extension.zh.md)
 - [在 QoL 提供选择启用的模型提示词规则](../adr/decision/2026-10-15-use-qol-model-prompts.zh.md)
 - [在 QoL 中补记压缩请求用量](../adr/decision/2026-10-13-compact-usage-compensation.zh.md)
-- [Codex 网页访问使用原生插件设置](../adr/decision/2026-09-10-use-codex-web-plugin-settings.zh.md)
 - [宿主内组件按共同的 OMP 下限维护](../adr/decision/2026-10-04-raise-omp-host-floor.zh.md)
 - [保持可分发组件自包含](../adr/decision/2026-08-24-keep-components-self-contained.zh.md)

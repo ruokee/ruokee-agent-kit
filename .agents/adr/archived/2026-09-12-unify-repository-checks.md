@@ -23,8 +23,8 @@ A Markdown and Rust check alone cannot detect failures in the TypeScript extensi
 | --- | --- | --- |
 | 1 | Repository baseline | `pnpm docs:lint`, `pnpm cargo:fmt:check`, then `pnpm cargo:test` through `pnpm check:base` |
 | 2 | [projects/omp-status-bar/package.json](../../../projects/omp-status-bar/package.json) | `pnpm --dir projects/omp-status-bar run typecheck`, then `pnpm --dir projects/omp-status-bar run test` |
-| 3 | [projects/omp-system-prompt/package.json](../../../projects/omp-system-prompt/package.json) | `pnpm --dir projects/omp-system-prompt run typecheck`, then `pnpm --dir projects/omp-system-prompt run test` |
-| 4 | [projects/omp-codex-web-access/package.json](../../../projects/omp-codex-web-access/package.json) | `pnpm --dir projects/omp-codex-web-access run typecheck`, then `pnpm --dir projects/omp-codex-web-access run test` |
+| 3 | `projects/omp-system-prompt/package.json` | `pnpm --dir projects/omp-system-prompt run typecheck`, then `pnpm --dir projects/omp-system-prompt run test` |
+| 4 | `projects/omp-codex-web-access/package.json` | `pnpm --dir projects/omp-codex-web-access run typecheck`, then `pnpm --dir projects/omp-codex-web-access run test` |
 | 5 | [projects/omp-context-pin/package.json](../../../projects/omp-context-pin/package.json) | `pnpm --dir projects/omp-context-pin run typecheck`, then `pnpm --dir projects/omp-context-pin run test` |
 | 6 | [projects/omp-qol/package.json](../../../projects/omp-qol/package.json) | `pnpm --dir projects/omp-qol run typecheck`, then `pnpm --dir projects/omp-qol run test` |
 | 7 | [projects/tk/adapter-tests/common.test.ts](../../../projects/tk/adapter-tests/common.test.ts) | `bun test projects/tk/adapter-tests` |
