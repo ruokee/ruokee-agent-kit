@@ -2,7 +2,7 @@
 
 本文档详细介绍 msgspec 的验证机制和约束功能。
 
-## 约束（Constraints）
+## 约束
 
 [msgspec Constraints Documentation](https://jcristharif.com/msgspec/constraints.html)
 

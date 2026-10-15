@@ -1,4 +1,6 @@
-# 依恋情结（Feature Envy）
+# 依恋情结
+
+依恋情结（Feature Envy）如下：
 
 ## 什么是依恋情结
 

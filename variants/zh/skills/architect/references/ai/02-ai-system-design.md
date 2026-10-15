@@ -1,8 +1,8 @@
-# AI 系统设计（AI System Design）
+# AI 系统设计
 
-将 LLM 三个新约束（非确定性、上下文、成本三角）与自主 Agent 的硬骨头落成具体设计：工作流还是自主 Agent 的判断、行动循环的刹车、护栏与人审。适用于设计对话产品、RAG、agent 平台等含 LLM 的系统。
+AI 系统设计（AI System Design）：将 LLM 三个新约束（非确定性、上下文、成本三角）与自主 Agent 的硬骨头落成具体设计：工作流还是自主 Agent 的判断、行动循环的刹车、护栏与人审。适用于设计对话产品、RAG、agent 平台等含 LLM 的系统。
 
-## 第一个判断：工作流还是自主 Agent
+## 工作流还是自主 Agent 是第一个判断
 
 画任何框之前先做这个决策，它比后面所有设计加起来都重要。Anthropic《Building Effective Agents》的核心建议：**能用确定的工作流解决，就别上自主 Agent。**
 

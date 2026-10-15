@@ -1,4 +1,6 @@
-# 发散式修改（Divergent Change）
+# 发散式修改
+
+发散式修改（Divergent Change）如下：
 
 ## 什么是发散式修改
 

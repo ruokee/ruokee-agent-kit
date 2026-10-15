@@ -1,4 +1,6 @@
-# 面向数据设计（Data-Oriented Design）
+# 面向数据设计
+
+面向数据设计（Data-Oriented Design）如下：
 
 ## 什么是面向数据设计
 

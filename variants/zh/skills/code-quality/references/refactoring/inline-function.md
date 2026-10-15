@@ -1,4 +1,6 @@
-# 内联函数（Inline Function）
+# 内联函数
+
+内联函数（Inline Function）如下：
 
 ## 什么是内联函数
 

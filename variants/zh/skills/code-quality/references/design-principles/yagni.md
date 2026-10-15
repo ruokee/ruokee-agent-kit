@@ -1,4 +1,6 @@
-# YAGNI: 你并不会需要它（You Aren't Gonna Need It）
+# YAGNI 你并不会需要它
+
+YAGNI 你并不会需要它（You Aren't Gonna Need It）如下：
 
 ## 它是什么
 

@@ -1,10 +1,10 @@
-# Flake8 插件（Flake8 Plugin）
+# Flake8 插件
 
-Flake8 插件是一个注册 AST 或 token 访问器以生成自定义 lint 警告的 Python 包。它让项目能够强制执行通用代码检查器无法覆盖的领域特定或架构特定规则：禁止的导入、必需的装饰器模式、模块边界违规、与框架语义相关的命名约定，或特定基类的结构约束。
+Flake8 插件（Flake8 Plugin）是一个注册 AST 或 token 访问器以生成自定义 lint 警告的 Python 包。它让项目能够强制执行通用代码检查器无法覆盖的领域特定或架构特定规则：禁止的导入、必需的装饰器模式、模块边界违规、与框架语义相关的命名约定，或特定基类的结构约束。
 
-## 工作原理（How It Works）
+## 工作原理
 
-Flake8 插件在 AST 级别操作。它们接收解析后的树（或原始 token/行）并生成 `(line, col, message, type)` 元组。插件通过在 `pyproject.toml` 的 `flake8.extension` 组下的 `entry_points` 进行注册。
+工作原理（How It Works）：Flake8 插件在 AST 级别操作。它们接收解析后的树（或原始 token/行）并生成 `(line, col, message, type)` 元组。插件通过在 `pyproject.toml` 的 `flake8.extension` 组下的 `entry_points` 进行注册。
 
 一个最小的 AST 检查器插件需要：
 
@@ -31,9 +31,9 @@ Flake8 插件在 AST 级别操作。它们接收解析后的树（或原始 toke
 - 该规则仅适用于一两个文件；代码注释或审查说明就足够了。
 - 维护该插件的成本超过了它预防的 bug。
 
-## 测试（Testing）
+## 测试
 
-通过针对合成的 AST 片段调用插件进行测试：
+通过针对合成的 AST 片段调用插件进行测试（Testing）：
 
 - 使用 `ast.parse` 解析代码字符串。
 - 使用该树实例化检查器类。
@@ -50,9 +50,9 @@ Ruff 原生实现了许多 Flake8 插件规则集。在编写自定义插件之�
 
 与[自定义 lint 规范](../spec/custom-lint.md)的关系是：规范文档定义了*创建什么*项目特定规则以及*如何思考*规则设计；本文档涵盖了用于实现和运行这些规则的 Flake8 插件*机制*。
 
-## 错误消息设计（Error Message Design）
+## 错误消息设计
 
-一条可操作（actionable）的错误消息应告知开发者：
+错误消息设计（Error Message Design）：一条可操作（actionable）的错误消息应告知开发者：
 
 - 检测到了什么（违规内容）。
 - 为什么重要（简要说明）。

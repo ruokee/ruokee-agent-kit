@@ -1,4 +1,6 @@
-# 霰弹式修改（Shotgun Surgery）
+# 霰弹式修改
+
+霰弹式修改（Shotgun Surgery）如下：
 
 ## 什么是霰弹式修改
 

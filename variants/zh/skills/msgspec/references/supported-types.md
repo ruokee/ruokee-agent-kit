@@ -89,7 +89,7 @@ msgspec 原生支持以下标准库类型，无需自定义转换钩子：
 - 第三方库类型（如 ORM 模型）
 - 自定义类（非 msgspec.Struct 或 dataclass）
 
-### 示例：原生支持的类型
+### 原生支持的类型
 
 ```python
 from datetime import datetime, date
@@ -125,7 +125,7 @@ encoded = msgspec.json.encode(record)
 decoded = msgspec.json.decode(encoded, type=Record)
 ```
 
-### 示例：需要自定义钩子的类型
+### 需要自定义钩子的类型
 
 ```python
 from pathlib import Path

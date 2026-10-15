@@ -1,4 +1,6 @@
-# AI 时代的架构判断（Architecture Judgment in the AI Era）
+# AI 时代的架构判断
+
+AI 时代的架构判断（Architecture Judgment in the AI Era）如下：
 
 AI 对架构师工作的两个根本改变：实现廉价化（vibe coding）与 LLM 系统作为新物种。本篇是总纲，给出"什么变了、什么没变"的判断基准；LLM 系统的具体设计约束见 [AI 系统设计](./02-ai-system-design.md)。
 
@@ -8,7 +10,7 @@ AI 对架构师工作的两个根本改变：实现廉价化（vibe coding）与
 
 合起来的核心论断：**实现越来越廉价，判断越来越值钱。** 当 AI 几秒产出能跑的代码，护城河不再是"会写"，而是"会判断"——动手前判断这个系统该长什么样、会死在哪、我在拿什么换什么。
 
-## vibe coding 放大一切，包括架构错误
+## vibe coding 放大一切包括架构错误
 
 Simon Willison 的区分：不是所有 AI 辅助编程都叫 vibe coding，它特指**不审查就接受 AI 产出的代码**。拿来做玩具、原型绝妙；直接推上生产，等于把一座没读过的房子交给用户住。
 

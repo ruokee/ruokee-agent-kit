@@ -1,4 +1,6 @@
-# 过长函数（Long Function）
+# 过长函数
+
+过长函数（Long Function）如下：
 
 ## 什么是过长函数
 

@@ -1,4 +1,6 @@
-# 薄包装（Thin Wrapper / Trivial Helper）
+# 薄包装
+
+薄包装（Thin Wrapper / Trivial Helper）如下：
 
 ## 什么是薄包装
 
@@ -16,7 +18,7 @@ def fetch_data(url):
 
 这个坏味在代理生成的代码中大量出现，"消除重复"或"改善可读性"的冲动会产生一大堆单行辅助函数，每个只转发一个调用。结果是代码需要在许多定义之间跳转才能理解，而阅读原始的内联表达式本会更清晰。它与 `duplicated-code.md` 和 [`skills/code-quality/references/design-principles/dry.md`](../design-principles/dry.md) 中描述的错误 DRY 失败模式密切相关。
 
-## 何时包装函数**有价值**
+## 包装函数什么时候有价值
 
 当包装函数做了转发之外的真正工作时，它才值得存在：
 

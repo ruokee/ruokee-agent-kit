@@ -1,4 +1,6 @@
-# 基本类型偏执（Primitive Obsession）
+# 基本类型偏执
+
+基本类型偏执（Primitive Obsession）如下：
 
 ## 什么是基本类型偏执
 

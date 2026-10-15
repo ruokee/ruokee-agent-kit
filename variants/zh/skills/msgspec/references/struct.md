@@ -289,7 +289,7 @@ points = {p1, p2, Point(x=1, y=2)}  # 去重
 print(len(points))  # 2（p1 和 Point(x=1, y=2) 相同）
 ```
 
-## 联合类型（Tagged Unions）
+## 联合类型
 
 msgspec 使用标签联合（tagged unions）来处理多态类型。通过 `tag` 参数定义不同的变体：
 

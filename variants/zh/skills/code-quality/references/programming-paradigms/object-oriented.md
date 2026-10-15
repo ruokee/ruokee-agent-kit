@@ -1,4 +1,6 @@
-# 面向对象编程（Object-Oriented Programming）
+# 面向对象编程
+
+面向对象编程（Object-Oriented Programming）如下：
 
 ## 什么是面向对象编程
 

@@ -67,7 +67,9 @@ class User(msgspec.Struct):
     name: str  # 必选字段
 ```
 
-## 4. 不可变数据（frozen）
+## 4. 不可变数据
+
+不可变数据（frozen）如下：
 
 **推荐。**对于不应该被修改的数据结构（如配置对象、常量、坐标等），使用 `frozen=True`。
 
@@ -170,7 +172,9 @@ user = User(age=-5)  # 负数年龄！
 user = User(age=999)  # 不合理的年龄！
 ```
 
-## 7. 标签联合（Tagged Unions）
+## 7. 标签联合
+
+标签联合（Tagged Unions）如下：
 
 **推荐。**当有多种可能的数据结构时，使用标签联合来明确区分类型。
 

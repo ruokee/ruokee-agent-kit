@@ -1,4 +1,6 @@
-# 重复代码（Duplicated Code）
+# 重复代码
+
+重复代码（Duplicated Code）如下：
 
 ## 什么是重复代码
 

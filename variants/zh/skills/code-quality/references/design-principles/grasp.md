@@ -1,4 +1,6 @@
-# GRASP: 通用职责分配软件模式（General Responsibility Assignment Software Patterns）
+# GRASP 通用职责分配软件模式
+
+GRASP 通用职责分配软件模式（General Responsibility Assignment Software Patterns）如下：
 
 ## 它是什么
 

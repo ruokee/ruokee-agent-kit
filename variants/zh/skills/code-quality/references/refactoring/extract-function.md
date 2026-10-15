@@ -1,4 +1,6 @@
-# 提取函数（Extract Function）
+# 提取函数
+
+提取函数（Extract Function）如下：
 
 ## 什么是提取函数
 

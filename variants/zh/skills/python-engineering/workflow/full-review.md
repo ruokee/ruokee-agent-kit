@@ -1,17 +1,21 @@
-# 完整审查: Python 工程（Full Review: Python Engineering）
+# Python 工程完整审查
 
-系统性的、基于证据的 Python 工程审查。分阶段阅读、验证高严重性发现，直接报告建议。有风险的变更在执行前取得授权。仅在用户要求完整审查时运行。
+Python 工程完整审查（Full Review: Python Engineering）：系统性的、基于证据的 Python 工程审查。分阶段阅读、验证高严重性发现，直接报告建议。有风险的变更在执行前取得授权。仅在用户要求完整审查时运行。
 
-## 触发条件（Trigger）
+## 触发条件
 
-用户明确说"full review"、"complete review"、"systematic review"或"architecture review"。不要自行进入此模式。
+触发条件（Trigger）：用户明确说"full review"、"complete review"、"systematic review"或"architecture review"。不要自行进入此模式。
 
-## 前置条件（Preconditions）
+## 前置条件
+
+前置条件（Preconditions）如下：
 
 - 默认只读。仅在用户要求修复时修改代码。
 - 在广泛阅读前确认范围：哪个包、模块或子系统，以及审查的目的（发布、交接、重构决策）。
 
-## 步骤（Steps）
+## 步骤
+
+步骤（Steps）如下：
 
 1. 上下文摄入。在阅读代码前将工作分为四个桶：
     - 必须阅读，没有这些文件审查就无法正确进行。
@@ -38,9 +42,9 @@
     - 跨文件重构或依赖更改。
     - 行为变更。
 
-## 输出格式（Output Format）
+## 输出格式
 
-按审查矩阵类别分组的结构化发现。每条发现一个块：
+输出格式（Output Format）：按审查矩阵类别分组的结构化发现。每条发现一个块：
 
 ```text
 - [严重级别, 置信度] 路径:行号 标题
@@ -62,7 +66,9 @@
 - 被降级的、由工具处理的或有意不报告的项目。
 ```
 
-## 停止规则（Stop Rules）
+## 停止规则
+
+停止规则（Stop Rules）如下：
 
 - 未经明确要求修复，不要修改代码。
 - 在实施不安全修复、批量编辑、跨文件重构、依赖更改或行为变更前取得授权。

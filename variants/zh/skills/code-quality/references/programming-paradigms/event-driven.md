@@ -1,4 +1,6 @@
-# 事件驱动架构（Event-Driven Architecture）
+# 事件驱动架构
+
+事件驱动架构（Event-Driven Architecture）如下：
 
 ## 什么是事件驱动架构
 

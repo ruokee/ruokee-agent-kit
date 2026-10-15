@@ -1,4 +1,6 @@
-# 声明式编程（Declarative Programming）
+# 声明式编程
+
+声明式编程（Declarative Programming）如下：
 
 ## 什么是声明式编程
 

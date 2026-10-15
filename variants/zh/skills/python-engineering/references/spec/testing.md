@@ -36,7 +36,7 @@ def client(config: Config) -> Iterator[Client]:
     c.close()                   # teardown，即使失败也运行
 ```
 
-### 工厂即 Fixture：用于可变实例
+### 用于可变实例的工厂 Fixture
 
 一个测试需要同类型*多个*对象，或字段因测试而异的对象时，从 fixture 返回一个*函数*而不是对象。这用单个 fixture 代替了一群近似相同的 fixture，并且让变化的值在测试体里可见（DAMP）：
 
@@ -57,7 +57,7 @@ def test_admins_can_publish(make_user: Callable[..., User]) -> None:
 
 `autouse=True` fixture 不需请求就应用于作用域内每个测试。它适合真正的横切副作用（为整个模块 patch 时钟），但它制造了测试体不展示的*隐式*依赖，不利于可读性。除非 setup 真的必须处处应用，否则优先显式请求的 fixture。
 
-## 参数化：把案例变成数据
+## 把案例变成数据的参数化
 
 [pytest](../tooling/pytest.md) 覆盖 `@pytest.mark.parametrize` 的机制。对测试*质量*而言重要的是什么时候该用、什么时候不该用：参数化是用*更少更强*的测试代替复制粘贴的测试代码的方式：把对不同数据的同一检查做成一张可见的表格。
 

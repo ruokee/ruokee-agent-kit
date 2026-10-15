@@ -10,9 +10,9 @@
 
 参考 [supported-types.md](./supported-types.md) 了解 msgspec 原生支持的完整类型列表。
 
-## 编码钩子（enc_hook）
+## 编码钩子
 
-编码钩子用于将自定义类型序列化为 msgspec 支持的基本类型。
+编码钩子（enc_hook）用于将自定义类型序列化为 msgspec 支持的基本类型。
 
 ### 基本用法
 
@@ -95,9 +95,9 @@ encoded = encoder.encode({"config": config})
 # b'{"config":{"name":"MyProject","root":"/home/user/projects/myproject"}}'
 ```
 
-## 解码钩子（dec_hook）
+## 解码钩子
 
-解码钩子用于将序列化数据反序列化为自定义类型。
+解码钩子（dec_hook）用于将序列化数据反序列化为自定义类型。
 
 ### 基本用法
 
@@ -191,7 +191,7 @@ decoder = msgspec.json.Decoder(type=dict[str, Any], dec_hook=dec_hook)
 
 ## 完整示例
 
-### 示例 1：Path 类型处理
+### Path 类型处理
 
 ```python
 from pathlib import Path
@@ -231,7 +231,7 @@ print(decoded)
 # FileInfo(name='document.pdf', path=Path('/home/user/documents/document.pdf'), size=1024000)
 ```
 
-### 示例 2：ORM 对象处理
+### ORM 对象处理
 
 ```python
 import msgspec
