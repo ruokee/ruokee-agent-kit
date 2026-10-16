@@ -94,6 +94,10 @@ bun test
 
 ## Changes
 
+### 0.1.7
+
+Permit native assistant `completedAt` and `contextSnapshot` bookkeeping to be filled after the ordinary dispatch. Responses Handoff source proof still compares every other field strictly and preserves the complete native input.
+
 ### 0.1.6
 
 Report `navigation-unsettled` while an ordinary Responses context is observed during session navigation. Keep reference capture suspended until navigation settles.

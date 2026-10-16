@@ -54,6 +54,8 @@ The same hosts exercise final transport retries, cancellation, delayed ordinary 
 
 In `0.1.6`, an ordinary context observed during session navigation reports `navigation-unsettled` without capturing a reference. A consumer regression checks that cause and zero reference and dispatch identifiers.
 
+The `0.1.7` consumer regressions permit native assistant completion-time and context-statistics backfill between ordinary dispatch and Handoff, while refusing changed content, replay payloads, unknown source fields, and changed final wire history. Replaying a captured 74-message source and 77-message native snapshot with 22 bookkeeping-only differences restores only instructions and retains the entire native input.
+
 Actual native task and Eval tools each create two child sessions. Parent and children use distinct histories with the same model, compact concurrently through remote, continue, then generate Handoffs concurrently. Cancelling one child leaves the other documents adopted; its subsequent revive clears its reference, and fresh ordinary work restores eligibility. Final wire comparisons and per-session state establish attribution rather than inferring it from the model or endpoint.
 
 The normal installed combination registers a `session_before_compact` handler in another extension. Both hosts therefore suppress native speculation even with async compaction enabled and context inside the lead band. The checks preserve that suppression and record no speculative Handoff or commit. They do not exercise cancellation of a running background speculation, and no installed extension is disabled to manufacture that coverage.

@@ -41,6 +41,8 @@ Handoff 支持 `openai-completions` 与 `openai-responses`。先证明操作归�
 
 Chat Completions 在边界内还原在线 system/developer 系统段、参照持有的 `reasoning_effort` 及没有显式选择时的在线 `tool_choice`。Responses 从同次普通 context dispatch 冻结原始来源，通过原生 serializer 标定准备结果中的 system；不能改从尚未同步的 Agent state 取得来源。确认最终普通发送及 2xx 后发布独立参照。Handoff 绑定的原生 snapshot 必须完整保留这份源前缀，并具有新增尾部。
 
+来源比较只排除 assistant 顶层的 `completedAt` 和 `contextSnapshot`，宿主在 dispatch 后将它们补写为本地会话记账信息。其余字段，包括内容、Provider replay payload 和未知字段，必须严格相同。捕获的历史和出站 input 均不改变，最终 wire 历史仍须单独证明。
+
 Responses 只恢复已证明的系统表达。顶层 instructions 要求参照等于已知系统片段，副请求为其文本前缀；恢复 instructions 时完整 input 不变。前置 developer 要求普通已知系统片段、共同历史与副请求系统边界唯一对应，只替换前置系统片段，历史 developer 保留原位。完整片段及同一片段内的文本后缀均可恢复。工具定义必须相同，新增历史、调用配对、图片、缓存键与 side 身份保留。
 
 嵌套 reasoning、原生配置更新和 `none` 不投影为普通请求的值，宿主已有 auto-only 重试保持不变。严格识别的 reasoning 配置更新仅从共同历史比较视图中排除，实际出站 input 不删除或插入它们。有效思考和生成语义保持原生，差异分别计入 axes 或 unprojected。必要证明失败时整条保持原生；其余独立轴无法恢复时跳过并计数，无关字段不否决系统投影。完整候选在 payload hook 之后、最终传输时原子替换；相同候选不重新序列化。

@@ -220,3 +220,35 @@ test("Responses restores a missing suffix inside a native system segment in eith
     input: [system, ...history, TAIL],
   });
 });
+
+test("Responses permits native assistant bookkeeping without weakening source proof", () => {
+  const assistant = {
+    role: "assistant",
+    content: [{ type: "text", text: "retained reply" }],
+    providerPayload: { items: [{ type: "reasoning", encrypted_content: "opaque-source" }] },
+    timestamp: 1,
+  };
+  const settled = { ...assistant, completedAt: 2, contextSnapshot: { promptTokens: 100, nonMessageTokens: 10 } };
+  const reference = { instructions: "base\n\nplan", input: [ASK], tools: [] };
+  const side = { instructions: "base", input: [ASK, TAIL], tools: [], tool_choice: "none" };
+  const proof = { ...RESPONSES_PROOF, source: [assistant], snapshot: [settled, TAIL] };
+  expect(alignResponses(reference, side, proof).body).toEqual({ ...side, instructions: reference.instructions });
+  for (const changed of [
+    { ...settled, content: [{ type: "text", text: "changed reply" }] },
+    { ...settled, providerPayload: { items: [{ type: "reasoning", encrypted_content: "changed-opaque" }] } },
+    { ...settled, futureInput: "unconfirmed" },
+  ]) {
+    expect(alignResponses(reference, side, { ...proof, snapshot: [changed, TAIL] }).reason).toBe(
+      "source-prefix-unconfirmed",
+    );
+  }
+  expect(
+    alignResponses(reference, side, {
+      ...RESPONSES_PROOF,
+      snapshot: [{ ...SOURCE[0], completedAt: 2, contextSnapshot: settled.contextSnapshot }, TAIL],
+    }).reason,
+  ).toBe("source-prefix-unconfirmed");
+  expect(
+    alignResponses(reference, { ...side, input: [{ role: "user", content: "changed wire" }, TAIL] }, proof).reason,
+  ).toBe("prefix-projection-changed");
+});

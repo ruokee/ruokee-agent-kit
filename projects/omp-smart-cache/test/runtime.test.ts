@@ -572,8 +572,12 @@ test("native display-only Eval context is a prepared projection, not a deleted h
 test("Responses Handoff confirms its own ordinary dispatch independently of remote selection and mode", async () => {
   const originalFetch = globalThis.fetch;
   const endpoint = "https://example.invalid/v1/responses";
-  const source = [{ role: "user", content: "retained source", timestamp: 1 }];
-  const input = [{ role: "user", content: [{ type: "input_text", text: "prepared source" }] }];
+  const assistant = { role: "assistant", content: [{ type: "text", text: "retained reply" }], timestamp: 2 };
+  const source = [{ role: "user", content: "retained source", timestamp: 1 }, assistant];
+  const input = [
+    { role: "user", content: [{ type: "input_text", text: "prepared source" }] },
+    { role: "assistant", content: [{ type: "output_text", text: "retained reply" }] },
+  ];
   const ordinaryBody = {
     model: RESPONSES_MODEL.id,
     instructions: "base\n\nplan",
@@ -628,6 +632,7 @@ test("Responses Handoff confirms its own ordinary dispatch independently of remo
       );
       expect(registration.status().handoff.online).toBe("ordinary-send-confirmed");
       expect(wires[0]).toEqual(ordinaryBody);
+      Object.assign(assistant, { completedAt: 3, contextSnapshot: { promptTokens: 100, nonMessageTokens: 10 } });
       session.agent.state.messages = source;
       const signal = new AbortController().signal;
       const instruction = { role: "user", content: "preserve handoff focus", attribution: "agent" };

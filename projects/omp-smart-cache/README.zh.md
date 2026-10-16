@@ -94,6 +94,10 @@ bun test
 
 ## 更新
 
+### 0.1.7
+
+允许宿主在普通 dispatch 后补写 assistant 的 `completedAt` 和 `contextSnapshot` 记账字段。Responses Handoff 的来源证明仍严格比较其余字段，并保留完整原生 input。
+
 ### 0.1.6
 
 在会话导航期间观察到普通 Responses context 时报告 `navigation-unsettled`，导航结束前不采集参照。

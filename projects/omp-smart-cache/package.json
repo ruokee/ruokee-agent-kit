@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-smart-cache",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Confirmed online-result reuse for native OMP Responses V2 remote compaction and handoff document generation",
   "license": "MIT",
   "type": "module",

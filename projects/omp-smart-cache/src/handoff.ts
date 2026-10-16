@@ -151,6 +151,16 @@ const configurationUpdate = z
 const isConfigurationUpdate = (item: unknown): boolean =>
   object(item) && item.type === "configuration_update" && configurationUpdate.safeParse(item).success;
 
+/** Session bookkeeping can be filled after dispatch; every other source field remains part of the proof. */
+function sameSource(source: unknown, snapshot: unknown): boolean {
+  if (equal(source, snapshot)) return true;
+  if (!object(source) || !object(snapshot) || source.role !== "assistant" || snapshot.role !== "assistant")
+    return false;
+  const { completedAt: _sourceCompletedAt, contextSnapshot: _sourceContext, ...sourceInput } = source;
+  const { completedAt: _snapshotCompletedAt, contextSnapshot: _snapshotContext, ...snapshotInput } = snapshot;
+  return equal(sourceInput, snapshotInput);
+}
+
 /** Restore only the proved system expression. Native history, effort controls, and generation policy stay native. */
 export function alignResponses(reference: ResponsesRequest, side: ResponsesRequest, proof: ResponsesProof): Alignment {
   const refused = (reason: string): Alignment => ({ reason, axes: 0, unprojected: 0 });
@@ -158,7 +168,7 @@ export function alignResponses(reference: ResponsesRequest, side: ResponsesReque
   if (
     !proof.source.length ||
     proof.snapshot.length <= proof.source.length ||
-    !equal(proof.source, proof.snapshot.slice(0, proof.source.length))
+    !proof.source.every((message, index) => sameSource(message, proof.snapshot[index]))
   )
     return refused("source-prefix-unconfirmed");
   if (!equal(reference.tools, side.tools)) return refused("tool-projection-changed");
