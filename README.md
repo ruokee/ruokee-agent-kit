@@ -112,7 +112,7 @@ Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/READ
 
 ### Component host maintenance
 
-Components that load code into a host process state a maintenance lower bound in their own README compatibility section, keep their host peer declarations to package names, and raise a bound only through its own decision. OMP-facing components share one lower bound. The [host maintenance decision](./.agents/adr/decision/2026-10-04-raise-omp-host-floor.md) records the complete rules.
+Components that load code into a host process state a maintenance lower bound in their own README compatibility section, keep their host peer declarations to package names, and raise a bound only through its own decision. OMP-facing components share one lower bound. The [host maintenance decision](./.agents/adr/decision/2026/09/28-host-maintenance.md) records the complete rules.
 
 ### Check prerequisites
 
@@ -185,7 +185,7 @@ The complete command runs the selector's complete check list, `node scripts/chec
 
 Before the first command, the complete entry point verifies every listed tool and local input. The first failed command stops the sequence and returns a nonzero exit status. Missing executables or dependencies also fail the check. Commands and component output identify the failing step. Checks do not install dependencies or format source files; builds and tests can create their normal generated and temporary files. The complete entry point never selects affected checks, so fallback cannot recurse.
 
-`pnpm check:base` covers only Markdown and Rust for targeted work. Component checks can also run independently through their existing scripts. Automated success does not establish real-model behavior or interactive UI correctness; follow the relevant component's scenario and release validation requirements as well. The [repository check decision](./.agents/adr/decision/2026-09-30-scope-aware-repository-checks.md) defines the complete contract.
+`pnpm check:base` covers only Markdown and Rust for targeted work. Component checks can also run independently through their existing scripts. Automated success does not establish real-model behavior or interactive UI correctness; follow the relevant component's scenario and release validation requirements as well. The [repository check decision](./.agents/adr/decision/2026/09/12-repository-checks.md) defines the complete contract.
 
 ### Common commands
 

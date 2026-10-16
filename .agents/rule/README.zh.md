@@ -44,4 +44,4 @@
 
 ## 相关 ADR
 
-- [新增规则层](../adr/decision/2026-10-12-add-rule-layer.zh.md)
+- [仓库规则](../adr/decision/2026/10/12-repository-rules.zh.md)

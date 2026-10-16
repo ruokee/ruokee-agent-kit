@@ -52,6 +52,6 @@ OMP `18.5.0`，声明在[兼容性](../../projects/omp-status-bar/README.zh.md#�
 
 ## 相关 ADR
 
-- [以静态上下文字形维护 OMP 状态栏](../adr/decision/2026-10-04-show-static-context-glyph.zh.md)
-- [宿主内组件按共同的 OMP 下限维护](../adr/decision/2026-10-04-raise-omp-host-floor.zh.md)
-- [保持可分发组件自包含](../adr/decision/2026-08-24-keep-components-self-contained.zh.md)
+- [OMP 状态栏](../adr/decision/2026/09/04-omp-status-bar.zh.md)
+- [宿主维护](../adr/decision/2026/09/28-host-maintenance.zh.md)
+- [组件自包含](../adr/decision/2026/08/24-component-self-containment.zh.md)

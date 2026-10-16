@@ -54,13 +54,13 @@ The tk OMP adapter follows the shared OMP lower bound, `18.5.0`, for the host-si
 
 ## Related ADRs
 
-- [Define the tk product architecture](../adr/decision/2026-08-21-define-tk-product-architecture.md)
-- [Define the tk runtime](../adr/decision/2026-08-28-define-tk-runtime.md)
-- [Define the tk Task data model with closed rename](../adr/decision/2026-09-10-allow-closed-rename-filesystem-scan.md)
-- [Integrate tk tools with Harnesses](../adr/decision/2026-09-02-integrate-tk-tools-with-harnesses.md)
-- [Add a mode that uses only the tk CLI](../adr/decision/2026-09-02-add-tk-cli-only-mode.md)
-- [Integrate Skill language selection into tk install](../adr/decision/2026-09-02-select-tk-skill-language.md)
-- [Distribute tk components](../adr/decision/2026-09-03-distribute-custom-cli-skills.md)
-- [Align tk usage patterns with shared Skill reference sources](../adr/decision/2026-10-04-share-tk-skill-references.md)
-- [Maintain host components against a shared OMP floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)
-- [Keep distributable components self contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
+- [tk architecture](../adr/decision/2026/08/21-tk-architecture.md)
+- [tk runtime](../adr/decision/2026/08/28-tk-runtime.md)
+- [tk Task data](../adr/decision/2026/08/28-tk-data.md)
+- [tk Harness integration](../adr/decision/2026/08/28-tk-harness.md)
+- [tk CLI mode](../adr/decision/2026/09/02-tk-cli-mode.md)
+- [tk Skill language](../adr/decision/2026/09/02-tk-language.md)
+- [tk distribution](../adr/decision/2026/08/28-tk-distribution.md)
+- [tk documentation](../adr/decision/2026/08/29-tk-documentation.md)
+- [Host maintenance](../adr/decision/2026/09/28-host-maintenance.md)
+- [Component self containment](../adr/decision/2026/08/24-component-self-containment.md)

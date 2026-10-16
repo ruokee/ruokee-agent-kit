@@ -32,7 +32,7 @@ Spec for the ordinary Skills under `skills/` and their Chinese variants under `v
 - `grill-me` loads only on explicit user invocation. `architect`, `code-quality`, `deep-research`, `msgspec`, `python-engineering`, and `well-said` may be loaded by the model.
 - Review workflows in `code-quality` and `python-engineering` may report findings and recommendations, but a review request does not authorize changes to the reviewed files.
 - Material adapted from a third party keeps its source attribution and license notice in both language variants.
-- `well-said` applies when outputting anything. Its complete writing guidance includes defensive phrasing and distinguishes work problems from wording problems. Each language component declares its version in `metadata.version` and keeps source attribution and licenses in adjacent files, as defined by the [well-said decision](../adr/decision/2026-10-08-rewrite-well-said.md).
+- `well-said` applies when outputting anything. Its complete writing guidance includes defensive phrasing and distinguishes work problems from wording problems. Each language component declares its version in `metadata.version` and keeps source attribution and licenses in adjacent files, as defined by the [well-said decision](../adr/decision/2026/09/12-well-said.md).
 - The installer never writes into `skills/` or `variants/zh/skills/`.
 
 ## Host lower bound
@@ -49,12 +49,12 @@ None. Skills are instructions and do not load code into a host process, so they 
 
 ## Related ADRs
 
-- [Package Skills as self contained language variants](../adr/decision/2026-08-20-package-self-contained-skill-variants.md)
-- [Keep distributable components self contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
-- [Establish a first party Agent capability kit](../adr/decision/2026-08-20-establish-first-party-capability-kit.md)
-- [Colocate bilingual public documentation](../adr/decision/2026-09-07-colocate-bilingual-docs.md)
-- [Add the grill-me Skill that a user invokes](../adr/decision/2026-09-06-add-grill-me-skill.md)
-- [Allow model invocation of architect](../adr/decision/2026-09-18-make-architect-model-invoked.md)
-- [Provide the deep-research Skill](../adr/decision/2026-09-06-migrate-deep-research.md)
-- [Rewrite the well-said Skill](../adr/decision/2026-10-08-rewrite-well-said.md)
-- [Review authorization](../adr/decision/2026-09-06-review-authorization.md)
+- [Skill language variants](../adr/decision/2026/08/20-skill-variants.md)
+- [Component self containment](../adr/decision/2026/08/24-component-self-containment.md)
+- [First party capabilities](../adr/decision/2026/08/20-first-party-capabilities.md)
+- [Bilingual documentation](../adr/decision/2026/08/20-bilingual-docs.md)
+- [grill-me](../adr/decision/2026/09/06-grill-me.md)
+- [architect](../adr/decision/2026/08/22-architect.md)
+- [deep-research](../adr/decision/2026/09/06-deep-research.md)
+- [well-said](../adr/decision/2026/09/12-well-said.md)
+- [Review authorization](../adr/decision/2026/09/06-review-authorization.md)

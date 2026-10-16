@@ -32,7 +32,7 @@
 - `grill-me` 只在用户明确调用时加载。`architect`、`code-quality`、`deep-research`、`msgspec`、`python-engineering` 和 `well-said` 可以由模型加载。
 - `code-quality` 和 `python-engineering` 的审查工作流可以报告发现和建议，但审查请求不授权修改被审查的文件。
 - 改编自第三方的材料在两个语言变体中都保留来源署名和许可声明。
-- `well-said` 在输出任何内容时使用。完整写作指南包含防御性表述，区分工作问题与文字问题。每个语言组件在 `metadata.version` 声明版本，将来源署名和许可放在同目录附加文件中，具体要求见 [well-said 决定](../adr/decision/2026-10-08-rewrite-well-said.zh.md)。
+- `well-said` 在输出任何内容时使用。完整写作指南包含防御性表述，区分工作问题与文字问题。每个语言组件在 `metadata.version` 声明版本，将来源署名和许可放在同目录附加文件中，具体要求见 [well-said 决定](../adr/decision/2026/09/12-well-said.zh.md)。
 - 安装工具从不写入 `skills/` 或 `variants/zh/skills/`。
 
 ## 宿主下限
@@ -49,12 +49,12 @@
 
 ## 相关 ADR
 
-- [将 Skill 打包为自包含语言变体](../adr/decision/2026-08-20-package-self-contained-skill-variants.zh.md)
-- [保持可分发组件自包含](../adr/decision/2026-08-24-keep-components-self-contained.zh.md)
-- [建立第一方 Agent 能力工具集](../adr/decision/2026-08-20-establish-first-party-capability-kit.zh.md)
-- [同目录维护双语公开文档](../adr/decision/2026-09-07-colocate-bilingual-docs.zh.md)
-- [添加用户主动调用的 grill-me Skill](../adr/decision/2026-09-06-add-grill-me-skill.zh.md)
-- [允许模型调用 architect](../adr/decision/2026-09-18-make-architect-model-invoked.zh.md)
-- [提供 deep-research Skill](../adr/decision/2026-09-06-migrate-deep-research.zh.md)
-- [重写 well-said Skill](../adr/decision/2026-10-08-rewrite-well-said.zh.md)
-- [审查授权](../adr/decision/2026-09-06-review-authorization.zh.md)
+- [Skill 语言变体](../adr/decision/2026/08/20-skill-variants.zh.md)
+- [组件自包含](../adr/decision/2026/08/24-component-self-containment.zh.md)
+- [第一方能力](../adr/decision/2026/08/20-first-party-capabilities.zh.md)
+- [双语文档](../adr/decision/2026/08/20-bilingual-docs.zh.md)
+- [grill-me](../adr/decision/2026/09/06-grill-me.zh.md)
+- [architect](../adr/decision/2026/08/22-architect.zh.md)
+- [deep-research](../adr/decision/2026/09/06-deep-research.zh.md)
+- [well-said](../adr/decision/2026/09/12-well-said.zh.md)
+- [审查授权](../adr/decision/2026/09/06-review-authorization.zh.md)

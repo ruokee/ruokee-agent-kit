@@ -14,6 +14,7 @@ The [rule layer](../rule/README.md) states how work is done here.
 - Keep each capability in its host-native or build-native format.
 - Keep every distributable component self-contained.
 - Record durable decisions as bilingual ADRs, and state the current target of each component and repository area as a bilingual spec.
+- Keep each decision's current reference stable through reversals, retain separately accessible historical versions, and group ADRs by lifecycle and first proposal year and month.
 - State the repository's working rules as bilingual pages under `.agents/rule/`, so each normative statement has one owning layer.
 - Develop on short-lived branches squash-merged into `main`, with affected checks during development and a complete check on the final candidate.
 
@@ -47,6 +48,10 @@ The [rule layer](../rule/README.md) states how work is done here.
 - `pnpm check:changed` selects the affected checks for a change. Unknown, shared, or unreliably classified inputs fall back to one complete check.
 - The complete aggregate, the selector mapping, and the selector regression tests cover the same components and document consumers.
 - ADRs open with Motivation and keep to the content boundaries in the [ADR rules](../adr/README.md), and writing or changing one follows the [documentation rules](../rule/documentation.md). A spec never conflicts with a current decision.
+- Every retained ADR body follows the [identity-based layout](../adr/README.md#document-layout). Current decisions and their archives share the first proposal date and canonical topic; a proposal retains its own first proposal date. Only archives carry `rN`, independently continuous per decision from `r1` across days, months, and years.
+- Bilingual ADR pairs share identity, revision, lifecycle, and relationship meaning. Ordinary reversals preserve the current path and every historical version. Actual archival and `Changes` event dates, original authorship, recorded choices, reasons, constraints, uncertainties, and historical capability scope survive naming corrections, which consume no reversal number.
+- A continuing original topic retains its identity and sequence; an extracted independent topic has its own path, date, and sequence. Direct reversal links follow actual versions. Current-authority citations and historical citations retain their meaning, including language links and heading fragments.
+- Every retained ADR filename, title, and subsection heading names one subject briefly under the [naming rules](../rule/documentation.md#naming). The complete leaf filename, including revision and Chinese suffix when applicable, is at most 60 characters. Lifecycle roots retain `.gitkeep`; time directories exist only for actual records, with no duplicate compatibility ADRs.
 - A component's `X.Y.Z` version changes with the behavior it ships, and the [boundary rules](../rule/boundary.md) own the increment and its authority.
 - Components keep no unreachable code, duplicate implementation, or design held for a hypothetical requirement. Simplification keeps each component's goals, public commands, tools, settings, file formats, and behavior.
 
@@ -59,19 +64,22 @@ The [rule layer](../rule/README.md) states how work is done here.
 - Complete `pnpm check` passes on the clean, committed final candidate that contains the target `main`.
 - Every public Markdown page outside Skills has its same-directory language pair with reciprocal links: ordinary pages as `name.md` and `name.zh.md`, entry pages as `README.md` and `README.zh.md`. Skills are checked against their existing layouts instead: English Skills under `skills/<name>/` with Chinese variants under `variants/zh/skills/<name>/`, and independently named tk Skills at their paths under `projects/tk/skills/`. This criterion does not move Skill files or add cross-language links between Skills.
 - No reference inside a component resolves outside that component's directory.
+- Same-day, cross-month, and cross-year reversals leave the canonical current path unchanged, preserve separately accessible archives, and advance only that decision's continuous sequence. Reversing another decision, extracting an independent topic, or correcting names does not alter that sequence.
+- All retained ADRs use the prescribed layout and short single-subject names, with aligned language pairs and filenames within 60 characters. Historical correction preserves substance and actual events. Readers can follow accurate direct predecessors and successors without mistaking a later version for an earlier record's direct successor.
+- The ADR mechanism, guide, glossary, documentation rules, specification, and actual references express the same contract. Current and historical citations, reciprocal language links, and heading fragments resolve to the intended content.
 
 ## Related ADRs
 
-- [Establish a first party Agent capability kit](../adr/decision/2026-08-20-establish-first-party-capability-kit.md)
-- [Squash short lived branches into main](../adr/decision/2026-08-20-use-trunk-based-squash-workflow.md)
-- [Use Motivation as the opening section](../adr/decision/2026-08-22-use-motivation-heading-in-adrs.md)
-- [Keep distributable components self contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
-- [Use document relative links for file paths](../adr/decision/2026-08-24-use-document-relative-file-links.md)
-- [Format Markdown with Prettier](../adr/decision/2026-09-02-format-markdown-with-prettier.md)
-- [Review authorization](../adr/decision/2026-09-06-review-authorization.md)
-- [Colocate bilingual public documentation](../adr/decision/2026-09-07-colocate-bilingual-docs.md)
-- [Enforce commit message conventions](../adr/decision/2026-09-17-enforce-commit-message-conventions.md)
-- [Scope development checks](../adr/decision/2026-09-30-scope-aware-repository-checks.md)
-- [Add a specification layer](../adr/decision/2026-10-04-add-spec-layer.md)
-- [Add a rule layer](../adr/decision/2026-10-12-add-rule-layer.md)
-- [Clarify the ADR content boundaries](../adr/decision/2026-10-15-clarify-adr-content-boundaries.md)
+- [First party capabilities](../adr/decision/2026/08/20-first-party-capabilities.md)
+- [Trunk development](../adr/decision/2026/08/20-trunk-development.md)
+- [ADR opening](../adr/decision/2026/08/22-adr-opening.md)
+- [Component self containment](../adr/decision/2026/08/24-component-self-containment.md)
+- [Relative file links](../adr/decision/2026/08/24-relative-links.md)
+- [Markdown formatting](../adr/decision/2026/09/02-markdown-formatting.md)
+- [Review authorization](../adr/decision/2026/09/06-review-authorization.md)
+- [Bilingual documentation](../adr/decision/2026/08/20-bilingual-docs.md)
+- [Commit messages](../adr/decision/2026/09/17-commit-messages.md)
+- [Repository checks](../adr/decision/2026/09/12-repository-checks.md)
+- [Specifications](../adr/decision/2026/10/04-specifications.md)
+- [Repository rules](../adr/decision/2026/10/12-repository-rules.md)
+- [ADR mechanism](../adr/decision/2026/08/22-adr-mechanism.md)

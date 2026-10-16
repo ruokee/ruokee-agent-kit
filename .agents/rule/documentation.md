@@ -42,6 +42,8 @@ The [repository spec](../spec/repository.md) states the language, pairing, and l
 - Write `None` in an English ADR section and `无` in its Chinese counterpart when nothing qualifies, instead of inventing alternatives or risks.
 - Add non-conflicting content under `Changes`. Merge a proposal first and create a complete decision that reverses the old one when a choice conflicts.
 - Keep English and Chinese counterparts of an ADR pair semantically aligned in the same change, and keep the writer field unchanged during later maintenance.
+- Use the [ADR layout](../adr/README.md#document-layout) for every retained record. Preserve a decision's first proposal date and canonical current path through ordinary reversals, and number only its archives by its own continuous `rN` sequence.
+- Preserve actual archival and event dates, historical substance, and original authorship during naming corrections. Repair affected language links, direct relationships, inbound references, and heading fragments in the same change, distinguishing current authority from a specific historical version.
 - Leave proposal approval, rejection, and decision archival to the maintainer. Drafting an ADR within authorized work does not include those lifecycle decisions, and taking one requires the maintainer's explicit approval.
 - Keep task execution records, including lifecycle, working branches, commit identifiers, and session-only context, out of an ADR. Write for a reader who has only the finished record and its accessible sources.
 - Keep ADR, spec, and rule retrieval in the [planning rules](./development.md#planning).

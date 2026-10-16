@@ -60,4 +60,4 @@ spec 是说明性文档。组件的运行、构建和分发都不依赖 spec，�
 
 ## 相关 ADR
 
-- [增加规格层](../adr/decision/2026-10-04-add-spec-layer.zh.md)
+- [规格](../adr/decision/2026/10/04-specifications.zh.md)

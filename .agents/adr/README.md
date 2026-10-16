@@ -19,17 +19,27 @@ Do not create one for a local bug fix, mechanical refactor, ordinary documentati
 This repository uses `.agents/adr` as its ADR root:
 
 ```text
-.agents/adr/proposal/yyyy-mm-dd-topic-title.md
-.agents/adr/decision/yyyy-mm-dd-topic-title.md
-.agents/adr/rejected/yyyy-mm-dd-topic-title.md
-.agents/adr/archived/yyyy-mm-dd-topic-title.md
+.agents/adr/proposal/YYYY/MM/DD-name.md
+.agents/adr/decision/YYYY/MM/DD-name.md
+.agents/adr/rejected/YYYY/MM/DD-name.md
+.agents/adr/archived/YYYY/MM/DD-rN-name.md
 ```
 
 `proposal` and `decision` are the two document types. `proposal/` contains active proposals and `rejected/` contains rejected proposals. `decision/` contains current decisions and `archived/` contains archived decisions. The directory expresses both type and state, so ADR files do not contain a `Status` field.
 
 Use `Create decision`, `Update decision`, and `Reverse decision` as action phrases. `Reverse decision` is a verb phrase, not a noun label. A new decision links to an archived decision with `Reverses`; the archived decision links back with `Reversed by`.
 
-The filename date records the first proposal and does not change when a pair moves. Use a short English slug. The complete filename, including the date, language suffix, and extension, must not exceed 60 characters.
+`YYYY` is a four-digit year; `MM` and `DD` are two-digit month and day values. A decision's first proposal date and short canonical English topic name identify the current record and all its archives. Ordinary reversals preserve that identity and current path. `Archived: YYYY-MM-DD` records the actual archival date, and dated `Changes` entries keep their actual event dates.
+
+A proposal uses its own first proposal date, including when it proposes to reverse an older decision. Rejection preserves that proposal date. The proposal's date does not replace the older decision's identity date.
+
+Only archives carry `rN`. The first reversal of a decision produces `r1`; each later reversal increments its own sequence once, without resetting across days, months, or years. Another decision, a language counterpart, multiple relationship links, an ordinary update, a directory move, or a naming correction does not consume a number.
+
+A successor continuing the original topic retains its identity and sequence. An extracted independent topic gets its own first proposal date, canonical name, and sequence while preserving actual source and reversal relationships. A shared predecessor or `Reverses` link alone does not mean shared identity.
+
+Use the identity date for the year, month, and day of both the current decision and every archive, even when archival occurs in another year. Create time directories only for actual records; month directories have no file-count limit. Keep this guide and the glossary at the ADR root.
+
+Apply the [naming rules](../rule/documentation.md#naming) to every retained filename, title, and subsection heading, including topic text after a `Changes` date. Name one subject with a short imperative, phrase, or noun, leaving details in the body. The complete leaf filename, including `DD`, any `rN`, topic, language suffix, and extension, must not exceed 60 characters.
 
 Keep all four lifecycle directories in Git with `.gitkeep`, including when they contain ADR files.
 
@@ -40,9 +50,11 @@ Each glossary entry names the corresponding term in the other language within it
 Each ADR is one same-directory pair:
 
 ```text
-yyyy-mm-dd-topic-title.md
-yyyy-mm-dd-topic-title.zh.md
+DD-name.md
+DD-name.zh.md
 ```
+
+Archived pairs instead use `DD-rN-name.md` and `DD-rN-name.zh.md`, with the same date and revision number.
 
 The unsuffixed file is English and the default public link. The `.zh.md` file is the Chinese audit copy. Both are semantically authoritative and must move together.
 
@@ -96,7 +108,7 @@ After implementation, create the new decisions, update decisions that do not con
 
 ### Rejected proposal
 
-Move the bilingual proposal files to `rejected/`, add `## Rejection reason` or `## 拒绝原因`, and freeze them after factual link repairs. Keep a rejected proposal only while its rationale prevents a realistic mistake.
+Move the bilingual proposal files to `rejected/YYYY/MM/` using the proposal's original date and canonical name without `rN`. Add `## Rejection reason` or `## 拒绝原因`, and freeze them after factual link repairs. Keep a rejected proposal only while its rationale prevents a realistic mistake.
 
 ## Decision format
 
@@ -147,7 +159,15 @@ Do not rewrite a current decision to express a conflicting choice. Create a prop
 
 After implementation, combine each old decision's still-effective rules with the accepted proposal into a complete new decision. The successor preserves the still-effective rules within the decision's scope; it does not reproduce the component's implementation specification.
 
-Add `Reverses` to the new decision's header metadata block and `Reversed by` to each archived decision's header metadata block. Move both old-language files to `archived/` in the same change.
+Perform the reversal in one change:
+
+1. Identify the continuing decision by its first proposal date and canonical topic. Inspect its existing archives to choose the next unused revision number in its own sequence, starting at `r1`; do not reset it for a new day, month, or year.
+2. Move both replaced language files from `decision/YYYY/MM/DD-name` to `archived/YYYY/MM/DD-rN-name`, keeping the identity date. Never overwrite an earlier archive. Add the actual `Archived: YYYY-MM-DD` before `Reversed by` in its metadata.
+3. Write the complete bilingual successor at the unchanged canonical `decision/` path. Its `Reverses` points to the replaced archive, whose `Reversed by` points to its actual successor.
+4. Repair earlier direct relationships. When A was reversed by B and C now reverses B, A's `Reversed by` must follow B into B's archive rather than continue to C at the current path. B still links to A; C links to B's archive.
+5. Classify affected references by meaning. Current-authority references keep the canonical current path; a citation of a specific historical choice follows that version to its archive. Do not classify by the source file's directory. Recompute relative paths, reciprocal language links, inbound links, and heading fragments in the same change. Stable paths do not make heading fragments immutable.
+
+For example, a decision first proposed on `2026-10-16` keeps `decision/2026/10/16-topic.md` through two reversals that day and further reversals in November and the next year. Those events create `archived/2026/10/16-r1-topic.md` through `16-r4-topic.md`, each with its actual archival date. Another decision starts its own `r1`. An independent topic extracted during a reversal gets a separate identity and starts its own sequence; it does not take the original topic's current path or inherit its counter. Both languages follow the same operations.
 
 ### Archived decision
 
@@ -209,6 +229,6 @@ The maintainer owns proposal approval, rejection, and decision archival. An Agen
 
 Move both language files together and repair inbound links in the same change. Keep current decisions accurate when factual paths, names, or verification entry points move. Never use factual maintenance to reverse a decision.
 
-Archived decisions freeze after relationship and factual link repairs, and rejected proposals freeze after factual link repairs. The naming rules and the heading rule apply to every ADR file, so bringing the file name, titles, and subheadings of an archived decision or a rejected proposal into line with them is ordinary maintenance rather than a granted exception; the [ADR mechanism decision](./decision/2026-10-15-clarify-adr-content-boundaries.md) records that choice and the withdrawal of the exceptions granted to earlier cleanups. Such an edit keeps every recorded choice, reason, constraint, uncertainty, historical capability scope, authorship, date, and reversal relationship, and it neither unfreezes the record nor changes a binding promise.
+Archived decisions freeze after relationship and factual link repairs, and rejected proposals freeze after factual link repairs. Naming rules apply to every retained record. Correct filenames, titles, headings, identity dates, and revision order using content, relationship fields, proposal sources, and relevant Git history, and correct evidenced relationship errors. The [ADR mechanism decision](./decision/2026/08/22-adr-mechanism.md) defines this maintenance boundary. Preserve every recorded choice, reason, constraint, uncertainty, historical capability scope, original author, actual archival date, and event date. Identity-date normalization changes path dates, not actual events; Git preserves original paths and filename dates. Naming corrections add no reversal, do not unfreeze records, and change no binding promise. Do not leave duplicate old ADR files as compatibility aliases. A historical format example or Git object path may retain its original spelling when that spelling is the fact being cited.
 
 The first version uses review, repository search, and Git history rather than a dedicated Skill, classification system, archive manifest, or custom checker. Add a mechanical check only after repeated maintenance or an observed failure identifies a concrete invariant.

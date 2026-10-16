@@ -62,11 +62,11 @@ Use the shared maintenance floor and the component's [host compatibility declara
 
 ## Related ADRs
 
-- [Maintain the smart-cache extension](../adr/decision/2026-10-12-maintain-smart-cache-extension.md)
-- [Remote ownership and reuse contract](../adr/decision/2026-10-12-provide-remote-alignment.md)
-- [Handoff alignment contract](../adr/decision/2026-10-12-provide-handoff-alignment.md)
-- [Preserved QoL contract](../adr/decision/2026-10-10-maintain-omp-experience-extension.md)
-- [Shared OMP maintenance floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)
-- [Self-contained components](../adr/decision/2026-08-24-keep-components-self-contained.md)
+- [smart-cache](../adr/decision/2026/10/12-smart-cache.md)
+- [Remote ownership and reuse contract](../adr/decision/2026/10/10-remote-alignment.md)
+- [Handoff alignment contract](../adr/decision/2026/10/12-handoff-alignment.md)
+- [Preserved QoL contract](../adr/decision/2026/09/20-omp-qol.md)
+- [Shared OMP maintenance floor](../adr/decision/2026/09/28-host-maintenance.md)
+- [Self-contained components](../adr/decision/2026/08/24-component-self-containment.md)
 
 The installed component's usage and compatibility declaration are in [projects/omp-smart-cache/README.md](../../projects/omp-smart-cache/README.md).

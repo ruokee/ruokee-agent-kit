@@ -44,4 +44,4 @@ When a reader needs the reason behind a rule, the rule links the decision that o
 
 ## Related ADRs
 
-- [Add a rule layer](../adr/decision/2026-10-12-add-rule-layer.md)
+- [Repository rules](../adr/decision/2026/10/12-repository-rules.md)

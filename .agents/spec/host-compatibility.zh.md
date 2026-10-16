@@ -2,7 +2,7 @@
 
 [English](./host-compatibility.md) | 中文
 
-把代码加载进宿主进程运行的仓库组件的维护下限规格。完整规则及其理由由[宿主维护决定](../adr/decision/2026-10-04-raise-omp-host-floor.zh.md)记录。
+把代码加载进宿主进程运行的仓库组件的维护下限规格。完整规则及其理由由[宿主维护决定](../adr/decision/2026/09/28-host-maintenance.zh.md)记录。
 
 ## 目标
 
@@ -51,10 +51,10 @@
 
 ## 相关 ADR
 
-- [宿主内组件按共同的 OMP 下限维护](../adr/decision/2026-10-04-raise-omp-host-floor.zh.md)
-- [保持可分发组件自包含](../adr/decision/2026-08-24-keep-components-self-contained.zh.md)
-- [以静态上下文字形维护 OMP 状态栏](../adr/decision/2026-10-04-show-static-context-glyph.zh.md)
-- [维护提高 OMP 使用体验的拓展](../adr/decision/2026-10-10-maintain-omp-experience-extension.zh.md)
-- [维护 smart-cache 扩展](../adr/decision/2026-10-12-maintain-smart-cache-extension.zh.md)
-- [在 smart-cache 中提供 remote 对齐](../adr/decision/2026-10-12-provide-remote-alignment.zh.md)
-- [在 smart-cache 中提供 Handoff 对齐](../adr/decision/2026-10-12-provide-handoff-alignment.zh.md)
+- [宿主维护](../adr/decision/2026/09/28-host-maintenance.zh.md)
+- [组件自包含](../adr/decision/2026/08/24-component-self-containment.zh.md)
+- [OMP 状态栏](../adr/decision/2026/09/04-omp-status-bar.zh.md)
+- [OMP QoL](../adr/decision/2026/09/20-omp-qol.zh.md)
+- [smart-cache](../adr/decision/2026/10/12-smart-cache.zh.md)
+- [Remote 对齐](../adr/decision/2026/10/10-remote-alignment.zh.md)
+- [Handoff 对齐](../adr/decision/2026/10/12-handoff-alignment.zh.md)

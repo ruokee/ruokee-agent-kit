@@ -14,6 +14,7 @@
 - 每项能力保持宿主原生或构建原生的格式。
 - 每个可分发组件保持自包含。
 - 用双语 ADR 记录持久决定，用双语 spec 说明每个组件和仓库领域的当前目标。
+- 决定反转时保持当前引用稳定，保留可分别访问的历史版本，并按生命周期与首次提出年月组织 ADR。
 - 用双语页面承载仓库工作规则，位于 `.agents/rule/`，让每条规范性陈述只有一个归属层。
 - 在短期分支上开发，squash 合入 `main`；开发期间运行受影响检查，最终候选运行完整检查。
 
@@ -47,6 +48,10 @@
 - `pnpm check:changed` 为一次变更选择受影响检查。未知、共享或无法可靠分类的输入回退为一次完整检查。
 - 完整检查集合、选择器映射和选择器回归测试覆盖相同的组件和文档消费者。
 - ADR 以动机开篇，遵守 [ADR 规则](../adr/README.zh.md)中的内容边界；撰写或修改 ADR 遵循[文档规则](../rule/documentation.zh.md)。spec 从不与现行决定冲突。
+- 所有保留 ADR 正文遵循[按身份确定的布局](../adr/README.zh.md#文档布局)。当前决定与其归档共享首次提出日期和规范主题，提案保留自身首次提出日期。只有归档带 `rN`，每项决定独立从 `r1` 起，跨日、跨月、跨年连续计数。
+- 双语 ADR 配对共享身份、修订号、生命周期和关系含义。普通反转保留当前路径与每个历史版本。命名整改保留实际归档日期、`Changes` 事件日期、原作者、已记录选择、理由、约束、不确定性和历史能力范围，不消耗反转号。
+- 原主题的承接记录保留身份与序列，抽出的独立主题拥有自己的路径、日期与序列。直接反转链接跟随真实版本。当前权威引用与历史引用保留各自含义，包括语言链接和标题片段。
+- 所有保留 ADR 文件名、主标题与小节标题按[命名规则](../rule/documentation.zh.md#命名)简短命名一个主题。完整叶子文件名最多 60 字符，包含适用的修订号和中文后缀。生命周期根目录保留 `.gitkeep`，仅为实际记录创建时间目录，不保留兼容性的重复 ADR。
 - 组件的 `X.Y.Z` 版本号随它交付的行为变化，递增规则及其权限由[边界规则](../rule/boundary.zh.md)拥有。
 - 组件不保留不可达代码、重复实现或为假设需求保留的设计。简化保持每个组件的目标以及对外的命令、工具、设置、文件格式和行为不变。
 
@@ -59,19 +64,22 @@
 - 完整 `pnpm check` 在干净、已提交且包含目标 `main` 的最终候选上通过。
 - Skill 之外的每个公开 Markdown 页面都有同目录的语言配对，并互相链接：普通页面为 `name.md` 和 `name.zh.md`，入口页面为 `README.md` 和 `README.zh.md`。Skill 按现有布局验收：英文 Skill 位于 `skills/<name>/`，中文变体位于 `variants/zh/skills/<name>/`；独立命名的 tk Skill 保留在 `projects/tk/skills/` 下的现有路径。这条标准不移动 Skill 文件，也不在 Skill 之间新增跨语言链接。
 - 组件内的引用都不会解析到组件目录之外。
+- 同日、跨月与跨年反转保留不变的规范当前路径、可分别访问的归档，并只递增该决定的连续序列。反转其他决定、抽出独立主题或纠正名称不改变该序列。
+- 全部保留 ADR 使用规定布局与简短单主题名称，双语配对一致，文件名不超过 60 字符。历史纠正保留实质与实际事件。读者可沿准确的直接前后继追溯，不把后续版本误作早期记录的直接后继。
+- ADR 机制、指南、术语表、文档规则、规格与实际引用表达同一契约。当前与历史引用、双向语言链接及标题片段均指向所需内容。
 
 ## 相关 ADR
 
-- [建立第一方 Agent 能力工具集](../adr/decision/2026-08-20-establish-first-party-capability-kit.zh.md)
-- [把短期分支 squash 合入 main](../adr/decision/2026-08-20-use-trunk-based-squash-workflow.zh.md)
-- [使用动机作为起始章节](../adr/decision/2026-08-22-use-motivation-heading-in-adrs.zh.md)
-- [保持可分发组件自包含](../adr/decision/2026-08-24-keep-components-self-contained.zh.md)
-- [文件路径使用文档相对链接](../adr/decision/2026-08-24-use-document-relative-file-links.zh.md)
-- [使用 Prettier 格式化 Markdown](../adr/decision/2026-09-02-format-markdown-with-prettier.zh.md)
-- [审查授权](../adr/decision/2026-09-06-review-authorization.zh.md)
-- [同目录维护双语公开文档](../adr/decision/2026-09-07-colocate-bilingual-docs.zh.md)
-- [强制执行提交信息规范](../adr/decision/2026-09-17-enforce-commit-message-conventions.zh.md)
-- [按范围执行开发检查](../adr/decision/2026-09-30-scope-aware-repository-checks.zh.md)
-- [增加规格层](../adr/decision/2026-10-04-add-spec-layer.zh.md)
-- [新增规则层](../adr/decision/2026-10-12-add-rule-layer.zh.md)
-- [明确 ADR 内容边界](../adr/decision/2026-10-15-clarify-adr-content-boundaries.zh.md)
+- [第一方能力](../adr/decision/2026/08/20-first-party-capabilities.zh.md)
+- [主干开发](../adr/decision/2026/08/20-trunk-development.zh.md)
+- [ADR 开头](../adr/decision/2026/08/22-adr-opening.zh.md)
+- [组件自包含](../adr/decision/2026/08/24-component-self-containment.zh.md)
+- [文件相对链接](../adr/decision/2026/08/24-relative-links.zh.md)
+- [Markdown 格式化](../adr/decision/2026/09/02-markdown-formatting.zh.md)
+- [审查授权](../adr/decision/2026/09/06-review-authorization.zh.md)
+- [双语文档](../adr/decision/2026/08/20-bilingual-docs.zh.md)
+- [提交信息](../adr/decision/2026/09/17-commit-messages.zh.md)
+- [仓库检查](../adr/decision/2026/09/12-repository-checks.zh.md)
+- [规格](../adr/decision/2026/10/04-specifications.zh.md)
+- [仓库规则](../adr/decision/2026/10/12-repository-rules.zh.md)
+- [ADR 机制](../adr/decision/2026/08/22-adr-mechanism.zh.md)

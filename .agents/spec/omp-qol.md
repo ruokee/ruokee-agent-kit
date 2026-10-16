@@ -114,8 +114,8 @@ OMP `18.5.0`, declared in [Compatibility](../../projects/omp-qol/README.md#compa
 
 ## Related ADRs
 
-- [Maintain the extension that improves the OMP experience](../adr/decision/2026-10-10-maintain-omp-experience-extension.md)
-- [Provide model prompt rules that are off by default in QoL](../adr/decision/2026-10-15-use-qol-model-prompts.md)
-- [Compensate compaction request usage in QoL](../adr/decision/2026-10-13-compact-usage-compensation.md)
-- [Maintain host components against a shared OMP floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)
-- [Keep distributable components self contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
+- [OMP QoL](../adr/decision/2026/09/20-omp-qol.md)
+- [Model prompt rules](../adr/decision/2026/09/14-model-prompt-rules.md)
+- [Compaction usage](../adr/decision/2026/10/13-compaction-usage.md)
+- [Host maintenance](../adr/decision/2026/09/28-host-maintenance.md)
+- [Component self containment](../adr/decision/2026/08/24-component-self-containment.md)

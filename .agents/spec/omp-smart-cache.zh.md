@@ -62,11 +62,11 @@ OMP 原生用户设置及项目覆盖是唯一配置源。验证一次激活快�
 
 ## 相关 ADR
 
-- [维护 smart-cache 扩展](../adr/decision/2026-10-12-maintain-smart-cache-extension.zh.md)
-- [Remote 归属及复用合同](../adr/decision/2026-10-12-provide-remote-alignment.zh.md)
-- [Handoff 对齐合同](../adr/decision/2026-10-12-provide-handoff-alignment.zh.md)
-- [保留的 QoL 合同](../adr/decision/2026-10-10-maintain-omp-experience-extension.zh.md)
-- [共同 OMP 维护下限](../adr/decision/2026-10-04-raise-omp-host-floor.zh.md)
-- [组件自包含](../adr/decision/2026-08-24-keep-components-self-contained.zh.md)
+- [smart-cache](../adr/decision/2026/10/12-smart-cache.zh.md)
+- [Remote 归属及复用合同](../adr/decision/2026/10/10-remote-alignment.zh.md)
+- [Handoff 对齐合同](../adr/decision/2026/10/12-handoff-alignment.zh.md)
+- [保留的 QoL 合同](../adr/decision/2026/09/20-omp-qol.zh.md)
+- [共同 OMP 维护下限](../adr/decision/2026/09/28-host-maintenance.zh.md)
+- [组件自包含](../adr/decision/2026/08/24-component-self-containment.zh.md)
 
 安装组件的使用及兼容声明见 [projects/omp-smart-cache/README.zh.md](../../projects/omp-smart-cache/README.zh.md)。

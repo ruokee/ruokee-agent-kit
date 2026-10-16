@@ -52,6 +52,6 @@ OMP `18.5.0`, declared in [Compatibility](../../projects/omp-status-bar/README.m
 
 ## Related ADRs
 
-- [Maintain the OMP status bar with a static context glyph](../adr/decision/2026-10-04-show-static-context-glyph.md)
-- [Maintain host components against a shared OMP floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)
-- [Keep distributable components self contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
+- [OMP status bar](../adr/decision/2026/09/04-omp-status-bar.md)
+- [Host maintenance](../adr/decision/2026/09/28-host-maintenance.md)
+- [Component self containment](../adr/decision/2026/08/24-component-self-containment.md)

@@ -112,7 +112,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 
 ### 组件宿主维护
 
-将代码加载进宿主进程的组件在自身 README 的兼容性小节声明维护下限，宿主 peer 声明只列出包名，提高下限只能通过独立决定。面向 OMP 的组件共用一个下限。[宿主维护决定](./.agents/adr/decision/2026-10-04-raise-omp-host-floor.zh.md)记录完整规则。
+将代码加载进宿主进程的组件在自身 README 的兼容性小节声明维护下限，宿主 peer 声明只列出包名，提高下限只能通过独立决定。面向 OMP 的组件共用一个下限。[宿主维护决定](./.agents/adr/decision/2026/09/28-host-maintenance.zh.md)记录完整规则。
 
 ### 检查前置条件
 
@@ -185,7 +185,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 
 完整入口在执行第一条命令前核对所列的全部工具和本地输入。首次命令失败即停止执行，并返回非零状态。缺失可执行文件或依赖也会使检查失败。命令及组件输出可以定位失败步骤。检查不安装依赖或格式化源码；构建和测试可以创建自身正常使用的生成文件与临时文件。完整入口不选择受影响检查，回退不会递归。
 
-`pnpm check:base` 只覆盖 Markdown 与 Rust，适用于局部工作。组件检查也可通过各自已有脚本独立执行。自动化成功不能证明真实模型行为或交互界面正确性，仍须遵循相关组件的场景及发布验证要求。[仓库检查决定](./.agents/adr/decision/2026-09-30-scope-aware-repository-checks.zh.md)定义完整契约。
+`pnpm check:base` 只覆盖 Markdown 与 Rust，适用于局部工作。组件检查也可通过各自已有脚本独立执行。自动化成功不能证明真实模型行为或交互界面正确性，仍须遵循相关组件的场景及发布验证要求。[仓库检查决定](./.agents/adr/decision/2026/09/12-repository-checks.zh.md)定义完整契约。
 
 ### 常用命令
 

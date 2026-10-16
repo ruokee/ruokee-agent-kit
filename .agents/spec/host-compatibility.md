@@ -2,7 +2,7 @@
 
 English | [中文](./host-compatibility.zh.md)
 
-Spec for the maintenance lower bounds of repository components that load code into a host process. The [host maintenance decision](../adr/decision/2026-10-04-raise-omp-host-floor.md) records the complete rules and their reasons.
+Spec for the maintenance lower bounds of repository components that load code into a host process. The [host maintenance decision](../adr/decision/2026/09/28-host-maintenance.md) records the complete rules and their reasons.
 
 ## Goals
 
@@ -51,10 +51,10 @@ The repository README summarizes the policy in [Component host maintenance](../.
 
 ## Related ADRs
 
-- [Maintain host components against a shared OMP floor](../adr/decision/2026-10-04-raise-omp-host-floor.md)
-- [Keep distributable components self contained](../adr/decision/2026-08-24-keep-components-self-contained.md)
-- [Maintain the OMP status bar with a static context glyph](../adr/decision/2026-10-04-show-static-context-glyph.md)
-- [Maintain the extension that improves the OMP experience](../adr/decision/2026-10-10-maintain-omp-experience-extension.md)
-- [Maintain the smart-cache extension](../adr/decision/2026-10-12-maintain-smart-cache-extension.md)
-- [Provide remote alignment through smart-cache](../adr/decision/2026-10-12-provide-remote-alignment.md)
-- [Provide Handoff alignment through smart-cache](../adr/decision/2026-10-12-provide-handoff-alignment.md)
+- [Host maintenance](../adr/decision/2026/09/28-host-maintenance.md)
+- [Component self containment](../adr/decision/2026/08/24-component-self-containment.md)
+- [OMP status bar](../adr/decision/2026/09/04-omp-status-bar.md)
+- [OMP QoL](../adr/decision/2026/09/20-omp-qol.md)
+- [smart-cache](../adr/decision/2026/10/12-smart-cache.md)
+- [Remote alignment](../adr/decision/2026/10/10-remote-alignment.md)
+- [Handoff alignment](../adr/decision/2026/10/12-handoff-alignment.md)

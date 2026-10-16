@@ -60,4 +60,4 @@ Specs are explanatory documentation. No component depends on them to run, build,
 
 ## Related ADRs
 
-- [Add a specification layer](../adr/decision/2026-10-04-add-spec-layer.md)
+- [Specifications](../adr/decision/2026/10/04-specifications.md)

@@ -54,13 +54,13 @@ tk 的验收义务（包括真实 Harness 验证）由 [projects/tk/docs/design/
 
 ## 相关 ADR
 
-- [定义 tk 产品架构](../adr/decision/2026-08-21-define-tk-product-architecture.zh.md)
-- [定义 tk 运行时](../adr/decision/2026-08-28-define-tk-runtime.zh.md)
-- [用 closed 改名定义 tk 任务数据模型](../adr/decision/2026-09-10-allow-closed-rename-filesystem-scan.zh.md)
-- [把 tk 工具集成到 Harness](../adr/decision/2026-09-02-integrate-tk-tools-with-harnesses.zh.md)
-- [新增 tk 纯 CLI 模式](../adr/decision/2026-09-02-add-tk-cli-only-mode.zh.md)
-- [将 Skill 语言选择集成到 tk install](../adr/decision/2026-09-02-select-tk-skill-language.zh.md)
-- [分发 tk 组件](../adr/decision/2026-09-03-distribute-custom-cli-skills.zh.md)
-- [以共享的 Skill 参考文件源码统一 tk 使用模式](../adr/decision/2026-10-04-share-tk-skill-references.zh.md)
-- [宿主内组件按共同的 OMP 下限维护](../adr/decision/2026-10-04-raise-omp-host-floor.zh.md)
-- [保持可分发组件自包含](../adr/decision/2026-08-24-keep-components-self-contained.zh.md)
+- [tk 架构](../adr/decision/2026/08/21-tk-architecture.zh.md)
+- [tk 运行时](../adr/decision/2026/08/28-tk-runtime.zh.md)
+- [tk Task 数据](../adr/decision/2026/08/28-tk-data.zh.md)
+- [tk Harness 集成](../adr/decision/2026/08/28-tk-harness.zh.md)
+- [tk CLI 模式](../adr/decision/2026/09/02-tk-cli-mode.zh.md)
+- [tk Skill 语言](../adr/decision/2026/09/02-tk-language.zh.md)
+- [tk 分发](../adr/decision/2026/08/28-tk-distribution.zh.md)
+- [tk 文档](../adr/decision/2026/08/29-tk-documentation.zh.md)
+- [宿主维护](../adr/decision/2026/09/28-host-maintenance.zh.md)
+- [组件自包含](../adr/decision/2026/08/24-component-self-containment.zh.md)

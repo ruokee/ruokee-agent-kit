@@ -114,8 +114,8 @@ OMP `18.5.0`，声明在[兼容性](../../projects/omp-qol/README.zh.md#兼容�
 
 ## 相关 ADR
 
-- [维护提高 OMP 使用体验的拓展](../adr/decision/2026-10-10-maintain-omp-experience-extension.zh.md)
-- [在 QoL 提供选择启用的模型提示词规则](../adr/decision/2026-10-15-use-qol-model-prompts.zh.md)
-- [在 QoL 中补记压缩请求用量](../adr/decision/2026-10-13-compact-usage-compensation.zh.md)
-- [宿主内组件按共同的 OMP 下限维护](../adr/decision/2026-10-04-raise-omp-host-floor.zh.md)
-- [保持可分发组件自包含](../adr/decision/2026-08-24-keep-components-self-contained.zh.md)
+- [OMP QoL](../adr/decision/2026/09/20-omp-qol.zh.md)
+- [模型提示词规则](../adr/decision/2026/09/14-model-prompt-rules.zh.md)
+- [压缩用量](../adr/decision/2026/10/13-compaction-usage.zh.md)
+- [宿主维护](../adr/decision/2026/09/28-host-maintenance.zh.md)
+- [组件自包含](../adr/decision/2026/08/24-component-self-containment.zh.md)

@@ -1,0 +1,49 @@
+# tk Harness integration
+
+Decision owner: Ruokee
+Decision writer: OMP GPT-5.6 Sol, Ruokee
+Reverses: [tk Harness integration](../../../archived/2026/08/28-r1-tk-harness.md)
+
+English | [中文](./28-tk-harness.zh.md)
+
+## Motivation
+
+Define six transport-independent tk operations and register them through each Harness's own component API.
+
+Integrating tk with Codex, Claude Code, Pi, and OMP requires one logical operation contract, because these Harnesses expose different registration and loading APIs. The integration must reject incompatible runtimes before registration and must not terminate the surrounding Agent session when tk cannot load.
+
+Tools mode also needs one unambiguous route for covered Task operations. Direct CLI retry after a logical refusal or failure would bypass the selected integration and can repeat a write with different transport behavior.
+
+## Decision
+
+tk defines six transport-independent logical operations: search, read, create, update, log, and exec. MCP exposes them in the `tk` namespace. Pi and OMP register `tk_search`, `tk_read`, `tk_create`, `tk_update`, `tk_log`, and `tk_exec`.
+
+Rust generates MCP and native JSON schemas from the same request types. Harness adapters map context and transport only. They do not duplicate Task validation, storage rules, search ranking, migration, installation, or semantic version range parsing.
+
+The `tk` and `tk-zh` tools Skills use the logical search, read, create, update, and log operations for covered requests. If a logical operation is missing, refused, or fails, the Agent reports the integration or transport failure and does not retry through the direct CLI. Exec remains a controlled proxy for public CLI version, init, check, and rename commands.
+
+Codex and Claude Code use MCP. Pi and OMP use native extensions. Pi sets no `loadMode`. OMP marks search, read, create, update, and log as `essential`; exec is `discoverable`. Pi and OMP start the fixed runtime directly without a shell. OMP passes its cancellation signal to the runtime.
+
+Before native registration, adapters validate the fixed executable, version output, Rust compatibility result, generated schema, and all six operations. Preflight failure registers zero operations. A later `registerTool` failure stops registration and may leave the prefix already accepted by the Harness API. The adapter emits one bounded diagnostic and does not terminate the Harness session.
+
+The current contract lives in [Harness integration](../../../../../projects/tk/docs/design/harnesses.md), the [tool API](../../../../../projects/tk/docs/design/tool-api.md), and the [tools Skill](../../../../../projects/tk/skills/tk/SKILL.md).
+
+## Alternatives considered
+
+**Retry failed logical operations through the CLI.** This could hide integration failures and repeat requests across transports.
+
+## Consequences
+
+All tools-mode Harnesses share the same requests, schemas, domain rules, and unified results. Adapters remain thin but must enforce compatibility, resource limits, context mapping, cancellation, load isolation, and transport failure reporting.
+
+A native registration failure can leave an accepted prefix. This is a Harness API boundary, not a transaction guarantee.
+
+## Changes
+
+### 2026-09-28 Host maintenance declaration
+
+The component's maintenance declaration follows [Adapt first party host components to host upgrades](../../../archived/2026/09/28-r1-host-maintenance.md) and is independent of the contracts above: the runtime protocol and its `runtime_compat` check, the CLI, driver, and native tool contracts, the component format, and the zero-registration boundary after a failed preflight keep their meanings. Nothing here changes a clause or a protocol.
+
+### 2026-10-04 OMP adapter floor
+
+The OMP adapter's maintenance lower bound is OMP 18.5.0 under [Maintain host components against a shared OMP floor](../09/28-host-maintenance.md). The adapter still declares only an unrestricted host peer; its declaration and verification baseline move to the new bound. The runtime protocol and its `runtime_compat` check, the preflight validation, and the zero-registration result of a failed preflight are not host maintenance rules and do not change.
