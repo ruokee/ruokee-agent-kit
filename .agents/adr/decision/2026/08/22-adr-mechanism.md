@@ -73,21 +73,7 @@ Apply the [documentation naming rules](../../../../rule/documentation.md#naming)
 
 ### Authoring the record
 
-`Motivation` is the first required body section. Its first paragraph is one short sentence stating what is to be done, written as the action itself rather than as a description of the record. It must make sense without the title, links, or later text. The following paragraphs carry the concrete problem, background, reasons, and evidence. A wanted capability need not be framed as a defect. A reversal proposal opens with its proposed change; a successor decision describes the complete choice it records.
-
-Optional `Analysis` records only observations, evidence, constraints, reasoning, and uncertainties affecting the choice. Omit it when there is no substantive analysis. It is not an implementation plan or copied research notes, and does not repeat motivation or alternatives.
-
-An ADR records a coherent durable choice, reasons, necessary boundaries and ownership, important public promises, and significant compatibility, safety, cost, and failure consequences. Include only the technical fragment necessary to understand the choice or a material tradeoff, or preserve a binding contract. Configuration authority, immutable identity, and process-wide side effects may require concrete identifiers.
-
-Full API and configuration tables, schemas, command references, and maintained inventories belong in their owning public documentation. Internal function names, algorithm steps, file-by-file edits, execution plans, test commands, and validation logs belong in implementation documentation, code, tests, or task materials. Acceptance criteria state observable outcomes rather than test procedures. Link accessible public contracts; ignored task materials are not public authority.
-
-Relocating a binding clause does not cancel it. Preserve its meaning and an accessible reference. Retain enough original detail in historical records to explain the choice at that time; a link to changing current documentation cannot replace the historical contract.
-
-Distinguish intentionally closed protocols, ownership rules, and safety boundaries from examples and growing inventories. Prefer the owning inventory over fixed counts or exhaustive trees. Explain the protected boundary and reason for a closed set or prohibition. A present scope limit or an option not needed initially is not automatically a permanent prohibition. Do not retroactively downgrade an existing prohibition or add speculative abstractions and configuration merely to make wording extensible.
-
-Defensive rules must address the actual operation and harm. Validation, repair, lifecycle changes, and repeated activation may need different preconditions. Preserve identity, permission, and side-effect protections rather than replace them with blanket restrictions unrelated to the boundary.
-
-Record only alternatives that existed before drafting or were genuinely considered during requirement discussion or analysis. Identify where each became a real option. Each must be a different course of action for the same choice, not a fact, requirement, constraint, acceptance criterion, implementation detail, or restatement. Risks name credible harmful outcomes caused by adoption or a relevant omission. Delete unsupported or misclassified entries. Write only `None` in English and `无` in Chinese when the applicable section has no qualifying content. Descriptive level-three headings may organize required sections but never replace their level-two headings or carry progress history and copied inventories.
+The [authoring rules](../../../README.md#authoring-rules) in the ADR guide own how a record opens, when `Analysis` is warranted, what contract material belongs in it, how closed constraints and defensive rules are stated, and which alternatives and risks qualify.
 
 ### Decision lifecycle
 
@@ -100,14 +86,6 @@ Move the replaced bilingual version to its next archive revision in the same cha
 Direct relationships follow versions. If A is reversed by B and later B by C, A's `Reversed by` follows B into B's archive rather than drifting to C at the current path. B still links to A; C links to B's archive. References to current authority use the canonical current path; citations of a particular historical choice follow that version to its archive. Classify each reference by its meaning, not its source directory. Stable file paths do not make heading fragments immutable.
 
 ### Maintenance
-
-The maintainer owns proposal approval, rejection, and decision archival. Agents may research, draft, implement, and review within authorized work, but need explicit approval for those lifecycle decisions. Keep a rejected proposal only while its rationale prevents a realistic mistake.
-
-Keep current decisions accurate when factual paths, names, or verification entry points move. Factual maintenance must not express a conflicting choice. Move language pairs together and repair relationship links, body links, language links, inbound references, and heading fragments in the same change, recomputing relative paths from each source's location.
-
-Naming rules cover every retained proposal, decision, archive, and rejected proposal. Correct identity dates, canonical names, revision order, titles, and headings using content, relationship fields, proposal sources, and relevant Git history rather than treating existing names or links as authoritative. Correct evidenced relationship errors. Naming corrections do not add reversals or permit rewriting historical substance. Do not retain duplicate old files as compatibility aliases.
-
-Preserve every recorded choice, reason, constraint, uncertainty, historical capability scope, original author, actual archival date, and event date. Identity-date normalization changes path dates, not actual events. Git history preserves original paths and per-record filename dates. A historical format example or Git object path may retain its original spelling when that spelling is the fact being cited. Ordinary naming maintenance neither unfreezes a record nor changes a binding promise.
 
 Use review, repository search, and Git history rather than a dedicated ADR Skill, classification system, translation sidecar, archive manifest, index, or permanent maintenance script. Add a mechanical check only after repeated maintenance or an observed failure identifies a concrete invariant.
 
