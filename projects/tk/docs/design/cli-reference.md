@@ -283,11 +283,13 @@ Version JSON is:
 
 ```json
 {
-  "runtime_version": "0.1.5",
+  "runtime_version": "0.1.9",
   "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3
 }
 ```
+
+`runtime_version` is the package version of the running executable and changes with releases; the other values are the version dimensions defined in [Runtime architecture](./runtime.md#version-dimensions).
 
 version does not require a project and exits 0 on success. help displays usage, arguments, defaults, and subcommands for the current level.

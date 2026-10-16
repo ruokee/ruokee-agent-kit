@@ -56,8 +56,6 @@ The adapter's automated tests run against a stub host and a stub runtime. They c
 
 Real Pi validation ran on Pi `0.84.4` with the tk runtime built from these same sources, in an isolated home directory and project. For each of the four mode and language selections it covered installation, loading, and uninstallation. Without a terminal, `pi config` lists the resources the host takes from the package: the extension and the selected Skill in `tools` mode, and only the selected Skill in `cli` mode, matching the selected mode and language. In `tools` mode the real CLI loaded the extension and completed the preflight on its help, model-list, and print paths, starting the runtime for the version document and the generated native schema and printing no diagnostic; with the runtime removed it printed exactly one bounded diagnostic and started no runtime process, and with extension discovery disabled it started none. The registered operation list, the rejection of a wrong argument type, and real operation calls were not observed on Pi: every CLI entry tried here stops before tool execution or opens an interactive session. Only Pi `0.84.4` was observed.
 
-Earlier tk releases shipped this component in different versions, and Pi itself moved to a new package name during its history. Those records describe other versions, not this one.
-
 ## Installation
 
 Install and remove the component with the runtime that carries it:

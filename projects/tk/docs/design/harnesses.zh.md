@@ -82,9 +82,12 @@ Pi 和 OMP 使用 `tk schema generate --type native --harness <pi|omp>` 的生�
 1. 固定运行时路径存在；
 2. 路径是常规文件并具有 Unix 执行位；
 3. version JSON 可解析；
-4. Rust 判断运行时版本满足组件 `runtime_compat`；
-5. native schema 可解析；
-6. 六个工具名称、请求 schema 和 Harness 专用字段完整。
+4. native schema 可解析；
+5. 合同中的 runtime version 等于 version JSON 的取值；
+6. 合同的 `runtime_compat` 等于适配器要求的范围；
+7. 六个工具名称、请求 schema 和 Harness 专用字段完整。
+
+Rust 在组件安装时判断兼容范围。
 
 运行时缺失、不可执行、版本不兼容、清单无效、schema 无效或映射错误时，入口捕获错误，输出一次有界诊断并结束加载。它不能终止 Harness 会话。
 
@@ -108,7 +111,7 @@ Pi 和 OMP 使用 `tk schema generate --type native --harness <pi|omp>` 的生�
 
 ## 构建时组装
 
-Cargo 构建使用 Rust 组装逻辑生成多份 Harness 组件载荷、两份与 Harness 无关的 CLI Skill 载荷、一个确定性 `tar.zst` 归档和一份清单。Harness 选择覆盖四个 Harness、两种模式和两种语言。相同输入必须产生相同路径、文件字节、归档字节和清单。
+Cargo 构建使用 Rust 组装逻辑生成多份 Harness 组件载荷、两份与 Harness 无关的 CLI Skill 载荷、一个确定性 `tar.zst` 归档和一份清单。Harness 选择覆盖四个 Harness、两种模式和两种语言。相同输入必须产生相同路径、文件字节、归档字节和清单。生成过程只写 Cargo `OUT_DIR` 和 Cargo 自身目标目录。
 
 Harness 组装只读取所选 Harness 源码、四个 Skill 目录之一，以及两类共用源码：所选语言下各 Skill 共用的参考文件，以及 Pi 和 OMP 共用的映射层 `common.ts`。独立载荷只读取 `tk-cli` 或 `tk-cli-zh` 及同语言的共用参考文件。组装后的每份载荷都自包含。发布、安装和验证使用同一套 Rust 产物。
 

@@ -82,9 +82,12 @@ Before registering the first tool, the extension entry point completes all of th
 1. The fixed runtime path exists;
 2. The path is a regular file with a Unix executable bit;
 3. The version JSON can be parsed;
-4. Rust determines that the runtime version satisfies the component's `runtime_compat`;
-5. The native schema can be parsed;
-6. All six tool names, request schemas, and Harness-specific fields are complete.
+4. The native schema can be parsed;
+5. The contract runtime version equals the version JSON's;
+6. The contract's `runtime_compat` equals the range the adapter requires;
+7. All six tool names, request schemas, and Harness-specific fields are complete.
+
+Rust evaluates compatibility ranges during component installation.
 
 If the runtime is missing or not executable, the version is incompatible, the manifest or schema is invalid, or a mapping is incorrect, the entry point catches the error, emits one bounded diagnostic, and stops loading. It must not terminate the Harness session.
 
@@ -108,7 +111,7 @@ For ordinary native tools, both successful results and valid domain failures are
 
 ## Assembly at build time
 
-Cargo builds use Rust assembly logic to generate multiple Harness component payloads and two Harness-independent CLI Skill payloads, one deterministic `tar.zst` archive, and one manifest. The Harness selections span four Harnesses, two modes, and two languages. Identical inputs must produce identical paths, file bytes, archive bytes, and manifests.
+Cargo builds use Rust assembly logic to generate multiple Harness component payloads and two Harness-independent CLI Skill payloads, one deterministic `tar.zst` archive, and one manifest. The Harness selections span four Harnesses, two modes, and two languages. Identical inputs must produce identical paths, file bytes, archive bytes, and manifests. Generation writes only to Cargo `OUT_DIR` and Cargo's own target directory.
 
 Harness assembly reads only the selected Harness source and one of the four Skill trees, plus two shared sources: the reference files common to every Skill of the selected language, and for Pi and OMP the shared mapping layer `common.ts`. The standalone payloads read only `tk-cli` or `tk-cli-zh` and the shared references of that language. Each assembled payload stays self-contained. Publishing, installation, and validation use the same Rust artifacts.
 

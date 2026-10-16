@@ -58,8 +58,6 @@ Real OMP validation ran on OMP `18.2.8` with the tk runtime built from these sam
 
 A second run covered OMP `18.4.3` with the same component sources and a runtime built from them. Installation through `tk install --harness omp`, loading, and the call path behaved as on `18.2.8`: the host sent search, read, create, update, and log in the model tool list, kept exec out of that list until it was explicitly enabled, and executed real calls against a Task in an isolated project. The adapter took the session working directory and the calling model from the host call context. Four injected preflight failures (a missing runtime, a different compatibility range, a different runtime version in the contract, and a failing schema command) each produced one bounded `tk:` diagnostic and left zero operations registered. `18.2.8` was re-checked with the same payload after that run. Cancellation against a real host is still covered only by the stub tests above.
 
-Earlier tk releases shipped this component in different versions. Their installation records describe those versions, not this one.
-
 ## Installation
 
 Install and remove the component with the runtime that carries it:

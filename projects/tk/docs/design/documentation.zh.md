@@ -25,7 +25,7 @@
 | guide | 运行时前提、安装、首次使用、常用工作流和 CLI 链接 |
 | system | 产品范围、系统组成、任务与 Harness 边界和不变量 |
 | data-model | 任务 schema、表示、发现、WAL、写入、迁移、rename、清理和检查 |
-| runtime | 分层、进程、上下文、失败边界、适配器和版本维度 |
+| runtime | 分层、进程、上下文、失败边界和版本维度 |
 | tool-api | 六个工具、请求、结果和稳定错误 |
 | cli-reference | 完整命令树、参数、默认值、退出码和示例 |
 | harnesses | 四个当前 Harness 形式、模式与语言选择、schema、适配器和组装 |

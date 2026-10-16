@@ -58,7 +58,7 @@ read、search 和 check 只定位项目并读取状态。写操作在首次持�
 
 发现过程构建一份内存任务图，可以使用 O(任务数量) 内存。search 最多保留 100 个最佳结果项，`search_body=false` 时不读取正文。
 
-一次发现扫描最多接受 100,000 个真实目录和 256 层后代，跳过符号链接和运行时自有目录。超过上限或遇到必要 I/O 失败时中止扫描，不返回部分任务图。
+[数据模型](./data-model.zh.md#候选识别)定义单次扫描的目录数与层级上限、跳过的内容以及返回的失败。
 
 check、关系校验、schema 迁移和表示切换复用发现任务图。运行时不宣称项目操作使用常量内存。
 
@@ -96,27 +96,11 @@ Linux 上的固定运行时和 Harness 官方命令必须：
 
 ## Harness 适配器
 
-Pi 和 OMP 适配器在首次注册工具前完成：
-
-1. 固定运行时检查；
-2. version JSON 解码；
-3. native 工具合同解码；
-4. `runtime_compat` 与组件声明一致性检查；
-5. 六个工具名称和 schema 完整性检查。
-
-适配器不解析语义版本范围。Rust 在组件安装时负责兼容范围判断。
-
-扩展入口捕获运行时缺失、不可执行、输出无效、合同冲突、工具缺失和注册错误，输出一条有界错误并正常结束加载，不能终止 Harness 会话。
-
-首次注册前的验证失败保证注册数为零。某次 `registerTool` 中途失败时，Harness API 已经接受的前缀工具允许保留，不伪造回滚保证。
-
-OMP 把 search、read、create、update 和 log 设置为 essential，exec 为 discoverable。Pi 不设置不存在于其公开 API 的 `loadMode`。
+扩展入口的预检、失败行为、注册与回滚保证见 [Harness 集成](./harnesses.zh.md#适配器加载)。各适配器的加载标记见其 [OMP](./harnesses.zh.md#omp) 与 [Pi](./harnesses.zh.md#pi) 小节。
 
 ## 组件组装
 
-Cargo 构建使用唯一的 Rust 组装逻辑，从四个 Skill 目录、同语言 Skill 共用的参考文件和各 Harness 源码生成多份自包含 Harness 载荷，并生成两份只含 `tk-cli` 或 `tk-cli-zh` 的独立载荷。生成过程只写 Cargo `OUT_DIR` 和 Cargo 自身目标目录。
-
-运行时通过 `include_bytes!` 使用内嵌归档和清单。Harness 与自定义根目录安装都不访问网络，不启动 `curl`，不接受本地归档路径。
+构建期组装见 [Harness 集成](./harnesses.zh.md#构建时组装)，内嵌载荷见[安装](./installation.zh.md#内嵌载荷)。
 
 ## 版本维度
 
@@ -129,5 +113,3 @@ Cargo 构建使用唯一的 Rust 组装逻辑，从四个 Skill 目录、同语�
 | cleanup manifest version | 最小清理清单格式版本 |
 
 `tk --version --output json` 使用 `runtime_version`、`cli_contract_version`、`task_schema_version` 和 `component_format_version`。
-
-设置 `TK_SOURCE_REVISION` 时，组件清单使用该值。否则使用 `package-v<CARGO_PKG_VERSION>`。构建脚本不调用 Git。

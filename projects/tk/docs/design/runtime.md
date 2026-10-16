@@ -58,7 +58,7 @@ Exact absolute paths first locate the project through the canonical top-level Ta
 
 Discovery builds one in-memory graph and may use O(number of Tasks) memory. search retains at most the best 100 result items and does not read body content when `search_body=false`.
 
-One discovery scan accepts at most 100,000 real directories and 256 descendant levels. It skips symbolic links and runtime-owned directories. Crossing a limit or encountering a required I/O failure aborts the scan without returning a partial graph.
+The [data model](./data-model.md#candidate-identification) defines the per-scan directory and depth limits, what a scan skips, and the failure it returns.
 
 check, relationship validation, schema migration, and representation switching reuse the discovered graph. The runtime does not claim that project operations use constant memory.
 
@@ -96,27 +96,11 @@ If process startup fails, the runtime preserves the operating system error and c
 
 ## Harness adapters
 
-Before registering the first tool, the Pi and OMP adapters complete:
-
-1. fixed runtime checks;
-2. version JSON decoding;
-3. native tool contract decoding;
-4. consistency checks between `runtime_compat` and the component declaration;
-5. completeness checks for all six tool names and schemas.
-
-Adapters do not parse semantic version ranges. Rust evaluates compatibility ranges during component installation.
-
-The extension entry point catches a missing or non-executable runtime, invalid output, contract conflicts, missing tools, and registration errors. It emits one bounded error and completes loading normally without terminating the Harness session.
-
-Validation failure before the first registration guarantees that zero tools are registered. If a `registerTool` call fails partway through registration, tools in the prefix already accepted by the Harness API may remain registered. The adapter does not claim rollback.
-
-OMP marks search, read, create, update, and log as essential. Exec is discoverable. Pi does not set a `loadMode` that is absent from its public API.
+The extension entry point's preflight checks, failure behavior, and registration and rollback guarantees are defined in [Harness integration](./harnesses.md#adapter-loading). The loading marks for each adapter are defined in its [OMP](./harnesses.md#omp) and [Pi](./harnesses.md#pi) sections.
 
 ## Component assembly
 
-Cargo builds use a single Rust assembly implementation to generate multiple self-contained Harness payloads from four Skill trees, the reference files shared by Skills of the same language, and the source code for each Harness, plus two standalone payloads containing only `tk-cli` or `tk-cli-zh`. Generation writes only to Cargo `OUT_DIR` and Cargo's own target directory.
-
-The runtime uses embedded archives and manifests through `include_bytes!`. Harness and custom-root installation do not access the network, start `curl`, or accept a local archive path.
+Build-time assembly is defined in [Harness integration](./harnesses.md#assembly-at-build-time), and the embedded artifacts are defined in [Installation](./installation.md#embedded-payloads).
 
 ## Version dimensions
 
@@ -129,5 +113,3 @@ The runtime uses embedded archives and manifests through `include_bytes!`. Harne
 | cleanup manifest version | Version of the minimal cleanup manifest format |
 
 `tk --version --output json` uses `runtime_version`, `cli_contract_version`, `task_schema_version`, and `component_format_version`.
-
-When `TK_SOURCE_REVISION` is set, component manifests use its value. Otherwise, they use `package-v<CARGO_PKG_VERSION>`. The build script does not invoke Git.

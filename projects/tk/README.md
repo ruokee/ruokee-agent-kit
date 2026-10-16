@@ -16,28 +16,11 @@ The runtime owns Task rules and persistence. Harness components expose those ope
 
 The runtime is one executable at the fixed user-level path `$HOME/.local/bin/tk`. Harness components and standalone CLI Skills are separate from it: `tk install` writes them into a Harness or a Skill root, and they follow the runtime's rules.
 
-`tk install` reads only the payloads embedded in the executable that runs it. Pulling newer repository content replaces neither the installed executable nor the components, and an older executable cannot install a newer component. Updating therefore takes two steps:
-
-```sh
-cd /path/to/ruokee-agent-kit
-git pull
-cargo build --release --manifest-path projects/tk/Cargo.toml
-mkdir -p "$HOME/.local/bin"
-install -m 755 projects/tk/target/release/tk "$HOME/.local/bin/tk"
-tk install --harness omp --mode cli --language zh
-```
-
-Repeating `tk install` with the selection that is already current returns `no_change`. See [installation](./docs/design/installation.md) for the component lifecycle and the [user guide](./docs/guide.md) for runtime installation, component selection, and uninstall.
-
-## Getting started
-
-Start with the [user guide](./docs/guide.md) to install the runtime and a component, initialize a project, and create or resume a Task. The runtime is installed separately from Harness components.
-
-See [Harness integration](./docs/design/harnesses.md) for the supported component forms and [installation](./docs/design/installation.md) for component installation, updates, and removal.
+An installed component comes from the payloads embedded in the executable that installed it, so updating the runtime and updating a component are separate steps. The [user guide](./docs/guide.md) covers both.
 
 ## Documentation
 
-- [User guide](./docs/guide.md): installation and everyday workflows.
+- [User guide](./docs/guide.md): runtime installation, component selection, initialization, and everyday workflows.
 - [CLI reference](./docs/design/cli-reference.md): commands, arguments, and exit behavior.
-- [Design index](./docs/design/README.md): architecture, data model, runtime, tool contracts, Skills, and component lifecycle.
+- [Design index](./docs/design/README.md): architecture, data model, runtime, tool contracts, Harness integration, installation, Skills, and validation.
 - [Validation](./docs/design/validation.md): acceptance criteria and verification requirements.

@@ -2,7 +2,7 @@
 
 [简体中文](./README.zh.md)
 
-These pages define tk's current public contracts. They describe current behavior only. Review history, Task-local material, and unreleased alternatives do not belong here.
+These pages define tk's current public contracts and follow the [documentation rules](./documentation.md).
 
 The [user guide](../guide.md) covers installation and routine use. The [CLI reference](./cli-reference.md) owns command syntax, options, defaults, and exit statuses.
 
@@ -10,7 +10,7 @@ The [user guide](../guide.md) covers installation and routine use. The [CLI refe
 
 - [System architecture](./system.md) defines product scope, system components, the Task and Harness boundary, and global invariants.
 - [Data model](./data-model.md) defines Task schema, representations, discovery, WAL, writes, migration, rename, cleanup, and check behavior.
-- [Runtime architecture](./runtime.md) defines layers, processes, request context, failure boundaries, adapters, and version dimensions.
+- [Runtime architecture](./runtime.md) defines layers, processes, request context, failure boundaries, and version dimensions.
 
 ## Interfaces
 
@@ -31,5 +31,3 @@ The [user guide](../guide.md) covers installation and routine use. The [CLI refe
 - [Validation](./validation.md) defines the observable acceptance contract.
 - [Documentation](./documentation.md) defines public document ownership, bilingual maintenance, links, and current-state writing.
 - [Glossary](./GLOSSARY.md) defines product terms and fixed Chinese forms.
-
-Each behavior has one primary owner. Other pages link to that owner instead of maintaining a second copy of the contract.

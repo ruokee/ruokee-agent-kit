@@ -25,7 +25,7 @@ Review records, revision numbers, Task paths, and local materials do not appear 
 | guide | Runtime prerequisites, installation, first use, common workflows, and CLI links |
 | system | Product scope, system components, Task and Harness boundaries, and invariants |
 | data-model | Task schema, representation, discovery, WAL, writes, migration, rename, cleanup, and checks |
-| runtime | Layers, processes, context, failure boundaries, adapters, and version dimensions |
+| runtime | Layers, processes, context, failure boundaries, and version dimensions |
 | tool-api | The six tools, requests, results, and stable errors |
 | cli-reference | The complete command tree, arguments, defaults, exit codes, and examples |
 | harnesses | The four current Harness forms, mode and language selections, schemas, adapters, and assembly |

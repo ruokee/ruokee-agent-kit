@@ -283,11 +283,13 @@ tk <command> <subcommand> --help
 
 ```json
 {
-  "runtime_version": "0.1.5",
+  "runtime_version": "0.1.9",
   "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3
 }
 ```
+
+`runtime_version` 是运行中可执行文件的包版本，随发行变化；其余取值是[运行时架构](./runtime.zh.md#版本维度)定义的版本维度。
 
 version 不要求项目，成功退出 0。help 输出当前层级的用法、参数、默认值和子命令。
