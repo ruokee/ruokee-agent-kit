@@ -88,6 +88,16 @@ bun run typecheck
 bun test
 ```
 
+## Changes
+
+### 0.1.3
+
+Treat the native hidden Eval state context as a prepared projection rather than a journal-history dependency. Full-source reuse remains available after that projection is rebuilt, in both modes. User-authored messages, other custom messages, and sessions with unconfirmed construction keep their source dependencies.
+
+### 0.1.2
+
+Restore remote references when automatic compaction advances the epoch inside an ordinary tool run. Fresh ordinary dispatches prove their own credential binding without replacing an older compaction operation's immutable reference or reviving that operation.
+
 ## License
 
 MIT.

@@ -13,9 +13,14 @@ import type { Construction } from "./construction.ts";
 
 const SLOT = Symbol.for("ruokee.omp-smart-cache.remote.coordinator");
 const OLD_QOL = Symbol.for("ruokee.omp-qol.compaction-cache.registry");
-const VERSION = "0.1.1";
+const VERSION = "0.1.3";
 const slots = globalThis as typeof globalThis & { [key: symbol]: unknown };
 const increment = (value: number): number => Math.min(Number.MAX_SAFE_INTEGER, value + 1);
+const nativeEvalProjection = (message: AgentMessage): boolean =>
+  message.role === "custom" &&
+  message.customType === "eval-state-context" &&
+  message.attribution === "agent" &&
+  message.display === false;
 
 export interface Status {
   state: "disabled" | "unavailable" | "awaiting-reference" | "already-aligned" | "rewritten" | "rejected";
@@ -130,8 +135,10 @@ interface Observation {
   prepared?: Pick<Context, "messages">;
   preparedTools?: unknown;
   source?: Reference["source"];
+  standardSource?: Reference["source"];
   payload?: Body;
   reference?: Reference;
+  credential?: Operation;
   failed?: string;
 }
 interface Operation {
@@ -469,27 +476,47 @@ class Coordinator {
       } catch {
         for (const state of users) state.status.binding = "binding-inspection-failed";
       }
+      const dispatch = snapshot?.state.status.dispatch;
       return function (this: unknown, ...resolveArgs: Parameters<ApiKeyResolver>) {
         try {
           const root = resolveArgs[0]?.signal;
           if (root instanceof AbortSignal) {
-            const known = coordinator.roots.get(root);
+            let known = coordinator.roots.get(root);
             if (!coordinator.roots.has(root)) {
               const operation = snapshot ? { ...snapshot, id: coordinator.next(), root, sends: 0 } : null;
-              coordinator.roots.set(root, operation);
+              coordinator.roots.set(root, (known = operation));
               if (operation) {
                 operation.state.status.operation = operation.id;
                 operation.state.status.binding = operation.reference ? "reference-bound" : "missing-reference-bound";
               }
-            } else if (
+            }
+            if (
               known &&
-              (!snapshot ||
-                snapshot.state !== known.state ||
-                snapshot.epoch !== known.epoch ||
-                snapshot.persistent !== known.persistent ||
-                snapshot.provider !== known.provider ||
-                !modelMatches(snapshot.model, known.model))
+              snapshot &&
+              snapshot.state === known.state &&
+              snapshot.persistent === known.persistent &&
+              snapshot.provider === known.provider &&
+              modelMatches(snapshot.model, known.model)
             ) {
+              // Mid-turn compaction can advance the epoch without replacing the ordinary run signal.
+              // Revoke its old operation permanently; a new dispatch proves its own credential binding.
+              if (snapshot.epoch !== known.epoch) known.revoked = true;
+              const matches = new Set(
+                coordinator
+                  .ancestors(root)
+                  .map((parent) => snapshot.state.raw.get(parent))
+                  .filter(
+                    (value): value is Observation => !!value && value.id === dispatch && value.epoch === snapshot.epoch,
+                  ),
+              );
+              if (matches.size === 1) {
+                const observation = [...matches][0]!;
+                observation.credential ??=
+                  known.epoch === snapshot.epoch && !known.revoked
+                    ? known
+                    : { ...snapshot, id: coordinator.next(), root, sends: 0 };
+              }
+            } else if (known) {
               coordinator.roots.set(root, null);
               known.state.status.binding = "root-identity-conflict";
             }
@@ -535,10 +562,13 @@ class Coordinator {
     if (!nativeV2(value)) {
       if (!observation || url !== online) return init;
       if (state.status.dispatch !== observation.id) return init;
+      const credential = observation.credential;
       if (
-        !op ||
-        op.state !== observation.state ||
-        !this.operationValid(op, signal) ||
+        op === null ||
+        !credential ||
+        credential.state !== observation.state ||
+        !this.ancestors(signal).includes(credential.root) ||
+        !this.operationValid(credential, signal) ||
         observation.epoch !== state.epoch
       ) {
         this.failure(observation, "dispatch-identity-unconfirmed");
@@ -943,7 +973,14 @@ class Coordinator {
               model as Model<"openai-responses">,
             ),
           );
-          observation.source = copy(encode(model, observation.raw));
+          const projected = state.nativeSource && observation.raw.some(nativeEvalProjection);
+          if (projected && state.selection.remote.settings?.mode === "standard")
+            observation.standardSource = copy(encode(model, observation.raw));
+          // Display-derived Eval context is not part of the journal used by native compaction.
+          const source = projected
+            ? observation.raw.filter((message) => !nativeEvalProjection(message))
+            : observation.raw;
+          observation.source = copy(encode(model, source));
         } else state.status.online = "dispatch-unconfirmed";
       } catch {
         if (observation) coordinator.failure(observation, "source-encoding-unconfirmed");
@@ -986,7 +1023,7 @@ class Coordinator {
             expectedTools: observed.expectedTools,
             preparedTools: observed.preparedTools,
             implicitToolChoice: !object(options) || options.toolChoice === undefined,
-            standard: standardResult(observed.source, sent.input, state.manager.getCwd()),
+            standard: standardResult(observed.standardSource ?? observed.source, sent.input, state.manager.getCwd()),
           };
         } catch {
           coordinator.failure(observed, "payload-proof-unconfirmed");
