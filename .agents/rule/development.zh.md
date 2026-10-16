@@ -33,16 +33,20 @@
 - 自动化成功不能证明真实模型行为或交互界面正确性，仍须遵循组件自身的场景与发布验证。
 - 验证或评估工作成果时，尽可能查阅适用的 Spec、ADR 和 Rule，并对照检查结果。
 
-[选择器](../../scripts/check-changed.mjs)维护显式映射：
+[选择器](../../scripts/check-changed.mjs)维护变更范围到选中检查的显式映射：
 
-| 变更范围 | 选中检查 |
-| --- | --- |
-| 已知说明性 Markdown，包括 ADR、规格、规则页面、根 README、Skill 和组件文档 | 对仍存在的变更文件运行 Prettier，保留仓库配置和忽略规则 |
-| 已登记 OMP 组件的非 Markdown 文件，或其 `src/`、`test/` 下的 Markdown | 该组件的 `typecheck`、`test`，以及变更 Markdown 格式检查 |
-| tk 非 Markdown 文件，或其 `skills/`、`claude/`、`pi/`、`omp/` 打包树中的 Markdown | Rust 格式与测试、原生适配器测试，以及变更 Markdown 格式检查 |
-| [docs/installation.zh.md](../../docs/installation.zh.md)、对应英文版，或 Skill 安装与生命周期脚本 | Skill 生命周期测试，以及变更 Markdown 格式检查 |
-| 多个已知范围 | 检查并集，每项只执行一次 |
-| 共享工具链或检查输入、选择器变更、未知路径，或不可靠的基线与分类 | 只运行一次完整 `pnpm check`，不先执行局部检查 |
+- 已知说明性 Markdown，包括 ADR、规格、规则页面、根 README、Skill 和组件文档
+    - 对仍存在的变更文件运行 Prettier，保留仓库配置和忽略规则
+- 已登记 OMP 组件的非 Markdown 文件，或其 `src/`、`test/` 下的 Markdown
+    - 该组件的 `typecheck`、`test`，以及变更 Markdown 格式检查
+- tk 非 Markdown 文件，或其 `skills/`、`claude/`、`pi/`、`omp/` 打包树中的 Markdown
+    - Rust 格式与测试、原生适配器测试，以及变更 Markdown 格式检查
+- [docs/installation.zh.md](../../docs/installation.zh.md)、对应英文版，或 Skill 安装与生命周期脚本
+    - Skill 生命周期测试，以及变更 Markdown 格式检查
+- 多个已知范围
+    - 检查并集，每项只执行一次
+- 共享工具链或检查输入、选择器变更、未知路径，或不可靠的基线与分类
+    - 只运行一次完整 `pnpm check`，不先执行局部检查
 
 ### 合并门禁
 

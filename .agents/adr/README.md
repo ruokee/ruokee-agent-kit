@@ -2,7 +2,9 @@
 
 English | [中文](./README.zh.md) | [Glossary](./glossary.md)
 
-An **ADR** records the rationale and contract of a durable repository decision. ADRs are not progress logs, release notes, temporary plans, or summaries of routine changes.
+An **ADR** records the rationale and contract of a durable repository decision. ADRs are not progress logs, release notes, temporary plans, or summaries of routine changes. Write for a reader who has only the finished record and its accessible sources.
+
+Read this guide and the [glossary](./glossary.md) before proposing or changing a durable architecture, contract, format, or repository-process decision.
 
 The current target state of each component and repository area is stated in [specifications](../spec/README.md) under `.agents/spec/`. A spec links to the decisions behind it and must not conflict with a current decision.
 
@@ -11,6 +13,8 @@ The current target state of each component and repository area is stated in [spe
 Search existing proposals and current decisions before planning a requirement. Determine whether the requirement adds an unrelated capability, extends a current decision without conflict, or conflicts with a current decision.
 
 Create or update an ADR when a choice has real alternatives and changes a long-lived boundary such as architecture, ownership, a public or host contract, a persisted format, compatibility, or repository-wide development and release policy.
+
+Confirm with the user whether a requirement needs a proposal; a small or quick change needs no ADR when it changes no durable choice.
 
 Do not create one for a local bug fix, mechanical refactor, ordinary documentation update, status report, or temporary plan unless it changes one of those boundaries.
 
@@ -185,7 +189,7 @@ The English file may add an optional `## Analysis` section, and the Chinese file
 
 An ADR records a coherent durable choice, its reasons, necessary boundaries and ownership, important public promises, and significant compatibility, safety, cost, and failure consequences. Include a technical detail only when omitting it would prevent the reader from understanding the choice or a material tradeoff, or would lose a contract that must be preserved, and use only the necessary fragment. Configuration authority, immutable identity, and process-wide side effects may be essential even when described with concrete identifiers.
 
-Full API and configuration tables, schemas, command references, and maintained inventories belong in their owning public documentation. Internal function names, algorithm steps, file-by-file edits, execution plans, test commands, and validation logs belong in implementation documentation, code, tests, or task materials. Acceptance criteria describe observable outcomes rather than test procedures. An ADR links accessible public contracts and must not cite ignored task materials as public authority.
+Full API and configuration tables, schemas, command references, and maintained inventories belong in their owning public documentation. Internal function names, algorithm steps, file-by-file edits, execution plans, test commands, and validation logs belong in implementation documentation, code, tests, or task materials. Acceptance criteria describe observable outcomes rather than test procedures. An ADR links accessible public contracts and must not cite ignored task materials as public authority. Keep task execution records, including a task's lifecycle, working branches, commit identifiers, and session-only context, out of an ADR.
 
 Relocating a binding clause does not cancel it. Keep its meaning and an accessible reference, and retain enough original detail in a historical record to explain the choice at that time; a link to changing current documentation cannot replace the historical contract.
 
