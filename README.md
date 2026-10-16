@@ -50,7 +50,7 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 
 ## Install
 
-Skill installation is separate from the development setup below and needs neither the development dependencies nor a build. Follow [Installing Skills](./docs/installation.md) for the language choice, the Skill root, and the check, install, update, and uninstall commands. Chinese variants of the same Skills live under `variants/zh/skills/`.
+Skill installation is separate from the development setup below. Follow [Installing Skills](./docs/installation.md) for the language choice, the Skill root, and the check, install, update, and uninstall commands.
 
 Extensions and the tk runtime are built and installed from their own directories, as their READMEs describe. Install the tk runtime separately from its Harness components.
 
@@ -77,11 +77,9 @@ The hooks format staged files before each commit and check the commit message. A
 
 ### Repository layout
 
-English Skills live under `skills/<name>/`. Chinese variants live under `variants/zh/skills/<name>/`, but install at the normal `skills/<name>/` host path. A pure Skill contains only the material needed to discover, understand, and use it.
+English Skills live under `skills/<name>/`, and their Chinese variants under `variants/zh/skills/<name>/`. Plugins, extensions, executables, and Harness packages keep the layout their Harness or build system expects.
 
-Plugins, extensions, executables, and Harness packages keep the layout their Harness or build system expects. The repository adds a top-level area only when a real component needs it.
-
-Ordinary public documentation uses same-directory `name.md` and `name.zh.md` pairs. Repository and component entry pages use `README.md` and `README.zh.md`.
+The [repository specification](./.agents/spec/repository.md) owns the layout rules and the documentation pairs, and the [Skill specification](./.agents/spec/skills.md) owns what a Skill contains.
 
 ### Component host maintenance
 
@@ -95,7 +93,7 @@ Use the pnpm version declared in [package.json](./package.json), its supported N
 | --- | --- |
 | Explanatory Markdown or ADR formatting | Root locked dependencies and Git hooks as above |
 | One OMP component | Root tools, Bun compatible with its lockfile, and `bun install --frozen-lockfile` in that component directory |
-| tk | Root tools, Rust with `rustfmt` and the [tk build prerequisites](./projects/tk/README.md), locked crate dependencies, Bun, and native adapter test system tools |
+| tk | Root tools, Rust with `rustfmt`, locked crate dependencies, Bun, and native adapter test system tools ([tk runtime source build](./projects/tk/docs/guide.md#install-the-runtime)) |
 | Skill lifecycle | Root tools, Git, a non-root POSIX shell environment, `diff`, and the test script's common system file tools |
 | Complete checks or complete fallback | All of the above, including every OMP component's locked dependency tree |
 
@@ -112,7 +110,7 @@ For complete validation, install each OMP component's locked dependencies:
 
 ### Complete merge validation
 
-Merge requires the complete `pnpm check` on the clean, committed final candidate, which must contain target `main`. Record the candidate commit and tree, the target commit, the command, and the result. Further tracked changes, pending changes, a changed candidate, or an advancing target invalidate the recorded success, and the new final state needs complete validation again. Before an authorized squash merge, confirm the target is unchanged and the merged tree equals the validated tree.
+Merge requires the complete `pnpm check` on the clean, committed final candidate, which must contain target `main`, and the result is recorded. The [merge gate rules](./.agents/rule/development.md#merge-gate) state what that record contains and what invalidates it, and an authorized squash merge uses the unchanged target and the validated tree.
 
 The complete command runs the selector's complete check list, `node scripts/check-changed.mjs --complete`, without collecting changed paths. It retains these checks in order:
 

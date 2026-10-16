@@ -50,7 +50,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 
 ## 安装
 
-Skill 安装与下方的开发环境准备相互独立，不需要开发依赖或构建。语言选择、Skill 根目录，以及检查、安装、更新和卸载命令见[安装 Skill](./docs/installation.zh.md)。同一批 Skill 的中文变体位于 `variants/zh/skills/`。
+Skill 安装与下方的开发环境准备相互独立。语言选择、Skill 根目录，以及检查、安装、更新和卸载命令见[安装 Skill](./docs/installation.zh.md)。
 
 拓展和 tk 运行时在各自目录中构建和安装，具体要求见各自的 README。tk 运行时与各 Harness 的接入组件分别安装。
 
@@ -77,11 +77,9 @@ pnpm hooks:install
 
 ### 仓库布局
 
-英文 Skill 位于 `skills/<name>/`，中文 variant 位于 `variants/zh/skills/<name>/`，但安装后仍使用宿主的正常路径 `skills/<name>/`。纯 Skill 只包含发现、理解和使用该 Skill 所需的材料。
+英文 Skill 位于 `skills/<name>/`，中文 variant 位于 `variants/zh/skills/<name>/`。Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或构建系统预期的布局。
 
-Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或构建系统预期的布局。只有真实组件需要时，仓库才增加新的顶层区域。
-
-普通公开文档采用同目录的 `name.md` 和 `name.zh.md` 配对。仓库和组件入口页使用 `README.md` 和 `README.zh.md`。
+布局规则和文档配对由[仓库规格](./.agents/spec/repository.zh.md)持有，Skill 自身包含什么由 [Skill 规格](./.agents/spec/skills.zh.md)持有。
 
 ### 组件宿主维护
 
@@ -95,7 +93,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 | --- | --- |
 | 说明性 Markdown 或 ADR 格式检查 | 上述根锁定依赖和 Git 钩子 |
 | 单个 OMP 组件 | 根工具链、兼容其锁文件的 Bun，以及该组件目录内的 `bun install --frozen-lockfile` |
-| tk | 根工具链、包含 `rustfmt` 且满足 [tk 构建前提](./projects/tk/README.zh.md)的 Rust、锁定 crate 依赖、Bun 和原生适配器测试所用系统工具 |
+| tk | 根工具链、包含 `rustfmt` 的 Rust、锁定 crate 依赖、Bun 和原生适配器测试所用系统工具（[tk 运行时源码构建](./projects/tk/docs/guide.zh.md#安装运行时)） |
 | Skill 生命周期 | 根工具链、Git、非 root 的 POSIX shell 环境、`diff` 和测试脚本使用的常见系统文件工具 |
 | 完整检查或完整回退 | 上述全部环境，包括每个 OMP 组件的锁定依赖树 |
 
@@ -112,7 +110,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 
 ### 完整合并验证
 
-合并前需要在干净、已提交且包含目标 `main` 的最终候选上运行完整 `pnpm check`。记录候选提交和 tree、目标提交、命令及结果。新增受跟踪变更、待提交内容、候选变化或目标前进，都会使记录的成功结果失效，需要重新完整验证。执行已授权的 squash merge 前，确认目标未变化，并核对合并 tree 与验证 tree 一致。
+合并前需要在干净、已提交且包含目标 `main` 的最终候选上运行完整 `pnpm check`，并记录结果。[合并门禁规则](./.agents/rule/development.zh.md#合并门禁)说明记录内容和使记录失效的情况；执行已授权的 squash merge 时使用未变化的目标和已验证的 tree。
 
 完整入口执行选择器中的完整检查列表，即 `node scripts/check-changed.mjs --complete`，不收集变更路径。检查顺序如下：
 

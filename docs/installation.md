@@ -25,7 +25,7 @@ A Skill root holds one installation per name, so a name is installed in one lang
 
 ## Requirements
 
-- A local clone of this repository. Get the newest content with `git pull` in that clone.
+- A local clone of this repository.
 - A POSIX shell: the commands below run through `sh`.
 - A `diff` command plus the common system file tools that every Linux and macOS system provides. Directory comparison is `diff -r -q`, and its exit status decides the reported state.
 - No Node, Bun, Python, `jq`, or Rust. The script never uses the network, and it does not need the repository's development dependencies or a build step.
@@ -164,7 +164,7 @@ Install one Skill at a time. Neither the script nor this guide installs every Sk
 
 - `check` compares the source in your clone with the target you name. Without an earlier baseline it cannot tell whether a difference came from the repository or from a local edit, so it reports a difference to review and never authorizes an overwrite.
 - Whether a running Harness reads a written Skill, follows a top-level link, or reloads after a change is that Harness's own behavior. The script cannot observe it. Identical content proves only that two directories match. Reload or restart the Harness according to its own rules.
-- The script manages ordinary Skill directories only. It does not edit Harness configuration, install dependencies, build anything, or pull Git.
+- The script manages ordinary Skill directories only. It does not edit Harness configuration or pull Git.
 - A write that would reach this repository's own sources is refused before anything is created: a target root that is, contains, or lies inside `skills/` or `variants/zh/skills/`, and a backup location under either tree. The refusal covers both languages, whatever `--language` selected. A Skill entry that is itself a symlink is still replaced or unlinked as a link, and the directory it points to is never written through.
 - A path whose missing part contains `.` or `..` is refused rather than folded: the command exits `2`, names that component, and creates nothing. Folding such a path would resolve it differently from how the filesystem resolves the path used for writing.
 - `check` and `install` read the checkout in which the script itself is stored, so it always reflects that clone. Use a fresh `git pull` in that clone to compare against newer content.
