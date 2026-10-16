@@ -57,6 +57,8 @@ The capability rewrites a side request only when the side system is a prefix of 
 
 Only a confirmed ordinary main-loop dispatch supplies a reference, and the calls this capability aligns never become one. Switch, branch, and tree navigation, compaction commits, and session release clear the reference and invalidate that session's epoch, and a new ordinary send restores eligibility without restarting OMP.
 
+Confirmation rechecks the dispatch epoch, identities, signal, and complete ownership, so a late response cannot restore an invalidated reference. Every physical send, including an identical retry, rechecks ownership before reusing a candidate. The payload callback only marks preparation complete; final transport performs the projection and counts the send. Unknown session-method wrappers are left untouched and reported as unavailable.
+
 While the local trial extension is still auto-discovered, the installed copy of this package, the candidate, and the trial extension can load in one process. A foreign coordinator version is reported as a conflict instead of being reused, another version's activation entry is never read because this version caches its own snapshot under its own key, and the cutover happens by restarting affected processes. The trial extension is replaced and disabled once this capability passes its own acceptance and an installation authorization follows. [Verification](./docs/verification.md) records the checked paths, the coexistence run, and the gaps that remain.
 
 ## Status
@@ -89,6 +91,10 @@ bun test
 ```
 
 ## Changes
+
+### 0.1.4
+
+Prevent late ordinary responses and identical retries from reviving invalid Handoff references or operations. Require a native construction baseline for the Handoff methods, preserve foreign wrappers, and project and count Handoff requests only at final transport. Freeze native tool schemas through the host's wire-schema conversion.
 
 ### 0.1.3
 

@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import type { AgentSession } from "@oh-my-pi/pi-coding-agent";
 import { AgentRegistry } from "@oh-my-pi/pi-coding-agent/registry/agent-registry";
-import { register } from "../src/runtime.ts";
+import { register, type Registration } from "../src/runtime.ts";
 import { convertToLlm } from "@oh-my-pi/pi-coding-agent/session/messages";
 import type { ApiKeyResolver, Model as NativeModel } from "@oh-my-pi/pi-ai";
 import type { AgentMessage } from "@oh-my-pi/pi-agent-core";
@@ -53,6 +53,14 @@ const RESPONSES_MODEL: NativeModel<"openai-responses"> = {
   compat: { strictResponsesPairing: true } as NativeModel<"openai-responses">["compat"],
 };
 
+interface StreamOptions {
+  signal?: AbortSignal;
+  onPayload?: (payload: unknown) => unknown;
+  onResponse?: (response: unknown) => unknown;
+}
+interface SideOptions extends StreamOptions {
+  toolChoice?: string;
+}
 interface FakeAgent {
   state: {
     messages: unknown[];
@@ -76,8 +84,8 @@ interface FakeSession {
   model: Model;
   sessionManager: { getSessionId(): string; getBranch(): unknown[] };
   extensionRunner: { emitContext: (...args: unknown[]) => unknown; hasHandlers: (event: string) => boolean };
-  convertMessagesToLlm: (...args: unknown[]) => unknown;
-  prepareSimpleStreamOptions: (...args: unknown[]) => unknown;
+  convertMessagesToLlm: (messages: unknown[], signal?: AbortSignal) => unknown;
+  prepareSimpleStreamOptions: (options: SideOptions) => SideOptions;
   addDisposer: (dispose: () => void) => void;
   switchSession: () => unknown;
   branch: () => unknown;
@@ -129,7 +137,7 @@ function fakeSession(model: Model = MODEL) {
     sessionManager: { getSessionId: () => "session-1", getBranch: () => [] },
     extensionRunner: { emitContext: (messages: unknown) => Promise.resolve(messages), hasHandlers: () => true },
     convertMessagesToLlm: (messages: unknown) => messages,
-    prepareSimpleStreamOptions: (options: unknown) => options,
+    prepareSimpleStreamOptions: (options) => options,
     addDisposer: () => {},
     switchSession: () => undefined,
     branch: () => undefined,
@@ -141,10 +149,19 @@ function fakeSession(model: Model = MODEL) {
   return { session, hooks };
 }
 
-function activate(settings: Settings, model: Model = MODEL, stream?: FakeAgent["streamFn"], native = true) {
+function activate(
+  settings: Settings,
+  model: Model = MODEL,
+  stream?: FakeAgent["streamFn"],
+  native = true,
+  configure?: (session: FakeSession) => void,
+) {
   const registry = AgentRegistry.global();
   const { session, hooks } = fakeSession(model);
   if (stream) session.agent.streamFn = stream;
+  const convert = session.convertMessagesToLlm;
+  const prepare = session.prepareSimpleStreamOptions;
+  configure?.(session);
   if (!registry.get(AGENT))
     registry.register({ id: AGENT, displayName: AGENT, kind: "main", session: null, status: "idle" });
   registry.attachSession(AGENT, session as unknown as AgentSession);
@@ -162,6 +179,8 @@ function activate(settings: Settings, model: Model = MODEL, stream?: FakeAgent["
   Object.assign(session.sessionManager, { getCwd: () => "/tmp" });
   const registration = register(ctx as unknown as Parameters<typeof register>[0], settings, {
     confirms: () => native,
+    confirmsSide: () =>
+      native && session.convertMessagesToLlm === convert && session.prepareSimpleStreamOptions === prepare,
     release: () => {},
   });
   return { session, hooks, registration, registry, modelRegistry: ctx.modelRegistry };
@@ -245,39 +264,106 @@ test("a dispatch without a tool set never supplies a reference", async () => {
   registry.unregister(AGENT);
 });
 
-test("a handoff side request repeats the confirmed online view and stays native without a reference", async () => {
+test("handoff candidates count only physical sends and retain the native body after invalidation", async () => {
+  const originalFetch = globalThis.fetch;
+  const wires: unknown[] = [];
+  const transport = (async (_input: unknown, init?: RequestInit) => {
+    wires.push(JSON.parse(String(init?.body)));
+    return new Response("ok");
+  }) as typeof fetch;
+  Object.defineProperties(transport, Object.getOwnPropertyDescriptors(originalFetch));
+  globalThis.fetch = transport;
   const { session, hooks, registration, registry } = activate(handoffOnly);
-  const controller = new AbortController();
-  await ordinaryDispatch(session, hooks, controller.signal);
-  const handoff = new AbortController();
-  const instruction = { role: "user", content: "write a handoff document", attribution: "agent" };
-  session.agent.state.messages = [SYSTEM, TURN];
-  session.isGeneratingHandoff = true;
-  (session.convertMessagesToLlm as (messages: unknown[], signal?: AbortSignal) => unknown)(
-    [SYSTEM, TURN, instruction],
-    handoff.signal,
-  );
-  const prepared = (
-    session.prepareSimpleStreamOptions as (options: unknown) => { onPayload?: (payload: unknown) => unknown }
-  )({
-    signal: handoff.signal,
-    toolChoice: "none",
-  });
-  const side = { messages: [SYSTEM, TURN, instruction], tool_choice: "none", reasoning_effort: "low" };
-  const rewritten = prepared.onPayload?.(side) as {
-    messages: unknown[];
-    tool_choice?: unknown;
-    reasoning_effort?: unknown;
-  };
-  expect(rewritten.messages).toEqual([SYSTEM, TURN, instruction]);
-  expect(rewritten.tool_choice).toBeUndefined();
-  const status = registration.status();
-  expect(status.handoff.state).toBe("rewritten");
-  expect(status.handoff.aligned).toBe(1);
-  expect(status.handoff.sends).toBe(1);
-  expect(status.handoff.axes).toBe(1);
-  registration.close();
-  registry.unregister(AGENT);
+  try {
+    await ordinaryDispatch(session, hooks, new AbortController().signal);
+    const signal = new AbortController().signal;
+    const instruction = { role: "user", content: "write a handoff document", attribution: "agent" };
+    session.agent.state.messages = [SYSTEM, TURN];
+    session.isGeneratingHandoff = true;
+    session.convertMessagesToLlm([SYSTEM, TURN, instruction], signal);
+    const prepared = session.prepareSimpleStreamOptions({ signal, toolChoice: "none" });
+    const native = { messages: [SYSTEM, TURN, instruction], tool_choice: "none", reasoning_effort: "low" };
+    const candidate = (await prepared.onPayload?.(native)) ?? native;
+    expect(registration.status().handoff.sends).toBe(0);
+    const send = () =>
+      fetch(`${MODEL.baseUrl}/chat/completions`, {
+        method: "POST",
+        body: JSON.stringify(candidate),
+        signal: AbortSignal.any([signal]),
+      });
+    await send();
+    expect(wires.at(-1)).toEqual({ messages: native.messages, reasoning_effort: "low" });
+    await send();
+    expect(registration.status().handoff).toEqual(
+      expect.objectContaining({ operations: 1, sends: 2, retries: 1, aligned: 1 }),
+    );
+    session.agent.state.tools = [];
+    await send();
+    expect(wires.at(-1)).toEqual(native);
+    session.agent.state.tools = [TOOL];
+    await send();
+    expect(wires.at(-1)).toEqual(native);
+  } finally {
+    registration.close();
+    registry.unregister(AGENT);
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("late ordinary responses cannot revive invalidated handoff references", async () => {
+  const mutations: ((session: FakeSession, registration: Registration, controller: AbortController) => void)[] = [
+    (_session, registration) => registration.invalidate("native-history-committed"),
+    (_session, _registration, controller) => controller.abort(),
+    (session) => {
+      session.agent.state.tools = [];
+    },
+    (session) => {
+      session.agent.state.systemPrompt = ["changed"];
+    },
+    (session) => {
+      session.agent.state.thinkingLevel = "high";
+    },
+    (session) => {
+      session.sessionId = "another-session";
+    },
+  ];
+  for (const mutate of mutations) {
+    let respond: StreamOptions["onResponse"];
+    const stream: FakeAgent["streamFn"] = (_model, _prepared, options) => {
+      const settings = options as StreamOptions;
+      settings.onPayload?.({ messages: [SYSTEM, TURN] });
+      respond = settings.onResponse;
+      return Promise.resolve([]);
+    };
+    const { session, hooks, registration, registry } = activate(handoffOnly, MODEL, stream);
+    try {
+      const controller = new AbortController();
+      await ordinaryDispatch(session, hooks, controller.signal);
+      mutate(session, registration, controller);
+      respond?.({ status: 200 });
+      expect(registration.status().handoff.reference).toBe(0);
+    } finally {
+      registration.close();
+      registry.unregister(AGENT);
+    }
+  }
+});
+
+test("handoff registration preserves unknown wrappers and refuses an unconfirmed construction", () => {
+  for (const native of [true, false]) {
+    let foreign: FakeSession["convertMessagesToLlm"] | undefined;
+    const { session, registration, registry } = activate(handoffOnly, MODEL, undefined, native, (value) => {
+      foreign = value.convertMessagesToLlm = (messages) => messages;
+    });
+    try {
+      expect(registration.status().handoff.state).toBe("unavailable");
+      expect(session.convertMessagesToLlm).toBe(foreign!);
+    } finally {
+      registration.close();
+      expect(session.convertMessagesToLlm).toBe(foreign!);
+      registry.unregister(AGENT);
+    }
+  }
 });
 
 test("ordinary tool continuation restores a reference after compaction without reviving old operations", async () => {

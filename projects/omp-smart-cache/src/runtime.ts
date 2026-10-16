@@ -1,7 +1,13 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { isDeepStrictEqual as equal } from "node:util";
 import { normalizeTools, type AgentMessage, type StreamFn } from "@oh-my-pi/pi-agent-core";
-import { type ApiKeyResolver, type Context, type Model, type SimpleStreamOptions } from "@oh-my-pi/pi-ai";
+import {
+  toolWireSchema,
+  type ApiKeyResolver,
+  type Context,
+  type Model,
+  type SimpleStreamOptions,
+} from "@oh-my-pi/pi-ai";
 import { convertTools } from "@oh-my-pi/pi-ai/providers/openai-responses";
 import type { AgentSession, ExtensionContext, ModelRegistry } from "@oh-my-pi/pi-coding-agent";
 import { AgentRegistry } from "@oh-my-pi/pi-coding-agent/registry/agent-registry";
@@ -13,7 +19,7 @@ import type { Construction } from "./construction.ts";
 
 const SLOT = Symbol.for("ruokee.omp-smart-cache.remote.coordinator");
 const OLD_QOL = Symbol.for("ruokee.omp-qol.compaction-cache.registry");
-const VERSION = "0.1.3";
+const VERSION = "0.1.4";
 const slots = globalThis as typeof globalThis & { [key: symbol]: unknown };
 const increment = (value: number): number => Math.min(Number.MAX_SAFE_INTEGER, value + 1);
 const nativeEvalProjection = (message: AgentMessage): boolean =>
@@ -75,6 +81,7 @@ interface State {
   readonly registry: ModelRegistry;
   readonly selection: Selection;
   readonly nativeSource: boolean;
+  readonly nativeSide: boolean;
   readonly status: Status;
   readonly handoff: HandoffSession;
   readonly raw: WeakMap<AbortSignal, Observation>;
@@ -113,12 +120,17 @@ interface SideOperation {
   readonly reference: SideReference;
   sends: number;
   revoked?: boolean;
+  prepared?: boolean;
   memo?: { native: string; sent: ChatRequest; reason: string };
 }
 interface SidePending {
   readonly id: number;
   readonly state: State;
   readonly owner: Ownership;
+  readonly epoch: number;
+  readonly persistent: string;
+  readonly provider: string;
+  readonly signal: AbortSignal;
   body?: ChatRequest;
   failed?: string;
 }
@@ -234,7 +246,7 @@ function ownerSnapshot(state: State): Ownership {
     tools: agent.state.tools.map((tool) => ({
       name: tool.name,
       description: tool.description,
-      parameters: tool.parameters,
+      parameters: copy(toolWireSchema(tool)),
     })),
   };
 }
@@ -276,6 +288,7 @@ class Coordinator {
   readonly registries = new Map<ModelRegistry, RegistryPatch>();
   readonly parents = new WeakMap<AbortSignal, readonly AbortSignal[]>();
   readonly roots = new WeakMap<AbortSignal, Operation | null>();
+  readonly sideRoots = new WeakMap<AbortSignal, SideOperation | null>();
   readonly dispatch = new AsyncLocalStorage<Observation>();
   readonly transport: Patch[] = [];
   sequence = 0;
@@ -341,6 +354,15 @@ class Coordinator {
     }
     return owner;
   }
+  sideOwner(signal?: AbortSignal): SideOperation | null | undefined {
+    let owner: SideOperation | undefined;
+    for (const parent of this.ancestors(signal)) {
+      const op = this.sideRoots.get(parent);
+      if (op === null || (owner && op && owner !== op)) return null;
+      if (op) owner = op;
+    }
+    return owner;
+  }
   valid(state: State): boolean {
     if (!state.active || this.closed || !state.selection.remote.active) return false;
     if (slots[OLD_QOL] !== undefined) return this.unavailable(state, "mixed-qol-owner");
@@ -359,9 +381,12 @@ class Coordinator {
       return this.unavailable(state, "session-identity-lost");
     return !state.unavailable;
   }
-  /** Handoff alignment depends on the session seams and the shared streaming wrapper, not on transport wrappers. */
+  /** Handoff uses its session seams and the coordinator's single final transport boundary. */
   validSide(state: State): boolean {
     if (!state.active || this.closed || !state.handoff.enabled) return false;
+    if (slots[OLD_QOL] !== undefined) return this.unavailableSide(state, "mixed-qol-owner");
+    if (this.transport.some((installed) => !installed.owned()))
+      return this.unavailableSide(state, "transport-wrapper-lost");
     if (state.handoff.unavailable) {
       state.handoff.status.state = "unavailable";
       return false;
@@ -438,10 +463,13 @@ class Coordinator {
       op.root.aborted ||
       state.manager.getSessionId() !== op.persistent ||
       state.session.sessionId !== op.provider ||
-      !modelMatches(op.model, state.session.model)
+      !modelMatches(op.model, state.session.model) ||
+      !this.sideOwnershipConfirmed(state, op.reference) ||
+      !this.validSide(state) ||
+      state.session.isSessionTransitioning
     )
       op.revoked = true;
-    return !op.revoked && this.validSide(state) && !state.session.isSessionTransitioning;
+    return !op.revoked;
   }
   registry(registry: ModelRegistry): RegistryPatch {
     const known = this.registries.get(registry);
@@ -534,6 +562,8 @@ class Coordinator {
   }
 
   inspect(input: string | URL | Request, init?: RequestInit): RequestInit | undefined {
+    const side = this.sideOwner(init?.signal ?? undefined);
+    if (side) return this.inspectSide(side, input, init);
     const signal = init?.signal ?? undefined;
     const op = this.owner(signal);
     const inherited = this.dispatch.getStore();
@@ -606,6 +636,23 @@ class Coordinator {
     return outgoing;
   }
 
+  inspectSide(op: SideOperation, input: string | URL | Request, init?: RequestInit): RequestInit | undefined {
+    const url = input instanceof Request ? input.url : String(input);
+    const endpoint = `${op.model.baseUrl.replace(/\/+$/, "")}/chat/completions`;
+    if (url !== endpoint) return init;
+    if (input instanceof Request || init?.method?.toUpperCase() !== "POST" || typeof init.body !== "string") {
+      op.state.handoff.status.sending = "unsupported-transport-shape";
+      return init;
+    }
+    const value: unknown = JSON.parse(init.body);
+    if (!op.prepared) {
+      this.sideRecord(op, "payload-proof-unconfirmed", 0, 0);
+      return init;
+    }
+    const candidate = this.sideRewrite(op, value);
+    return candidate === value ? init : { ...init, body: JSON.stringify(candidate) };
+  }
+
   record(op: Operation, reason: string, reused: number, retained: number): void {
     const { status } = op.state;
     const first = op.sends === 0;
@@ -653,8 +700,12 @@ class Coordinator {
   }
 
   /** A new ordinary dispatch is pending; only its confirmed 2xx response replaces the session's reference. */
-  sidePending(state: State): SidePending | undefined {
+  sidePending(state: State, signal?: AbortSignal): SidePending | undefined {
     const handoff = state.handoff;
+    if (!signal) {
+      handoff.status.online = "dispatch-signal-unconfirmed";
+      return undefined;
+    }
     let owner: Ownership;
     try {
       owner = ownerSnapshot(state);
@@ -664,7 +715,15 @@ class Coordinator {
     }
     handoff.status.online = "ordinary-dispatch-pending";
     if (!handoff.unavailable) handoff.status.state = "awaiting-reference";
-    return { id: this.next(), state, owner };
+    return {
+      id: this.next(),
+      state,
+      owner,
+      epoch: state.epoch,
+      persistent: state.manager.getSessionId(),
+      provider: state.session.sessionId,
+      signal,
+    };
   }
   sideCapture(pending: SidePending, returned: unknown, args: unknown[]): void {
     const value = returned ?? args[0];
@@ -691,6 +750,19 @@ class Coordinator {
     if (pending.failed || pending.body === undefined) return;
     if (!object(response) || typeof response.status !== "number" || response.status < 200 || response.status >= 300)
       return;
+    const state = pending.state;
+    if (
+      pending.epoch !== state.epoch ||
+      pending.signal.aborted ||
+      pending.persistent !== state.manager.getSessionId() ||
+      pending.provider !== state.session.sessionId ||
+      state.session.isSessionTransitioning ||
+      !this.validSide(state) ||
+      !this.sideOwnershipConfirmed(state, pending)
+    ) {
+      this.sideFailure(pending, "dispatch-invalidated");
+      return;
+    }
     if (!Array.isArray(pending.body.messages)) {
       handoff.status.online = "unsupported-payload-shape";
       return;
@@ -700,7 +772,7 @@ class Coordinator {
     handoff.status.online = "ordinary-send-confirmed";
     if (!handoff.unavailable) handoff.status.state = "awaiting-reference";
   }
-  sideOwnershipConfirmed(state: State, reference: SideReference): boolean {
+  sideOwnershipConfirmed(state: State, reference: Pick<SideReference, "owner">): boolean {
     try {
       return equal(reference.owner, ownerSnapshot(state));
     } catch {
@@ -728,7 +800,11 @@ class Coordinator {
       handoff.status.binding = "reference-owner-changed";
       return;
     }
-    handoff.operations.set(signal, {
+    if (this.sideRoots.has(signal)) {
+      handoff.status.binding = "operation-already-bound";
+      return;
+    }
+    const operation: SideOperation = {
       id: this.next(),
       state,
       epoch: state.epoch,
@@ -738,43 +814,32 @@ class Coordinator {
       provider: state.session.sessionId,
       reference,
       sends: 0,
-    });
+    };
+    handoff.operations.set(signal, operation);
+    this.sideRoots.set(signal, operation);
     handoff.status.binding = "reference-bound";
   }
-  /** The side request is rewritten once, after the host's own payload hooks, or left exactly as it was. */
-  sideRewrite(op: SideOperation, returned: unknown, args: unknown[]): unknown {
-    const state = op.state;
-    const value = returned ?? args[0];
+  /** Project only the final physical body; callbacks never count a send or publish a rewrite. */
+  sideRewrite(op: SideOperation, value: unknown): unknown {
     if (!object(value)) {
       this.sideRecord(op, "unsupported-payload-shape", 0, 0);
       return value;
     }
     const side = value as ChatRequest;
-    // An invalidated operation loses its eligibility before any earlier rewrite is reused.
     if (!this.sideOperationValid(op)) {
       this.sideRecord(op, op.state.handoff.unavailable ?? "operation-invalidated", 0, 0);
       return side;
     }
+    const native = JSON.stringify(side);
     const memo = op.memo;
-    if (memo && memo.native === JSON.stringify(side)) {
+    if (memo && memo.native === native) {
       this.sideRecord(op, memo.reason, 0, 0);
-      return memo.sent;
+      return memo.reason === "rewritten" ? memo.sent : side;
     }
-    let outgoing: ChatRequest = side,
-      reason: string,
-      axes = 0,
-      unprojected = 0;
-    if (!op.reference) reason = "live-reference-unconfirmed";
-    else if (!this.sideOwnershipConfirmed(state, op.reference)) reason = "reference-owner-changed";
-    else {
-      const alignment = align(op.reference.body, side);
-      reason = alignment.reason;
-      axes = alignment.axes;
-      unprojected = alignment.unprojected;
-      if (alignment.body) outgoing = alignment.body;
-    }
-    op.memo = { native: JSON.stringify(side), sent: outgoing, reason };
-    this.sideRecord(op, reason, axes, unprojected);
+    const alignment = align(op.reference.body, side);
+    const outgoing = alignment.body ?? side;
+    op.memo = { native, sent: outgoing, reason: alignment.reason };
+    this.sideRecord(op, alignment.reason, alignment.axes, alignment.unprojected);
     return outgoing;
   }
 
@@ -800,6 +865,7 @@ class Coordinator {
       registry: ctx.modelRegistry,
       selection,
       nativeSource: construction.confirms(session),
+      nativeSide: construction.confirmsSide(session),
       status: selection.remote.active
         ? initial("reference-not-sent")
         : initial(selection.remote.reason, selection.remote.state),
@@ -928,7 +994,7 @@ class Coordinator {
         // never a dispatch without a tool set to bind the reference to.
         if (!coordinator.validSide(state) || state.session.isGeneratingHandoff || !prepared.tools?.length)
           return Reflect.apply(stream, this, [model, prepared, options]);
-        const observed = coordinator.sidePending(state);
+        const observed = coordinator.sidePending(state, options?.signal);
         if (!observed) return Reflect.apply(stream, this, [model, prepared, options]);
         const prior = options?.onPayload,
           priorResponse = options?.onResponse;
@@ -1079,6 +1145,10 @@ class Coordinator {
       this.unavailableSide(state, "session-interface");
       return;
     }
+    if (!state.nativeSide) {
+      this.unavailableSide(state, "session-construction-unconfirmed");
+      return;
+    }
     const convert = session.convertMessagesToLlm;
     const coordinator = this;
     const wrappedConvert: typeof convert = function (this: AgentSession, messages, signal) {
@@ -1099,16 +1169,11 @@ class Coordinator {
       const prior = options.onPayload;
       const onPayload: PayloadHook = function (this: unknown, ...args) {
         const returned = prior ? Reflect.apply(prior, this, args) : undefined;
-        // Containment: a throw here would break the host's own request pipeline.
-        const rewrite = (value: unknown) => {
-          try {
-            return coordinator.sideRewrite(operation, value, args);
-          } catch {
-            return value;
-          }
+        const prepared = (value: unknown) => {
+          operation.prepared = object(value ?? args[0]);
+          return value;
         };
-        if (returned instanceof Promise) return returned.then(rewrite);
-        return rewrite(returned);
+        return returned instanceof Promise ? returned.then(prepared) : prepared(returned);
       };
       return Reflect.apply(prepare, this, [{ ...options, onPayload }, provider]);
     };
@@ -1184,7 +1249,7 @@ export function register(ctx: ExtensionContext, settings: Settings, construction
       handoff.enabled ? "unavailable" : handoff.state,
     );
   if (!remote.active && !handoff.enabled) return inactive(remote.reason, remote.state, handoff.reason, handoff.state);
-  if (remote.active && slots[OLD_QOL] !== undefined) return refuse("mixed-qol-owner");
+  if (slots[OLD_QOL] !== undefined) return refuse("mixed-qol-owner");
   const present = slots[SLOT];
   if (
     present !== undefined &&
@@ -1203,7 +1268,7 @@ export function register(ctx: ExtensionContext, settings: Settings, construction
     if (!session || session.sessionManager !== ctx.sessionManager || !session.extensionRunner)
       return refuse("session-interface");
     let coordinator = present as Coordinator | undefined;
-    if (remote.active && coordinator?.closed && coordinator.retiredConflict) return refuse("transport-wrapper-lost");
+    if (coordinator?.closed && coordinator.retiredConflict) return refuse("transport-wrapper-lost");
     if (!coordinator || coordinator.closed) {
       // Retaining weak ancestry/root knowledge prevents a new generation from rebinding old roots.
       const previous = coordinator;
@@ -1212,6 +1277,7 @@ export function register(ctx: ExtensionContext, settings: Settings, construction
         Object.defineProperties(coordinator, {
           roots: { value: previous.roots },
           parents: { value: previous.parents },
+          sideRoots: { value: previous.sideRoots },
         });
       }
       slots[SLOT] = coordinator;

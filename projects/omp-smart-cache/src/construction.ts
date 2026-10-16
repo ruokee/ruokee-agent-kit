@@ -1,5 +1,5 @@
 import type { AgentSession } from "@oh-my-pi/pi-coding-agent";
-import { AgentRegistry } from "@oh-my-pi/pi-coding-agent/registry/agent-registry";
+import { AgentRegistry, type AgentRef } from "@oh-my-pi/pi-coding-agent/registry/agent-registry";
 import { object } from "./reuse.ts";
 
 const SLOT = Symbol.for("ruokee.omp-smart-cache.remote.construction");
@@ -9,13 +9,16 @@ interface Origin {
   readonly runner: AgentSession["extensionRunner"];
   readonly stream: AgentSession["agent"]["streamFn"];
   readonly context: NonNullable<AgentSession["extensionRunner"]>["emitContext"];
+  readonly convert: AgentSession["convertMessagesToLlm"];
+  readonly prepare: AgentSession["prepareSimpleStreamOptions"];
 }
 export interface Construction {
   confirms(session: AgentSession): boolean;
+  confirmsSide(session: AgentSession): boolean;
   release(): void;
 }
 interface Observer {
-  readonly version: "0.1.0";
+  readonly version: "0.1.1";
   readonly origins: WeakMap<AgentSession, Origin>;
   readonly registry: AgentRegistry;
   readonly wrapper: AgentRegistry["attachSession"];
@@ -31,7 +34,7 @@ export function observeConstruction(): Construction {
   if (present !== undefined) {
     if (
       !object(present) ||
-      present.version !== "0.1.0" ||
+      present.version !== "0.1.1" ||
       !(present.origins instanceof WeakMap) ||
       typeof present.restore !== "function" ||
       typeof present.leases !== "number"
@@ -53,7 +56,7 @@ export function observeConstruction(): Construction {
     const origins = new WeakMap<AgentSession, Origin>();
     const wrapper: typeof original = function (this: AgentRegistry, ...args) {
       const [id, session, , expected] = args;
-      let before: ReturnType<AgentRegistry["get"]>, origin: Origin | undefined;
+      let before: AgentRef | undefined, origin: Origin | undefined;
       try {
         before = registry.get(id);
         const runner = session.extensionRunner;
@@ -65,7 +68,14 @@ export function observeConstruction(): Construction {
           runner &&
           !origins.has(session)
         ) {
-          origin = { agent: session.agent, runner, stream: session.agent.streamFn, context: runner.emitContext };
+          origin = {
+            agent: session.agent,
+            runner,
+            stream: session.agent.streamFn,
+            context: runner.emitContext,
+            convert: session.convertMessagesToLlm,
+            prepare: session.prepareSimpleStreamOptions,
+          };
         }
       } catch {
         /* Unknown construction retains complete-range proof only. */
@@ -90,7 +100,7 @@ export function observeConstruction(): Construction {
       return result;
     };
     const entry: Observer = {
-      version: "0.1.0",
+      version: "0.1.1",
       registry,
       wrapper,
       origins,
@@ -128,6 +138,21 @@ export function observeConstruction(): Construction {
         session.extensionRunner?.emitContext === origin.context
       );
     },
+    confirmsSide(session) {
+      const origin = source.origins.get(session);
+      return (
+        !source.compromised &&
+        !!origin &&
+        session.agent === origin.agent &&
+        session.extensionRunner === origin.runner &&
+        !Object.hasOwn(session, "convertMessagesToLlm") &&
+        !Object.hasOwn(session, "prepareSimpleStreamOptions") &&
+        typeof origin.convert === "function" &&
+        typeof origin.prepare === "function" &&
+        session.convertMessagesToLlm === origin.convert &&
+        session.prepareSimpleStreamOptions === origin.prepare
+      );
+    },
     release() {
       if (released) return;
       released = true;
@@ -139,5 +164,5 @@ export function observeConstruction(): Construction {
   };
 }
 function unavailable(): Construction {
-  return { confirms: () => false, release: () => {} };
+  return { confirms: () => false, confirmsSide: () => false, release: () => {} };
 }
