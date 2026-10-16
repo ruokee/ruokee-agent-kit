@@ -30,27 +30,25 @@ The following current decisions bear on the layer, and none of them conflicts wi
 
 ### Ownership
 
-`.agents/rule/` carries the repository's working rules: what a contributor or an Agent must do, in what order, with which permission, and what is forbidden. It sits beside `.agents/spec/` and `.agents/adr/`, and its directory name is singular like `spec`.
+`.agents/rule/` carries the repository's working rules, and the [layer's entry page](../../../../rule/README.md) defines the layer. Its directory name is singular like `spec`.
 
-One normative statement has one owning layer. A spec states what a subject should be and which observable result shows that it meets its target; a decision records a durable choice, its reasons, and its consequences; a rule states the constraint that binds an action; component documentation tells users how to install and use the component; the repository documentation and the README tell contributors how to work in the repository; `AGENTS.md` carries navigation and the non-trivial rules that must hold when no rule page is read. A rule `AGENTS.md` states keeps its owning page in this layer, and a change updates both texts. A rule carries no long rationale: when a reader needs the reason, the rule links the decision that owns it or the spec that owns the property it enforces.
+One normative statement has one owning layer, and the [spec layer](../../../../spec/README.md#division-of-work) states how specs, decisions, rules, component documentation, the repository documentation, and `AGENTS.md` divide their work. A rule `AGENTS.md` states keeps its owning page in this layer, and a change updates both texts.
 
 ### Files
 
-Rules sit flat in one directory, one file per activity, as same-directory `name.md` and `name.zh.md` pairs with reciprocal language links directly below the title. The layer's own rules are `README.md` and `README.zh.md`. A rule file carries no date, no status, and no subdirectory: `.agents/adr/` uses subdirectories to express a record's lifecycle state, while a rule is a current constraint edited in place that keeps no history.
-
-The first delivery covers repository boundary, planning, Git, validation, and documentation. The set follows the activities and changes when a real activity needs a page, so the count is a delivery list rather than a closed collection.
+The [rule layer's entry page](../../../../rule/README.md#file-layout) owns the rule file layout, the naming of a rule file, and the current activity list. `.agents/adr/` uses subdirectories to express a record's lifecycle state, while a rule is a current constraint edited in place that keeps no history.
 
 ### Writing a rule
 
-One rule states one constraint in the imperative and may add one short sentence. Rules are not numbered, and a citation uses the file path and the section heading, because a number becomes an inventory that someone has to maintain and this layer adds no manifest. A rule traces to a spec invariant, a current decision, or the maintainer's explicit decision; a rule without such a source is allowed when it is the current practice, and it must not conflict with a spec or a current decision. A rule keeps its original condition, exception, strength, and permission, so a rule stated at the strength of "as far as possible" stays at that strength, and a prohibition keeps its exception.
+The [rule layer's entry page](../../../../rule/README.md#writing-a-rule) owns how a single rule is written, traced to a source, and cited.
 
 ### Editing
 
-A rule that adds, removes, or changes a durable choice it carries, such as an authorization boundary, a process requirement, or a release policy, goes through the ADR process before the rule changes; an editorial clarification that changes no durable choice does not. Rules are edited in place and carry no history, no status, no review notes, no task information, and no session information.
+The [rule layer's entry page](../../../../rule/README.md#editing-a-rule) owns how a rule is edited, when a rule change goes through the ADR process, and what a rule file keeps out.
 
 ### Reference direction
 
-References run one way. A rule may link to component files, component documentation, specs, and decisions. No file inside a distributable component links to, names a path in, or depends on `.agents/rule/`, and running, building, or distributing a component does not depend on the layer. Rules are explanatory documentation: the Markdown checks and the changed-path selector treat them like other Markdown, and the layer adds no checker, classification system, or manifest.
+The [rule layer's entry page](../../../../rule/README.md#reference-direction) owns the reference direction and the layer's status as explanatory documentation.
 
 ### What moves
 

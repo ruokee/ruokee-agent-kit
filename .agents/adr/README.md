@@ -104,7 +104,7 @@ The body uses these required sections:
 ## Risks
 ```
 
-The Chinese body uses `## 动机`, `## 提议`, `## 考虑过的替代方案`, `## 验收标准`, and `## 风险`. The English file may add an optional `## Analysis` section, and the Chinese file an optional `## 分析` section, immediately after the motivation section.
+The Chinese body uses `## 动机`, `## 提议`, `## 考虑过的替代方案`, `## 验收标准`, and `## 风险`.
 
 Merge an approved proposal to `main` as a dedicated change before implementation begins. Implementation starts from the resulting `main` on a new short-lived branch. One proposal may create several decisions, reverse several decisions, or do both.
 
@@ -151,7 +151,7 @@ The body uses these required sections:
 ## Consequences
 ```
 
-The Chinese body uses `## 动机`, `## 决定`, `## 考虑过的替代方案`, and `## 结果`. The English file may add an optional `## Analysis` section, and the Chinese file an optional `## 分析` section, immediately after the motivation section.
+The Chinese body uses `## 动机`, `## 决定`, `## 考虑过的替代方案`, and `## 结果`.
 
 ### Update decision
 

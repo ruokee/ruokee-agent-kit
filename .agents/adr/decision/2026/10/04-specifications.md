@@ -33,27 +33,15 @@ Each component under `projects/`, including `projects/tk` as a whole, has a spec
 
 ### Spec format
 
-Each spec is one same-directory `name.md` and `name.zh.md` pair with reciprocal language links. Both languages are updated in the same change and describe the same target.
-
-A spec uses these sections where they apply: goals, out of scope, public surface, invariants, host lower bound, acceptance criteria, and related ADRs. A section that does not apply to the subject, such as a host lower bound for repository conventions, is omitted.
-
-A spec describes the current target state. It is edited in place and keeps no revision history, review notes, or task records.
+The [spec layer's entry page](../../../../spec/README.md#writing-a-spec) owns how a spec is written, the sections it uses and their order, and the statement that a spec is edited in place.
 
 ### Division of work
 
-A spec states what the subject should be. An ADR records a durable choice, its reasons, its alternatives, and its consequences. Component documentation tells users how to install and use the component.
-
-A spec does not restate content that a component document or a current decision owns. It links to the owning page for command and parameter references, settings tables, file formats, and the component's maintenance declaration, and states only the context its readers need. Related ADRs are listed as links.
-
-A spec must not conflict with a current decision. Changing a target in a way that conflicts with a current decision follows the ADR process before the spec changes. A spec change that alters no durable choice needs no ADR, and the existing rules decide when an ADR is required. ADRs keep their current content rules: a decision may link to a spec, but the link does not replace the contract the decision records.
-
-When a change alters a component's target, it updates the spec together with the component and its documentation in the same change.
+The [spec layer's entry page](../../../../spec/README.md#division-of-work) owns how specs, decisions, rules, component documentation, the repository documentation, and `AGENTS.md` divide their work, and how a spec change relates to a current decision.
 
 ### Reference direction
 
-References run one way. A spec may link to component files, component documentation, and ADRs. No file inside a distributable component links to, names a path in, or depends on `.agents/spec/`, so an installed component remains usable without the repository.
-
-Specs are explanatory documentation. A distributable component does not depend on specs to run, build, or be distributed. Repository checks follow the current check rules, and no check or other consumer is added for specs.
+The [spec layer's entry page](../../../../spec/README.md#reference-direction) owns the reference direction and the statement that specs are explanatory documentation.
 
 ### Repository entry points
 

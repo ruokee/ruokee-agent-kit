@@ -32,14 +32,12 @@ The repository README summarizes the policy in [Component host maintenance](../.
 
 ## Invariants
 
-- Every OMP-facing component declares OMP `18.5.0` as its maintenance lower bound in both README languages, with no upper bound.
-- Where a component has `@oh-my-pi/*` development dependencies, they are locked at `18.5.0`, and test fixtures and real-host checks use that release's host behavior as their baseline.
-- Host peer declarations keep naming the host packages a component uses. Their ranges do not narrow to the bound or add a maintenance upper bound, and an unrestricted `*` declaration keeps that form. No installation condition, custom metadata field, or runtime version check carries the bound.
-- Code paths, probes, fixtures, tests, and documentation sections that exist only for OMP hosts below `18.5.0` are removed. Host behavior introduced at or below the bound, such as the 18.5.0 subagent footer tail, stays supported.
-- A component for another host derives its bound from the delivered component's load conditions, required capabilities, and behavior. When evidence is insufficient, the gap is recorded instead of a guessed bound.
-- Inside the bound, an update keeps the results older maintained hosts had. Implementations are selected by capability or input structure, and by version only where shape cannot tell the cases apart and a semantic difference is documented.
-- Failure stays local: an unavailable feature keeps native behavior or reports a bounded, locatable reason through the existing diagnostic channel without claiming success.
-- Verification strength follows actual behavioral impact. Records state the evidence type, versions, scenarios, and uncovered areas.
+- Every OMP-facing component declares OMP `18.5.0` as its shared maintenance lower bound in both README languages, with no upper bound, and its `@oh-my-pi/*` development dependencies and check baselines follow that release.
+- Host peer declarations keep naming the host packages a component uses without narrowing to the bound. No installation condition, custom metadata field, version check, or install, loading, registration, or diagnostic path carries the bound.
+- Code that exists only for hosts below the bound is removed, while behavior introduced at or below the bound stays supported.
+- Inside the bound, an update keeps the results older maintained hosts had, and capability or input structure selects an implementation, with a version only where shape cannot distinguish the cases and a semantic difference is documented.
+- Failure stays local: an unavailable feature keeps native behavior or reports a bounded, locatable reason without claiming success, and verification strength follows actual behavioral impact.
+- A component for another host derives its bound from the delivered component's load conditions, required capabilities, and behavior, and the gap is recorded instead of a guessed bound when evidence is insufficient.
 - The shared OMP bound moves for every OMP-facing component together, and only through its own decision.
 
 ## Acceptance criteria
