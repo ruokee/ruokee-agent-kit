@@ -9,11 +9,11 @@ English | [中文](./24-relative-links.zh.md)
 
 Write Markdown file references relative to the document that contains them, using `./` and `../`.
 
-File references in nested documents needed one form that supports both GitHub's branch-aware relative-link navigation and click-through in local editors. The `File paths` rules at the time replaced a path that returned two or more directory levels with a repository-root-relative path without a leading `/`. That form works in local editors, but GitHub resolves relative Markdown links from the directory containing the current document, so nested documents point to the wrong location. Adding a leading `/` makes the link repository-root-relative on GitHub, but local editors may treat it as an absolute filesystem path.
+File references in nested documents needed one form that supports both GitHub's branch-aware relative-link navigation and click-through in local editors. The file-path rules at the time replaced a path that returned two or more directory levels with a repository-root-relative path without a leading `/`. That form works in local editors, but GitHub resolves relative Markdown links from the directory containing the current document, so nested documents point to the wrong location. Adding a leading `/` makes the link repository-root-relative on GitHub, but local editors may treat it as an absolute filesystem path.
 
 ## Decision
 
-The `File paths` section in `AGENTS.md` requires Markdown links for repository file references that readers should follow. Each link destination is relative to the Markdown document containing the reference. Destinations in the current directory or a descendant use `./`; paths outside that tree use as many `../` segments as needed. A destination does not start with `/`, use a repository-root-relative path, or use an absolute GitHub URL for a file in this repository.
+The repository [file links rules](../../../../rule/documentation.md#file-links) require Markdown links for repository file references that readers should follow. Each link destination is relative to the Markdown document containing the reference. Destinations in the current directory or a descendant use `./`; paths outside that tree use as many `../` segments as needed. A destination does not start with `/`, use a repository-root-relative path, or use an absolute GitHub URL for a file in this repository.
 
 When the link text names the file, it remains repository-root-relative so the repository location stays clear. For example, an ADR under `.agents/adr/decision/YYYY/MM/` links to the architect Skill as:
 

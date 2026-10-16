@@ -12,7 +12,7 @@ Maintain Handoff cache alignment as an independent capability of `@ruokee/omp-sm
 
 Handoff generates a handoff document or compaction summary from the live conversation. Its side request repeats system prompts, tools, and history already sent by the ordinary main loop. Rebuilding a different common prefix loses eligibility to reuse that input. Responses Handoff carries no V2 compaction trigger and therefore needs its own protocol projection rather than [remote alignment](./10-remote-alignment.md). The [extension decision](./12-smart-cache.md) records the package, capability model, and shared maintenance floor.
 
-A local trial extension exercised some Chat Completions projections. It stays outside this repository, without native settings, per-session isolation, or complete lifecycle acceptance. The host exposes one method at each preparation seam. Installing a second wrapper would break existing ownership, so one package coordinates both capabilities.
+A local trial extension exercised some Chat Completions projections. The host exposes one method at each preparation seam. Installing a second wrapper would break existing ownership, so one package coordinates both capabilities.
 
 ## Analysis
 
@@ -86,7 +86,7 @@ Replace the adaptation after behavioral verification that a maintained native in
 
 ### Trial extension cutover
 
-The package replaces and disables the local trial extension after this capability passes its own acceptance and installation authorization follows. This decision does not perform installation cutover. While the trial is discovered, report a conservative wrapper conflict without takeover. Restart affected processes for cutover rather than transferring in-flight state.
+The package replaces and disables the local trial extension after this capability passes its own acceptance and installation authorization follows. This decision does not perform installation cutover.
 
 ## Alternatives considered
 

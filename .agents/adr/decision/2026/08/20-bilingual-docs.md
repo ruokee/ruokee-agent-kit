@@ -46,6 +46,6 @@ Keep separate English and Chinese documentation directories. This is a viable pa
 
 English remains the default public language, with complete Chinese counterparts for public behavior and usage. Readers can find another language version beside the current page and enter capabilities through the repository and component README pairs.
 
-Every affected change maintains both languages and their links. File-pair and link checks can detect omissions, but they cannot prove semantic agreement; a person or capable Agent must still compare meaning. Use the existing repository checks and explicit affected-link checks rather than adding a permanent translation or documentation-structure checker.
+Every affected change maintains both languages and their links. Use the existing repository checks and explicit affected-link checks rather than adding a permanent translation or documentation-structure checker.
 
 Moving public pages can invalidate external bookmarks and inbound links. Repository-owned references are repaired together, but external references cannot all be updated here.

@@ -10,17 +10,17 @@ Reverses: [Codex 网页访问](../../../archived/2026/09/06-r2-codex-web-access.
 
 从仓库移除 `@ruokee/omp-codex-web-access` 扩展，并取代维护它的决定。
 
-该扩展通过 OMP 的 `openai-responses` API 访问转发 Provider 的模型，并用 OMP 原生插件设置中的五个键配置两个工具。它在 2026-10-08 被标记为即将弃用：维护者报告近期 OMP 版本可用托管网页搜索访问转发 Provider 的模型，而这正是 `codex_web_search` 覆盖的路径，因此在该路径可用时该工具与宿主能力重复；当时还没有会话确认过网关执行托管搜索工具。页面提取当时没有原生等价物。
+该扩展通过 OMP 的 `openai-responses` API 访问转发 Provider 的模型，并用 OMP 原生插件设置中的五个键配置两个工具。它在 2026-10-08 被标记为即将弃用：近期 OMP 版本可用托管网页搜索访问转发 Provider 的模型，而这正是 `codex_web_search` 覆盖的路径，因此在该路径可用时该工具与宿主能力重复；当时还没有会话确认过网关执行托管搜索工具。页面提取当时没有原生等价物。
 
-维护者移除了该组件，并接受两个工具随之消失：页面提取不迁移到其他组件、OMP 设置或宿主配置，也不计划替代物。仓库是该组件唯一的发布渠道，因此没有已发布的发行物需要迁移路径，也不发布、不标记弃用、不下架任何包。
+两个工具随该组件一同消失：页面提取不迁移到其他组件、OMP 设置或宿主配置，也不计划替代物。
 
 ## 决定
 
 ### 被移除的组件
 
-仓库不维护 `@ruokee/omp-codex-web-access`。`projects/omp-codex-web-access` 及其仓库内容已不存在，除本决定与宿主下限决定里的移除条目之外，没有文件把它当作现存组件引用，也没有组件提供 `codex_web_search` 或 `codex_web_fetch`。
+仓库不维护 `@ruokee/omp-codex-web-access`。`projects/omp-codex-web-access` 及其仓库内容已不存在，也没有组件提供 `codex_web_search` 或 `codex_web_fetch`。
 
-仓库的现行记录陈述这次移除：根 README 双语页、两种语言的 `docs/installation`、改动路径检查配置、spec 层，以及命名该组件或引用其设置条款的决定。宿主维护规则继续为其余面向 OMP 的组件保留一个共同下限，去掉一个名称不改变该下限，也不改变其他组件合同。
+宿主维护规则继续为其余面向 OMP 的组件保留一个共同下限，去掉一个名称不改变该下限，也不改变其他组件合同。
 
 ### 不再保留的规则
 

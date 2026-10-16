@@ -93,7 +93,7 @@ This decision retains online confirmation, immutable root snapshots, native life
 
 ### Direct cutover
 
-Deliver remote directly in smart-cache, without a QoL multi-session interim release. Remove QoL's remote implementation, settings consumption, types, tests for obsolete behavior, aliases, re-exports, and public status entry. Keep no shim or runtime cross-component dependency. Preserve valid consumer-visible assertions and every unrelated QoL behavior.
+Deliver remote directly in smart-cache, without a QoL multi-session interim release. Remove QoL's remote implementation, its settings consumption, and its public status entry. Keep no shim or runtime cross-component dependency. Preserve valid consumer-visible assertions and every unrelated QoL behavior.
 
 The component [Spec](../../../../spec/omp-smart-cache.md) states this contract's acceptance criteria.
 

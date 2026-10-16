@@ -11,7 +11,7 @@ Record the token usage and cost of OMP's own compaction and handoff requests in 
 
 OMP sends its own summarization requests when a session compacts: the `soft` method's summary, short-summary, and turn-prefix calls and the `handoff` method's request. The provider bills every one of them and reports the usage to the host, but the value ends at the summarization call. No `model_usage` entry is written, and the session statistics that read those entries miss it, so a session file understates what the session cost and every report, budget, or quota view built on those statistics is wrong by the number of compactions the session performed.
 
-Upstream tracks the gap as [issue #15031](https://github.com/can1357/oh-my-pi/issues/15031) and fixes it in [pull request #15034](https://github.com/can1357/oh-my-pi/pull/15034). On 2026-10-13 that pull request is open and unmerged, and the newest published `@oh-my-pi/pi-coding-agent`, `18.10.3`, does not contain the fix.
+Upstream tracks the gap as [issue #15031](https://github.com/can1357/oh-my-pi/issues/15031) and fixes it in [pull request #15034](https://github.com/can1357/oh-my-pi/pull/15034).
 
 ## Analysis
 
@@ -48,10 +48,6 @@ An attempt that consumed no tokens writes nothing, so a cancelled or failed atte
 ### Retirement
 
 The adjustment is a compensation with a defined end. It reads the native recording export on activation and stays inactive with a reason on a host that records these requests itself, so a released fix stops the compensation instead of doubling its entries. The component documentation carries an upstream re-check section, like the one for [model prompt rules](../09/14-model-prompt-rules.md), that names the surface to check. When a published OMP version records these requests itself, the adjustment's code, settings, documentation, and tests are removed, the component specification drops the capability, and a decision records the removal.
-
-### Release evidence
-
-The implementation adds the adjustment to the [adjustments documentation](../../../../../projects/omp-qol/docs/adjustments.md), the README adjustment and settings tables, the `/qol` status report, and the `package.json` settings manifest, and updates the [component specification](../../../../spec/omp-qol.md) goals, public surface, invariants, and acceptance criteria. The component's `Z` version increases with the change.
 
 ## Alternatives considered
 

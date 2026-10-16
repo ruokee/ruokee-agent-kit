@@ -21,8 +21,6 @@ After explicit review and merge authorization, squash the task branch into one C
 
 Treat pushes and branch deletion as separate external actions that require explicit authorization. A request to commit authorizes a branch commit, not a merge or push.
 
-Temporary initialization facts are not workflow policy. The repository once had an unborn `main`, but that state ended with the initial commit and must not remain in durable instructions.
-
 ## Alternatives considered
 
 None

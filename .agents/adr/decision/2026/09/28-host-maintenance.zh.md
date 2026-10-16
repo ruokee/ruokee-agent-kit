@@ -112,7 +112,7 @@ OMP 下限是共同的维护基线，即组件实际开发和验证所用的 OMP
 - [以静态上下文字形维护 OMP 状态栏](./04-omp-status-bar.zh.md)取代了依赖 `Settings.getGroup` 的投机区间估算，只有 18.4.0 以前的宿主提供该方法。
 - [在独立等待入口上维护 OMP 体验调整](../../../archived/2026/09/20-r7-omp-qol.zh.md)删除了服务 18.3.0 以前宿主的 `hub` 等待路径。
 
-`omp-context-pin` 和 `tk` OMP 适配器没有删除从各自原有下限到 18.5.0 之间宿主用到的行为。[Pin 决定](../../../archived/2026/09/15-r1-omp-context-pin.zh.md)、[模型提示词规则决定](../../../archived/2026/09/14-r1-model-prompt-rules.zh.md)、[tk 集成决定](../08/28-tk-harness.zh.md)和[组件自包含决定](../08/24-component-self-containment.zh.md)在各自的变更中记录下限或继承的合同。
+`omp-context-pin` 和 `tk` OMP 适配器没有删除从各自原有下限到 18.5.0 之间宿主用到的行为。
 
 ## 考虑过的替代方案
 

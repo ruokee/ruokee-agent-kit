@@ -11,7 +11,7 @@ Decision writer: OMP DeepSeek V4.1 Flash
 
 会话压缩时，OMP 会发出自己的摘要请求：`soft` 方法的 summary、short-summary 与 turn-prefix 调用，以及 `handoff` 方法的请求。这些请求都由提供方计费，用量也会报告给宿主，但数值止于摘要调用：没有写入任何 `model_usage` 条目，读取这些条目的会话统计因此漏掉它。于是会话文件少算了该会话的成本，基于这些统计的报告、预算或配额视图也按该会话执行过的压缩次数偏差。
 
-上游把该缺口记为 [issue #15031](https://github.com/can1357/oh-my-pi/issues/15031)，并在 [pull request #15034](https://github.com/can1357/oh-my-pi/pull/15034) 中修复。截至 2026-10-13 该 PR 仍处于未合并状态，最新发布的 `@oh-my-pi/pi-coding-agent`（`18.10.3`）不含该修复。
+上游把该缺口记为 [issue #15031](https://github.com/can1357/oh-my-pi/issues/15031)，并在 [pull request #15034](https://github.com/can1357/oh-my-pi/pull/15034) 中修复。
 
 ## 分析
 
@@ -48,10 +48,6 @@ Decision writer: OMP DeepSeek V4.1 Flash
 ### 退出
 
 本调整是有明确终点的补偿。它在激活时读取原生记录导出，在自身记录这些请求的宿主上以原因保持停用，因此已发布的修复会让补偿停用，而不是把条目写两遍。组件文档带有上游复核小节，形式与[模型提示词规则](../09/14-model-prompt-rules.zh.md)相同，并指明需要检查的界面。当已发布的 OMP 版本自己记录这些请求时，移除本调整的代码、设置、文档与测试，从组件规格中删除该能力，并用一条决定记录这次移除。
-
-### 发布证据
-
-实现会把该调整加入[调整项文档](../../../../../projects/omp-qol/docs/adjustments.zh.md)、README 的调整项与设置表、`/qol` 状态报告以及 `package.json` 的设置 manifest，并更新[组件规格](../../../../spec/omp-qol.zh.md)的目标、公共面、不变量与验收标准。组件 `Z` 版本随本次改动递增。
 
 ## 考虑过的替代方案
 

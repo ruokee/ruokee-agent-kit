@@ -34,7 +34,7 @@ Keep the English component under `skills/well-said/` and the Chinese component u
 
 Do not repeat source attribution, license text, or the version in the Skill body. The repository README credits the source Skill and its author; this decision records the upstream path, the pinned revision, and the license.
 
-Use `1.0.0` as the first formal release version. Revision labels used during drafting are not software versions. Later releases follow the repository's version policy. No package manifest, detector, plugin, or runtime dependency is added to the ordinary Skill.
+Use `1.0.0` as the first formal release version. Later releases follow the repository's version policy. No package manifest, detector, plugin, or runtime dependency is added to the ordinary Skill.
 
 The [first-party capability decision](../08/20-first-party-capabilities.md) distinguishes ownership of well-said from authorship of reused material. Preserve most of the source wording, examples, and useful organization in the style section, with necessary integration changes and additions. The retained wording comes from [Cursor plugins / pstack](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/skills/unslop/SKILL.md), revision `99559f2f52047978602ef365589275831e76af07`, under the [pstack MIT license](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/LICENSE), copyright Lauren Tan, 2026. Verify provenance, permission, attribution, and notices before distributing further reused material.
 
@@ -115,7 +115,5 @@ Rules within the Skill and existing writing instructions can overlap or conflict
 Tuning rules to familiar examples can improve those examples without helping new writing. Fresh-input tests and regression checks are needed to expose that failure.
 
 Copying source text without verifying its provenance and license can omit required attribution or distribute material without permission. The ownership of the new component does not resolve those obligations.
-
-The category mapping and the full upstream notice that the removed source documents carried survive only in Git history and at the pinned upstream revision, so a later provenance check reads history rather than a file.
 
 Attribution now lives in the repository README and this decision rather than beside the writing instructions, so later changes must keep both accurate.

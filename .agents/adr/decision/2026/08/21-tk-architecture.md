@@ -71,7 +71,7 @@ The runtime is a shared failure boundary. A defect in the executable can affect 
 
 ### 2026-09-02 Add selectable Skills
 
-The product now has four independently discoverable Skills and multiple Harness component selections. The ownership list above replaces the archived single-language Harness integration and distribution decisions with four focused current decisions.
+The product now has four independently discoverable Skills and multiple Harness component selections. The four focused current decisions replace the archived single-language Harness integration and distribution decisions.
 
 ### 2026-09-03 Add custom CLI Skill roots
 

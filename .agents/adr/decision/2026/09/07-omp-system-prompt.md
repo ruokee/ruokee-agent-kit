@@ -41,7 +41,7 @@ The reversal changes only the clauses in the table. The rest of the retention de
 
 ### Host floor inventory
 
-[Maintain host components against a shared OMP floor](./28-host-maintenance.md) names the component in its inventory of OMP-facing components. Removing the name leaves the choice, one shared bound for the remaining components, intact, so the inventory is brought into line as factual maintenance rather than a reversal.
+Bringing the [host floor decision's](./28-host-maintenance.md) inventory of OMP-facing components into line with this removal is factual maintenance rather than a reversal, because the choice of one shared bound for the remaining components stays intact.
 
 ## Alternatives considered
 
@@ -56,7 +56,7 @@ The reversal changes only the clauses in the table. The rest of the retention de
 ## Consequences
 
 - The Delivery chapter and the `<project-context>` footer correction stop applying in every session where the extension does not run, which means it is disabled or uninstalled and the process no longer executes its handler. A complete plugin copy that the host still loads keeps producing both. A kept template copy supplies the strategy text alone, because both behaviors belong to the handler rather than to a template render.
-- A reference the removal misses leaves the repository describing a component that does not exist. The QoL coexistence statement and the host compatibility inventory are the most likely places to be missed.
+- A reference the removal misses leaves the repository describing a component that does not exist.
 - An installed copy that keeps running does so against a host version its patches were not written for, and its patch can fail without a diagnostic, so a user can believe the strategy text is still applied.
 - Removing the local installation changes state outside the repository. Without a record of the previous plugin list, restoring it needs a fresh link or install command.
 - The component inventory in the specification layer, the documentation, and the changed-path check configuration describes a smaller set of components, and the specification layer owns that inventory for later readers.

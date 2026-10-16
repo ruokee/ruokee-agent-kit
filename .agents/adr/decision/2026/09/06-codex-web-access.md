@@ -10,17 +10,17 @@ English | [中文](./06-codex-web-access.zh.md)
 
 Remove the `@ruokee/omp-codex-web-access` extension from the repository and reverse the decision that maintained it.
 
-The extension reached a forwarding Provider's model through OMP's `openai-responses` API and configured both tools through five keys in OMP's native plugin settings. It was marked as approaching deprecation on 2026-10-08: the maintainer reported that recent OMP releases reach a forwarded Provider's model with hosted web search, which is the path `codex_web_search` covered, so that tool duplicated a host capability where this path works, and no session had confirmed a gateway executing the hosted search tool. Page extraction had no native equivalent.
+The extension reached a forwarding Provider's model through OMP's `openai-responses` API and configured both tools through five keys in OMP's native plugin settings. It was marked as approaching deprecation on 2026-10-08: recent OMP releases reach a forwarded Provider's model with hosted web search, which is the path `codex_web_search` covered, so that tool duplicated a host capability where this path works, and no session had confirmed a gateway executing the hosted search tool. Page extraction had no native equivalent.
 
-The maintainer removed the component and accepted that both tools disappear with it: page extraction is not migrated to another component, an OMP setting, or a host configuration, and no replacement is planned. The repository is the component's only distribution channel, so no published release needs a migration path, and no package is published, marked deprecated, or unpublished.
+Both tools disappear with the component: page extraction is not migrated to another component, an OMP setting, or a host configuration, and no replacement is planned.
 
 ## Decision
 
 ### Removed component
 
-The repository does not maintain `@ruokee/omp-codex-web-access`. `projects/omp-codex-web-access` and its repository content are gone, no file outside this decision and the removal entry in the host floor decision refers to the directory or the package as an existing component, and no component provides `codex_web_search` or `codex_web_fetch`.
+The repository does not maintain `@ruokee/omp-codex-web-access`. `projects/omp-codex-web-access` and its repository content are gone, and no component provides `codex_web_search` or `codex_web_fetch`.
 
-The repository's current records state the removal: the root README pair, `docs/installation` in both languages, the changed-path check configuration, the spec layer, and the decisions that named the component or cited its settings clause. The host maintenance rules keep one shared lower bound for the remaining OMP-facing components, and the removal of one name does not change that bound or another component's contract.
+The host maintenance rules keep one shared lower bound for the remaining OMP-facing components, and the removal of one name does not change that bound or another component's contract.
 
 ### Rules that do not survive
 

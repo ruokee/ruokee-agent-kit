@@ -14,7 +14,7 @@ The archived decision moved the rules out of `@ruokee/omp-system-prompt` into Qo
 
 ## Analysis
 
-A maintainer needs user-authored Markdown rules that give different models different system instructions without editing extension source, host files, or a distribution, and QoL provides that capability independently of any component template or strategy replacement. The public `before_agent_start` event exposes the current turn's system-prompt blocks and effective model and accepts an extended array. The previously checked upstream request is [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739), and that historical check does not establish that no current host offers an equivalent capability, so the upstream re-check below stays required. Native handlers chain in actual extension load order without a priority setting, and installation-command order does not establish execution order.
+A maintainer needs user-authored Markdown rules that give different models different system instructions without editing extension source, host files, or a distribution, and QoL provides that capability independently of any component template or strategy replacement. The public `before_agent_start` event exposes the current turn's system-prompt blocks and effective model and accepts an extended array. Native handlers chain in actual extension load order without a priority setting, and installation-command order does not establish execution order.
 
 ## Decision
 
@@ -44,7 +44,7 @@ Rule documents in a project directory turn repository content into system-prompt
 
 ### Upstream recheck
 
-The component documents the re-check it needs when the host provides model-scoped instructions itself, through upstream issue #6739 or an equivalent capability:
+The component documents the re-check it needs when the host provides model-scoped instructions itself, through upstream [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) or an equivalent capability:
 
 - which matching dimensions the host covers, such as exact `provider/model` keys, bare model ids, substrings, and regular expressions;
 - how host text composes with a replaced or customized system prompt: replacement or append, and its position in the block order;
@@ -70,7 +70,7 @@ The reversal changes the two clauses in the table and nothing else in the choice
 
 ## Alternatives considered
 
-The archived record holds the alternatives considered when the rules moved into QoL. Reversing it had these options.
+Reversing the archived decision had these options.
 
 - **Keep the archived decision current and rewrite its two clauses as factual maintenance.** Considered while checking which mechanism fits. Maintenance keeps a current decision accurate when paths, names, or verification entry points move; here the clauses lose their subject, so a rewrite would reverse a decision through the mechanism that is not allowed to reverse one.
 - **Withdraw the two clauses by appending a `## Changes` entry to the current decision.** Considered as the lighter mechanism. An update is allowed only when the added content does not conflict with the decision, and an entry that withdraws the binding force of an existing clause conflicts with it, so this route is closed.

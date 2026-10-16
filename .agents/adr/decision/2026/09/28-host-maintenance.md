@@ -112,7 +112,7 @@ Raising the OMP-facing components to 18.5.0 removes three behaviors that still w
 - [Maintain the OMP status bar with a static context glyph](./04-omp-status-bar.md) replaces the speculation band estimate that needs `Settings.getGroup`, which hosts before 18.4.0 provide.
 - [Maintain OMP quality of life adjustments on the standalone wait entry](../../../archived/2026/09/20-r7-omp-qol.md) removes the `hub` wait path that served hosts before 18.3.0.
 
-`omp-context-pin` and the `tk` OMP adapter remove no behavior that a host from their earlier bound up to 18.5.0 used. [The context pin decision](../../../archived/2026/09/15-r1-omp-context-pin.md), [the model prompt rules decision](../../../archived/2026/09/14-r1-model-prompt-rules.md), [the tk integration decision](../08/28-tk-harness.md), and [the self-contained component decision](../08/24-component-self-containment.md) record the bound or the inherited contract under their changes.
+`omp-context-pin` and the `tk` OMP adapter remove no behavior that a host from their earlier bound up to 18.5.0 used.
 
 ## Alternatives considered
 

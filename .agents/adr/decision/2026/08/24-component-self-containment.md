@@ -25,8 +25,6 @@ This rule covers Markdown links, written file paths, and examples whose operatio
 
 Repository-wide documentation, ADRs, manifests, installers, and integration code outside component directories may reference components when describing or assembling them. The restriction applies to references originating inside a distributable component.
 
-Record the rule in `AGENTS.md` and remove existing cross-boundary references from every current language tree.
-
 ## Alternatives considered
 
 None

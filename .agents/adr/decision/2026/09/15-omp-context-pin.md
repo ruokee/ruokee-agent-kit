@@ -10,7 +10,7 @@ English | [中文](./15-omp-context-pin.zh.md)
 
 Maintain the omp-context-pin extension as a first-party host component whose pinned text stays verbatim across compaction, and keep its capacity values with the component rather than with this decision.
 
-The component exists, and its public surface is documented in the component README while the [component specification](../../../../spec/omp-context-pin.md) states its goals, invariants, and acceptance criteria. This decision carries forward the rules that still hold and records one change: the capacity values leave the decision and become component defaults. The archived record holds the earlier analysis, the original alternatives, and the values as they stood.
+The component exists, and its public surface is documented in the component README while the [component specification](../../../../spec/omp-context-pin.md) states its goals, invariants, and acceptance criteria.
 
 ## Decision
 
@@ -86,7 +86,7 @@ The archived record holds the alternatives considered when the component's earli
 ## Consequences
 
 - Pinned text and accumulated revisions consume context. The byte limits constrain active bodies only, so they bound neither tokens, metadata, nor older tail messages, and a full request can still overflow after compaction.
-- The limits no longer appear in this decision, so the component README is their single documented source, and a component change that adjusts them conflicts with nothing recorded here.
+- The component README is the single documented source of the limits, and a component change that adjusts them conflicts with nothing recorded here.
 - A branch whose active bodies exceed the current limit keeps its entries readable and refuses new writes until the total drops below the limit; unpinning is not capacity-checked, so such a branch can return under the limit on its own.
 - The canonical record and its model projection are separate: a record can exist while its projection is missing, and recovery can deliver a duplicate or an older revision after the snapshot. Recovery across restarts, queuing, and compaction stays in the acceptance scope.
 - Choosing the wrong boundary loses accepted changes or revives a superseded revision. Another extension can insert messages around a host summary or drop a snapshot, and the final provider transformation can change an order that looked right in a hook, so acceptance checks the final request of the tested combination.

@@ -23,8 +23,6 @@ Install a selected language variant at the normal host Skill path, with no `vari
 
 Keep each Skill understandable on its own. A cross-Skill link may provide related reading, but another Skill must not be required to explain this Skill's own terms or operating rules.
 
-When importing an existing Skill, preserve its body meaning. Change paths required by the new layout, but do not combine the import with unrelated rewriting. Do not delete a valid cross-reference merely because its target will arrive in a later repository change.
-
 ## Alternatives considered
 
 None
