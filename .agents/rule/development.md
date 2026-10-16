@@ -22,6 +22,8 @@ English | [中文](./development.zh.md)
 ### Checks
 
 - Run `pnpm check:changed` from the repository root during development and before requesting review. It includes committed and working-state changes relative to the merge base with local `main`, keeps deletion and rename paths, and selects a deduplicated check union.
+- Use `pnpm check:changed --base <ref>` for the merge base of another ref with `HEAD`, not a comparison of branch tips. The command does not fetch history.
+- Rank consumer rules above the ordinary Markdown rule. Unknown components, including their Markdown files, are not treated as formatting-only. A deleted explanatory document may need no formatter, and an empty affected result is not complete merge validation.
 - Let unknown inputs, shared inputs, and unreliable classification fall back to one complete `pnpm check`.
 - Run a component's checks from that component, where they live beside it.
 - Update the complete aggregate, the selector mapping, and the selector regression tests together when adding a component or a document consumer, or when changing a required automated check.
@@ -30,6 +32,17 @@ English | [中文](./development.zh.md)
 - Use targeted `pnpm check:*` commands only when needed. `pnpm check:base` covers Markdown and Rust checks, not component checks.
 - Treat automated success as no proof of real-model behavior or interactive UI correctness, and follow the component's own scenario and release validation as well.
 - As far as possible, consult applicable specs, ADRs, and rules when validating or evaluating work, and check the result against them.
+
+The [selector](../../scripts/check-changed.mjs) maintains an explicit mapping:
+
+| Changed scope | Selected checks |
+| --- | --- |
+| Known explanatory Markdown, including ADRs, specifications, rule pages, root READMEs, Skills, and component documentation | Prettier for changed files that still exist, using the repository configuration and ignore rules |
+| Registered OMP component non-Markdown files, or Markdown under its `src/` or `test/` | That component's `typecheck` and `test`, plus changed Markdown formatting |
+| tk non-Markdown files, or Markdown in its `skills/`, `claude/`, `pi/`, or `omp/` packaging trees | Rust formatting and tests, native adapter tests, and changed Markdown formatting |
+| [docs/installation.md](../../docs/installation.md), its Chinese counterpart, or the Skill installation and lifecycle scripts | Skill lifecycle tests, plus changed Markdown formatting |
+| Multiple known scopes | Their check union, without duplicate execution |
+| Shared toolchain or check inputs, selector changes, unknown paths, or an unreliable baseline or classification | One complete `pnpm check`, without first running partial checks |
 
 ### Merge gate
 

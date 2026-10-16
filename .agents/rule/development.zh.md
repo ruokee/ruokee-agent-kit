@@ -22,6 +22,8 @@
 ### 检查
 
 - 开发和请求审查前，在仓库根目录运行 `pnpm check:changed`。范围包含相对本地 `main` 的 merge base 的已提交与工作态改动、删除路径和重命名两端，并选择去重后的检查并集。
+- 用 `pnpm check:changed --base <ref>` 选择其他 ref 与 `HEAD` 的 merge base，不比较分支顶端。命令不 fetch 历史。
+- 消费者规则优先于普通 Markdown 规则。未知组件及其 Markdown 不按仅格式检查处理。删除说明性文档可以无需格式命令，空的受影响结果不是完整合并验证。
 - 未知输入、共享输入和不可靠的分类回退为一次完整 `pnpm check`。
 - 组件检查在组件所在目录运行，检查与组件放在一起。
 - 增加组件或文档消费者，或改变必需的自动检查时，同时更新完整检查集合、选择器映射和选择器回归测试。
@@ -30,6 +32,17 @@
 - 仅在有必要时使用 `pnpm check:*` 系列命令进行针对性检查。`pnpm check:base` 只覆盖 Markdown 与 Rust 检查，不覆盖组件检查。
 - 自动化成功不能证明真实模型行为或交互界面正确性，仍须遵循组件自身的场景与发布验证。
 - 验证或评估工作成果时，尽可能查阅适用的 Spec、ADR 和 Rule，并对照检查结果。
+
+[选择器](../../scripts/check-changed.mjs)维护显式映射：
+
+| 变更范围 | 选中检查 |
+| --- | --- |
+| 已知说明性 Markdown，包括 ADR、规格、规则页面、根 README、Skill 和组件文档 | 对仍存在的变更文件运行 Prettier，保留仓库配置和忽略规则 |
+| 已登记 OMP 组件的非 Markdown 文件，或其 `src/`、`test/` 下的 Markdown | 该组件的 `typecheck`、`test`，以及变更 Markdown 格式检查 |
+| tk 非 Markdown 文件，或其 `skills/`、`claude/`、`pi/`、`omp/` 打包树中的 Markdown | Rust 格式与测试、原生适配器测试，以及变更 Markdown 格式检查 |
+| [docs/installation.zh.md](../../docs/installation.zh.md)、对应英文版，或 Skill 安装与生命周期脚本 | Skill 生命周期测试，以及变更 Markdown 格式检查 |
+| 多个已知范围 | 检查并集，每项只执行一次 |
+| 共享工具链或检查输入、选择器变更、未知路径，或不可靠的基线与分类 | 只运行一次完整 `pnpm check`，不先执行局部检查 |
 
 ### 合并门禁
 

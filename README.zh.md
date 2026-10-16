@@ -50,42 +50,17 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 
 ## 安装
 
-Skill 安装与下方的开发环境准备相互独立，不需要开发依赖或构建。拓展和 tk 运行时在各自目录中构建和安装，具体要求见各自的 README。
+Skill 安装与下方的开发环境准备相互独立，不需要开发依赖或构建。语言选择、Skill 根目录，以及检查、安装、更新和卸载命令见[安装 Skill](./docs/installation.zh.md)。同一批 Skill 的中文变体位于 `variants/zh/skills/`。
 
-### 选择能力
-
-| 需求 | 组件 |
-| --- | --- |
-| 代码与测试质量分析 | [code-quality](./skills/code-quality/SKILL.md) |
-| Python 工程实践 | [python-engineering](./skills/python-engineering/SKILL.md) |
-| `msgspec` 结构体、验证与序列化 | [msgspec](./skills/msgspec/SKILL.md) |
-| 跨系统边界的架构判断 | [architect](./skills/architect/SKILL.md) |
-| 采集并验证来源的研究 | [deep-research](./skills/deep-research/SKILL.md) |
-| 通过分轮提问澄清需求 | [grill-me](./skills/grill-me/SKILL.md)，需显式调用 |
-| 跨会话、跨 Agent 保存任务状态 | [tk](./projects/tk/README.zh.md)，附带独立运行时 |
-| 调整 OMP 界面或行为 | 下方的 OMP 拓展 |
-
-### 普通 Skill
-
-普通 Skill 是一个包含 `SKILL.md` 的目录，需要时还包含自己的 references 和 workflow。安装会把整个目录复制到 Harness 加载 Skill 的根目录，例如 OMP 的用户级目录 `$HOME/.omp/agent/skills`。
-
-语言选择、Skill 根目录，以及检查、安装、更新和卸载命令见 [安装 Skill](./docs/installation.zh.md)。同一批 Skill 的中文变体位于 `variants/zh/skills/`。
-
-### 拓展
-
-拓展各自提供安装与更新说明，请按组件 README 操作。tk 运行时与各 Harness 的接入组件分别安装。
-
-### 将 QoL remote 设置迁入 smart-cache
-
-加载更新后的链接源码前协调完成迁移，再重启每个受影响的 OMP 进程。不热转移在途 owner 或参照。
-
-1. 检查 `@ruokee/omp-qol` 原生插件设置的**每个适用用户层及项目层**。记录旧的有效 `compactionCacheProvider` 与 `compactionCacheMode`；只有模式合法缺省时才使用 `hooks`。保留全部无关设置。
-2. 只有旧有效 QoL 总开关 `enabled` 和 `compactionCacheEnabled` 都合法且启用，Provider 合法非空、模式合法时，才启用新修复。默认、非法配置、空 Provider 或任一开关关闭都必须保持未启用。
-3. 安装 [omp-smart-cache](./projects/omp-smart-cache/README.zh.md#安装)。显式设置其原生 `compactionCacheEnabled`、`compactionCacheProvider` 与 `compactionCacheMode`，保留记录的有效选择；未启用时明确设置 `false`。核对项目覆盖，不能只处理合并后的用户对象。
-4. 从**每个适用 QoL 用户层及项目层**移除全部三个旧 remote 键，更新 QoL 并重启。旧键是 QoL 未知键，可能使所有模块拒绝配置。两组件都不读取对方设置、不编辑配置，也不自动迁移安装。
-5. `/smart-cache` 查看 remote，`/qol` 查看剩余五项调整。误装共存旧 QoL remote 时保守报告冲突，不抢占包装。Handoff 协议和安装分别维护，本次迁移不替换它们。
+拓展和 tk 运行时在各自目录中构建和安装，具体要求见各自的 README。tk 运行时与各 Harness 的接入组件分别安装。
 
 ## 开发
+
+### 文档分层
+
+长期仓库决定通过双语 [ADRs](./.agents/adr/README.zh.md) 记录。双语[规格](./.agents/spec/README.zh.md)说明每个组件和仓库领域的当前目标，并链接到拥有细节的决定和文档。双语[规则层](./.agents/rule/README.zh.md)说明在这个仓库里工作要怎么做：贡献者或 Agent 必须做什么、按什么顺序、持哪项授权，以及什么被禁止。
+
+[开发规则](./.agents/rule/development.zh.md)说明规划改动、准备环境、运行检查和合并门禁。
 
 ### Git
 
@@ -98,7 +73,7 @@ pnpm install --frozen-lockfile
 pnpm hooks:install
 ```
 
-钩子在每次提交前格式化暂存文件，并校验提交信息。信息不符合类型或 scope 规则时会阻止提交，并打印违反的规则。[验证规则](./.agents/rule/development.zh.md#验证)说明环境、检查和完整合并门。
+钩子在每次提交前格式化暂存文件，并校验提交信息。信息不符合类型或 scope 规则时会阻止提交，并打印违反的规则。
 
 ### 仓库布局
 
@@ -108,15 +83,13 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 
 普通公开文档采用同目录的 `name.md` 和 `name.zh.md` 配对。仓库和组件入口页使用 `README.md` 和 `README.zh.md`。
 
-长期仓库决定通过双语 [ADRs](./.agents/adr/README.zh.md) 记录。双语[规格](./.agents/spec/README.zh.md)说明每个组件和仓库领域的当前目标，并链接到拥有细节的决定和文档。双语[规则层](./.agents/rule/README.zh.md)说明在这个仓库里工作要怎么做：贡献者或 Agent 必须做什么、按什么顺序、持哪项授权，以及什么被禁止。
-
 ### 组件宿主维护
 
 将代码加载进宿主进程的组件在自身 README 的兼容性小节声明维护下限，宿主 peer 声明只列出包名，提高下限只能通过独立决定。面向 OMP 的组件共用一个下限。[宿主维护决定](./.agents/adr/decision/2026/09/28-host-maintenance.zh.md)记录完整规则。
 
 ### 检查前置条件
 
-使用 [package.json](./package.json) 声明的 pnpm 版本、其支持的 Node.js 运行时和 Git。开发阶段只准备受影响检查选中的环境：
+使用 [package.json](./package.json) 声明的 pnpm 版本、其支持的 Node.js 运行时和 Git。[检查选择规则](./.agents/rule/development.zh.md#检查)定义一次改动会选中哪些检查。开发阶段只准备这些检查需要的环境：
 
 | 选中范围 | 需要准备的环境 |
 | --- | --- |
@@ -126,7 +99,7 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 | Skill 生命周期 | 根工具链、Git、非 root 的 POSIX shell 环境、`diff` 和测试脚本使用的常见系统文件工具 |
 | 完整检查或完整回退 | 上述全部环境，包括每个 OMP 组件的锁定依赖树 |
 
-已知文档消费者追加所需环境，多范围取并集。这不改变工作目录规则。每个分支保留独立的可写依赖目录和构建目录。包管理器内容缓存可以在同一信任边界内复用；清单或锁文件改变后，重新准备对应环境。
+已知文档消费者追加所需环境，多范围取并集。
 
 完整验证时，安装每个 OMP 组件的锁定依赖：
 
@@ -137,40 +110,9 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 (cd projects/omp-smart-cache && bun install --frozen-lockfile)
 ```
 
-### 受影响检查
-
-开发和请求审查前，在仓库根目录运行 `pnpm check:changed`。审查前提交任务改动并保持工作树干净。
-
-默认基线是分支与本地 `main` 的 merge base。范围包含已提交、已暂存、未暂存、非忽略的未跟踪路径、删除路径和重命名两端。使用 `pnpm check:changed --base <ref>` 选择其他 ref 与 `HEAD` 的 merge base，不比较分支顶端。命令不 fetch 历史。
-
-[选择器](./scripts/check-changed.mjs)维护显式映射：
-
-| 变更范围 | 选中检查 |
-| --- | --- |
-| 已知说明性 Markdown，包括 ADR、规格、规则页面、根 README、Skill 和组件文档 | 对仍存在的变更文件运行 Prettier，保留仓库配置和忽略规则 |
-| 已登记 OMP 组件的非 Markdown 文件，或其 `src/`、`test/` 下的 Markdown | 该组件的 `typecheck`、`test`，以及变更 Markdown 格式检查 |
-| tk 非 Markdown 文件，或其 `skills/`、`claude/`、`pi/`、`omp/` 打包树中的 Markdown | Rust 格式与测试、原生适配器测试，以及变更 Markdown 格式检查 |
-| [docs/installation.md](./docs/installation.md)、对应中文版，或 Skill 安装与生命周期脚本 | Skill 生命周期测试，以及变更 Markdown 格式检查 |
-| 多个已知范围 | 检查并集，每项只执行一次 |
-| 共享工具链或检查输入、选择器变更、未知路径，或不可靠的基线与分类 | 只运行一次完整 `pnpm check`，不先执行局部检查 |
-
-消费者规则优先于普通 Markdown 规则。未知组件及其 Markdown 不按仅格式检查处理。新增组件、必需检查和文档消费者时，同步更新选择器中的完整检查列表、显式映射及[选择测试](./scripts/tests/check-changed.test.mjs)。
-
-输出列出基线和 merge base、路径来源、选中范围与命令、回退原因及失败位置。
-
-缺失工具或选中范围的本地依赖时失败，不安装依赖，也不用全局 TypeScript 替代。缺少 Git、checkout 无效或 index 存在未解决冲突时直接失败。历史不足或无法可靠收集路径时触发完整回退。
-
-删除说明性 Markdown 可以无需格式命令。空的受影响结果不是完整合并验证。
-
 ### 完整合并验证
 
-所有审查修改完成后、合并前，验证最终候选：
-
-1. 提交全部改动、保持工作树干净，并确认候选包含目标 `main`。
-2. 运行 `pnpm check`，记录候选提交和 tree、目标 `main` 提交、命令及结果。
-3. 执行已授权的 squash merge 前，确认目标未变化，并核对合并 tree 与验证 tree 一致。
-
-新增受跟踪变更、待提交内容、候选变化或目标 `main` 前进，都使原成功结果失效。形成新的最终候选并重新完整验证。
+合并前需要在干净、已提交且包含目标 `main` 的最终候选上运行完整 `pnpm check`。记录候选提交和 tree、目标提交、命令及结果。新增受跟踪变更、待提交内容、候选变化或目标前进，都会使记录的成功结果失效，需要重新完整验证。执行已授权的 squash merge 前，确认目标未变化，并核对合并 tree 与验证 tree 一致。
 
 完整入口执行选择器中的完整检查列表，即 `node scripts/check-changed.mjs --complete`，不收集变更路径。检查顺序如下：
 
@@ -183,9 +125,9 @@ Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或
 7. 通过 `pnpm check:skills` 执行 `sh scripts/tests/skills.sh`，运行 Skill 生命周期测试。
 8. 通过 `pnpm check:selector` 执行受影响选择器回归测试。
 
-完整入口在执行第一条命令前核对所列的全部工具和本地输入。首次命令失败即停止执行，并返回非零状态。缺失可执行文件或依赖也会使检查失败。命令及组件输出可以定位失败步骤。检查不安装依赖或格式化源码；构建和测试可以创建自身正常使用的生成文件与临时文件。完整入口不选择受影响检查，回退不会递归。
+完整入口在执行第一条命令前核对所列的全部工具和本地输入，首次命令失败即停止执行并返回非零状态。
 
-`pnpm check:base` 只覆盖 Markdown 与 Rust，适用于局部工作。组件检查也可通过各自已有脚本独立执行。自动化成功不能证明真实模型行为或交互界面正确性，仍须遵循相关组件的场景及发布验证要求。[仓库检查决定](./.agents/adr/decision/2026/09/12-repository-checks.zh.md)定义完整契约。
+[仓库检查决定](./.agents/adr/decision/2026/09/12-repository-checks.zh.md)定义完整契约。
 
 ### 常用命令
 

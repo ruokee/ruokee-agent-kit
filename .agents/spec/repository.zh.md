@@ -31,7 +31,7 @@
 - 仓库布局：[仓库布局](../../README.zh.md#仓库布局)。
 - 按活动的规则：[.agents/rule/README.zh.md](../rule/README.zh.md)，索引边界、开发、Git 和文档规则。
 - Git 工作流、提交规则和钩子：[Git](../../README.zh.md#git)、[Git 规则](../rule/git.zh.md)和[验证规则](../rule/development.zh.md#验证)。
-- 检查前置条件、受影响检查和完整合并门禁：[检查前置条件](../../README.zh.md#检查前置条件)、[受影响检查](../../README.zh.md#受影响检查)和[完整合并验证](../../README.zh.md#完整合并验证)。
+- 检查前置条件、受影响检查和完整合并门禁：[检查前置条件](../../README.zh.md#检查前置条件)、[受影响检查](../rule/development.zh.md#检查)和[完整合并验证](../../README.zh.md#完整合并验证)。
 - 常用命令：[常用命令](../../README.zh.md#常用命令)。
 - ADR 规则和术语表：[.agents/adr/README.zh.md](../adr/README.zh.md) 和 [.agents/adr/glossary.zh.md](../adr/glossary.zh.md)。
 - spec 规则：[.agents/spec/README.zh.md](./README.zh.md)。

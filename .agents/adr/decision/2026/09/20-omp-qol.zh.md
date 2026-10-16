@@ -95,7 +95,7 @@ Reverses: [OMP QoL](../../../archived/2026/09/20-r8-omp-qol.zh.md)
 
 ### Remote 切换
 
-[Smart-cache 拥有 remote 对齐](../10/10-remote-alignment.zh.md)。remote 实现、设置消费、状态入口、别名、再导出和运行时依赖都归该组件。仓库 README 双语页维护用户与项目层协同迁移及重启说明。QoL 维护自己的调整：上述独立期限实验及其 `owner-stopped` 终态，以及进程级 replay 归属和释放规则。Remote 恢复不改变这些合同。
+[Smart-cache 拥有 remote 对齐](../10/10-remote-alignment.zh.md)。remote 实现、设置消费、状态入口、别名、再导出和运行时依赖都归该组件。QoL 维护自己的调整：上述独立期限实验及其 `owner-stopped` 终态，以及进程级 replay 归属和释放规则。Remote 恢复不改变这些合同。
 
 ### 发布证据
 

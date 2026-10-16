@@ -31,7 +31,7 @@ The [rule layer](../rule/README.md) states how work is done here.
 - Repository layout: [Repository layout](../../README.md#repository-layout).
 - Working rules by activity: [.agents/rule/README.md](../rule/README.md), which indexes the boundary, development, Git, and documentation rules.
 - Git workflow, commit rules, and hooks: [Git](../../README.md#git), [Git rules](../rule/git.md), and [validation rules](../rule/development.md#validation).
-- Check prerequisites, affected checks, and the complete merge gate: [Check prerequisites](../../README.md#check-prerequisites), [Affected checks](../../README.md#affected-checks), and [Complete merge validation](../../README.md#complete-merge-validation).
+- Check prerequisites, affected checks, and the complete merge gate: [Check prerequisites](../../README.md#check-prerequisites), [Affected checks](../rule/development.md#checks), and [Complete merge validation](../../README.md#complete-merge-validation).
 - Common commands: [Common commands](../../README.md#common-commands).
 - ADR rules and glossary: [.agents/adr/README.md](../adr/README.md) and [.agents/adr/glossary.md](../adr/glossary.md).
 - Spec rules: [.agents/spec/README.md](./README.md).
