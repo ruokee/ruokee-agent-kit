@@ -41,7 +41,7 @@ For OMP, the user-level ordinary Skill directory is:
 $HOME/.omp/agent/skills
 ```
 
-Other Harnesses load Skills from their own paths. A project-level root is the directory your Harness reads for the current project. Confirm the path in the documentation of the Harness you actually run before installing; the script does not guess a root and cannot verify that a Harness loads what it writes.
+Other Harnesses load Skills from their own paths. A project-level root is the directory your Harness reads for the current project. Confirm the path in the documentation of the Harness you actually run before installing; the script does not guess a root.
 
 ## Check what is installed
 
@@ -148,7 +148,7 @@ A top-level symlink is also valid for a Skill root that follows links:
 ln -s "$PWD/skills/code-quality" "$HOME/.omp/agent/skills/code-quality"
 ```
 
-A linked Skill has no separate copy: its content is the checkout, so it changes when you pull. Whether a Harness follows such a link and when it reloads the content are properties of that Harness; the script cannot confirm either. `check` reports a linked target, compares the content it resolves to, and treats a broken link as a difference. `uninstall` removes only the link.
+A linked Skill has no separate copy: its content is the checkout, so it changes when you pull. `check` reports a linked target, compares the content it resolves to, and treats a broken link as a difference. `uninstall` removes only the link.
 
 Install one Skill at a time. Neither the script nor this guide installs every Skill by default.
 
@@ -163,7 +163,7 @@ Install one Skill at a time. Neither the script nor this guide installs every Sk
 ## Limits
 
 - `check` compares the source in your clone with the target you name. Without an earlier baseline it cannot tell whether a difference came from the repository or from a local edit, so it reports a difference to review and never authorizes an overwrite.
-- Identical content proves that two directories match. It does not prove that a running Harness has loaded that version; reload or restart the Harness according to its own rules.
+- Whether a running Harness reads a written Skill, follows a top-level link, or reloads after a change is that Harness's own behavior. The script cannot observe it. Identical content proves only that two directories match. Reload or restart the Harness according to its own rules.
 - The script manages ordinary Skill directories only. It does not edit Harness configuration, install dependencies, build anything, or pull Git.
 - A write that would reach this repository's own sources is refused before anything is created: a target root that is, contains, or lies inside `skills/` or `variants/zh/skills/`, and a backup location under either tree. The refusal covers both languages, whatever `--language` selected. A Skill entry that is itself a symlink is still replaced or unlinked as a link, and the directory it points to is never written through.
 - A path whose missing part contains `.` or `..` is refused rather than folded: the command exits `2`, names that component, and creates nothing. Folding such a path would resolve it differently from how the filesystem resolves the path used for writing.
