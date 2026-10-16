@@ -82,6 +82,16 @@ Each `statuses` entry needs a non-empty string `id` and optional `options` mappi
 
 `slash`, `dot`, and `pipe` include one ASCII space on each side of the glyph; `space` is exactly one ASCII space. The widget renders the whole separator dimmed. Providers never emit separators.
 
+## Persistent widget
+
+After the configuration loads and at least one provider starts, the Host mounts one widget below the editor under one stable package-qualified key, once per session. Provider updates only replace the fragments the Host stores and request a render; they never mount the widget again. Shutdown stops the providers, clears their timers, and unmounts the widget.
+
+The widget renders one line, composed strictly in `statuses` order. Empty fragments contribute nothing and produce no separators. When nothing is visible, the widget renders zero rows but stays mounted so later data can reappear.
+
+The Host colors the composed line first, then truncates it from the right to the terminal width with a single trailing ellipsis using ANSI-aware width measuring, so leading entries survive. A narrow terminal never reorders entries, drops entries, or changes a `word` label to a compact form.
+
+The widget supplements the native statusline: the package registers no statusline segment and replaces none. Widget visibility depends on neither `statusLine.showHookStatus` nor a custom preset's `status` segment. Every built-in Composer shape of the target OMP version uses the same belowEditor mount point.
+
 ## Builtin providers
 
 Builtin ids: `total`, `input`, `cache`, `output`, `cache-hit`, `context`, `turn`. No legacy `tokens` or `cost` ids and no aliases.
@@ -108,6 +118,8 @@ T, I, C, and O render through the shared decimal token formatter:
 4. Scaled values below `99.95` keep one decimal, dropping a trailing `.0`.
 5. Scaled values at or above `99.95` show an integer.
 6. At `999.5` the value promotes to the next unit, so `1000K` never appears.
+
+A metric publishes nothing while its own data is absent instead of rendering a zero.
 
 `H` shows a percentage with one decimal place by default, including trailing zeroes, such as `H 82.0%` or `Hit 82.0%`. When `I + C` is zero, the provider publishes nothing.
 

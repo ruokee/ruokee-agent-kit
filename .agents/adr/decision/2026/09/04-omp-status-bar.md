@@ -30,11 +30,11 @@ The session-wide total has no per-purpose split and no per-entry breakdown, so n
 
 ### Package
 
-`projects/omp-status-bar/` is one first-party, self-contained OMP Plugin Package. The [first-party capability kit decision](../08/20-first-party-capabilities.md) permits a real capability to use `projects/`, and the [self-contained component decision](../08/24-component-self-containment.md) requires every distributable component to remain independent. The `package.json` declares the native extension entry through `omp.extensions`, and the package uses only public upstream OMP APIs without containing, patching, or requiring a local fork.
+`projects/omp-status-bar/` is one first-party, self-contained OMP Plugin Package. The [first-party capability kit decision](../08/20-first-party-capabilities.md) permits a real capability to use `projects/`, and the [self-contained component decision](../08/24-component-self-containment.md) requires every distributable component to remain independent. The package uses only public upstream OMP APIs without containing, patching, or requiring a local fork.
 
-The implementation splits into a status Host and registered status providers. Provider registration is a supported package API through the `package.json#exports` entry `@ruokee/omp-status-bar/provider`. Registration uses a versioned process-wide registry keyed through `Symbol.for()`, so an extension that resolves its own copy of the package still registers into the same registry, and registration does not depend on extension load order. The registry rejects duplicate provider IDs and incompatible contract versions at registration time, and the Host resolves the configured ID from the registry and validates its contract version again before creating each instance.
+The implementation splits into a status Host and registered status providers. The public contract covers provider identity, option validation, instance creation and lifecycle, fragment publication, and managed scheduling. Registry storage, configuration loading, composition, diagnostics, and OMP UI calls stay private. Each configuration entry creates an independent instance, so the same provider ID may appear more than once with different options.
 
-The public contract covers provider identity, option validation, instance creation and lifecycle, fragment publication, and managed scheduling. Registry storage, configuration loading, composition, diagnostics, and OMP UI calls stay private. Each configuration entry creates an independent instance, so the same provider ID may appear more than once with different options.
+Registration is a supported package API, and the [provider contract](../../../../../projects/omp-status-bar/docs/provider-contract.md) owns its rules: the exported types and the import path behind them, the process-wide registry key, the rejections at registration time, and the version check the Host repeats before creating an instance. An extension that resolves its own copy of the package therefore registers into the same registry, and registration does not depend on extension load order.
 
 ### Configuration
 
@@ -42,37 +42,15 @@ OMP's native plugin enable and disable state is the sole package-wide switch, an
 
 Configuration lives in `omp-status-bar.yml` under the active OMP agent directory returned by the publicly re-exported `getAgentDir()`, which keeps configuration profile-aware without adding keys to OMP's core settings schema. The upstream plugin settings schema accepts only scalar and enum values, so an ordered provider list with nested options cannot come from it.
 
-The file starts with a schema version, and its ordered `statuses` array both selects providers and defines their display order. The entry schema lives in the package usage documentation. Configuration is read once at session start, later file edits are not hot-reloaded, and a new configuration applies in the next session. A missing file displays nothing. A malformed top-level document starts no providers and records one bounded diagnostic. An entry with an unknown provider, an incompatible contract version, or invalid options is skipped while valid entries run. An empty `statuses` array is valid but mounts nothing. The Host performs these session behaviors only when the Extension context has UI support, and stays idle headless.
-
-A top-level separator setting selects the glyph between entries, with its accepted values and default in the usage documentation. The Host renders separators in a dimmed style, and providers never emit separators.
+The file holds a schema version, an ordered `statuses` array that both selects providers and defines their display order, and a top-level separator setting. The [usage documentation](../../../../../projects/omp-status-bar/docs/usage.md#configuration) owns the file's fields, their accepted values and defaults, the separator glyphs, and the per-entry failure behavior. The Host renders separators dimmed, providers never emit them, and a session without UI support stays idle.
 
 ### Persistent widget
 
-After configuration loads and at least one provider starts, the Host mounts one component factory below the editor under one stable package-qualified key, once per session. Provider updates only replace the fragments the Host stores and request a component render; they never mount the widget again. On shutdown the Host stops providers, clears timers, and unmounts the widget.
-
-The widget renders one line, composed strictly in `statuses` order. Empty fragments contribute nothing and produce no separators. When nothing is visible, the widget renders zero rows but stays mounted so later data can reappear.
-
-The Host colors the composed line first, then truncates it from the right to the terminal width with a single trailing ellipsis using ANSI-aware width measuring, so leading entries survive. A narrow terminal never reorders entries, drops entries, or changes a `word` label to a compact one.
-
-The widget supplements the native statusline: the package registers no statusline segment and replaces none. Widget visibility depends on neither `statusLine.showHookStatus` nor a custom preset's `status` segment. Every built-in Composer shape of the target OMP version uses the same belowEditor mount point.
+One widget stays mounted below the editor for the session, and it supplements the native statusline: the package registers no statusline segment and replaces none. The Host owns mounting, composition, and width handling, and the [usage documentation](../../../../../projects/omp-status-bar/docs/usage.md#persistent-widget) states those rules.
 
 ### Fragments
 
-The publication contract is a structured fragment instead of a string:
-
-```ts
-interface ProviderSpan {
-  text: string;
-  color?: `#${string}`;
-  dim?: boolean;
-}
-
-interface ProviderFragment {
-  spans: readonly ProviderSpan[];
-}
-```
-
-The Host sanitizes every span and deep-copies the result, so a later edit by the provider cannot change the UI; the accepted colors and the escape and control-character handling live in the provider contract. An empty fragment, or one that sanitizes to nothing, withdraws that instance's content. A structurally invalid fragment clears that instance's previous content and records a bounded diagnostic while other providers keep running.
+The publication contract is a structured fragment instead of a string. The [provider contract](../../../../../projects/omp-status-bar/docs/provider-contract.md#publishing) owns the fragment types, the normalization rules the Host applies, the deep copy that isolates a later provider mutation, and the treatment of an empty, withdrawn, or structurally invalid fragment.
 
 Providers never call OMP UI methods, never obtain the widget or theme, and never emit separators.
 
@@ -82,17 +60,17 @@ The package ships builtin metric providers. [The package usage documentation](..
 
 The provider scope stays bounded: the package ships no amount, cost, or premium-request reading, and it neither reads, formats, nor configures those amounts. The legacy `tokens` ID disappears without an alias.
 
-Every builtin metric carries its own fixed color, following the pi-moon palette; colors are not configurable. The label option selects a compact or a word form per instance, so one configuration may mix both forms, and a narrow terminal never changes a chosen form. The precision of the cache-hit percentage is the only other display option, and its accepted range lives in the same usage documentation.
+Colors follow the pi-moon palette and are not configurable. The label option selects a compact or a word form per instance, so one configuration may mix both forms, and a narrow terminal never changes a chosen form. The precision of the cache-hit percentage is the only other display option, and its accepted range lives in the same usage documentation.
 
-The token metrics and the cache-hit ratio share one data scope taken from the conversation's own usage: the assistant messages on the branch a session holds, and the usage a `task` tool result reports. Out-of-band records contribute nothing, including the judgment cascade's `model_usage` entries whatever purpose they carry; an entry of another type or a message of another role contributes nothing; and within a usage that counts, only finite counters are added, so an invalid counter is left out while the remaining counters still count. `I` is input plus cache write, `C` is cache read, `O` is output, `T` is `I + C + O`, and the ratio is `C / (I + C)`. They read no orchestration fields and no amounts. Token counts use one shared decimal formatter with `K`, `M`, `G`, and `T` units, and a metric publishes nothing while its own data is absent instead of rendering a zero.
+The token metrics and the cache-hit ratio share one data scope taken from the conversation's own usage rather than the session aggregate: the assistant messages on the branch a session holds and the usage a `task` tool result reports, with out-of-band records contributing nothing. No reading depends on orchestration fields or amounts, and the usage documentation states that scope, the excluded records, the shared token formatter, and the formulas behind each reading.
 
-The `context` provider reads the public context-usage API in a `percent` (default) or `absolute` mode. `absolute` renders only the current token count with the shared formatter; the context window stays an internal input for validation. The provider joins the context window glyph and the context text into one fragment with a plain space, bypassing the configured separator.
+The `context` provider reads the public context-usage API in a `percent` (default) or `absolute` mode, and `absolute` renders only the current token count with the shared formatter.
 
 ### Request count
 
 The package ships one builtin provider, `turn`, that counts the model requests the current session answered successfully and publishes the count as a reading of its own. It derives no further metric from it, and its label, options, and display forms live in the usage documentation.
 
-The value is session-cumulative: it grows across prompts and across agent runs without restarting, and it keeps its value when the session is resumed or switched. It always reports the branch the session holds, so a tree rewind or a new branch re-seeds the count from the branch then in front.
+The value keeps its value when the session is resumed or switched, and it always reports the branch the session holds, so a tree rewind or a new branch re-seeds the count from the branch then in front.
 
 Only a successful response advances the value. A failed request, an interrupted response, and a request stopped before the model call leave it unchanged.
 
@@ -102,7 +80,7 @@ The provider follows the session's turn lifecycle instead of the snapshot-backed
 
 The `context` status always shows the Nerd Font glyph `U+F0068` to the left of its text, as a marker for the context window. The glyph and the text form one status fragment. The glyph does not blink, does not change with context usage, and does not show the window size. Terminals whose fonts lack the glyph see no fallback.
 
-The package reads no compaction setting and does not estimate OMP's speculation band. The `context` status still publishes nothing when usage data is missing or `contextWindow <= 0`.
+The package reads no compaction setting and does not estimate OMP's speculation band.
 
 ### Evidence
 

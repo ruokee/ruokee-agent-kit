@@ -46,13 +46,7 @@ Executable code and configuration are outside its editing scope. Distinguish com
 
 The Skill grants no additional file-editing authority. A review request remains read-only unless editing is authorized. Work within the user's requested files, text, and structure.
 
-- Write for a reader who has the finished content and its accessible sources. Follow current requirements; remove discarded concepts, correction labels, and references that only make sense inside the writing session.
-- Let facts, observations, judgments, and useful actions carry the text. Put necessary reasons and sources beside the claims they support.
-- Remove empty compliance assurances, generic self-protection, repeated verification commentary, filler, jargon, and mechanical phrasing. Preserve the author's actual tone, observations, and judgments.
-- Preserve facts, numbers, conditions, negation, obligations, uncertainty, sources, and causal strength. Do not invent experiences, positions, measurements, or actors to make text feel human or concrete.
-- Prefer returning already clear text unchanged. Deliver the requested article, answer, diagnosis, or edit without adding an unsolicited cleanup report. Keep useful completion information, real blockers, and requested explanations.
-
-Keep unslop's explicit prohibitions binding. State the essential punctuation rules directly: do not use em dashes, do not replace the same parenthetical construction with parentheses, en dashes, or hyphens, and replace curly quotes with straight quotes. Keep their detailed rules and examples in the same file. Literal-material protection continues to apply.
+Keep unslop's explicit prohibitions binding; [skills/well-said/SKILL.md](../../../../../skills/well-said/SKILL.md) holds the punctuation rules, their examples, and the writing rules themselves. Literal-material protection continues to apply.
 
 Allow structural changes within the authorized scope, including reordering paragraphs, merging repetition, and rewriting openings or endings. For a very extensive change, the Agent may ask about a complete rewrite; prior authorization is sufficient, and no arbitrary change-percentage threshold is required. Preserve fixed structures and exact-wording requirements.
 

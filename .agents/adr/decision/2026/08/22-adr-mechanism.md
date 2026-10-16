@@ -18,58 +18,23 @@ The [previous mechanism](../../../archived/2026/08/22-r4-adr-mechanism.md) requi
 
 ### Terminology
 
-Use **ADR** as the primary term for an architecture decision record. The ADR root is `.agents/adr`.
-
-Use `proposal` and `decision` as the two document types. `proposal/` contains active proposals, `rejected/` contains rejected proposals, `decision/` contains current decisions, and `archived/` contains archived decisions. The directory expresses type and state, so headers contain no `Status` field.
-
-Use `Create decision`, `Update decision`, and `Reverse decision` as action phrases. `Reverse decision` is a verb phrase rather than a noun label. A successor uses `Reverses` in its header metadata to link its archived predecessor, which uses `Reversed by` to link its actual successor.
-
-Maintain `glossary.md` and `glossary.zh.md` at the ADR root. The glossary contains ADR, proposal, decision, `Update decision`, and `Reverse decision`. Each entry has one concise definition naming the corresponding term in the other language. New entries require the maintainer to establish their meaning explicitly.
+Use **ADR** as the primary term, with `.agents/adr` as the root. The [ADR guide](../../../README.md#document-layout) owns the document types, the state the directory expresses, the action phrases, and the glossary rules. Maintain `glossary.md` and `glossary.zh.md` at the ADR root; they carry ADR, proposal, decision, `Update decision`, and `Reverse decision`, and a new entry requires the maintainer to establish its meaning explicitly.
 
 ### Identity
 
-A decision's first proposal date and short canonical English topic name identify its current record and every archived version. Ordinary reversals preserve that date and name. The actual archival date stays in `Archived: YYYY-MM-DD`, and dated `Changes` entries keep their actual event dates.
-
-A successor continuing the original topic retains its identity and revision sequence. A topic extracted into an independent decision gets its own first proposal date, canonical name, and sequence while preserving its actual source and reversal relationships. A shared predecessor or a `Reverses` link alone does not establish shared identity.
-
-A proposal uses its own first proposal date, even when it proposes to reverse an older decision. Rejection preserves the proposal date. A reversal proposal's date does not replace the older decision's identity date.
+A decision's first proposal date and short canonical English topic name identify its current record and every archived version, and a topic extracted into an independent decision gets its own identity. The [ADR guide](../../../README.md#document-layout) owns the directory placement, the dates each record keeps, and the treatment of successors and extracted topics.
 
 ### Paths
 
-ADR bodies use these paths:
-
-```text
-.agents/adr/proposal/YYYY/MM/DD-name.md
-.agents/adr/decision/YYYY/MM/DD-name.md
-.agents/adr/rejected/YYYY/MM/DD-name.md
-.agents/adr/archived/YYYY/MM/DD-rN-name.md
-```
-
-`YYYY` is a four-digit year; `MM` and `DD` are two-digit month and day values. Chinese counterparts use the same directory and basename with `.zh.md`. The current decision and all its archives use the identity's first proposal date for directory placement, even when archival happens in a later month or year.
-
-Only archived decisions carry `rN`. The first reversal creates `r1`, and each later reversal of that identity increments `N` once. Days, months, and years do not reset it. Other decisions, ordinary updates, naming corrections, directory moves, language counterparts, and multiple relationship links do not consume its numbers. A successor replaces the current record at its canonical path without overwriting any archive.
-
-Keep `.gitkeep` in each of the four lifecycle roots, including when they contain records. Create time directories only for actual records. The layout imposes no file-count limit on a month directory. The guide and glossary stay at the ADR root.
+The four lifecycle roots, the `YYYY/MM/DD` placement, the `rN` sequence, the `.gitkeep` rule, and the root location of the guide and glossary are in the [ADR guide](../../../README.md#document-layout).
 
 ### Proposal workflow
 
-Search active proposals and current decisions before planning a requirement. Determine whether it adds an unrelated capability, extends a current decision without conflict, or conflicts with a current decision.
-
-Create one proposal for a requirement unless the maintainer requests another split. One proposal may create several decisions, reverse several decisions, or do both.
-
-Merge an approved proposal to `main` as a dedicated change before implementation begins. Start implementation from that updated `main` on a new short-lived branch. After implementation, create the new decisions, update decisions that do not conflict, reverse conflicting decisions, and remove the consumed proposal in the implementation change. Git history preserves the independently merged proposal.
+One requirement gets one proposal unless the maintainer requests another split, and an approved proposal merges to `main` as a dedicated change before implementation begins. The [ADR guide](../../../README.md#active-proposal) owns the merge order, the post-implementation steps, and the removal of the consumed proposal.
 
 ### Record format
 
-Each ADR is one same-directory English and Chinese pair with reciprocal language links. The unsuffixed English file is the default public link. Both files are semantically authoritative, must be complete in the same change, and move together. A semantic conflict blocks merge until the maintainer resolves it. Authors may begin in either language.
-
-A title carries the topic alone in both languages because the directory states type and state. A proposal contains `Motivation`, `Proposal`, `Alternatives considered`, `Acceptance criteria`, and `Risks`, optionally adding `Analysis` between `Motivation` and `Proposal`. Its Chinese sections are `动机`, `提议`, `考虑过的替代方案`, `验收标准`, `风险`, and optional `分析`. A rejected proposal adds `Rejection reason` or `拒绝原因` and freezes after factual link repairs.
-
-A decision contains `Motivation`, `Decision`, `Alternatives considered`, and `Consequences`, optionally adding `Analysis` between `Motivation` and `Decision`. Its Chinese sections are `动机`, `决定`, `考虑过的替代方案`, `结果`, and optional `分析`. An archived decision retains this format and freezes after relationship and factual link repairs.
-
-A proposal records `Draft owner` and `Draft writer`; a decision records `Decision owner` and `Decision writer`. The owner is the accountable maintainer; the writer is the original writer and does not change during later maintenance. Keep these fields identical across the pair. Omit provider, router, and channel prefixes from a model writer's name; a host or product name such as `OMP` may remain. Relationship and lifecycle metadata follows the writer field and precedes reciprocal language links. Paths, commands, API names, metadata fields, and code identifiers retain their repository spelling in both languages.
-
-Apply the [documentation naming rules](../../../../rule/documentation.md#naming) to every ADR filename, title, and subsection heading. Name one subject with a short imperative, phrase, or noun, and leave details in the body. A date prefix in a `Changes` heading does not exempt its topic text. The complete leaf filename, including `DD`, any `rN`, topic, language suffix, and extension, must not exceed 60 characters.
+Each ADR is one same-directory English and Chinese pair with reciprocal language links, and both files are semantically authoritative, complete in the same change, and moved together. The [ADR guide](../../../README.md#bilingual-files) owns the pair layout, the metadata fields and their order, and the language-link placement, its [document layout](../../../README.md#document-layout) owns the file naming rules, and its [proposal format](../../../README.md#proposal-format) and [decision format](../../../README.md#decision-format) own the title form and the required sections of each document type.
 
 ### Authoring the record
 

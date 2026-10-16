@@ -30,11 +30,11 @@ OMP 把带外的模型调用与对话记在同一个会话账本里，并通过�
 
 ### 包
 
-`projects/omp-status-bar/` 是一个第一方、自包含的 OMP Plugin Package。[第一方能力套件决定](../08/20-first-party-capabilities.zh.md)允许真实能力使用 `projects/`，[组件自包含决定](../08/24-component-self-containment.zh.md)要求每个可分发组件保持独立。`package.json` 通过 `omp.extensions` 声明原生扩展入口；Package 只使用公开的上游 OMP API，不包含、不修补、也不要求本地 Fork。
+`projects/omp-status-bar/` 是一个第一方、自包含的 OMP Plugin Package。[第一方能力套件决定](../08/20-first-party-capabilities.zh.md)允许真实能力使用 `projects/`，[组件自包含决定](../08/24-component-self-containment.zh.md)要求每个可分发组件保持独立。Package 只使用公开的上游 OMP API，不包含、不修补、也不要求本地 Fork。
 
-实现拆分为状态 Host 和注册制 Provider。Provider 注册通过 `package.json#exports` 条目 `@ruokee/omp-status-bar/provider` 成为受支持的 Package API。注册使用通过 `Symbol.for()` 索引的带版本进程级 Registry，因此解析到自己 Package 副本的 Extension 仍注册到同一个 Registry，注册也不依赖 Extension 加载顺序。Registry 在注册时拒绝重复 Provider ID 和不兼容合同版本。Host 创建每个实例前从 Registry 解析配置中的 ID，并再次校验其合同版本。
+实现拆分为状态 Host 和注册制 Provider。公开合同覆盖 Provider 身份、option 校验、实例创建和生命周期、片段发布和托管调度。Registry 存储、配置加载、组合、诊断和 OMP UI 调用保持私有。每个配置条目创建独立实例，同一个 Provider ID 可以带不同 options 出现多次。
 
-公开合同覆盖 Provider 身份、option 校验、实例创建和生命周期、片段发布和托管调度。Registry 存储、配置加载、组合、诊断和 OMP UI 调用保持私有。每个配置条目创建独立实例，同一个 Provider ID 可以带不同 options 出现多次。
+注册是受支持的 Package API，其规则由 [Provider 合同](../../../../../projects/omp-status-bar/docs/provider-contract.zh.md)持有：导出的类型及其背后的导入路径、进程级 Registry key、注册时的拒绝规则，以及 Host 在创建实例前重复执行的版本校验。解析到自己 Package 副本的 Extension 因此仍注册到同一个 Registry，注册也不依赖 Extension 加载顺序。
 
 ### 配置
 
@@ -42,37 +42,15 @@ OMP 原生 Plugin 启用状态是唯一的 Package 级开关，Package 不定义
 
 配置存放在 `omp-status-bar.yml`，位于公开再导出的 `getAgentDir()` 返回的当前 OMP agent 目录下，使配置跟随 profile 而不需要给 OMP 核心设置 schema 增加键。上游 Plugin 设置 schema 只接受标量和枚举值，因此带嵌套 options 的有序 Provider 列表无法来自 Plugin 设置。
 
-文件以 schema 版本开头，有序 `statuses` 数组同时选择 Provider 并定义显示顺序。条目 schema 由 Package 使用文档持有。配置在会话开始时读取一次，之后的文件修改不热加载，新配置在下一个会话生效。文件缺失时不显示。顶层文档格式错误时不启动任何 Provider，并记录一条有界诊断。Provider 不存在、合同版本不兼容或 options 无效的条目被跳过，其余条目继续运行。空 `statuses` 数组合法但不挂载任何内容。Host 只在 Extension 上下文有 UI 支持时执行这些会话行为，headless 下保持空闲。
-
-顶层 separator 设置选择条目之间的分隔符，可取值和默认值由使用文档持有。Host 用弱化样式渲染 separator，Provider 不输出 separator。
+文件包含 schema 版本、既选择 Provider 又定义显示顺序的有序 `statuses` 数组，以及顶层 separator 设置。[使用文档](../../../../../projects/omp-status-bar/docs/usage.zh.md#配置)持有文件的字段、可取值与默认值、separator 字形，以及逐条目的失败行为。Host 用弱化样式渲染 separator，Provider 不输出 separator，没有 UI 支持的会话保持空闲。
 
 ### 常驻 Widget
 
-配置加载完成且至少一个 Provider 启动后，Host 在编辑器下方、以稳定的包限定 key 挂载一个组件工厂，每个会话只发生一次。Provider 更新只替换 Host 存储的片段并请求组件重绘，不会再次挂载。关机时 Host 停止 Provider、清理 timer 并卸载 Widget。
-
-Widget 渲染一行，严格按 `statuses` 顺序组合。空片段不产生任何内容，也不产生 separator。没有可见内容时 Widget 渲染零行但保持挂载，后续数据可以重新出现。
-
-Host 先为组合行着色，再用 ANSI 感知的宽度测量从右侧截断到终端宽度，尾部使用单个省略号，靠前的条目得以保留。窄终端不会重排条目、删除条目，也不会把 `word` 标签改成 compact 形式。
-
-Widget 是原生 statusline 的补充：Package 不注册 statusline 段，也不替换任何段。Widget 的可见性既不依赖 `statusLine.showHookStatus`，也不依赖自定义 preset 的 `status` 段。目标 OMP 版本的每个内置 Composer shape 都使用同一个 belowEditor 挂载点。
+Widget 在会话期间常驻编辑器下方，并作为原生 statusline 的补充：Package 不注册 statusline 段，也不替换任何段。挂载、组合与宽度处理由 Host 负责，具体规则见[使用文档](../../../../../projects/omp-status-bar/docs/usage.zh.md#常驻-widget)。
 
 ### 片段
 
-发布合同是结构化片段而不是字符串：
-
-```ts
-interface ProviderSpan {
-  text: string;
-  color?: `#${string}`;
-  dim?: boolean;
-}
-
-interface ProviderFragment {
-  spans: readonly ProviderSpan[];
-}
-```
-
-Host 清理每个 span 并深复制结果，Provider 之后的修改无法改变界面；可接受的颜色以及 escape 与控制字符的处理规则由 Provider 合同持有。空片段或清理后没有内容的片段撤回该实例的内容。结构无效的片段清除该实例的旧内容，记录一条有界诊断，其他 Provider 继续运行。
+发布合同是结构化片段而不是字符串。[Provider 合同](../../../../../projects/omp-status-bar/docs/provider-contract.zh.md#发布)持有片段类型、Host 执行的标准化规则、隔离 Provider 后续修改的深复制，以及空片段、撤回片段与结构无效片段的处理方式。
 
 Provider 不调用 OMP UI 方法，不获取 Widget 或 theme，也不输出 separator。
 
@@ -82,17 +60,17 @@ Package 提供内置指标 Provider。[Package 使用文档](../../../../../proj
 
 Provider 范围保持封闭：Package 不提供金额、cost 或 premium request 读数，也不读取、格式化或配置这些金额。旧的 `tokens` ID 直接消失，没有别名。
 
-每个内置指标带固定颜色，遵循 pi-moon 配色；颜色不可配置。label option 按实例选择 compact 或 word 形式，一份配置可以混用两种形式，窄终端不会改变已选形式。缓存命中率的精度是另一项显示 option，取值范围由同一份使用文档维护。
+颜色遵循 pi-moon 配色且不可配置。label option 按实例选择 compact 或 word 形式，一份配置可以混用两种形式，窄终端不会改变已选形式。缓存命中率的精度是另一项显示 option，取值范围由同一份使用文档维护。
 
-token 指标和缓存命中率共享一个取自对话自身用量的数据口径：会话所持分支上的 assistant 消息，以及 `task` 工具结果报告的用量。带外记录不贡献任何用量，包括判定级联携带任何用途的 `model_usage` 条目；其他类型的条目或其他角色的消息也不贡献；在计入的 usage 内部，只累加有限数值，因此非法的计数桶被排除，其余有效的计数桶仍然计入。`I` 是 input 加 cache write，`C` 是 cache read，`O` 是 output，`T` 是 `I + C + O`，命中率是 `C / (I + C)`。它们不读取编排字段，也不读取金额。token 数值使用一个共享的十进制 formatter，单位为 `K`、`M`、`G`、`T`；指标自身数据不存在时不发布内容，而不是显示零。
+token 指标和缓存命中率共享一个取自对话自身用量而非会话总数的数据口径：会话所持分支上的 assistant 消息，以及 `task` 工具结果报告的用量，带外记录不贡献任何用量。读数不依赖编排字段与金额，使用文档与该口径一起说明被排除的记录、共享的 token formatter 与各项读数的公式。
 
-`context` Provider 读取公开的上下文用量 API，支持 `percent`（默认）和 `absolute` 两种模式。`absolute` 只用共享 formatter 显示当前 token 数；context window 仍用于数据校验。它把上下文窗口字形和上下文文本合入一个片段，用普通空格连接，绕过配置的 separator。
+`context` Provider 读取公开的上下文用量 API，支持 `percent`（默认）和 `absolute` 两种模式，`absolute` 只用共享 formatter 显示当前 token 数。
 
 ### 请求计数
 
 Package 提供一个内置 Provider `turn`，统计本次会话有多少次模型请求得到了成功响应，并把该计数作为一项独立读数发布，不据此再推导任何指标。它的标签、options 和显示形式由使用文档持有。
 
-数值为会话累计值：它跨多次提问和多次 agent run 持续增长而不重新开始，并在会话被恢复或切换后保持。它始终反映会话所持有的分支历史，因此沿会话树回退或新建分支时会按当时的前台分支重新取值。
+数值在会话被恢复或切换后保持，并始终反映会话所持有的分支历史，因此沿会话树回退或新建分支时会按当时的前台分支重新取值。
 
 只有成功的响应才使数值前进；失败的请求、被中断的响应，以及在模型调用前就被拦下的请求都不改变它。
 
@@ -102,7 +80,7 @@ Provider 跟随会话的轮次生命周期，而不是依赖快照的指标：�
 
 `context` 状态的文本左侧固定显示 Nerd Font 字形 `U+F0068`，作为上下文窗口的标识。字形与文本属于同一个状态片段。字形不闪烁，不随上下文用量变化，也不显示窗口大小。终端字体缺少该字形时没有回退。
 
-Package 不读取任何压缩设置，也不估计 OMP 的投机区间。缺少用量数据或 `contextWindow <= 0` 时，`context` 状态仍然不发布任何内容。
+Package 不读取任何压缩设置，也不估计 OMP 的投机区间。
 
 ### 证据
 

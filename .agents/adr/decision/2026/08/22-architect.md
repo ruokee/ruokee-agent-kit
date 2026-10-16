@@ -70,7 +70,7 @@ Keep explanations, derivations, counterexamples, complete cases, and experience-
 
 - Architect can load from clear system-level task signals and through explicit user invocation. False activation remains possible, so the catalog descriptions carry narrow positive and negative signals.
 - The public English and Chinese capability indexes classify architect as Agent-invoked. `grill-me` remains user-invoked through its own configuration.
-- Each language component retains 29 Markdown documents, the glossary and reference layout, and no `workflow/` directory. The policy-only `agents/openai.yaml` files are removed.
+- Each language component keeps the glossary and reference layout and has no `workflow/` directory. The policy-only `agents/openai.yaml` files are removed.
 - The system-level scope, source and license obligations, evidence requirements, reference navigation, and output contract remain in force. Concrete implementation and product-priority work remain outside the Skill.
 - Both language variants remain complete and semantically aligned. Model, host, and language differences can still produce different activation judgments, so real-host checks record the environment and loading evidence.
 - The capability still relies on model reasoning and cannot guarantee correct analysis. Outputs continue to distinguish evidence, derivation, assumptions, recommendations, and user decisions.

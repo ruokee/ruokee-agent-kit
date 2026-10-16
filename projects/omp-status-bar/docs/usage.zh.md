@@ -82,6 +82,16 @@ statuses:
 
 `slash`、`dot` 和 `pipe` 会在字形两侧各带一个 ASCII 空格；`space` 只有一个 ASCII 空格。Widget 用弱化样式渲染整个 separator。Provider 不输出 separator。
 
+## 常驻 Widget
+
+配置加载完成且至少一个 Provider 启动后，Host 在编辑器下方、以稳定的包限定 key 挂载一个 Widget，每个会话只发生一次。Provider 更新只替换 Host 存储的片段并请求重绘，不会再次挂载。关机时 Host 停止 Provider、清理 timer 并卸载 Widget。
+
+Widget 渲染一行，严格按 `statuses` 顺序组合。空片段不产生任何内容，也不产生 separator。没有可见内容时 Widget 渲染零行但保持挂载，后续数据可以重新出现。
+
+Host 先为组合行着色，再用 ANSI 感知的宽度测量从右侧截断到终端宽度，尾部使用单个省略号，靠前的条目得以保留。窄终端不会重排条目、删除条目，也不会把 `word` 标签改成 compact 形式。
+
+Widget 是原生 statusline 的补充：Package 不注册 statusline 段，也不替换任何段。Widget 的可见性既不依赖 `statusLine.showHookStatus`，也不依赖自定义 preset 的 `status` 段。目标 OMP 版本的每个内置 Composer shape 都使用同一个 belowEditor 挂载点。
+
 ## 内置 Provider
 
 内置 ID：`total`、`input`、`cache`、`output`、`cache-hit`、`context`、`turn`。不保留旧的 `tokens` 或 `cost` ID，也不提供别名。
@@ -108,6 +118,8 @@ T、I、C、O 使用共享的十进制 token formatter：
 4. 缩放值小于 `99.95` 时保留一位小数，去掉结尾 `.0`。
 5. 缩放值不小于 `99.95` 时显示整数。
 6. 缩放值达到 `999.5` 时提升到下一个单位，避免出现 `1000K`。
+
+指标自身数据缺失时不发布片段，而不是渲染为零。
 
 H 默认保留一位小数，末尾补零，例如 `H 82.0%` 或 `Hit 82.0%`。当 `I + C` 为零时，该 Provider 不发布片段。
 

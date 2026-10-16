@@ -12,7 +12,7 @@ Reverses: [tk 文档](../../../archived/2026/08/29-r2-tk-documentation.zh.md)
 
 这套共同规则让 Agent 和用户对模式会增加什么、需要维护什么，以及每项合同由哪个页面负责，形成一致理解。
 
-同一语言的 tools Skill 与 CLI Skill 中内容相同的 tk 参考文件，源码只保留一份，由构建复制到该语言的每个 Skill。每种语言的 tools Skill 和 CLI Skill 都带有 6 个内容逐字节相同的参考文件：`catchup.md`、`patterns.md`、`project-storage.md`、`subtask.md`、`task-concept.md` 和 `wal.md`。如果四个 Skill 源码目录各保留一份完整副本，就有 24 个文件副本，只承载 12 份不同文本，即 6 份英文和 6 份中文。每次修改都要在同语言的两个 Skill 目录里重复一遍；只改到其中一个目录时，tools Skill 和 CLI Skill 会向 Agent 给出不同的规则。
+同一语言的 tools Skill 与 CLI Skill 中内容相同的 tk 参考文件，源码只保留一份，由构建复制到该语言的每个 Skill。如果四个 Skill 源码目录各保留一份完整副本，每次共享修改都要在同语言的两个 Skill 目录里重复一遍；只改到其中一个目录时，tools Skill 和 CLI Skill 会向 Agent 给出不同的规则。
 
 [Skill 模式参考](../../../../../projects/tk/skills/shared/zh/patterns.md)与 [Skill 设计](../../../../../projects/tk/docs/design/skill.zh.md)给出四种模式。
 
@@ -76,7 +76,7 @@ Reverses: [tk 文档](../../../archived/2026/08/29-r2-tk-documentation.zh.md)
 
 ### 合同归属
 
-四个 Skill 源码目录分别是 [tk](../../../../../projects/tk/skills/tk/SKILL.md)、[tk-zh](../../../../../projects/tk/skills/tk-zh/SKILL.md)、[tk-cli](../../../../../projects/tk/skills/tk-cli/SKILL.md) 和 [tk-cli-zh](../../../../../projects/tk/skills/tk-cli-zh/SKILL.md)，它们与 `projects/tk/skills/shared/en/`、`projects/tk/skills/shared/zh/` 一起构成权威 Skill 源码。6 个共享参考文件在共享目录中每种语言各保留一份。每个 Skill 源码目录保留 `SKILL.md`、该模式专属的参考文件和 Agent 元数据。同语言 tools 与 CLI 的参考内容相同，中英文语义对应。
+四个 Skill 源码目录分别是 [tk](../../../../../projects/tk/skills/tk/SKILL.md)、[tk-zh](../../../../../projects/tk/skills/tk-zh/SKILL.md)、[tk-cli](../../../../../projects/tk/skills/tk-cli/SKILL.md) 和 [tk-cli-zh](../../../../../projects/tk/skills/tk-cli-zh/SKILL.md)，它们与 `projects/tk/skills/shared/en/`、`projects/tk/skills/shared/zh/` 一起构成权威 Skill 源码。共享参考文件在共享目录中每种语言各保留一份。每个 Skill 源码目录保留 `SKILL.md`、该模式专属的参考文件和 Agent 元数据。同语言 tools 与 CLI 的参考内容相同，中英文语义对应。
 
 tk 构建在组装分发载荷时，把每种语言的共享参考文件复制到该语言每个 Skill 的 `references/` 目录。共享文件与 Skill 专属文件落到同一组装路径时，构建停止。`SKILL.md` 链接到安装后的路径 `./references/<file>.md`，因此这些链接在组装后的载荷和每个已安装 Skill 中都能解析；在源码树中，指向共享参考文件的链接在 Skill 目录内无法解析。构建会拒绝目标缺失的载荷 Markdown 链接。
 
