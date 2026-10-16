@@ -28,41 +28,11 @@ tools 载荷包含 `tk` 或 `tk-zh`，以及所选 Harness 集成。Harness CLI 
 
 ### 公开生命周期
 
-公开命令为：
-
-```text
-tk install --harness <codex|claude|pi|omp>
-  [--mode <tools|cli>] [--language <en|zh>] [--dry-run]
-
-tk install --mode cli --skill-root <directory>
-  [--language <en|zh>] [--dry-run]
-
-tk uninstall --harness <codex|claude|pi|omp> [--dry-run]
-
-tk uninstall --skill-root <directory> [--dry-run]
-```
-
-每条命令必须且只能提供 `--harness` 与 `--skill-root` 中的一个。Harness install 保留 `tools` 模式和 `en` 语言默认值。自定义根目录 install 必须显式传入 `--mode cli`，拒绝 tools 模式，语言默认 `en`。
-
-install 与 uninstall 拒绝全局 `--cwd`。相对 Skill 根目录按进程当前工作目录解析，结果报告绝对根目录。
+`tk install` 与 `tk uninstall` 的公开 synopsis、标志默认值与互斥规则、绝对根目录报告，以及归档与结果规则见 [CLI 参考](../../../../../projects/tk/docs/design/cli-reference.zh.md)；生命周期语义、目标布局、自定义根目录规则与操作计划见[安装设计](../../../../../projects/tk/docs/design/installation.zh.md)。
 
 ### Harness 所有权
 
-四个已支持 Harness 保留官方组件生命周期。Harness install 检查 Harness 可执行文件，使用官方接口或固定驱动，收敛所选组件，并删除已知的旧目标和注册。Harness uninstall 删除该 Harness 所有的 tk 专用目标与注册，同时保留无关内容。
-
-`--skill-root` 表示 Harness 发现 Skill 的父目录。英文目标是 `<skill-root>/tk-cli`，中文目标是 `<skill-root>/tk-cli-zh`。install 可以创建根目录及其父目录。
-
-自定义生命周期只管理这两个名称完全匹配的 CLI Skill 目标。安装其中一个时会完整替换所选目标，并删除另一个 CLI 目标。卸载删除两者。`tk`、`tk-zh`、其他全部条目和 Skill 根目录本身保持不变。
-
-自定义根目录操作不会要求或调用 Harness 可执行文件，不安装 Plugin、Package、extension 或 MCP 配置，不修改 tk 操作注册，也不声称 Harness 能加载该目录。多个自定义根目录可以并存。tk 不保存根目录列表、所有权记录、安装历史或续跑状态。
-
-### 生命周期操作
-
-生命周期计划读取所选内嵌载荷，以及该生命周期所有权边界内的全部目标。dry-run 与执行共享完整预检。操作先暂存内容，再重新检查已观察目标，随后按确定顺序提交。错误或取消会立即停止，结果报告已完成与未完成项，不自动回滚。GC 仍然只处理已登记的 tk 临时操作内容。
-
-归档校验会在持久写入前拒绝不支持的格式、不兼容 runtime 范围、路径逃逸、符号链接、特殊文件、重复项、缺失项、多余项、元数据不匹配和摘要不匹配。安装不使用网络、checkout 或本地归档来源。
-
-text 与 JSON 结果必须且只能包含一个目标字段。Harness 操作使用 `harness`，自定义根目录操作使用 `skill_root`。install 报告模式、语言和 Skill。Harness uninstall 省略这些选择字段。自定义根目录 uninstall 报告 `mode: cli`，但省略语言和 Skill，因为它不查询安装历史，并会删除两个已知 CLI 目标。
+四个已支持 Harness 保留官方组件生命周期，自定义根目录操作不要求 Harness 可执行文件。tk 不保存根目录列表、所有权记录、安装历史或续跑状态。
 
 ## 考虑过的替代方案
 

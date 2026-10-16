@@ -25,33 +25,7 @@ tk 由 `projects/tk/` 下的一个 Rust Cargo package 实现，并生成一个�
 
 ### CLI 合同
 
-公开命令树如下：
-
-```text
-tk search
-tk read
-tk create task
-tk create subtask
-tk update
-tk log
-tk init
-tk check
-tk rename
-tk gc
-tk schema generate
-tk metadata migrate
-tk metadata switch
-tk mcp
-tk install
-tk uninstall
-tk --version
-```
-
-`--actor` 不是全局选项。它只属于会追加 WAL 的 update、log 和 rename 操作。`init --force` 使用当前显式值和默认值重写项目配置，不读取或修改任务数据。
-
-面向人的输出和 JSON 输出都是公开合同。JSON 使用包含 `ok`、`data`、`warnings` 或 `error` 的统一结果。稳定错误包含错误码、类别、面向人的消息和结构化详情。调用方根据错误码或类别分支，不能解析消息文本。
-
-退出码保持一套稳定的宽泛映射。0 表示成功，请求失败使用 2，预期拒绝使用 3，存储和内部故障使用 4，环境故障使用 5，首次持久写入前取消使用 130。结构化错误负责表达具体原因。
+公开命令树、`--actor` 的适用范围、JSON 结果包与稳定错误字段，以及退出码映射见 [CLI 参考](../../../../../projects/tk/docs/design/cli-reference.zh.md)。
 
 ### 请求上下文
 

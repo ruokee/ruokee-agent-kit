@@ -15,36 +15,9 @@ Repository guidance requires English Conventional Commits messages, and the type
 
 ## Decision
 
-### Enforcement point
+Types keep the Conventional Commits set that `config-conventional` accepts, and the repository does not narrow it; choosing a type that fits the change is a judgment call. Scopes are optional: when a message carries one it must be exactly one of `skills`, `extensions`, `adr`, or `repo`, and a change that spans two areas carries none.
 
-Add a `commit-msg` entry to the existing `simple-git-hooks` configuration. It runs commitlint against the message file. Root `devDependencies` add `@commitlint/cli` and `@commitlint/config-conventional`, and the rules live in a root `commitlint.config.mjs`. `pnpm hooks:install` stays the single installation step, and an existing checkout runs it once to pick up the new hook stage.
-
-A violation at error level stops the commit. Commitlint prints the violated rules, and the hook command adds the command that opens the message file for editing. A warning prints and lets the commit through; the default preset classifies a missing blank line before the body or the footer as a warning, and this decision keeps that level.
-
-When a commit is blocked, the message file keeps its content, and the author repeats the original operation, so a blocked `git commit --amend` is retried as an amend rather than as a new commit. The command takes the path from Git, since a linked worktree keeps its message file under the main repository's `.git/worktrees/` directory.
-
-Commitlint skips the messages matched by its default ignore patterns, which cover version messages such as `v1.2.3`, subjects prefixed with `fixup!` or `squash!`, and Git-style `Revert "..."` and `Merge ...` subjects. A Conventional Commits message such as `revert(unknown): undo the change` is not ignored and still has to satisfy the scope rule.
-
-### Message rules
-
-Types keep the Conventional Commits set that `config-conventional` accepts: `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, and `test`. The repository does not narrow this list; choosing a type that fits the change is a judgment call, not a format rule.
-
-Scopes are optional. When a message carries one, it must be exactly one of the four values below. A change that spans two areas carries no scope.
-
-| scope | covers |
-| --- | --- |
-| `skills` | Skill content under `skills/` and `variants/zh/skills/` |
-| `extensions` | components under `projects/` |
-| `adr` | proposals and decisions under `.agents/adr/` |
-| `repo` | root configuration, hooks, dependencies, repository entry pages, and process text such as `AGENTS.md` |
-
-The set is enforced by one local rule registered in `commitlint.config.mjs` that compares the parsed scope against the list. The built-in `scope-enum` rule cannot carry this policy alone: it splits the scope on `/`, `\`, and `,`, so `feat(skills/adr)`, `feat(skills,adr)`, and `feat(skills\adr)` all pass it, and the built-in rules hold no pattern rule for scope naming. The local rule rejects unknown values, upper-case letters, hyphens, underscores, and multi-area scopes in one place, and it passes a message without a scope, which commitlint parses as a `null` scope.
-
-The remaining rules keep their `config-conventional` defaults. That choice carries constraints beyond the type and scope policy: a subject that opens with a capital letter or ends with a full stop is rejected, and body and footer lines are limited to 100 characters.
-
-### Documentation
-
-The Git sections of `AGENTS.md`, [README.md](../../../../../README.md), and [README.zh.md](../../../../../README.zh.md) name the scope set and the commit-msg check, beside the existing Conventional Commits requirement, and the hook installation step covers both hook stages. The ADR process and the change workflow are unchanged.
+The [repository specification](../../../../spec/repository.md) states the scope set and the commit-msg check, `commitlint.config.mjs` records the local rule and the constraints the preset inherits, and [README.md](../../../../../README.md), [README.zh.md](../../../../../README.zh.md), `AGENTS.md`, and the [Git rules](../../../../rule/git.md) state the message requirements.
 
 ## Alternatives considered
 

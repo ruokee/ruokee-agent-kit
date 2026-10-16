@@ -22,65 +22,13 @@ Reference reporting should describe the files a user actually keeps, not the sta
 
 ## Decision
 
-### Data model
+UUIDv7 is authoritative identity: paths locate Tasks and names describe them. Relationships remain within one Task root, a Task cannot relate to itself, and `depends_on` cannot form a cycle.
 
-A project uses sparse configuration at `.agents/tk_config.toml`. It selects one project-relative Task root, default child creation directory, Git policy, creation policy, and metadata mode. The default Task root is `.tk`. `subtasks_dir` controls only where later child Tasks are created and never limits discovery or moves existing data.
+Ordinary writes do not use locks, leases, compare-and-swap, or automatic merge. A multi-target operation reports completed and uncompleted targets with the original error instead of rolling back.
 
-Top-level Tasks use the canonical `YYYY/MM/DD-NN--slug` topology. New child Tasks use a stable two-digit `NN--slug` directory below the parent or its configured `subtasks_dir`. Existing child Tasks may be stored in any real descendant directory below a valid top-level Task. The nearest enclosing valid Task defines parenthood. Metadata does not store `parent`.
+Closing and reopening require a non-empty reason and current explicit authorization.
 
-Generated direct-child sequence allocation examines all discovered direct children with a valid `NN--slug` leaf, takes the largest sequence, and does not fill gaps. The configured creation directory selects the destination only. Sequence `99` is the final generated sibling number, and exhaustion fails before writing.
-
-The project-wide metadata mode is split or embed. split stores metadata in `tk.toml` and body text in `TASK.md`. embed stores the same metadata in restricted YAML frontmatter and preserves the body bytes below it. A project does not mix representations per Task.
-
-Schema 1 contains the immutable UUIDv7 `id`, normalized `name`, `planning`, `open`, or `closed` status, immutable timezone-aware `created_at`, same-root `depends_on` and `related_to` relationships, and optional losslessly representable `extra`. The schema does not store parent, branch, priority, assignment, update time, close reason, or session identity.
-
-Every formally released schema transition retains an adjacent forward migrator. Migration applies those migrators in order, supports split and embed, and preserves the Task body. There is no downgrade path, schema 0, or compatibility contract for unreleased development formats.
-
-### Carrier discovery
-
-Top-level discovery first requires canonical topology, a valid calendar date, a non-empty slug, and a metadata name matching that slug. Descendant discovery then traverses real ordinary directories below each valid top-level Task.
-
-A descendant directory becomes a structural candidate only through the marker for the project's metadata mode. In split mode, a regular `tk.toml` is the marker and a valid Task also requires a regular paired `TASK.md`. In embed mode, a regular `TASK.md` must begin with recognizable tk frontmatter whose opening metadata key is `schema_version`. The complete carrier must pass strict schema, identity, representation, and safe-path validation.
-
-A generated `NN--slug` child must match its metadata name. A non-generated child has no path-to-name requirement. Marked but invalid directories remain managed errors for `check` and are omitted from normal discovery. Unrelated `TASK.md`, ordinary YAML frontmatter, symlinks, special files, WAL, `.tk-tmp`, cleanup data, and paths outside the Task root do not become Tasks. Ordinary and invalid directories remain traversable under the nearest valid ancestor, except runtime-owned paths.
-
-Discovery order is deterministic. A scan accepts at most 100,000 real directories and 256 descendant levels. Crossing either limit or encountering a required I/O error fails the scan without returning a partial graph.
-
-UUIDv7 is authoritative identity. Paths locate Tasks and names describe them. Duplicate IDs remain graph diagnostics and make UUID resolution ambiguous. Relationships remain within one Task root. A Task cannot relate to itself, and `depends_on` cannot form a cycle. Relationships are deduplicated and stored in stable UUID order.
-
-`planning` preserves an early idea, investigation, or plan that the user wants saved. `open` means the Task is being handled. `closed` is readable and otherwise read-only, except that rename stays available for ordinary renaming and repair without changing the status. Closing and reopening require a non-empty reason and current explicit authorization. Normal close also requires closed descendants and dependencies. Force close bypasses only those two checks.
-
-A strict project requires current explicit authorization to create a top-level Task. A permissive project may create work worth preserving without treating creation as an execution commitment. Creating a planning Task still requires an expressed intent to save the early work.
-
-### Discovery graph
-
-The Task root has no persistent index or cache. Each operation builds one carrier-based Task graph on demand. Search, ordinary exact path resolution, parent and descendant checks, relationship validation, `check`, schema migration, metadata mode switching, and sequence allocation use the strict graph.
-
-Exact read and ordinary mutation accept a complete UUIDv7, an absolute discovered Task directory, an absolute managed carrier, or a relative discovered Task path in the current project. rename accepts the same exact forms for a uniquely identified repair candidate whose carrier parses and whose only tolerated old-state defects are a string name or recognizable generated suffix within rename's repair scope. An absolute material path may locate its owning project but is not an exact Task reference. Git projects use their Git root. Non-Git project discovery uses the canonical top-level ancestor and bounded project checks rather than walking to the file-system root.
-
-Search classifies a query once as UUID or explicit Task path, existing material path, explicit regular expression, or string. It does not fall back after classification. Search includes all three statuses by default and orders `uuid`, `path`, `regex`, then `string` matches. Items within a class use `created_at` descending and ID ascending. The default limit is 20 and the maximum is 100. Results include closed ancestors derived from the strict discovery graph.
-
-Git policy runs only before persistent writes. `track` requires managed Task files not to be ignored, `ignore` requires the Task root to be ignored, and `none` does not invoke Git policy commands. tk does not modify Git configuration, ignore rules, the index, commits, or history.
-
-### Persistence
-
-A managed single-file change writes a complete same-directory temporary file and atomically replaces the target. Ordinary writes do not use locks, leases, compare-and-swap, or automatic merge. Concurrent replacements resolve to the operation that finishes last.
-
-WAL is an ordinary daily Markdown activity record. Metadata commits before an automatic WAL append. WAL failure returns a warning and does not roll back committed metadata. actor is attribution text, not identity or authorization.
-
-Multi-target operations complete all domain prechecks, commit in deterministic order, stop at the first error or cancellation point, and report completed and uncompleted targets with the original error. They do not roll back automatically or write a continuation state. A later invocation rebuilds the discovery graph and replans from current managed files.
-
-A multi-target project write creates an activity marker before the first persistent write. The marker identifies the operation, project scope, Linux boot ID, PID, and process start time. Other writes remain blocked while the producer is active and after it exits, until GC removes the marker. Reads, searches, and pure diagnostics remain available. The marker is not a general lock.
-
-Cleanup manifests contain only their format version, producer identity, creation time, and tk temporary paths. GC removes provably tk-owned temporary content and ended activity markers. It never completes, rolls back, or repairs a Task, migration, rename, or component operation.
-
-rename performs ordinary renaming and repairs an existing string name that is noncanonical, empty, empty after normalization, or wider than the current display limit. It also repairs a recognizable generated directory whose nonempty suffix disagrees with metadata. The new name, identity, schema, dates, status, relationships, `extra`, project ownership, and final path must pass validation. Missing names, wrong field types, unparseable carriers, missing markers, unsupported schemas, damaged identity, unsafe paths, damaged dates or sequences, and unrecognizable generated structures remain errors.
-
-The repair scan uses the normal representation markers, path boundaries, traversal order, and resource limits. Repairable candidates participate in UUID uniqueness and structural ownership. A damaged-name copy cannot remove UUID ambiguity. A candidate below an invalid enclosing candidate is rejected when parenthood cannot be determined. Other commands retain strict discovery.
-
-rename changes only the Task name and an applicable generated directory, then appends the normal WAL event. It preserves UUID, status, creation time, relationships, `extra`, body bytes, existing WAL, date, sequence, and parent location. A non-generated child keeps its directory. A generated child or top-level Task preserves its sequence and updates the slug path. rename reports the raw old name, resolved parent, old path, target path, and Markdown references. It does not rewrite references. `git_policy=track` scans Markdown across the project from the file system, independent of Git staging state. `ignore` and `none` scan ordinary Markdown under the Task root. The walk skips symbolic links, tk-owned runtime paths, and the Git administrative directory, and fails with `reference_scan_limit_exceeded` when it exceeds its depth or directory limit. Dry-run writes nothing. A path-only repair is a change.
-
-`check` validates marked carriers, generated name-path agreement, UUID and direct-child sequence uniqueness, relationships, WAL, activity markers, and cleanup data without modifying content. It reports marked invalid carriers and resolved logical parents. A required I/O failure or discovery limit stops the scan and reports it as incomplete. Manual repair is allowed only when tk cannot express the repair, the Agent describes the exact edit, and the user explicitly authorizes it in the current conversation. The Agent then reruns `check` and records the repair in WAL when the Task is usable.
+rename performs ordinary renaming and repairs a noncanonical, empty, or over-long string name and a recognizable generated directory whose nonempty suffix disagrees with metadata. It tolerates only those old-state defects, while other commands retain strict discovery.
 
 The complete format and operation details live in the [data model](../../../../../projects/tk/docs/design/data-model.md) and [tool API](../../../../../projects/tk/docs/design/tool-api.md).
 

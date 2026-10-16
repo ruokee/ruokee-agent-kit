@@ -38,77 +38,7 @@ The English and Chinese frontmatter descriptions expose semantically aligned pos
 
 ### Knowledge structure
 
-Each language component contains 29 Markdown documents: `SKILL.md`, a root glossary, 14 core references, 5 AI references, and 8 technology-selection references. It has no `agents/` or `workflow/` directory. Documents within one reference directory use two-digit prefixes for stable navigation; directories are not numbered, and numbering does not require sequential reading.
-
-```text
-skills/architect/
-  SKILL.md
-  glossary.md
-  references/
-    01-architecture-judgment.md
-    02-system-analysis.md
-    03-views.md
-    04-architecture-styles.md
-    05-data-ownership.md
-    06-system-design.md
-    07-architecture-decisions.md
-    08-distributed-systems.md
-    09-consistency.md
-    10-resilience.md
-    11-scaling.md
-    12-evolution.md
-    13-organization.md
-    14-security.md
-    ai/
-      01-ai-era-judgment.md
-      02-ai-system-design.md
-      03-specifications-for-ai.md
-      04-reviewing-ai-output.md
-      05-evaluation-driven-architecture.md
-    technology-selection/
-      01-principles.md
-      02-languages.md
-      03-data-stores.md
-      04-messaging.md
-      05-communication.md
-      06-deployment.md
-      07-observability.md
-      08-ai-infrastructure.md
-```
-
-Each document has the following responsibility:
-
-| Document | Scope | Source cues |
-| --- | --- | --- |
-| `SKILL.md` | State scope, navigation, evidence requirements, and the output contract. | This ADR |
-| `glossary.md` | Define the architecture terms and Chinese-English equivalents used by the Skill. | Glossary |
-| `references/01-architecture-judgment.md` | Form architecture judgments from requirements, constraints, and quality attributes. | Chapters 02, 06, and 09 |
-| `references/02-system-analysis.md` | Analyze an unfamiliar system from code, configuration, and runtime evidence. | Chapter 18 |
-| `references/03-views.md` | Choose views and diagram boundaries, relationships, and data flow. | Chapter 03 |
-| `references/04-architecture-styles.md` | Compare the fit and tradeoffs of common architecture styles. | Chapter 04 |
-| `references/05-data-ownership.md` | Explain state ownership, data lifecycles, and storage boundaries. | Chapter 05 |
-| `references/06-system-design.md` | Show a complete path from requirements to a verifiable system design. | Chapters 07 and 19 |
-| `references/07-architecture-decisions.md` | Record candidates, tradeoffs, consequences, and review conditions. | Chapter 08 |
-| `references/08-distributed-systems.md` | Explain constraints caused by networks, time, concurrency, and partial failure. | Chapter 10 |
-| `references/09-consistency.md` | Compare consistency models, transaction boundaries, and conflict handling. | Chapter 11 |
-| `references/10-resilience.md` | Explain timeout, retry, idempotency, isolation, and degradation design, plus RPO/RTO and recovery design. | Chapter 12 |
-| `references/11-scaling.md` | Use load evidence to find bottlenecks and choose scaling methods. | Chapter 13 |
-| `references/12-evolution.md` | Use evolution trigger signals and technical-debt evidence to plan decomposition, migration, rollback, and retirement. | Chapters 08, 14, 20, and 21, plus the evolution-signals appendix |
-| `references/13-organization.md` | Explain how team ownership and communication structure relate to system boundaries. | Chapters 08 and 15 |
-| `references/14-security.md` | Explain trust boundaries, identity and access, data isolation, and tenancy risk. | Chapter 16 |
-| `references/ai/01-ai-era-judgment.md` | Explain uncertainty, cost, and capability boundaries introduced by AI components. | Chapter 17 |
-| `references/ai/02-ai-system-design.md` | Explain system boundaries among models, context, tools, memory, and orchestration. | Chapter 22 |
-| `references/ai/03-specifications-for-ai.md` | Express architecture constraints as executable and verifiable specifications for AI. | Chapter 23 |
-| `references/ai/04-reviewing-ai-output.md` | Review only AI-specific omissions; reuse the consistency, resilience, scaling, and security references. | Chapter 24 |
-| `references/ai/05-evaluation-driven-architecture.md` | Define AI-system quality through evaluation goals, datasets, and feedback. | Chapter 25 |
-| `references/technology-selection/01-principles.md` | Give common questions, comparison dimensions, and exit conditions for technology selection. | Chapter 34 |
-| `references/technology-selection/02-languages.md` | Compare language and backend-framework constraints, team fit, and maintenance cost. | Chapter 27 |
-| `references/technology-selection/03-data-stores.md` | Compare data models, consistency, and operational cost across storage choices. | Chapter 28 |
-| `references/technology-selection/04-messaging.md` | Distinguish the problems and boundaries of caches, message queues, and event systems. | Chapter 29 |
-| `references/technology-selection/05-communication.md` | Compare API and service-communication choices by coupling, performance, and evolution cost. | Chapter 30 |
-| `references/technology-selection/06-deployment.md` | Compare deployment models and cloud platforms by delivery, elasticity, and operational constraints. | Chapter 31 |
-| `references/technology-selection/07-observability.md` | Connect observability and reliability tools to failure detection and response needs. | Chapter 32 |
-| `references/technology-selection/08-ai-infrastructure.md` | Compare AI infrastructure tradeoffs across training, inference, data, and cost. | Chapter 33 |
+Each language component keeps one reference layout with no `agents/` or `workflow/` directory. Documents within one reference directory use two-digit prefixes for stable navigation; directories are not numbered, and numbering does not require sequential reading.
 
 Chapters 23 through 25 cover constraint expression, output review, and quality validation when AI participates in system-level architecture work, so they belong under `ai/`. Chapter 01 focuses on career and learning motivation, chapter 26 on general collaboration style, and chapters 35 through 40 on AI-native organizations. They are not priorities for this system architecture Skill. Templates and cases may supply examples, but the Skill does not copy them into a separate template catalogue.
 

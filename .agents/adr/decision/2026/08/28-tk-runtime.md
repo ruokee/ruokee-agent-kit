@@ -25,33 +25,7 @@ Most commands use a short-lived process. The MCP server serves one stdio connect
 
 ### CLI contract
 
-The public command tree is:
-
-```text
-tk search
-tk read
-tk create task
-tk create subtask
-tk update
-tk log
-tk init
-tk check
-tk rename
-tk gc
-tk schema generate
-tk metadata migrate
-tk metadata switch
-tk mcp
-tk install
-tk uninstall
-tk --version
-```
-
-`--actor` is not global. It belongs only to update, log, and rename operations that append WAL. `init --force` rewrites project configuration from the current explicit values and defaults without reading or changing Task data.
-
-Human output and JSON output are both public. JSON uses one result envelope with `ok`, `data`, `warnings`, or `error`. Stable errors include a code, category, human message, and structured details. Callers branch on the code or category, not the message.
-
-Exit codes keep one stable broad mapping. 0 is success. Request failures use 2, expected refusals use 3, storage and internal failures use 4, environment failures use 5, and cancellation before the first persistent write uses 130. Structured errors carry the detailed reason.
+The public command tree, the `--actor` scope, the JSON result envelope and stable error fields, and the exit-code mapping live in the [CLI reference](../../../../../projects/tk/docs/design/cli-reference.md).
 
 ### Request context
 

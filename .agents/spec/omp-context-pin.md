@@ -45,6 +45,7 @@ OMP `18.5.0`, declared in [Compatibility](../../projects/omp-context-pin/README.
 
 - `bun run typecheck` and `bun test` pass in the component directory.
 - In a real OMP CLI session with a real model, the extension loads, creates, updates, and deletes pins through the tool, and a remaining pin stays in effect after manual compaction.
+- Verification of the pin's effect on the cache compares the provider-visible effective context, includes preceding requests when the host sends chained deltas, attributes a host-side change separately, and looks for avoidable prefix rewrites caused by the pin.
 - No source branch is conditioned on a host earlier than OMP 18.5.0.
 
 ## Related ADRs

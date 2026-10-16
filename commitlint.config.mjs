@@ -5,6 +5,12 @@ const scopes = ["skills", "extensions", "adr", "repo"];
 // rejects unknown values, upper-case letters, hyphens, underscores, and
 // multi-area scopes, and passes a message without a scope, which commitlint
 // parses as a null scope.
+
+// The rules inherit config-conventional defaults: a subject that opens with a
+// capital letter or ends with a full stop is rejected, and body and footer
+// lines are limited to 100 characters. Commitlint skips its default ignore
+// patterns, which cover version subjects such as "v1.2.3", "fixup!" and
+// "squash!" prefixes, and Git-style "Revert ..." and "Merge ..." subjects.
 export default {
   extends: ["@commitlint/config-conventional"],
   plugins: [
