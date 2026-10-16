@@ -4,7 +4,7 @@
 
 A persistent OMP status bar extension: one `belowEditor` widget host plus builtin providers for token metrics, cache hit rate, context usage, and the count of model requests the session has answered.
 
-Part of [projects/omp-status-bar](../README.md). Written by Ruokee.
+Part of [projects/omp-status-bar](../README.md).
 
 ## Install
 
@@ -18,7 +18,7 @@ omp plugin link "$(pwd)" --scope user
 
 OMP reads `omp.extensions` from `package.json` and loads `src/extension.ts`; no manual extension-path setting is required.
 
-The minimum maintained OMP version is `18.5.0`, as declared in the [compatibility section of the component README](../README.md). The bound expresses maintenance responsibility only: it does not restrict installation, activation, or running, and it is not a list of verified versions. Automated checks run on OMP 18.5.0, where `bun test` and `tsc --noEmit` pass. Those are package-level runs against installed copies of the host packages, not real host runs. Real TUI validation covers OMP 18.2.3, 18.2.8, 18.4.3, and 18.5.1.
+The minimum maintained OMP version is `18.5.0`, as declared in the [compatibility section of the component README](../README.md). Automated checks run on OMP 18.5.0, where `bun test` and `tsc --noEmit` pass. Those are package-level runs against installed copies of the host packages, not real host runs. Real TUI validation covers OMP 18.2.3, 18.2.8, 18.4.3, 18.4.4, and 18.5.1.
 
 ## Configuration
 

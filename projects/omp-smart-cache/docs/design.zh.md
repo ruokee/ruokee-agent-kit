@@ -39,7 +39,7 @@ Handoff 支持 `openai-completions` 与 `openai-responses`。先证明操作归�
 
 原生构造观察在登记之前记录两个 Handoff 方法。未确认的基线保持方法不变；已安装包装丢失后，本能力报告为不可用。每次物理发送都在查询 memo 之前核对操作的完整 owner。owner 变化会永久撤销操作，即使后续重试的 body 相同或恢复先前取值也不能恢复。payload 回调只标记原生准备完成，共享传输边界才执行投影，并记录每次实际委派和重试。
 
-Chat Completions 在边界内还原在线 system/developer 系统段、参照持有的 `reasoning_effort` 及没有显式选择时的在线 `tool_choice`。Responses 从同次普通 context dispatch 冻结原始来源，通过原生 serializer 标定准备结果中的 system；不能改从尚未同步的 Agent state 取得来源。确认最终普通发送及 2xx 后发布独立参照。Handoff 绑定的原生 snapshot 必须完整保留这份源前缀，并具有新增尾部。
+只有在副请求的系统段是参照系统段的前缀、参照的非系统历史是副请求历史的严格前缀时，本能力才改写该副请求。Chat Completions 在边界内还原在线 system/developer 系统段、参照持有的 `reasoning_effort` 及没有显式选择时的在线 `tool_choice`。Responses 从同次普通 context dispatch 冻结原始来源，通过原生 serializer 标定准备结果中的 system；不能改从尚未同步的 Agent state 取得来源。确认最终普通发送及 2xx 后发布独立参照。Handoff 绑定的原生 snapshot 必须完整保留这份源前缀，并具有新增尾部。
 
 来源比较只排除 assistant 顶层的 `completedAt` 和 `contextSnapshot`，宿主在 dispatch 后将它们补写为本地会话记账信息。其余字段，包括内容、Provider replay payload 和未知字段，必须严格相同。捕获的历史和出站 input 均不改变，最终 wire 历史仍须单独证明。
 
@@ -63,6 +63,6 @@ switch、branch 或 tree 导航前先撤销旧 epoch。原生转换结算后，�
 
 ## 失败行为
 
-remote 的未知字段、显式策略差异、模型或工具失配、身份歧义、缺失证明、取消、外部包装或不可用接口使整条请求保持原生；它只改写非 Codex Responses V2。Handoff 按上述独立证明与逐轴规则处理。凭据、参照请求、认证请求和原生回退归 OMP，压缩否决属于安装它的组件。
+remote 的未知字段、显式策略差异、模型或工具失配、身份歧义、缺失证明、取消、外部包装或不可用接口使整条请求保持原生；它只改写非 Codex Responses V2，适用于主会话以及原生 task、Eval 子会话。Handoff 按上述独立证明与逐轴规则处理。凭据、参照请求、认证请求和原生回退归 OMP，压缩否决属于安装它的组件。
 
 更新时，在途参照留在正在运行的进程内。关闭开关，或移除本包并重启 OMP，即可恢复原生请求路径。

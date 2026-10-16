@@ -18,7 +18,7 @@ The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound.
 
 The package declares `@oh-my-pi/pi-coding-agent`, `@oh-my-pi/pi-agent-core`, and `@oh-my-pi/pi-tui` as unrestricted host peers (`*`). These declarations name the host packages the package imports; they are not a maintenance range or a claim about every host version.
 
-The automated type check and test suite run against OMP `18.5.0`. Real TUI validation covers OMP `18.2.3`, `18.2.8`, `18.4.3`, and `18.5.1`; [Usage and configuration](./docs/usage.md) records those scenarios together with the versions and paths they do not cover. Every tagged release repeats the real TUI checks listed there.
+Automated checks and real TUI validation, the versions they cover, and what they do not cover are recorded in [Usage and configuration](./docs/usage.md).
 
 ## Installation
 

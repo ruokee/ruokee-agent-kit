@@ -101,7 +101,7 @@ Entry ids are positive integers scoped to one session and are shown as `#<id>` w
 - Numbers are restored from the whole session through the host's public session entries, including numbers reserved by submissions this process has not consumed yet and by the carriers and results the host already holds. That scan assigns numbers only: it never applies another branch's bodies, receipts or operations.
 - A number that would leave the safe integer range, or an allocation state that cannot be established reliably, is reported as an explicit error instead of wrapping around or restarting from 1. A session whose entries cannot be read is reported, and the write is refused.
 
-The `schemaVersion` is `2`, and the identities are integers. Records written by the earlier `0.4.x` candidate hold string identities; an active range that contains them is reported as an unsupported format instead of being mixed with integers, and the switch is clean: those records are not migrated, and the user starts a new session or resets the range.
+The `schemaVersion` is `2`, and the identities are integers. An active range that contains records holding string identities is reported as an unsupported format instead of mixing them with integers: those records are not migrated, and the user starts a new session or resets the range.
 
 Replaying a record with the same `operationId` under the same revision is a no-op. The same identity carrying other content is treated as damage rather than as a retry.
 

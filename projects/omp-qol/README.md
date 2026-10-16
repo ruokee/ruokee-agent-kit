@@ -171,13 +171,7 @@ When OMP ships model-scoped instructions, through [issue #6739](https://github.c
 
 ## Limits
 
-Each adjustment lists its own limits in [Adjustments](./docs/adjustments.md). The short version:
-
-- [Wait](./docs/adjustments.md#continuing-waits). Only nonempty all-running job snapshots continue. Message-only continuation, named-process waiting, and service-only continuation are not provided. A deadline ends the call, not background work.
-- [Recovery](./docs/adjustments.md#continuing-after-a-transient-model-error). Safety exclusions and the host's independent cap apply, with at most 8 continuations per failure chain. Continuing can repeat tool side effects and spends provider quota.
-- [Compaction](./docs/adjustments.md#extending-one-compaction-deadline). The experimental process-wide `AbortSignal.timeout` patch can extend unrelated calls within its window. On OMP `18.5.0`, enabling it disables speculative compaction. Lifecycle conflicts or owner shutdown can stop the patch until restart.
-- [Compaction usage](./docs/adjustments.md#recording-compaction-request-usage). Only the `soft` summarization requests and the `handoff` request are written, only when they consumed tokens. A request whose api or session this process cannot name is skipped and counted in `/qol` rather than guessed. The patch is process-wide.
-- [Replay](./docs/adjustments.md#replaying-native-history-in-a-resumed-session). The process-wide `Map.prototype.set` wrapper covers only `openai-responses` states. A resumed request can fail if its endpoint rejects stored native items. Host changes can make the wrapper silently inactive.
+Each adjustment lists its own limits in [Adjustments](./docs/adjustments.md).
 
 ## Compatibility
 

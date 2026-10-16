@@ -4,7 +4,7 @@
 
 逐项说明扩展改动了 OMP 的什么行为、为什么需要调整、介入位置、代价，以及目前有哪些验证。README 只放简表，依据集中在这里。
 
-开发依赖基线为 OMP `18.5.0`，即 [`can1357/oh-my-pi`](https://github.com/can1357/oh-my-pi) 的 tag `v18.5.0`，提交 [`9348320cc4a30a7195d36a1f05a6c11bcb701a17`](https://github.com/can1357/oh-my-pi/tree/9348320cc4a30a7195d36a1f05a6c11bcb701a17)。每项调整分别列出其机制所依据的源码基线。带提交 `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c` 的链接指向 OMP `18.2.8`，即最初阅读上游错误后续跑、压缩期限与原生历史重放机制时的版本；类型检查与测试套件针对 `18.5.0` 运行。
+开发依赖基线为 OMP `18.5.0`，即 [`can1357/oh-my-pi`](https://github.com/can1357/oh-my-pi) 的 tag `v18.5.0`，提交 [`9348320cc4a30a7195d36a1f05a6c11bcb701a17`](https://github.com/can1357/oh-my-pi/tree/9348320cc4a30a7195d36a1f05a6c11bcb701a17)。每项调整分别列出其机制所依据的源码基线。带提交 `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c` 的链接指向 OMP `18.2.8`。
 
 ## 版本记录的读法
 
@@ -13,8 +13,6 @@
 - **源码基线**：机制所依据的 OMP 版本与提交，以及它依赖的源码位置。
 - **自动检查**：类型检查与测试套件运行所用的 OMP 版本，以及这些测试实际覆盖的内容。替换宿主的测试不能证明宿主行为。
 - **真实 OMP CLI**：交互运行的 OMP 版本、模型与场景。尚未执行的项目写 **未验证**；不从 peer 范围、源码阅读或其他调整项通过来推定。
-
-关于宿主版本的结论只适用于该版本，本文不声称存在连续可用范围。
 
 ## 持续等待
 
@@ -65,7 +63,7 @@
 
 - **源码基线**：OMP `18.5.0` 的[等待工具](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/tools/wait.ts)、[任务控制](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/async/job-control.ts)、[扩展 API](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/extensibility/extensions/types.ts) 与 [proc 协议](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/internal-urls/proc-protocol.ts)。
 - **自动检查**：OMP `18.5.0`，`bun test` 与 `tsc --noEmit`，使用记录宿主。覆盖模型可见 schema、跨运行快照的 `{}` 委派、缺省与显式期限选择、结构化续接规则、终止结果、取消、期限与结果竞态、注册拒绝，以及真实的已注册工具适配器对可中断性、加载模式、严格校验与审批的转发。
-- **真实 OMP CLI**：OMP `18.5.1` 与真实模型，`waitJobsSeconds` 为 `600`，并在独立进程中与上一个包版本对照。一次由场景控制把输入固定为 `{}` 的 `wait` 调用在 `900` 秒后台任务仍运行时返回 `600` 秒期限说明，与改动前一致。一次 `timeout` 为 `3600` 的 `wait` 调用跨过 30 分钟原生窗口继续等待，在同一次调用内返回已完成的 `1920` 秒任务，与改动前一致。消息中断、steer 与取消未在 `18.5.x` 上重跑。
+- **真实 OMP CLI**：OMP `18.5.1` 与真实模型，`waitJobsSeconds` 为 `600`。一次由场景控制把输入固定为 `{}` 的 `wait` 调用在 `900` 秒后台任务仍运行时返回 `600` 秒期限说明。一次 `timeout` 为 `3600` 的 `wait` 调用跨过 30 分钟原生窗口继续等待，在同一次调用内返回已完成的 `1920` 秒任务。消息中断、steer 与取消未在 `18.5.x` 上重跑。
 
 ## 上游错误后续跑
 
@@ -132,11 +130,11 @@
 
 - **源码基线**：OMP `18.2.8`，提交 `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`，源码位置如上。
 - **自动检查**：OMP `18.5.0`，`bun test` 与 `tsc --noEmit`，以记录宿主替代真实宿主。覆盖两种模式的分类矩阵、带或不带状态与判定结论的中断标记、无状态条件、排除清单与终止性状态优先于标记、被标记轮次的续跑、排除优先级、链与退避计算、同一轮次的重复事件、连续多次运行都首个轮次失败、等待期间开始新运行、被取消的等待、会话切换、跨运行的次数上限、正常结束与不可恢复错误终止链、被取消的结束、终止后仍保留的已处理轮次标记、固定续跑文本，以及开关或配置让恢复停用时不请求续跑。错误分类器使用已安装的 `@oh-my-pi/pi-ai` 代码，不是替身。
-- **QoL `0.5.2`**：`0.5.1` 之后的 patch 版本，运行实现与已有记录中标为 `0.6.0` 的候选一致。真实 OMP `18.5.1` TUI 加载完整包后，`/qol` 显示 `@ruokee/omp-qol 0.5.2`。该版本状态运行没有触发错误恢复，下方恢复证据保留实际运行时的版本。
+- **QoL `0.5.2`**：真实 OMP `18.5.1` TUI 加载完整包后，`/qol` 显示 `@ruokee/omp-qol 0.5.2`；其运行实现与下方恢复证据所用的 `0.6.0` 候选一致，该运行没有触发错误恢复。
 - **真实 OMP CLI**：QoL `0.6.0`、OMP `18.5.1`、真实模型与默认恢复设置（`knownTransient`、最多 8 次、起始 1000 ms、上限 8000 ms、通知开启）。通过显式入口加载完整候选包并关闭扩展发现；`/qol` 确认版本及有效恢复设置。未关闭或缩短原生重试。仅用于测试的传输包装转发真实上游 SSE 帧，在每条失败流的首个文本增量后、终止事件前关闭流。四次原生失败运行均生成 `OpenAI completions stream closed before a finish_reason was received`，`errorId: 135168`，没有 HTTP 状态或中断标记。进入 `session_stop` 后，QoL 显示第 1 次及 1000 ms，在 1004 ms 后无需用户消息便启动第五次运行，收到正常响应并以 `STREAM_RECOVERY_OK` 结束。该标记证明模型继续输出，不证明测试输入所要求的全部编号行被准确重建。
 - **OMP `18.5.1` 对照**：仅将 `recoveryEnabled` 改为 `false` 后，相同截断在四次原生失败运行后结束，没有恢复提示或续跑。启用恢复的真实 TUI 运行显示次数及 1000 ms 等待。测试驱动在提示后 202 ms 发送真实 Esc 键，结束信号随即中止，会话关闭前没有第五次运行或请求。
 - **未验证**：新的主会话出现精确报错 `Upstream provider closed the connection before the response completed: stream ended without terminal event or completed response` 后自动续跑。已保存的一次子代理失败带有该错误，`errorId: 0`，没有 HTTP 状态或中断标记；对该形状分类会按无状态未分类错误接受，但历史记录与分类检查不能证明主会话续跑。子代理仍不在该调整范围内。实机运行也未覆盖工具副作用、QoL 连续失败直至上限、其他提供方协议或真实等待期间切换会话。
-- **上游变化**：stop hook 与续跑上限随 `c93774f892`（2026-06-17，"implement session stop hook semantics"）引入；`/reset` 语义在 `a418920ec1`（2026-08-03）改变，因此 reset 之后的链重置依赖宿主的 `stop_hook_active` 而不只依赖计数器。当前"重试预算耗尽"的措辞来自 `f6c5a43a1f`（2026-08-06）；模块按错误分类而不是匹配该措辞。
+- **上游历史**：stop hook 与续跑上限随 `c93774f892`（2026-06-17，"implement session stop hook semantics"）引入；`/reset` 语义在 `a418920ec1`（2026-08-03）改变，因此 reset 之后的链重置依赖宿主的 `stop_hook_active` 而不只依赖计数器。当前"重试预算耗尽"的措辞来自 `f6c5a43a1f`（2026-08-06）；模块按错误分类而不是匹配该措辞。
 
 ## 延长单个压缩期限
 
@@ -207,7 +205,7 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 - **源码基线**：OMP `18.2.8`，提交 `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`，源码位置如上。
 - **自动检查**：OMP `18.5.0`，`bun test` 与 `tsc --noEmit`，使用记录宿主，并把 `AbortSignal.timeout` 替换为记录器，记录器把非法输入委派给原生函数。覆盖安装顺序与每种拒绝原因（早期补丁标记一项是把标记写在本版本读取位置的替身，见边界说明）、幂等安装与释放、第二次激活保留已安装补丁（其他 cwd、不注册窗口事件、安装方窗口继续改写期限、窗口外调用保持原生而窗口内被延长、不报告冲突）、第二次激活停止已安装补丁（其他快照、其他包版本、本模块开关关闭、总开关关闭、键无效）、已停止的补丁对之后配置一致的激活保持停止、owner 退出（关闭窗口、仅当前全局函数仍是本模块包装时还原原生函数、注册表留下 `owner-stopped`、之后配置一致的激活报告该状态且不安装、会话切换只关闭窗口）、`/qol` 在之后停止后报告注册表状态、安装方激活配置快照变化、本版本无法读取的注册表槽位、读取设置抛错、设置根不是对象、未知键、总开关取值无效、改写区间、非法输入的 `TypeError` 行为、每个窗口一次提示、进程级副作用对非压缩调用方的影响、同一次压缩操作在同一个 signal 上串行回退后续方法（窗口、类型、会话 id、守卫租期与提示状态保持不变，只有一个监听器，改写持续到提交，之后的操作为全新一轮）、自动轮次或 `session.compacting` 先开启窗口时的同样情形、同一窗口内出现不同的活跃 signal、自动轮次进行中再次开始自动轮次、由各事件打开窗口、绑定到已打开窗口的 before-compact 信号、已经中止的信号、遗留监听器、守卫与取消与中止与切换与关闭结束窗口、重叠与外部会话拒绝、被替换后的还原，以及窗口事件注册失败与布局无法识别的注册表各自的 `/qol` 报告。真实 OMP CLI 运行无法替代这些检查。
 - **真实 OMP CLI**：OMP `18.5.1` 与真实模型，`compactionTimeoutEnabled` 开启；两个会话中 `/qol` 都报告 `compaction: enabled` 及所配置的期限、下限与守卫值。这些会话没有执行压缩，因此受支持宿主上的期限改写与回退序列 **未验证**。
-- **上游变化**：远端看门狗随 `8b8651529d`（2026-06-13）引入，V2 流式压缩随 `102d6d54ad`（2026-06-28）引入并复制了该看门狗及其常量。两者都早于基线；截至基线，未发现改变五分钟限制的提交。
+- **上游历史**：远端看门狗随 `8b8651529d`（2026-06-13）引入，V2 流式压缩随 `102d6d54ad`（2026-06-28）引入并复制了该看门狗及其常量。两者都早于基线；截至基线，未发现改变五分钟限制的提交。
 
 ## 补记压缩请求用量
 
@@ -272,13 +270,14 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 - **退出条件所在界面**：[pull request #15034](https://github.com/can1357/oh-my-pi/pull/15034) 由宿主自己记录这些请求，并为此从 `@oh-my-pi/pi-agent-core` 导出 `compactionRequestUsage`；本调整读取该导出。
 - **自动检查**：OMP `18.5.0`，`bun test` 与 `tsc --noEmit`，以记录宿主替代已安装宿主。覆盖 purpose 表、零 token 与非压缩类型的跳过、成本认领及其一次性、拒绝集合（无访问器、无用量的写入方、无法读取的注册表布局、被替换的访问器、runtime 未接受的安装、自己记录这些请求的宿主）、保留用户 tracer 与用户自己的钩子、惰性 tracer、注册表的访问器身份契约、请求自身身份解析（同一 model id 属于别的 provider、原始 provider id 在本会话没有对应模型、同一 model id 由两个 provider 提供、以及标签与某个注册 provider 同名但该 model id 在本会话由两个 provider 提供，都不写入并计数；唯一一条目录条目与请求自己的 provider id 则解析成功）、写入的 provider、切换日志的会话与被丢弃的旧 id，以及 `/qol` 行。
 - **真实 OMP CLI**：OMP `18.8.3`，使用会话配置的 provider 与 model，开启 `compactionUsageEnabled` 并从本检出加载扩展。观察到：一次手动 `soft` 压缩写入 `compaction:turn-prefix`、`compaction:summary`、`compaction:short-summary` 三条条目，其 `api: openai-completions`、provider 与 model 与宿主自身主回合条目一致，成本与宿主自己的单 token 价格吻合；另一次 `soft` 压缩写入它的两个请求而没有第三个，因为该次运行的 short summary 已足够、未发出 summary 请求；一次自动 `handoff` 压缩为每个请求写入 `compaction:handoff` 条目，带输入、输出与缓存读取 token 及提供方成本；在只允许 handoff 的方法顺序下手动 `/compact` 被宿主拒绝且未写任何条目；`/qol` 在这些会话中分别报告 `compactionUsage: enabled (entries=3)` 与 `(entries=2)`，没有 `costMissing` 也没有 `unrecorded`。在其中一个会话中，宿主自身 `/session` 统计在一次 `soft` 压缩前后正好变动了该次压缩写入的两条条目（输入 201 → 774，输出 2 → 317，总计 4,939 → 5,827，成本 0.0000 → 0.0003），这正是此前缺失的增量。
-- **真实 OMP CLI，会话切换**：同一宿主上的后续运行中，一个会话先压缩，再用 `/new` 切换，随后再次压缩，三步同处一个进程。第二次压缩把它的 `compaction:turn-prefix` 与 `compaction:short-summary` 条目写进了该会话切换到的日志，`/qol` 报告 `compactionUsage: enabled (entries=4)`，没有 `costMissing` 也没有 `unrecorded`。每条写入条目都是 `api: openai-completions`、本次会话自身的 `provider`、`model`，与宿主在同一日志中为自己主回合助手消息记录的 provider、model 与 api 一致。
-- **真实 OMP CLI，标签冲突**：在身份解析不再参考遥测标签之后，同一宿主上又压缩了一个会话。它写入的 `compaction:turn-prefix`（输入 135、输出 169、缓存读取 128）与 `compaction:short-summary`（输入 323、输出 173）两条条目，以及该日志中宿主自己的主回合条目，都是 `api: openai-completions`、同一组 `provider`、`model`，`/qol` 报告 `compactionUsage: enabled (entries=2)`，没有 `costMissing` 也没有 `unrecorded`。本部署的标签与 provider id 是同一个字符串，因此这次运行只说明更严的规则不会挡掉身份可达的请求，不代表它能判定归一化过的标签。
+- **真实 OMP CLI，会话切换**：一个会话先压缩，再用 `/new` 切换，随后再次压缩，三步同处一个进程。第二次压缩把它的 `compaction:turn-prefix` 与 `compaction:short-summary` 条目写进了该会话切换到的日志，`/qol` 报告 `compactionUsage: enabled (entries=4)`，没有 `costMissing` 也没有 `unrecorded`。每条写入条目都是 `api: openai-completions`、本次会话自身的 `provider`、`model`，与宿主在同一日志中为自己主回合助手消息记录的 provider、model 与 api 一致。
+- **真实 OMP CLI，标签冲突**：同一宿主上压缩了一个会话。它写入的 `compaction:turn-prefix`（输入 135、输出 169、缓存读取 128）与 `compaction:short-summary`（输入 323、输出 173）两条条目，以及该日志中宿主自己的主回合条目，都是 `api: openai-completions`、同一组 `provider`、`model`，`/qol` 报告 `compactionUsage: enabled (entries=2)`，没有 `costMissing` 也没有 `unrecorded`。本部署的标签与 provider id 是同一个字符串，因此这次运行只说明更严的规则不会挡掉身份可达的请求，不代表它能判定归一化过的标签。
 - **未验证**：`compaction_native` 与 `branch_summary` 请求（按设计不在范围内）、已自行记录这些请求的宿主（退出路径只针对替身导出运行，未对已发布带修复的宿主运行）、本次所测压缩以外的跨压缩恢复会话、非 TUI 模式，以及两个会话在同一进程并发压缩的情形。真实宿主上身份无法解析的请求同样未覆盖：该跳过由记录宿主与针对锁定宿主遥测的独立探针覆盖。本部署的提供方不做归一化，因此实机运行中原始 provider id 与标签是同一个字符串；会归一化标签、又不报告原始 provider id 的宿主仅由记录宿主与这些探针覆盖，且当该 model id 在会话中由多个 provider 提供时，该请求一律不写入，而不是靠标签取舍。
+- **上游历史**：`479e14a71c`（2026-10-09）开始在会话日志中记录 `soft` 与 `handoff` 请求用量，`f4db4d7e64`（2026-10-09）补记被丢弃的模型请求（含过期的投机摘要），`cef6b029b4`（2026-10-09）记录计费的失败尝试并导出 `compactionRequestUsage`，`a3cdfbdd58`（2026-10-01）把提供方计算的 chat 成本导出给估算路径。这些改动经 [pull request #15034](https://github.com/can1357/oh-my-pi/pull/15034) 合入。
 
 ### 上游复核
 
-当已发布的 OMP 版本自己记录压缩与 handoff 用量时，确认宿主从 `@oh-my-pi/pi-agent-core` 导出 `compactionRequestUsage`、其 purpose 与分项成本与本模块写入的一致，以及统计会把它的条目计入活动窗口。随后移除本调整的代码、设置、文档与测试，从组件规格中删除该能力，并用一条决定记录这次移除，与模型提示规则一节对其上游设施的处理相同。
+当已发布的 OMP 版本自己记录压缩与 handoff 用量时，确认宿主从 `@oh-my-pi/pi-agent-core` 导出 `compactionRequestUsage`、其 purpose 与分项成本与本模块写入的一致，以及统计会把它的条目计入活动窗口；随后移除本调整的代码、设置、文档与测试，从组件规格中删除该能力，并用一条决定记录这次移除。
 
 ## 恢复会话时沿用原生历史
 
@@ -339,7 +338,7 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 - **源码基线**：OMP `18.2.8`，提交 `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`，源码位置如上。
 - **自动检查**：OMP `18.5.0`，`bun test` 与 `tsc --noEmit`，注入原型访问器，并以记录函数代替进程自身的 `set`。覆盖改写（键命中且值未变热、被修改的是传入的值、转发的调用、计数）与转发矩阵（其他提供方前缀、数字键、symbol 键、不是对象的值、标志缺失或为 true 的值）、每进程一个包装（第二次激活保留并以计数报告 `enabled`，且不再写入第二个包装）、释放（本模块开关关闭、总开关关闭、键无效、激活期间总开关关闭）、已停止的包装仍可调用但不改写、`stopForeignNativeReplayPatch` 只对其他激活还原被替换的函数并报告 `runtime-conflict`、各类拒绝（`registry-unrecognized`、`patch-overwritten` 保留外来函数不动、`install-failed` 不发布注册表）、`/qol` 对已安装、已释放、已被替换、以及本版本无法读取的注册表的行，以及默认配置下安装包装、设置 getter 失败时停止包装的激活路径。
 - **真实 OMP CLI**：OMP `18.5.1` 与真实模型；新会话中 `/qol` 报告 `replay: enabled (rewrites=0)`。未在 `18.5.x` 上恢复会话，因此受支持宿主上的重放改写及其缓存效果 **未验证**。“为什么需要调整”中的测量来自 OMP `18.2.4`。
-- **上游变化**：该标志与其守卫随 `8013be90c9`（2026-03-21）一同引入。截至基线，未发现改变该标志或其读取处的提交。
+- **上游历史**：该标志与其守卫随 `8013be90c9`（2026-03-21）一同引入。截至基线，未发现改变该标志或其读取处的提交。
 
 ## 模型提示词规则
 
@@ -370,20 +369,3 @@ QoL `0.5.4` 针对锁定的 OMP `18.5.0` 开发类型检查。真实 OMP `18.6.3
 ### 上游复核
 
 OMP 提供原生模型级指令时，按[上游复核](../README.zh.md#上游复核)要求判断保留、缩窄或移除本能力。
-
-## 上游提交索引
-
-| 提交 | 日期 | 变更 | 对应调整项 |
-| --- | --- | --- | --- |
-| [`c93774f892`](https://github.com/can1357/oh-my-pi/commit/c93774f892) | 2026-06-17 | 实现 session stop hook 语义及其续跑上限。 | 上游错误后续跑 |
-| [`a418920ec1`](https://github.com/can1357/oh-my-pi/commit/a418920ec1) | 2026-08-03 | 改变 `/reset` 语义，增加链重置路径。 | 上游错误后续跑 |
-| [`f6c5a43a1f`](https://github.com/can1357/oh-my-pi/commit/f6c5a43a1f) | 2026-08-06 | 处理订阅额度耗尽导致的重试预算耗尽及其措辞。 | 上游错误后续跑 |
-| [`8b8651529d`](https://github.com/can1357/oh-my-pi/commit/8b8651529d) | 2026-06-13 | 用五分钟请求超时修复挂起的远端压缩请求。 | 延长单个压缩期限 |
-| [`102d6d54ad`](https://github.com/can1357/oh-my-pi/commit/102d6d54ad) | 2026-06-28 | 实现带独立看门狗的 V2 流式远端压缩。 | 延长单个压缩期限 |
-| [`8013be90c9`](https://github.com/can1357/oh-my-pi/commit/8013be90c9) | 2026-03-21 | 用每进程的变热标志守卫恢复会话的 OpenAI Responses 重放。 | 恢复会话时沿用原生历史 |
-| [`479e14a71c`](https://github.com/can1357/oh-my-pi/commit/479e14a71cb5ad03f7a7d60f6ea8afcc6bb5ac6f) | 2026-10-09 | 在会话日志中记录 `soft` 与 `handoff` 的请求用量。取自 pull request #15034。 | 补记压缩请求用量 |
-| [`f4db4d7e64`](https://github.com/can1357/oh-my-pi/commit/f4db4d7e6402d4ce2f5ca1d8bda38798f78dd59f) | 2026-10-09 | 为被丢弃的模型请求计费，包括过期的推测摘要。取自 pull request #15034。 | 补记压缩请求用量 |
-| [`cef6b029b4`](https://github.com/can1357/oh-my-pi/commit/cef6b029b4007ffebe15bd023e0eaeb53907ede4) | 2026-10-09 | 记录已计费的失败尝试，并新增 `compactionRequestUsage` 导出。取自 pull request #15034。 | 补记压缩请求用量 |
-| [`a3cdfbdd58`](https://github.com/can1357/oh-my-pi/commit/a3cdfbdd58b6647e216bc5dd3d7df8519f74de9a) | 2026-10-01 | 把提供方计算的 chat 成本导出到 estimator 路径。 | 补记压缩请求用量 |
-
-日期为提交日期。这些提交通过在现行路径的文件历史中搜索上文提到的标识符定位；某行为没有列出提交，表示没有检索到。

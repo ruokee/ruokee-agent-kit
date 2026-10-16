@@ -171,13 +171,7 @@ OMP 通过 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) 或等
 
 ## 限制
 
-每项调整自身的限制见[调整项](./docs/adjustments.zh.md)。简要说明：
-
-- [等待](./docs/adjustments.zh.md#持续等待)。只有非空、全部任务仍运行的快照会继续。不提供纯消息续接、命名进程等待或纯 service 续接。期限只结束本次调用，不取消后台工作。
-- [恢复](./docs/adjustments.zh.md#上游错误后续跑)。安全排除条件与宿主的独立上限仍适用，每条失败链最多续跑 8 次。续跑可能重复工具副作用，并消耗提供方额度。
-- [压缩](./docs/adjustments.zh.md#延长单个压缩期限)。实验对整个进程包装 `AbortSignal.timeout`，可能延长窗口内无关调用的期限。在 OMP `18.5.0` 上启用会关闭投机压缩。生命周期冲突或 owner 关闭可能使补丁停止，重启后才恢复。
-- [补记压缩请求用量](./docs/adjustments.zh.md#补记压缩请求用量)。只写 `soft` 的摘要请求与 `handoff` 请求，且仅在这些请求消耗了 token 时写入。api 或会话无法由本进程命名的请求会被跳过并在 `/qol` 中计数，而不是猜测。补丁为进程级。
-- [重放](./docs/adjustments.zh.md#恢复会话时沿用原生历史)。进程级 `Map.prototype.set` 包装只覆盖 `openai-responses` 状态。若服务端拒绝存储的原生条目，恢复后的请求可能失败。宿主变化可能使包装静默失效。
+每项调整自身的限制见[调整项](./docs/adjustments.zh.md)。
 
 ## 兼容性
 

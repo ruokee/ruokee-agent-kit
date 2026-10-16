@@ -4,7 +4,7 @@
 
 一个常驻的 OMP 状态栏扩展：一个 `belowEditor` Widget Host 加内置 Provider，显示 token 指标、缓存命中率、上下文用量，以及本次会话已回答的模型请求次数。
 
-属于 [projects/omp-status-bar](../README.zh.md)，作者为 Ruokee。
+属于 [projects/omp-status-bar](../README.zh.md)。
 
 ## 安装
 
@@ -18,7 +18,7 @@ omp plugin link "$(pwd)" --scope user
 
 OMP 会读取 `package.json` 中的 `omp.extensions` 并加载 `src/extension.ts`，不需要手动设置 Extension 路径。
 
-最低维护 OMP 版本为 `18.5.0`，见[组件 README 的兼容性小节](../README.zh.md)。该下限只表达维护责任：不限制安装、激活或运行，也不是已验证版本的清单。自动化检查针对 OMP 18.5.0 运行，`bun test` 与 `tsc --noEmit` 均通过。这些属于针对宿主包安装副本的包级检查，不是真实宿主运行。真实 TUI 验证覆盖 OMP 18.2.3、18.2.8、18.4.3 与 18.5.1。
+最低维护 OMP 版本为 `18.5.0`，见[组件 README 的兼容性小节](../README.zh.md)。自动化检查针对 OMP 18.5.0 运行，`bun test` 与 `tsc --noEmit` 均通过。这些属于针对宿主包安装副本的包级检查，不是真实宿主运行。真实 TUI 验证覆盖 OMP 18.2.3、18.2.8、18.4.3、18.4.4 与 18.5.1。
 
 ## 配置
 
