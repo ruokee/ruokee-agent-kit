@@ -6,16 +6,14 @@
 
 ## spec 文件
 
-| spec | 对象 |
-| --- | --- |
-| [.agents/spec/repository.zh.md](./repository.zh.md) | 仓库约定：边界、布局、文档、Git 工作流和检查 |
-| [.agents/spec/host-compatibility.zh.md](./host-compatibility.zh.md) | 把代码加载进宿主进程运行的组件的维护下限 |
-| [.agents/spec/skills.zh.md](./skills.zh.md) | Skill 体系：`skills/` 及 `variants/zh/skills/` 下的中文变体 |
-| [.agents/spec/tk.zh.md](./tk.zh.md) | `projects/tk` 整体 |
-| [.agents/spec/omp-context-pin.zh.md](./omp-context-pin.zh.md) | `projects/omp-context-pin` |
-| [.agents/spec/omp-qol.zh.md](./omp-qol.zh.md) | `projects/omp-qol` |
-| [.agents/spec/omp-smart-cache.zh.md](./omp-smart-cache.zh.md) | `projects/omp-smart-cache` |
-| [.agents/spec/omp-status-bar.zh.md](./omp-status-bar.zh.md) | `projects/omp-status-bar` |
+- [.agents/spec/repository.zh.md](./repository.zh.md) 覆盖仓库约定：边界、布局、文档、Git 工作流和检查。
+- [.agents/spec/host-compatibility.zh.md](./host-compatibility.zh.md) 覆盖把代码加载进宿主进程运行的组件的维护下限。
+- [.agents/spec/skills.zh.md](./skills.zh.md) 覆盖 Skill 体系：`skills/` 及 `variants/zh/skills/` 下的中文变体。
+- [.agents/spec/tk.zh.md](./tk.zh.md) 覆盖 `projects/tk` 整体。
+- [.agents/spec/omp-context-pin.zh.md](./omp-context-pin.zh.md) 覆盖 `projects/omp-context-pin`。
+- [.agents/spec/omp-qol.zh.md](./omp-qol.zh.md) 覆盖 `projects/omp-qol`。
+- [.agents/spec/omp-smart-cache.zh.md](./omp-smart-cache.zh.md) 覆盖 `projects/omp-smart-cache`。
+- [.agents/spec/omp-status-bar.zh.md](./omp-status-bar.zh.md) 覆盖 `projects/omp-status-bar`。
 
 `projects/` 下的每个组件都有一份以其目录命名的 spec。增加或删除组件，或者增加需要单独 spec 的仓库领域时，在同一次变更中更新这份清单。
 

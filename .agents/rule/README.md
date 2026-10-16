@@ -8,12 +8,10 @@ When a reader needs the reason behind a rule, the rule links the decision that o
 
 ## Rules by activity
 
-| Page | Activity |
-| --- | --- |
-| [boundary.md](./boundary.md) | First party scope, content layout, public content, and component versions |
-| [git.md](./git.md) | Branches, working directories, commits, authorizations, merges, and teardown |
-| [development.md](./development.md) | Planning, environments, hooks, checks, and evidence |
-| [documentation.md](./documentation.md) | Documents, specs, decisions, bilingual pairs, naming, cleanup, and file references |
+- [boundary.md](./boundary.md) covers first-party scope, content layout, public content, and component versions.
+- [git.md](./git.md) covers branches, working directories, commits, authorizations, merges, and teardown.
+- [development.md](./development.md) covers planning, environments, hooks, checks, and evidence.
+- [documentation.md](./documentation.md) covers documents, specs, decisions, bilingual pairs, naming, cleanup, and file references.
 
 ## File layout
 

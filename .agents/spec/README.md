@@ -6,16 +6,14 @@ A specification, or spec, states the current target state of one component or re
 
 ## Spec files
 
-| Spec | Subject |
-| --- | --- |
-| [.agents/spec/repository.md](./repository.md) | Repository conventions: boundary, layout, documentation, Git workflow, and checks |
-| [.agents/spec/host-compatibility.md](./host-compatibility.md) | Maintenance lower bounds for components that load code into a host process |
-| [.agents/spec/skills.md](./skills.md) | The Skill system: `skills/` and the Chinese variants under `variants/zh/skills/` |
-| [.agents/spec/tk.md](./tk.md) | `projects/tk` as a whole |
-| [.agents/spec/omp-context-pin.md](./omp-context-pin.md) | `projects/omp-context-pin` |
-| [.agents/spec/omp-qol.md](./omp-qol.md) | `projects/omp-qol` |
-| [.agents/spec/omp-smart-cache.md](./omp-smart-cache.md) | `projects/omp-smart-cache` |
-| [.agents/spec/omp-status-bar.md](./omp-status-bar.md) | `projects/omp-status-bar` |
+- [.agents/spec/repository.md](./repository.md) covers repository conventions: boundary, layout, documentation, Git workflow, and checks.
+- [.agents/spec/host-compatibility.md](./host-compatibility.md) covers maintenance lower bounds for components that load code into a host process.
+- [.agents/spec/skills.md](./skills.md) covers the Skill system: `skills/` and the Chinese variants under `variants/zh/skills/`.
+- [.agents/spec/tk.md](./tk.md) covers `projects/tk` as a whole.
+- [.agents/spec/omp-context-pin.md](./omp-context-pin.md) covers `projects/omp-context-pin`.
+- [.agents/spec/omp-qol.md](./omp-qol.md) covers `projects/omp-qol`.
+- [.agents/spec/omp-smart-cache.md](./omp-smart-cache.md) covers `projects/omp-smart-cache`.
+- [.agents/spec/omp-status-bar.md](./omp-status-bar.md) covers `projects/omp-status-bar`.
 
 Each component under `projects/` has a spec named after its directory. A change that adds or removes a component, or a repository area that needs its own spec, updates this list in the same change.
 

@@ -89,13 +89,11 @@ pnpm hooks:install
 
 使用 [package.json](./package.json) 声明的 pnpm 版本、其支持的 Node.js 运行时和 Git。[检查选择规则](./.agents/rule/development.zh.md#检查)定义一次改动会选中哪些检查。开发阶段只准备这些检查需要的环境：
 
-| 选中范围 | 需要准备的环境 |
-| --- | --- |
-| 说明性 Markdown 或 ADR 格式检查 | 上述根锁定依赖和 Git 钩子 |
-| 单个 OMP 组件 | 根工具链、兼容其锁文件的 Bun，以及该组件目录内的 `bun install --frozen-lockfile` |
-| tk | 根工具链、包含 `rustfmt` 的 Rust、锁定 crate 依赖、Bun 和原生适配器测试所用系统工具（[tk 运行时源码构建](./projects/tk/docs/guide.zh.md#安装运行时)） |
-| Skill 生命周期 | 根工具链、Git、非 root 的 POSIX shell 环境、`diff` 和测试脚本使用的常见系统文件工具 |
-| 完整检查或完整回退 | 上述全部环境，包括每个 OMP 组件的锁定依赖树 |
+- 说明性 Markdown 或 ADR 格式检查需要上述根锁定依赖和 Git 钩子。
+- 单个 OMP 组件需要根工具链、兼容其锁文件的 Bun，以及该组件目录内的 `bun install --frozen-lockfile`。
+- tk 需要根工具链、包含 `rustfmt` 的 Rust、锁定 crate 依赖、Bun 和原生适配器测试所用系统工具。[tk 用户指南](./projects/tk/docs/guide.zh.md#安装运行时)说明运行时源码构建。
+- Skill 生命周期工作需要根工具链、Git、非 root 的 POSIX shell 环境、`diff` 和测试脚本使用的常见系统文件工具。
+- 完整检查或完整回退需要上述全部环境，包括每个 OMP 组件的锁定依赖树。
 
 已知文档消费者追加所需环境，多范围取并集。
 

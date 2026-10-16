@@ -89,13 +89,11 @@ Components that load code into a host process state a maintenance lower bound in
 
 Use the pnpm version declared in [package.json](./package.json), its supported Node.js runtime, and Git. The [check selection rules](./.agents/rule/development.md#checks) define which checks a change selects. During development, prepare only the environments those checks need:
 
-| Selected scope | Environment to prepare |
-| --- | --- |
-| Explanatory Markdown or ADR formatting | Root locked dependencies and Git hooks as above |
-| One OMP component | Root tools, Bun compatible with its lockfile, and `bun install --frozen-lockfile` in that component directory |
-| tk | Root tools, Rust with `rustfmt`, locked crate dependencies, Bun, and native adapter test system tools ([tk runtime source build](./projects/tk/docs/guide.md#install-the-runtime)) |
-| Skill lifecycle | Root tools, Git, a non-root POSIX shell environment, `diff`, and the test script's common system file tools |
-| Complete checks or complete fallback | All of the above, including every OMP component's locked dependency tree |
+- Explanatory Markdown or ADR formatting needs the root locked dependencies and Git hooks above.
+- One OMP component needs root tools, Bun compatible with its lockfile, and `bun install --frozen-lockfile` in that component directory.
+- tk needs root tools, Rust with `rustfmt`, locked crate dependencies, Bun, and native adapter test system tools. The [tk guide](./projects/tk/docs/guide.md#install-the-runtime) covers the runtime source build.
+- Skill lifecycle work needs root tools, Git, a non-root POSIX shell environment, `diff`, and the test script's common system file tools.
+- Complete checks or the complete fallback need all of the above, including every OMP component's locked dependency tree.
 
 Known document consumers add their required environment, and multiple scopes use their union.
 

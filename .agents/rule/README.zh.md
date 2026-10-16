@@ -8,12 +8,10 @@
 
 ## 按活动的规则
 
-| 页面 | 活动 |
-| --- | --- |
-| [boundary.zh.md](./boundary.zh.md) | 第一方范围、内容布局、公开内容和组件版本 |
-| [git.zh.md](./git.zh.md) | 分支、工作目录、提交、授权、合入和收尾 |
-| [development.zh.md](./development.zh.md) | 规划、环境、钩子、检查和证据 |
-| [documentation.zh.md](./documentation.zh.md) | 文档、规格、决定、语言配对、命名、清理和文件引用 |
+- [boundary.zh.md](./boundary.zh.md) 覆盖第一方范围、内容布局、公开内容和组件版本。
+- [git.zh.md](./git.zh.md) 覆盖分支、工作目录、提交、授权、合入和收尾。
+- [development.zh.md](./development.zh.md) 覆盖规划、环境、钩子、检查和证据。
+- [documentation.zh.md](./documentation.zh.md) 覆盖文档、规格、决定、语言配对、命名、清理和文件引用。
 
 ## 文件布局
 

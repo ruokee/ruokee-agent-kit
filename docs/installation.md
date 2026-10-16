@@ -154,11 +154,9 @@ Install one Skill at a time. Neither the script nor this guide installs every Sk
 
 ## Exit status
 
-| Status | Meaning |
-| --- | --- |
-| `0` | The comparison is consistent, or the Skill was installed, unchanged, or removed. |
-| `1` | Nothing changed: `--replace` or `--yes` is required, the installed target differs from the source, or a named Skill is not installed. |
-| `2` | The request failed: usage, name, path, read, or file operation. A comparison that could not complete, a refused write into the repository sources, and a refused backup location are also `2`. |
+- `0` means the comparison is consistent, or the Skill was installed, unchanged, or removed.
+- `1` means nothing changed: `--replace` or `--yes` is required, the installed target differs from the source, or a named Skill is not installed.
+- `2` means the request failed: usage, name, path, read, or file operation. A comparison that could not complete, a refused write into the repository sources, and a refused backup location are also `2`.
 
 ## Limits
 

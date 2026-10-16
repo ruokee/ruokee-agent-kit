@@ -20,4 +20,4 @@ Corresponding Chinese term: `更新决定`. Add non-conflicting content to a cur
 
 ## Reverse decision
 
-Corresponding Chinese term: `反转决定`. Create a complete successor from the old decision's still-effective rules and an accepted proposal naming the conflict. Keep the canonical current path, move the replaced pair to its next `rN` archive, and link actual direct predecessors and successors. Each decision's sequence starts at `r1` and continues across dates independently.
+Corresponding Chinese term: `反转决定`. Create a complete successor from the old decision's still-effective rules and an accepted proposal naming the conflict. The replaced version is archived, and the canonical path holds the successor.
