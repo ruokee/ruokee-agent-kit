@@ -54,7 +54,7 @@ export default function exampleStatusProvider(pi: ExtensionAPI): void {
 
 ## 各部分的作用
 
-`describe(options)` 校验条目的 options，返回该实例的配置。抛错只让当前条目失效；Host 跳过它并继续启动其他条目。返回值会原样作为 `context.config` 回传。
+`describe(options)` 校验条目的 options，返回该实例的配置，Host 会把它原样作为 `context.config` 回传给实例（[实例上下文](./provider-contract.zh.md#实例上下文)）。抛错只让当前条目失效；Host 跳过它并继续启动其他条目。
 
 `create(context)` 为每个配置条目创建一个实例。同一个 ID 可以在 `statuses` 里出现多次，各自持有独立状态。
 
@@ -62,10 +62,12 @@ export default function exampleStatusProvider(pi: ExtensionAPI): void {
 
 `setInterval` 和 `setTimeout` 使用 OMP 托管 timer。实例提前停止时用 `clearTimer` 清掉未触发的 timer；shutdown 后残留的 timer 会被安全拒绝，但最好避免。
 
+`registerProvider()` 写入一个进程级 Registry。由于同一进程会为每个会话激活本 Extension，注册前会先预检自己的 ID：此前由本 Package 注册过的 ID 通过定义上的标记识别，保留最先注册的定义，不再重复注册。该标记是本 Package 的内部约定，不是注册合同的一部分。
+
 ## 规则
 
 - ID 使用 `example.counter` 形式：短所有者前缀加名称。不要使用内置 ID。
-- 不要输出 separator、ANSI escape 或控制字符；Host 会剥离它们并合并连续空格。
+- 不要输出 separator、ANSI escape 或控制字符；Host 会标准化片段文本（[标准化规则](./provider-contract.zh.md#标准化规则)）。
 - 在 `describe` 里校验 options，而不是 `create`；`create` 失败同样只影响当前条目，但发生得更晚。
 - 不要调用 OMP UI API，也不要操作 Widget；渲染由 Host 负责。
 - 已停止或已 shutdown 的 context 会拒绝发布，不要重试。

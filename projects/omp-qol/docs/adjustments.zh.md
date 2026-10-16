@@ -194,7 +194,7 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 ### 边界
 
 - 一个进程只有一个包装，归安装它的激活所有，且只有该激活的事件会打开包装改写的窗口。版本与快照一致的第二次激活保留补丁并报告 `patch-owned-elsewhere`，但不驱动窗口；携带其他快照的激活则停止补丁。因此同一进程中的两个会话不会都驱动该实验。
-- 模块依赖 `AbortSignal.timeout` 可写且可配置、原生函数对非法输入抛 `TypeError`，以及压缩路径用 `AbortSignal.timeout` 作为看门狗。宿主改为自行构造信号或改用其他方式配置超时，补丁即失效。
+- 模块依赖 `AbortSignal.timeout` 可写且可配置、原生函数对非法输入抛 `TypeError`，以及压缩路径用 `AbortSignal.timeout` 作为看门狗。宿主改为自行构造信号或改用其他方式配置超时，补丁即失效。宿主升级后需重新核对这些合同。
 - 扩展可见事件不携带将被计时的请求，窗口是时段而不是请求。模块无法承诺被改写的调用属于压缩，事件冲突时它选择报告而不是猜测。
 - 当宿主提供请求级压缩超时或把超时作为参数向下传递时，该实验不再必要。
 - 本模块不控制的部分：期限只是单个信号的期限，不是重试与回退的总耗时；超过提高后期限的压缩仍会被中断，与之前一致。宿主的投机压缩同样不受本模块控制，`session_before_compact` 注册会将其关闭。
@@ -327,7 +327,7 @@ OMP 对扩展标出了同一时段：`action: "remote"` 的 `auto_compaction_sta
 ### 边界
 
 - 该调整只覆盖 `openai-responses` 的提供方状态。`openai-codex-responses` 使用自己的状态键与规则（[`packages/ai/src/providers/openai-codex-responses.ts:1067`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-codex-responses.ts#L1067)），Anthropic 与 completions 的状态不受影响。
-- 它依赖三个宿主细节：`openai-responses:` 键前缀、`nativeHistoryReplayWarmed` 字段，以及状态通过会话交给提供方的 map 上的 `Map.prototype.set` 存放。宿主改名键或字段，或不经 map 写入直接构造状态，包装会静默失效而不会报错；`/qol` 中的改写次数是唯一的信号。
+- 它依赖三个宿主细节：`openai-responses:` 键前缀、`nativeHistoryReplayWarmed` 字段，以及状态通过会话交给提供方的 map 上的 `Map.prototype.set` 存放。宿主改名键或字段，或不经 map 写入直接构造状态，包装会静默失效而不会报错；`/qol` 中的改写次数是唯一的信号。宿主升级后需重新核对这些合同。
 - 在宿主自身的定义里该标志属于部署范围：账户级重置有意保留它（[`openai-responses.ts:312`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-responses.ts#L312) 及其上方注释）。该调整让恢复进程沿用其自身进程若一直存活本会作出的同一决定。
 - 它只设置一个标志，不做其他事。不构建、不过滤、不清洗条目；已变热的状态重放什么，发送的就是什么。
 - 收益随可重放区域的大小出现。可重放条目不足约 `500` token 的轮次在恢复后两组都命中 `17,920`，因此短会话即使请求形态不同，也量不到差别。

@@ -16,22 +16,13 @@
 
 最低维护 OMP 版本为 `18.5.0`，不设置维护版本上限。本小节声明维护责任，不作为安装或运行条件。更早的宿主仍可能运行本 Package，但不因此获得维护承诺。这一声明不保证后续版本继续可用，也不表示下限及以上的每个版本都已验证。
 
-Package 将 `@oh-my-pi/pi-coding-agent`、`@oh-my-pi/pi-agent-core` 和 `@oh-my-pi/pi-tui` 声明为不限制版本的宿主 peer（`*`）。这些声明列出 Package 导入的宿主包，不定义维护范围，也不构成对每个宿主版本的兼容承诺。
+Package 将 `@oh-my-pi/pi-coding-agent`、`@oh-my-pi/pi-agent-core` 和 `@oh-my-pi/pi-tui` 声明为不限制版本的宿主 peer（`*`）。这些声明不定义维护范围，也不构成对每个宿主版本的兼容承诺。
 
 自动化检查与真实 TUI 验证覆盖的版本及未覆盖之处见[使用与配置](./docs/usage.zh.md)。
 
 ## 安装
 
-Package 尚未发布。检出 GitHub 仓库后，安装锁定版本的依赖，再把 Package 链接到用户级 OMP Plugin 目录：
-
-```bash
-git clone https://github.com/ruokee/ruokee-agent-kit.git
-cd ruokee-agent-kit/projects/omp-status-bar
-bun install
-omp plugin link "$(pwd)" --scope user
-```
-
-按照[使用与配置](./docs/usage.zh.md)在当前 OMP agent 目录创建 `omp-status-bar.yml`，再启动新的 OMP 会话。Package 不会热加载配置修改。
+Package 尚未发布。安装命令、配置文件，以及配置修改何时生效见[使用与配置](./docs/usage.zh.md)。
 
 ### 更新
 
@@ -54,7 +45,7 @@ bun run typecheck
 bun test
 ```
 
-运行时导入只限三个对等依赖：`@oh-my-pi/pi-coding-agent`、`@oh-my-pi/pi-agent-core` 和 `@oh-my-pi/pi-tui`。
+运行时导入只限两个宿主包：`@oh-my-pi/pi-coding-agent` 与 `@oh-my-pi/pi-tui`。
 
 ## 许可证
 

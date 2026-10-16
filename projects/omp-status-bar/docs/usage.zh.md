@@ -11,7 +11,8 @@
 Package 尚未发布。克隆本仓库，安装锁定版本的依赖，再把 Package 链接到 OMP：
 
 ```bash
-cd projects/omp-status-bar
+git clone https://github.com/ruokee/ruokee-agent-kit.git
+cd ruokee-agent-kit/projects/omp-status-bar
 bun install
 omp plugin link "$(pwd)" --scope user
 ```
@@ -98,7 +99,7 @@ Widget 是原生 statusline 的补充：Package 不注册 statusline 段，也�
 
 ### 指标公式
 
-五个 token 指标读取同一个每 tick 快照。该快照保存对话自身的用量，按当前分支汇总：assistant 消息的 usage 与 `task` 工具结果的 usage 计入，带外的 `model_usage` 条目不计入。OMP 的 `getUsageStatistics()` 把这两类合并成一个会话总数，读取它会把 Find 判定级联当对话流量：该级联的 `cacheRead` 恒为 0，会让命中率在整个会话里被压低。由于汇总来自分支，树导航与分叉对它的影响与 `turn` 一致。
+五个 token 指标读取同一个每 tick 快照。该快照保存对话自身的用量，按当前分支汇总：assistant 消息的 usage 与 `task` 工具结果的 usage 计入，带外的 `model_usage` 条目不计入。由于汇总来自分支，树导航与分叉对它的影响与 `turn` 一致。
 
 ```text
 input = input + cacheWrite          (I)

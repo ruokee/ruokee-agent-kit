@@ -54,7 +54,7 @@ Register during extension activation, before OMP emits `session_start`. OMP acti
 
 ## What the pieces do
 
-`describe(options)` validates the entry's options and returns the per-instance configuration. Throwing invalidates only this entry; the Host skips it and keeps the rest. The return value comes back verbatim as `context.config`.
+`describe(options)` validates the entry's options and returns the per-instance configuration the Host echoes back verbatim as `context.config` ([Instance context](./provider-contract.md#instance-context)). Throwing invalidates only this entry; the Host skips it and keeps the rest.
 
 `create(context)` builds one instance per config entry. The same id can appear multiple times in `statuses`, each with independent state.
 
@@ -62,10 +62,12 @@ Register during extension activation, before OMP emits `session_start`. OMP acti
 
 `setInterval` and `setTimeout` use OMP-managed timers. Stop each timer with `clearTimer` if the instance stops before the timer fires; anything left after shutdown is rejected safely but still best avoided.
 
+`registerProvider()` writes into one process-wide registry. Because one process activates this extension for each session, the package preflights its own ids before registering: an id it registered earlier is recognized by a mark it put on that definition, and the definition that registered first stays in place while nothing is registered again. The mark is an internal convention of this package and is not part of the registration contract.
+
 ## Rules
 
 - Ids use the form `example.counter`: a short owner prefix plus a name. Do not use a builtin id.
-- Never emit separators, ANSI escapes, or control characters; the Host strips them and collapses space runs.
+- Never emit separators, ANSI escapes, or control characters; the Host normalizes fragment text ([Normalization rules](./provider-contract.md#normalization-rules)).
 - Validate options in `describe`, not `create`; a `create` failure still only kills this entry but happens later.
 - Do not call OMP UI APIs or touch widgets; the Host owns rendering.
 - A stopped or shut-down context rejects publishes; do not retry.

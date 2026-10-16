@@ -43,11 +43,11 @@ OMP merges project overrides over user settings. It reads and validates the sett
 
 Remote compaction resends conversation content, much of which an ordinary request already sent. This optimization rewrites a fully proved target request at the final sending boundary, so the selected Provider's compaction reuses the confirmed results of that same ordinary request and the body stays consistent with what was already sent. OMP keeps triggering, preparation, trimming, credentials, retries, fallback, speculative adoption, history commits, and continuation, and ordinary requests reach transport unchanged.
 
-Turn the setting off, or remove the package and restart OMP, to return to the native request path. Alignment rewrites the outgoing body on the client, and client alignment, native usability, and real Provider benefit stay separate outcomes. [Design](./docs/design.md) covers the full mechanism.
+Alignment rewrites the outgoing body on the client, and client alignment, native usability, and real Provider benefit stay separate outcomes. [Design](./docs/design.md) covers the full mechanism.
 
 ## Handoff alignment
 
-Handoff generates a document or summary as a side request that repeats common content already sent by the ordinary main-loop dispatch. This capability restores the proved ordinary system prompt at final transport, preserving the side instruction, new history, cache key, independent side session, cancellation signal, and other native options. Chat Completions also restores the reference's `reasoning_effort` and online `tool_choice` when no choice was explicit. Responses retains native `none` and the host's existing auto-only compatibility retry; it does not copy the ordinary tool choice or reasoning settings.
+Handoff generates a document or summary as a side request that repeats common content already sent by the ordinary main-loop dispatch. This capability restores the proved ordinary system prompt at final transport, preserving the side instruction, new history, cache key, independent side session, cancellation signal, and other native options.
 
 Handoff alignment supports `openai-completions` and `openai-responses` sessions. Native Responses Handoff and V2 compaction belong to Handoff and remote alignment respectively, with at most one rewriting capability per request. Handoff uses only its own switch, independently of the remote switch, Provider selection, or mode. Other APIs stay native.
 

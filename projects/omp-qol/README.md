@@ -4,7 +4,7 @@
 
 Independently switchable adjustments to OMP behavior. [Adjustments](./docs/adjustments.md) states each adjustment's host source, limits, and observed evidence.
 
-Jobs, messages, processes, turns, and compaction stay with OMP. Every adjustment can be switched off; an unrecognized host interface, structure, or ownership keeps the affected adjustment inactive with a reason.
+Jobs, messages, processes, turns, and compaction stay with OMP. Every adjustment can be switched off; an unrecognized host interface, structure, or ownership keeps the affected adjustment inactive with a reason, leaving the host's own behavior in place.
 
 ## Adjustments
 
@@ -179,11 +179,9 @@ The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound.
 
 The package declares `@oh-my-pi/pi-agent-core`, `@oh-my-pi/pi-ai`, `@oh-my-pi/pi-coding-agent`, and `@oh-my-pi/pi-utils` as unrestricted host peers (`*`). Those declarations name the host packages the component imports; they carry no maintenance range, no runtime check, and no claim about any host version.
 
-The automated type check and test suite run against OMP `18.5.0`. Source baselines are path-specific: recovery, the compaction deadline, and replay cite `18.2.8`, where those mechanisms were first read; continuing waits and compaction usage cite `18.5.0`, with compaction usage reading the provider-computed cost on the installed `18.8.3`. [Adjustments](./docs/adjustments.md) separates each source baseline, actual check or CLI run, and untested scenario.
+The automated type check and test suite run against OMP `18.5.0`. Source baselines are path-specific: recovery, the compaction deadline, and replay cite `18.2.8`, where those mechanisms were first read; continuing waits and compaction usage cite `18.5.0`, with compaction usage reading the provider-computed cost on the installed `18.8.3`.
 
-Each adjustment checks the host interface, structure, or ownership it depends on, and stays inactive with a reason when that check does not hold, which leaves that adjustment on the host's own behavior. The checks cover what the modules inspect, and not the entry's own imports or a difference no module looks at, so an unrecognized host change can also alter behavior without disabling the adjustment.
-
-Before trusting the extension on an upgraded host, re-read the upstream source each adjustment cites and re-check the adaptation points it lists.
+The checks cover what the modules inspect, and not the entry's own imports or a difference no module looks at, so an unrecognized host change can also alter behavior without disabling the adjustment.
 
 ## Installation
 
@@ -223,9 +221,9 @@ bun run typecheck
 bun test
 ```
 
-The test suite replaces the host with a small recording host and keeps the package boundaries real: the settings getter from the installed `@oh-my-pi/pi-coding-agent`, the error classifier from the installed `@oh-my-pi/pi-ai`, and `AbortSignal.timeout` and `Map.prototype.set` in both their native and patched form. It covers activation and validation, the compaction usage module's purpose table, write gating, refusal set, and `/qol` line, `wait` registration and its model-visible parameters, the structural continuation rule and deadline races, the recovery classification matrix and continuation chain, the compaction install order, window lifecycle, and restore path, and the replay wrapper's rewrite and forwarding matrix, ownership and release paths, refusals, and `/qol` line.
+The test suite replaces the host with a small recording host and keeps the package boundaries real: the settings getter from the installed `@oh-my-pi/pi-coding-agent`, the error classifier from the installed `@oh-my-pi/pi-ai`, and `AbortSignal.timeout` and `Map.prototype.set` in both their native and patched form. Each adjustment records the checks its tests cover in [Adjustments](./docs/adjustments.md).
 
-Model-rule checks cover discovery, matching, body fidelity, next-turn refresh, failure isolation, configuration boundaries, and session-scoped diagnostics. Real CLI and TUI observations, with their limits, are recorded in [Model prompt rules](./docs/adjustments.md#model-prompt-rules).
+Real CLI and TUI observations, with their limits, are recorded in [Model prompt rules](./docs/adjustments.md#model-prompt-rules).
 
 ## License
 

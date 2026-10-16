@@ -10,7 +10,7 @@ The user entry point is the `/ctx-pin` command.
 
 - `/ctx-pin` opens the entry list of the current branch: the add item first, the entries next in creation order, and a close item last. Each row shows the entry as `#<id>` and the start of its body, so no stored label is needed.
 - `/ctx-pin add <body>` pins the text that follows `add` and one separating space, without opening a dialog. The body keeps every character and all whitespace after that space: no shell-style splitting, quoting, unescaping or whitespace normalization.
-- An unknown subcommand or a missing body reports brief usage text and sends no message. Inline view, edit and delete are not part of this version.
+- An unknown subcommand or a missing body reports brief usage text and sends no message.
 
 Listing, viewing a body and editing a draft are read only: they send no message, change no Pin state and do not interrupt a running turn, and an abandoned draft leaves nothing behind. A confirmed write closes the list.
 
@@ -52,9 +52,7 @@ Every action of the tool declares the lowest approval class, `read`. With no exp
 
 An Agent `create`, `update` or `delete` appends the operation record and hands the host a change message for the model, in the same non-initiating mode, without an extra turn. The record is canonical; the change message is a projection, sent again after a session or pin period change when the journal still does not show it as published. The request expresses the accepted changes in journal order, so a change the request does not carry makes every later change part of the same gap: those changes are written again in order, and the messages that carried them leave the request. A change written again reads directly after the result of the call that produced it, when the request holds that call, and otherwise keeps the place the journal gives it, which is before the message that carries a later change; with neither, it goes to the end. An older body therefore never reads as the last one, and the message the user sent keeps its own place.
 
-The extension pins text that a user or an Agent supplies. It does not read files, fetch URLs, watch content, or change an entry without an operation.
-
-An empty body is refused, and an accepted body keeps every character and all whitespace exactly.
+The extension pins text that a user or an Agent supplies.
 
 ### Agent usage
 
@@ -143,7 +141,7 @@ The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound.
 
 The package declares `@oh-my-pi/pi-coding-agent` and `@oh-my-pi/pi-tui` as unrestricted host peers (`*`). Those declarations name the host packages the component imports; they carry no maintenance range, no runtime check, and no claim about any host version.
 
-The automated type check and the test suite run against the locked OMP `18.5.0` development packages. A real OMP CLI `18.5.1` session with a real model loaded this extension, created, updated and deleted pins through the tool, and kept the remaining pin in effect after a manual compaction. These observations cover only the versions and scenarios tested.
+The automated type check and the test suite run against the locked OMP `18.5.0` development packages. A real OMP CLI `18.5.1` session with a real model loaded this extension, created, updated and deleted pins through the tool, and kept the remaining pin in effect after a manual compaction; those observations cover only the tested versions and scenarios.
 
 A message the host restores is not read as an operation: only a submission this process recorded is applied.
 

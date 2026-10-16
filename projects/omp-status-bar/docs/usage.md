@@ -11,7 +11,8 @@ Part of [projects/omp-status-bar](../README.md).
 The package is not published yet. Clone this repository, install its locked dependencies, and link the package into OMP:
 
 ```bash
-cd projects/omp-status-bar
+git clone https://github.com/ruokee/ruokee-agent-kit.git
+cd ruokee-agent-kit/projects/omp-status-bar
 bun install
 omp plugin link "$(pwd)" --scope user
 ```
@@ -98,7 +99,7 @@ Builtin ids: `total`, `input`, `cache`, `output`, `cache-hit`, `context`, `turn`
 
 ### Metric formulas
 
-All five token metrics read the same per-tick snapshot. That snapshot holds the conversation's own usage, summed from the session branch the session currently holds: assistant message usage and `task` tool result usage count, out-of-band `model_usage` records do not. OMP's `getUsageStatistics()` adds both kinds into one session total, so a metric reading it would report the Find judgment cascade as conversation traffic; that cascade always reports `cacheRead: 0`, which holds the hit rate down for the rest of the session. Because the totals come from the branch, tree navigation and branching move them the same way they move `turn`.
+All five token metrics read the same per-tick snapshot. That snapshot holds the conversation's own usage, summed from the session branch the session currently holds: assistant message usage and `task` tool result usage count, out-of-band `model_usage` records do not. Because the totals come from the branch, tree navigation and branching move them the same way they move `turn`.
 
 ```text
 input = input + cacheWrite          (I)
