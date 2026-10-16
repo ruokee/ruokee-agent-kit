@@ -28,11 +28,11 @@ Spec for the ordinary Skills under `skills/` and their Chinese variants under `v
 - References inside a Skill resolve within that Skill's directory. A Skill does not link to, depend on, or instruct loading another repository component or a repository support file.
 - Links inside a Chinese variant use the installed `skills/<name>/` form.
 - The two language variants of a Skill have the same file set and the same scope. Neither omits an observable capability or a required instruction that the other has, and both change together.
-- A Skill tree holds host-discoverable material such as `SKILL.md`, workflows, references, examples, and glossaries, plus required source attribution and license notices. `grill-me` keeps its `agents/openai.yaml` invocation policy.
+- A Skill tree holds host-discoverable material such as `SKILL.md`, workflows, references, examples, and glossaries, and carries no license or notice files. `grill-me` keeps its `agents/openai.yaml` invocation policy.
 - `grill-me` loads only on explicit user invocation. `architect`, `code-quality`, `deep-research`, `msgspec`, `python-engineering`, and `well-said` may be loaded by the model.
 - Review workflows in `code-quality` and `python-engineering` may report findings and recommendations, but a review request does not authorize changes to the reviewed files.
-- Material adapted from a third party keeps its source attribution and license notice in both language variants.
-- `well-said` applies when outputting anything. Its complete writing guidance includes defensive phrasing and distinguishes work problems from wording problems. Each language component declares its version in `metadata.version` and keeps source attribution and licenses in adjacent files, as defined by the [well-said decision](../adr/decision/2026/09/12-well-said.md).
+- Material adapted from a third party records its source attribution and license information at the repository level: in the repository README, in the README of a component that ships one, or in the decision that owns the material.
+- `well-said` applies when outputting anything. Its complete writing guidance includes defensive phrasing and distinguishes work problems from wording problems. Each language component declares its version in `metadata.version` and contains only `SKILL.md`; source attribution lives in the repository README, as defined by the [well-said decision](../adr/decision/2026/09/12-well-said.md).
 - The installer never writes into `skills/` or `variants/zh/skills/`.
 
 ## Host lower bound

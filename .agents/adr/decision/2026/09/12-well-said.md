@@ -1,18 +1,20 @@
 # well-said
 
 Decision owner: Ruokee
-Decision writer: OMP
-Reverses: [well-said](../../../archived/2026/09/12-r1-well-said.md)
+Decision writer: OMP DeepSeek V4.1 Flash
+Reverses: [well-said](../../../archived/2026/09/12-r2-well-said.md)
 
 English | [中文](./12-well-said.zh.md)
 
 ## Motivation
 
-Rewrite `well-said` as a bilingual Skill for natural, direct expression, with source attribution and licenses outside its writing instructions.
+Keep `well-said` as a bilingual Skill for natural, direct expression, with its source credit in the repository README and its license and provenance facts in this decision.
+
+The [previous version](../../../archived/2026/09/12-r2-well-said.md) kept its attribution and license files beside the writing instructions. Neither place fits this material. A Skill file enters the Agent context as instructions, or is read beside them as part of one component, so a legal notice means nothing to a writing session and can read as part of the capability's rules. Attribution and license information serve a reader of the repository, which states them outside the Skill tree.
 
 The rewrite starts from the capability's original requirements and source material. The previous Skill is an auxiliary reference, not an acceptance checklist. Differences in section coverage or scope do not by themselves establish a defect in the rewrite.
 
-Writing guidance should tell the agent how to produce useful content. Source attribution and legal notices have a different purpose. Keeping them in adjacent files preserves their availability without making them part of the writing instructions. The files must distinguish Ruokee's authorship of well-said from Lauren Tan's authorship of the reused unslop material.
+The record distinguishes Ruokee's authorship of well-said from Lauren Tan's authorship of the reused unslop material.
 
 ## Decision
 
@@ -28,18 +30,13 @@ Separate the responses to wording and work problems. State an evidence-supported
 
 ### Component layout
 
-Keep the English component under `skills/well-said/` and the Chinese component under `variants/zh/skills/well-said/`. Each is a self-contained distributable with the same file set:
+Keep the English component under `skills/well-said/` and the Chinese component under `variants/zh/skills/well-said/`. Each is a self-contained distributable holding only `SKILL.md`, which contains the writing instructions and the version in frontmatter `metadata.version`.
 
-- `SKILL.md` contains the writing instructions and the version in frontmatter `metadata.version`.
-- `SOURCES.md` and `SOURCES.zh.md` identify authorship, the source revision, and the scope of reused material.
-- `LICENSE` carries the repository's Ruokee MIT license for well-said's original material.
-- `LICENSE.unslop` preserves the complete Lauren Tan MIT notice for the reused unslop material.
-
-Do not repeat source attribution, license text, or the version in the Skill body. Source documents link only to files inside the component and to the external source. Installing or distributing a component carries its supporting files with it.
+Do not repeat source attribution, license text, or the version in the Skill body. The repository README credits the source Skill and its author; this decision records the upstream path, the pinned revision, and the license.
 
 Use `1.0.0` as the first formal release version. Revision labels used during drafting are not software versions. Later releases follow the repository's version policy. No package manifest, detector, plugin, or runtime dependency is added to the ordinary Skill.
 
-The [first-party capability decision](../08/20-first-party-capabilities.md) distinguishes ownership of well-said from authorship of reused material. Preserve most of the source wording, examples, and useful organization in the style section, with necessary integration changes and additions. The [source documents](../../../../../skills/well-said/SOURCES.md) identify the pinned unslop revision and reuse scope. Verify provenance, permission, attribution, and notices before distributing further reused material.
+The [first-party capability decision](../08/20-first-party-capabilities.md) distinguishes ownership of well-said from authorship of reused material. Preserve most of the source wording, examples, and useful organization in the style section, with necessary integration changes and additions. The retained wording comes from [Cursor plugins / pstack](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/skills/unslop/SKILL.md), revision `99559f2f52047978602ef365589275831e76af07`, under the [pstack MIT license](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/LICENSE), copyright Lauren Tan, 2026. Verify provenance, permission, attribution, and notices before distributing further reused material.
 
 The complete writing guidance stays in one file. Extract substantial, infrequently used supplementary material only when actual content and loading measurements justify it. Ordinary writing must remain supported by the complete rules in `SKILL.md`.
 
@@ -81,8 +78,8 @@ The writing scope explicitly includes natural-language messages between agents: 
 
 1. Both language components contain the complete writing guidance and agree on scope, rules, exceptions, examples, and version. Repository capability indexes describe the same usage.
 2. Defensive-phrasing guidance explains both the harm and the response, distinguishes work from wording problems, and preserves information that changes the reader's judgment or action. Both languages include representative expressions from both languages.
-3. Each component contains its own source documents and both license files. Attribution distinguishes well-said's authorship from the reused material's authorship. Source attribution and legal notices do not appear in the Skill body.
-4. Both entry points declare `metadata.version: "1.0.0"`, with no duplicate body version. The complete component can be installed without another component or repository-only material.
+3. Each component contains only its own `SKILL.md`. Attribution distinguishes well-said's authorship from the reused material's authorship. Source attribution and legal notices do not appear in the Skill body; the repository README and this decision hold them.
+4. Both entry points declare the same `metadata.version` and follow the release policy above, with no duplicate body version. The complete component can be installed without another component or repository-only material.
 5. Real Harness tests use real models and cover two of them separately, with both language components exercised. Record the candidate version, actual model and Harness versions, relevant instructions, inputs, outputs, and loading evidence. A proposal or automated repository check is not behavioral validation.
 6. Tests cover ordinary drafting, existing-text cleanup, read-only review, authorized file edits, long-form structure, author voice, literal protection, useful explanations and history, and multi-turn additions, corrections, withdrawals, replacements, and temporary instructions. Verify both missed cleanup and harmful edits.
 7. Test complete entry loading, reuse of available content, restoration after context loss, partial or unavailable content, explicit invocation, and ordinary host discovery. Include ordinary output and combined style, leakage, and proof-posture cases without requiring specialist file reads. Distinguish loading failures from noncompliance after loading.
@@ -96,6 +93,9 @@ The writing scope explicitly includes natural-language messages between agents: 
 
 - Continue editing the previous Skill. This was the approach rejected in favor of a rewrite from the original requirements and sources. It would keep the previous text as the starting point rather than adopt the chosen rewrite.
 - Keep source attribution, legal notices, and the version in the Skill body. This was the superseded layout. It mixes distribution information with writing instructions, while a body version would duplicate the frontmatter declaration.
+- Keep the attribution and license files beside the writing instructions. This was the layout the previous version chose, and the one this decision replaces. It puts legal notices where hosts and Agents read the Skill as one component.
+- State the license and the pinned revision in the README credit as well. This was considered when choosing what the credit carries. It would repeat in a reader-facing index what this decision records with the pinned revision.
+- Add a repository-level notice file for the reused material. This was considered when choosing where the repository records the reuse. It adds a file for material this repository does not distribute on its own, while the README credit and this decision already name the source, the revision, and the license.
 - Keep general style cleanup in the existing unslop Skill and add a separate leakage Skill. This was considered when choosing the capability boundary. It separates the rules that must jointly preserve meaning and does not provide the chosen unified writing behavior.
 - Keep a short core and three specialist guides loaded on demand. This was considered when comparing file layouts. It can reduce context use when substantial specialist material is rarely needed, but adds signal recognition, file retrieval, and combined-guide handling. The complete single file avoids those dependencies for everyday writing; actual context savings and behavioral differences have not been measured.
 - Put only navigation in the entry point and require the full unslop guide for every user-visible output. This was considered when deciding how to expose binding prohibitions. It requires additional reading while leaving the entry point unable to provide the unified writing rules on its own.
@@ -116,4 +116,6 @@ Tuning rules to familiar examples can improve those examples without helping new
 
 Copying source text without verifying its provenance and license can omit required attribution or distribute material without permission. The ownership of the new component does not resolve those obligations.
 
-A distributor that copies only `SKILL.md` could omit the required third-party notice. Each language component therefore includes its own complete supporting files, and distribution must preserve the component directory.
+The category mapping and the full upstream notice that the removed source documents carried survive only in Git history and at the pinned upstream revision, so a later provenance check reads history rather than a file.
+
+Attribution now lives in the repository README and this decision rather than beside the writing instructions, so later changes must keep both accurate.

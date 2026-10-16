@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
 Archived: 2026-10-08
-Reversed by: [well-said](../../../decision/2026/09/12-well-said.zh.md)
+Reversed by: [well-said](./12-r2-well-said.zh.md)
 
 [English](./12-r1-well-said.md) | 中文
 

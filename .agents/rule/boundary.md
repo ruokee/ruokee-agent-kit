@@ -10,6 +10,7 @@ The [repository spec](../spec/repository.md) states what this repository should 
 - Do not add third-party capabilities, forks, or upstream mirrors. A first-party capability may cite, quote, or adapt third-party material.
 - Decide fork status from whether the third-party capability itself is the subject of development and maintenance, not from the presence or amount of reused content alone.
 - Preserve source authorship, and comply with the licenses and attribution requirements that apply to reused material.
+- Keep license and notice files out of a Skill tree, where they can read as part of the capability. Record source attribution and license information at the repository level instead: in the repository README, in the README of a component that ships one, or in the decision that owns the material.
 - Allow first-party manifests, adapters, installers, and validation tools in this repository when they support a capability it contains.
 
 ## Content layout
