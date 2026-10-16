@@ -4,7 +4,7 @@
 
 ## 产品定义
 
-tk 是一个面向本地项目的持久任务运行时。任务是一项值得持久保存的项目内临时性努力。创建任务不代表已经承诺执行或完成它。
+tk 是一个面向本地项目的持久任务运行时。
 
 tk 使用项目文件保存状态，不建立数据库、全局任务注册表、后台索引、远程服务或常驻守护进程。它不负责优先级、排期、看板、Issue 镜像、Agent 编排或会话绑定。
 
@@ -24,7 +24,7 @@ tk 使用项目文件保存状态，不建立数据库、全局任务注册表�
 
 ## Harness 边界
 
-Harness 是围绕模型、使模型能够作为 Agent 运行的软件环境，包括模型交互循环、系统提示、上下文管理、工具、权限和 hooks。Codex、Claude Code、Pi 和 OMP 是当前支持的 Harness。未来可以增加 Hermes、DSH 或其他 Harness，不需要改变 Harness 的定义。
+[Harness 定义](./harnesses.zh.md#harness-定义)说明 Harness 是什么。Codex、Claude Code、Pi 和 OMP 是当前支持的 Harness。未来可以增加 Hermes、DSH 或其他 Harness，不需要改变 Harness 的定义。
 
 Harness 负责：
 
@@ -64,8 +64,6 @@ Harness 不能复制一套任务领域规则。Pi 和 OMP 适配器不实现语�
   -> 按确定顺序提交
   -> 返回结构化结果
 ```
-
-read、search 和纯诊断不会因为 Git 策略被拒绝。持久写入前才执行 Git 策略检查。
 
 ## Harness 组件流程
 

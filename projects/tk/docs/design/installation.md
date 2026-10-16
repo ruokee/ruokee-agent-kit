@@ -22,7 +22,7 @@ Cargo builds multiple Harness payloads spanning four Harnesses, two modes, and t
 
 The manifest stores Harness payloads under `components`, identified by Harness, mode, language, and Skill. It stores standalone CLI Skill payloads under `cli_skills`, identified by language and Skill with no Harness field. The runtime embeds the manifest and archive through `include_bytes!`. Installation reads only these embedded artifacts and does not access the network.
 
-The modes are `tools` and `cli`. The languages are `en` and `zh`. Their Skill names are `tk`, `tk-zh`, `tk-cli`, and `tk-cli-zh`. Harness install defaults to tools mode and English. Custom-root install supports only CLI mode and defaults to English.
+The modes are `tools` and `cli`, and the languages are `en` and `zh`. The [CLI reference](./cli-reference.md#tk-install) holds the command defaults and the resolved Skill names.
 
 ## Manifest
 
@@ -144,9 +144,9 @@ Partial completion is a failure state, not an optional partial-uninstall feature
 
 ## GC
 
-Component operations use the [minimal cleanup manifest](./data-model.md#minimal-cleanup-manifest). The manifest records only the process identity, creation time, and tk temporary paths.
+Component operations use the [minimal cleanup manifest](./data-model.md#minimal-cleanup-manifest), which owns its content and the GC rules.
 
-After an abnormal exit, GC may delete component temporary files, directories, manifests, and markers for processes that have ended. GC does not continue install, update, or uninstall, and does not modify canonical Harness targets, custom Skill roots, or Harness configuration.
+After an abnormal exit, GC may delete component temporary files, directories, manifests, and markers for processes that have ended. It never modifies canonical Harness targets, custom Skill roots, or Harness configuration.
 
 ## Coexistence with external content
 
@@ -154,6 +154,6 @@ Harness lifecycle operations manage their fixed tk-specific targets, the four kn
 
 ## Compatibility
 
-Rust parses and evaluates `runtime_compat`. Pi and OMP TypeScript adapters only read the version and generated contract validated by Rust. They do not implement their own semver parsers.
+The [Harness boundary](./system.md#harness-boundary) owns the split between Rust and the adapters for version compatibility.
 
 If the component format is unsupported, the runtime is incompatible, the selected manifest entry is invalid, or the archive is invalid, fail before any persistent write. Harness operations also fail before writing when the Harness is unavailable.

@@ -117,7 +117,7 @@ tk create task <name>
 
 The default status is open. Direct CLI creation represents an explicit current user request, so `--user-confirmed` defaults to true. Callers must not use this default to fabricate user confirmation from another transport.
 
-The runtime automatically writes `# <normalized-name>` as the initial `TASK.md` body when it creates a Task. The create command accepts no body input; write `TASK.md` separately after creation when the Task needs durable content.
+The create command accepts no body input; the [creation body](./data-model.md#creation-body) rules cover the generated heading.
 
 ## `tk create subtask`
 
@@ -128,7 +128,7 @@ tk create subtask <parent_ref>
   [global-options]
 ```
 
-Each item contains `name` and optional `status`, `created_at`, relationships, and `extra`. Items do not accept a body; every created Task starts with the generated normalized-name heading. A request accepts 1 to 50 items. After preflighting the entire batch, it creates the items in input order. Direct CLI creation defaults `--user-confirmed` to true. Other transports must pass the current authorization state, and planning children require confirmation.
+Each item contains `name` and optional `status`, `created_at`, relationships, and `extra`. Items do not accept a body. A request accepts 1 to 50 items. After preflighting the entire batch, it creates the items in input order. Direct CLI creation defaults `--user-confirmed` to true. Other transports must pass the current authorization state, and planning children require confirmation.
 
 ## `tk update`
 
@@ -176,7 +176,7 @@ tk check [global-options]
 
 The command exits 0 when it finds no issues. If a complete read finds blocking diagnostics, it returns `check_failed` and exits 3. If required I/O fails, it immediately returns `check_incomplete`, exits 4, and stops scanning.
 
-check does not repair files. A corrupted `tk.toml` may be repaired manually only when tk cannot express the repair, the Agent has explained the exact edit, and the user has explicitly authorized it in the current context. After the repair, run check again and record the action in the WAL when a Task is available.
+check does not repair files; the [manual repair procedure](./skill.md#manually-repairing-task-metadata) holds the conditions for editing a corrupted `tk.toml` by hand.
 
 ## `tk rename`
 

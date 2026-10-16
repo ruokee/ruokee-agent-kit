@@ -4,8 +4,6 @@
 
 tk 是一个持久化任务管理工具。它把任务进度、共识和支撑材料保存在普通项目文件中，让工作能够跨上下文压缩、跨会话以及跨 Agent 继续。
 
-任务是值得保留的项目内临时性努力。创建任务不代表已经承诺执行或完成。
-
 ## 接入方式
 
 同一个 Rust 运行时提供 `tk` CLI、stdio MCP 服务器，以及 Pi 和 OMP 原生工具集成。组件支持 Codex、Claude Code、Pi 和 OMP，可选择 tools 或 CLI 模式，以及英文或中文 Skill。CLI Skill 也可以安装到其他 Skill 根目录，不依赖特定 Harness 集成。

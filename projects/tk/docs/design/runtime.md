@@ -70,7 +70,7 @@ A single-file write responds to cancellation before atomic replacement. After at
 
 Multi-target commands respond to cancellation between commit points. Cancellation before the first write leaves no persistent changes. Cancellation after a partial commit uses the same result boundary as a normal I/O failure: it reports completed and incomplete items without automatic rollback.
 
-Normal Task writes do not use locks, leases, CAS, or automatic merging. Activity markers only block uncleaned project-level multi-target writes and do not provide general concurrency control.
+Activity markers only block uncleaned project-level multi-target writes and do not provide general concurrency control.
 
 ## Failure boundaries
 

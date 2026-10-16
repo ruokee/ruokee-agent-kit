@@ -4,8 +4,6 @@
 
 tk stores persistent project Tasks in ordinary files and exposes the same rules through its CLI, MCP server, and native Pi and OMP tools.
 
-A Task is a temporary project effort worth preserving. Creating one does not imply a commitment to execute or complete it.
-
 ## Install the runtime
 
 Install the `tk` executable at the fixed user-level path:
@@ -44,7 +42,7 @@ tk install --harness pi --mode cli --language en
 tk install --harness omp --mode cli --language zh
 ```
 
-`--mode` accepts `tools` or `cli` and defaults to `tools`. `--language` accepts `en` or `zh` and defaults to `en`. The resolved Skill is `tk`, `tk-zh`, `tk-cli`, or `tk-cli-zh`.
+The [CLI reference](./design/cli-reference.md#tk-install) holds the accepted values, defaults, and resolved Skill names.
 
 Tools mode installs the Harness integration and its selected Skill. CLI mode installs only the selected CLI Skill within the Harness component. Running install again with another selection updates the component directly and removes known superseded Skill targets.
 
@@ -95,7 +93,7 @@ tk create task "Investigate startup latency"
 
 CLI creation is an explicit user action, so strict projects treat it as confirmed. Agents using MCP or native tools must pass the actual current authorization state.
 
-When tk creates a Task, the runtime automatically writes `# <normalized-name>` as the initial `TASK.md` body. Use ordinary file tools to extend it after creation; the create command and create tool accept no body input.
+The create command and the create tool accept no body input; the [creation body](./design/data-model.md#creation-body) rules cover the generated heading.
 
 ## Find Tasks
 
@@ -184,7 +182,7 @@ tk gc --dry-run
 tk gc
 ```
 
-GC removes only registered tk temporary paths. It does not continue, roll back, or repair a Task, migration, rename, or component operation.
+The [GC](./design/data-model.md#gc) rules state what gc removes.
 
 A failed multi-target command reports completed and uncompleted items. Read or check the current state before issuing a new complete command. tk does not keep a continuation token or automatic rollback state.
 

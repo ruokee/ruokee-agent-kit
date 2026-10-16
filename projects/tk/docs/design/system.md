@@ -4,7 +4,7 @@
 
 ## Product definition
 
-tk is a persistent Task runtime for local projects. A Task is a temporary project effort worth preserving. Creating a Task does not imply a commitment to execute or complete it.
+tk is a persistent Task runtime for local projects.
 
 tk stores state in project files. It does not create a database, global Task registry, background index, remote service, or resident daemon. It does not manage priorities, scheduling, boards, Issue mirroring, Agent orchestration, or session binding.
 
@@ -24,7 +24,7 @@ One Cargo package builds one `tk` executable. Short-lived commands exit after ex
 
 ## Harness boundary
 
-A Harness is the software environment around a model that enables the model to operate as an Agent. It includes the model interaction loop, system prompts, context management, tools, permissions, and hooks. Codex, Claude Code, Pi, and OMP are the currently supported Harnesses. Hermes, DSH, and other Harnesses can be added without changing the definition of Harness.
+The [Harness definition](./harnesses.md#harness-definition) states what a Harness is. Codex, Claude Code, Pi, and OMP are the currently supported Harnesses. Hermes, DSH, and other Harnesses can be added without changing the definition of Harness.
 
 The Harness is responsible for:
 
@@ -64,8 +64,6 @@ Caller
   -> Commit in deterministic order
   -> Return a structured result
 ```
-
-read, search, and pure diagnostics are not rejected by Git policy. Git policy checks run only before persistent writes.
 
 ## Harness component flow
 

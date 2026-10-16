@@ -123,6 +123,6 @@ The Harness installation lifecycle selects, updates, and uninstalls all four Ski
 
 ## Validation requirements
 
-All Harness selections must complete installation, loading, and uninstallation in isolated environments. Tools-mode validation confirms registration or native extension loading. CLI-mode validation confirms that no tk operation registration is present. OMP tools mode additionally completes one real tk call.
+The [real Harness validation](./validation.md#real-harness-validation) contracts state what each selection must complete.
 
-The two standalone CLI Skill payloads must complete isolated custom-root install, update, language switch, no_change, and uninstall. This path validates files and ownership boundaries, not real Harness loading. Real Harness validation for Codex, Claude Code, and Pi ends after successful loading and does not require a model session call.
+Real Harness validation for Codex, Claude Code, and Pi ends after successful loading and does not require a model session call.

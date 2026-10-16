@@ -117,7 +117,7 @@ tk create task <name>
 
 默认状态是 open。CLI 直接创建表示用户当前明确请求，因此 `--user-confirmed` 默认为 true。调用方不得用该默认值伪造其他传输中的用户确认。
 
-运行时在创建任务时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。create 不接受正文输入；任务需要持久内容时，在创建完成后单独写入 `TASK.md`。
+create 不接受正文输入；生成标题的规则见[创建正文](./data-model.zh.md#创建正文)。
 
 ## `tk create subtask`
 
@@ -128,7 +128,7 @@ tk create subtask <parent_ref>
   [global-options]
 ```
 
-每个 item 包含 `name` 及可选的 `status`、`created_at`、关系和 `extra`。item 不接受正文；每个创建的任务都以生成的规范化名称标题开头。一次接受 1 到 50 项。批次全部预检后按输入顺序创建。直接通过 CLI 创建时，`--user-confirmed` 默认为 true。其他传输必须传入当前授权状态，创建 planning 子任务需要确认。
+每个 item 包含 `name` 及可选的 `status`、`created_at`、关系和 `extra`。item 不接受正文。一次接受 1 到 50 项。批次全部预检后按输入顺序创建。直接通过 CLI 创建时，`--user-confirmed` 默认为 true。其他传输必须传入当前授权状态，创建 planning 子任务需要确认。
 
 ## `tk update`
 
@@ -176,7 +176,7 @@ tk check [global-options]
 
 无问题时退出 0。完整读取后发现阻塞诊断时返回 `check_failed` 并退出 3。必要 I/O 失败时立即返回 `check_incomplete` 并退出 4，不继续扫描。
 
-check 不修复文件。损坏的 `tk.toml` 只有在 tk 无法表达修复、Agent 已说明具体编辑且用户当前明确授权后，才允许人工修复。修复后再次运行 check，并在任务可用时记录 WAL。
+check 不修复文件；人工修复损坏 `tk.toml` 的条件见[人工修复任务元数据](./skill.zh.md#人工修复任务元数据)。
 
 ## `tk rename`
 

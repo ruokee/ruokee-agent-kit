@@ -202,7 +202,7 @@ A managed single-file update uses a temporary file in the same directory followe
 5. Atomically replace the target.
 6. Remove temporary content.
 
-Normal writes do not use locks, leases, compare-and-swap, or automatic merging. Concurrent complete replacements of the same file are resolved by whichever operation finishes last.
+Concurrent complete replacements of the same file are resolved by whichever operation finishes last.
 
 ## Operations over multiple targets
 

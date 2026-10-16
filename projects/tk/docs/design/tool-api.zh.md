@@ -178,7 +178,7 @@ create 使用 `oneOf` 区分顶层任务和子任务批次。
 
 strict 项目要求 `user_confirmed=true`。permissive 项目允许值得持久保存的工作在 `false` 时创建，调用 Agent 负责根据语境选择 planning 或 open 并报告创建结果。
 
-运行时在创建任务时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文，并且不接受任何 create 请求中的正文输入。调用方在创建完成后用普通文件操作写入 `TASK.md`。
+create 请求不接受正文输入；生成标题的规则见[创建正文](./data-model.zh.md#创建正文)。
 
 子任务分支：
 

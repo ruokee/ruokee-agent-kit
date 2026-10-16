@@ -8,7 +8,7 @@ This glossary includes only terms that have a special meaning in tk, require fix
 
 | Term | Chinese form | Meaning |
 | --- | --- | --- |
-| Task | 任务 | A temporary effort within a project that is worth preserving. Creating a Task does not imply a commitment to execute or complete it. |
+| Task | 任务 | A temporary effort within a project that is worth preserving. Creating a Task does not imply a commitment by the user or an Agent to execute or complete it. |
 | Harness | Harness | The software environment around a model that enables it to operate as an Agent, including loops, prompts, context, tools, permissions, and hooks. |
 | Skill | Skill | Agent behavior instructions and reference materials discoverable by a Harness. |
 | Plugin | Plugin | A self-contained component form loaded through a Harness's native Plugin mechanism. |

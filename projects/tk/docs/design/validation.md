@@ -72,7 +72,7 @@ Cover:
 - Retried bulk creation skips items that already exist and match;
 - An active producer process blocks writes from other projects;
 - A marker from an exited producer process continues to block writes until GC;
-- read, search, and diagnostic-only operations are not blocked by activity markers;
+- read, search, and diagnostic-only operations stay available under an active marker ([minimal cleanup manifest](./data-model.md#minimal-cleanup-manifest));
 - Single-file updates do not create project activity markers.
 
 ## Migration tests

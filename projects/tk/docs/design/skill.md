@@ -10,8 +10,6 @@ Use tk when the user explicitly mentions a Task ID, Task name, Task path, Task b
 
 In permissive projects, an Agent may also create a Task for work that clearly deserves persistence across multiple steps or sessions. Quick questions, ordinary TODOs, minor one-off changes, and casual ideas do not need a Task.
 
-A Task is a temporary effort worth preserving. Creating one does not mean that the user or Agent has committed to executing or completing it.
-
 ## Installed Skill identities
 
 tk provides four independent, self-contained Skills:
@@ -49,13 +47,15 @@ A normal catchup is read-only: read the summary, the `TASK.md` entry point, and 
 
 ## Creating Tasks
 
+The [creation authorization](./data-model.md#creation-authorization) rules decide when creation is allowed. This section covers how an Agent acts on them.
+
 ### strict
 
-Create a top-level Task in a strict project only when the user explicitly requests or confirms creation in the current conversation. An Agent must not treat "this issue may be important" as confirmation.
+An Agent must not treat "this issue may be important" as confirmation.
 
 ### permissive
 
-A permissive project allows an Agent to create a Task proactively for work worth preserving, even without a commitment to execute it. The Agent selects the status based on context:
+When the work is worth preserving, the Agent creates the Task and selects the status based on context:
 
 - Use planning when the content is still taking shape and the user explicitly wants to preserve early materials.
 - Use open when active work has already begun.
@@ -64,7 +64,7 @@ After creation, report the Task name, status, and path in the same response.
 
 ### Child Tasks
 
-A genuine work unit under an open Task may be created as a child Task without obtaining top-level creation authorization again. Do not create a child Task under a closed parent Task or implicitly reopen the parent Task.
+Do not create a child Task under a closed parent Task or implicitly reopen the parent Task.
 
 Use batch creation only for independent, genuine work units under the same parent Task, not to import an entire backlog.
 

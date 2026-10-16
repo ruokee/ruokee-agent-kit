@@ -178,7 +178,7 @@ Top-level branch:
 
 strict projects require `user_confirmed=true`. permissive projects allow work worth persisting to be created when it is `false`. The calling Agent selects planning or open based on context and reports the creation result.
 
-The runtime automatically generates `# <normalized-name>` as the initial `TASK.md` body when it creates a Task, and it accepts no body input on any create request. Callers write `TASK.md` with ordinary file operations after creation.
+Create requests accept no body input; the [creation body](./data-model.md#creation-body) rules cover the generated heading.
 
 Child Task branch:
 

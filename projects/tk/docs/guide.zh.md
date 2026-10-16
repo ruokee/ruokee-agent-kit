@@ -4,8 +4,6 @@
 
 tk 使用普通项目文件保存持久任务，并通过 CLI、MCP 服务器以及 Pi 和 OMP 原生工具执行同一套规则。
 
-任务是值得持久保存的项目内临时性努力。创建任务不代表已经承诺执行或完成。
-
 ## 安装运行时
 
 把 `tk` 可执行文件安装到固定的用户级路径：
@@ -44,7 +42,7 @@ tk install --harness pi --mode cli --language en
 tk install --harness omp --mode cli --language zh
 ```
 
-`--mode` 接受 `tools` 或 `cli`，默认 `tools`。`--language` 接受 `en` 或 `zh`，默认 `en`。最终安装的 Skill 是 `tk`、`tk-zh`、`tk-cli` 或 `tk-cli-zh`。
+[CLI 参考](./design/cli-reference.zh.md#tk-install)持有可取值、默认值和最终 Skill 名称。
 
 tools 模式安装 Harness 集成和所选 Skill。cli 模式只在 Harness 组件中安装所选 CLI Skill。再次使用其他选择运行 install 时，tk 直接更新组件，并删除新选择所取代的已知 Skill 目标。
 
@@ -95,7 +93,7 @@ tk create task "调查启动延迟"
 
 CLI 创建本身就是用户明确操作，因此 strict 项目把它视为已确认。Agent 通过 MCP 或原生工具创建时，必须传入当前对话中真实的授权状态。
 
-tk 创建任务时，运行时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。创建完成后可用普通文件工具扩展正文；create 命令和 create 工具不接受正文输入。
+create 命令和 create 工具不接受正文输入；生成标题的规则见[创建正文](./design/data-model.zh.md#创建正文)。
 
 ## 查找任务
 
@@ -184,7 +182,7 @@ tk gc --dry-run
 tk gc
 ```
 
-GC 只删除已登记的 tk 临时路径，不继续、回滚或修复任务、迁移、rename 或组件操作。
+[GC](./design/data-model.zh.md#gc) 规则说明 gc 会删除什么。
 
 多目标命令失败时会报告已完成项和未完成项。发起新的完整命令前，先 read 或 check 当前状态。tk 不保留续跑令牌，也不维护自动回滚状态。
 

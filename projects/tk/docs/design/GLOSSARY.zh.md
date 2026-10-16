@@ -8,7 +8,7 @@
 
 | 术语 | 中文形式 | 含义 |
 | --- | --- | --- |
-| Task | 任务 | 值得持久保存的项目内临时性努力，不要求创建时已经承诺执行或完成 |
+| Task | 任务 | 值得持久保存的项目内临时性努力，创建任务不代表用户或 Agent 已承诺执行或完成 |
 | Harness | Harness | 围绕模型、使模型能够作为 Agent 运行的软件环境，包括循环、提示、上下文、工具、权限和 hooks |
 | Skill | Skill | Harness 可发现的 Agent 行为说明和参考材料 |
 | Plugin | Plugin | 由 Harness 原生 Plugin 机制加载的自包含组件形式 |

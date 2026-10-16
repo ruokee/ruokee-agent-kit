@@ -123,6 +123,6 @@ Harness 安装生命周期负责选择、更新和卸载四个 Skill 身份。�
 
 ## 验证要求
 
-所有 Harness 选择都必须在隔离环境中完成安装、加载和卸载。tools 模式验证注册或原生扩展加载，cli 模式验证没有 tk 操作注册。OMP tools 模式还必须完成一次真实 tk 调用。
+[真实 Harness 验证](./validation.zh.md#真实-harness-验证)契约规定每种选择必须完成的内容。
 
-两份独立 CLI Skill 载荷必须在隔离环境中完成自定义根目录 install、update、语言切换、no_change 和 uninstall。该路径验证文件和所有权边界，不验证真实 Harness 加载。Codex、Claude Code 和 Pi 的真实 Harness 验证到加载成功为止，不要求通过模型会话调用 tk。
+Codex、Claude Code 和 Pi 的真实 Harness 验证到加载成功为止，不要求通过模型会话调用 tk。

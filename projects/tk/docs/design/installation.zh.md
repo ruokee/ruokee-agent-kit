@@ -22,7 +22,7 @@ Cargo 构建多份 Harness 载荷，覆盖四个 Harness、两种模式和两种
 
 清单把 Harness 载荷保存在 `components` 中，由 Harness、模式、语言和 Skill 标识。独立 CLI Skill 载荷保存在 `cli_skills` 中，由语言和 Skill 标识，不含 Harness 字段。运行时通过 `include_bytes!` 嵌入清单和归档。安装只读取这些内嵌产物，不访问网络。
 
-模式为 `tools` 和 `cli`，语言为 `en` 和 `zh`，对应 Skill 名称为 `tk`、`tk-zh`、`tk-cli` 和 `tk-cli-zh`。Harness install 默认使用 tools 模式和英文。自定义根目录 install 只支持 CLI 模式，并默认使用英文。
+模式为 `tools` 和 `cli`，语言为 `en` 和 `zh`。[CLI 参考](./cli-reference.zh.md#tk-install)持有命令默认值和最终 Skill 名称。
 
 ## 清单
 
@@ -144,9 +144,9 @@ Harness 卸载完成后，该 Harness 应与从未安装过 tk 等价。固定�
 
 ## GC
 
-组件操作使用[最小清理清单](./data-model.zh.md#最小清理清单)。清单只记录进程身份、创建时间和 tk 临时路径。
+组件操作使用[最小清理清单](./data-model.zh.md#最小清理清单)，其内容与 GC 规则由该节持有。
 
-异常退出后，GC 可以删除已结束进程的组件临时文件、目录、清单和标记。GC 不继续 install、update 或 uninstall，也不修改 Harness 规范目标、自定义 Skill 根目录或 Harness 配置。
+异常退出后，GC 可以删除已结束进程的组件临时文件、目录、清单和标记。它不修改 Harness 规范目标、自定义 Skill 根目录或 Harness 配置。
 
 ## 与外部内容共存
 
@@ -154,6 +154,6 @@ Harness 生命周期操作管理固定 tk 专用目标、四个已知 tk Skill �
 
 ## 兼容性
 
-Rust 解析并判断 `runtime_compat`。Pi 和 OMP TypeScript 适配器只读取 Rust 已验证的版本和生成合同，不实现自己的 semver 解析器。
+Rust 与适配器在版本兼容上的分工由 [Harness 边界](./system.zh.md#harness-边界)持有。
 
 component format 不受支持、运行时不兼容、所选清单项无效或归档无效时，在持久写入前失败。Harness 操作还会在 Harness 不可用时于写入前失败。
