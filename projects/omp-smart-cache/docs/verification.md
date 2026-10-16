@@ -36,13 +36,35 @@ Command output is checked through the same formatter the command calls: this hos
 
 A component-level run drives the registration seams directly and covers a dispatch that carries no tool set and therefore never becomes a reference, a switched-off capability that reports no dispatch bookkeeping, and a side request that repeats the confirmed online view.
 
-Not covered by these runs: a model whose serializer writes the system prompt fragments with the `developer` role rather than `system`, speculative compaction, an incomplete handoff response and the retry the host runs after it, switching the model between the reference and the handoff, multimodal input, subagent sessions, a session whose model API lets the other capability rewrite, and real Provider cache benefit. Two runs load two copies of this package in one process, one beside a released copy and one beside the trial extension, and the boundary rules above rest on a source reading of the host's handoff path rather than on a host change that exercises them.
+Those earlier Chat Completions runs did not cover developer-role system serialization, speculative compaction, incomplete-response retry, model switching between reference and Handoff, multimodal input, subagent sessions, Responses coexistence, or real Provider benefit. Their mixed-copy boundaries also relied partly on host source inspection. The versioned checks below state their additional scope separately.
 
 The `0.1.4` component regression rejects late successful responses after epoch, signal, tools, system, thinking, or Provider identity changes. It counts no send at the payload callback, counts actual repeated transport delegations, and permanently rejects an old operation after its owner changes, including when the original values return. Registration and release preserve an unknown session-method wrapper.
 
 Controlled native CLI runs on OMP `18.5.0` and `18.8.3` exercise the final Chat Completions path with all seven normal plugins and native callable tool schemas. Two consecutive Handoffs use their latest ordinary references and commit native documents. A native transport retry after HTTP 503 records one operation, two sends, and one retry. A tool-set change in a later provider hook leaves the Handoff body native; an in-flight cancellation commits no document and ordinary work continues. Interference with pre-registration native publication and a post-registration method wrapper each report unavailability, preserve the foreign wrapper, and retain native document adoption and continuation. A later provider option survives the final rewrite. These runs use controlled local HTTP and do not measure Provider cache benefit.
 
 Interactive TUI runs on both hosts display the actual `/smart-cache` notification, including separate remote and Handoff sections. A subsequent local observation records zero HTTP requests, so reading status starts no model turn. The command reports states and counters without payloads or private values.
+
+## Responses Handoff
+
+The `0.1.5` regressions cover instructions and source-proved leading developer segments, historical developer position, a missing text suffix within one system segment, tools, image history, reasoning configuration updates, and an ordinary dispatch whose public Agent state has not caught up. Handoff-only and remote Provider mismatch still establish independent ordinary references. Only the system expression is restored; native none, reasoning, configuration updates, and new input remain intact.
+
+Controlled native CLI runs on OMP `18.5.0` and `18.8.3` cover both system expressions, consecutive Handoffs, remote coexistence, automatic generation, and automatic empty results. Empty documents produce no native compaction commit, and ordinary work continues. Interactive TUI runs on both hosts exercise the actual `/handoff` command with each system expression, preserve manual focus, commit in place, continue ordinary work, and display `/smart-cache` without a model turn.
+
+The same hosts exercise final transport retries, cancellation, delayed ordinary confirmation, session switching, and pre-registration or lost method wrappers. In one operation, the first Handoff send aligns, the next retry remains native after a tool-owner change, and a third send stays native after the original tools return. The operation records three sends and two retries and still follows native document adoption. Foreign wrappers remain installed. Later payload options survive.
+
+In `0.1.6`, an ordinary context observed during session navigation reports `navigation-unsettled` without capturing a reference. A consumer regression checks that cause and zero reference and dispatch identifiers.
+
+Actual native task and Eval tools each create two child sessions. Parent and children use distinct histories with the same model, compact concurrently through remote, continue, then generate Handoffs concurrently. Cancelling one child leaves the other documents adopted; its subsequent revive clears its reference, and fresh ordinary work restores eligibility. Final wire comparisons and per-session state establish attribution rather than inferring it from the model or endpoint.
+
+The normal installed combination registers a `session_before_compact` handler in another extension. Both hosts therefore suppress native speculation even with async compaction enabled and context inside the lead band. The checks preserve that suppression and record no speculative Handoff or commit. They do not exercise cancellation of a running background speculation, and no installed extension is disabled to manufacture that coverage.
+
+## Final remote coexistence
+
+Controlled `0.1.5` native CLI runs on both hosts cover `standard` and `hooks`, two consecutive remote commits with ordinary continuation, a Handoff in the same session, and another native remote continuation. After Handoff, the host's ordinary handoff wrapper and native V2 summary wrapper differ; insufficient source proof leaves that later remote request native instead of treating unlike prefixes as equal. Standard-mode stateful context changes are refused without rerunning the handler.
+
+The installed combination refuses local reuse when context or provider-request handlers leave dependencies unproved. A separately labeled clean-local run without those handlers proves independent local reuse while retaining native tool-output trimming. It is not evidence for local reuse with the normal installed combination. A separate process resumes a native session without an old in-memory reference, adopts an unreferenced native remote result, then establishes a fresh ordinary reference for subsequent alignment and continuation.
+
+These runs use localhost controlled HTTP and synthetic usage. Real `0.1.5` Responses Handoff cache benefit requires separate Provider measurement; the `0.1.3` remote observations above retain their own candidate and scope.
 
 ## Replacement
 

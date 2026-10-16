@@ -9,9 +9,18 @@ import {
   type SimpleStreamOptions,
 } from "@oh-my-pi/pi-ai";
 import { convertTools } from "@oh-my-pi/pi-ai/providers/openai-responses";
+import { buildResponsesInput } from "@oh-my-pi/pi-ai/providers/openai-shared";
 import type { AgentSession, ExtensionContext, ModelRegistry } from "@oh-my-pi/pi-coding-agent";
 import { AgentRegistry } from "@oh-my-pi/pi-coding-agent/registry/agent-registry";
-import { align, initialHandoff, type ChatRequest, type HandoffStatus, type Ownership } from "./handoff.ts";
+import {
+  align,
+  alignResponses,
+  initialHandoff,
+  type ChatRequest,
+  type HandoffStatus,
+  type Ownership,
+  type ResponsesSource,
+} from "./handoff.ts";
 import { body, nativeV2, object, reuse, type Body, type Reference } from "./reuse.ts";
 import { copy, encode, nativeIndependent, payload, standardResult, units } from "./proof.ts";
 import type { HandoffResult, RemoteResult, RemoteSettings, Settings } from "./settings.ts";
@@ -19,7 +28,7 @@ import type { Construction } from "./construction.ts";
 
 const SLOT = Symbol.for("ruokee.omp-smart-cache.remote.coordinator");
 const OLD_QOL = Symbol.for("ruokee.omp-qol.compaction-cache.registry");
-const VERSION = "0.1.4";
+const VERSION = "0.1.6";
 const slots = globalThis as typeof globalThis & { [key: symbol]: unknown };
 const increment = (value: number): number => Math.min(Number.MAX_SAFE_INTEGER, value + 1);
 const nativeEvalProjection = (message: AgentMessage): boolean =>
@@ -108,6 +117,7 @@ interface SideReference {
   readonly id: number;
   readonly body: ChatRequest;
   readonly owner: Ownership;
+  readonly responses?: ResponsesSource;
 }
 interface SideOperation {
   readonly id: number;
@@ -118,6 +128,7 @@ interface SideOperation {
   readonly persistent: string;
   readonly provider: string;
   readonly reference: SideReference;
+  readonly snapshot?: readonly AgentMessage[];
   sends: number;
   revoked?: boolean;
   prepared?: boolean;
@@ -131,6 +142,8 @@ interface SidePending {
   readonly persistent: string;
   readonly provider: string;
   readonly signal: AbortSignal;
+  responses?: ResponsesSource;
+  sent?: boolean;
   body?: ChatRequest;
   failed?: string;
 }
@@ -143,6 +156,7 @@ interface Observation {
   readonly sourceTools: unknown;
   readonly expectedTools: unknown;
   readonly independent: boolean;
+  side?: SidePending;
   hooks?: AgentMessage[];
   prepared?: Pick<Context, "messages">;
   preparedTools?: unknown;
@@ -391,7 +405,11 @@ class Coordinator {
       state.handoff.status.state = "unavailable";
       return false;
     }
-    if (state.owned.some((owned) => !owned()) || state.sideOwned.some((owned) => !owned()))
+    if (
+      state.owned.some((owned) => !owned()) ||
+      state.sideOwned.some((owned) => !owned()) ||
+      (state.session.model?.api === "openai-responses" && state.remoteOwned.some((owned) => !owned()))
+    )
       return this.unavailableSide(state, "session-wrapper-lost");
     if (
       AgentRegistry.global().get(state.agentId)?.session !== state.session ||
@@ -571,6 +589,24 @@ class Coordinator {
       inherited && this.ancestors(signal).some((parent) => inherited.state.raw.get(parent) === inherited)
         ? inherited
         : undefined;
+    let value: unknown,
+      parsed = false;
+    if (observation?.side) {
+      const pending = observation.side;
+      const url = input instanceof Request ? input.url : String(input);
+      if (url === endpoints(observation.model)[0]) {
+        if (input instanceof Request || init?.method?.toUpperCase() !== "POST" || typeof init.body !== "string") {
+          this.sideFailure(pending, "unsupported-transport-shape");
+        } else {
+          value = JSON.parse(init.body);
+          parsed = true;
+          if (body(value) && !nativeV2(value)) {
+            if (!pending.failed && equal(pending.body, value) && this.sidePendingValid(pending)) pending.sent = true;
+            else this.sideFailure(pending, "final-payload-unconfirmed");
+          }
+        }
+      }
+    }
     const state = op?.state ?? observation?.state;
     if (!state || !remoteTarget(state, op?.model ?? observation?.model) || !state.active) return init;
     const [online, remote] = endpoints(op?.model ?? observation!.model);
@@ -584,7 +620,7 @@ class Coordinator {
       this.record(op, op.memo.reason, op.memo.reused, op.memo.retained);
       return op.memo.sent === init.body ? init : { ...init, body: op.memo.sent };
     }
-    const value: unknown = JSON.parse(init.body);
+    if (!parsed) value = JSON.parse(init.body);
     if (!body(value)) {
       state.status.sending = "unsupported-payload-shape";
       return init;
@@ -638,7 +674,10 @@ class Coordinator {
 
   inspectSide(op: SideOperation, input: string | URL | Request, init?: RequestInit): RequestInit | undefined {
     const url = input instanceof Request ? input.url : String(input);
-    const endpoint = `${op.model.baseUrl.replace(/\/+$/, "")}/chat/completions`;
+    const endpoint =
+      op.model.api === "openai-responses"
+        ? endpoints(op.model)[0]
+        : `${op.model.baseUrl.replace(/\/+$/, "")}/chat/completions`;
     if (url !== endpoint) return init;
     if (input instanceof Request || init?.method?.toUpperCase() !== "POST" || typeof init.body !== "string") {
       op.state.handoff.status.sending = "unsupported-transport-shape";
@@ -731,15 +770,19 @@ class Coordinator {
       this.sideFailure(pending, "payload-proof-unconfirmed");
       return;
     }
+    const captured = pending.responses ? payload(value) : (copy(value) as ChatRequest);
+    if (!captured) {
+      this.sideFailure(pending, "unsupported-payload-shape");
+      return;
+    }
     if (pending.body !== undefined) {
-      // A retry must resend the same body; a changed payload invalidates the pending reference.
-      if (!equal(pending.body, value)) {
+      if (!equal(pending.body, captured)) {
         this.sideFailure(pending, "payload-retry-changed");
         pending.body = undefined;
       }
       return;
     }
-    pending.body = copy(value) as ChatRequest;
+    pending.body = captured;
   }
   sideFailure(pending: SidePending, reason: string): void {
     pending.failed = reason;
@@ -750,27 +793,34 @@ class Coordinator {
     if (pending.failed || pending.body === undefined) return;
     if (!object(response) || typeof response.status !== "number" || response.status < 200 || response.status >= 300)
       return;
-    const state = pending.state;
-    if (
-      pending.epoch !== state.epoch ||
-      pending.signal.aborted ||
-      pending.persistent !== state.manager.getSessionId() ||
-      pending.provider !== state.session.sessionId ||
-      state.session.isSessionTransitioning ||
-      !this.validSide(state) ||
-      !this.sideOwnershipConfirmed(state, pending)
-    ) {
+    if (!this.sidePendingValid(pending)) {
       this.sideFailure(pending, "dispatch-invalidated");
       return;
     }
-    if (!Array.isArray(pending.body.messages)) {
+    if (pending.responses && !pending.sent) {
+      this.sideFailure(pending, "final-send-unconfirmed");
+      return;
+    }
+    if (pending.responses ? !body(pending.body) : !Array.isArray(pending.body.messages)) {
       handoff.status.online = "unsupported-payload-shape";
       return;
     }
-    handoff.reference = { id: pending.id, body: pending.body, owner: pending.owner };
+    handoff.reference = { id: pending.id, body: pending.body, owner: pending.owner, responses: pending.responses };
     handoff.status.reference = pending.id;
     handoff.status.online = "ordinary-send-confirmed";
     if (!handoff.unavailable) handoff.status.state = "awaiting-reference";
+  }
+  sidePendingValid(pending: SidePending): boolean {
+    const state = pending.state;
+    return (
+      pending.epoch === state.epoch &&
+      !pending.signal.aborted &&
+      pending.persistent === state.manager.getSessionId() &&
+      pending.provider === state.session.sessionId &&
+      !state.session.isSessionTransitioning &&
+      this.validSide(state) &&
+      this.sideOwnershipConfirmed(state, pending)
+    );
   }
   sideOwnershipConfirmed(state: State, reference: Pick<SideReference, "owner">): boolean {
     try {
@@ -813,6 +863,7 @@ class Coordinator {
       persistent: state.manager.getSessionId(),
       provider: state.session.sessionId,
       reference,
+      snapshot: reference.responses ? copy(messages) : undefined,
       sends: 0,
     };
     handoff.operations.set(signal, operation);
@@ -836,7 +887,12 @@ class Coordinator {
       this.sideRecord(op, memo.reason, 0, 0);
       return memo.reason === "rewritten" ? memo.sent : side;
     }
-    const alignment = align(op.reference.body, side);
+    const alignment =
+      op.model.api === "openai-responses"
+        ? op.reference.responses && op.snapshot
+          ? alignResponses(op.reference.body, side, { ...op.reference.responses, snapshot: op.snapshot })
+          : { reason: "source-proof-unconfirmed", axes: 0, unprojected: 0 }
+        : align(op.reference.body, side);
     const outgoing = alignment.body ?? side;
     op.memo = { native, sent: outgoing, reason: alignment.reason };
     this.sideRecord(op, alignment.reason, alignment.axes, alignment.unprojected);
@@ -921,7 +977,6 @@ class Coordinator {
       let observation: Observation | undefined;
       try {
         if (signal && pending.delete(signal)) {
-          // The remote section reports only its own capability while remote is not active.
           if (state.selection.remote.active) {
             state.reference = undefined;
             state.sourceFailure = undefined;
@@ -929,42 +984,52 @@ class Coordinator {
             state.status.dispatch = 0;
             state.status.online = "ordinary-dispatch-pending";
             if (!state.unavailable) state.status.state = "awaiting-reference";
-            if (coordinator.valid(state) && remoteTarget(state, session.model) && !session.isSessionTransitioning) {
-              state.persistent = state.manager.getSessionId();
-              state.provider = session.sessionId;
-              const sourceTools = session.agent.state.tools;
-              const normalized =
-                normalizeTools(session.agent.state.tools, {
-                  injectIntent: session.agent.intentTracing,
-                  pruneDescriptions: session.agent.pruneToolDescriptions,
-                }) ?? [];
-              const model = copy(session.model!) as Model<"openai-responses">;
-              observation = {
-                id: coordinator.next(),
-                state,
-                epoch: state.epoch,
-                model,
-                raw: copy(messages),
-                sourceTools: copy(
-                  convertTools(sourceTools, model.compat.supportsStrictMode, model as Model<"openai-responses">),
-                ),
-                expectedTools: copy(
-                  convertTools(
-                    normalized,
-                    model.compat.supportsStrictMode !== false,
-                    model as Model<"openai-responses">,
-                  ),
-                ),
-                independent: state.nativeSource && nativeIndependent(session, messages),
-              };
-              state.raw.set(signal, observation);
-              state.status.dispatch = observation.id;
-            } else if (!state.unavailable)
-              state.status.online = session.isSessionTransitioning ? "navigation-unsettled" : "model-not-targeted";
           }
+          const remote = remoteTarget(state, session.model) && coordinator.valid(state);
+          const side = session.model?.api === "openai-responses" && coordinator.validSide(state);
+          if ((remote || side) && !session.isSessionTransitioning) {
+            state.persistent = state.manager.getSessionId();
+            state.provider = session.sessionId;
+            const model = copy(session.model!) as Model<"openai-responses">;
+            let sourceTools: unknown,
+              expectedTools: unknown,
+              independent = false,
+              failed: string | undefined;
+            if (remote) {
+              try {
+                const normalized =
+                  normalizeTools(session.agent.state.tools, {
+                    injectIntent: session.agent.intentTracing,
+                    pruneDescriptions: session.agent.pruneToolDescriptions,
+                  }) ?? [];
+                sourceTools = copy(convertTools(session.agent.state.tools, model.compat.supportsStrictMode, model));
+                expectedTools = copy(convertTools(normalized, model.compat.supportsStrictMode !== false, model));
+                independent = state.nativeSource && nativeIndependent(session, messages);
+              } catch {
+                failed = state.sourceFailure = state.status.online = "source-observation-failed";
+              }
+            }
+            observation = {
+              id: coordinator.next(),
+              state,
+              epoch: state.epoch,
+              model,
+              raw: copy(messages),
+              sourceTools,
+              expectedTools,
+              independent,
+              failed,
+            };
+            state.raw.set(signal, observation);
+            if (remote) state.status.dispatch = observation.id;
+          }
+          if (state.selection.remote.active && (!remote || session.isSessionTransitioning) && !state.unavailable)
+            state.status.online = session.isSessionTransitioning ? "navigation-unsettled" : "model-not-targeted";
         }
       } catch {
         if (state.selection.remote.active) state.sourceFailure = state.status.online = "source-observation-failed";
+        if (state.handoff.enabled && session.model?.api === "openai-responses")
+          state.handoff.status.online = "source-observation-failed";
       }
       const result: Promise<AgentMessage[]> = Reflect.apply(context, this, [messages, signal]);
       if (observation) {
@@ -1020,7 +1085,7 @@ class Coordinator {
         };
         return Reflect.apply(stream, this, [model, prepared, { ...options, onPayload, onResponse }]);
       }
-      if (!remoteTarget(state, model)) return Reflect.apply(stream, this, [model, prepared, options]);
+      if (model?.api !== "openai-responses") return Reflect.apply(stream, this, [model, prepared, options]);
       let observation: Observation | undefined;
       try {
         const matches = new Set(
@@ -1029,33 +1094,69 @@ class Coordinator {
             .map((signal) => state.raw.get(signal))
             .filter((value): value is Observation => !!value),
         );
-        if (matches.size === 1 && coordinator.valid(state)) {
+        if (
+          matches.size === 1 &&
+          ((remoteTarget(state, model) && coordinator.valid(state)) || coordinator.validSide(state))
+        ) {
           observation = [...matches][0]!;
-          observation.prepared = { messages: copy(prepared.messages) };
-          observation.preparedTools = copy(
-            convertTools(
-              prepared.tools ?? [],
-              (model as Model<"openai-responses">).compat.supportsStrictMode !== false,
-              model as Model<"openai-responses">,
-            ),
-          );
-          const projected = state.nativeSource && observation.raw.some(nativeEvalProjection);
-          if (projected && state.selection.remote.settings?.mode === "standard")
-            observation.standardSource = copy(encode(model, observation.raw));
-          // Display-derived Eval context is not part of the journal used by native compaction.
-          const source = projected
-            ? observation.raw.filter((message) => !nativeEvalProjection(message))
-            : observation.raw;
-          observation.source = copy(encode(model, source));
-        } else state.status.online = "dispatch-unconfirmed";
+          if (!session.isGeneratingHandoff && prepared.tools?.length && coordinator.validSide(state)) {
+            const pending = coordinator.sidePending(state, options?.signal);
+            if (pending) {
+              const responsesModel = model as Model<"openai-responses">;
+              const system = buildResponsesInput({
+                model: responsesModel,
+                context: { systemPrompt: prepared.systemPrompt, messages: [] },
+                systemRole: "developer",
+                strictResponsesPairing: responsesModel.compat.strictResponsesPairing,
+                supportsImageDetailOriginal: responsesModel.compat.supportsImageDetailOriginal === true,
+              }).map((item) => {
+                if (!object(item) || item.role !== "developer" || typeof item.content !== "string")
+                  throw new Error("system-source-unconfirmed");
+                return item.content;
+              });
+              pending.responses = { system, source: observation.raw };
+              observation.side = pending;
+            }
+          }
+          if (remoteTarget(state, model) && coordinator.valid(state)) {
+            observation.prepared = { messages: copy(prepared.messages) };
+            observation.preparedTools = copy(
+              convertTools(
+                prepared.tools ?? [],
+                (model as Model<"openai-responses">).compat.supportsStrictMode !== false,
+                model as Model<"openai-responses">,
+              ),
+            );
+            const projected = state.nativeSource && observation.raw.some(nativeEvalProjection);
+            if (projected && state.selection.remote.settings?.mode === "standard")
+              observation.standardSource = copy(encode(model, observation.raw));
+            // Display-derived Eval context is not part of the journal used by native compaction.
+            const source = projected
+              ? observation.raw.filter((message) => !nativeEvalProjection(message))
+              : observation.raw;
+            observation.source = copy(encode(model, source));
+          }
+        } else if (state.selection.remote.active) state.status.online = "dispatch-unconfirmed";
       } catch {
-        if (observation) coordinator.failure(observation, "source-encoding-unconfirmed");
-        else state.sourceFailure = state.status.online = "source-encoding-unconfirmed";
+        if (state.selection.remote.active) {
+          if (observation) coordinator.failure(observation, "source-encoding-unconfirmed");
+          else state.sourceFailure = state.status.online = "source-encoding-unconfirmed";
+        }
+        if (state.handoff.enabled) state.handoff.status.online = "source-encoding-unconfirmed";
       }
-      if (!observation?.source) return Reflect.apply(stream, this, [model, prepared, options]);
+      if (!observation || (!observation.source && !observation.side))
+        return Reflect.apply(stream, this, [model, prepared, options]);
       const observed = observation;
       const prior = options?.onPayload;
       const capture = (returned: unknown, args: PayloadArgs): void => {
+        if (observed.side) {
+          try {
+            coordinator.sideCapture(observed.side, returned, args);
+          } catch {
+            coordinator.sideFailure(observed.side, "source-observation-failed");
+          }
+        }
+        if (!observed.source) return;
         try {
           if (observed.payload) {
             if (!equal(observed.payload, payload(returned ?? args[0]))) {
@@ -1102,13 +1203,20 @@ class Coordinator {
             (value) => capture(value, args),
             () => {
               coordinator.failure(observed, "native-payload-rejected");
+              if (observed.side) coordinator.sideFailure(observed.side, "native-payload-rejected");
             },
           );
         } else capture(returned, args);
         return returned;
       };
+      const priorResponse = options?.onResponse;
+      const onResponse: ResponseHook = function (this: unknown, ...args) {
+        const result = priorResponse ? Reflect.apply(priorResponse, this, args) : undefined;
+        if (observed.side) coordinator.sideConfirm(observed.side, args[0]);
+        return result;
+      };
       return coordinator.dispatch.run(observed, () =>
-        Reflect.apply(stream, this, [model, prepared, { ...options, onPayload }]),
+        Reflect.apply(stream, this, [model, prepared, { ...options, onPayload, onResponse }]),
       );
     };
     const streamPatch = patch(session.agent, "streamFn", wrappedStream);

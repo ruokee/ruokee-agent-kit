@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { align, type ChatRequest } from "../src/handoff.ts";
+import { align, alignResponses, type ChatRequest } from "../src/handoff.ts";
 
 const BASE = { role: "system", content: "base" },
   PLAN = { role: "system", content: "plan" },
@@ -101,4 +101,122 @@ test("a difference outside the observed axes is not a gate", () => {
       { messages: [BASE, ASK, TAIL], stream: true, temperature: 0.9 },
     ),
   ).toEqual({ reason: "already-aligned", axes: 0, unprojected: 0 });
+});
+
+const SOURCE = [{ role: "user", content: "source history" }];
+const RESPONSES_PROOF = { system: ["base", "plan"], source: SOURCE, snapshot: [...SOURCE, TAIL] };
+
+test("Responses restores instructions without changing native generation or replay semantics", () => {
+  const history = [
+    { type: "reasoning", id: "reasoning-id", encrypted_content: "opaque" },
+    {
+      role: "user",
+      content: [
+        { type: "input_text", text: "ask" },
+        { type: "input_image", image_url: "data:image/png;base64,fixture" },
+      ],
+    },
+  ];
+  const tools = [{ type: "function", name: "read", parameters: { type: "object", properties: {} } }];
+  const reference = {
+    instructions: "base\n\nplan",
+    input: history,
+    tools,
+    reasoning: { effort: "medium" },
+    prompt_cache_key: "cache",
+  };
+  const side = {
+    instructions: "base",
+    input: [...history, TAIL],
+    tools,
+    reasoning: { effort: "medium" },
+    tool_choice: "none",
+    prompt_cache_key: "cache",
+    session_id: "independent-side",
+    max_output_tokens: 4096,
+  };
+  expect(alignResponses(reference, side, RESPONSES_PROOF)).toEqual({
+    reason: "rewritten",
+    body: { ...side, instructions: reference.instructions },
+    axes: 0,
+    unprojected: 1,
+  });
+  expect(side.instructions).toBe("base");
+});
+
+test("Responses developer projection retains historical developer messages in their history positions", () => {
+  const system = [
+    { role: "developer", content: "base" },
+    { role: "developer", content: "plan" },
+  ];
+  const history = [
+    ASK,
+    { role: "developer", content: "historical developer instruction" },
+    { type: "function_call", call_id: "call", name: "read", arguments: "{}" },
+    { type: "function_call_output", call_id: "call", output: "result" },
+  ];
+  const reference = { input: [...system, ...history], tools: [] };
+  const side = { input: [system[0], ...history, TAIL], tools: [], tool_choice: "none" };
+  expect(alignResponses(reference, side, RESPONSES_PROOF)).toEqual({
+    reason: "rewritten",
+    body: { ...side, input: [...system, ...history, TAIL] },
+    axes: 0,
+    unprojected: 1,
+  });
+});
+
+test("Responses keeps native configuration updates and effective reasoning instead of copying a request baseline", () => {
+  const update = { type: "configuration_update", reasoning: { effort: "high" } };
+  const reference = { instructions: "base\n\nplan", input: [ASK, update], reasoning: { effort: "low" }, tools: [] };
+  const side = {
+    instructions: "base",
+    input: [ASK, TAIL],
+    reasoning: { effort: "high" },
+    tools: [],
+    tool_choice: "none",
+  };
+  const result = alignResponses(reference, side, RESPONSES_PROOF);
+  expect(result.body).toEqual({ ...side, instructions: reference.instructions });
+  expect(result.axes).toBe(1);
+  expect(result.unprojected).toBe(2);
+});
+
+test("Responses refuses missing source proof, changed common content, and explicit generation conflicts", () => {
+  const reference = { instructions: "base\n\nplan", input: [ASK], tools: [] };
+  const side = { instructions: "base", input: [ASK, TAIL], tools: [], tool_choice: "none" };
+  expect(
+    alignResponses(reference, side, {
+      ...RESPONSES_PROOF,
+      snapshot: [{ role: "user", content: "different source" }, TAIL],
+    }).reason,
+  ).toBe("source-prefix-unconfirmed");
+  expect(
+    alignResponses(reference, { ...side, input: [{ role: "user", content: "changed" }, TAIL] }, RESPONSES_PROOF).reason,
+  ).toBe("prefix-projection-changed");
+  expect(alignResponses(reference, { ...side, instructions: "different base" }, RESPONSES_PROOF).reason).toBe(
+    "system-prefix-unconfirmed",
+  );
+  expect(
+    alignResponses(reference, { ...side, tools: [{ type: "function", name: "other" }] }, RESPONSES_PROOF).reason,
+  ).toBe("tool-projection-changed");
+  expect(alignResponses(reference, { ...side, tool_choice: "required" }, RESPONSES_PROOF).reason).toBe(
+    "generation-policy-conflict",
+  );
+});
+
+test("Responses restores a missing suffix inside a native system segment in either expression", () => {
+  const proof = { ...RESPONSES_PROOF, system: ["base\nper-turn rule"] };
+  const historical = { role: "developer", content: "historical developer instruction" };
+  const history = [ASK, historical];
+  const instructions = { instructions: "base", input: [...history, TAIL], tool_choice: "none" };
+  expect(alignResponses({ instructions: proof.system[0], input: history }, instructions, proof).body).toEqual({
+    ...instructions,
+    instructions: proof.system[0],
+  });
+  const system = { role: "developer", content: proof.system[0] };
+  const developer = { input: [{ role: "developer", content: "base" }, ...history, TAIL], tool_choice: "none" };
+  expect(alignResponses({ input: [system, ...history] }, developer, proof).body).toEqual({
+    ...developer,
+    input: [system, ...history, TAIL],
+  });
 });

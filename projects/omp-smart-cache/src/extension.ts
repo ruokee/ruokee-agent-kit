@@ -7,7 +7,7 @@ import { object } from "./reuse.ts";
 import { observeConstruction } from "./construction.ts";
 
 const PACKAGE = "@ruokee/omp-smart-cache";
-const VERSION = "0.1.4";
+const VERSION = "0.1.6";
 const SNAPSHOTS = Symbol.for("ruokee.omp-smart-cache.settings");
 const globals = globalThis as typeof globalThis & { [key: symbol]: unknown };
 const FAILED: Settings = {

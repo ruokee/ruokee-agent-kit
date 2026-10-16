@@ -32,13 +32,13 @@ OMP 原生用户设置及项目覆盖是唯一配置源。验证一次激活快�
 10. OMP 拥有调度、准备、投机、等待、重试、模型/方法回退、采用、提交和续接。禁止 `session_before_compact`、隐藏否决、替换手动压缩、新增凭据请求及修改设置。非 V2 回退不记 V2 成功。
 11. `/smart-cache` 不启动模型 turn，区分 disabled、unavailable、awaiting-reference、already-aligned、rewritten、rejected。在线、绑定、候选和发送原因分开。逻辑操作、物理发送、重试、对齐和拒绝采用独立有界计数。不输出正文、opaque 字节、凭据、端点、私密路径或动态私密键。Handoff 在独立段落中报告自身状态、分阶段原因与有界计数。
 12. 本包有自身源码、原生 manifest、检查、双语文档及不收窄的 host peers。开发依赖遵循共同维护下限 `18.5.0`，按接口能力检查，不用版本白名单。本包自包含：不导入其他组件的运行时或设置读取器。
-13. Handoff 适用性按会话模型 API 判定，不按 Provider 清单：`openai-completions` 会话是 Handoff 候选，`openai-responses` 会话留给 remote 对齐，其他 API 两项能力都不适用。同一请求最多由一项能力接管，启用一项不会启用另一项。
+13. Handoff 支持 `openai-completions` 和 `openai-responses`，适用性不依赖 Provider 清单。Responses 会话按已证明的实际请求种类分派：原生 Handoff 侧请求由 Handoff 处理，合格 V2 由 remote 处理。其他 API 两项能力都不适用。一条物理请求最多由一项能力改写，两项开关独立，remote 关闭、Provider 未选中或模式不同时不阻止 Handoff 建立合格参照。
 14. 只有已确认的普通主循环 dispatch 提供 Handoff 参照，且须在其 HTTP 响应确认发送之后；本能力对齐的调用永远不会成为参照。每个会话保留自己的参照，以及随参照一并取得的归属：Provider、模型身份、API、system 提示词、thinking 状态与工具集。不含工具集的准备请求不提供参照，因此从不发送工具的会话保持原生。
 15. Handoff 参照对其所属操作不可变。更新的在线工作、认证刷新、传输重试与 handler 状态推进都不能移动它，重试也不能取得更新的参照。switch、branch、tree 导航、压缩提交与会话释放清空参照并使该会话的 epoch 失效；新的普通发送在不重启进程的前提下恢复资格。
-16. 只有在侧请求的 system 是参照 system 的前缀、参照的非 system 历史是侧历史的严格前缀，且取得的归属仍然一致时，Handoff 才改写侧请求。此时还原在线 system 段、参照持有的 `reasoning_effort`（参照持有该值时）与在线 `tool_choice`（参照没有显式选择时），并在宿主自身的 payload hook 之后一次替换请求 body。侧指令、新增历史、缓存键、取消信号与其余选项保持不变。
+16. 改写 Handoff 前证明完整操作归属、系统前缀、共同源历史与已发送内容的对应、工具及新增尾部边界。Chat Completions 保留 system、`reasoning_effort` 和既有 `tool_choice` 逐轴还原。Responses 只恢复有来源证明的缺失 system，支持 `instructions` 文本前缀或唯一前置 developer 边界，不提升历史 developer；保留完整 input、原生 none 与已有兼容重试、嵌套 reasoning 和原生配置更新，不恢复普通 auto。候选在原生 payload hook 之后、每次实际发送校验后原子替换。侧指令、新增历史、缓存键、路由、side session、取消与其余选项不变。
 17. Handoff 投影逐轴还原：无法还原的轴只跳过并计数，任一无关字段差异都不放弃整条改写。这些轴之外的已知缓存敏感字段与参照比对，不同则计数。
 18. 边界之外的 Handoff 请求原样发送并给出固定原因：操作已失效、参照未确认、参照取得的归属发生变化，或 system 前缀与历史投影发生变化。`rejected` 只表示本能力没有改写该请求。任何请求都不被阻断、延迟或丢弃；候选与原请求相同则报告为已对齐，不重新序列化。
-19. Handoff 对齐不复用 remote 的 Responses V2 规则。两项能力共享本包、进程协调器、逐会话登记以及每个原生方法的一层包装，不共享协议规则、载荷形状、原因码或证据。一项能力拒绝请求或接口缺失不影响另一项。
+19. Handoff 不复用 remote Responses V2 规则。两项能力共享本包、进程协调器、逐会话登记、每个原生方法的一层包装，以及同次普通 dispatch 的不可变观察事实；各自独立解释并证明资格，不共享协议规则、载荷形状规则、原因码或收益证据。一项拒绝或接口缺失不影响另一项。
 20. OMP 保留 Handoff 文档生成、调度、触发、取消、重试、模型与方法回退、结果校验、历史提交与续接。本能力不新增入口，不注册 `session_before_compact`，不替换手动压缩，不伪造摘要，不添加重试，并保持宿主自身的失败语义。
 
 ## 宿主下限
@@ -55,7 +55,7 @@ OMP 原生用户设置及项目覆盖是唯一配置源。验证一次激活快�
 - 真实 TUI 命令准确显示逐会话阶段，不发模型请求或输出敏感值。原生迁移从所有适用用户/项目层移除三项旧 QoL 键，保留有效启用意图及无关设置，每个请求仅一个 owner。旧 QoL 误装共存保守拒绝，其余 QoL 模块和已安装扩展不退化。
 - 组件检查、完整聚合、变更选择映射、选择回归、双语公共文档、现行 Spec 和完整后继 ADR 一致。下限及当前受维护宿主必须有原生 CLI/TUI 和最终 wire 证据。源码核对及合成 usage 只覆盖机制。
 - 另行获授权的可比真实 Provider 运行重复降低未缓存输入，同时保持正确性及可用性。按会话类别及适用生命周期报告目标、对齐、未对齐组，包括全部拒绝；逻辑操作与物理请求分开。每组列出请求、有效 usage 样本、总/缓存/未缓存输入、零命中占比及 token 加权命中率。失败、取消、429、回退、缺失 usage 明确保留，不承诺固定命中率、驻留或收益。
-- Handoff 开关关闭时，所有出站请求与原生请求相同；开关启用时，实际出站 Handoff 请求在宿主自身 payload hook 之后于 wire body 中携带还原的 system 段、`reasoning_effort` 与 `tool_choice`。
+- 开关关闭时所有请求保持原生。启用后，实际最终 Handoff body 在宿主 payload hook 之后携带按 API 恢复的共同系统内容。Chat Completions 保留既有 reasoning 和工具选择还原；Responses 的 instructions 或有来源的前置 developer 正确，历史 developer 保留原位，原生 none、reasoning、配置更新及兼容重试不变。必要证明不足时完整原生发送，连续 Handoff 使用各自已确认普通参照。
 - 边界之外的 Handoff 请求以固定原因原样发送，无关字段差异不影响可还原轴完成还原，任何请求都不被阻断、延迟或丢弃，连续两次 Handoff 不串用上一次的侧请求 body。
 - `/smart-cache` 报告 Handoff 段落自身状态、分阶段原因与有界计数且不启动模型 turn；Handoff 设置缺失或非法时所有请求保持原生。
 - 本机试验扩展在本能力通过自身验收、随后获得安装授权后由本包替换并停用；试验扩展仍被自动发现期间，本包报告保守的包装冲突而不抢占包装，切换通过重启相关进程完成。

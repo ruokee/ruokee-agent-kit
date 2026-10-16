@@ -36,13 +36,35 @@ OMP `18.8.3` 对 `0.1.3` 的原生验证覆盖 `hooks` 模式下两个独立会�
 
 组件级运行直接驱动登记 seam，覆盖不含工具集、因而永远不提供参照的 dispatch，关闭的能力不产生分派记账，以及复用已确认在线视图的侧请求。
 
-这些运行未覆盖：序列化器以 `developer` 角色写出系统提示词片段（而非 `system`）的模型、投机压缩、handoff 响应不完整后宿主的重试、参照与 handoff 之间更换模型、多模态输入、子代理会话、模型 API 允许另一项能力改写的会话，以及真实 Provider 缓存收益。两个场景出现本包两个副本同时加载，上述边界规则依据的是宿主 handoff 路径的源码阅读，而不是触发这些规则的宿主变更。
+上述较早的 Chat Completions 运行未覆盖 developer 系统序列化、投机压缩、不完整响应后的重试、参照与 Handoff 之间切换模型、多模态输入、子会话、Responses 共存或真实 Provider 收益。其混装边界也部分依赖宿主源码核对。下文按版本分别说明新增范围。
 
 `0.1.4` 组件回归拒绝 epoch、信号、工具、system、thinking 或 Provider 身份变化后晚到的成功响应。payload 回调不记录发送，实际重复传输分别计数。owner 变化后旧操作永久失效，即使恢复原值也不恢复。登记与释放保留未知的会话方法包装。
 
 OMP `18.5.0` 和 `18.8.3` 的受控原生 CLI 运行保留正常七插件及原生 callable 工具 schema，覆盖最终 Chat Completions 路径。连续两次 Handoff 使用各自最新普通参照并提交原生文档。HTTP 503 后的原生传输重试记录一次操作、两次发送和一次重试。后置 provider hook 更换工具集后，Handoff 正文保持原生；响应在途时取消不会提交文档，普通工作仍可继续。登记前干预原生发布及登记后安装方法包装分别报告不可用、保留外部包装，原生文档仍正常采用并续接。后置 provider 选项在最终改写后保持不变。这些运行使用受控本地 HTTP，不测量 Provider 缓存收益。
 
 两个宿主的交互 TUI 均显示实际 `/smart-cache` 通知，包含独立的 remote 和 Handoff 段。随后本地观察记录 HTTP 请求数为零，确认读取状态不启动模型 turn。命令只显示状态和计数，不包含 payload 或私密值。
+
+## Responses Handoff
+
+`0.1.5` 回归覆盖 instructions、有来源证明的前置 developer、历史 developer 位置、同一系统片段内缺失文本后缀、工具、图片历史、reasoning 配置更新，以及公开 Agent state 尚未同步的普通 dispatch。Handoff-only 和 remote Provider 不匹配时仍能建立独立普通参照。只恢复系统表达，原生 none、reasoning、配置更新及新增 input 保持不变。
+
+OMP `18.5.0` 与 `18.8.3` 的受控原生 CLI 覆盖两种系统表达、连续 Handoff、remote 共存、自动生成及自动空结果。空文档不产生原生 compaction 提交，普通工作继续。两个宿主的交互 TUI 分别以两种系统表达执行实际 `/handoff` 命令，保留手动 focus、原地提交并续接，随后显示不发模型 turn 的 `/smart-cache`。
+
+同一批宿主覆盖最终传输重试、取消、延迟普通确认、会话切换，以及登记前或登记后丢失的方法包装。其中一次操作首次发送完成对齐，工具 owner 变化后的重试保持原生，原工具恢复后的第三次发送仍保持原生；记录三次发送、两次重试，文档采用仍遵循原生路径。外部包装保持安装，后置 payload 选项不丢失。
+
+`0.1.6` 在会话导航期间观察到普通 context 时报告 `navigation-unsettled`，不采集参照。消费者回归核对该原因以及均为零的参照和 dispatch 标识。
+
+实际原生 task 和 Eval 工具各自创建两个子会话。父子三会话使用同一模型及不同历史，并发 remote 压缩、续接，再并发生成 Handoff。取消一个子会话不影响其他文档采用；其后 revive 清除自身参照，新普通工作恢复资格。最终 wire 比较和逐会话状态确认归属，不根据模型或端点推断。
+
+正常安装组合中，另一个扩展注册 `session_before_compact`。即使 async 压缩开启且上下文处于提前区间，两个宿主也会原生抑制投机。检查保留这一行为，记录零投机 Handoff 和零提交。它们没有运行正在进行的后台投机取消，也没有停用已有扩展来制造该覆盖。
+
+## 最终 remote 共存
+
+两个宿主的 `0.1.5` 受控原生 CLI 覆盖 `standard` 和 `hooks`、连续两次 remote 提交与普通续接、同会话 Handoff 以及其后的原生 remote 续接。Handoff 后，普通请求的 handoff 包装与原生 V2 的 summary 包装不同；来源证明不足时，后一次 remote 保持原生，不将不同前缀当成相同。有状态 context 变化在 standard 模式被拒绝，handler 不重跑。
+
+正常安装组合存在 context 或 provider-request handler，局部依赖未证明时拒绝局部复用。另行标明的 clean-local 运行没有这些 handler，证明独立局部复用，同时保留原生工具输出裁剪；它不代表正常安装组合具备局部复用证据。独立进程恢复原生会话时没有旧内存参照，先采用无参照原生 remote 结果，再以新普通参照完成后续对齐及续接。
+
+这些运行使用 localhost 受控 HTTP 和合成 usage。`0.1.5` Responses Handoff 的真实缓存收益需要另行 Provider 测量；上述 `0.1.3` remote 观察保留自身候选和范围。
 
 ## 替换条件
 

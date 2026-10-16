@@ -236,6 +236,23 @@ const remoteOnly: Settings = {
   handoff: { ok: true, settings: { enabled: false } },
 };
 
+test("an ordinary context during navigation reports the unsettled session without a reference", async () => {
+  const { session, hooks, registration, registry } = activate(remoteOnly, RESPONSES_MODEL);
+  try {
+    session.isSessionTransitioning = true;
+    const signal = new AbortController().signal;
+    for (const hook of hooks) hook(signal);
+    await session.extensionRunner.emitContext([SYSTEM, TURN], signal);
+    const status = registration.status().remote;
+    expect(status.online).toBe("navigation-unsettled");
+    expect(status.reference).toBe(0);
+    expect(status.dispatch).toBe(0);
+  } finally {
+    registration.close();
+    registry.unregister(AGENT);
+  }
+});
+
 test("a dispatch without a tool set never supplies a reference", async () => {
   const { session, hooks, registration, registry } = activate(handoffOnly);
   const controller = new AbortController();
@@ -544,6 +561,97 @@ test("native display-only Eval context is a prepared projection, not a deleted h
         signal: AbortSignal.any([compaction.signal]),
       });
       expect(wires.at(-1)).toEqual(scenario.aligned ? { ...native, input: [...sent.input, tail, trigger] } : native);
+    } finally {
+      registration.close();
+      registry.unregister(AGENT);
+      globalThis.fetch = originalFetch;
+    }
+  }
+});
+
+test("Responses Handoff confirms its own ordinary dispatch independently of remote selection and mode", async () => {
+  const originalFetch = globalThis.fetch;
+  const endpoint = "https://example.invalid/v1/responses";
+  const source = [{ role: "user", content: "retained source", timestamp: 1 }];
+  const input = [{ role: "user", content: [{ type: "input_text", text: "prepared source" }] }];
+  const ordinaryBody = {
+    model: RESPONSES_MODEL.id,
+    instructions: "base\n\nplan",
+    input,
+    tools: [{ type: "function", name: "read", parameters: TOOL.parameters }],
+    reasoning: { effort: "low" },
+  };
+  const selections: Settings[] = [
+    handoffOnly,
+    {
+      remote: { ok: true, settings: { enabled: true, provider: "another-provider", mode: "standard" } },
+      handoff: handoffOnly.handoff,
+    },
+    {
+      remote: { ok: true, settings: { enabled: true, provider: "test", mode: "hooks" } },
+      handoff: handoffOnly.handoff,
+    },
+  ];
+  for (const selection of selections) {
+    const wires: unknown[] = [];
+    const transport = (async (_url: unknown, init?: RequestInit) => {
+      wires.push(JSON.parse(String(init?.body)));
+      return new Response("ok");
+    }) as typeof fetch;
+    Object.defineProperties(transport, Object.getOwnPropertyDescriptors(originalFetch));
+    globalThis.fetch = transport;
+    const stream: FakeAgent["streamFn"] = async (_model, _prepared, options) => {
+      const settings = options as StreamOptions;
+      await settings.onPayload?.(ordinaryBody);
+      const response = await fetch(endpoint, {
+        method: "POST",
+        body: JSON.stringify(ordinaryBody),
+        signal: AbortSignal.any([settings.signal!]),
+      });
+      settings.onResponse?.(response);
+    };
+    const { session, hooks, registration, registry, modelRegistry } = activate(selection, RESPONSES_MODEL, stream);
+    session.agent.state.messages = [];
+    session.agent.state.systemPrompt = ["base", "plan"];
+    try {
+      const root = new AbortController().signal;
+      for (const hook of hooks) hook(root);
+      await session.extensionRunner.emitContext(source, root);
+      await modelRegistry.resolver(
+        session.model,
+        session.sessionId,
+      )({ signal: root, lastChance: false, error: undefined });
+      await session.agent.streamFn(
+        session.model,
+        { systemPrompt: ["base", "plan"], messages: source, tools: [TOOL] },
+        { signal: root },
+      );
+      expect(registration.status().handoff.online).toBe("ordinary-send-confirmed");
+      expect(wires[0]).toEqual(ordinaryBody);
+      session.agent.state.messages = source;
+      const signal = new AbortController().signal;
+      const instruction = { role: "user", content: "preserve handoff focus", attribution: "agent" };
+      session.isGeneratingHandoff = true;
+      await session.convertMessagesToLlm([...source, instruction], signal);
+      const options = session.prepareSimpleStreamOptions({ signal, toolChoice: "none" });
+      const native = {
+        ...ordinaryBody,
+        instructions: "base",
+        input: [...input, { role: "user", content: "preserve handoff focus" }],
+        tool_choice: "none",
+      };
+      await options.onPayload?.(native);
+      expect(registration.status().handoff.sends).toBe(0);
+      const send = () =>
+        fetch(endpoint, { method: "POST", body: JSON.stringify(native), signal: AbortSignal.any([signal]) });
+      await send();
+      expect(wires.at(-1)).toEqual({ ...native, instructions: ordinaryBody.instructions });
+      session.agent.state.tools = [];
+      await send();
+      expect(wires.at(-1)).toEqual(native);
+      session.agent.state.tools = [TOOL];
+      await send();
+      expect(wires.at(-1)).toEqual(native);
     } finally {
       registration.close();
       registry.unregister(AGENT);

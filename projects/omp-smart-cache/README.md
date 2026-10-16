@@ -49,11 +49,13 @@ Turn the setting off, or remove the package and restart OMP, to return to the na
 
 ## Handoff alignment
 
-Handoff writes its document or summary from the live conversation and sends that work as a side request that repeats the session's system prompt and tool definitions, which the ordinary main-loop dispatch already sent. This optimization rewrites that side request so it reuses the confirmed ordinary request: the online system segments, the online `reasoning_effort` when the reference holds one, and the online `tool_choice` when the reference holds no explicit choice. The side instruction, the new history, the cache keys, the cancellation signal, and every other request option stay as the host built them, and the body is replaced once, after the host's own payload hooks.
+Handoff generates a document or summary as a side request that repeats common content already sent by the ordinary main-loop dispatch. This capability restores the proved ordinary system prompt at final transport, preserving the side instruction, new history, cache key, independent side session, cancellation signal, and other native options. Chat Completions also restores the reference's `reasoning_effort` and online `tool_choice` when no choice was explicit. Responses retains native `none` and the host's existing auto-only compatibility retry; it does not copy the ordinary tool choice or reasoning settings.
 
-Applicability follows the session's API. A session whose model API is `openai-completions` is a Handoff candidate, one whose API is `openai-responses` stays with remote alignment, and any other API uses neither capability. At most one capability takes a given request, and enabling one never enables the other. A prepared request that carries no tool set supplies no reference, so a session that never sends tools stays native.
+Handoff alignment supports `openai-completions` and `openai-responses` sessions. Native Responses Handoff and V2 compaction belong to Handoff and remote alignment respectively, with at most one rewriting capability per request. Handoff uses only its own switch, independently of the remote switch, Provider selection, or mode. Other APIs stay native. A prepared request without tools supplies no reference, so a session that never sends tools stays native.
 
 The capability rewrites a side request only when the side system is a prefix of the reference system, the reference's non-system history is a strict prefix of the side history, and the captured Provider, model identity, API, system prompt, thinking state, and tool set still match. A request outside that boundary is sent unchanged with a fixed reason, `rejected` means only that this capability did not rewrite it, and no request is blocked, delayed, or dropped. Projections are restored axis by axis, so an axis that cannot be restored is skipped and counted instead of abandoning the rewrite, and a known cache-sensitive field outside those axes is counted when it differs. An identical candidate is reported as already aligned without reserialization.
+
+For Responses, the same ordinary preparation identifies either top-level `instructions` or leading system `developer` fragments. Only missing already-sent system content is restored. Historical developer messages keep their positions; native input, tool pairing, images, nested reasoning, and configuration updates are not rebuilt. Manual `/handoff <prompt>`, automatic, and speculative generation share this path. The host retains focus, adoption, cancellation, and continuation; an unadopted candidate is not a native commit.
 
 Only a confirmed ordinary main-loop dispatch supplies a reference, and the calls this capability aligns never become one. Switch, branch, and tree navigation, compaction commits, and session release clear the reference and invalidate that session's epoch, and a new ordinary send restores eligibility without restarting OMP.
 
@@ -91,6 +93,14 @@ bun test
 ```
 
 ## Changes
+
+### 0.1.6
+
+Report `navigation-unsettled` while an ordinary Responses context is observed during session navigation. Keep reference capture suspended until navigation settles.
+
+### 0.1.5
+
+Support independently enabled Responses Handoff by aligning the system prompt of a confirmed ordinary dispatch. Preserve instructions and leading developer expressions, history order, native none, reasoning, and configuration updates; validate and count Handoff separately from V2. Capture source from the same preparation dispatch rather than an Agent state that may not yet be synchronized.
 
 ### 0.1.4
 

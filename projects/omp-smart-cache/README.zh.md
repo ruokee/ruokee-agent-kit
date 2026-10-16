@@ -49,11 +49,13 @@ OMP 将项目覆盖合并到用户设置之上。每次激活只读取和验证�
 
 ## Handoff 对齐
 
-Handoff 依据当前会话生成文档或摘要，并把这项工作作为副请求发送，其中重复了普通主循环 dispatch 已经发送过的系统提示词和工具定义。本项改写该副请求，使其复用已经确认的普通请求：在线系统段、参照中存在时的在线 `reasoning_effort`，以及参照没有显式选择时的在线 `tool_choice`。副请求的指令、新增历史、缓存键、取消信号和其余请求选项保持宿主构建时的状态，正文在宿主自身的 payload hook 之后替换一次。
+Handoff 依据当前会话生成文档或摘要，并把这项工作作为副请求发送，其中重复了普通主循环 dispatch 已发送的共同内容。本项在最终传输边界恢复已证明的普通系统提示词，保留副请求指令、新增历史、缓存键、独立 side session、取消信号和其余原生选项。Chat Completions 还恢复参照持有的 `reasoning_effort` 及没有显式选择时的在线 `tool_choice`。Responses 保留原生 `none` 和宿主已有 auto-only 兼容重试，不复制普通请求的工具选择或 reasoning 设置。
 
-适用范围取决于会话的 API。模型 API 为 `openai-completions` 的会话属于 Handoff 候选，API 为 `openai-responses` 的会话归远端对齐，其他 API 两项能力都不使用。一条请求最多由一项能力处理，启用其中一项不会启用另一项。不含工具集的准备请求不提供参照，因此从不发送工具的会话保持原生。
+`openai-completions` 和 `openai-responses` 会话均可使用 Handoff 对齐。Responses 的原生 Handoff 与 V2 压缩分别由 Handoff 和远端能力处理，一条请求最多一个改写方。Handoff 只由自己的开关控制，不依赖远端开关、Provider 选择或模式。其他 API 保持原生。不含工具集的准备请求不提供参照，因此从不发送工具的会话保持原生。
 
 只有当副请求的系统段是参照系统段的前缀、参照的非系统历史是副请求历史的严格前缀，且捕获的 Provider、模型身份、API、系统提示词、思考状态和工具集合仍然一致时，本项才改写该副请求。边界之外的请求携带固定原因原样发送，`rejected` 只表示本能力没有改写它，任何请求都不会被阻塞、延迟或丢弃。投影按轴还原：无法还原的轴跳过并计数，而不是放弃整次改写；轴之外的已知缓存敏感字段在存在差异时计数。候选与原生正文一致时报告为已经对齐，不重新序列化。
+
+Responses 根据同次普通准备结果识别顶层 `instructions` 或前置 `developer` 系统片段，只恢复缺失的已发系统提示词。历史 developer 保留原位，原生 input、工具配对、图片、嵌套 reasoning 及配置更新不被重建。手动 `/handoff <prompt>`、自动和投机生成共用该路径；focus、文档采用、取消和续接仍由宿主处理，未采用的候选不算原生提交。
 
 只有已确认的普通主循环 dispatch 才提供参照，本能力对齐的请求永远不会成为参照。switch、branch、tree 导航、压缩提交和会话释放都会清除参照并使该会话的 epoch 失效，新的普通发送即可恢复资格，不需要重启 OMP。
 
@@ -91,6 +93,14 @@ bun test
 ```
 
 ## 更新
+
+### 0.1.6
+
+在会话导航期间观察到普通 Responses context 时报告 `navigation-unsettled`，导航结束前不采集参照。
+
+### 0.1.5
+
+支持独立启用的 Responses Handoff，对齐已确认普通 dispatch 的系统提示词。保留 instructions 与前置 developer 表达、历史顺序、原生 none、reasoning 和配置更新；与 V2 分别验证和计数。普通来源取自同次准备 dispatch，不依赖尚未同步的 Agent state。
 
 ### 0.1.4
 
