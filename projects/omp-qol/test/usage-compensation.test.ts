@@ -988,6 +988,128 @@ describe("usage compensation and the host's configuration", () => {
   });
 });
 
+describe("usage compensation and an inherited configuration", () => {
+  test("keeps the user hooks of an inherited configuration running once each", () => {
+    const slot = accessorSlot();
+    const session = fakeLedger();
+    attempt(slot, { session });
+    const userTracer = recordingTracer();
+    const costs: unknown[] = [];
+    const seen: unknown[] = [];
+    const parent = slot.config({
+      telemetry: {
+        tracer: userTracer,
+        captureContent: true,
+        costEstimator: (context: unknown) => {
+          costs.push(context);
+          return { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 };
+        },
+        onChatUsage: (event: unknown) => seen.push(event),
+      },
+      sessionId: "session-1",
+    });
+    if (parent === undefined) throw new Error("expected a configuration");
+    // The host hands a child agent a shallow copy of the configuration it read
+    // from the parent, hooks and tracer included.
+    const child = slot.config({ telemetry: { ...parent }, sessionId: "session-1" });
+    if (child === undefined) throw new Error("expected a configuration");
+
+    request(child, "handoff", {
+      spend: { input: 1, output: 2, cacheRead: 3, cacheWrite: 4, total: 10 },
+      ids: { providerId: PROVIDER, modelId: MODEL },
+    });
+
+    expect(session.writes).toHaveLength(1);
+    expect(session.writes[0]?.write).toMatchObject({
+      purpose: "compaction:handoff",
+      api: API,
+      provider: PROVIDER,
+      model: MODEL,
+    });
+    expect(session.writes[0]?.write.usage.cost.total).toBe(10);
+    expect(costs).toHaveLength(1);
+    expect(seen).toHaveLength(1);
+    expect(userTracer.spans).toHaveLength(1);
+    expect(installedRegistry()).toMatchObject({ entries: 1, costMissing: 0, unrecorded: 0 });
+  });
+
+  test("processes a configuration inherited twice as one request", () => {
+    const slot = accessorSlot();
+    const session = fakeLedger();
+    const { reports } = attempt(slot, { session });
+    const parent = slot.config({ telemetry: undefined, sessionId: "session-1" });
+    if (parent === undefined) throw new Error("expected a configuration");
+    const child = slot.config({ telemetry: { ...parent }, sessionId: "session-1" });
+    if (child === undefined) throw new Error("expected a configuration");
+    const grandchild = slot.config({ telemetry: { ...child }, sessionId: "session-1" });
+    if (grandchild === undefined) throw new Error("expected a configuration");
+
+    request(grandchild, "handoff", {
+      spend: { input: 1, output: 2, cacheRead: 3, cacheWrite: 4, total: 10 },
+      ids: { providerId: PROVIDER, modelId: MODEL },
+    });
+
+    expect(reports).toEqual([]);
+    expect(session.writes).toHaveLength(1);
+    expect(session.writes[0]?.write.usage.cost.total).toBe(10);
+    expect(installedRegistry()).toMatchObject({ entries: 1, costMissing: 0, unrecorded: 0 });
+  });
+
+  test("keeps one inherited request recorded when the catalog names several providers", () => {
+    const slot = accessorSlot();
+    const session = fakeLedger();
+    // Two providers offer the same model id, so the catalog alone cannot say
+    // which one ran the request.
+    const ambiguousCatalog = fakeModels({
+      list: () => [
+        { id: MODEL, provider: PROVIDER, api: API },
+        { id: MODEL, provider: "other-provider", api: API },
+      ],
+    });
+    const { reports } = attempt(slot, { session: { ledger: session.ledger, models: ambiguousCatalog } });
+    const parent = slot.config({ telemetry: undefined, sessionId: "session-1" });
+    if (parent === undefined) throw new Error("expected a configuration");
+    const child = slot.config({ telemetry: { ...parent }, sessionId: "session-1" });
+    if (child === undefined) throw new Error("expected a configuration");
+
+    request(child, "handoff", {
+      spend: { input: 1, output: 2, cacheRead: 3, cacheWrite: 4, total: 10 },
+      ids: { providerId: PROVIDER, modelId: MODEL },
+    });
+
+    expect(reports).toEqual([]);
+    expect(session.writes).toHaveLength(1);
+    expect(session.writes[0]?.write).toMatchObject({ provider: PROVIDER, api: API, model: MODEL });
+    expect(session.writes[0]?.write.usage.cost.total).toBe(10);
+    expect(session.writes[0]?.owner.sessionId).toBe("session-1");
+    expect(installedRegistry()).toMatchObject({ entries: 1, costMissing: 0, unrecorded: 0 });
+  });
+
+  test("records an inherited request in the session that ran it", () => {
+    const slot = accessorSlot();
+    const childSession = fakeLedger("child-1");
+    const { reports } = attempt(slot, { session: { ledger: childSession.ledger } });
+    const parent = slot.config({ telemetry: undefined, sessionId: "parent-1" });
+    if (parent === undefined) throw new Error("expected a configuration");
+    const child = slot.config({ telemetry: { ...parent }, sessionId: "child-1" });
+    if (child === undefined) throw new Error("expected a configuration");
+
+    // An event without a usable conversation id follows the session the agent
+    // that ran the request belongs to, which is the child's and not its parent's.
+    request(child, "handoff", {
+      spend: { input: 1, output: 2, cacheRead: 3, cacheWrite: 4, total: 10 },
+      ids: { providerId: PROVIDER, modelId: MODEL },
+      event: { conversationId: "" },
+    });
+
+    expect(reports).toEqual([]);
+    expect(childSession.writes).toHaveLength(1);
+    expect(childSession.writes[0]?.owner).toEqual({ sessionId: "child-1", parentId: "leaf-1" });
+    expect(childSession.writes[0]?.write.usage.cost.total).toBe(10);
+    expect(installedRegistry()).toMatchObject({ entries: 1, costMissing: 0, unrecorded: 0 });
+  });
+});
+
 describe("usage compensation ownership", () => {
   test("stops a patch another runtime installed and gives the accessor back", () => {
     const slot = accessorSlot();

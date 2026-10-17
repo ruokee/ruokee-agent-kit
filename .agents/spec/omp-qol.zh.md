@@ -49,7 +49,7 @@ Error: Upstream provider closed the connection before the response completed: st
 ### 压缩请求用量
 
 - 原生布尔键 `compactionUsageEnabled` 默认为 `true`，受 `enabled` 约束。取值非法时只停用本调整。设置沿用既有的全局/项目优先级与激活快照；重启 OMP 生效，切换会话不生效。
-- 本调整替换宿主 `Agent` 原型上的 `telemetry` 访问器，因为压缩与 handoff 的调用点解析的正是该值。用户已设置的配置会被保留并挂接，且不增加自己的导出；没有配置时提供惰性配置。不延迟、重试、改道或改写任何请求，也不读取或存储请求内容、摘要或交接文档。
+- 本调整替换宿主 `Agent` 原型上的 `telemetry` 访问器，因为压缩与 handoff 的调用点解析的正是该值。用户已设置的配置会被保留并挂接，且不增加自己的导出；没有配置时提供惰性配置。已经带有本模块自身钩子的配置，也就是子会话拿到的父配置副本，会先被解包，因此每个 agent 读到的是为它自己包装一次的配置，而不是嵌在父层包装里的配置。不延迟、重试、改道或改写任何请求，也不读取或存储请求内容、摘要或交接文档。
 - 一个完成的请求通过会话管理器自身的接口写入一条 `model_usage` 条目：解析出的 purpose、实际运行的 api、provider 与 model、按会话文件形状整理的提供方 token 数、提供方给出的分项成本（宿主携带时）、从该请求自身 span 读到的停止原因，以及请求所属会话的分支位置。请求身份由 provider 与 model id 共同确定，经会话自身的模型注册表解析：宿主报告遥测归一化之前的原始 provider id 时按该 id 解析，否则只有注册表中该 model id 唯一对应一个 provider 时才接受。事件的 provider 是多个 provider id 可能归一化成的遥测标签，本身不作为身份，写入的 provider 是解析出的 provider id。解析结果指向别的 provider、在两个提供同一 model id 的 provider 之间择一，或依赖与注册 provider 同名的标签，都予以拒绝而不是写入。
 - 范围内共四种 purpose：`compaction:summary`、`compaction:short-summary`、`compaction:turn-prefix`、`compaction:handoff`，由宿主盖在该请求自己 span 上的 oneshot 类型解析。列表封闭；`compaction_native`、`branch_summary` 及所有非压缩类型都不写入。
 - 未消耗任何 token 的尝试不写入。会话不在本进程，或身份无法解析到该请求自己模型的请求不写入，并在 `/qol` 中计数，而不是给出猜测的 api。提供方成本未到达 estimator 路径的请求以零成本写入并计数；本组件从不自行估算价格。

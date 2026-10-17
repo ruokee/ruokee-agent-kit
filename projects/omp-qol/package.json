@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "description": "OMP adjustments for wait deadlines, model-error recovery, native-history replay, compaction deadlines, compaction request usage, and opt-in model prompt rules",
   "license": "MIT",
   "type": "module",

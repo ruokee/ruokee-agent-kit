@@ -103,7 +103,7 @@ omp plugin config set @ruokee/omp-qol modelPromptsEnabled true
 `/qol` 打印当前状态，不做任何修改。它不启动模型轮次，也不读取设置 schema 之外的值。
 
 ```
-@ruokee/omp-qol 0.5.6
+@ruokee/omp-qol 0.5.7
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok

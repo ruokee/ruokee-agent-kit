@@ -103,7 +103,7 @@ Restart OMP after changing the switch. Existing rule files need no path or forma
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.5.6
+@ruokee/omp-qol 0.5.7
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok

@@ -591,13 +591,36 @@ function readAgentSessionId(agent: unknown): string | undefined {
 }
 
 /**
+ * What each wrapper this module creates delegates to.
+ *
+ * A child agent's telemetry configuration is a shallow copy of the one its
+ * parent read, so it already carries this module's hooks and tracer. Wrapping
+ * that copy again would chain the module onto itself and process every host
+ * callback twice. The table is keyed by the function and object identities that
+ * survive such a copy, and holds the user surface behind each wrapper.
+ */
+const OWNED_SURFACES = new WeakMap<object, unknown>();
+
+/** What a wrapper of this module delegates to, or the value itself. */
+function unwrapOwnedSurface(value: unknown): unknown {
+  if (typeof value !== "function" && (typeof value !== "object" || value === null)) return value;
+  // A wrapper this module created is a function or an object, which is what the
+  // table can hold; any other value has no entry and is used as it is.
+  const key = value as object;
+  return OWNED_SURFACES.has(key) ? OWNED_SURFACES.get(key) : value;
+}
+
+/**
  * The configuration the host receives in place of its own.
  *
  * An existing configuration keeps every field it had, its hooks included: the
  * compensation chains the two hooks it needs and leaves the user's tracer,
  * attributes, content capture, and export untouched. The tracer is the user's
  * own, the host's default when the user's configuration names none, and an inert
- * one when the agent had no configuration at all.
+ * one when the agent had no configuration at all. A configuration that already
+ * carries this module's own wrappers, as a child session's configuration does,
+ * is unwrapped first so it is wrapped once for its own agent instead of being
+ * chained inside the wrapper its parent read.
  */
 function wrapTelemetryConfig(
   config: unknown,
@@ -608,9 +631,9 @@ function wrapTelemetryConfig(
   const base = typeof config === "object" && config !== null ? (config as Record<string, unknown>) : {};
   const owned = !(typeof config === "object" && config !== null);
   const sessionId = readAgentSessionId(agent);
-  const userTracer = base.tracer;
-  const userCostEstimator = base.costEstimator;
-  const userOnChatUsage = base.onChatUsage;
+  const userTracer = unwrapOwnedSurface(base.tracer);
+  const userCostEstimator = unwrapOwnedSurface(base.costEstimator);
+  const userOnChatUsage = unwrapOwnedSurface(base.onChatUsage);
   // Only these spans carry the oneshot kind, so every tracer the host can use
   // goes through the wrapper: the user's own when the configuration names one,
   // the host's default when it does not. The inert tracer records the kind
@@ -621,21 +644,25 @@ function wrapTelemetryConfig(
       : owned
         ? inertTracer(registry)
         : wrapTracer(deps.defaultTracer(base, sessionId), registry);
+  const costEstimator = (context: unknown) => {
+    noteRequest(registry, context);
+    return typeof userCostEstimator === "function"
+      ? (userCostEstimator as (inner: unknown) => unknown)(context)
+      : undefined;
+  };
+  const onChatUsage = (event: unknown) => {
+    recordRequestUsage(registry, event, sessionId);
+    return typeof userOnChatUsage === "function" ? (userOnChatUsage as (inner: unknown) => unknown)(event) : undefined;
+  };
+  // Registered so a copy of this configuration is unwrapped rather than chained.
+  OWNED_SURFACES.set(costEstimator, userCostEstimator);
+  OWNED_SURFACES.set(onChatUsage, userOnChatUsage);
+  if (typeof tracer === "object" && tracer !== null) OWNED_SURFACES.set(tracer, userTracer);
   return {
     ...base,
     ...(typeof tracer === "object" && tracer !== null ? { tracer } : {}),
-    costEstimator: (context: unknown) => {
-      noteRequest(registry, context);
-      return typeof userCostEstimator === "function"
-        ? (userCostEstimator as (inner: unknown) => unknown)(context)
-        : undefined;
-    },
-    onChatUsage: (event: unknown) => {
-      recordRequestUsage(registry, event, sessionId);
-      return typeof userOnChatUsage === "function"
-        ? (userOnChatUsage as (inner: unknown) => unknown)(event)
-        : undefined;
-    },
+    costEstimator,
+    onChatUsage,
   };
 }
 
