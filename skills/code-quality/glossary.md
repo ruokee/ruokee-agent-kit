@@ -18,7 +18,7 @@ An evaluation of evidence against a stated engineering concern or tradeoff.
 
 **Recommendation**
 
-The smallest sufficient action proposed for a supported finding or a clearly framed decision.
+A proposed direction or action supported by evidence, not a decision; in a review, the smallest sufficient action for a supported finding or a clearly framed decision.
 
 **Finding**
 

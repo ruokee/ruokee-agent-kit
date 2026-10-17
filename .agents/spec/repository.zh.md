@@ -29,7 +29,8 @@
 ## 公共面
 
 - 仓库布局：[仓库布局](../../README.zh.md#仓库布局)。
-- 按活动的规则：[.agents/rule/README.zh.md](../rule/README.zh.md)，索引边界、开发、Git 和文档规则。
+- 按活动的规则：[.agents/rule/README.zh.md](../rule/README.zh.md)，索引边界、开发、Git、文档和术语规则。
+- 共享词汇：[docs/dictionary/README.zh.md](../../docs/dictionary/README.zh.md) 和[术语规则](../rule/terminology.zh.md)。
 - Git 工作流、提交规则和钩子：[Git](../../README.zh.md#git)、[Git 规则](../rule/git.zh.md)和[验证规则](../rule/development.zh.md#验证)。
 - 检查前置条件、受影响检查和完整合并门禁：[检查前置条件](../../README.zh.md#检查前置条件)、[受影响检查](../rule/development.zh.md#检查)和[完整合并验证](../../README.zh.md#完整合并验证)。
 - 常用命令：[常用命令](../../README.zh.md#常用命令)。
@@ -78,4 +79,5 @@
 - [仓库检查](../adr/decision/2026/09/12-repository-checks.zh.md)
 - [规格](../adr/decision/2026/10/04-specifications.zh.md)
 - [仓库规则](../adr/decision/2026/10/12-repository-rules.zh.md)
+- [仓库词典](../adr/decision/2026/10/17-repository-dictionary.zh.md)
 - [ADR 机制](../adr/decision/2026/08/22-adr-mechanism.zh.md)

@@ -12,6 +12,7 @@ When a reader needs the reason behind a rule, the rule links the decision that o
 - [git.md](./git.md) covers branches, working directories, commits, authorizations, merges, and teardown.
 - [development.md](./development.md) covers planning, environments, hooks, checks, and evidence.
 - [documentation.md](./documentation.md) covers documents, specs, decisions, bilingual pairs, naming, cleanup, and file references.
+- [terminology.md](./terminology.md) covers canonical terms, component glossaries, dictionary entries, and language pairs.
 
 ## File layout
 

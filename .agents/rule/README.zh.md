@@ -12,6 +12,7 @@
 - [git.zh.md](./git.zh.md) 覆盖分支、工作目录、提交、授权、合入和收尾。
 - [development.zh.md](./development.zh.md) 覆盖规划、环境、钩子、检查和证据。
 - [documentation.zh.md](./documentation.zh.md) 覆盖文档、规格、决定、语言配对、命名、清理和文件引用。
+- [terminology.zh.md](./terminology.zh.md) 覆盖规范用词、组件术语表、词典词条和语言配对。
 
 ## 文件布局
 

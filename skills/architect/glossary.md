@@ -16,7 +16,7 @@ _Avoid: "premise" when you mean an unverified proposition._
 
 **Recommendation**
 
-A candidate direction offered for the current problem, based on facts and assumptions. The user ranks tradeoffs; a recommendation is not a decision.
+A proposed direction or action supported by evidence, not a decision. In this Skill, a candidate direction for the current problem; the user ranks the tradeoffs.
 
 _Avoid: "conclusion" before user confirmation._
 
@@ -175,6 +175,8 @@ Observable evidence in load, organization, or failure modes that the architectur
 **Architecture Decision Record (ADR)**
 
 A document recording the candidates, tradeoffs, consequences, and re-review conditions of one architecture decision.
+
+_Scope: the architecture-domain sense; the repository format follows the project's decision-record convention._
 
 _Avoid: inventing a second project-specific decision-record format._
 

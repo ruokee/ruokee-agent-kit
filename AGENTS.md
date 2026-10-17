@@ -7,7 +7,7 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 - `./projects/`: Extensions, executables, and host packages, with source, documentation, and checks organized for their host or build system.
 - `./skills/`: Ordinary English Skills, each with `SKILL.md` and any supporting references and workflows.
 - `./variants/`: Language variants of components, with the same purpose and separate distributable directories.
-- `./docs/`: Repository-wide user documentation, such as installation and maintenance instructions.
+- `./docs/`: Repository-wide user and development documentation, such as installation, maintenance, and terminology reference.
 - `./scripts/`: Repository-wide installation, maintenance, and check scripts; component-specific scripts stay with their component.
 - `./.agents/`: Decisions, specifications, and rules for repository development.
     - `adr/`: Durable choices and their reasons, including proposals and decisions.
@@ -35,6 +35,7 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 - Specs define each component's goals and live in `./.agents/spec`. Read the [spec rules](./.agents/spec/README.md) when editing specs.
 - ADRs record choices, including proposals and decisions, and live in `./.agents/adr`. Read the [ADR rules](./.agents/adr/README.md) when editing ADRs.
 - Rules define repository working rules and live in `./.agents/rule`. Read the [rule layer's rules](./.agents/rule/README.md) when editing rules.
+- Use the [repository dictionary](./docs/dictionary/README.md) for shared terms, and read the [terminology rules](./.agents/rule/terminology.md) when adding or changing one.
 
 ### Git
 

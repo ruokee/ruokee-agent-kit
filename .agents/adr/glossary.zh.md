@@ -2,22 +2,34 @@
 
 [English](./glossary.md) | 中文
 
+共享词遵循[仓库词典](../../docs/dictionary/README.zh.md)。本术语表保留 ADR 局部含义。
+
 ## ADR
 
 对应英文术语为 `ADR`。仓库中的架构决策记录。ADR 分为提案和决定两类。
+
+参见[词典中的 ADR](../../docs/dictionary/adr.zh.md)。
 
 ## 提案
 
 对应英文术语为 `proposal`。在实现前供评审的 ADR，描述准备进行的变更；由它产生的决定尚未创建，需要反转的决定也尚未归档。
 
+参见[词典中的提案](../../docs/dictionary/adr.zh.md#提案)。
+
 ## 决定
 
 对应英文术语为 `decision`。记录完整当前选择、理由、考虑过的替代方案、必要边界与合同和结果的 ADR。首次提出日期与规范主题标识其当前记录及所有归档版本。
+
+参见[词典中的决定](../../docs/dictionary/adr.zh.md#决定)。
 
 ## 更新决定
 
 对应英文术语为 `Update decision`。在 `Changes` 或 `变更` 中向当前决定添加无冲突内容，不归档该决定；冲突选择需要反转。
 
+参见[词典中的更新决定](../../docs/dictionary/adr.zh.md#更新决定)。
+
 ## 反转决定
 
 对应英文术语为 `Reverse decision`。将旧决定仍有效的规则与指出冲突的获准提案整合为完整后继；被替代的版本移入归档，规范路径由后继占据。
+
+参见[词典中的反转决定](../../docs/dictionary/adr.zh.md#反转决定)。

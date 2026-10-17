@@ -29,7 +29,8 @@ The [rule layer](../rule/README.md) states how work is done here.
 ## Public surface
 
 - Repository layout: [Repository layout](../../README.md#repository-layout).
-- Working rules by activity: [.agents/rule/README.md](../rule/README.md), which indexes the boundary, development, Git, and documentation rules.
+- Working rules by activity: [.agents/rule/README.md](../rule/README.md), which indexes the boundary, development, Git, documentation, and terminology rules.
+- Shared vocabulary: [docs/dictionary/README.md](../../docs/dictionary/README.md) and the [terminology rules](../rule/terminology.md).
 - Git workflow, commit rules, and hooks: [Git](../../README.md#git), [Git rules](../rule/git.md), and [validation rules](../rule/development.md#validation).
 - Check prerequisites, affected checks, and the complete merge gate: [Check prerequisites](../../README.md#check-prerequisites), [Affected checks](../rule/development.md#checks), and [Complete merge validation](../../README.md#complete-merge-validation).
 - Common commands: [Common commands](../../README.md#common-commands).
@@ -78,4 +79,5 @@ The [rule layer](../rule/README.md) states how work is done here.
 - [Repository checks](../adr/decision/2026/09/12-repository-checks.md)
 - [Specifications](../adr/decision/2026/10/04-specifications.md)
 - [Repository rules](../adr/decision/2026/10/12-repository-rules.md)
+- [Repository dictionary](../adr/decision/2026/10/17-repository-dictionary.md)
 - [ADR mechanism](../adr/decision/2026/08/22-adr-mechanism.md)
