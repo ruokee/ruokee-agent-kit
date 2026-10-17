@@ -55,8 +55,8 @@ interface RuntimeState {
    *
    * Only a message this process submitted is read as an operation, so this
    * record is what makes the text of a confirmed write an operation: the entry
-   * and the revision the draft showed, and the session and period it belongs
-   * to, come from here rather than from the message. The host reports no
+   * and the session and period it belongs to come from here rather than from
+   * the message. The host reports no
    * identity for the message it runs, so a submission is claimed by the text
    * this process handed over, once, oldest submission first. Text the user
    * pasted, quoted or restored from another run matches no submission and stays

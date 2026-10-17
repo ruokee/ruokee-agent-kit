@@ -100,7 +100,6 @@ function requestMessage(record: PinRecord) {
           action: record.action,
           origin: "0f0f0f0f",
           entryId: record.entryId,
-          revision: record.revision - 1,
           body: record.body ?? "",
         };
   // The host accepts a string and stores the message as one text part.

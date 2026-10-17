@@ -24,42 +24,56 @@ export function byteLength(text: string): number {
 
 /** Declared limit that an operation would exceed. */
 export interface CapacityOverflow {
+  /** Limit that the operation exceeds first. */
   limit: "entry" | "branch";
+  /** Bytes allowed by the exceeded limit. */
   limitBytes: number;
-  /** Size the branch or the body would reach if the operation were accepted. */
-  usedBytes: number;
+  /** Active bytes on the branch before the operation. */
+  currentBytes: number;
+  /** Bytes of the body the operation replaces; zero for a create. */
+  replacedBytes: number;
   /** Size of the body the operation carries. */
   bodyBytes: number;
-  /** Active bytes of the branch before the operation, excluding the replaced body. */
-  currentBytes: number;
+  /** Branch total the operation would reach. */
+  attemptedBytes: number;
+  /** Bytes above the exceeded limit. */
+  excessBytes: number;
+  /** Entry being replaced, when the operation is an update. */
+  entryId?: number;
 }
 
 /**
  * Check one body against both declared limits.
  *
- * `activeBytes` is the branch total excluding the body being replaced: the
- * current total for a create, or the total without that entry for an update.
- * Callers run this before any state change, so a rejection appends nothing.
+ * `currentBytes` is the branch total before the operation. `replacedBytes` is
+ * the size of the body this operation replaces, or zero for a create. The
+ * branch attempt is `currentBytes - replacedBytes + bodyBytes`, so an update
+ * releases the old body before it counts the new one. Callers run this before
+ * any state change, so a rejection appends nothing.
  */
-export function checkCapacity(body: string, activeBytes: number): CapacityOverflow | undefined {
+export function checkCapacity(body: string, currentBytes: number, replacedBytes = 0): CapacityOverflow | undefined {
   const bodyBytes = byteLength(body);
+  const attemptedBytes = currentBytes - replacedBytes + bodyBytes;
   if (bodyBytes > MAX_ENTRY_BYTES) {
     return {
       limit: "entry",
       limitBytes: MAX_ENTRY_BYTES,
-      usedBytes: bodyBytes,
+      currentBytes,
+      replacedBytes,
       bodyBytes,
-      currentBytes: activeBytes,
+      attemptedBytes,
+      excessBytes: bodyBytes - MAX_ENTRY_BYTES,
     };
   }
-  const totalBytes = activeBytes + bodyBytes;
-  if (totalBytes > MAX_BRANCH_BYTES) {
+  if (attemptedBytes > MAX_BRANCH_BYTES) {
     return {
       limit: "branch",
       limitBytes: MAX_BRANCH_BYTES,
-      usedBytes: totalBytes,
+      currentBytes,
+      replacedBytes,
       bodyBytes,
-      currentBytes: activeBytes,
+      attemptedBytes,
+      excessBytes: attemptedBytes - MAX_BRANCH_BYTES,
     };
   }
   return undefined;

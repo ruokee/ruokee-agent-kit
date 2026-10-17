@@ -8,13 +8,11 @@
  */
 
 import { MAX_BRANCH_BYTES_LABEL, MAX_ENTRY_BYTES_LABEL, byteLength } from "./limits.ts";
+import { entryBlock } from "./projection.ts";
 import type { PinRecord } from "./record.ts";
 import type { EntrySummary, MutationError, PinEntryState, PinState, RangeProblem } from "./state.ts";
 import type { OperationOutcome } from "./operations.ts";
 import { summarize } from "./state.ts";
-
-/** Capacity sentence used by listings, refusals and the tool description. */
-export const LIMITS_SENTENCE = `one body: ${MAX_ENTRY_BYTES_LABEL} UTF-8 bytes; active bodies per branch: ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes`;
 
 /** Persistence sentence used by both entry points. */
 export const PERSISTENCE_NOTE =
@@ -50,6 +48,16 @@ export function listingText(state: PinState): string {
     `${state.entries.length} pinned ${state.entries.length === 1 ? "entry" : "entries"}, ${size(state.usedBytes)} active of ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes:`,
     ...rows,
   ].join("\n");
+}
+
+/** Every active entry with its complete body, for one explicit read. */
+export function showText(state: PinState): string {
+  if (state.entries.length === 0) {
+    return `No pinned text on this branch (0 of ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes).`;
+  }
+  const header = `${state.entries.length} pinned ${state.entries.length === 1 ? "entry" : "entries"}, ${size(state.usedBytes)} active of ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes:`;
+  const bodies = state.entries.map((entry) => [`Size: ${size(byteLength(entry.body))}`, entryBlock(entry)].join("\n"));
+  return [header, ...bodies].join("\n\n");
 }
 
 function detailLine(row: EntrySummary): string {
@@ -92,19 +100,29 @@ export function noChangeText(entry: PinEntryState): string {
 
 /** Refusal text, reporting the declared limit and the current usage. */
 export function refusalText(error: MutationError): string {
-  const lines = [error.message];
   const capacity = error.capacity;
   if (capacity !== undefined) {
     if (capacity.limit === "entry") {
-      lines.push(
-        `Limit: ${MAX_ENTRY_BYTES_LABEL} UTF-8 bytes per body. This body: ${size(capacity.bodyBytes)}; other active bodies on this branch: ${size(capacity.currentBytes)}.`,
-      );
-    } else {
-      lines.push(
-        `Limit: ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes of active bodies per branch. Other active bodies: ${size(capacity.currentBytes)}; with this body the branch would hold ${size(capacity.usedBytes)}.`,
-      );
+      return [
+        `This body is ${capacity.bodyBytes} B, exceeding the ${MAX_ENTRY_BYTES_LABEL}-byte entry limit by ${capacity.excessBytes} B. Nothing was written.`,
+        `The branch limit of ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes still applies.`,
+        "Reduce the amount of pinned text. Splitting the same text across entries does not reduce branch usage.",
+        "Review the active pin set before retrying; preserve still-valid facts and required verbatim text.",
+      ].join("\n");
     }
+    const target =
+      capacity.replacedBytes === 0
+        ? "new entry: 0 B"
+        : `replacing #${capacity.entryId ?? "the target"}: ${capacity.replacedBytes} B`;
+    return [
+      `Branch limit: ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes.`,
+      `Current branch: ${capacity.currentBytes} B; ${target}; proposed body: ${capacity.bodyBytes} B.`,
+      `This write would hold ${capacity.attemptedBytes} B, exceeding the branch limit by ${capacity.excessBytes} B. Nothing was written.`,
+      "Review the whole active pin set. Retire obsolete content and condense redundant text while preserving still-valid requirements and required verbatim text.",
+      "Moving text between entries does not reduce active bytes. Do not keep retrying a slightly shorter version of this body without reviewing the other active entries.",
+    ].join("\n");
   }
+  const lines = [error.message];
   if (error.currentRevision !== undefined) {
     lines.push(`Current revision: ${error.currentRevision}.`);
   }

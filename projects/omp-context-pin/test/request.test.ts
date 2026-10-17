@@ -547,7 +547,7 @@ describe("a request that consumes a user operation", () => {
     expect(resultsOf(first)).toHaveLength(1);
     expect(first[1]?.customType).toBe(OUTCOME_TYPE);
 
-    await callTool(host, "call-2", { action: "update", id: 1, content: "oak", expectedRevision: 1 });
+    await callTool(host, "call-2", { action: "update", id: 1, content: "oak" });
     host.push({
       id: "j-result-call-2",
       type: "message",
@@ -610,7 +610,7 @@ describe("a request that consumes a user operation", () => {
     expect(String(results[0]?.content)).not.toContain(String(results[1]?.content));
   });
 
-  test("refuses an update whose revision moved while the dialog was open", async () => {
+  test("applies an update whose revision moved while the dialog was open", async () => {
     let host: FakeHost;
     let entryId = 0;
     host = fakeHost({
@@ -642,15 +642,18 @@ describe("a request that consumes a user operation", () => {
     });
     activate(host.pi);
     await runAndConsume(host);
-    entryId = (replay(host.journal).entries[0] as { entryId: number }).entryId;
+    const entry = replay(host.journal).entries[0];
+    if (entry === undefined) throw new Error("expected the created entry");
+    entryId = entry.entryId;
 
     await runCommand(host);
     const messages = consume(host);
 
-    // Only the create was accepted; the revision the dialog showed is gone.
-    expect(host.appended).toHaveLength(1);
-    expect(String(resultsOf(messages).at(-1)?.content)).toContain("Current revision: 2.");
-    expect(host.ui.notifies.at(-1)?.kind).toBe("error");
+    // The old draft applies to the current entry and replaces the newer body.
+    expect(host.appended).toHaveLength(2);
+    expect(host.appended[1]?.data).toMatchObject({ action: "update", body: "spruce", revision: 3 });
+    expect(String(resultsOf(messages).at(-1)?.content)).toContain("accepted");
+    expect(host.ui.notifies.at(-1)?.kind).toBe("info");
   });
 
   test("refuses an operation written in another session or pin period", async () => {
@@ -727,7 +730,9 @@ describe("a request that consumes a user operation", () => {
     });
     activate(host.pi);
     await runAndConsume(host);
-    entryId = (replay(host.journal).entries[0] as { entryId: number }).entryId;
+    const entry = replay(host.journal).entries[0];
+    if (entry === undefined) throw new Error("expected the created entry");
+    entryId = entry.entryId;
 
     await runCommand(host);
     // Another writer unpins the entry while the message is on its way.
@@ -771,11 +776,11 @@ describe("an operation that was refused", () => {
     expect(String(resultsOf(refused).at(-1)?.content)).toContain("not applied");
 
     // The user frees capacity, and the refused message is still in the branch.
-    const oldest = replay(host.journal).entries[0] as { entryId: number; revision: number };
+    const oldest = replay(host.journal).entries[0];
+    if (oldest === undefined) throw new Error("expected the oldest entry");
     await callTool(host, "free-capacity", {
       action: "delete",
       id: oldest.entryId,
-      expectedRevision: oldest.revision,
     });
     consume(host);
 

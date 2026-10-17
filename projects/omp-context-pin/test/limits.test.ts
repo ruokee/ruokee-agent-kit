@@ -17,28 +17,46 @@ describe("checkCapacity", () => {
   });
 
   test("accepts bodies inside both limits", () => {
-    expect(checkCapacity("a".repeat(MAX_ENTRY_BYTES), 0)).toBeUndefined();
-    expect(checkCapacity("a".repeat(MAX_ENTRY_BYTES), MAX_BRANCH_BYTES - MAX_ENTRY_BYTES)).toBeUndefined();
+    expect(checkCapacity("a".repeat(MAX_ENTRY_BYTES), 0, 0)).toBeUndefined();
+    expect(checkCapacity("a".repeat(MAX_ENTRY_BYTES), MAX_BRANCH_BYTES, MAX_ENTRY_BYTES)).toBeUndefined();
   });
 
   test("reports one byte over the entry limit before the branch limit", () => {
-    expect(checkCapacity("a".repeat(MAX_ENTRY_BYTES + 1), 10)).toEqual({
+    expect(checkCapacity("a".repeat(MAX_ENTRY_BYTES + 1), 10, 4)).toEqual({
       limit: "entry",
       limitBytes: MAX_ENTRY_BYTES,
-      usedBytes: MAX_ENTRY_BYTES + 1,
-      bodyBytes: MAX_ENTRY_BYTES + 1,
       currentBytes: 10,
+      replacedBytes: 4,
+      bodyBytes: MAX_ENTRY_BYTES + 1,
+      attemptedBytes: 10 - 4 + MAX_ENTRY_BYTES + 1,
+      excessBytes: 1,
     });
   });
 
-  test("reports the branch limit with the projected total and the current usage", () => {
+  test("reports the branch limit with the current branch and the attempted total", () => {
     const body = "a".repeat(100);
-    expect(checkCapacity(body, MAX_BRANCH_BYTES - 99)).toEqual({
+    expect(checkCapacity(body, MAX_BRANCH_BYTES - 99, 0)).toEqual({
       limit: "branch",
       limitBytes: MAX_BRANCH_BYTES,
-      usedBytes: MAX_BRANCH_BYTES + 1,
-      bodyBytes: 100,
       currentBytes: MAX_BRANCH_BYTES - 99,
+      replacedBytes: 0,
+      bodyBytes: 100,
+      attemptedBytes: MAX_BRANCH_BYTES + 1,
+      excessBytes: 1,
+    });
+  });
+
+  test("subtracts the replaced body from the branch attempt", () => {
+    const current = MAX_BRANCH_BYTES;
+    const replaced = 100;
+    expect(checkCapacity("a".repeat(replaced), current, replaced)).toBeUndefined();
+    expect(checkCapacity("a".repeat(replaced + 1), current, replaced)).toMatchObject({
+      limit: "branch",
+      currentBytes: current,
+      replacedBytes: replaced,
+      bodyBytes: replaced + 1,
+      attemptedBytes: MAX_BRANCH_BYTES + 1,
+      excessBytes: 1,
     });
   });
 
@@ -46,6 +64,10 @@ describe("checkCapacity", () => {
     const body = "中".repeat(MAX_ENTRY_BYTES / 3 + 1);
     const bodyBytes = byteLength(body);
     expect(bodyBytes).toBeGreaterThan(MAX_ENTRY_BYTES);
-    expect(checkCapacity(body, 0)).toMatchObject({ limit: "entry", usedBytes: bodyBytes });
+    expect(checkCapacity(body, 0, 0)).toMatchObject({
+      limit: "entry",
+      bodyBytes,
+      excessBytes: bodyBytes - MAX_ENTRY_BYTES,
+    });
   });
 });

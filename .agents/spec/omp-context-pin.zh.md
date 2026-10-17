@@ -33,6 +33,8 @@
 - 两个入口都在任何状态变化前检查单条和单分支的大小上限。
 - Agent 的写入在下一轮送达，从不发起模型轮次。
 - 提交压缩后，钉住快照由分支自身的记录重建，钉住状态未变时逐字节相同。没有已提交的边界时不生成快照。
+- 公开工具 schema 接受 `list`、`get`、`show`、`create`、`update` 和 `delete`。`update` 和 `delete` 只取目标 id，不取 revision；它们作用于执行时的当前条目。revision 仍是内部记录和显示值。
+- `show` 只读：返回全部活跃条目的完整正文、元数据、总活跃字节和分支上限，不改变条目、revision、活跃用量、journal 或投影。
 - 未知、损坏或无效的记录使受影响的范围不可用：读取报告该状态，写入被拒绝，记录保留。
 - 组件不声称宿主未确认的持久化。
 - 组件不保留只为 OMP 18.5.0 以前宿主存在的代码路径，包括激活前的宿主成员探测、`getEntries` 能力探测，以及用户消息缺少 `timestamp` 时的计数回退。
@@ -44,12 +46,14 @@ OMP `18.5.0`，声明在[兼容性](../../projects/omp-context-pin/README.zh.md#
 ## 验收标准
 
 - 在组件目录运行 `bun run typecheck` 和 `bun test` 通过。
-- 在使用真实模型的真实 OMP CLI 会话中，扩展能加载，通过工具创建、更新和删除钉住条目，手动压缩后剩余的钉住条目仍然生效。
+- `show` 返回条目数、全部活跃条目的完整正文、id、来源、revision 和 UTF-8 字节数，以及总活跃字节和分支上限。空分支明确说明没有固定正文。它不追加记录，不改变 revision 或活跃用量。
+- 在使用真实模型的真实 OMP CLI 会话中，扩展能加载，六个动作都能通过工具工作，包括不带 revision 的 `update` 和 `delete` 以及完整 `show`；手动压缩后剩余的钉住条目仍然生效。
 - 验证 Pin 对缓存的影响时，比较 Provider 可见的有效上下文；宿主发送链式增量时纳入前序请求；单独归因宿主自身的变化；检查 Pin 是否引入可避免的前缀改写。
 - 源码中没有以 OMP 18.5.0 以前宿主为条件的分支。
 
 ## 相关 ADR
 
 - [omp-context-pin](../adr/decision/2026/09/15-omp-context-pin.zh.md)
+- [Context Pin 工具契约](../adr/decision/2026/10/17-context-pin-tool-contract.zh.md)
 - [宿主维护](../adr/decision/2026/09/28-host-maintenance.zh.md)
 - [组件自包含](../adr/decision/2026/08/24-component-self-containment.zh.md)

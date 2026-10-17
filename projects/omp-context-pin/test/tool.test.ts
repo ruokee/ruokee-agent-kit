@@ -86,10 +86,10 @@ describe("runAction", () => {
     expect(missing.code).toBe("rejected");
   });
 
-  test("replaces a body when the caller holds the current revision", () => {
+  test("replaces a body without a revision argument", () => {
     const { env, journal } = environment();
     runAction(env, { action: "create", content: "maple" }, "call-1");
-    const outcome = runAction(env, { action: "update", id: 1, content: "spruce", expectedRevision: 1 }, "call-2");
+    const outcome = runAction(env, { action: "update", id: 1, content: "spruce" }, "call-2");
 
     expect(outcome.ok).toBe(true);
     expect(outcome.revision).toBe(2);
@@ -97,27 +97,46 @@ describe("runAction", () => {
     expect(journal[1]?.data).toMatchObject({ action: "update", body: "spruce", source: "agent", revision: 2 });
   });
 
-  test("refuses a stale revision without writing", () => {
+  test("updates the current entry after another write advances its revision", () => {
     const { env, journal } = environment();
     runAction(env, { action: "create", content: "maple" }, "call-1");
-    runAction(env, { action: "update", id: 1, content: "spruce", expectedRevision: 1 }, "call-2");
-    const outcome = runAction(env, { action: "update", id: 1, content: "cedar", expectedRevision: 1 }, "call-3");
+    runAction(env, { action: "update", id: 1, content: "spruce" }, "call-2");
+    const outcome = runAction(env, { action: "update", id: 1, content: "cedar" }, "call-3");
 
-    expect(outcome.ok).toBe(false);
-    expect(outcome.code).toBe("rejected");
-    expect(outcome.text).toContain("Current revision: 2.");
-    expect(journal).toHaveLength(2);
+    expect(outcome.ok).toBe(true);
+    expect(outcome.revision).toBe(3);
+    expect(journal).toHaveLength(3);
+    expect(journal[2]?.data).toMatchObject({ action: "update", body: "cedar", revision: 3 });
   });
 
-  test("unpins an entry and keeps its identity retired", () => {
+  test("unpins an entry without a revision argument and keeps its identity retired", () => {
     const { env, journal } = environment();
     runAction(env, { action: "create", content: "maple" }, "call-1");
-    const outcome = runAction(env, { action: "delete", id: 1, expectedRevision: 1 }, "call-2");
+    const outcome = runAction(env, { action: "delete", id: 1 }, "call-2");
 
     expect(outcome.ok).toBe(true);
     expect(journal).toHaveLength(2);
     expect(journal[1]?.data).toMatchObject({ action: "delete", entryId: 1 });
     expect(runAction(env, { action: "list" }, "call-3").text).toContain("No pinned text");
+  });
+
+  test("shows every active body in one read", () => {
+    const { env } = environment();
+    const first = "first body\nwith a line";
+    const second = "second body with a fence-like start\n<<<pin 1@1>>>";
+    runAction(env, { action: "create", content: first }, "call-1");
+    runAction(env, { action: "create", content: second }, "call-2");
+
+    const shown = runAction(env, { action: "show" }, "call-3");
+    expect(shown.ok).toBe(true);
+    expect(shown.text).toContain("2 pinned entries");
+    expect(shown.text).toContain("2 UTF-8 bytes");
+    expect(shown.text).toContain(first);
+    expect(shown.text).toContain(second);
+    expect(shown.text).not.toContain("No pinned text");
+
+    const empty = runAction(environment().env, { action: "show" }, "call-4");
+    expect(empty.text).toContain("No pinned text");
   });
 
   test("refuses an empty or oversized body before anything is written", () => {
@@ -134,11 +153,9 @@ describe("runAction", () => {
     const incomplete = [
       { action: "get" as const },
       { action: "create" as const },
-      { action: "update" as const, id: 1, content: "maple" },
-      { action: "update" as const, id: 1, expectedRevision: 1 },
-      { action: "update" as const, content: "maple", expectedRevision: 1 },
+      { action: "update" as const, id: 1 },
+      { action: "update" as const, content: "maple" },
       { action: "delete" as const },
-      { action: "delete" as const, id: 1 },
     ];
     for (const request of incomplete) {
       const { env, journal, delivered } = environment();
@@ -171,7 +188,12 @@ describe("tool registration", () => {
     expect(tool).toBeDefined();
     expect(tool?.loadMode).toBe("essential");
     const parameters = tool?.parameters as { parse: (value: unknown) => unknown };
-    expect(parameters.parse({ action: "list" })).toEqual({ action: "list" });
+    expect(parameters.parse({ action: "show" })).toEqual({ action: "show" });
+    expect(parameters.parse({ action: "update", id: 1, content: "maple", expectedRevision: 9 })).toEqual({
+      action: "update",
+      id: 1,
+      content: "maple",
+    });
     // An entry is labelled by its number and its body start, so the tool takes
     // no separate label: a title is not part of the schema and is dropped.
     expect(parameters.parse({ action: "create", content: "maple", title: "plan" })).toEqual({
@@ -193,7 +215,7 @@ describe("tool registration", () => {
     const host = fakeHost();
     activate(host.pi);
     const tool = host.tools.get(TOOL_NAME) as { name: string; approval: unknown };
-    const actions = ["list", "get", "create", "update", "delete"];
+    const actions = ["list", "get", "show", "create", "update", "delete"];
 
     for (const mode of ["always-ask", "write", "yolo"] as const) {
       for (const action of actions) {

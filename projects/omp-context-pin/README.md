@@ -26,27 +26,32 @@ A confirmed write is submitted as an ordinary user message through the host's pu
 
 The extension recognises that message by its text, because the text it writes is the text this process handed over. One submission is claimed by one message, and only while this process still holds the copy: the write is expressed by the message itself, and once the write is settled the text is ordinary text again. Text that repeats a draft the session still holds can be read as that draft, which is the price of a message the user can read and edit.
 
-An operation becomes effective when the host consumes that message and the checks pass against the submission this process recorded: the text is exactly the text this process handed over, the session, pin period and branch are the ones the draft was written in, the addressed entry exists, and the revision still matches the one the draft was opened at. The text is what the user sees, so an edited message, a quoted draft, a message another process submitted, and a message a restored session hands back are ordinary text. The command reports the write as pending until the message is consumed.
+An operation becomes effective when the host consumes that message and the checks pass against the submission this process recorded: the text is exactly the text this process handed over, the session, pin period and branch are the ones the draft was written in, and the addressed entry exists. The revision shown by the draft is display information; it is not an admission condition. The text is what the user sees, so an edited message, a quoted draft, a message another process submitted, and a message a restored session hands back are ordinary text. The command reports the write as pending until the message is consumed.
 
 The accepted set changes only then, and the request that consumed the message carries the outcome directly after the message that carried the operation: accepted, no change, or not applied with its reason, naming the entry it changed. One operation can be answered again with another reason, and each result is reported once; a branch or session change ends what the extension remembers reporting, so a result the request cannot read is reported again. The outcome repeats no body, starts no turn of its own, and adds no persistence guarantee. The same text is handed to the host as the operation is reported, in the host's non-initiating mode, so the host holds it for a later turn and appends it to the branch without starting a turn for it, and the user is shown the same text. The extension writes that result into every request directly after the message that carried its operation, whether or not the host already holds a copy further down the branch, so every request reads one copy of it at that position and with those bytes; a session or branch change ends what the request carries. When the host records no result, the extension keeps at most 16 results pending, giving up the oldest first.
 
-An operation is applied once. The message that applies a submission is the one the host runs: the submission records the time it was confirmed, and a user message whose text matches takes it unless the host reports taking that message before that time. When the host reports the time it ran the submitted text, the matching message with that time is preferred. Each submission takes one message, and a message takes at most one submission. Text that repeats earlier history is not read as an operation, and a submission whose text never runs is given up once the request holds a user message, taken after the confirmation, that matches nothing pending. The message it came from stays in the branch, but a later request no longer reads it as an operation, so nothing is appended a second time and the same result is not reported again. An outcome that is final ends the operation for this process: a write refused for any reason, for example a mismatch of the session, the branch, the revision or the capacity, stays refused after the user returns to that branch or frees the capacity. An operation that could not be read is not final, and is applied when a later request reads the range.
+An operation is applied once. The message that applies a submission is the one the host runs: the submission records the time it was confirmed, and a user message whose text matches takes it unless the host reports taking that message before that time. When the host reports the time it ran the submitted text, the matching message with that time is preferred. Each submission takes one message, and a message takes at most one submission. Text that repeats earlier history is not read as an operation, and a submission whose text never runs is given up once the request holds a user message, taken after the confirmation, that matches nothing pending. The message it came from stays in the branch, but a later request no longer reads it as an operation, so nothing is appended a second time and the same result is not reported again. An outcome that is final ends the operation for this process: a write refused for any reason, for example a mismatch of the session, the branch or the capacity, stays refused after the user returns to that branch or frees the capacity. An operation that could not be read is not final, and is applied when a later request reads the range.
 
 The host records the user message in the branch in its own time. Until it does, the request that carries the message is the only place the write is expressed, so the extension neither writes the body again into that request nor queues a change message for it.
 
-The Agent entry point is the `ctx_pin` tool with five actions:
+The Agent entry point is the `ctx_pin` tool with six actions:
 
 - `list`: takes no input. Reports the id, source, revision and size of every entry, without bodies.
 - `get`: takes `id`. Reports one complete body with its id, source, revision and UTF-8 byte size.
+- `show`: takes no input. Reports every active entry with its complete body, id, source, revision and UTF-8 byte size, plus the entry count, total active bytes and branch limit.
 - `create`: takes `content`. Pins a new body.
-- `update`: takes `id`, `content`, and `expectedRevision`. Replaces a body.
-- `delete`: takes `id` and `expectedRevision`. Unpins an entry.
+- `update`: takes `id` and `content`. Replaces the current body.
+- `delete`: takes `id`. Unpins the current entry.
+
+`show` is read only: it appends no record and changes no entry, revision, active usage or projection. Use `list` for an overview, `get` for one entry, and `show` for the complete current active set.
+
+`update` and `delete` act on the entry current when the operation runs. A revision shown earlier is not an admission condition, so an older draft can overwrite a body changed while the draft was open.
 
 The `id` parameter takes the integer the list and the receipts show. It accepts no digit string, and no action performs an implicit upsert or a create by rename.
 
-A write from `/ctx-pin` records the source `user`, a write from `ctx_pin` records the source `agent`. `list` and `get` report the source recorded when the entry was created, and `update` keeps it.
+A write from `/ctx-pin` records the source `user`, a write from `ctx_pin` records the source `agent`. `list`, `get` and `show` report the source recorded when the entry was created, and `update` keeps it.
 
-Every action of the tool declares the lowest approval class, `read`. With no explicit per-tool policy, `always-ask`, `write` and `yolo` do not prompt for a Pin operation; an explicit user policy that marks `ctx_pin` as `prompt` or `deny` still applies. The extension writes no user configuration and adds no authorization or confirmation of its own. The type, existence, revision, capacity and record-integrity checks stay: they keep an operation acting on the data it targeted.
+Every action of the tool declares the lowest approval class, `read`. With no explicit per-tool policy, `always-ask`, `write` and `yolo` do not prompt for a Pin operation; an explicit user policy that marks `ctx_pin` as `prompt` or `deny` still applies. The extension writes no user configuration and adds no authorization or confirmation of its own. The type, existence, capacity and record-integrity checks stay: they keep an operation acting on the data it targeted. Revision is an internal record and display value, not a write parameter or admission check.
 
 An Agent `create`, `update` or `delete` appends the operation record and hands the host a change message for the model, in the same non-initiating mode, without an extra turn. The record is canonical; the change message is a projection, sent again after a session or pin period change when the journal still does not show it as published. The request expresses the accepted changes in journal order, so a change the request does not carry makes every later change part of the same gap: those changes are written again in order, and the messages that carried them leave the request. A change written again reads directly after the result of the call that produced it, when the request holds that call, and otherwise keeps the place the journal gives it, which is before the message that carries a later change; with neither, it goes to the end. An older body therefore never reads as the last one, and the message the user sent keeps its own place.
 
@@ -79,7 +84,7 @@ The operation records in the session journal are canonical state. Each record is
 - `source`: `user` or `agent`.
 - `toolCallId`: the host's tool call id of the Agent call that produced the record, kept to resolve its retries.
 
-`list`, `get`, a refused write and a write that changes nothing append no record.
+`list`, `get`, `show`, a refused write and a write that changes nothing append no record. A revision remains an internal record and display value; it is not a public write parameter.
 
 Change messages use the custom type `omp-context-pin-change`. Every read replays the records of the current branch, so a rebuilt context, a lost change message or a restart that still has the journal yields the same state. A request carries the changes of the current branch only: a copy that names an operation this branch never accepted leaves the request even when the entry it names is held and its revision matches one this branch accepted, because two paths of one session can reach the same revision number with different bodies. A copy of a change this branch accepted stays.
 
@@ -118,7 +123,7 @@ The active set is the range after the latest reset boundary, and damage is judge
 
 ## Limits
 
-A single body and the active bodies of one branch may not exceed 16,384 UTF-8 bytes. A write that exceeds a limit changes nothing, and the refusal reports the limit, the current usage and the size the operation would reach.
+A single body and the active bodies of one branch may not exceed 16,384 UTF-8 bytes. A write that exceeds a limit changes nothing. A branch refusal reports the branch total, the body being replaced (zero for a create), the proposed body, the attempted total and the excess. A single-entry refusal reports the body size, the entry limit and the entry excess. Both refusals ask the caller to review the whole active set. Splitting the same text across entries does not reduce active bytes.
 
 ## Persistence
 

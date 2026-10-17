@@ -2,10 +2,11 @@
  * The `/ctx-pin` command: the user entry point.
  *
  * The command is a thin interface over the shared operation path, so a user and
- * the Agent see the same entries, revisions, sources and refusals. Every dialog
- * result is revalidated against the live session before a write: the revision
- * shown when a dialog opened is the revision the write must still find, and a
- * session that changed while a dialog was open leaves the journal untouched.
+ * the Agent see the same entries, revisions, sources and refusals. A dialog
+ * result is revalidated against the live session before a write: the session,
+ * pin period and branch shown when the dialog opened must still be the same,
+ * and the revision it showed is display information. A confirmed update or
+ * delete applies to the entry current at execution time.
  *
  * A confirmed write is submitted as a user message and applied when the host
  * consumes it, so the command reports the operation as pending rather than as
@@ -191,8 +192,9 @@ async function manageEntry(
       ctx.ui.notify(SESSION_CHANGED_TEXT, "warning");
       return true;
     }
-    // The revision shown when this dialog opened is the one the write must still find.
-    return submitWrite(env, ctx, observed, { action: "update", entryId, revision: entry.revision, body: edited });
+    // The revision shown when this dialog opened is display information; the
+    // write applies to the entry that is current when the request consumes it.
+    return submitWrite(env, ctx, observed, { action: "update", entryId, body: edited });
   }
 
   const confirmed = await ctx.ui.confirm(
@@ -204,14 +206,14 @@ async function manageEntry(
     ctx.ui.notify(SESSION_CHANGED_TEXT, "warning");
     return true;
   }
-  return submitWrite(env, ctx, observed, { action: "delete", entryId, revision: entry.revision });
+  return submitWrite(env, ctx, observed, { action: "delete", entryId });
 }
 
 /** A write the user confirmed, before it has an operation number. */
 type Draft =
   | { action: "create"; body: string }
-  | { action: "update"; entryId: number; revision: number; body: string }
-  | { action: "delete"; entryId: number; revision: number };
+  | { action: "update"; entryId: number; body: string }
+  | { action: "delete"; entryId: number };
 
 /**
  * Submit one confirmed write as the user message that carries it.
@@ -249,7 +251,6 @@ function submitWrite(
           ...base,
           action: draft.action,
           entryId: draft.entryId,
-          revision: draft.revision,
           body: draft.action === "update" ? draft.body : "",
         };
   env.submit(request);

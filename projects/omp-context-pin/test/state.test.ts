@@ -513,9 +513,11 @@ describe("planCreate", () => {
     expect(plan.error.capacity).toEqual({
       limit: "entry",
       limitBytes: MAX_ENTRY_BYTES,
-      usedBytes: MAX_ENTRY_BYTES + 1,
-      bodyBytes: MAX_ENTRY_BYTES + 1,
       currentBytes: 0,
+      replacedBytes: 0,
+      bodyBytes: MAX_ENTRY_BYTES + 1,
+      attemptedBytes: MAX_ENTRY_BYTES + 1,
+      excessBytes: 1,
     });
   });
 
@@ -549,7 +551,13 @@ describe("planCreate", () => {
     expect(overflow.kind).toBe("reject");
     if (overflow.kind !== "reject") throw new Error("expected a rejection");
     expect(overflow.error.capacity?.limit).toBe("branch");
-    expect(overflow.error.capacity?.usedBytes).toBe(MAX_BRANCH_BYTES + 1);
+    expect(overflow.error.capacity).toMatchObject({
+      currentBytes: MAX_BRANCH_BYTES,
+      replacedBytes: 0,
+      bodyBytes: 1,
+      attemptedBytes: MAX_BRANCH_BYTES + 1,
+      excessBytes: 1,
+    });
   });
 
   test("returns the receipt of a retried operation", () => {
@@ -593,7 +601,7 @@ describe("planCreate", () => {
 });
 
 describe("planUpdate", () => {
-  test("returns the receipt of a retried update and refuses another revision from", () => {
+  test("returns the receipt of a retried update regardless of the revision it supplies", () => {
     const first = planUpdate(withEntry(), {
       operationId: 2,
       entryId: 1,
@@ -608,18 +616,27 @@ describe("planUpdate", () => {
       entryId: 1,
       body: "oak",
       source: "user",
-      expectedRevision: 1,
+      expectedRevision: 2,
     });
     expect(retry.kind).toBe("duplicate");
+  });
 
-    // The same identity expecting a later revision is a different operation,
-    // not a retry of the one this identity was accepted for.
-    const other = planUpdate(first.next, {
+  test("rejects the same identity carrying a different body", () => {
+    const first = planUpdate(withEntry(), {
       operationId: 2,
       entryId: 1,
       body: "oak",
       source: "user",
-      expectedRevision: 2,
+      expectedRevision: 1,
+    });
+    if (first.kind !== "append") throw new Error("expected an append");
+
+    const other = planUpdate(first.next, {
+      operationId: 2,
+      entryId: 1,
+      body: "cedar",
+      source: "user",
+      expectedRevision: 1,
     });
     expect(other.kind).toBe("reject");
     if (other.kind !== "reject") throw new Error("expected a rejection");
@@ -761,7 +778,14 @@ describe("planDelete", () => {
     expect(plan.error.code).toBe("stale-revision");
   });
 
-  test("rejects a second deletion of the same entry", () => {
+  test("returns a delete retry after the entry is gone", () => {
+    const first = planDelete(withEntry(), { operationId: 2, entryId: 1, source: "user", expectedRevision: 1 });
+    if (first.kind !== "append") throw new Error("expected an append");
+    const retry = planDelete(first.next, { operationId: 2, entryId: 1, source: "user", expectedRevision: 1 });
+    expect(retry.kind).toBe("duplicate");
+  });
+
+  test("rejects a second deletion of the same entry with a new identity", () => {
     const state = withEntry();
     const first = planDelete(state, { operationId: 2, entryId: 1, source: "user", expectedRevision: 1 });
     if (first.kind !== "append") throw new Error("expected an append");

@@ -367,13 +367,6 @@ export function findOperationByCall(state: PinState, toolCallId: string): PinRec
   return undefined;
 }
 
-/** Branch bytes that an update of this entry would keep, or the current total. */
-export function retainedBytes(state: PinState, entryId?: number): number {
-  if (entryId === undefined) return state.usedBytes;
-  const entry = findEntry(state, entryId);
-  return entry === undefined ? state.usedBytes : state.usedBytes - byteLength(entry.body);
-}
-
 /** Rows for `list`, in creation order. */
 export function summarize(state: PinState): EntrySummary[] {
   return state.entries.map((entry) => ({
@@ -451,43 +444,59 @@ function unavailablePlan(state: PinState): MutationPlan | undefined {
 }
 
 /**
+ * Identity of one attempted operation, before an entry revision is known.
+ *
+ * A retry is recognized from the operation number and the payload it carries.
+ * Revision is not part of this identity: the current entry supplies it only
+ * after the duplicate check has established that this is a new operation.
+ */
+export interface OperationIdentity {
+  operationId: number;
+  action: PinRecord["action"];
+  entryId: number;
+  source: PinSource;
+  body?: string;
+  toolCallId?: string;
+}
+
+/**
  * Whether an accepted record already answers this intended operation.
  *
  * A create allocates its entry identity at write time, so a retry carries the
  * same text under a fresh candidate identity; the accepted record decides what
  * that invocation created. An update or a delete addresses an entry that
- * already exists, so it also has to agree on the revision it expected: the same
- * identity and body expecting a later revision is another operation, not a
- * retry of the accepted one.
+ * already exists. The same operation, entry target, source and body is one
+ * operation even when the entry revision has advanced since the call was
+ * accepted.
  */
-function sameInvocation(accepted: PinRecord, record: PinRecord): boolean {
-  if (accepted.action !== record.action || accepted.body !== record.body) return false;
-  if (accepted.source !== record.source) return false;
+function sameInvocation(accepted: PinRecord, identity: OperationIdentity): boolean {
+  if (accepted.action !== identity.action || accepted.body !== identity.body) return false;
+  if (accepted.source !== identity.source) return false;
   // One tool call is one operation: the same call id carrying other content is
   // another operation, not a retry of the accepted one.
-  if (accepted.toolCallId !== record.toolCallId) return false;
+  if (accepted.toolCallId !== identity.toolCallId) return false;
   if (accepted.action === "create") return true;
-  return accepted.entryId === record.entryId && accepted.revision === record.revision;
+  return accepted.entryId === identity.entryId;
 }
 
-function duplicatePlan(state: PinState, record: PinRecord): MutationPlan | undefined {
-  const accepted = findRecord(state, record.operationId);
+/**
+ * Duplicate or conflict for an operation identity, before the current entry is
+ * read.
+ *
+ * One identity carries one operation: a retry is the same operation, and the
+ * same identity carrying other action, target, source or body is a conflict.
+ */
+export function duplicatePlan(state: PinState, identity: OperationIdentity): MutationPlan | undefined {
+  const accepted = findRecord(state, identity.operationId);
   if (accepted === undefined) return undefined;
-  // One identity carries one operation: a retry is the same operation, and the
-  // same identity carrying other content or another expected revision is a
-  // conflict, not a retry.
-  return sameInvocation(accepted, record)
+  return sameInvocation(accepted, identity)
     ? { kind: "duplicate", record: accepted }
     : reject("conflicting-operation", `this write was already accepted as ${accepted.action} of #${accepted.entryId}`);
 }
 
 function capacityPlan(overflow: CapacityOverflow): MutationPlan {
-  const scope = overflow.limit === "entry" ? "one body" : "the branch";
-  return reject(
-    "capacity",
-    `${scope} would reach ${overflow.usedBytes} UTF-8 bytes, above the ${overflow.limitBytes} UTF-8 byte limit`,
-    { capacity: overflow },
-  );
+  const scope = overflow.limit === "entry" ? "the body" : "the write";
+  return reject("capacity", `${scope} would exceed the ${overflow.limit} limit`, { capacity: overflow });
 }
 
 /** State as it would be after an accepted record, used for receipts. */
@@ -520,14 +529,22 @@ export function planCreate(state: PinState, input: CreateInput): MutationPlan {
     toolCallId: input.toolCallId,
   };
 
-  const duplicate = duplicatePlan(state, record);
+  const identity: OperationIdentity = {
+    operationId: input.operationId,
+    action: "create",
+    entryId: input.entryId,
+    source: input.source,
+    body: input.body,
+    toolCallId: input.toolCallId,
+  };
+  const duplicate = duplicatePlan(state, identity);
   if (duplicate !== undefined) return duplicate;
   if (input.body.length === 0) return reject("empty-body", "a pin body must not be empty");
   if (state.usedEntryIds.has(input.entryId)) {
     return reject("duplicate-entry", `entry #${input.entryId} was already used on this branch`);
   }
 
-  const overflow = checkCapacity(input.body, retainedBytes(state));
+  const overflow = checkCapacity(input.body, state.usedBytes, 0);
   if (overflow !== undefined) return capacityPlan(overflow);
 
   return { kind: "append", record, next: stateAfter(state, record) };
@@ -549,7 +566,15 @@ export function planUpdate(state: PinState, input: UpdateInput): MutationPlan {
     toolCallId: input.toolCallId,
   };
 
-  const duplicate = duplicatePlan(state, candidate);
+  const identity: OperationIdentity = {
+    operationId: input.operationId,
+    action: "update",
+    entryId: input.entryId,
+    source: input.source,
+    body: input.body,
+    toolCallId: input.toolCallId,
+  };
+  const duplicate = duplicatePlan(state, identity);
   if (duplicate !== undefined) return duplicate;
 
   const entry = findEntry(state, input.entryId);
@@ -566,8 +591,8 @@ export function planUpdate(state: PinState, input: UpdateInput): MutationPlan {
   if (input.body.length === 0) return reject("empty-body", "a pin body must not be empty");
   if (input.body === entry.body) return { kind: "no-change", entry };
 
-  const overflow = checkCapacity(input.body, retainedBytes(state, input.entryId));
-  if (overflow !== undefined) return capacityPlan(overflow);
+  const overflow = checkCapacity(input.body, state.usedBytes, byteLength(entry.body));
+  if (overflow !== undefined) return capacityPlan({ ...overflow, entryId: input.entryId });
 
   return { kind: "append", record: candidate, next: stateAfter(state, candidate) };
 }
@@ -587,7 +612,14 @@ export function planDelete(state: PinState, input: DeleteInput): MutationPlan {
     toolCallId: input.toolCallId,
   };
 
-  const duplicate = duplicatePlan(state, candidate);
+  const identity: OperationIdentity = {
+    operationId: input.operationId,
+    action: "delete",
+    entryId: input.entryId,
+    source: input.source,
+    toolCallId: input.toolCallId,
+  };
+  const duplicate = duplicatePlan(state, identity);
   if (duplicate !== undefined) return duplicate;
 
   const entry = findEntry(state, input.entryId);

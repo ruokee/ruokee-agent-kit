@@ -15,7 +15,6 @@ const UPDATE: EntryPinRequest = {
   action: "update",
   origin: "0f0f0f0f",
   entryId: 4,
-  revision: 2,
   body: "spruce",
 };
 const DELETE: EntryPinRequest = {
@@ -23,7 +22,6 @@ const DELETE: EntryPinRequest = {
   action: "delete",
   origin: "0f0f0f0f",
   entryId: 7,
-  revision: 3,
   body: "",
 };
 

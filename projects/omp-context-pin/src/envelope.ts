@@ -27,11 +27,10 @@ export interface CreatePinRequest extends PinRequestBase {
   action: "create";
 }
 
-/** An update or a delete addresses one entry at the revision the draft shows. */
+/** An update or a delete addresses one current entry. */
 export interface EntryPinRequest extends PinRequestBase {
   action: "update" | "delete";
   entryId: number;
-  revision: number;
 }
 
 /** One operation the user confirmed. */

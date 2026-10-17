@@ -115,11 +115,21 @@ describe("the ctx-pin command", () => {
     expect(receipts(host2)[1]?.kind).toBe("info");
   });
 
-  test("refuses a body whose revision moved while the dialog was open", async () => {
+  test("applies a body whose revision moved while the dialog was open", async () => {
     const host = fakeHost({ ui: scriptedUI({ keys: [pickRow(0)], editor: ["maple"] }) });
     activate(host.pi);
     await runAndConsume(host);
-    const entryId = (host.appended[0]?.data as { entryId: number }).entryId;
+    const created = host.appended[0]?.data;
+    if (
+      created === undefined ||
+      created === null ||
+      typeof created !== "object" ||
+      !("entryId" in created) ||
+      typeof created.entryId !== "number"
+    ) {
+      throw new Error("expected the created entry");
+    }
+    const entryId = created.entryId;
 
     const host2 = fakeHost({
       journal: host.journal,
@@ -151,16 +161,21 @@ describe("the ctx-pin command", () => {
     activate(host2.pi);
     await runCommand(host2);
 
-    // The dialog submits what it showed; the revision is checked when the
-    // request consumes the operation, which is where the other write is seen.
+    // The dialog submits what it showed; the request applies it to the current
+    // entry even though another write advanced the revision meanwhile.
     expect(host2.submitted).toHaveLength(1);
     consume(host2);
 
-    expect(host2.appended).toEqual([]);
-    expect(recordsOf(host2)).toHaveLength(2);
-    const refusal = receipts(host2).at(-1);
-    expect(refusal?.kind).toBe("error");
-    expect(refusal?.message).toContain("Current revision: 2.");
+    expect(host2.appended).toHaveLength(1);
+    expect(host2.appended[0]?.data).toMatchObject({
+      action: "update",
+      body: "spruce",
+      revision: 3,
+      source: "user",
+    });
+    expect(recordsOf(host2)).toHaveLength(3);
+    expect(receipts(host2).at(-1)?.kind).toBe("info");
+    expect(receipts(host2).at(-1)?.message).toContain("accepted");
   });
 
   test("leaves the journal untouched when the session changes under a dialog", async () => {

@@ -1,8 +1,22 @@
 import { describe, expect, test } from "bun:test";
-import { MAX_BRANCH_BYTES_LABEL, MAX_ENTRY_BYTES, MAX_ENTRY_BYTES_LABEL } from "../src/limits.ts";
+import {
+  MAX_BRANCH_BYTES,
+  MAX_BRANCH_BYTES_LABEL,
+  MAX_ENTRY_BYTES,
+  MAX_ENTRY_BYTES_LABEL,
+  byteLength,
+} from "../src/limits.ts";
 import type { PinRequest } from "../src/envelope.ts";
 import { RECORD_SCHEMA_VERSION, RECORD_TYPE, type PinRecord } from "../src/record.ts";
-import { createPin, deletePin, listPins, readPin, updatePin, type PinEnvironment } from "../src/operations.ts";
+import {
+  createPin,
+  deletePin,
+  listPins,
+  readPin,
+  showPins,
+  updatePin,
+  type PinEnvironment,
+} from "../src/operations.ts";
 import type { JournalEntry } from "../src/state.ts";
 
 function environment(overrides: Partial<PinEnvironment> = {}) {
@@ -79,16 +93,34 @@ describe("createPin", () => {
     expect(delivered).toEqual([]);
   });
 
-  test("reports both limits when a body is over capacity", () => {
+  test("reports the entry limit with the body size and excess", () => {
     const { env, journal } = environment();
     const outcome = createPin(env, { body: "a".repeat(MAX_ENTRY_BYTES + 1), source: "agent" });
 
     expect(outcome.code).toBe("rejected");
-    expect(outcome.text).toContain(`Limit: ${MAX_ENTRY_BYTES_LABEL} UTF-8 bytes per body.`);
-    expect(outcome.text).toContain(
-      `This body: ${MAX_ENTRY_BYTES + 1} UTF-8 bytes; other active bodies on this branch: 0 UTF-8 bytes.`,
-    );
+    expect(outcome.text).toContain(`exceeding the ${MAX_ENTRY_BYTES_LABEL}-byte entry limit by 1 B`);
+    expect(outcome.text).toContain("Nothing was written.");
+    expect(outcome.text).toContain(`The branch limit of ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes still applies.`);
+    expect(outcome.text).toContain("Splitting the same text across entries does not reduce branch usage.");
     expect(journal).toEqual([]);
+  });
+
+  test("reports a new body that would overflow the branch", () => {
+    const { env, journal } = environment();
+    const half = "a".repeat(MAX_ENTRY_BYTES / 2);
+    createPin(env, { body: half, source: "user" });
+    createPin(env, { body: half, source: "user" });
+    const outcome = createPin(env, { body: "b".repeat(MAX_ENTRY_BYTES), source: "agent" });
+
+    expect(outcome.code).toBe("rejected");
+    expect(outcome.text).toContain(
+      `Current branch: ${MAX_BRANCH_BYTES} B; new entry: 0 B; proposed body: ${MAX_ENTRY_BYTES} B.`,
+    );
+    expect(outcome.text).toContain(`exceeding the branch limit by ${MAX_ENTRY_BYTES} B`);
+    expect(outcome.text).toContain("Nothing was written.");
+    expect(outcome.text).toContain("Review the whole active pin set.");
+    expect(outcome.text).toContain("Moving text between entries does not reduce active bytes.");
+    expect(journal).toHaveLength(2);
   });
 });
 
@@ -104,14 +136,16 @@ describe("updatePin", () => {
       entryId: replaced.entryId ?? 0,
       body: "a".repeat(MAX_ENTRY_BYTES),
       source: "user",
-      expectedRevision: 1,
     });
 
     expect(outcome.code).toBe("rejected");
-    expect(outcome.text).toContain(`Limit: ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes of active bodies per branch.`);
     expect(outcome.text).toContain(
-      `Other active bodies: ${MAX_ENTRY_BYTES / 2} UTF-8 bytes; with this body the branch would hold ${MAX_ENTRY_BYTES + MAX_ENTRY_BYTES / 2} UTF-8 bytes.`,
+      `Current branch: ${MAX_BRANCH_BYTES} B; replacing #${replaced.entryId}: ${MAX_ENTRY_BYTES / 2} B; proposed body: ${MAX_ENTRY_BYTES} B.`,
     );
+    expect(outcome.text).toContain(`exceeding the branch limit by ${MAX_ENTRY_BYTES / 2} B`);
+    expect(outcome.text).toContain("Nothing was written.");
+    expect(outcome.text).toContain("Review the whole active pin set.");
+    expect(outcome.text).toContain("Moving text between entries does not reduce active bytes.");
     // The two creates above; the refused replacement appends nothing.
     expect(journal).toHaveLength(2);
   });
@@ -123,7 +157,6 @@ describe("updatePin", () => {
       entryId: created.entryId ?? 0,
       body: "oak",
       source: "agent",
-      expectedRevision: 1,
     });
 
     expect(updated.code).toBe("ok");
@@ -143,7 +176,6 @@ describe("updatePin", () => {
       entryId: created.entryId ?? 0,
       body: "maple",
       source: "user",
-      expectedRevision: 1,
     });
 
     expect(again.code).toBe("no-change");
@@ -151,24 +183,65 @@ describe("updatePin", () => {
     expect(journal).toHaveLength(1);
   });
 
-  test("refuses a stale revision and names the current one", () => {
+  test("updates the current entry after another write advances its revision", () => {
     const { env, journal } = environment();
-    const created = createPin(env, { body: "maple", source: "user" });
-    const stale = updatePin(env, {
+    const created = createPin(env, { body: "maple", source: "user", operationId: 1 });
+    const first = updatePin(env, {
       entryId: created.entryId ?? 0,
-      body: "oak",
+      body: "spruce",
+      source: "agent",
+      operationId: 2,
+    });
+    const current = updatePin(env, {
+      entryId: created.entryId ?? 0,
+      body: "cedar",
       source: "user",
-      expectedRevision: 4,
+      operationId: 3,
     });
 
-    expect(stale.code).toBe("rejected");
-    expect(stale.text).toContain("Current revision: 1");
-    expect(journal).toHaveLength(1);
+    expect(first.revision).toBe(2);
+    expect(current.revision).toBe(3);
+    expect(journal).toHaveLength(3);
+    expect(journal.at(-1)?.data).toMatchObject({ body: "cedar" });
+  });
+
+  test("returns the accepted update after a later update without appending", () => {
+    const { env, journal, delivered } = environment();
+    const created = createPin(env, { body: "maple", source: "user", operationId: 1 });
+    updatePin(env, { entryId: created.entryId ?? 0, body: "oak", source: "agent", operationId: 2 });
+    updatePin(env, { entryId: created.entryId ?? 0, body: "cedar", source: "agent", operationId: 3 });
+    const retry = updatePin(env, {
+      entryId: created.entryId ?? 0,
+      body: "oak",
+      source: "agent",
+      operationId: 2,
+    });
+
+    expect(retry.code).toBe("duplicate");
+    expect(journal).toHaveLength(3);
+    expect(delivered).toHaveLength(3);
+    expect(listPins(env).text).toContain("cedar");
+  });
+
+  test("rejects the same operation identity with a different body", () => {
+    const { env, journal } = environment();
+    const created = createPin(env, { body: "maple", source: "user", operationId: 1 });
+    updatePin(env, { entryId: created.entryId ?? 0, body: "oak", source: "agent", operationId: 2 });
+    const conflict = updatePin(env, {
+      entryId: created.entryId ?? 0,
+      body: "cedar",
+      source: "agent",
+      operationId: 2,
+    });
+
+    expect(conflict.code).toBe("rejected");
+    expect(conflict.text).toContain("already accepted");
+    expect(journal).toHaveLength(2);
   });
 
   test("refuses an unknown identity", () => {
     const { env } = environment();
-    const outcome = updatePin(env, { entryId: 404, body: "oak", source: "agent", expectedRevision: 1 });
+    const outcome = updatePin(env, { entryId: 404, body: "oak", source: "agent" });
     expect(outcome.text).toContain("no active pin entry");
   });
 });
@@ -177,7 +250,7 @@ describe("deletePin", () => {
   test("removes the entry and reports the new revision", () => {
     const { env, journal, delivered } = environment();
     const created = createPin(env, { body: "maple", source: "user" });
-    const removed = deletePin(env, { entryId: created.entryId ?? 0, source: "user", expectedRevision: 1 });
+    const removed = deletePin(env, { entryId: created.entryId ?? 0, source: "user" });
 
     expect(removed.code).toBe("ok");
     expect(removed.text).toContain("Unpinned");
@@ -186,11 +259,34 @@ describe("deletePin", () => {
     expect(listPins(env).text).toContain("No pinned text");
   });
 
-  test("refuses a second deletion of the same entry", () => {
+  test("removes the current entry after another write advances its revision", () => {
     const { env, journal } = environment();
-    const created = createPin(env, { body: "maple", source: "user" });
-    deletePin(env, { entryId: created.entryId ?? 0, source: "user", expectedRevision: 1 });
-    const again = deletePin(env, { entryId: created.entryId ?? 0, source: "user", expectedRevision: 2 });
+    const created = createPin(env, { body: "maple", source: "user", operationId: 1 });
+    updatePin(env, { entryId: created.entryId ?? 0, body: "oak", source: "agent", operationId: 2 });
+    const removed = deletePin(env, { entryId: created.entryId ?? 0, source: "user", operationId: 3 });
+
+    expect(removed.code).toBe("ok");
+    expect(removed.revision).toBe(3);
+    expect(journal).toHaveLength(3);
+  });
+
+  test("returns an accepted delete retry after the entry is gone", () => {
+    const { env, journal, delivered } = environment();
+    const created = createPin(env, { body: "maple", source: "user", operationId: 1 });
+    deletePin(env, { entryId: created.entryId ?? 0, source: "user", operationId: 2 });
+    const retry = deletePin(env, { entryId: created.entryId ?? 0, source: "user", operationId: 2 });
+
+    expect(retry.code).toBe("duplicate");
+    expect(retry.ok).toBe(true);
+    expect(journal).toHaveLength(2);
+    expect(delivered).toHaveLength(2);
+  });
+
+  test("refuses a second deletion of the same entry with a new identity", () => {
+    const { env, journal } = environment();
+    const created = createPin(env, { body: "maple", source: "user", operationId: 1 });
+    deletePin(env, { entryId: created.entryId ?? 0, source: "user", operationId: 2 });
+    const again = deletePin(env, { entryId: created.entryId ?? 0, source: "user", operationId: 3 });
 
     expect(again.code).toBe("rejected");
     expect(journal).toHaveLength(2);
@@ -201,6 +297,36 @@ describe("reads", () => {
   test("lists nothing for an empty branch", () => {
     const { env } = environment();
     expect(listPins(env).text).toBe(`No pinned text on this branch (0 of ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes).`);
+  });
+
+  test("shows every active body without changing the journal or delivery", () => {
+    const { env, journal, delivered } = environment();
+    const first = "first\nbody";
+    const second = "second\n<<<pin 1@1>>>";
+    createPin(env, { body: first, source: "user", operationId: 1 });
+    createPin(env, { body: second, source: "agent", operationId: 2 });
+    const journalLength = journal.length;
+    const deliveredLength = delivered.length;
+
+    const shown = showPins(env);
+
+    expect(shown.ok).toBe(true);
+    expect(shown.text).toContain("2 pinned entries");
+    expect(shown.text).toContain(
+      `${byteLength(first) + byteLength(second)} UTF-8 bytes active of ${MAX_BRANCH_BYTES_LABEL}`,
+    );
+    expect(shown.text).toContain(first);
+    expect(shown.text).toContain(second);
+    expect(shown.text).toContain("Entry #1, revision 1, source user");
+    expect(shown.text).toContain("Entry #2, revision 1, source agent");
+    expect(shown.text).toContain(`Size: ${byteLength(first)} UTF-8 bytes`);
+    expect(journal).toHaveLength(journalLength);
+    expect(delivered).toHaveLength(deliveredLength);
+  });
+
+  test("shows the empty branch state", () => {
+    const { env } = environment();
+    expect(showPins(env).text).toBe(`No pinned text on this branch (0 of ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes).`);
   });
 
   test("returns the body verbatim with its metadata", () => {
@@ -230,9 +356,10 @@ describe("damaged and unreadable ranges", () => {
 
     for (const outcome of [
       createPin(env, { body: "oak", source: "user" }),
-      updatePin(env, { entryId: 2, body: "oak", source: "user", expectedRevision: 1 }),
-      deletePin(env, { entryId: 2, source: "user", expectedRevision: 1 }),
+      updatePin(env, { entryId: 2, body: "oak", source: "user" }),
+      deletePin(env, { entryId: 2, source: "user" }),
       listPins(env),
+      showPins(env),
       readPin(env, 2),
     ]) {
       expect(outcome.ok).toBe(false);
@@ -260,7 +387,7 @@ describe("damaged and unreadable ranges", () => {
   test("does not revive an entry whose deletion record is damaged", () => {
     const { env, journal } = environment();
     const created = createPin(env, { body: "maple", source: "user" });
-    deletePin(env, { entryId: created.entryId ?? 0, source: "user", expectedRevision: 1 });
+    deletePin(env, { entryId: created.entryId ?? 0, source: "user" });
     const record = journal[1]?.data as PinRecord;
     journal[1] = { id: "j-2", type: "custom", customType: RECORD_TYPE, data: { ...record, revision: 9 } };
 

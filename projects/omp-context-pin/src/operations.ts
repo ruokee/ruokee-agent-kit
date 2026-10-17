@@ -22,12 +22,15 @@ import {
   movedBranchText,
   noChangeText,
   refusalText,
+  showText,
   supersededText,
   unavailableText,
 } from "./receipt.ts";
 import {
   type MutationPlan,
+  type OperationIdentity,
   type PinState,
+  duplicatePlan,
   findEntry,
   findOperationByCall,
   planCreate,
@@ -300,7 +303,6 @@ export interface UpdateRequest {
   entryId: number;
   body: string;
   source: PinSource;
-  expectedRevision: number;
   operationId?: number;
   /** Host tool call of an Agent write, which resolves the operation identity. */
   toolCallId?: string;
@@ -308,32 +310,46 @@ export interface UpdateRequest {
   carried?: boolean;
 }
 
-/** Replace the body of an existing entry. */
+/** Replace the body of the current entry. */
 export function updatePin(env: PinEnvironment, request: UpdateRequest): OperationOutcome {
   const loaded = load(env);
   if (!loaded.usable) return rejected(loaded);
 
   const operation = operationNumber(env, loaded.state, request);
   if (typeof operation !== "number") return operation;
+  const carried = request.carried ?? false;
+  const identity: OperationIdentity = {
+    operationId: operation,
+    action: "update",
+    entryId: request.entryId,
+    body: request.body,
+    source: request.source,
+    toolCallId: request.toolCallId,
+  };
+  // A retry is answered from the accepted record before the current entry is
+  // read, so an entry deleted after the call was accepted still returns the
+  // original result instead of an unknown-entry refusal.
+  const duplicate = duplicatePlan(loaded.state, identity);
+  if (duplicate !== undefined) return apply(env, duplicate, carried);
 
+  const entry = findEntry(loaded.state, request.entryId);
+  if (entry === undefined) {
+    return apply(
+      env,
+      { kind: "reject", error: { code: "unknown-entry", message: `no active pin entry #${request.entryId}` } },
+      carried,
+    );
+  }
   return apply(
     env,
-    planUpdate(loaded.state, {
-      operationId: operation,
-      entryId: request.entryId,
-      body: request.body,
-      source: request.source,
-      expectedRevision: request.expectedRevision,
-      toolCallId: request.toolCallId,
-    }),
-    request.carried ?? false,
+    planUpdate(loaded.state, { ...identity, body: request.body, expectedRevision: entry.revision }),
+    carried,
   );
 }
 
 export interface DeleteRequest {
   entryId: number;
   source: PinSource;
-  expectedRevision: number;
   operationId?: number;
   /** Host tool call of an Agent write, which resolves the operation identity. */
   toolCallId?: string;
@@ -341,25 +357,33 @@ export interface DeleteRequest {
   carried?: boolean;
 }
 
-/** Unpin an existing entry. */
+/** Unpin the current entry. */
 export function deletePin(env: PinEnvironment, request: DeleteRequest): OperationOutcome {
   const loaded = load(env);
   if (!loaded.usable) return rejected(loaded);
 
   const operation = operationNumber(env, loaded.state, request);
   if (typeof operation !== "number") return operation;
+  const carried = request.carried ?? false;
+  const identity: OperationIdentity = {
+    operationId: operation,
+    action: "delete",
+    entryId: request.entryId,
+    source: request.source,
+    toolCallId: request.toolCallId,
+  };
+  const duplicate = duplicatePlan(loaded.state, identity);
+  if (duplicate !== undefined) return apply(env, duplicate, carried);
 
-  return apply(
-    env,
-    planDelete(loaded.state, {
-      operationId: operation,
-      entryId: request.entryId,
-      source: request.source,
-      expectedRevision: request.expectedRevision,
-      toolCallId: request.toolCallId,
-    }),
-    request.carried ?? false,
-  );
+  const entry = findEntry(loaded.state, request.entryId);
+  if (entry === undefined) {
+    return apply(
+      env,
+      { kind: "reject", error: { code: "unknown-entry", message: `no active pin entry #${request.entryId}` } },
+      carried,
+    );
+  }
+  return apply(env, planDelete(loaded.state, { ...identity, expectedRevision: entry.revision }), carried);
 }
 
 /**
@@ -368,12 +392,11 @@ export function deletePin(env: PinEnvironment, request: DeleteRequest): Operatio
  * A confirmed write is submitted as a user message, and the host runs that
  * message as a request. The extension reads it here, checks it against the
  * state that exists at that moment, and appends the operation only when the
- * checks pass: the entry exists, the revision still matches, the message was
- * written in this session and pin period, and the branch it was confirmed on is
- * still the branch this request serves. A message carrying an operation that
- * was accepted earlier is a retry of it and appends nothing, and a refusal
- * leaves the journal alone. Each result is reported to the user and carried in
- * the request that consumed it.
+ * checks pass: the entry exists, the message was written in this session and pin
+ * period, and the branch it was confirmed on is still the branch this request
+ * serves. A message carrying an operation that was accepted earlier is a retry
+ * of it and appends nothing, and a refusal leaves the journal alone. Each result
+ * is reported to the user and carried in the request that consumed it.
  *
  * The caller reads the operations and passes the submissions this process made,
  * so only a message that answers a confirmation is applied here and text that
@@ -436,7 +459,6 @@ function acceptRequest(env: PinEnvironment, request: PinRequest): OperationOutco
       entryId: request.entryId,
       body: request.body,
       source: "user",
-      expectedRevision: request.revision,
       operationId: request.operationId,
       carried: true,
     });
@@ -444,7 +466,6 @@ function acceptRequest(env: PinEnvironment, request: PinRequest): OperationOutco
   return deletePin(env, {
     entryId: request.entryId,
     source: "user",
-    expectedRevision: request.revision,
     operationId: request.operationId,
     carried: true,
   });
@@ -460,6 +481,13 @@ export function listPins(env: PinEnvironment): OperationOutcome {
   const loaded = load(env);
   if (!loaded.usable) return rejected(loaded);
   return { ok: true, code: "ok", text: listingText(loaded.state), state: loaded.state };
+}
+
+/** Read every active entry with its complete body. */
+export function showPins(env: PinEnvironment): OperationOutcome {
+  const loaded = load(env);
+  if (!loaded.usable) return rejected(loaded);
+  return { ok: true, code: "ok", text: showText(loaded.state), state: loaded.state };
 }
 
 /** Read one entry with its body. */
