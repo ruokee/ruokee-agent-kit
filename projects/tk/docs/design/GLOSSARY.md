@@ -6,69 +6,59 @@ This glossary includes only terms that have a special meaning in tk, require fix
 
 ## Products
 
-| Term | Chinese form | Meaning |
-| --- | --- | --- |
-| Task | 任务 | A temporary effort within a project that is worth preserving. Creating a Task does not imply a commitment by the user or an Agent to execute or complete it. |
-| Harness | Harness | The software environment around a model that enables it to operate as an Agent, including loops, prompts, context, tools, permissions, and hooks. |
-| Skill | Skill | Agent behavior instructions and reference materials discoverable by a Harness. |
-| Plugin | Plugin | A self-contained component form loaded through a Harness's native Plugin mechanism. |
-| Package | Package | A component form installed and loaded through Pi or OMP's native mechanism. |
-| component | 组件 | A self-contained tk unit assembled and installed for a Harness. |
-| adapter | 适配器 | Code that maps native Pi or OMP tool calls to the public tk process interface. |
-| payload | 载荷 | The self-contained set of files installed from a component archive. |
-| runtime | 运行时 | The fixed user-level `tk` executable and its Rust behavior. |
+- Task: Chinese form `任务`. A temporary effort within a project that is worth preserving. Creating a Task does not imply a commitment by the user or an Agent to execute or complete it.
+- Harness: Chinese form `Harness`. The software environment around a model that enables it to operate as an Agent, including loops, prompts, context, tools, permissions, and hooks.
+- Skill: Chinese form `Skill`. Agent behavior instructions and reference materials discoverable by a Harness.
+- Plugin: Chinese form `Plugin`. A self-contained component form loaded through a Harness's native Plugin mechanism.
+- Package: Chinese form `Package`. A component form installed and loaded through Pi or OMP's native mechanism.
+- component: Chinese form `组件`. A self-contained tk unit assembled and installed for a Harness.
+- adapter: Chinese form `适配器`. Code that maps native Pi or OMP tool calls to the public tk process interface.
+- payload: Chinese form `载荷`. The self-contained set of files installed from a component archive.
+- runtime: Chinese form `运行时`. The fixed user-level `tk` executable and its Rust behavior.
 
 ## Tool contract
 
-| Term | Chinese form | Meaning |
-| --- | --- | --- |
-| logical tool | 逻辑工具 | A transport-independent search, read, create, update, log, or exec operation. |
-| protocol tool name | 协议工具名称 | A tool name in the MCP namespace. |
-| native tool name | 原生工具名称 | A `tk_*` tool name registered by Pi or OMP. |
-| schema type | schema 类型 | The `mcp` or `native` selection used when generating a tool contract. |
-| exact resolution | 精确解析 | Resolving a complete reference to exactly one Task without using search ranking. |
-| actor | 发起者 | WAL call attribution information. It does not represent identity, authorization, or Task assignment. |
-| result envelope | 统一结果 | A structured result containing `ok`, `data`, `warnings`, or `error`. |
-| error code | 错误码 | A stable `code` value used for machine branching. |
+- logical tool: Chinese form `逻辑工具`. A transport-independent search, read, create, update, log, or exec operation.
+- protocol tool name: Chinese form `协议工具名称`. A tool name in the MCP namespace.
+- native tool name: Chinese form `原生工具名称`. A `tk_*` tool name registered by Pi or OMP.
+- schema type: Chinese form `schema 类型`. The `mcp` or `native` selection used when generating a tool contract.
+- exact resolution: Chinese form `精确解析`. Resolving a complete reference to exactly one Task without using search ranking.
+- actor: Chinese form `发起者`. WAL call attribution information. It does not represent identity, authorization, or Task assignment.
+- result envelope: Chinese form `统一结果`. A structured result containing `ok`, `data`, `warnings`, or `error`.
+- error code: Chinese form `错误码`. A stable `code` value used for machine branching.
 
 ## Task data
 
-| Term | Chinese form | Meaning |
-| --- | --- | --- |
-| Task root | 任务根目录 | A configured path within a project that stores a top-level Task tree. |
-| metadata mode | 元数据模式 | The project-wide choice of `split` or `embed`. |
-| metadata representation | 元数据表示 | The physical representation of metadata in split `tk.toml` or embed frontmatter. |
-| metadata carrier | 元数据载体 | The managed `tk.toml` or embed `TASK.md` that stores Task metadata. |
-| frontmatter | frontmatter | The restricted YAML metadata block at the beginning of an embed `TASK.md`. |
-| managed file | 受管文件 | A project file whose format and change rules are governed by tk. |
-| material | 材料 | An ordinary file that supports a Task and is not indexed by the runtime. |
-| lifecycle | 生命周期 | The meanings of planning, open, and closed and the rules for transitions between them. |
-| relation | 关系 | `depends_on` or `related_to`. |
-| WAL | WAL | Ordinary, append-only Markdown activity records stored by day. |
-| schema migration | schema 迁移 | A stepwise forward conversion from one officially released metadata version to another. |
-| representation switch | 表示切换 | A project-wide conversion between split and embed. |
-| rename | 重命名 | Changing a Task's own name, directory, and metadata, and reporting external references. |
+- Task root: Chinese form `任务根目录`. A configured path within a project that stores a top-level Task tree.
+- metadata mode: Chinese form `元数据模式`. The project-wide choice of `split` or `embed`.
+- metadata representation: Chinese form `元数据表示`. The physical representation of metadata in split `tk.toml` or embed frontmatter.
+- metadata carrier: Chinese form `元数据载体`. The managed `tk.toml` or embed `TASK.md` that stores Task metadata.
+- frontmatter: Chinese form `frontmatter`. The restricted YAML metadata block at the beginning of an embed `TASK.md`.
+- managed file: Chinese form `受管文件`. A project file whose format and change rules are governed by tk.
+- material: Chinese form `材料`. An ordinary file that supports a Task and is not indexed by the runtime.
+- lifecycle: Chinese form `生命周期`. The meanings of planning, open, and closed and the rules for transitions between them.
+- relation: Chinese form `关系`. `depends_on` or `related_to`.
+- WAL: Chinese form `WAL`. Ordinary, append-only Markdown activity records stored by day.
+- schema migration: Chinese form `schema 迁移`. A stepwise forward conversion from one officially released metadata version to another.
+- representation switch: Chinese form `表示切换`. A project-wide conversion between split and embed.
+- rename: Chinese form `重命名`. Changing a Task's own name, directory, and metadata, and reporting external references.
 
 ## Operations
 
-| Term | Chinese form | Meaning |
-| --- | --- | --- |
-| atomic replacement | 原子替换 | Replacing one canonical file with a complete temporary file without exposing partial content. |
-| partial commit | 部分提交 | The condition in which some targets have completed when a multi-target operation encounters an error. |
-| cleanup manifest | 清理清单 | A minimal manifest that records only the format version, producer process identity, creation time, and tk temporary paths. |
-| activity marker | 活动操作标记 | A process marker that blocks other write operations during a multi-target project write. |
-| garbage collection | GC | A maintenance operation that identifies and removes tk temporary content and completed activity markers. |
-| runtime compatibility | 运行时兼容范围 | The `runtime_compat` declared by a component and evaluated by Rust. |
-| clean uninstall | 干净卸载 | Restoring a Harness to the state it would have had if tk had never been installed, while preserving all unrelated content. |
+- atomic replacement: Chinese form `原子替换`. Replacing one canonical file with a complete temporary file without exposing partial content.
+- partial commit: Chinese form `部分提交`. The condition in which some targets have completed when a multi-target operation encounters an error.
+- cleanup manifest: Chinese form `清理清单`. A minimal manifest that records only the format version, producer process identity, creation time, and tk temporary paths.
+- activity marker: Chinese form `活动操作标记`. A process marker that blocks other write operations during a multi-target project write.
+- garbage collection: Chinese form `GC`. A maintenance operation that identifies and removes tk temporary content and completed activity markers.
+- runtime compatibility: Chinese form `运行时兼容范围`. The `runtime_compat` declared by a component and evaluated by Rust.
+- clean uninstall: Chinese form `干净卸载`. Restoring a Harness to the state it would have had if tk had never been installed, while preserving all unrelated content.
 
 ## Materials
 
-| Term | Chinese form | Meaning |
-| --- | --- | --- |
-| Records | 记录 | An optional material pattern that preserves the context, actions, evidence, and conclusions of a local date with substantive activity. |
-| Deep research | 深度调研 | An optional material pattern that preserves sources, evidence for key claims, conflicts, the limits of conclusions, and unresolved points. |
-| Iterative design | 迭代设计 | An optional material pattern that keeps each major design revision self-contained and exposes only the current revision as the entry point. |
-| Scratchpad | 草稿纸 | An optional material pattern for temporary ordinary materials that still need retention and are not yet finalized. |
+- Records: Chinese form `记录`. An optional material pattern that preserves the context, actions, evidence, and conclusions of a local date with substantive activity.
+- Deep research: Chinese form `深度调研`. An optional material pattern that preserves sources, evidence for key claims, conflicts, the limits of conclusions, and unresolved points.
+- Iterative design: Chinese form `迭代设计`. An optional material pattern that keeps each major design revision self-contained and exposes only the current revision as the entry point.
+- Scratchpad: Chinese form `草稿纸`. An optional material pattern for temporary ordinary materials that still need retention and are not yet finalized.
 
 ## Fixed Chinese forms
 

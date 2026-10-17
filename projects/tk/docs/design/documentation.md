@@ -19,23 +19,21 @@ Review records, revision numbers, Task paths, and local materials do not appear 
 
 ## Topic ownership
 
-| Page | Owns |
-| --- | --- |
-| Component README | Capability overview and navigation to usage and design documentation |
-| guide | Runtime prerequisites, installation, first use, common workflows, and CLI links |
-| system | Product scope, system components, Task and Harness boundaries, and invariants |
-| data-model | Task schema, representation, discovery, WAL, writes, migration, rename, cleanup, and checks |
-| runtime | Layers, processes, context, failure boundaries, and version dimensions |
-| tool-api | The six tools, requests, results, and stable errors |
-| cli-reference | The complete command tree, arguments, defaults, exit codes, and examples |
-| harnesses | The four current Harness forms, mode and language selections, schemas, adapters, and assembly |
-| installation | Embedded components, installation, updates, clean uninstall, and compatibility |
-| skill | Agent triggers, authorization, Task navigation, WAL, and material handling |
-| validation | Observable acceptance contracts |
-| documentation | Documentation layout, language, and maintenance rules |
-| GLOSSARY | Project-specific terms and fixed translations |
+- Component README: capability overview and navigation to usage and design documentation.
+- guide: runtime prerequisites, installation, first use, common workflows, and CLI links.
+- system: product scope, system components, Task and Harness boundaries, and invariants.
+- data-model: Task schema, representation, discovery, WAL, writes, migration, rename, cleanup, and checks.
+- runtime: layers, processes, context, failure boundaries, and version dimensions.
+- tool-api: the six tools, requests, results, and stable errors.
+- cli-reference: the complete command tree, arguments, defaults, exit codes, and examples.
+- harnesses: the four current Harness forms, mode and language selections, schemas, adapters, and assembly.
+- installation: embedded components, installation, updates, clean uninstall, and compatibility.
+- skill: Agent triggers, authorization, Task navigation, WAL, and material handling.
+- validation: observable acceptance contracts.
+- documentation: documentation layout, language, and maintenance rules.
+- GLOSSARY: project-specific terms and fixed translations.
 
-A behavior's parameter table or algorithm appears only on its primary owning page. Other pages link to it instead of duplicating the contract.
+A behavior's parameters and algorithm appear only on its primary owning page. Other pages link to it instead of duplicating the contract.
 
 ## Wording for the current state
 

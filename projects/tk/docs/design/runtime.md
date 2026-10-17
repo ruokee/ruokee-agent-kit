@@ -6,14 +6,12 @@
 
 The Rust runtime is divided into layers by responsibility:
 
-| Layer | Responsibilities |
-| --- | --- |
-| Interface layer | CLI, MCP, generated tool schemas, and text and JSON output |
-| Application layer | Request orchestration, project and Task resolution, preflight checks, commit ordering, and result aggregation |
-| Domain layer | Task identity, names, lifecycle, relationships, search ranking, and authorization rules |
-| Persistence layer | split/embed decoding and encoding, path safety, atomic replacement, and WAL |
-| Maintenance layer | schema migration, representation switching, rename, check, GC, and component lifecycle |
-| Harness adapters | Native tool mappings for Pi and OMP, with load error isolation |
+- Interface layer: CLI, MCP, generated tool schemas, and text and JSON output.
+- Application layer: request orchestration, project and Task resolution, preflight checks, commit ordering, and result aggregation.
+- Domain layer: Task identity, names, lifecycle, relationships, search ranking, and authorization rules.
+- Persistence layer: split/embed decoding and encoding, path safety, atomic replacement, and WAL.
+- Maintenance layer: schema migration, representation switching, rename, check, GC, and component lifecycle.
+- Harness adapters: native tool mappings for Pi and OMP, with load error isolation.
 
 Dependencies flow from the interface layer to the application and domain layers, then to the persistence layer. Harness adapters depend only on generated contracts and public process interfaces, not on private Rust modules.
 
@@ -104,12 +102,10 @@ Build-time assembly is defined in [Harness integration](./harnesses.md#assembly-
 
 ## Version dimensions
 
-| Version | Meaning |
-| --- | --- |
-| runtime version | Executable package version |
-| CLI contract version | Version of the CLI, MCP, and native tool contracts |
-| Task schema version | Current Task metadata version |
-| component format version | Version of the embedded Harness component and standalone CLI Skill archive format |
-| cleanup manifest version | Version of the minimal cleanup manifest format |
+- runtime version: the executable package version.
+- CLI contract version: the version of the CLI, MCP, and native tool contracts.
+- Task schema version: the current Task metadata version.
+- component format version: the version of the embedded Harness component and standalone CLI Skill archive format.
+- cleanup manifest version: the version of the minimal cleanup manifest format.
 
 `tk --version --output json` uses `runtime_version`, `cli_contract_version`, `task_schema_version`, and `component_format_version`.

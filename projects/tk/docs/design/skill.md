@@ -129,12 +129,10 @@ When user input is genuinely required, explain the effect of each choice clearly
 
 Four patterns organize ordinary Task materials. They are optional, and a Task may combine any of them or use none. Project instructions may extend or override their default paths.
 
-| Pattern | Suggest when | Default materials |
-| --- | --- | --- |
-| Records | Substantive investigation, implementation, validation, or decision work has occurred on a second local calendar date | `records/YYYY-MM-DD-topic.md` |
-| Deep research | Work needs collecting, retaining, or cross-checking external sources, or a source list and source materials already exist | `research/report.md`, `research/README.md` |
-| Iterative design | Two or more major redesigns have replaced earlier approaches, an earlier design was discarded as a whole, or the main boundaries keep changing | `revision_<N>/README.md` and materials within that revision |
-| Scratchpad | Unfinished fragments, notes, output, small scripts, or other temporary files need a persistent place | Files and subdirectories under `scratchpad/` |
+- Records: suggest when substantive investigation, implementation, validation, or decision work has occurred on a second local calendar date. Default materials: `records/YYYY-MM-DD-topic.md`.
+- Deep research: suggest when work needs collecting, retaining, or cross-checking external sources, or a source list and source materials already exist. Default materials: `research/report.md`, `research/README.md`.
+- Iterative design: suggest when two or more major redesigns have replaced earlier approaches, an earlier design was discarded as a whole, or the main boundaries keep changing. Default materials: `revision_<N>/README.md` and materials within that revision.
+- Scratchpad: suggest when unfinished fragments, notes, output, small scripts, or other temporary files need a persistent place. Default materials: files and subdirectories under `scratchpad/`.
 
 Each signal also has its counterexamples: same-day tasks and plans to continue later do not call for Records; reading one known document or answering an ordinary API question does not call for Deep research; incremental additions, wording changes, and ordinary review corrections do not create a new revision; and a brief exchange that needs no retention does not call for a Scratchpad.
 

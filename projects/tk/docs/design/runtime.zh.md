@@ -6,14 +6,12 @@
 
 Rust 运行时按职责分层：
 
-| 层 | 负责 |
-| --- | --- |
-| 接入层 | CLI、MCP、生成的工具 schema、文本与 JSON 输出 |
-| 应用层 | 请求编排、项目和任务定位、预检、提交顺序和结果汇总 |
-| 领域层 | 任务身份、名称、生命周期、关系、搜索等级和授权规则 |
-| 持久化层 | split/embed 解码编码、路径安全、原子替换和 WAL |
-| 维护层 | schema 迁移、表示切换、rename、check、GC 和组件生命周期 |
-| Harness 适配器 | Pi 和 OMP 的原生工具映射与加载错误隔离 |
+- 接入层：CLI、MCP、生成的工具 schema、文本与 JSON 输出。
+- 应用层：请求编排、项目和任务定位、预检、提交顺序和结果汇总。
+- 领域层：任务身份、名称、生命周期、关系、搜索等级和授权规则。
+- 持久化层：split/embed 解码编码、路径安全、原子替换和 WAL。
+- 维护层：schema 迁移、表示切换、rename、check、GC 和组件生命周期。
+- Harness 适配器：Pi 和 OMP 的原生工具映射与加载错误隔离。
 
 依赖方向从接入层指向应用与领域层，再指向持久化。Harness 适配器只依赖生成合同和公开进程接口，不依赖 Rust 私有模块。
 
@@ -104,12 +102,10 @@ Linux 上的固定运行时和 Harness 官方命令必须：
 
 ## 版本维度
 
-| 版本 | 含义 |
-| --- | --- |
-| runtime version | 可执行文件包版本 |
-| CLI contract version | CLI、MCP 和原生工具合同版本 |
-| Task schema version | 当前任务元数据版本 |
-| component format version | 内嵌 Harness 组件与独立 CLI Skill 归档格式版本 |
-| cleanup manifest version | 最小清理清单格式版本 |
+- runtime version：可执行文件包版本。
+- CLI contract version：CLI、MCP 和原生工具合同版本。
+- Task schema version：当前任务元数据版本。
+- component format version：内嵌 Harness 组件与独立 CLI Skill 归档格式版本。
+- cleanup manifest version：最小清理清单格式版本。
 
 `tk --version --output json` 使用 `runtime_version`、`cli_contract_version`、`task_schema_version` 和 `component_format_version`。

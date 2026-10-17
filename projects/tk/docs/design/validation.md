@@ -180,12 +180,10 @@ Custom-root tests cover both standalone languages, relative and absolute roots, 
 
 ## Real Harness validation
 
-| Harness | Required validation |
-| --- | --- |
-| Codex | Real installation, loading, and uninstallation in an isolated environment |
-| Claude Code | Real installation, loading, and uninstallation in an isolated environment |
-| Pi | Real installation, loading, and uninstallation in an isolated environment |
-| OMP | Real installation, loading, one real tool call, and uninstallation in an isolated environment |
+- Codex: real installation, loading, and uninstallation in an isolated environment.
+- Claude Code: real installation, loading, and uninstallation in an isolated environment.
+- Pi: real installation, loading, and uninstallation in an isolated environment.
+- OMP: real installation, loading, one real tool call, and uninstallation in an isolated environment.
 
 Each Harness validates all four mode and language selections. OMP tools mode additionally performs the real operation call shown above.
 

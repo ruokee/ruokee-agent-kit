@@ -23,11 +23,9 @@ Rust generates the MCP and native schema from the same request types. A Harness 
 
 The following fields appear as required by each tool:
 
-| Field | Type | Contract |
-| --- | --- | --- |
-| `cwd` | Optional path | Starting point for project discovery; relative values resolve against the runtime process directory |
-| `harness` | Optional enum | Diagnostic context; not persisted |
-| Cancellation | Transport signal | Honored before the first write and between multi-target commit points |
+- `cwd`: optional path. Starting point for project discovery; relative values resolve against the runtime process directory.
+- `harness`: optional enum. Diagnostic context; not persisted.
+- Cancellation: a transport signal. Honored before the first write and between multi-target commit points.
 
 actor is not a common context field. It appears only in update, log, and exec rename requests that append to the WAL.
 
@@ -117,15 +115,13 @@ The `details` for `partial_commit` must include `completed`, `uncompleted`, and 
 
 Request:
 
-| Field | Type | Default | Contract |
-| --- | --- | --- | --- |
-| `query` | Non-empty string | Required | UUID, Task path, material path, name, or text |
-| `regex` | Boolean | `false` | Explicitly interpret plain text as a Rust regular expression |
-| `search_body` | Boolean | `false` | Include the Task body in string or regular expression matching |
-| `status` | Status array | All statuses | A non-empty array narrows results to the specified statuses |
-| `extra` | Object | Empty | Top-level values are combined with AND and compared by full value |
-| `limit` | Integer | 20 | 1 to 100 |
-| `cwd` | Path | Common default | Starting point for project discovery |
+- `query`: non-empty string, required. A UUID, Task path, material path, name, or text.
+- `regex`: boolean, default `false`. Explicitly interpret plain text as a Rust regular expression.
+- `search_body`: boolean, default `false`. Include the Task body in string or regular expression matching.
+- `status`: status array, default all statuses. A non-empty array narrows results to the specified statuses.
+- `extra`: object, default empty. Top-level values are combined with AND and compared by full value.
+- `limit`: integer, default 20. Accepts 1 to 100.
+- `cwd`: path, common default. Starting point for project discovery.
 
 The query type is determined once in this order:
 
@@ -144,13 +140,11 @@ The discovery graph may contain every valid Task in the project. Search retains 
 
 Request:
 
-| Field | Default | Contract |
-| --- | --- | --- |
-| `task_ref` | Required | Exact reference |
-| `view` | `summary` | `minimal`, `summary`, or `detailed` |
-| `wal_max_entries` | 5 for summary; 50 for detailed | 0 to 50; unused by minimal |
-| `wal_max_length` | 4000 for summary; 16000 for detailed | 0 to 16000 bytes; unused by minimal |
-| `cwd` | Common default | Project resolution |
+- `task_ref`: required. An exact reference.
+- `view`: default `summary`. `minimal`, `summary`, or `detailed`.
+- `wal_max_entries`: default 5 for summary and 50 for detailed. Accepts 0 to 50; unused by minimal.
+- `wal_max_length`: default 4000 for summary and 16000 for detailed. Accepts 0 to 16000 bytes; unused by minimal.
+- `cwd`: common default. Project resolution.
 
 `minimal` returns metadata and managed paths without reading the Task body or WAL. `summary` returns the complete current body and recent WAL entries containing `timestamp`, `actor`, and `message`. `detailed` returns the same Task information and adds each available WAL `body`.
 
@@ -164,17 +158,15 @@ Like every tool input schema, the create union declares `type: "object"` at its 
 
 Top-level branch:
 
-| Field | Default | Contract |
-| --- | --- | --- |
-| `type` | Required | `task` |
-| `name` | Required | Canonicalizable name |
-| `status` | `open` | `planning` or `open` |
-| `created_at` | Current time | Provide explicitly only when the original time is known |
-| `depends_on` | Empty | Set of same-root UUIDs |
-| `related_to` | Empty | Set of same-root UUIDs |
-| `extra` | Empty | Structured additional values |
-| `user_confirmed` | `false` | Whether the current conversation explicitly authorizes top-level creation |
-| `cwd` | Common default | Project resolution |
+- `type`: required. `task`.
+- `name`: required. A canonicalizable name.
+- `status`: default `open`. `planning` or `open`.
+- `created_at`: default the current time. Provide it explicitly only when the original time is known.
+- `depends_on`: default empty. Set of same-root UUIDs.
+- `related_to`: default empty. Set of same-root UUIDs.
+- `extra`: default empty. Structured additional values.
+- `user_confirmed`: default `false`. Whether the current conversation explicitly authorizes top-level creation.
+- `cwd`: common default. Project resolution.
 
 strict projects require `user_confirmed=true`. permissive projects allow work worth persisting to be created when it is `false`. The calling Agent selects planning or open based on context and reports the creation result.
 
@@ -182,13 +174,11 @@ Create requests accept no body input; the [creation body](./data-model.md#creati
 
 Child Task branch:
 
-| Field | Contract |
-| --- | --- |
-| `type` | `subtasks` |
-| `parent_ref` | Exact, non-closed parent Task |
-| `subtasks` | 1 to 50 items, each carrying `name`, optional `status` (default `open`), optional `created_at`, `depends_on`, `related_to`, and `extra`; items accept no body field |
-| `user_confirmed` | Current conversation authorization for planning child Tasks; defaults to `false` |
-| `cwd` | Project resolution |
+- `type`: `subtasks`.
+- `parent_ref`: an exact, non-closed parent Task.
+- `subtasks`: 1 to 50 items, each carrying `name`, optional `status` (default `open`), optional `created_at`, `depends_on`, `related_to`, and `extra`; items accept no body field.
+- `user_confirmed`: current conversation authorization for planning child Tasks; defaults to `false`.
+- `cwd`: project resolution.
 
 Open child Tasks do not require new top-level authorization. A batch containing a planning child requires `user_confirmed=true`. All validation completes before the first write in the batch. New children use `NN--slug` under the configured creation directory. Numbering uses all discovered direct children with generated leaf names, takes the largest sequence without filling gaps, and stops at `99`. If creation partially fails, the result returns the created and uncreated items. A retry matches discovered direct children only against the request fields create owns (`name`, `status`, `created_at` when supplied, `depends_on`, `related_to`, `extra`); the body never participates in matching.
 
@@ -196,14 +186,12 @@ Open child Tasks do not require new top-level authorization. A batch containing 
 
 update modifies relationships, `extra`, and at most one lifecycle action:
 
-| Field group | Contract |
-| --- | --- |
-| Target | `task_ref`, `cwd` |
-| Relationships | `depends_on_add/remove`, `related_to_add/remove` |
-| extra | `extra_set`, `extra_remove`, processing top-level keys only |
-| Lifecycle | At most one of `start`, `close`, or `reopen` |
-| Lifecycle parameters | close/reopen require a non-empty `reason` and `user_confirmed=true`; close may use `force` |
-| WAL | Optional `actor`, defaulting to the actor of the calling channel |
+- Target: `task_ref`, `cwd`.
+- Relationships: `depends_on_add/remove`, `related_to_add/remove`.
+- extra: `extra_set`, `extra_remove`, processing top-level keys only.
+- Lifecycle: at most one of `start`, `close`, or `reopen`.
+- Lifecycle parameters: close and reopen require a non-empty `reason` and `user_confirmed=true`; close may use `force`.
+- WAL: optional `actor`, defaulting to the actor of the calling channel.
 
 An empty request or a request with no net result change returns `changed:false`. The runtime automatically appends to the WAL after committing metadata. An append failure is returned as a warning.
 
@@ -215,11 +203,9 @@ A log request contains `task_ref`, a non-empty single-line `message`, an optiona
 
 exec is a low-frequency administrative entry point:
 
-| Field | Contract |
-| --- | --- |
-| `argv` | Non-empty string array whose first item may only be `--version`, `init`, `check`, or `rename` |
-| `cwd` | Command context |
-| `actor` | Allowed only when the first item is `rename` |
+- `argv`: a non-empty string array whose first item may only be `--version`, `init`, `check`, or `rename`.
+- `cwd`: command context.
+- `actor`: allowed only when the first item is `rename`.
 
 exec invokes the public command parser directly from argv without using a shell. It rejects search, read, create, update, log, mcp, schema, metadata, gc, install, uninstall, and any other first item.
 

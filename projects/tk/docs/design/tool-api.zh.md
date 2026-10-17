@@ -23,11 +23,9 @@ Rust 从同一组请求类型生成 MCP 和 native schema。Harness 不能增加
 
 以下字段按工具需要出现：
 
-| 字段 | 类型 | 合同 |
-| --- | --- | --- |
-| `cwd` | 可选路径 | 项目发现起点；相对值基于运行时进程目录解析 |
-| `harness` | 可选枚举 | 诊断上下文，不持久化 |
-| 取消 | 传输信号 | 在首次写入前和多目标提交点之间响应 |
+- `cwd`：可选路径。项目发现起点；相对值基于运行时进程目录解析。
+- `harness`：可选枚举。诊断上下文，不持久化。
+- 取消：一种传输信号。在首次写入前和多目标提交点之间响应。
 
 actor 不是公共上下文字段。它只出现在会追加 WAL 的 update、log 和 exec rename 请求中。
 
@@ -117,15 +115,13 @@ cwd 选择顺序是请求显式值、Harness 会话目录、运行时进程目�
 
 请求：
 
-| 字段 | 类型 | 默认值 | 合同 |
-| --- | --- | --- | --- |
-| `query` | 非空字符串 | 必填 | UUID、任务路径、材料路径、名称或文本 |
-| `regex` | 布尔值 | `false` | 显式把普通文本解释为 Rust 正则表达式 |
-| `search_body` | 布尔值 | `false` | 字符串或正则匹配时包含任务正文 |
-| `status` | 状态数组 | 全部状态 | 非空数组缩小到指定状态 |
-| `extra` | 对象 | 空 | 顶层值以 AND 组合并按完整值比较 |
-| `limit` | 整数 | 20 | 1 到 100 |
-| `cwd` | 路径 | 公共默认 | 项目发现起点 |
+- `query`：非空字符串，必填。UUID、任务路径、材料路径、名称或文本。
+- `regex`：布尔值，默认 `false`。显式把普通文本解释为 Rust 正则表达式。
+- `search_body`：布尔值，默认 `false`。字符串或正则匹配时包含任务正文。
+- `status`：状态数组，默认全部状态。非空数组缩小到指定状态。
+- `extra`：对象，默认为空。顶层值以 AND 组合并按完整值比较。
+- `limit`：整数，默认 20。取值 1 到 100。
+- `cwd`：路径，公共默认。项目发现起点。
 
 查询类型按以下顺序一次确定：
 
@@ -144,13 +140,11 @@ cwd 选择顺序是请求显式值、Harness 会话目录、运行时进程目�
 
 请求：
 
-| 字段 | 默认值 | 合同 |
-| --- | --- | --- |
-| `task_ref` | 必填 | 精确引用 |
-| `view` | `summary` | `minimal`、`summary` 或 `detailed` |
-| `wal_max_entries` | summary 为 5；detailed 为 50 | 0 到 50；minimal 不使用 |
-| `wal_max_length` | summary 为 4000；detailed 为 16000 | 0 到 16000 字节；minimal 不使用 |
-| `cwd` | 公共默认 | 项目解析 |
+- `task_ref`：必填。精确引用。
+- `view`：默认 `summary`。`minimal`、`summary` 或 `detailed`。
+- `wal_max_entries`：默认 summary 为 5、detailed 为 50。取值 0 到 50；minimal 不使用。
+- `wal_max_length`：默认 summary 为 4000、detailed 为 16000。取值 0 到 16000 字节；minimal 不使用。
+- `cwd`：公共默认。项目解析。
 
 `minimal` 返回元数据和受管路径，不读取任务正文或 WAL。`summary` 返回完整的当前正文，以及包含 `timestamp`、`actor` 和 `message` 的最近 WAL 条目。`detailed` 返回相同的任务信息，并增加存在的 WAL `body`。
 
@@ -164,17 +158,15 @@ create 使用 `oneOf` 区分顶层任务和子任务批次。
 
 顶层分支：
 
-| 字段 | 默认值 | 合同 |
-| --- | --- | --- |
-| `type` | 必填 | `task` |
-| `name` | 必填 | 可规范化名称 |
-| `status` | `open` | `planning` 或 `open` |
-| `created_at` | 当前时间 | 只在已知原始时间时显式提供 |
-| `depends_on` | 空 | 同根 UUID 集合 |
-| `related_to` | 空 | 同根 UUID 集合 |
-| `extra` | 空 | 结构化附加值 |
-| `user_confirmed` | `false` | 当前对话是否明确授权顶层创建 |
-| `cwd` | 公共默认 | 项目解析 |
+- `type`：必填。`task`。
+- `name`：必填。可规范化名称。
+- `status`：默认 `open`。`planning` 或 `open`。
+- `created_at`：默认当前时间。只在已知原始时间时显式提供。
+- `depends_on`：默认为空。同根 UUID 集合。
+- `related_to`：默认为空。同根 UUID 集合。
+- `extra`：默认为空。结构化附加值。
+- `user_confirmed`：默认 `false`。当前对话是否明确授权顶层创建。
+- `cwd`：公共默认。项目解析。
 
 strict 项目要求 `user_confirmed=true`。permissive 项目允许值得持久保存的工作在 `false` 时创建，调用 Agent 负责根据语境选择 planning 或 open 并报告创建结果。
 
@@ -182,13 +174,11 @@ create 请求不接受正文输入；生成标题的规则见[创建正文](./da
 
 子任务分支：
 
-| 字段 | 合同 |
-| --- | --- |
-| `type` | `subtasks` |
-| `parent_ref` | 精确、非 closed 父任务 |
-| `subtasks` | 1 到 50 项，每项携带 `name`、可选 `status`（默认 `open`）、可选 `created_at`、`depends_on`、`related_to` 和 `extra`；item 不接受正文字段 |
-| `user_confirmed` | 当前对话是否明确授权创建 planning 子任务，默认 `false` |
-| `cwd` | 项目解析 |
+- `type`：`subtasks`。
+- `parent_ref`：精确、非 closed 父任务。
+- `subtasks`：1 到 50 项，每项携带 `name`、可选 `status`（默认 `open`）、可选 `created_at`、`depends_on`、`related_to` 和 `extra`；item 不接受正文字段。
+- `user_confirmed`：当前对话是否明确授权创建 planning 子任务，默认 `false`。
+- `cwd`：项目解析。
 
 创建 open 子任务不需要新的顶层授权。批次只要包含 planning 子任务，就要求 `user_confirmed=true`。首次写入前完成全部校验。新子任务在配置的创建目录下使用 `NN--slug`。编号统计所有叶子目录使用生成式名称的已发现直接子任务，取最大序号且不填补空洞，最大为 `99`。部分创建失败时返回已创建和未创建项。重试只把已发现直接子任务与 create 拥有的请求字段（`name`、`status`、显式提供的 `created_at`、`depends_on`、`related_to`、`extra`）匹配；正文不参与匹配。
 
@@ -196,14 +186,12 @@ create 请求不接受正文输入；生成标题的规则见[创建正文](./da
 
 update 修改关系、`extra` 和至多一个生命周期动作：
 
-| 字段组 | 合同 |
-| --- | --- |
-| 目标 | `task_ref`、`cwd` |
-| 关系 | `depends_on_add/remove`、`related_to_add/remove` |
-| extra | `extra_set`、`extra_remove`，只处理顶层键 |
-| 生命周期 | `start`、`close` 或 `reopen` 至多一个 |
-| 生命周期参数 | close/reopen 需要非空 `reason` 和 `user_confirmed=true`；close 可用 `force` |
-| WAL | 可选 `actor`，默认为调用通道的 actor |
+- 目标：`task_ref`、`cwd`。
+- 关系：`depends_on_add/remove`、`related_to_add/remove`。
+- extra：`extra_set`、`extra_remove`，只处理顶层键。
+- 生命周期：`start`、`close` 或 `reopen` 至多一个。
+- 生命周期参数：close 和 reopen 需要非空 `reason` 和 `user_confirmed=true`；close 可用 `force`。
+- WAL：可选 `actor`，默认为调用通道的 actor。
 
 空请求或净结果无变化返回 `changed:false`。元数据提交后自动追加 WAL，追加失败以警告返回。
 
@@ -215,11 +203,9 @@ log 请求包含 `task_ref`、非空单行 `message`、可选 Markdown `body`、
 
 exec 是低频管理入口：
 
-| 字段 | 合同 |
-| --- | --- |
-| `argv` | 非空字符串数组，首项只能是 `--version`、`init`、`check` 或 `rename` |
-| `cwd` | 命令上下文 |
-| `actor` | 只在首项为 `rename` 时允许 |
+- `argv`：非空字符串数组，首项只能是 `--version`、`init`、`check` 或 `rename`。
+- `cwd`：命令上下文。
+- `actor`：只在首项为 `rename` 时允许。
 
 exec 直接从 argv 调用公开命令解析器，不经过 shell。它拒绝 search、read、create、update、log、mcp、schema、metadata、gc、install、uninstall 和其他首项。
 
