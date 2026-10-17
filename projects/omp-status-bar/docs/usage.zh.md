@@ -59,12 +59,10 @@ statuses:
 
 ### 顶层字段
 
-| 字段 | 必填 | 合同 |
-| --- | --- | --- |
-| `version` | 是 | 当前只接受整数 `1` |
-| `separator` | 否 | `space`、`slash`、`dot`、`pipe`，默认 `slash` |
-| `tight` | 否 | `false` 在非空输出前加一个 ASCII 空格，`true` 则不加；默认 `false` |
-| `statuses` | 是 | 有序数组，同时表达启用项和显示顺序 |
+- `version`：必填。当前只接受整数 `1`。
+- `separator`：可选。`space`、`slash`、`dot` 或 `pipe`，默认 `slash`。
+- `tight`：可选。`false` 在非空输出前加一个 ASCII 空格，`true` 则不加；默认 `false`。
+- `statuses`：必填。有序数组，同时表达启用项和显示顺序。
 
 不设置 Package 自己的 `enabled` 字段，整体启用和停用由 OMP Plugin 管理。
 

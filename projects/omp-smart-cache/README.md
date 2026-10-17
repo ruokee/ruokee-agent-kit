@@ -30,12 +30,10 @@ omp plugin config set @ruokee/omp-smart-cache compactionCacheEnabled true
 omp plugin config set @ruokee/omp-smart-cache handoffCacheEnabled true
 ```
 
-| Key | Default | Accepted | Effect |
-| --- | --- | --- | --- |
-| `compactionCacheEnabled` | `false` | boolean | Enable remote alignment. |
-| `compactionCacheProvider` | `""` | string | Exact configured Provider name. An empty value keeps alignment unavailable. |
-| `compactionCacheMode` | `"hooks"` | `standard`, `hooks` | Select the remote reuse contract. Enabling remote alignment takes the switch and the exact Provider name. |
-| `handoffCacheEnabled` | `false` | boolean | Enable Handoff alignment. It takes this switch alone, with no Provider name and no mode. |
+- `compactionCacheEnabled`: default `false`, accepts a boolean. Enable remote alignment.
+- `compactionCacheProvider`: default `""`, accepts a string. Exact configured Provider name. An empty value keeps alignment unavailable.
+- `compactionCacheMode`: default `"hooks"`, accepts `standard` or `hooks`. Select the remote reuse contract. Enabling remote alignment takes the switch and the exact Provider name.
+- `handoffCacheEnabled`: default `false`, accepts a boolean. Enable Handoff alignment. It takes this switch alone, with no Provider name and no mode.
 
 OMP merges project overrides over user settings. It reads and validates the settings once for each activation, so restart OMP after a change; navigation does not refresh the snapshot, and a child uses its own actual model, tools, prompt, and session identities. A missing key takes its default. An explicit `null`, a wrong type, or an unknown key makes the affected capability unavailable, and it fails the remote capability alone when the value belongs to a remote key; an unsupported mode fails remote alignment the same way. The diagnostic reports a fixed reason without printing the rejected value. [Design](./docs/design.md#modes) describes the two remote modes.
 
@@ -57,14 +55,12 @@ Handoff alignment supports `openai-completions` and `openai-responses` sessions.
 
 `/smart-cache` starts no model turn. It reports each capability in its own section: the remote section keeps its wording and fields, and Handoff adds its own state, staged reasons, and bounded counters. The states below describe both sections:
 
-| State | Meaning |
-| --- | --- |
-| `disabled` | The explicit switch is off. |
-| `unavailable` | Configuration, interface, identity, or wrapper ownership is unusable. |
-| `awaiting-reference` | No confirmed ordinary reference is ready for a new operation. |
-| `already-aligned` | The valid candidate matches the native body, so nothing is reserialized. |
-| `rewritten` | A complete validated candidate was delegated. |
-| `rejected` | Proof failed, so the target was delegated unchanged. |
+- `disabled`: the explicit switch is off.
+- `unavailable`: configuration, interface, identity, or wrapper ownership is unusable.
+- `awaiting-reference`: no confirmed ordinary reference is ready for a new operation.
+- `already-aligned`: the valid candidate matches the native body, so nothing is reserialized.
+- `rewritten`: a complete validated candidate was delegated.
+- `rejected`: proof failed, so the target was delegated unchanged.
 
 Separate fields report online confirmation, operation binding, candidate validation, and sending. Local dispatch, operation, and reference numbers are session-local counters. Logical operations, physical sends, retries, rewrites, and refusals are counted separately with bounded counters, and refusals stay in the total. The report carries states and bounded counters, and it is the package's only output. Message bodies, opaque bytes, credentials, raw endpoints, and private paths stay in the session, and configuration comes only from the native settings above.
 

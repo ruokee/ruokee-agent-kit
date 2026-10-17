@@ -30,12 +30,10 @@ omp plugin config set @ruokee/omp-smart-cache compactionCacheEnabled true
 omp plugin config set @ruokee/omp-smart-cache handoffCacheEnabled true
 ```
 
-| 设置 | 默认值 | 接受值 | 作用 |
-| --- | --- | --- | --- |
-| `compactionCacheEnabled` | `false` | boolean | 启用远端对齐。 |
-| `compactionCacheProvider` | `""` | string | 已配置 Provider 的精确名称，空值保持不可用。 |
-| `compactionCacheMode` | `"hooks"` | `standard`、`hooks` | 选择远端复用合同；启用远端对齐还需要开关和精确的 Provider 名称。 |
-| `handoffCacheEnabled` | `false` | boolean | 启用 Handoff 对齐。只需要本开关，不需要 Provider 名称和模式。 |
+- `compactionCacheEnabled`：默认 `false`，取值 boolean。启用远端对齐。
+- `compactionCacheProvider`：默认 `""`，取值 string。已配置 Provider 的精确名称，空值保持不可用。
+- `compactionCacheMode`：默认 `"hooks"`，取值 `standard` 或 `hooks`。选择远端复用合同；启用远端对齐还需要开关和精确的 Provider 名称。
+- `handoffCacheEnabled`：默认 `false`，取值 boolean。启用 Handoff 对齐。只需要本开关，不需要 Provider 名称和模式。
 
 OMP 将项目覆盖合并到用户设置之上。每次激活只读取和验证一次设置，修改后需要重启 OMP；导航不刷新快照，子会话使用自己的实际模型、工具、提示词和会话身份。缺失键采用默认值。显式 `null`、错误类型或未知键会使受影响的能力不可用，值属于远端键时只影响远端能力，不受支持的模式同样只使远端对齐不可用。诊断只报告固定原因，不输出被拒绝的值。两个远端模式的说明见[设计](./docs/design.zh.md#模式)。
 
@@ -55,16 +53,14 @@ Handoff 依据当前会话生成文档或摘要，并把这项工作作为副请
 
 ## 状态
 
-`/smart-cache` 不启动模型 turn，按能力分段报告：远端段保持原有措辞与字段，Handoff 段给出自己的状态、分阶段原因和有界计数。下表描述两段的共同状态：
+`/smart-cache` 不启动模型 turn，按能力分段报告：远端段保持原有措辞与字段，Handoff 段给出自己的状态、分阶段原因和有界计数。以下状态为两段共有：
 
-| 状态 | 含义 |
-| --- | --- |
-| `disabled` | 显式开关关闭。 |
-| `unavailable` | 配置、接口、身份或包装所有权不可用。 |
-| `awaiting-reference` | 新操作尚无可用的已确认普通参照。 |
-| `already-aligned` | 有效候选与原生正文一致，不重新序列化。 |
-| `rewritten` | 已委派完整验证后的候选。 |
-| `rejected` | 证明失败，目标原样委派。 |
+- `disabled`：显式开关关闭。
+- `unavailable`：配置、接口、身份或包装所有权不可用。
+- `awaiting-reference`：新操作尚无可用的已确认普通参照。
+- `already-aligned`：有效候选与原生正文一致，不重新序列化。
+- `rewritten`：已委派完整验证后的候选。
+- `rejected`：证明失败，目标原样委派。
 
 分别显示在线确认、操作绑定、候选验证和发送阶段。局部 dispatch、operation、reference 编号是会话内计数器。逻辑操作、物理发送、重试、改写和拒绝分别使用有界计数，拒绝仍计入总数。报告只包含状态与有界计数，是本包唯一的输出。消息正文、opaque 字节、凭据、原始端点与私密路径保留在会话中，配置只来自上面的原生设置。
 

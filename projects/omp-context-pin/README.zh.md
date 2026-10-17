@@ -36,13 +36,11 @@
 
 Agent 入口是 `ctx_pin` 工具的五个动作：
 
-| 动作 | 输入 | 效果 |
-| --- | --- | --- |
-| `list` | 无 | 每个条目的 id、来源、revision 与大小，不含正文 |
-| `get` | `id` | 返回一段完整正文及其 id、来源、revision 和 UTF-8 字节数 |
-| `create` | `content` | 固定一段新正文 |
-| `update` | `id`、`content`、`expectedRevision` | 替换正文 |
-| `delete` | `id`、`expectedRevision` | 取消固定 |
+- `list`：不接受输入。报告每个条目的 id、来源、revision 与大小，不含正文。
+- `get`：取 `id`。返回一段完整正文及其 id、来源、revision 和 UTF-8 字节数。
+- `create`：取 `content`。固定一段新正文。
+- `update`：取 `id`、`content` 与 `expectedRevision`。替换正文。
+- `delete`：取 `id` 与 `expectedRevision`。取消固定。
 
 `id` 参数取列表和回执上显示的整数，不接受数字字符串，也没有任何动作会隐式插入或通过改名创建。
 
@@ -72,16 +70,14 @@ Agent 的 `create`、`update` 和 `delete` 会追加操作记录，并以同样�
 
 会话日志中的操作记录是权威状态。每条记录是自定义类型为 `omp-context-pin` 的一条日志条目，载荷如下：
 
-| 字段 | 取值 |
-| --- | --- |
-| `schemaVersion` | `2`，本组件读写的载荷版本 |
-| `operationId` | 一次用户提交或一次 Agent 写入调用的正整数，其重试沿用该编号；仅供内部使用，任何消息、列表或结果都不显示它 |
-| `action` | `create`、`update` 或 `delete` |
-| `entryId` | 创建时分配的正整数，在该会话中永不复用 |
-| `revision` | 从 1 开始，每次被接受的 `update` 或 `delete` 加一 |
-| `body` | `create` 与 `update` 的完整新正文，`delete` 没有正文 |
-| `source` | `user` 或 `agent` |
-| `toolCallId` | 产生该记录的 Agent 调用的宿主工具调用 id，用于解析其重试 |
+- `schemaVersion`：`2`，本组件读写的载荷版本。
+- `operationId`：一次用户提交或一次 Agent 写入调用的正整数，其重试沿用该编号；仅供内部使用，任何消息、列表或结果都不显示它。
+- `action`：`create`、`update` 或 `delete`。
+- `entryId`：创建时分配的正整数，在该会话中永不复用。
+- `revision`：从 1 开始，每次被接受的 `update` 或 `delete` 加一。
+- `body`：`create` 与 `update` 的完整新正文，`delete` 没有正文。
+- `source`：`user` 或 `agent`。
+- `toolCallId`：产生该记录的 Agent 调用的宿主工具调用 id，用于解析其重试。
 
 `list`、`get`、被拒绝的写入和没有实际变化的写入都不追加记录。
 

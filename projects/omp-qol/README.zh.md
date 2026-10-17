@@ -8,14 +8,12 @@
 
 ## 调整项
 
-| 调整项 | 默认 | 效果 |
-| --- | --- | --- |
-| [持续等待](./docs/adjustments.zh.md#持续等待) | 开 | `wait` 调用在全部任务仍运行的快照之间持续到同一个总期限，默认 20 分钟，而不是每个空的原生窗口都返回。 |
-| [上游错误后续跑](./docs/adjustments.zh.md#上游错误后续跑) | 开 | 以可续跑的上游错误结束的轮次在同一会话内继续，首次等待 1 秒并按倍增延长至上限 8 秒，每条失败链最多 8 次续跑。可续跑的判据包括：分类器判定为瞬时或超时、宿主标记为流中途中断，以及既无状态也无分类结论的错误。 |
-| [延长单个压缩期限](./docs/adjustments.zh.md#延长单个压缩期限) | **关** | 在一个压缩窗口内，命中的 `AbortSignal.timeout` 调用获得更长期限，使超过原生 5 分钟的远端压缩不被中断。进程级生效，实验性质。 |
-| [补记压缩请求用量](./docs/adjustments.zh.md#补记压缩请求用量) | 开 | 每个完成的 `soft` 摘要请求与 `handoff` 请求都会作为 `model_usage` 条目写入会话文件，带提供方的 token 数与分项成本，会话统计因此计入这些请求的开销。进程级生效；宿主自己记录这些请求时该项保持不生效。 |
-| [恢复会话时沿用原生历史](./docs/adjustments.zh.md#恢复会话时沿用原生历史) | 开 | 恢复会话的首次请求沿用上一个进程结束时的原生提供方条目，而不是按通用内容重建对话，使基于该形式的提示缓存可以服务这次请求。进程级生效，只设置一个标志，不改写请求体。 |
-| [模型提示词规则](#模型提示词规则) | **关** | 向每个受覆盖 turn 的系统提示词追加命中的用户 Markdown 正文，无需模板或其他组件。 |
+- [持续等待](./docs/adjustments.zh.md#持续等待)：默认开启。`wait` 调用在全部任务仍运行的快照之间持续到同一个总期限，默认 20 分钟，而不是每个空的原生窗口都返回。
+- [上游错误后续跑](./docs/adjustments.zh.md#上游错误后续跑)：默认开启。以可续跑的上游错误结束的轮次在同一会话内继续，首次等待 1 秒并按倍增延长至上限 8 秒，每条失败链最多 8 次续跑。可续跑的判据包括：分类器判定为瞬时或超时、宿主标记为流中途中断，以及既无状态也无分类结论的错误。
+- [延长单个压缩期限](./docs/adjustments.zh.md#延长单个压缩期限)：默认**关闭**。在一个压缩窗口内，命中的 `AbortSignal.timeout` 调用获得更长期限，使超过原生 5 分钟的远端压缩不被中断。进程级生效，实验性质。
+- [补记压缩请求用量](./docs/adjustments.zh.md#补记压缩请求用量)：默认开启。每个完成的 `soft` 摘要请求与 `handoff` 请求都会作为 `model_usage` 条目写入会话文件，带提供方的 token 数与分项成本，会话统计因此计入这些请求的开销。进程级生效；宿主自己记录这些请求时该项保持不生效。
+- [恢复会话时沿用原生历史](./docs/adjustments.zh.md#恢复会话时沿用原生历史)：默认开启。恢复会话的首次请求沿用上一个进程结束时的原生提供方条目，而不是按通用内容重建对话，使基于该形式的提示缓存可以服务这次请求。进程级生效，只设置一个标志，不改写请求体。
+- [模型提示词规则](#模型提示词规则)：默认**关闭**。向每个受覆盖 turn 的系统提示词追加命中的用户 Markdown 正文，无需模板或其他组件。
 
 等待调整新增可选 `timeout`，重放选择已存的原生条目。两者均不改模型、缓存键或已存历史。压缩请求用量调整会新增会话条目，因此会改动会话文件；它不改动任何请求。恢复启动模型轮次，等待重复模型已经发出的调用，模型运行时会消耗服务额度。
 
@@ -32,58 +30,44 @@ omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 
 ### 通用
 
-| 键 | 默认 | 取值 | 效果 |
-| --- | --- | --- | --- |
-| `enabled` | `true` | boolean | 总开关。关闭时任何模块都不注册。 |
+- `enabled`：默认 `true`，取值 boolean。总开关。关闭时任何模块都不注册。
 
 ### 等待
 
-| 键 | 默认 | 取值 | 效果 |
-| --- | --- | --- | --- |
-| `waitEnabled` | `true` | boolean | 扩展已识别的内建 `wait`。 |
-| `waitContinueEmptyWindows` | `true` | boolean | 遇到全部任务仍运行的快照时，在同一次调用内继续。关闭时返回第一个原生窗口。 |
-| `waitJobsSeconds` | `1200` | 数字 `0.05`–`3600` | 单次 `wait` 调用的默认总期限。显式 `timeout` 覆盖它。 |
-| `waitMessagesSeconds` | `1200` | 数字 `0.05`–`3600` | 照常接受并校验；受支持的宿主没有纯消息等待入口，该项不起作用。 |
-| `waitProcessSeconds` | `1200` | 数字 `0.05`–`3600` | 照常接受并校验；受支持的宿主没有命名进程等待入口，该项不起作用。进程控制使用宿主的 `proc://` 接口。 |
+- `waitEnabled`：默认 `true`，取值 boolean。扩展已识别的内建 `wait`。
+- `waitContinueEmptyWindows`：默认 `true`，取值 boolean。遇到全部任务仍运行的快照时，在同一次调用内继续。关闭时返回第一个原生窗口。
+- `waitJobsSeconds`：默认 `1200`，取值数字 `0.05`–`3600`。单次 `wait` 调用的默认总期限。显式 `timeout` 覆盖它。
+- `waitMessagesSeconds`：默认 `1200`，取值数字 `0.05`–`3600`。照常接受并校验；受支持的宿主没有纯消息等待入口，该项不起作用。
+- `waitProcessSeconds`：默认 `1200`，取值数字 `0.05`–`3600`。照常接受并校验；受支持的宿主没有命名进程等待入口，该项不起作用。进程控制使用宿主的 `proc://` 接口。
 
 ### 恢复
 
-| 键 | 默认 | 取值 | 效果 |
-| --- | --- | --- | --- |
-| `recoveryEnabled` | `true` | boolean | 注册 `session_stop` 处理器。 |
-| `recoveryMode` | `knownTransient` | `knownTransient`、`unclassified` | 可续跑的错误范围。`knownTransient` 接受宿主判定为瞬时或超时的错误、宿主标记为流中途中断的错误，以及既无 HTTP 状态也无分类结论的错误；`unclassified` 在相同安全排除与终止性客户端状态检查后接受宿主判定为瞬时或超时的错误，以及全部未分类错误，不论是否带 HTTP 状态。 |
-| `recoveryMaxAttempts` | `8` | 整数 `1`–`8` | 一条失败链请求的续跑轮次上限。 |
-| `recoveryBackoffBaseMs` | `1000` | 整数 `1`–`10000` | 首次续跑前的等待时间。 |
-| `recoveryBackoffMaxMs` | `8000` | 不小于 `recoveryBackoffBaseMs` 的整数，上限 `10000` | 倍增等待的上限。 |
-| `recoveryNotify` | `true` | boolean | 每次续跑显示一行提示，包含次数与等待时间。 |
+- `recoveryEnabled`：默认 `true`，取值 boolean。注册 `session_stop` 处理器。
+- `recoveryMode`：默认 `knownTransient`，取值 `knownTransient` 或 `unclassified`。可续跑的错误范围。`knownTransient` 接受宿主判定为瞬时或超时的错误、宿主标记为流中途中断的错误，以及既无 HTTP 状态也无分类结论的错误；`unclassified` 在相同安全排除与终止性客户端状态检查后接受宿主判定为瞬时或超时的错误，以及全部未分类错误，不论是否带 HTTP 状态。
+- `recoveryMaxAttempts`：默认 `8`，取值整数 `1`–`8`。一条失败链请求的续跑轮次上限。
+- `recoveryBackoffBaseMs`：默认 `1000`，取值整数 `1`–`10000`。首次续跑前的等待时间。
+- `recoveryBackoffMaxMs`：默认 `8000`，取值不小于 `recoveryBackoffBaseMs` 的整数，上限 `10000`。倍增等待的上限。
+- `recoveryNotify`：默认 `true`，取值 boolean。每次续跑显示一行提示，包含次数与等待时间。
 
 ### 压缩超时
 
-| 键 | 默认 | 取值 | 效果 |
-| --- | --- | --- | --- |
-| `compactionTimeoutEnabled` | `false` | boolean | 安装进程级的 `AbortSignal.timeout` 包装。默认关闭。 |
-| `compactionTimeoutMs` | `900000` | 大于 `compactionTimeoutFloorMs` 的整数，上限 `3600000` | 命中调用获得的期限，单位毫秒。 |
-| `compactionTimeoutFloorMs` | `300000` | 整数 `300000`–`3599999` | 实验提高期限的最低值。专家项：若下限之上没有空间，该模块会被拒绝；下限高于原生 `300000` ms 请求期限时，压缩请求本身不再命中，`/qol` 会说明这一点。 |
-| `compactionWindowGuardMs` | `3600000` | 不小于 `compactionTimeoutMs`，上限 `14400000` 的整数 | 一个压缩窗口的最长存活时间，从打开窗口的事件开始计算。 |
-| `compactionTimeoutNotify` | `true` | boolean | 窗口内首次改写期限时显示一行提示。 |
+- `compactionTimeoutEnabled`：默认 `false`，取值 boolean。安装进程级的 `AbortSignal.timeout` 包装。默认关闭。
+- `compactionTimeoutMs`：默认 `900000`，取值大于 `compactionTimeoutFloorMs` 的整数，上限 `3600000`。命中调用获得的期限，单位毫秒。
+- `compactionTimeoutFloorMs`：默认 `300000`，取值整数 `300000`–`3599999`。实验提高期限的最低值。专家项：若下限之上没有空间，该模块会被拒绝；下限高于原生 `300000` ms 请求期限时，压缩请求本身不再命中，`/qol` 会说明这一点。
+- `compactionWindowGuardMs`：默认 `3600000`，取值不小于 `compactionTimeoutMs`、上限 `14400000` 的整数。一个压缩窗口的最长存活时间，从打开窗口的事件开始计算。
+- `compactionTimeoutNotify`：默认 `true`，取值 boolean。窗口内首次改写期限时显示一行提示。
 
 ### 压缩请求用量
 
-| 键 | 默认 | 取值 | 效果 |
-| --- | --- | --- | --- |
-| `compactionUsageEnabled` | `true` | boolean | 记录宿主自己不入账的压缩与 handoff 请求的 token 用量。宿主自己记录这些请求时，该项保持不生效。 |
+- `compactionUsageEnabled`：默认 `true`，取值 boolean。记录宿主自己不入账的压缩与 handoff 请求的 token 用量。宿主自己记录这些请求时，该项保持不生效。
 
 ### 重放
 
-| 键 | 默认 | 取值 | 效果 |
-| --- | --- | --- | --- |
-| `replayEnabled` | `true` | boolean | 安装进程级包装，使恢复会话的首次请求沿用提供方的原生历史。默认开启；未携带已存条目的会话不受影响。 |
+- `replayEnabled`：默认 `true`，取值 boolean。安装进程级包装，使恢复会话的首次请求沿用提供方的原生历史。默认开启；未携带已存条目的会话不受影响。
 
 ### 模型提示词
 
-| 键 | 默认 | 取值 | 效果 |
-| --- | --- | --- | --- |
-| `modelPromptsEnabled` | `false` | boolean | 追加按模型匹配的规则正文，总开关 `enabled` 也须开启。 |
+- `modelPromptsEnabled`：默认 `false`，取值 boolean。追加按模型匹配的规则正文，总开关 `enabled` 也须开启。
 
 ```bash
 omp plugin config set @ruokee/omp-qol modelPromptsEnabled true

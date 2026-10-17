@@ -59,12 +59,10 @@ statuses:
 
 ### Fields at the top level
 
-| Field | Required | Contract |
-| --- | --- | --- |
-| `version` | yes | Only the integer `1` is accepted |
-| `separator` | no | `space`, `slash`, `dot`, `pipe`; default `slash` |
-| `tight` | no | `false` prefixes non-empty output with one ASCII space; `true` removes it; default `false` |
-| `statuses` | yes | Ordered array; order defines both enablement and display order |
+- `version`: required. Only the integer `1` is accepted.
+- `separator`: optional. `space`, `slash`, `dot` or `pipe`; default `slash`.
+- `tight`: optional. `false` prefixes non-empty output with one ASCII space; `true` removes it; default `false`.
+- `statuses`: required. Ordered array; order defines both enablement and display order.
 
 There is no package-level `enabled` switch; OMP plugins manage overall enablement.
 

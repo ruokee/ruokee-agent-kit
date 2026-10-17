@@ -8,14 +8,12 @@ Jobs, messages, processes, turns, and compaction stay with OMP. Every adjustment
 
 ## Adjustments
 
-| Adjustment | Default | Effect |
-| --- | --- | --- |
-| [Continuing waits](./docs/adjustments.md#continuing-waits) | on | A `wait` call continues across all-running job snapshots to one total deadline, 20 minutes by default, instead of returning each empty native window. |
-| [Continuing after a transient model error](./docs/adjustments.md#continuing-after-a-transient-model-error) | on | A turn that ended with an eligible upstream error continues in the same session after 1 s and again with a doubling delay up to 8 s, at most 8 continuation turns per failure chain. Eligible covers classifier-flagged transient and timeout failures, turns the host marked as interrupted mid-stream, and errors carrying neither a status nor a classification. |
-| [Extending one compaction deadline](./docs/adjustments.md#extending-one-compaction-deadline) | **off** | Within one compaction window, a matching `AbortSignal.timeout` call gets a longer deadline, so a remote compaction that needs more than the native 5 minutes is not cut off. Process-wide and experimental. |
-| [Recording compaction request usage](./docs/adjustments.md#recording-compaction-request-usage) | on | Each completed `soft` summarization and `handoff` request is written to the session journal as a `model_usage` entry with the provider's tokens and per-component cost, so the session statistics count what those requests cost. Process-wide; a host that records them itself leaves it inactive. |
-| [Replaying native history in a resumed session](./docs/adjustments.md#replaying-native-history-in-a-resumed-session) | on | A resumed session's first request replays the native provider items the previous process ended with, instead of rebuilding the conversation from its generic content, so a prompt cache over that form can serve it. Process-wide, one flag, no body rewrite. |
-| [Model prompt rules](#model-prompt-rules) | **off** | Append matching user-authored Markdown bodies to each covered turn's system prompt, without requiring a template or another component. |
+- [Continuing waits](./docs/adjustments.md#continuing-waits): default on. A `wait` call continues across all-running job snapshots to one total deadline, 20 minutes by default, instead of returning each empty native window.
+- [Continuing after a transient model error](./docs/adjustments.md#continuing-after-a-transient-model-error): default on. A turn that ended with an eligible upstream error continues in the same session after 1 s and again with a doubling delay up to 8 s, at most 8 continuation turns per failure chain. Eligible covers classifier-flagged transient and timeout failures, turns the host marked as interrupted mid-stream, and errors carrying neither a status nor a classification.
+- [Extending one compaction deadline](./docs/adjustments.md#extending-one-compaction-deadline): default **off**. Within one compaction window, a matching `AbortSignal.timeout` call gets a longer deadline, so a remote compaction that needs more than the native 5 minutes is not cut off. Process-wide and experimental.
+- [Recording compaction request usage](./docs/adjustments.md#recording-compaction-request-usage): default on. Each completed `soft` summarization and `handoff` request is written to the session journal as a `model_usage` entry with the provider's tokens and per-component cost, so the session statistics count what those requests cost. Process-wide; a host that records them itself leaves it inactive.
+- [Replaying native history in a resumed session](./docs/adjustments.md#replaying-native-history-in-a-resumed-session): default on. A resumed session's first request replays the native provider items the previous process ended with, instead of rebuilding the conversation from its generic content, so a prompt cache over that form can serve it. Process-wide, one flag, no body rewrite.
+- [Model prompt rules](#model-prompt-rules): default **off**. Append matching user-authored Markdown bodies to each covered turn's system prompt, without requiring a template or another component.
 
 The wait adjustment adds an optional `timeout`; replay chooses the stored native items. Neither changes the model, cache key, or stored history. The compaction usage adjustment adds session entries and therefore changes the session file; it changes no request. Recovery starts a turn and wait repeats a call the model already made; provider quota is spent when the model runs.
 
@@ -32,58 +30,44 @@ Settings are read once per activation. Restart OMP after a change. A running pro
 
 ### General
 
-| Key | Default | Accepted | Effect |
-| --- | --- | --- | --- |
-| `enabled` | `true` | boolean | Master switch. When off, no module registers. |
+- `enabled`: default `true`, accepts a boolean. Master switch. When off, no module registers.
 
 ### Wait
 
-| Key | Default | Accepted | Effect |
-| --- | --- | --- | --- |
-| `waitEnabled` | `true` | boolean | Extend the recognized builtin `wait`. |
-| `waitContinueEmptyWindows` | `true` | boolean | Continue inside one call on an all-running job snapshot. When off, return the first native window. |
-| `waitJobsSeconds` | `1200` | number `0.05`–`3600` | Default total deadline of one `wait` call. An explicit `timeout` overrides it. |
-| `waitMessagesSeconds` | `1200` | number `0.05`–`3600` | Accepted and validated; no effect on supported hosts, which offer no message-only wait entry. |
-| `waitProcessSeconds` | `1200` | number `0.05`–`3600` | Accepted and validated; no effect on supported hosts, which offer no named-process wait entry. Use the host's `proc://` interface for process control. |
+- `waitEnabled`: default `true`, accepts a boolean. Extend the recognized builtin `wait`.
+- `waitContinueEmptyWindows`: default `true`, accepts a boolean. Continue inside one call on an all-running job snapshot. When off, return the first native window.
+- `waitJobsSeconds`: default `1200`, accepts a number `0.05`–`3600`. Default total deadline of one `wait` call. An explicit `timeout` overrides it.
+- `waitMessagesSeconds`: default `1200`, accepts a number `0.05`–`3600`. Accepted and validated; no effect on supported hosts, which offer no message-only wait entry.
+- `waitProcessSeconds`: default `1200`, accepts a number `0.05`–`3600`. Accepted and validated; no effect on supported hosts, which offer no named-process wait entry. Use the host's `proc://` interface for process control.
 
 ### Recovery
 
-| Key | Default | Accepted | Effect |
-| --- | --- | --- | --- |
-| `recoveryEnabled` | `true` | boolean | Register the `session_stop` handler. |
-| `recoveryMode` | `knownTransient` | `knownTransient`, `unclassified` | Error scope that is eligible. `knownTransient` accepts errors the host classifies as transient or timeout, an error the host marked as interrupted mid-stream, or an error with neither an HTTP status nor a classification. `unclassified` accepts host-classified transient or timeout errors and all unclassified errors, with or without an HTTP status, after the same safety exclusions and terminal client status checks. |
-| `recoveryMaxAttempts` | `8` | integer `1`–`8` | Continuation turns requested for one failure chain. |
-| `recoveryBackoffBaseMs` | `1000` | integer `1`–`10000` | Delay before the first continuation. |
-| `recoveryBackoffMaxMs` | `8000` | integer above `recoveryBackoffBaseMs`, up to `10000` | Upper bound of the doubling delay. |
-| `recoveryNotify` | `true` | boolean | Show a warning line with the attempt number and the delay for each continuation. |
+- `recoveryEnabled`: default `true`, accepts a boolean. Register the `session_stop` handler.
+- `recoveryMode`: default `knownTransient`, accepts `knownTransient` or `unclassified`. Error scope that is eligible. `knownTransient` accepts errors the host classifies as transient or timeout, an error the host marked as interrupted mid-stream, or an error with neither an HTTP status nor a classification. `unclassified` accepts host-classified transient or timeout errors and all unclassified errors, with or without an HTTP status, after the same safety exclusions and terminal client status checks.
+- `recoveryMaxAttempts`: default `8`, accepts an integer `1`–`8`. Continuation turns requested for one failure chain.
+- `recoveryBackoffBaseMs`: default `1000`, accepts an integer `1`–`10000`. Delay before the first continuation.
+- `recoveryBackoffMaxMs`: default `8000`, accepts an integer above `recoveryBackoffBaseMs`, up to `10000`. Upper bound of the doubling delay.
+- `recoveryNotify`: default `true`, accepts a boolean. Show a warning line with the attempt number and the delay for each continuation.
 
 ### Compaction timeout
 
-| Key | Default | Accepted | Effect |
-| --- | --- | --- | --- |
-| `compactionTimeoutEnabled` | `false` | boolean | Install the process-wide `AbortSignal.timeout` wrapper. Off by default. |
-| `compactionTimeoutMs` | `900000` | integer above `compactionTimeoutFloorMs`, up to `3600000` | Deadline in milliseconds applied to one matching timeout call. |
-| `compactionTimeoutFloorMs` | `300000` | integer `300000`–`3599999` | Lowest timeout value the experiment raises. An expert setting: a floor that leaves no room above it rejects the module, and a floor above the native `300000` ms request deadline stops the compaction request itself from matching, which `/qol` states. |
-| `compactionWindowGuardMs` | `3600000` | integer from `compactionTimeoutMs` up to `14400000` | Longest lifetime of one compaction window, counted from the event that opened it. |
-| `compactionTimeoutNotify` | `true` | boolean | Show a warning line the first time a window rewrites a deadline. |
+- `compactionTimeoutEnabled`: default `false`, accepts a boolean. Install the process-wide `AbortSignal.timeout` wrapper. Off by default.
+- `compactionTimeoutMs`: default `900000`, accepts an integer above `compactionTimeoutFloorMs`, up to `3600000`. Deadline in milliseconds applied to one matching timeout call.
+- `compactionTimeoutFloorMs`: default `300000`, accepts an integer `300000`–`3599999`. Lowest timeout value the experiment raises. An expert setting: a floor that leaves no room above it rejects the module, and a floor above the native `300000` ms request deadline stops the compaction request itself from matching, which `/qol` states.
+- `compactionWindowGuardMs`: default `3600000`, accepts an integer from `compactionTimeoutMs` up to `14400000`. Longest lifetime of one compaction window, counted from the event that opened it.
+- `compactionTimeoutNotify`: default `true`, accepts a boolean. Show a warning line the first time a window rewrites a deadline.
 
 ### Compaction usage
 
-| Key | Default | Accepted | Effect |
-| --- | --- | --- | --- |
-| `compactionUsageEnabled` | `true` | boolean | Record the token usage of the compaction and handoff requests the host does not journal itself. A host that records them itself leaves the adjustment inactive. |
+- `compactionUsageEnabled`: default `true`, accepts a boolean. Record the token usage of the compaction and handoff requests the host does not journal itself. A host that records them itself leaves the adjustment inactive.
 
 ### Replay
 
-| Key | Default | Accepted | Effect |
-| --- | --- | --- | --- |
-| `replayEnabled` | `true` | boolean | Install the process-wide wrapper that keeps a resumed session's first request on the provider's native history. On by default; the adjustment is inert for a session that carries no stored items. |
+- `replayEnabled`: default `true`, accepts a boolean. Install the process-wide wrapper that keeps a resumed session's first request on the provider's native history. On by default; the adjustment is inert for a session that carries no stored items.
 
 ### Model prompts
 
-| Key | Default | Accepted | Effect |
-| --- | --- | --- | --- |
-| `modelPromptsEnabled` | `false` | boolean | Append model-matched rule bodies. The master `enabled` switch must also be on. |
+- `modelPromptsEnabled`: default `false`, accepts a boolean. Append model-matched rule bodies. The master `enabled` switch must also be on.
 
 ```bash
 omp plugin config set @ruokee/omp-qol modelPromptsEnabled true

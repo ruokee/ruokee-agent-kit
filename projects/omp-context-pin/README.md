@@ -36,13 +36,11 @@ The host records the user message in the branch in its own time. Until it does, 
 
 The Agent entry point is the `ctx_pin` tool with five actions:
 
-| Action | Input | Effect |
-| --- | --- | --- |
-| `list` | none | the id, source, revision and size of every entry, without bodies |
-| `get` | `id` | one complete body with its id, source, revision and UTF-8 byte size |
-| `create` | `content` | pins a new body |
-| `update` | `id`, `content`, `expectedRevision` | replaces a body |
-| `delete` | `id`, `expectedRevision` | unpins an entry |
+- `list`: takes no input. Reports the id, source, revision and size of every entry, without bodies.
+- `get`: takes `id`. Reports one complete body with its id, source, revision and UTF-8 byte size.
+- `create`: takes `content`. Pins a new body.
+- `update`: takes `id`, `content`, and `expectedRevision`. Replaces a body.
+- `delete`: takes `id` and `expectedRevision`. Unpins an entry.
 
 The `id` parameter takes the integer the list and the receipts show. It accepts no digit string, and no action performs an implicit upsert or a create by rename.
 
@@ -72,16 +70,14 @@ Do not repeat a write already accepted through `/ctx-pin` or create an equivalen
 
 The operation records in the session journal are canonical state. Each record is one journal entry of the custom type `omp-context-pin` with this payload:
 
-| Field | Value |
-| --- | --- |
-| `schemaVersion` | `2`, the payload version this component reads and writes |
-| `operationId` | positive integer for one user submission or Agent write call, retained across its retries; internal, and no message, listing or result shows it |
-| `action` | `create`, `update` or `delete` |
-| `entryId` | positive integer assigned at creation and never reused in that session |
-| `revision` | starts at 1, advances by one per accepted `update` or `delete` |
-| `body` | the complete new text for `create` and `update`, absent for `delete` |
-| `source` | `user` or `agent` |
-| `toolCallId` | the host's tool call id of the Agent call that produced the record, kept to resolve its retries |
+- `schemaVersion`: `2`, the payload version this component reads and writes.
+- `operationId`: a positive integer for one user submission or Agent write call, retained across its retries; internal, and no message, listing or result shows it.
+- `action`: `create`, `update` or `delete`.
+- `entryId`: a positive integer assigned at creation and never reused in that session.
+- `revision`: starts at 1, advances by one per accepted `update` or `delete`.
+- `body`: the complete new text for `create` and `update`, absent for `delete`.
+- `source`: `user` or `agent`.
+- `toolCallId`: the host's tool call id of the Agent call that produced the record, kept to resolve its retries.
 
 `list`, `get`, a refused write and a write that changes nothing append no record.
 
