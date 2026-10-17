@@ -313,21 +313,20 @@ Print the current version:
 
 ```text
 tk [--output <text|json>] --version
-tk -V
 ```
 
 The JSON payload contains:
 
 ```json
 {
-  "runtime_version": "0.1.5",
+  "runtime_version": "0.1.9",
   "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3
 }
 ```
 
-Version values in the example change with releases. This command does not require a project and exits `0` on success.
+`runtime_version` is the package version of the running executable and changes with releases; the other values are the version of the CLI, MCP, and native tool contracts, the Task schema version, and the component format version. This command does not require a project and exits `0` on success.
 
 ## `tk --help`
 

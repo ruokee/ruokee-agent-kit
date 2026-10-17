@@ -313,21 +313,20 @@ uninstall 不接受模式或语言选项。Harness uninstall 删除当前组件�
 
 ```text
 tk [--output <text|json>] --version
-tk -V
 ```
 
 JSON 结果包含：
 
 ```json
 {
-  "runtime_version": "0.1.5",
+  "runtime_version": "0.1.9",
   "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3
 }
 ```
 
-示例中的版本值会随发布变化。该命令不要求项目，成功时退出 `0`。
+`runtime_version` 是运行中可执行文件的包版本，随发行变化；其余取值分别是 CLI、MCP 和原生工具合同版本、Task schema 版本与组件格式版本。该命令不要求项目，成功时退出 `0`。
 
 ## `tk --help`
 
