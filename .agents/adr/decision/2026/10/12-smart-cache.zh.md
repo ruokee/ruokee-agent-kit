@@ -44,11 +44,9 @@ Reverses: [Remote 对齐](../../../archived/2026/10/10-r1-remote-alignment.zh.md
 
 本决定反转[由 smart-cache 提供 remote 对齐](../../../archived/2026/10/10-r1-remote-alignment.zh.md)。那份决定把一项能力作为组件的主题，而 ADR 规则不允许改写现行决定来表达冲突选择。冲突条款如下：
 
-| 该决定的现行条款 | 取代选择与冲突 |
-| --- | --- |
-| 组件主题：一份决定同时记录组件与 remote 对齐 | 本决定记录扩展，每项能力各有自己的决定。同一份决定不能既是组件合同又是一项能力的合同。 |
-| 组件与公共配置：本包、入口、检查、文档及设置来源都写在 remote 决定里 | 这些条款移到本决定，组件级条款归这里；remote 的设置仍归 remote 对齐。 |
-| Handoff：该次迁移既不批准 Handoff 集成，也不替换已安装的 Handoff 原型，且 remote V2 规则不用于 Handoff | 承载 Handoff 能力是本包的主题，[Handoff 对齐](./12-handoff-alignment.zh.md)记录其开关、边界及试用扩展的替换条件。remote V2 规则不用于 Handoff 这条规则留在 [remote 对齐](./10-remote-alignment.zh.md)，也不新增 Handoff 占位接口。 |
+- 组件主题：一份决定同时记录组件与 remote 对齐。冲突：本决定记录扩展，每项能力各有自己的决定。同一份决定不能既是组件合同又是一项能力的合同。
+- 组件与公共配置：本包、入口、检查、文档及设置来源都写在 remote 决定里。冲突：这些条款移到本决定，组件级条款归这里；remote 的设置仍归 remote 对齐。
+- Handoff：该次迁移既不批准 Handoff 集成，也不替换已安装的 Handoff 原型，且 remote V2 规则不用于 Handoff。冲突：承载 Handoff 能力是本包的主题，[Handoff 对齐](./12-handoff-alignment.zh.md)记录其开关、边界及试用扩展的替换条件。remote V2 规则不用于 Handoff 这条规则留在 [remote 对齐](./10-remote-alignment.zh.md)，也不新增 Handoff 占位接口。
 
 归档决定中所有不冲突的规则继续有效，现在分别落在本决定与 [remote 对齐决定](./10-remote-alignment.zh.md)。对[维护 QoL 模型提示词](../../../archived/2026/09/20-r8-omp-qol.zh.md)的反转随所属条款迁移，由 remote 决定承载。
 

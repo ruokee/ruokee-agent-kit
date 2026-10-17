@@ -32,8 +32,8 @@ Reverses: [tk 文档](../../../archived/2026/08/29-r2-tk-documentation.zh.md)
 | --- | --- | --- |
 | Records | 记录 | `records/YYYY-MM-DD-topic.md` |
 | Deep research | 深度调研 | `research/report.md` 和 `research/README.md` |
-| Iterative design | 迭代设计 | `revision_<N>/README.md` 及该版本目录内的材料 |
-| Scratchpad | 草稿纸 | `scratchpad/` 下的文件和子目录 |
+| Iterative design | 迭代设计 | `revision_<N>/**` |
+| Scratchpad | 草稿纸 | `scratchpad/**` |
 
 一个任务可以组合采用四种模式，也可以都不采用。正式决定遵守项目指定的机制和位置。
 

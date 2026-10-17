@@ -44,11 +44,9 @@ Apply the [shared OMP maintenance floor](../09/28-host-maintenance.md), currentl
 
 This decision reverses [Use smart-cache for remote alignment](../../../archived/2026/10/10-r1-remote-alignment.md). That decision took one capability as the subject of the component, and the ADR rules do not allow rewriting a current decision to express a conflicting choice. The conflicting clauses are:
 
-| Effective clause in that decision | Replacement choice and conflict |
-| --- | --- |
-| Component subject: one decision records the component together with remote alignment | This decision records the extension, and each capability gets its own decision. One decision cannot be both the component's contract and one capability's contract. |
-| Component and public configuration: the package, its entry, its checks, its documentation, and its settings source sit inside the remote decision | Those clauses move here, where an extension-level clause belongs; the remote settings stay with remote alignment. |
-| Handoff: the migration neither approves Handoff integration nor replaces the installed Handoff prototype, and remote V2 rules are not reused for Handoff | Carrying a Handoff capability is this package's subject, and [Handoff alignment](./12-handoff-alignment.md) records its switch, its boundary, and the trial extension's replacement condition. The rule that remote V2 rules are not reused for Handoff stays with [remote alignment](./10-remote-alignment.md), and no placeholder Handoff interface is added. |
+- Component subject: one decision records the component together with remote alignment. Conflict: this decision records the extension, and each capability gets its own decision. One decision cannot be both the component's contract and one capability's contract.
+- Component and public configuration: the package, its entry, its checks, its documentation, and its settings source sit inside the remote decision. Conflict: those clauses move here, where an extension-level clause belongs; the remote settings stay with remote alignment.
+- Handoff: the migration neither approves Handoff integration nor replaces the installed Handoff prototype, and remote V2 rules are not reused for Handoff. Conflict: carrying a Handoff capability is this package's subject, and [Handoff alignment](./12-handoff-alignment.md) records its switch, its boundary, and the trial extension's replacement condition. The rule that remote V2 rules are not reused for Handoff stays with [remote alignment](./10-remote-alignment.md), and no placeholder Handoff interface is added.
 
 All non-conflicting rules of the archived decision remain binding, and they now live in this decision and in [remote alignment's decision](./10-remote-alignment.md). The reversal of [Maintain QoL model prompts](../../../archived/2026/09/20-r8-omp-qol.md) moves with the clause it belongs to and is carried by the remote decision.
 

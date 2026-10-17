@@ -32,8 +32,8 @@ Define four built-in usage patterns for ordinary Task materials:
 | --- | --- | --- |
 | Records | 记录 | `records/YYYY-MM-DD-topic.md` |
 | Deep research | 深度调研 | `research/report.md` and `research/README.md` |
-| Iterative design | 迭代设计 | `revision_<N>/README.md` and materials within that revision |
-| Scratchpad | 草稿纸 | Files and subdirectories under `scratchpad/` |
+| Iterative design | 迭代设计 | `revision_<N>/**` |
+| Scratchpad | 草稿纸 | `scratchpad/**` |
 
 A Task may use any combination of the four patterns or none. Formal decisions follow the project's designated mechanism and location.
 

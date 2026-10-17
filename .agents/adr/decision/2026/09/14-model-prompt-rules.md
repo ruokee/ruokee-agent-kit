@@ -61,12 +61,10 @@ Real-host checks record the exercised OMP release, the models, and the observed 
 
 ### Decision reversal
 
-| Effective clause in the archived decision | Choice and conflict |
-| --- | --- |
-| The template, the Delivery chapter, and the footer stay with the system prompt component, which continues to maintain them | That component and its repository content are deleted by [Remove the omp-system-prompt extension](./07-omp-system-prompt.md). A boundary that assigns these behaviors to a component the repository no longer contains cannot stay in force. |
-| The two components coexist with the system prompt component before QoL in actual load order, with neither depending on the other's files | One of the two components no longer exists, so the requirement has no subject. Nothing in the prompt pipeline now depends on another extension being installed or ordered first. |
+- Effective clause: the template, the Delivery chapter, and the footer stay with the system prompt component, which continues to maintain them. Conflict: that component and its repository content are deleted by [Remove the omp-system-prompt extension](./07-omp-system-prompt.md). A boundary that assigns these behaviors to a component the repository no longer contains cannot stay in force.
+- Effective clause: the two components coexist with the system prompt component before QoL in actual load order, with neither depending on the other's files. Conflict: one of the two components no longer exists, so the requirement has no subject. Nothing in the prompt pipeline now depends on another extension being installed or ordered first.
 
-The reversal changes the two clauses in the table and nothing else in the choice. This decision records the complete rules that stay in QoL: component switches, rule matching and injection, diagnostics and failure isolation, coverage, the upstream re-check, and verification. The archived decision explains why the rules moved into QoL and which alternatives were considered at that time, and it carries no current constraint. The reversal of [Add model scoped prompt rules to the system prompt extension](../../../archived/2026/09/14-r1-model-prompt-rules.md) moves with those rules and is carried here, because the component it moved the rules into is the component this decision records.
+The reversal changes the two clauses above and nothing else in the choice. This decision records the complete rules that stay in QoL: component switches, rule matching and injection, diagnostics and failure isolation, coverage, the upstream re-check, and verification. The archived decision explains why the rules moved into QoL and which alternatives were considered at that time, and it carries no current constraint. The reversal of [Add model scoped prompt rules to the system prompt extension](../../../archived/2026/09/14-r1-model-prompt-rules.md) moves with those rules and is carried here, because the component it moved the rules into is the component this decision records.
 
 ## Alternatives considered
 
