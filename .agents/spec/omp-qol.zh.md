@@ -11,6 +11,7 @@
 - 符合恢复条件的流提前关闭后，在同一主会话中自动继续未完成工作。
 - 本组件直接提供用户自有的模型规则。
 - 在宿主自己不入账期间，补记压缩与 handoff 请求的用量，直到宿主自己记录为止。
+- 在宿主校验前从非 seance 任务项删除 seance 专用字段。
 
 ## 非目标
 
@@ -68,6 +69,16 @@ Error: Upstream provider closed the connection before the response completed: st
 
 [projects/omp-qol/README.zh.md](../../projects/omp-qol/README.zh.md#模型提示词规则) 记载完整规则、开关与设置行为和诊断。
 
+### 任务参数清理
+
+任务参数模块由开关控制：原生 boolean `taskArgsEnabled` 默认 `true` 并受 `enabled` 约束，为内建 `task` 工具安装一个 `tool_call` handler。仅在内建 task schema 暴露 `sourceSession` 时安装 handler；只有普通 `model` 选择器的 schema 会让模块保持 `unavailable` 且不被改写。取值非法只停用本模块；设置对象被拒绝时沿用整组件规则。
+
+扁平调用视为一个条目，`tasks` 数组视为批次。对 `agent` 为字符串、trim 后非空且不等于 `seance` 的每个条目，handler 删除该条目自身的 `sourceSession` 与 `model`，且只复制被改动的对象。`agent` 缺失、为空、仅空白、非字符串或为 `seance` 的条目、非对象条目、批次级字段及其他所有参数保持不变。只有发生改写时才返回新输入；一次被改写的调用只增加一次计数。
+
+清理不改变 task schema、描述、审批策略、派发、后台生命周期或结果渲染。宿主会把改写后的参数持久化到当前 assistant 消息，后续请求和会话文件会看到它们。handler 注册期间，OMP 的推测启动与实验性推测读取被关闭；模块不修改宿主设置，下一激活关闭模块即恢复原生行为。只为暴露 `sourceSession` 的内建 `task` 安装；工具缺失、被遮蔽或 schema 没有该字段时保留原生行为并报告有界原因。
+
+[任务参数清理](../../projects/omp-qol/docs/adjustments.zh.md#任务参数清理)记载完整规则、接受的推测成本、边界与验证。
+
 ## 不变量
 
 - 全部无关设置保留键名、默认值、范围及校验。三个 remote 设置 `compactionCacheEnabled`、`compactionCacheProvider` 和 `compactionCacheMode` 不再存在，并按未知键拒绝；不保留运行时兼容路径。
@@ -87,6 +98,10 @@ Error: Upstream provider closed the connection before the response completed: st
 - 正常完成、范围外错误或取消结束当前链。后续独立链使用新预算。会话切换、关闭、新运行或原链失效后，旧等待不得触发续跑。
 - 恢复使用既有固定续跑文本，要求核对已完成工作及副作用，不携带服务端错误正文、命令或工具输出。历史、工具调度及审批仍由 OMP 管理。
 - 恢复通知遵循现有开关，显示次数及等待时间。`/qol` 报告有效状态及配置，不启动模型运行。
+- 任务参数清理只从 `agent` 为非空且不等于 `seance` 的字符串条目删除 `sourceSession` 与 `model`。Agent 缺失、为空、仅空白、非字符串或为 `seance`、非对象条目、批次级字段及其他所有参数保持不变。
+- handler 只为暴露 `sourceSession` 的内建 `task` 注册；工具缺失或被遮蔽，或 schema 只有普通 `model` 选择器时保留原生行为、保留 `model` 并报告有界原因。注册期间推测启动与实验性推测读取被拒绝；模块不修改宿主设置。
+- 模块改写事件输入。宿主会把改写后的参数持久化到当前 assistant 消息，后续请求和会话文件会看到它们。它不改 task schema、描述、审批、派发或结果渲染；因其他原因无效的调用仍失败。
+- `taskArgsEnabled` 值非法只停用任务参数模块。关闭本模块或总开关后，下一激活恢复原生参数与行为。
 
 ## 宿主下限
 
@@ -110,6 +125,7 @@ OMP `18.5.0`，声明在[兼容性](../../projects/omp-qol/README.zh.md#兼容�
 - 检查覆盖无模型/未命中、无效文件、文件/目录读取失败、意外 handler 异常、诊断隐私及会话/上下文去重、模块局部和整体设置拒绝、设置仅重启生效及文件下一 turn 生效。真实 `/qol` TUI 显示默认关闭和启用状态，不启动模型运行。
 - 普通子 Agent 的 Provider-facing 请求保留自身模型、角色和独立块。未运行旁路明确标为未验证。
 - 组件说明、manifest、仓库指引、双语文档及现行项目 Spec 的归属和即将弃用状态一致，保留全部剩余调整及每项无关有效要求。
+- 任务参数清理检查覆盖扁平调用、批次条目、seance 保留、Agent 缺失/空/空白/非字符串、无目标字段、异常 task 形状、每次改写调用计一次、内建守卫、扁平与批次 seance schema、没有 `sourceSession` 的 model-only schema、缺失与遮蔽工具、停用与不兼容状态，以及关闭开关。真实 CLI 证据记录在对应验证小节，未运行则标为未验证。
 
 ## 相关 ADR
 
@@ -118,3 +134,4 @@ OMP `18.5.0`，声明在[兼容性](../../projects/omp-qol/README.zh.md#兼容�
 - [压缩用量](../adr/decision/2026/10/13-compaction-usage.zh.md)
 - [宿主维护](../adr/decision/2026/09/28-host-maintenance.zh.md)
 - [组件自包含](../adr/decision/2026/08/24-component-self-containment.zh.md)
+- [任务参数清理](../adr/decision/2026/10/17-task-argument-cleanup.zh.md)

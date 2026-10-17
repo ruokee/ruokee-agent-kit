@@ -76,3 +76,7 @@ The module mechanics, setting keys, defaults, ranges, status reporting, eligibil
 ### 2026-10-13 Compaction request usage
 
 [Compensate compaction request usage in QoL](../10/13-compaction-usage.md) adds a sixth module to the package: `compactionUsage`, on by default and subordinate to the master switch, writing the usage of the compaction and handoff requests the host does not journal itself. It stays inactive on a host that records those requests itself. The module lists in this decision read with that module included.
+
+### 2026-10-17 Task argument cleanup
+
+[Remove seance-only task fields from non-seance items](../10/17-task-argument-cleanup.md) adds a seventh module to the package: `taskArgs`, on by default and subordinate to the master switch, removing `sourceSession` and `model` from non-seance task items before host validation when the built-in task schema exposes `sourceSession`. A schema with only the ordinary `model` selector leaves the module unavailable. Registering its `tool_call` handler makes speculative task launch and experimental read speculation ineffective while it is on. The module lists in this decision read with that module included.

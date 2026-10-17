@@ -11,6 +11,7 @@ Spec for [projects/omp-qol](../../projects/omp-qol/README.md).
 - Continue interrupted work in the same main session automatically after an eligible stream closure.
 - Provide user-authored model rules from this component directly.
 - Record the compaction and handoff request usage a host does not journal itself, until a host does.
+- Remove seance-only task fields from non-seance task items before host validation.
 
 ## Out of scope
 
@@ -68,6 +69,16 @@ Ordinary main and child turns that run `before_agent_start` are covered, childre
 
 [projects/omp-qol/README.md](../../projects/omp-qol/README.md#model-prompt-rules) states the complete rules, the switch and settings behavior, and the diagnostics.
 
+### Task argument cleanup
+
+The task argument module is a switch-gated adjustment: the native boolean `taskArgsEnabled`, defaulting to `true` and subordinate to `enabled`, installs one `tool_call` handler for the built-in `task` tool. It installs the handler only when the built-in task schema exposes `sourceSession`; a schema with only the ordinary `model` selector leaves the module unavailable and unchanged. An invalid value disables that module alone; a rejected settings object follows the component-wide rule.
+
+A flat call is one item and a `tasks` array is a batch. For every item whose `agent` is a string, trims non-empty, and is not `seance`, the handler removes that item's own `sourceSession` and `model` and copies only changed objects. Items with a missing, empty, whitespace, non-string, or `seance` agent, non-object items, batch-level fields, and every other argument are unchanged. It returns a revised input only when something changed; one changed call increments one counter.
+
+The cleanup does not change the task schema, description, approval policy, dispatch, background lifecycle, or result rendering. The host persists the revised arguments in the current assistant message, so later requests and the session file observe them. Registering the handler disables OMP's speculative task launch and experimental read speculation while the module is enabled; the module does not change the host setting, and turning it off restores the native behavior at the next activation. The module is installed only for a built-in `task` whose schema exposes `sourceSession`; a missing or shadowed tool, or a built-in schema without that field, leaves native behavior and reports a bounded reason.
+
+[Task argument cleanup](../../projects/omp-qol/docs/adjustments.md#task-argument-cleanup) states the complete rule, accepted speculation cost, limits, and verification.
+
 ## Invariants
 
 - Preserve every unrelated setting's key, default, range, and validation. The three remote settings `compactionCacheEnabled`, `compactionCacheProvider`, and `compactionCacheMode` are absent and rejected as unknown keys; no runtime compatibility path remains.
@@ -87,6 +98,10 @@ Ordinary main and child turns that run `before_agent_start` are covered, childre
 - Normal completion, an out-of-scope error, or cancellation ends the chain. A later independent chain starts with fresh budget. A session switch, shutdown, new run, or invalidated chain prevents an old pending wait from continuing.
 - Recovery uses the existing fixed continuation text, asks the model to check completed work and side effects, and includes no provider error body, command, or tool output. OMP retains ownership of history, tool scheduling, and approvals.
 - Recovery notifications follow the existing switch and show the attempt and delay. `/qol` reports effective state and settings without starting a model run.
+- Task argument cleanup removes only `sourceSession` and `model` from items whose `agent` is a non-empty, non-seance string. Missing, empty, whitespace, non-string, and `seance` agents, non-object items, batch-level fields, and every other argument remain unchanged.
+- The handler is registered only for a built-in `task` whose schema exposes `sourceSession`; a missing or shadowed tool, or a schema with only the ordinary `model` selector, leaves native behavior, preserves `model`, and reports a bounded reason. While it is registered, speculative task launch and experimental read speculation are denied; the module does not change host settings.
+- The module changes the event input. The host persists the revised arguments in the current assistant message, so later requests and the session file observe them. It does not change the task schema, description, approval, dispatch, or result rendering; a call that remains invalid for another reason still fails.
+- An invalid `taskArgsEnabled` disables only the task argument module. Turning off its switch or the master switch restores native arguments and behavior at the next activation.
 
 ## Host lower bound
 
@@ -110,6 +125,7 @@ OMP `18.5.0`, declared in [Compatibility](../../projects/omp-qol/README.md#compa
 - Checks cover missing model/no match, invalid files, file/directory read failures, unexpected handler errors, diagnostic privacy and session/context deduplication, module-local and global settings rejection, restart-only settings, and next-turn file changes. Actual `/qol` TUI shows default-off and enabled state without a model run.
 - Ordinary child Provider-facing requests retain the child's own model, role, and independent blocks. Unrun bypasses remain explicitly unverified.
 - Component descriptions, manifests, root guidance, paired documentation, and current project Specs agree on ownership and approaching deprecation. Preserve all remaining adjustments and every unrelated valid requirement.
+- Task argument cleanup checks cover a flat call, batch items, seance preservation, missing/empty/whitespace/non-string agents, absent target fields, abnormal task shapes, one rewrite per changed call, the built-in guard, flat and batch seance schemas, a model-only schema without `sourceSession`, missing and shadowed tools, disabled and incompatible states, and the off switch. Its real CLI evidence is recorded under the adjustment's verification section or marked not verified.
 
 ## Related ADRs
 
@@ -118,3 +134,4 @@ OMP `18.5.0`, declared in [Compatibility](../../projects/omp-qol/README.md#compa
 - [Compaction usage](../adr/decision/2026/10/13-compaction-usage.md)
 - [Host maintenance](../adr/decision/2026/09/28-host-maintenance.md)
 - [Component self containment](../adr/decision/2026/08/24-component-self-containment.md)
+- [Task argument cleanup](../adr/decision/2026/10/17-task-argument-cleanup.md)

@@ -76,3 +76,7 @@ Reverses: [OMP QoL](../../../archived/2026/09/20-r8-omp-qol.zh.md)
 ### 2026-10-13 压缩请求用量
 
 [在 QoL 中补记压缩请求用量](../10/13-compaction-usage.zh.md)为本包新增第六个模块：`compactionUsage`，默认开启并受总开关约束，记录宿主自己不入账的压缩与 handoff 请求的用量。宿主自己记录这些请求时它保持停用。本决定中的模块清单视为包含该模块。
+
+### 2026-10-17 任务参数清理
+
+[从非 seance 任务项删除 seance 专用字段](../10/17-task-argument-cleanup.zh.md)为本包新增第七个模块：`taskArgs`，默认开启并受总开关约束，在内建 task schema 暴露 `sourceSession` 时于宿主校验前从非 seance 任务项删除 `sourceSession` 与 `model`。只有普通 `model` 选择器的 schema 会让模块保持 `unavailable`。注册其 `tool_call` handler 后，启用期间推测启动与实验性推测读取实际失效。本决定中的模块清单视为包含该模块。

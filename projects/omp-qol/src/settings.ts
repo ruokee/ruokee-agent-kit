@@ -15,7 +15,15 @@
  */
 
 /** The modules this package can switch on and off. */
-export const MODULE_IDS = ["wait", "recovery", "compaction", "compactionUsage", "replay", "modelPrompts"] as const;
+export const MODULE_IDS = [
+  "wait",
+  "recovery",
+  "compaction",
+  "compactionUsage",
+  "replay",
+  "modelPrompts",
+  "taskArgs",
+] as const;
 export type ModuleId = (typeof MODULE_IDS)[number];
 
 /** Recovery eligibility modes. */
@@ -53,6 +61,7 @@ export const SETTINGS_DEFAULTS = {
   replayEnabled: true,
   modelPromptsEnabled: false,
   compactionUsageEnabled: true,
+  taskArgsEnabled: true,
 } as const;
 
 /**
@@ -99,6 +108,7 @@ export interface QolSettings {
   replay: ReplaySettings;
   modelPrompts: { enabled: boolean };
   compactionUsage: { enabled: boolean };
+  taskArgs: { enabled: boolean };
 }
 
 /** Why one key failed validation. Rules are named so diagnostics never echo a value. */
@@ -295,6 +305,7 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     "compactionUsage",
     SETTINGS_DEFAULTS.compactionUsageEnabled,
   );
+  const taskArgsEnabled = readBoolean(raw, "taskArgsEnabled", "taskArgs", SETTINGS_DEFAULTS.taskArgsEnabled);
 
   const reads: Read<unknown>[] = [
     waitEnabled,
@@ -316,6 +327,7 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     replayEnabled,
     modelPromptsEnabled,
     compactionUsageEnabled,
+    taskArgsEnabled,
   ];
   const problems: FieldProblem[] = [];
   for (const read of reads) if (!read.ok) problems.push(read.problem);
@@ -358,6 +370,9 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
       },
       compactionUsage: {
         enabled: compactionUsageEnabled.ok ? compactionUsageEnabled.value : SETTINGS_DEFAULTS.compactionUsageEnabled,
+      },
+      taskArgs: {
+        enabled: taskArgsEnabled.ok ? taskArgsEnabled.value : SETTINGS_DEFAULTS.taskArgsEnabled,
       },
     },
   };

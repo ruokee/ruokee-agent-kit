@@ -8,7 +8,7 @@
  */
 
 import { afterEach, describe, expect, test } from "bun:test";
-import type { ExtensionContext } from "@oh-my-pi/pi-coding-agent";
+import type { ExtensionContext, ToolInfo } from "@oh-my-pi/pi-coding-agent";
 import { activate, COMMAND_NAME, describeState, PACKAGE_NAME, PACKAGE_VERSION } from "../src/extension.ts";
 import type { QolSettings } from "../src/settings.ts";
 import { MODULE_IDS, parseQolSettings } from "../src/settings.ts";
@@ -130,6 +130,28 @@ describe("activation", () => {
     expect(line).toContain("enabled=true");
   });
 
+  test("installs task argument cleanup for a built-in task tool", async () => {
+    const taskInfo = {
+      name: "task",
+      description: "task",
+      parameters: {
+        toJsonSchema: () => ({ type: "object", properties: { sourceSession: { type: "string" } } }),
+      },
+      sourceInfo: { path: "<builtin:task>", source: "builtin", scope: "temporary", origin: "top-level" },
+    } as unknown as ToolInfo;
+    const harness = createHarness([taskInfo]);
+    const { read } = gatedReader({});
+    const runtime = activate(harness.pi, read);
+    await sessionStartOf(harness)({}, harness.context());
+
+    expect(runtime.state.modules.taskArgs).toEqual({ status: "enabled", detail: "rewrites=0" });
+    const line = runtime
+      .describe()
+      .split("\n")
+      .find((entry) => entry.startsWith("taskArgs: "));
+    expect(line).toBe("taskArgs: enabled (rewrites=0) — enabled=true");
+  });
+
   test("stops the replay wrapper an earlier activation installed when the settings cannot be read", async () => {
     const first = createHarness();
     const { read: readFirst } = gatedReader({});
@@ -197,6 +219,7 @@ describe("the /qol command", () => {
     expect(text).toContain("compaction: ");
     expect(text).toContain("replay: ");
     expect(text).toContain("compactionUsage: incompatible");
+    expect(text).toContain("taskArgs: ");
     expect(text).toContain("enabled=false timeoutMs=900000");
     expect(text).not.toContain("user:");
     expect(text).not.toContain("project:");
@@ -249,6 +272,7 @@ describe("the /qol command", () => {
         replay: { status: "enabled" },
         modelPrompts: { status: "disabled" },
         compactionUsage: { status: "disabled", reason: "compactionUsage-disabled" },
+        taskArgs: { status: "enabled" },
       },
     });
     expect(defaults).not.toContain("no longer matches");
@@ -268,6 +292,7 @@ describe("the /qol command", () => {
           replay: { status: "enabled" },
           modelPrompts: { status: "disabled" },
           compactionUsage: { status: "enabled" },
+          taskArgs: { status: "enabled" },
         },
       },
       undefined,

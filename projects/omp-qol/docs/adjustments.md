@@ -369,3 +369,49 @@ Behavior tests cover parser/matching boundaries, zero access when off or without
 ### Upstream recheck
 
 When OMP offers native model-scoped instructions, follow the [upstream recheck](../README.md#upstream-recheck) before retaining, narrowing, or removing this capability.
+
+## Task argument cleanup
+
+### Native behavior
+
+OMP 18.11.3 exposes `sourceSession` and `model` on every `task` item when the session advertises the `seance` agent. [`validateSeanceFields`](https://github.com/can1357/oh-my-pi/blob/v18.11.3/packages/coding-agent/src/task/seance.ts) rejects any present value when the resolved agent is not `seance`, because it compares against `undefined` rather than checking for a meaningful value. A model that treats optional fields as inputs can send `""`, `/dev/null`, or a model name and fail the whole call before dispatch. The host validates the batch before dispatch; with speculative task launch active, subagents already started from closed items are discarded.
+
+OMP 18.5.0, the component's maintenance floor, has a different task schema: `model` is an ordinary optional selector and `sourceSession` is absent. Deleting `model` on that schema would remove a valid choice, so the module keys on `sourceSession` and stays unavailable when it is absent.
+
+### Where it attaches
+
+The module registers a `tool_call` handler for the built-in `task` tool and returns `{ input }` only when it changed the call. The host uses the returned input for display, persistence, and execution. The handler copies only changed items; the task schema, description, approval policy, dispatch path, and result rendering stay native.
+
+OMP denies speculative task launch and experimental read speculation when an extension registers a `tool_call` handler. The module therefore makes `task.speculativeLaunch` ineffective while enabled, including for calls without the two fields. It does not change the host setting, and turning the module off restores the native behavior at the next activation.
+
+Before installing the handler, the module reads the built-in task schema. It registers nothing when the schema does not expose `sourceSession`; this is the 18.5.0 shape.
+
+### Settings
+
+`taskArgsEnabled` (on by default); see the README for the accepted values. The master switch must also be on. The module is active only when the built-in task schema exposes `sourceSession`.
+
+### Cleanup rule
+
+A flat call is one item; a `tasks` array is a batch. For each item whose `agent` is a string, trims non-empty, and is not `seance`, the handler deletes that item's own `sourceSession` and `model`, whatever their values. Items with a missing, empty, whitespace, non-string, or `seance` agent are unchanged. Batch-level fields, non-object items, and every other argument keep their value and structure. A batch that changes several items counts as one rewritten call; `/qol` reports the count for the current activation.
+
+### Availability
+
+The handler is installed only for a built-in `task` whose schema exposes `sourceSession`. A missing tool reports `unavailable`, a shadowed tool reports `incompatible`, the module switch off reports `disabled`, and the master switch off also reports `disabled`. A built-in task schema without `sourceSession` reports `unavailable` with `task-tool-without-seance-fields`, preserving the ordinary `model` selector and leaving speculative launch in place. An invalid `taskArgsEnabled` disables only this module. The module does not change the task schema or the host's validation; a call that remains invalid for another reason still fails.
+
+### Limits
+
+- The module only removes the two fields from properly identified non-seance items. It does not infer a default agent, repair a batch-level field, or add model-visible guidance. Calls with no usable agent and calls with batch-level fields keep native validation.
+- The handler covers every `task` call in the session that registers it. While it is registered, every such call loses speculative launch, not only calls that carry the fields. This is the accepted cost; the module cannot enable launch for the calls it leaves untouched. A schema without `sourceSession` registers no handler, so that cost does not apply there. If the host later accepts the fields or stops exposing them, the handler still costs the same until disabled or retired.
+- A host that exposes `sourceSession` while also giving ordinary agents a legitimate `model` selector would lose that choice; the current 18.11.3 seance schema does not. A schema with only the ordinary `model` selector is left unavailable and unchanged. A host that renames or re-scopes the fields requires a new review.
+- When several extensions return `input` for one call, the host uses the last result; this module can overwrite or be overwritten by another revision.
+- The module adds no session entry of its own and does not rewrite earlier history. The host persists the revised arguments in the current assistant message, so later requests and the session file observe them. It removes arguments, so a model's mistake can stay invisible except for the `/qol` counter.
+
+### Verification
+
+- **Source baseline**: OMP `18.11.3`, tag `v18.11.3`, commit `96894a6147d8cc64b7e00ad3a7d7178fd93b9531`. The OMP `18.5.0` pinned development types show the ordinary `model` selector and no `sourceSession`; that shape is covered by a test fixture.
+- **Automated checks**: OMP `18.5.0` development types, `bun test` and `tsc --noEmit`. The tests cover a flat call, batch items, seance preservation, missing/empty/whitespace/non-string agents, absent target fields, abnormal task shapes, rewrite counting, the built-in guard, the flat and batch seance schema shapes, a model-only schema without `sourceSession`, disabled and incompatible states, and the off switch.
+- **Real OMP CLI**: OMP `18.11.3` with `gpt-6-luna` and the `ds-flash` preset. A batch call whose only item named `agent: "ds-flash"` and carried `sourceSession` and `model` dispatched successfully after cleanup: the model's raw call kept both fields, the assistant message the host persisted dropped them, `/qol` reported `taskArgs: enabled (rewrites=2)`, and the child returned its output. The loss of speculative launch, a real seance item, a flat single call, and multi-item batches are **not verified**.
+
+### Upstream recheck
+
+Recheck when OMP accepts the fields for non-seance items or exposes a task-specific pre-validation hook. If the host fixes the contract, disable or retire the module rather than keep the speculation cost.

@@ -44,6 +44,7 @@ import {
   type ModuleId,
   type QolSettings,
 } from "./settings.ts";
+import { installTaskArgsModule } from "./task-args.ts";
 import { installWaitModule } from "./wait.ts";
 import {
   installUsageCompensationModule,
@@ -52,7 +53,7 @@ import {
 } from "./usage-compensation.ts";
 
 export const PACKAGE_NAME = "@ruokee/omp-qol";
-export const PACKAGE_VERSION = "0.5.7";
+export const PACKAGE_VERSION = "0.5.8";
 export const COMMAND_NAME = "qol";
 
 let activationSequence = 0;
@@ -169,6 +170,7 @@ function describeModule(id: ModuleId, state: ModuleState, settings: QolSettings 
     return `${head} — enabled=${replay.enabled}`;
   }
   if (id === "modelPrompts") return `${head} enabled=${settings.modelPrompts.enabled}`;
+  if (id === "taskArgs") return `${head} — enabled=${settings.taskArgs.enabled}`;
   if (id === "compactionUsage") return `${head} — enabled=${settings.compactionUsage.enabled}`;
   const compaction = settings.compaction;
   const floorNote =
@@ -350,6 +352,7 @@ export function activate(pi: ExtensionAPI, readSettings: PluginSettingsReader = 
     state.modules.compactionUsage = installModule("compactionUsage", installUsageCompensationModule);
     state.modules.replay = installModule("replay", installNativeReplayModule);
     state.modules.modelPrompts = installModule("modelPrompts", installModelPromptsModule);
+    state.modules.taskArgs = installModule("taskArgs", installTaskArgsModule);
   };
 
   pi.on("session_start", async (_event, ctx) => {

@@ -38,6 +38,7 @@ describe("settings ranges", () => {
       compactionTimeoutNotify: false,
       replayEnabled: false,
       compactionUsageEnabled: false,
+      taskArgsEnabled: false,
     });
     expect(problems).toEqual([]);
     expect(settings.enabled).toBe(false);
@@ -46,6 +47,12 @@ describe("settings ranges", () => {
     expect(settings.compaction.timeoutMs).toBe(COMPACTION_TIMEOUT_MAX_MS);
     expect(settings.compaction.guardMs).toBe(COMPACTION_GUARD_MAX_MS);
     expect(settings.compactionUsage.enabled).toBe(false);
+    expect(settings.taskArgs.enabled).toBe(false);
+  });
+
+  test("the task argument cleanup defaults on", () => {
+    const { settings } = parse({});
+    expect(settings.taskArgs.enabled).toBe(true);
   });
 });
 
@@ -70,6 +77,7 @@ describe("rejected values", () => {
     ["fractional timeout", { compactionTimeoutMs: 900_000.5 }, "compactionTimeoutMs=integer"],
     ["a non-boolean replay switch", { replayEnabled: "on" }, "replayEnabled=type"],
     ["a non-boolean compaction usage switch", { compactionUsageEnabled: "on" }, "compactionUsageEnabled=type"],
+    ["a non-boolean task arguments switch", { taskArgsEnabled: "on" }, "taskArgsEnabled=type"],
   ];
 
   for (const [label, raw, expected] of cases) {
@@ -85,6 +93,12 @@ describe("rejected values", () => {
     const { problems, invalidModules } = parse({ recoveryMaxAttempts: 0 });
     expect(invalidModules).toEqual(["recovery"]);
     expect(problems).toEqual([{ module: "recovery", key: "recoveryMaxAttempts", rule: "range" }]);
+  });
+
+  test("an invalid task arguments switch disables only that module", () => {
+    const { problems, invalidModules } = parse({ taskArgsEnabled: "on" });
+    expect(invalidModules).toEqual(["taskArgs"]);
+    expect(problems).toEqual([{ module: "taskArgs", key: "taskArgsEnabled", rule: "type" }]);
   });
 
   test("an invalid value is reported even when its module is switched off", () => {

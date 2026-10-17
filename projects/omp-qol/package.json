@@ -1,7 +1,7 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.5.7",
-  "description": "OMP adjustments for wait deadlines, model-error recovery, native-history replay, compaction deadlines, compaction request usage, and opt-in model prompt rules",
+  "version": "0.5.8",
+  "description": "OMP adjustments for wait deadlines, model-error recovery, native-history replay, compaction deadlines, compaction request usage, task argument cleanup, and opt-in model prompt rules",
   "license": "MIT",
   "type": "module",
   "keywords": [
@@ -140,6 +140,11 @@
         "type": "boolean",
         "default": true,
         "description": "Record the token usage of the compaction and handoff requests the host does not journal itself. On by default; a host that records them itself leaves it inactive. Restart to apply."
+      },
+      "taskArgsEnabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Remove seance-only sourceSession and model fields from non-seance task items before host validation. On by default; restart to apply."
       }
     }
   },

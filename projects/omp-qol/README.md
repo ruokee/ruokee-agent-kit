@@ -14,8 +14,9 @@ Jobs, messages, processes, turns, and compaction stay with OMP. Every adjustment
 - [Recording compaction request usage](./docs/adjustments.md#recording-compaction-request-usage): default on. Each completed `soft` summarization and `handoff` request is written to the session journal as a `model_usage` entry with the provider's tokens and per-component cost, so the session statistics count what those requests cost. Process-wide; a host that records them itself leaves it inactive.
 - [Replaying native history in a resumed session](./docs/adjustments.md#replaying-native-history-in-a-resumed-session): default on. A resumed session's first request replays the native provider items the previous process ended with, instead of rebuilding the conversation from its generic content, so a prompt cache over that form can serve it. Process-wide, one flag, no body rewrite.
 - [Model prompt rules](#model-prompt-rules): default **off**. Append matching user-authored Markdown bodies to each covered turn's system prompt, without requiring a template or another component.
+- [Task argument cleanup](./docs/adjustments.md#task-argument-cleanup): default on when the built-in task schema exposes the seance-only `sourceSession` field. Remove it and `model` from non-seance task items before host validation; a schema with only the ordinary `model` selector stays untouched.
 
-The wait adjustment adds an optional `timeout`; replay chooses the stored native items. Neither changes the model, cache key, or stored history. The compaction usage adjustment adds session entries and therefore changes the session file; it changes no request. Recovery starts a turn and wait repeats a call the model already made; provider quota is spent when the model runs.
+The wait adjustment adds an optional `timeout`; replay chooses the stored native items. Neither changes the model, cache key, or stored history. The compaction usage adjustment adds session entries and therefore changes the session file; it changes no request. Recovery starts a turn and wait repeats a call the model already made; provider quota is spent when the model runs. The task argument cleanup rewrites the event input and leaves the task schema unchanged; the host persists the revised arguments in the current assistant message.
 
 ## Configuration
 
@@ -75,6 +76,10 @@ omp plugin config set @ruokee/omp-qol modelPromptsEnabled true
 
 Restart OMP after changing the switch. Existing rule files need no path or format migration. Both switches must be on for handler registration, rule reads, and unused-file diagnostics.
 
+### Task arguments
+
+- `taskArgsEnabled`: default `true`, accepts a boolean. When the built-in task schema exposes the seance-only `sourceSession` field, remove it and `model` from non-seance task items before host validation. The registered handler disables speculative task launch and experimental read speculation. On a schema with only the ordinary `model` selector, the module reports `unavailable` and registers no handler. Restart to apply.
+
 ### Validation
 
 - A key that is absent takes its default.
@@ -87,7 +92,7 @@ Restart OMP after changing the switch. Existing rule files need no path or forma
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.5.7
+@ruokee/omp-qol 0.5.8
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -97,6 +102,7 @@ compaction: disabled (compaction-disabled) — enabled=false timeoutMs=900000 fl
 compactionUsage: enabled (entries=2) — enabled=true
 replay: enabled (rewrites=0) — enabled=true
 modelPrompts: disabled (model-prompts-disabled) enabled=false
+taskArgs: enabled (rewrites=0) — enabled=true
 ```
 
 `pending` means no session has started in this process. `disabled`, `invalid`, `incompatible`, and `unavailable` each carry a reason code, and `problems:` lists the rejected keys when the settings object was accepted only in part. A rejected settings object replaces every module line with the reason and ends the report with the keys that rejected it.
@@ -163,7 +169,7 @@ The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound.
 
 The package declares `@oh-my-pi/pi-agent-core`, `@oh-my-pi/pi-ai`, `@oh-my-pi/pi-coding-agent`, and `@oh-my-pi/pi-utils` as unrestricted host peers (`*`). Those declarations name the host packages the component imports; they carry no maintenance range, no runtime check, and no claim about any host version.
 
-The automated type check and test suite run against OMP `18.5.0`. Source baselines are path-specific: recovery, the compaction deadline, and replay cite `18.2.8`, where those mechanisms were first read; continuing waits and compaction usage cite `18.5.0`, with compaction usage reading the provider-computed cost on the installed `18.8.3`.
+The automated type check and test suite run against OMP `18.5.0`. Source baselines are path-specific: recovery, the compaction deadline, and replay cite `18.2.8`, where those mechanisms were first read; continuing waits and compaction usage cite `18.5.0`, with compaction usage reading the provider-computed cost on the installed `18.8.3`; task argument cleanup cites `18.11.3`, where the seance task schema was read.
 
 The checks cover what the modules inspect, and not the entry's own imports or a difference no module looks at, so an unrecognized host change can also alter behavior without disabling the adjustment.
 

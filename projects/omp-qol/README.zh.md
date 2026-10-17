@@ -14,8 +14,9 @@
 - [补记压缩请求用量](./docs/adjustments.zh.md#补记压缩请求用量)：默认开启。每个完成的 `soft` 摘要请求与 `handoff` 请求都会作为 `model_usage` 条目写入会话文件，带提供方的 token 数与分项成本，会话统计因此计入这些请求的开销。进程级生效；宿主自己记录这些请求时该项保持不生效。
 - [恢复会话时沿用原生历史](./docs/adjustments.zh.md#恢复会话时沿用原生历史)：默认开启。恢复会话的首次请求沿用上一个进程结束时的原生提供方条目，而不是按通用内容重建对话，使基于该形式的提示缓存可以服务这次请求。进程级生效，只设置一个标志，不改写请求体。
 - [模型提示词规则](#模型提示词规则)：默认**关闭**。向每个受覆盖 turn 的系统提示词追加命中的用户 Markdown 正文，无需模板或其他组件。
+- [任务参数清理](./docs/adjustments.zh.md#任务参数清理)：默认开启，仅在内建 task schema 暴露 seance 专用字段 `sourceSession` 时生效。在宿主校验前从非 seance 任务项删除该字段与 `model`；只有普通 `model` 选择器的 schema 保持不变。
 
-等待调整新增可选 `timeout`，重放选择已存的原生条目。两者均不改模型、缓存键或已存历史。压缩请求用量调整会新增会话条目，因此会改动会话文件；它不改动任何请求。恢复启动模型轮次，等待重复模型已经发出的调用，模型运行时会消耗服务额度。
+等待调整新增可选 `timeout`，重放选择已存的原生条目。两者均不改模型、缓存键或已存历史。压缩请求用量调整会新增会话条目，因此会改动会话文件；它不改动任何请求。恢复启动模型轮次，等待重复模型已经发出的调用，模型运行时会消耗服务额度。任务参数清理改写事件输入，不改变 task schema；宿主会把改写后的参数持久化到当前 assistant 消息。
 
 ## 配置
 
@@ -75,6 +76,10 @@ omp plugin config set @ruokee/omp-qol modelPromptsEnabled true
 
 修改开关后重启 OMP。既有规则文件无需迁移路径或格式。两个开关都开启时才注册 handler、读取规则并诊断未使用文件。
 
+### 任务参数
+
+- `taskArgsEnabled`：默认 `true`，取值 boolean。内建 task schema 暴露 seance 专用字段 `sourceSession` 时，在宿主校验前从非 seance 任务项删除该字段与 `model`。注册的处理器会关闭推测启动和实验性的推测读取。只有普通 `model` 选择器的 schema 会报告 `unavailable` 且不注册 handler。重启生效。
+
 ### 校验
 
 - 缺失的键取默认值。
@@ -87,7 +92,7 @@ omp plugin config set @ruokee/omp-qol modelPromptsEnabled true
 `/qol` 打印当前状态，不做任何修改。它不启动模型轮次，也不读取设置 schema 之外的值。
 
 ```
-@ruokee/omp-qol 0.5.7
+@ruokee/omp-qol 0.5.8
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -97,6 +102,7 @@ compaction: disabled (compaction-disabled) — enabled=false timeoutMs=900000 fl
 compactionUsage: enabled (entries=2) — enabled=true
 replay: enabled (rewrites=0) — enabled=true
 modelPrompts: disabled (model-prompts-disabled) enabled=false
+taskArgs: enabled (rewrites=0) — enabled=true
 ```
 
 `pending` 表示该进程尚未执行过会话启动。`disabled`、`invalid`、`incompatible` 和 `unavailable` 各自带原因码；设置对象只被部分接受时，`problems:` 列出被拒绝的键。设置对象整体被拒绝时，每个模块行替换为拒绝原因，报告末尾列出导致拒绝的键。
@@ -163,7 +169,7 @@ OMP 通过 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) 或等
 
 包的 peer 以无限制的范围 `*` 声明 `@oh-my-pi/pi-agent-core`、`@oh-my-pi/pi-ai`、`@oh-my-pi/pi-coding-agent` 与 `@oh-my-pi/pi-utils`。该声明只列出组件导入的宿主包，不构成维护范围，不带运行时检查，也不表示任何宿主版本可用。
 
-自动化类型检查与测试套件针对 OMP `18.5.0` 运行。源码基线按路径区分：上游错误后续跑、压缩期限与原生历史重放引用最初阅读这些机制时的 `18.2.8`，持续等待与压缩请求用量引用 `18.5.0`，其中压缩请求用量的提供方计算成本依据已安装的 `18.8.3` 阅读。
+自动化类型检查与测试套件针对 OMP `18.5.0` 运行。源码基线按路径区分：上游错误后续跑、压缩期限与原生历史重放引用最初阅读这些机制时的 `18.2.8`，持续等待与压缩请求用量引用 `18.5.0`，其中压缩请求用量的提供方计算成本依据已安装的 `18.8.3` 阅读；任务参数清理引用 `18.11.3`，即读取 seance task schema 的版本。
 
 这些检查只覆盖各模块实际查看的内容，不覆盖入口自身的导入，也不覆盖没有任何模块检查的差异，因此无法识别的宿主变化也可能在不被停用的情况下改变行为。
 
