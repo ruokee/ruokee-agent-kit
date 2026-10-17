@@ -2,7 +2,7 @@
 
 [English](./agent.md) | 中文 | [词典](./README.zh.md)
 
-Agent 是在 Harness 中工作的模型：Harness 提供工具和指令、持有上下文，并运行工具循环。
+Agent 是模型与 Harness 的组合：Harness 提供工具和指令、持有上下文，并运行工具循环。
 
 ## 机制
 

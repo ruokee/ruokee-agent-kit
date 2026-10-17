@@ -4,7 +4,7 @@ English | [中文](./agent.zh.md) | [Dictionary](./README.md)
 
 Chinese term: Agent
 
-A model at work inside a Harness: the Harness supplies tools and instructions, holds the context, and runs the tool loop.
+An agent is a model plus a Harness: the Harness supplies tools and instructions, holds the context, and runs the tool loop.
 
 ## Mechanism
 

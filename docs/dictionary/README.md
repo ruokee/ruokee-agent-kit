@@ -36,7 +36,7 @@ The Agent Harness or product that discovers, loads, and runs a component.
 
 **[skill root](./skill.md#skill-root)**（技能根目录）
 
-The directory where a host discovers installed Skills, as `<skill root>/<name>/`.
+The parent directory that contains installed Skills, each at `<skill root>/<name>/`.
 
 **[self-contained](./component.md#self-contained)**（自包含）
 
@@ -76,7 +76,7 @@ A property a spec requires to remain true across changes, independent of impleme
 
 An observable condition that distinguishes a conforming result from a deviation.
 
-**[public surface](./spec.md#public-surface)**（公开表面）
+**[public surface](./spec.md#public-surface)**（公共面）
 
 The commands, formats, files, and behaviors that users or other components rely on and that a change must preserve or update.
 
@@ -180,7 +180,7 @@ The token predictor an agent calls; it receives tokens and returns tokens withou
 
 **[agent](./agent.md)**（Agent）
 
-A model at work inside a Harness, which supplies tools and instructions, holds the context, and runs the tool loop.
+A model plus a Harness, which supplies tools and instructions, holds the context, and runs the tool loop.
 
 **[Harness](./agent.md#harness)**（Harness）
 

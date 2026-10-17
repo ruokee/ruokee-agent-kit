@@ -2,9 +2,9 @@
 
 [English](./README.md) | 中文
 
-我每天都会使用这些 Agent Skill 和拓展，进行真正的工程开发，管理个人笔记等等。
+我每天都会使用这些 Agent Skill 和扩展，进行真正的工程开发，管理个人笔记等等。
 
-我在不同 Agent Harness 中反复遇到同一类问题。有些问题适合写成 Skill，有些则需要更复杂的拓展来实现。
+我在不同 Agent Harness 中反复遇到同一类问题。有些问题适合写成 Skill，有些则需要更复杂的扩展来实现。
 
 Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。每项能力都应该有明确的用途、读得懂的文档，以及真实的验证路径。
 
@@ -33,7 +33,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 - **[deep-research](./skills/deep-research/SKILL.md)**：指导结构化、证据优先的研究，涵盖广泛探索、定向研究、来源验证和综合分析，包括来源采集、论断分类、未解决问题记录和子 Agent 并行研究，默认产出报告及支撑文档。 [中文变体](./variants/zh/skills/deep-research/SKILL.md)
 - **[well-said](./skills/well-said/SKILL.md)**：输出任何内容时使用，包括回复、文档、代码注释和 Agent 交流。涵盖文风模式、防御性表述、编写会话残留、文章写作和作者声音。防御性表述规则区分文字问题与需要补做或返工的工作。受 [Lauren Tan](https://github.com/poteto) 的 [unslop](https://github.com/cursor/plugins/blob/main/pstack/skills/unslop/SKILL.md) 启发。 [中文变体](./variants/zh/skills/well-said/SKILL.md)
 
-### 拓展
+### 扩展
 
 为 Harness 增加或调整功能的独立插件与扩展。
 
@@ -43,7 +43,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 
 **OMP**
 
-- **[omp-status-bar](./projects/omp-status-bar/README.zh.md)**：OMP 状态栏拓展，提供额外的上下文信息显示，包括当前会话上下文（数值而非原生提供的百分比）、总 Token、输入 Token、缓存 Token、输出 Token、缓存命中率和已回答的模型请求次数。
+- **[omp-status-bar](./projects/omp-status-bar/README.zh.md)**：OMP 状态栏扩展，提供额外的上下文信息显示，包括当前会话上下文（数值而非原生提供的百分比）、总 Token、输入 Token、缓存 Token、输出 Token、缓存命中率和已回答的模型请求次数。
 - **[omp-context-pin](./projects/omp-context-pin/README.zh.md)**：让少量固定条目在当前会话分支的每次普通模型请求中原样出现，并在每次提交后的压缩之后恢复这些条目。
 - **[omp-qol](./projects/omp-qol/README.zh.md)**：提供可独立开关的等待期限、模型错误后的受限续跑、实验性的压缩期限延长、压缩请求用量补记、原生历史重放、任务参数清理，以及可选择启用的模型提示词规则。
 - **[omp-smart-cache](./projects/omp-smart-cache/README.zh.md)**：使用同一会话已发送的普通请求，对齐原生远端压缩中经过证明的共同内容。默认关闭，覆盖主会话及原生子会话，不把客户端对齐视为 Provider 缓存收益。
@@ -52,7 +52,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 
 Skill 安装与下方的开发环境准备相互独立。语言选择、Skill 根目录，以及检查、安装、更新和卸载命令见[安装 Skill](./docs/installation.zh.md)。
 
-拓展和 tk 运行时在各自目录中构建和安装，具体要求见各自的 README。tk 运行时与各 Harness 的接入组件分别安装。
+扩展和 tk 运行时在各自目录中构建和安装，具体要求见各自的 README。tk 运行时与各 Harness 的接入组件分别安装。
 
 ## 开发
 

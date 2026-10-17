@@ -1,10 +1,10 @@
 # Architecture decision records
 
-English | [中文](./README.zh.md) | [Glossary](./glossary.md)
+English | [中文](./README.zh.md) | [Dictionary](../../docs/dictionary/adr.md)
 
 An **ADR** records the rationale and contract of a durable repository decision. ADRs are not progress logs, release notes, temporary plans, or summaries of routine changes. Write for a reader who has only the finished record and its accessible sources.
 
-Read this guide and the [glossary](./glossary.md) before proposing or changing a durable architecture, contract, format, or repository-process decision.
+Read this guide and the [dictionary's ADR page](../../docs/dictionary/adr.md) before proposing or changing a durable architecture, contract, format, or repository-process decision.
 
 The current target state of each component and repository area is stated in [specifications](../spec/README.md) under `.agents/spec/`. A spec links to the decisions behind it and must not conflict with a current decision.
 
@@ -41,13 +41,11 @@ Only archives carry `rN`. The first reversal of a decision produces `r1`; each l
 
 A successor continuing the original topic retains its identity and sequence. An extracted independent topic gets its own first proposal date, canonical name, and sequence while preserving actual source and reversal relationships. A shared predecessor or `Reverses` link alone does not mean shared identity.
 
-Use the identity date for the year, month, and day of both the current decision and every archive, even when archival occurs in another year. Create time directories only for actual records; month directories have no file-count limit. Keep this guide and the glossary at the ADR root.
+Use the identity date for the year, month, and day of both the current decision and every archive, even when archival occurs in another year. Create time directories only for actual records; month directories have no file-count limit. Keep this guide at the ADR root.
 
 Apply the [naming rules](../rule/documentation.md#naming) to every retained filename, title, and subsection heading, including topic text after a `Changes` date. Name one subject with a short imperative, phrase, or noun, leaving details in the body. The complete leaf filename, including `DD`, any `rN`, topic, language suffix, and extension, must not exceed 60 characters.
 
 Keep all four lifecycle directories in Git with `.gitkeep`, including when they contain ADR files.
-
-Each glossary entry names the corresponding term in the other language within its concise definition.
 
 ## Bilingual files
 

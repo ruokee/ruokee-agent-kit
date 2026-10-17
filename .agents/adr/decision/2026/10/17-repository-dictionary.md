@@ -9,9 +9,9 @@ English | [中文](./17-repository-dictionary.zh.md)
 
 Create a shared repository dictionary for development work.
 
-Term definitions are scattered across the `architect`, `code-quality`, `python-engineering`, and `msgspec` Skill glossaries and the ADR glossary. Each glossary covers one component. Cross-component repository concepts, workflow concepts, and AI coding vocabulary have no shared definition.
+Term definitions are scattered across component glossaries, including the `architect`, `code-quality`, `python-engineering`, and `msgspec` Skill glossaries. Each glossary covers one component. Cross-component repository concepts, workflow concepts, and AI coding vocabulary have no shared definition.
 
-Some terms are defined more than once. `Recommendation` in `architect` is a candidate direction; in the review Skills it is the smallest sufficient action for a finding. `ADR` in `architect` names the general architecture record, while the ADR glossary names this repository's mechanism. Agents and maintainers can use the same word with different meanings, and the same concept can appear under different words.
+Some terms are defined more than once. `Recommendation` in `architect` is a candidate direction; in the review Skills it is the smallest sufficient action for a finding. `ADR` in `architect` names the general architecture record, while this repository uses the same word for its decision mechanism. Agents and maintainers can use the same word with different meanings, and the same concept can appear under different words.
 
 ## Decision
 
@@ -27,13 +27,13 @@ The first batch covers repository and toolchain concepts, review terms, and high
 
 ### Authority
 
-The dictionary is authoritative for shared terms. Component glossaries keep self-contained copies whose meaning must agree with the dictionary; a component may add a scope-specific note that does not contradict the shared definition. The [ADR glossary](../../../glossary.md) keeps ADR-local terms and points shared terms to the dictionary.
+The dictionary is authoritative for shared terms. Component glossaries keep self-contained copies whose meaning must agree with the dictionary; a component may add a scope-specific note that does not contradict the shared definition. The dictionary's ADR page defines ADR terms; the repository maintains no separate ADR glossary.
 
 The [terminology rule](../../../../rule/terminology.md) and its Chinese page state the normative requirements: use the dictionary's canonical term and definition in repository documents, rules, specifications, decisions, task materials, and discussion of repository work; do not introduce a synonym for an entry; keep third-party proper names, commands, fields, and file name literals in their original spelling; an Agent proposes a new entry to the maintainer, and adds or changes a canonical term or definition only after the maintainer confirms it.
 
 ### Repository integration
 
-The root `AGENTS.md` links the dictionary and the terminology rule. The [rule index](../../../../rule/README.md) lists `terminology.md`. The [repository specification](../../../../spec/repository.md) lists the dictionary and the terminology rule in its public surface. The [README](../../../../../README.md) documentation layers include the dictionary. The ADR glossary points shared terms to the dictionary and keeps ADR-local terms. `.omp/AGENTS.md` inherits the root reference through `@../AGENTS.md`.
+The root `AGENTS.md` links the dictionary and the terminology rule. The [rule index](../../../../rule/README.md) lists `terminology.md`. The [repository specification](../../../../spec/repository.md) lists the dictionary and the terminology rule in its public surface. The [README](../../../../../README.md) documentation layers include the dictionary. The [ADR guide](../../../README.md) points ADR terms to the dictionary's ADR page. `.omp/AGENTS.md` inherits the root reference through `@../AGENTS.md`.
 
 ### Source
 
@@ -53,7 +53,7 @@ Entry organization follows Matt Pocock's [`dictionary-of-ai-coding`](https://git
 
 ## Consequences
 
-The repository now has a shared reference for cross-component and AI coding terms, and the terminology rule makes its use normative. Component glossaries keep their self-contained copies and must agree with the shared definitions; the ADR glossary keeps ADR-local terms.
+The repository now has a shared reference for cross-component and AI coding terms, and the terminology rule makes its use normative. Component glossaries keep their self-contained copies and must agree with the shared definitions; the repository maintains no separate ADR glossary.
 
 The first batch is large. Entries that only need a sentence can become shallow definitions, and the linked pages may absorb too many terms. The split rule keeps pages to terms that need a mechanism, examples, or a boundary note.
 

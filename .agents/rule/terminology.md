@@ -12,7 +12,7 @@ The [repository dictionary](../../docs/dictionary/README.md) defines the shared 
 - Propose a new entry to the maintainer when a recurring concept is not recorded.
 - Get the maintainer's confirmation before adding an entry or changing a canonical term or its meaning.
 - Keep each component glossary's meaning aligned with the authoritative dictionary.
-- Keep ADR-local terms in the ADR glossary.
+- Keep glossaries only in distributable components; the rest of the repository uses the dictionary.
 - Keep an entry's English and Chinese pages equivalent and linked.
 
 ## Scope

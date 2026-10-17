@@ -2,7 +2,7 @@
 
 Decision owner: Ruokee
 Decision writer: OMP
-Reverses: [ADR mechanism](../../../archived/2026/08/22-r4-adr-mechanism.md)
+Reverses: [ADR mechanism](../../../archived/2026/08/22-r5-adr-mechanism.md)
 
 English | [中文](./22-adr-mechanism.zh.md)
 
@@ -12,13 +12,15 @@ Maintain bilingual ADR proposals and decisions with stable decision paths and tr
 
 An ADR preserves a durable choice, its rationale, necessary contract, and lifecycle. Successive versions need one current reference and separately accessible historical records, including when several reversals happen on the same day. Year and month directories group records without making their actual archival dates part of their identity.
 
-The [previous mechanism](../../../archived/2026/08/22-r4-adr-mechanism.md) required naming maintenance to preserve each record's filename date. Its successors used different dates. Normalizing all versions to the decision's first proposal date changes that date meaning and historical maintenance boundary. It does not change the choices recorded by the other ADRs.
+The [earlier mechanism](../../../archived/2026/08/22-r4-adr-mechanism.md) required naming maintenance to preserve each record's filename date. Its successors used different dates. Normalizing all versions to the decision's first proposal date changes that date meaning and historical maintenance boundary. It does not change the choices recorded by the other ADRs.
+
+The ADR glossary duplicated terms the repository dictionary defines, creating a second authority that needed synchronized updates. The dictionary is now the only repository term source outside distributable components, and the ADR guide points to its ADR page.
 
 ## Decision
 
 ### Terminology
 
-Use **ADR** as the primary term, with `.agents/adr` as the root. The [ADR guide](../../../README.md#document-layout) owns the document types, the state the directory expresses, the action phrases, and the glossary rules. Maintain `glossary.md` and `glossary.zh.md` at the ADR root; they carry ADR, proposal, decision, `Update decision`, and `Reverse decision`, and a new entry requires the maintainer to establish its meaning explicitly.
+Use **ADR** as the primary term, with `.agents/adr` as the root. The [ADR guide](../../../README.md#document-layout) owns the document types, the state the directory expresses, and the action phrases.
 
 ### Identity
 
@@ -26,7 +28,7 @@ A decision's first proposal date and short canonical English topic name identify
 
 ### Paths
 
-The four lifecycle roots, the `YYYY/MM/DD` placement, the `rN` sequence, the `.gitkeep` rule, and the root location of the guide and glossary are in the [ADR guide](../../../README.md#document-layout).
+The four lifecycle roots, the `YYYY/MM/DD` placement, the `rN` sequence, the `.gitkeep` rule, and the root location of the guide are in the [ADR guide](../../../README.md#document-layout).
 
 ### Proposal workflow
 
@@ -54,7 +56,7 @@ Direct relationships follow versions. If A is reversed by B and later B by C, A'
 
 Use review, repository search, and Git history rather than a dedicated ADR Skill, classification system, translation sidecar, archive manifest, index, or permanent maintenance script. Add a mechanical check only after repeated maintenance or an observed failure identifies a concrete invariant.
 
-The [ADR guide](../../../README.md) owns detailed formats and operations, with its [Chinese counterpart](../../../README.zh.md) and paired glossary. The [repository specification](../../../../spec/repository.md) states lasting goals and observable invariants. Keep the guide, glossary, documentation rules, specification, and affected references aligned in both languages.
+The [ADR guide](../../../README.md) owns detailed formats and operations, with its [Chinese counterpart](../../../README.zh.md) and the [repository dictionary](../../../../../docs/dictionary/adr.md). The [repository specification](../../../../spec/repository.md) states lasting goals and observable invariants. Keep the guide, documentation rules, specification, dictionary, and affected references aligned in both languages.
 
 ## Alternatives considered
 
@@ -71,5 +73,3 @@ Direct relationships require maintenance when a current successor itself becomes
 Titles carry topics, not types. Readers use directories, metadata, and language links to identify records. Discovery uses concise names and repository search rather than a central index.
 
 A proposal and its implementation require separate branches and mainline commits. This preserves an independent rationale and review boundary. A reversal requires comparing the predecessor and proposal to reconstruct the complete current contract. Necessary contract detail and bilingual semantic alignment remain review judgments, not mechanically proven properties.
-
-The glossary stays small. Ordinary wording and unconfirmed synonyms do not become contractual terminology.

@@ -34,7 +34,7 @@ The [rule layer](../rule/README.md) states how work is done here.
 - Git workflow, commit rules, and hooks: [Git](../../README.md#git), [Git rules](../rule/git.md), and [validation rules](../rule/development.md#validation).
 - Check prerequisites, affected checks, and the complete merge gate: [Check prerequisites](../../README.md#check-prerequisites), [Affected checks](../rule/development.md#checks), and [Complete merge validation](../../README.md#complete-merge-validation).
 - Common commands: [Common commands](../../README.md#common-commands).
-- ADR rules and glossary: [.agents/adr/README.md](../adr/README.md) and [.agents/adr/glossary.md](../adr/glossary.md).
+- ADR rules: [.agents/adr/README.md](../adr/README.md). ADR terms: [dictionary's ADR page](../../docs/dictionary/adr.md).
 - Spec rules: [.agents/spec/README.md](./README.md).
 
 ## Invariants
@@ -63,7 +63,7 @@ The [rule layer](../rule/README.md) states how work is done here.
 - No reference inside a component resolves outside that component's directory.
 - Same-day, cross-month, and cross-year reversals leave the canonical current path unchanged, keep later versions separately accessible, and advance only that decision's continuous sequence. Extracting an independent topic and correcting names follow the [ADR rules](../adr/README.md), and a reader can follow accurate direct predecessors and successors without mistaking a later version for an earlier record's direct successor.
 - Every retained ADR meets the [ADR rules](../adr/README.md) for layout, naming, language pairs, and preserved historical content.
-- The ADR mechanism, guide, glossary, documentation rules, specification, and actual references express the same contract. Current and historical citations, reciprocal language links, and heading fragments resolve to the intended content.
+- The ADR mechanism, guide, documentation rules, specification, dictionary, and actual references express the same contract. Current and historical citations, reciprocal language links, and heading fragments resolve to the intended content.
 
 ## Related ADRs
 

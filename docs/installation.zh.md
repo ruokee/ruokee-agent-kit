@@ -2,7 +2,7 @@
 
 [English](./installation.md) | 中文
 
-本指南只覆盖本仓库的普通 Skill。拓展组件保留各自的安装与更新说明：
+本指南只覆盖本仓库的普通 Skill。扩展组件保留各自的安装与更新说明：
 
 - [tk](../projects/tk/README.zh.md)
 - [omp-status-bar](../projects/omp-status-bar/README.zh.md)

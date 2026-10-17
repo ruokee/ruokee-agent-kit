@@ -4,7 +4,7 @@ English | [中文](./adr.zh.md) | [Dictionary](./README.md)
 
 Chinese term: ADR
 
-A bilingual record under `.agents/adr/` of a durable repository decision's rationale and contract, as a proposal or a decision.
+An **ADR** (Architecture Decision Record) is a bilingual record under `.agents/adr/` of a durable repository decision's rationale and contract, as a proposal or a decision.
 
 ## Mechanism
 
@@ -32,7 +32,7 @@ Add non-conflicting content to a current decision under `Changes` without archiv
 
 ## Reverse decision
 
-Create a complete successor from an old decision's still-effective rules and an accepted proposal naming the conflict. The replaced version is archived with its actual archival date and a revision number; the successor keeps the original identity date and canonical path.
+Create a complete successor from an old decision's still-effective rules and an accepted proposal naming the conflict. Archive the replaced version under its identity date with the next revision number, record the actual archival date in `Archived: YYYY-MM-DD`, and keep the successor at the canonical current path.
 
 ## Archived version
 

@@ -36,7 +36,7 @@
 
 **[技能根目录](./skill.zh.md#技能根目录)**（skill root）
 
-宿主发现已安装技能的目录，形式为 `<skill root>/<name>/`。
+容纳已安装技能目录的父目录，每个技能位于 `<skill root>/<name>/`。
 
 **[自包含](./component.zh.md#自包含)**（self-contained）
 
@@ -76,7 +76,7 @@
 
 区分符合要求的结果与偏离的可观察条件。
 
-**[公开表面](./spec.zh.md#公开表面)**（public surface）
+**[公共面](./spec.zh.md#公共面)**（public surface）
 
 用户或其他组件依赖的命令、格式、文件和行为；变更必须保留或同步更新它们。
 
@@ -180,7 +180,7 @@
 
 **[Agent](./agent.zh.md)**（agent）
 
-在 Harness 中工作的模型：Harness 提供工具和指令、持有上下文，并运行工具循环。
+模型与 Harness 的组合：Harness 提供工具和指令、持有上下文，并运行工具循环。
 
 **[Harness](./agent.zh.md#harness)**（Harness）
 

@@ -22,7 +22,7 @@ Avoid "plugin" for a Skill. A plugin is a host extension, not an instruction com
 
 ## Skill root
 
-The directory where a host discovers installed Skills, as `<skill root>/<name>/`. The installer copies a Skill there without the source-only `variants/zh/` prefix.
+The parent directory that contains installed Skills, each at `<skill root>/<name>/`. The installer copies a Skill there without the source-only `variants/zh/` prefix.
 
 ## User-invoked
 

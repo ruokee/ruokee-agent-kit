@@ -20,7 +20,7 @@ The same constraint often appears in two forms, which is not duplication: the sp
 The following current decisions bear on the layer, and none of them conflicts with it:
 
 - [Add a specification layer](./04-specifications.md) recorded the division of work for specs, ADRs, and component documentation and left contributor instructions to the repository documentation, the README, and `AGENTS.md`. This decision adds a fourth document type to that division and reverses no part of it.
-- [Clarify the ADR content boundaries](../08/22-adr-mechanism.md) keeps ADR content rules, lifecycle, and glossary unchanged. A rule keeps no history, so it cannot replace a contract that a decision records.
+- [Clarify the ADR content boundaries](../08/22-adr-mechanism.md) keeps ADR content rules and lifecycle unchanged. A rule keeps no history, so it cannot replace a contract that a decision records.
 - [Keep distributable components self contained](../08/24-component-self-containment.md) forbids references from inside a component to files outside it. The rule layer is repository documentation outside component directories, and the reference direction keeps every component independent of it.
 - [Colocate bilingual public documentation](../08/20-bilingual-docs.md) requires same-directory language pairs for ordinary public pages, and rule pages follow it.
 - [Scope development checks](../09/12-repository-checks.md) defines how affected checks are selected and how the complete gate is recorded. Rules state when those checks run and what evidence they leave.

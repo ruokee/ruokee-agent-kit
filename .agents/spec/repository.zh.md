@@ -34,7 +34,7 @@
 - Git 工作流、提交规则和钩子：[Git](../../README.zh.md#git)、[Git 规则](../rule/git.zh.md)和[验证规则](../rule/development.zh.md#验证)。
 - 检查前置条件、受影响检查和完整合并门禁：[检查前置条件](../../README.zh.md#检查前置条件)、[受影响检查](../rule/development.zh.md#检查)和[完整合并验证](../../README.zh.md#完整合并验证)。
 - 常用命令：[常用命令](../../README.zh.md#常用命令)。
-- ADR 规则和术语表：[.agents/adr/README.zh.md](../adr/README.zh.md) 和 [.agents/adr/glossary.zh.md](../adr/glossary.zh.md)。
+- ADR 规则：[.agents/adr/README.zh.md](../adr/README.zh.md)。ADR 术语：[词典的 ADR 页](../../docs/dictionary/adr.zh.md)。
 - spec 规则：[.agents/spec/README.zh.md](./README.zh.md)。
 
 ## 不变量
@@ -63,7 +63,7 @@
 - 组件内的引用都不会解析到组件目录之外。
 - 同日、跨月与跨年反转保留不变的规范当前路径与可分别访问的后续版本，并只递增该决定的连续序列。抽出独立主题与命名整改遵循 [ADR 规则](../adr/README.zh.md)，读者可沿准确的直接前后继追溯，不把后续版本误作早期记录的直接后继。
 - 保留的 ADR 在布局、命名、语言配对与历史内容保留上符合 [ADR 规则](../adr/README.zh.md)。
-- ADR 机制、指南、术语表、文档规则、规格与实际引用表达同一契约。当前与历史引用、双向语言链接及标题片段均指向所需内容。
+- ADR 机制、指南、文档规则、规格、词典与实际引用表达同一契约。当前与历史引用、双向语言链接及标题片段均指向所需内容。
 
 ## 相关 ADR
 
