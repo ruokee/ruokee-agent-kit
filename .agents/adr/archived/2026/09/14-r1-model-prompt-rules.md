@@ -120,14 +120,10 @@ The append step reads both rule directories on every turn the hook runs, so a sl
 
 ## Changes
 
-### 2026-09-28 Inherited maintenance declaration
-
-The component keeps the host contract it inherits from [Render the system prompt strategy from a host template](./07-r3-omp-system-prompt.md): the README compatibility section declares the maintenance lower bound under [Adapt first party host components to host upgrades](./28-r1-host-maintenance.md), while the host peer stays unrestricted. Appending matching rule documents, the settings the component reads, and the check of the native capability it depends on stay unchanged.
-
 ### 2026-09-30 Restricted tool child
 
 On OMP 18.4.3, the `scout` agent spawned through the `task` tool carries a restricted tool set and sends a provider request that contains both the replacement result and the matching model-rule body, so the replacement handler and the rule append handler both run for that child. The verification entry above therefore describes the environment exercised when it was written, a plan-mode restricted subagent, rather than restricted subagents in general. Whether an OMP 18.4.3 plan-mode child runs the handlers stays unverified, and the two subagent classes keep separate statements in this decision. Evidence: the OMP 18.4.3 host checks recorded in the component README (`projects/omp-system-prompt/README.md`) verification scope.
 
 ### 2026-10-04 Host contract inheritance
 
-The component inherits its host contract from [Render the system prompt strategy only from the component template](./07-r4-omp-system-prompt.md), and its maintenance lower bound is OMP 18.5.0 under [Maintain host components against a shared OMP floor](../../../decision/2026/09/28-host-maintenance.md). The append step still runs after the replacement step. A turn without the component template is a no-op for the replacement step rather than a failure, and the append step still extends the host's system prompt array on that turn.
+The component inherits its host contract from [Render the system prompt strategy only from the component template](./07-r4-omp-system-prompt.md). The append step still runs after the replacement step. A turn without the component template is a no-op for the replacement step rather than a failure, and the append step still extends the host's system prompt array on that turn.

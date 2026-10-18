@@ -112,7 +112,7 @@ Raising the OMP-facing components to 18.5.0 removes three behaviors that still w
 - [Maintain the OMP status bar with a static context glyph](./04-omp-status-bar.md) replaces the speculation band estimate that needs `Settings.getGroup`, which hosts before 18.4.0 provide.
 - [Maintain OMP quality of life adjustments on the standalone wait entry](../../../archived/2026/09/20-r7-omp-qol.md) removes the `hub` wait path that served hosts before 18.3.0.
 
-`omp-context-pin` and the `tk` OMP adapter remove no behavior that a host from their earlier bound up to 18.5.0 used.
+`omp-context-pin`, the `tk` OMP adapter, and the subsequently removed [`omp-codex-web-access`](./06-codex-web-access.md) component removed no behavior that a host from their earlier bound up to 18.5.0 used.
 
 ## Alternatives considered
 
@@ -144,13 +144,3 @@ This was suggested while analyzing why the bounds drifted. It removes the decisi
 - A user who keeps an OMP release below 18.5.0 and updates a component loses the removed behavior without a warning: the system prompt strategy stops applying on a host before 18.3.0 unless the user selects the template, the total-deadline wait stops applying on a `hub` host, and the speculation band indicator becomes a static glyph on a host before 18.4.0.
 - The shared OMP bound moves only through a decision for all OMP-facing components, so a component that could drop an older host earlier waits for the next shared raise, and every raise needs a decision and review that covers all six components.
 - The decision adds no checker, compatibility manager, or supported-version table, so nothing mechanically enforces the declaration; review and the component documentation keep it accurate.
-
-## Changes
-
-### 2026-10-10 Include smart-cache
-
-The self-contained `omp-smart-cache` component follows every maintenance, peer, adaptation, failure, and verification rule in this decision. Its README pair declares the same OMP `18.5.0` lower bound; this addition does not raise the bound or alter another component's contract. The [extension decision](../10/12-smart-cache.md) records the component's floor obligation, and the [remote decision](../10/10-remote-alignment.md) owns its behavior and independent protocol boundaries.
-
-### 2026-10-15 Drop omp-codex-web-access
-
-The [removal decision](./06-codex-web-access.md) deletes the `omp-codex-web-access` component. Its name leaves the OMP-facing component inventory here, and the statement that it removed no behavior below 18.5.0 leaves with it, because neither has a subject once the component is gone. The shared bound, the rules in this decision, and every other component's contract are unchanged.

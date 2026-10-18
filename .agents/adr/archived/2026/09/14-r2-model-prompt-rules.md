@@ -24,7 +24,7 @@ The self-contained `@ruokee/omp-qol` owns the rules under [Keep components self-
 
 An invalid boolean disables this module only. Unknown settings, a non-object settings root, or a settings read failure reject all modules under the existing QoL contract. `/qol` shows the module's effective state, boolean, and inactive reason without running a model or exposing rule bodies or model identifiers.
 
-The same change removes all rule entry points, reads, diagnostics, tests, and unused runtime dependencies from system-prompt, with no forwarding, alias, or shim. That component continues to maintain its template, Delivery, and footer. QoL declares a direct pi-utils peer; host peers stay unrestricted and the maintenance floor remains OMP 18.5.0. Both components increment their patch versions.
+The same change removes all rule entry points, reads, diagnostics, tests, and unused runtime dependencies from system-prompt, with no forwarding, alias, or shim. That component continues to maintain its template, Delivery, and footer. QoL declares a direct pi-utils peer; host peers stay unrestricted and the maintenance floor remains OMP 18.5.0.
 
 QoL works without system-prompt. Coexistence requires system-prompt before QoL in actual load order, with neither component depending on the other's files. Template failure preserves incoming blocks for rule append; rule failure preserves the template result. Later handlers retain authority to change the final input, with no cross-extension scheduler or guarantee. Users update both components together, then enable the new switch and restart. There is no mixed-old-version double-entry compatibility.
 
@@ -113,14 +113,10 @@ The append step reads both rule directories on every turn the hook runs, so a sl
 
 ## Changes
 
-### 2026-09-28 Inherited maintenance declaration
-
-The component keeps the host contract it inherits from [Render the system prompt strategy from a host template](./07-r3-omp-system-prompt.md): the README compatibility section declares the maintenance lower bound under [Adapt first party host components to host upgrades](./28-r1-host-maintenance.md), while the host peer stays unrestricted. Appending matching rule documents, the settings the component reads, and the check of the native capability it depends on stay unchanged.
-
 ### 2026-09-30 Restricted tool child
 
 On OMP 18.4.3, the `scout` agent spawned through the `task` tool carries a restricted tool set and sends a provider request that contains both the replacement result and the matching model-rule body, so the replacement handler and the rule append handler both run for that child. The verification entry above therefore describes the environment exercised when it was written, a plan-mode restricted subagent, rather than restricted subagents in general. Whether an OMP 18.4.3 plan-mode child runs the handlers stays unverified, and the two subagent classes keep separate statements in this decision. Evidence: the OMP 18.4.3 host checks recorded in the component README (`projects/omp-system-prompt/README.md`) verification scope.
 
 ### 2026-10-04 Host contract inheritance
 
-The component inherits its host contract from [Render the system prompt strategy only from the component template](./07-r4-omp-system-prompt.md), and its maintenance lower bound is OMP 18.5.0 under [Maintain host components against a shared OMP floor](../../../decision/2026/09/28-host-maintenance.md). The append step still runs after the replacement step. A turn without the component template is a no-op for the replacement step rather than a failure, and the append step still extends the host's system prompt array on that turn.
+The component inherits its host contract from [Render the system prompt strategy only from the component template](./07-r4-omp-system-prompt.md). The append step still runs after the replacement step. A turn without the component template is a no-op for the replacement step rather than a failure, and the append step still extends the host's system prompt array on that turn.

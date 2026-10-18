@@ -34,9 +34,3 @@ tk 通过自包含的 `tk-cli` 和 `tk-cli-zh` Skill 提供纯 CLI 模式。这�
 纯 CLI 安装包含的集成内容更少，也不会向 Agent 会话加入 tk 操作 schema。Agent 需要自行选择 CLI 子命令和选项，Harness 无法在调用入口约束请求结构。
 
 纯 CLI Skill 必须与公开 CLI 合同保持同步，并始终不含集成专用的路由表述。
-
-## 变更
-
-### 2026-09-03 增加直接安装 CLI Skill
-
-同一份自包含 CLI Skill 现在可以安装到显式指定的 Skill 根目录，不需要 Harness 包装、原生 manifest 或注册变更。固定 runtime 前置条件仍然适用。

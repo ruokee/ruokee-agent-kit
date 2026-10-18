@@ -66,13 +66,3 @@ A Task can be read and maintained without the Harness that created it. CLI, MCP,
 The file-based design accepts on-demand discovery and bounded scans instead of a permanent index. Workflow, prioritization, Agent scheduling, and remote collaboration remain the responsibility of other systems.
 
 The runtime is a shared failure boundary. A defect in the executable can affect every interface, while a Harness adapter defect remains limited to that integration. New integrations must preserve this ownership split instead of moving Task semantics into host-specific code.
-
-## Changes
-
-### 2026-09-02 Add selectable Skills
-
-The product now has four independently discoverable Skills and multiple Harness component selections. The four focused current decisions replace the archived single-language Harness integration and distribution decisions.
-
-### 2026-09-03 Add custom CLI Skill roots
-
-The product still has four independently discoverable Skills and multiple Harness component selections. The runtime also carries two Harness-independent CLI Skill payloads so `tk-cli` and `tk-cli-zh` can be installed into an explicit Skill root.
