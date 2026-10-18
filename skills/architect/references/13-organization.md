@@ -26,12 +26,10 @@ Cognitive load is not lines of code; it is the total of things that must be unde
 
 Team Topologies' four team types are, in essence, four organizational roles cut by cognitive load:
 
-| Type | What it carries | In one sentence |
-| --- | --- | --- |
-| Stream-aligned | One end-to-end business value stream | The absolute main force: requirement to production, accountable to users directly |
-| Platform | General accidental complexity | Self-service platforms so stream teams need not each chew through K8s/CI |
-| Enabling | Temporary capability gaps | A touring coach: short-term embed to transfer skills then withdraw; not resident, not taking over |
-| Complicated-subsystem | Hard problems needing deep specialization | Search ranking, video encoding, risk models—encapsulating that load for others |
+- Stream-aligned teams own one end-to-end business value stream. They are the absolute main force: they take a requirement through to production and answer directly to users.
+- Platform teams carry general accidental complexity. They build self-service platforms so stream teams do not each chew through K8s and CI.
+- Enabling teams fill temporary capability gaps. They work as a touring coach: embed briefly to transfer skills, then withdraw. They neither stay resident nor take over.
+- Complicated-subsystem teams take on hard problems that need deep specialization. They encapsulate that load for others, as with search ranking, video encoding, or risk models.
 
 The soul is the stream-aligned team as protagonist, the other three existing to unburden it. Ask first which team's cognitive load is about to overflow, then decide what to split—not eyeballing the technical map. The three interaction modes between teams (collaboration, X-as-a-Service, facilitating) are chosen by the nature of the work, not fixed defaults: exploring an unsettled new capability fits collaboration (side by side, fast convergence, but prone to adhesion—keep it short); mature capabilities fit X-as-a-Service (self-service, lowest communication cost—and not limited to network services: it can be a platform product, documented API, or library); missing skills fit facilitating (coach embeds then withdraws). Governing team interaction modes is designing the future's system interfaces.
 

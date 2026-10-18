@@ -12,12 +12,10 @@ If the existing stack can solve the problem within the target performance, cost,
 
 The same system has completely different answers at different stages:
 
-| Stage | Main contradiction | The resulting lean |
-| --- | --- | --- |
-| MVP | Validation speed | Fewer components the better; mainstream stack, managed first; migration cost not yet a concern |
-| Growth | Controllable growth | Add observability and gradual rollout first; draw boundaries; scale locally |
-| Scale | Efficiency and cost | Only now worth deep per-unit-cost optimization and platformization |
-| Critical | Stability and compliance | Audit, isolation, disaster recovery, SLOs, and incident process become hard requirements |
+- At MVP, the main contradiction is validation speed. Use as few components as possible, choose a mainstream stack, prefer managed services, and do not worry about migration cost yet.
+- During growth, the main contradiction is controllable growth. Add observability and gradual rollout first, draw boundaries, and scale locally.
+- At scale, the main contradiction is efficiency and cost. Only now is deep per-unit-cost optimization and platformization worth it.
+- At the critical stage, the main contradiction is stability and compliance. Audit, isolation, disaster recovery, SLOs, and incident process become hard requirements.
 
 A technology that is the right answer at maturity may be over-engineering at MVP. Validating demand: fewest components; sustaining growth: controllability; optimizing at scale: only then is complexity worth paying for unit cost and deep customization.
 
@@ -25,16 +23,14 @@ A technology that is the right answer at maturity may be over-engineering at MVP
 
 Once the existing stack is confirmed insufficient, do not reach for a tool immediately—locate the failure mode first:
 
-| Which failure you fear most | Where to look first |
-| --- | --- |
-| Data corruption, states disagreeing everywhere | Check whether the data model matches transaction boundaries; idempotency and Outbox in place; reconciliation as backstop |
-| Concentrated read traffic burning the primary store | Evaluate a cache tier, read-model isolation, CDN offload, ingress rate limiting |
-| Instantaneous write floods crushing the backend | Introduce queue buffering, backpressure propagation, peak shaving, asynchronization of non-critical paths |
-| Deep call chains amplifying tail latency | Examine API boundary division, per-layer timeout budgets, degradation means, trace-based localization |
-| Every release a heart-stopper | Build deployment-platform capability, gradual rollout, fast rollback, config governance |
-| Incidents taking half a day to diagnose | Check metrics, logging, tracing coverage; whether SLO alerts point at the responsible party |
-| AI output quality quietly degrading | Build eval baselines, trace observation, RAG retrieval evaluation, model-routing fallbacks |
-| Teams constantly waiting on and blocking each other | Draw module boundaries; evaluate platform-engineering investment; sort out service ownership |
+- When data corrupts and states disagree everywhere, check whether the data model matches transaction boundaries, whether idempotency and Outbox are in place, and whether reconciliation backstops them.
+- When concentrated read traffic burns the primary store, evaluate a cache tier, read-model isolation, CDN offload, and ingress rate limiting.
+- When instantaneous write floods crush the backend, introduce queue buffering, backpressure propagation, peak shaving, and asynchronization of non-critical paths.
+- When deep call chains amplify tail latency, examine API boundary division, per-layer timeout budgets, degradation means, and trace-based localization.
+- When every release is a heart-stopper, build deployment-platform capability, gradual rollout, fast rollback, and config governance.
+- When incidents take half a day to diagnose, check metrics, logging, and tracing coverage, and whether SLO alerts point at the responsible party.
+- When AI output quality degrades quietly, build eval baselines, trace observation, RAG retrieval evaluation, and model-routing fallbacks.
+- When teams constantly wait on and block each other, draw module boundaries, evaluate platform-engineering investment, and sort out service ownership.
 
 **Tools are only the shell of the answer; the failure mode is the actual question of selection.**
 
@@ -65,15 +61,13 @@ The record's point is not format but writing "why chosen" and "how to retreat if
 
 ## The question to ask first in each domain
 
-| Domain | Do not ask first | Ask first |
-| --- | --- | --- |
-| Language/framework | Which language is more advanced | Do team, ecosystem, runtime, and business complexity match |
-| Database/storage | Which database is strongest | Who is the source of truth, and what is the query shape |
-| Cache/queue/events | Should we get Kafka | Is it a read hotspot, a time mismatch, or a business-fact broadcast |
-| API/communication | REST or gRPC | Sync/async, internal/external, contract strength |
-| Deployment platform | Should we get K8s | Does the team need platform capability, and can it sustain it |
-| Observability/reliability | Which monitoring tool | What is the user SLO, and how do incidents end |
-| AI infrastructure | Should we self-host GPUs | Is the scarce resource the model, context, cost, quality, or controllability |
+- For language and framework, do not start with which is more advanced. Ask whether the team, ecosystem, runtime, and business complexity match.
+- For databases and storage, do not start with which database is strongest. Ask who owns the source of truth and what the query shape is.
+- For caches, queues, and events, do not start with whether to adopt Kafka. Ask whether the problem is a read hotspot, a time mismatch, or broadcasting a business fact.
+- For APIs and communication, do not start with REST or gRPC. Ask whether the call is sync or async, internal or external, and how strong the contract must be.
+- For the deployment platform, do not start with whether to adopt K8s. Ask whether the team needs platform capability and can sustain it.
+- For observability and reliability, do not start with which monitoring tool. Ask what the user SLO is and how incidents end.
+- For AI infrastructure, do not start with whether to self-host GPUs. Ask whether the scarce resource is the model, context, cost, quality, or controllability.
 
 ## Relationship to other documents
 

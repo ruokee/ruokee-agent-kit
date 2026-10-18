@@ -40,12 +40,10 @@ GitOps turns the live target state from clicking a console into versioned, revie
 
 ## The steadiest evolution path
 
-| Stage | Shape |
-| --- | --- |
-| MVP/monolith | Managed app platform + managed database + simple CI/CD |
-| Multi-service | Containers + managed container platform + standard logs/metrics/secrets |
-| Multi-team | Managed K8s + platform team + GitOps + service catalog + permission governance |
-| Heavily regulated / on-prem / hybrid | K8s or private-cloud platform, accepting higher ops cost |
+- For an MVP or a monolith, a managed app platform, a managed database, and simple CI/CD are enough.
+- With multiple services, containerize, use a managed container platform, and standardize logs, metrics, and secrets.
+- With multiple teams, the shape is a managed Kubernetes cluster, a platform team, GitOps, a service catalog, and permission governance.
+- Under heavy regulation, on-premises deployment, or hybrid cloud, use Kubernetes or a private-cloud platform and accept higher operational cost.
 
 Get the business running first; then converge recurring operational complexity into platform capability; let real pain decide the complexity investment.
 

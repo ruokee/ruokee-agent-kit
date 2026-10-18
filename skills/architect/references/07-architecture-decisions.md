@@ -14,14 +14,12 @@ Hence a principle: **good documentation does not repeat what the code does, beca
 
 One architecture decision record answers six things:
 
-| Column | What goes in | What its absence costs |
-| --- | --- | --- |
-| Title | One sentence saying what the decision is | Enables retrieval |
-| Status | Draft / accepted / deprecated / superseded | Tells readers whether it still counts |
-| Context | What problem and constraints were faced then | What successors lack most is the situation at the time |
-| Decision | What was finally decided | Visible in code too, but writing it down completes the record |
-| Alternatives | What else was considered and why it lost | Recording what was given up is the value records uniquely hold |
-| Tradeoffs and consequences | Benefits, costs, known debt | Lets successors inherit the deliberate tradeoff with eyes open |
+- Title: one sentence saying what the decision is. Without it, the record is hard to retrieve.
+- Status: draft, accepted, deprecated, or superseded. Without it, readers cannot tell whether the decision still counts.
+- Context: the problem and constraints at the time. Successors miss this situation most.
+- Decision: what was finally decided. Code may show it too, but writing it down completes the record.
+- Alternatives: what else was considered and why it lost. Recording what was given up is the value only a record holds.
+- Tradeoffs and consequences: benefits, costs, and known debt. Without them, successors inherit the deliberate tradeoff blind.
 
 Three disciplines:
 

@@ -2,7 +2,7 @@
 name: python-engineering
 description: Use when evaluating or improving Python engineering practices, including project structure, dependencies and version policy, typing, testing, language features, standard-library mechanisms, and tooling.
 metadata:
-  version: "1.0.4"
+  version: "1.0.6"
 ---
 
 # Python Engineering
@@ -17,11 +17,9 @@ Activate this Skill when the task is Python-specific engineering: project shape 
 
 Three modes are available. Default to fast review.
 
-| Mode | Trigger | Read |
-| --- | --- | --- |
-| Fast review | Default for daily self-check, small diff, PR review | `./workflow/fast-review.md` |
-| Full review | User explicitly says "full review", "complete review", "systematic review", or "architecture review" | `./workflow/full-review.md` |
-| Analysis | User asks for discussion, brainstorm, design comparison, mechanism analysis, refactoring plan | `./workflow/analysis.md` |
+- Fast review is the default for daily self-checks, small diffs, and PR review; read `./workflow/fast-review.md`.
+- Full review applies when the user explicitly says "full review", "complete review", "systematic review", or "architecture review"; read `./workflow/full-review.md`.
+- Analysis applies when the user asks for discussion, brainstorming, design comparison, mechanism analysis, or a refactoring plan; read `./workflow/analysis.md`.
 
 Read-only constraint: when the user says "do not modify", "read-only", "just analyze", or "survey", do not run any command that writes files. Prefer `rg`, `git ls-files`, `git show`, `find`, `wc`, `nl`. Avoid `uv run`, `pytest`, `ruff check --fix`, `pre-commit run`, or any command that creates `.venv`, cache, or modifies source.
 
@@ -29,34 +27,32 @@ Read-only constraint: when the user says "do not modify", "read-only", "just ana
 
 Route to leaf documents by signal. Read only what the task requires.
 
-| Signal | Read First | Often Pair With |
-| --- | --- | --- |
-| Python version, runtime target, compatibility | [python-version](./references/project/python-version.md) | type-hint, structure |
-| Project shape: script, flat, src, packaged app, workspace | [structure](./references/project/structure.md) | dependency-management, uv |
-| Runtime/dev/optional dependencies, lock, groups | [dependency-management](./references/project/dependency-management.md) | uv, structure |
-| Code style, PEP 8 vs formatter/review boundary | [style](./references/spec/style.md) | ruff, custom-lint |
-| Python-specific application of design principles, paradigms, and refactoring | [Python design guidance](./references/spec/code-quality.md) | style, type-hint |
-| Type hints, annotations, `Any`, `cast`, Protocol, generics, type alias, type parameters | [type-hint](./references/spec/type-hint.md) | python-version, ty |
-| Test organization, fixtures, parametrize, exceptions/warnings, log/output capture, mocking boundary, async | [testing](./references/spec/testing.md) | pytest |
-| Docstring, API docs, schema metadata, information placement | [docstrings-api-docs](./references/spec/docstrings-api-docs.md) | type-hint |
-| Project-specific mechanical rules, custom lint | [custom-lint](./references/spec/custom-lint.md) | flake8-plugin, pre-commit |
-| `match`/`case`, structural pattern matching | [match-case](./references/grammar/match-case.md) | type-hint |
-| `with`, `async with`, resource lifetime syntax | [context-manager](./references/grammar/context-manager.md) | contextlib, exception-groups |
-| `ExceptionGroup`, `except*`, multi-error | [exception-groups](./references/grammar/exception-groups.md) | context-manager |
-| Decorators, higher-order functions, parameterized decorators, decorator classes | [decorator](./references/grammar/decorator.md) | functools, common |
-| Common stdlib: pathlib, enum, dataclasses, logging | [common](./references/stdlib/common.md) | functools, itertools |
-| `singledispatch`, `partial`, closure, decorator helpers | [functools](./references/stdlib/functools.md) | decorator, common |
-| `itertools`, lazy pipelines, grouping, batching | [itertools](./references/stdlib/itertools.md) | common, functools |
-| `contextlib`, `ExitStack`, `AsyncExitStack` | [contextlib](./references/stdlib/contextlib.md) | context-manager, common |
-| uv dependency, lock, script, workspace commands | [uv](./references/tooling/uv.md) | dependency-management, structure |
-| Ruff formatter/linter responsibilities | [ruff](./references/tooling/ruff.md) | style, custom-lint |
-| ty as fast type checker, LSP feedback | [ty](./references/tooling/ty.md) | type-hint, mypy, basedpyright |
-| mypy strict, legacy gate | [mypy](./references/tooling/mypy.md) | type-hint, ty, basedpyright |
-| basedpyright strict, Pyright comparison | [basedpyright](./references/tooling/basedpyright.md) | type-hint, ty, mypy |
-| pytest runner config, discovery, import mode, markers, strict mode, plugins | [pytest](./references/tooling/pytest.md) | testing |
-| coverage.py, branch coverage, threshold | [coverage](./references/tooling/coverage.md) | testing, pytest |
-| pre-commit hooks, local gate, CI integration | [pre-commit](./references/tooling/pre-commit.md) | custom-lint, ruff |
-| Flake8 plugin mechanics for custom lint | [flake8-plugin](./references/tooling/flake8-plugin.md) | custom-lint, pre-commit |
+- For Python version, runtime target, and compatibility, read [python-version](./references/project/python-version.md), often alongside type-hint and structure.
+- For project shape (script, flat, src, packaged app, or workspace), read [structure](./references/project/structure.md), often alongside dependency-management and uv.
+- For runtime, development, and optional dependencies, locks, and groups, read [dependency-management](./references/project/dependency-management.md), often alongside uv and structure.
+- For code style and the boundary between PEP 8 and formatters or review, read [style](./references/spec/style.md), often alongside ruff and custom-lint.
+- For Python-specific applications of design principles, paradigms, and refactoring, read [Python design guidance](./references/spec/code-quality.md), often alongside style and type-hint.
+- For type hints, annotations, `Any`, `cast`, Protocol, generics, type aliases, and type parameters, read [type-hint](./references/spec/type-hint.md), often alongside python-version and ty.
+- For test organization, fixtures, parametrize, exceptions and warnings, log and output capture, mocking boundaries, and async tests, read [testing](./references/spec/testing.md), often alongside pytest.
+- For docstrings, API docs, schema metadata, and information placement, read [docstrings-api-docs](./references/spec/docstrings-api-docs.md), often alongside type-hint.
+- For project-specific mechanical rules and custom lint, read [custom-lint](./references/spec/custom-lint.md), often alongside flake8-plugin and pre-commit.
+- For `match`/`case` and structural pattern matching, read [match-case](./references/grammar/match-case.md), often alongside type-hint.
+- For `with`, `async with`, and resource-lifetime syntax, read [context-manager](./references/grammar/context-manager.md), often alongside contextlib and exception-groups.
+- For `ExceptionGroup`, `except*`, and multiple errors, read [exception-groups](./references/grammar/exception-groups.md), often alongside context-manager.
+- For decorators, higher-order functions, parameterized decorators, and decorator classes, read [decorator](./references/grammar/decorator.md), often alongside functools and common.
+- For common stdlib modules such as pathlib, enum, dataclasses, and logging, read [common](./references/stdlib/common.md), often alongside functools and itertools.
+- For `singledispatch`, `partial`, closures, and decorator helpers, read [functools](./references/stdlib/functools.md), often alongside decorator and common.
+- For `itertools`, lazy pipelines, grouping, and batching, read [itertools](./references/stdlib/itertools.md), often alongside common and functools.
+- For `contextlib`, `ExitStack`, and `AsyncExitStack`, read [contextlib](./references/stdlib/contextlib.md), often alongside context-manager and common.
+- For uv dependency, lock, script, and workspace commands, read [uv](./references/tooling/uv.md), often alongside dependency-management and structure.
+- For Ruff's formatter and linter responsibilities, read [ruff](./references/tooling/ruff.md), often alongside style and custom-lint.
+- For ty as a fast type checker and for LSP feedback, read [ty](./references/tooling/ty.md), often alongside type-hint, mypy, and basedpyright.
+- For mypy strict mode and legacy gates, read [mypy](./references/tooling/mypy.md), often alongside type-hint, ty, and basedpyright.
+- For basedpyright strict mode and its comparison with Pyright, read [basedpyright](./references/tooling/basedpyright.md), often alongside type-hint, ty, and mypy.
+- For pytest runner configuration, discovery, import mode, markers, strict mode, and plugins, read [pytest](./references/tooling/pytest.md), often alongside testing.
+- For coverage.py, branch coverage, and thresholds, read [coverage](./references/tooling/coverage.md), often alongside testing and pytest.
+- For pre-commit hooks, local gates, and CI integration, read [pre-commit](./references/tooling/pre-commit.md), often alongside custom-lint and ruff.
+- For Flake8 plugin mechanics used by custom lint, read [flake8-plugin](./references/tooling/flake8-plugin.md), often alongside custom-lint and pre-commit.
 
 When terminology is unclear or inconsistent, read the [glossary](./glossary.md).
 

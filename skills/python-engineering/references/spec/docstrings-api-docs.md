@@ -6,17 +6,15 @@ Once type annotations carry the static contract, a docstring's job changes. It i
 
 A modern Python API spreads its documentation across several surfaces, and most documentation problems are really placement problems; the right fact in the wrong place, or the same fact in three places. The first question for any piece of information is not "how do I phrase it" but "which surface owns it."
 
-| Information | Owning surface | Why |
-| --- | --- | --- |
-| Parameter and return _types_ | Signature / annotations | Machine-checked, IDE-read; a copy in the docstring drifts |
-| Domain meaning, business rules | Docstring | The type system cannot express what a value _means_ |
-| Value ranges, units, shape, dtype | Docstring or `Annotated`/`Field` | Depends on whether a machine needs to read it |
-| Cross-parameter constraints | Docstring or a validator | A single annotation cannot relate two parameters |
-| Side effects, resource lifecycle | Docstring | Callers must know about IO, network, DB, global state |
-| Exception semantics | Docstring | Python types do not express "raises" |
-| Machine-readable field constraints | Schema metadata (`Field(...)`) | Feeds validation and generated API docs |
-| Worked examples | Docstring, README, or tests | Best when also executed, so they cannot rot |
-| Version changes, deprecations | Release notes, `warnings.deprecated()` | Serves readers, checkers, and runtime together |
+- Types of parameters and return values belong in the signature or annotations, because they are machine-checked and IDE-read, while a copy in the docstring drifts.
+- Domain meaning and business rules belong in the docstring, because the type system cannot express what a value means.
+- Value ranges, units, shape, and dtype belong in the docstring or in `Annotated`/`Field`, depending on whether a machine needs to read them.
+- Cross-parameter constraints belong in the docstring or a validator, because a single annotation cannot relate two parameters.
+- Side effects and resource lifecycle belong in the docstring, because callers must know about IO, network, database, and global state.
+- Exception semantics belong in the docstring, because Python types do not express "raises".
+- Machine-readable field constraints belong in schema metadata such as `Field(...)`, because they feed validation and generated API docs.
+- Worked examples belong in the docstring, README, or tests, and are best when also executed so they cannot rot.
+- Version changes and deprecations belong in release notes and `warnings.deprecated()`, because they serve readers, checkers, and runtime together.
 
 The single most common mistake is duplicating a fact that a more authoritative surface already owns: writing `min_length=3` in prose when a `Field(min_length=3)` already declares it, or restating a type the annotation already gives.
 

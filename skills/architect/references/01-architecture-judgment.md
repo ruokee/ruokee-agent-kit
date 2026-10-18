@@ -29,14 +29,12 @@ When the business changes or scale changes, constraints and quality targets shif
 
 Constraints are boundaries the design cannot cross. The difference from quality attributes: quality attributes are goals you pursue; constraints are givens.
 
-| Constraint | How it narrows options |
-| --- | --- |
-| Team size | Architecture complexity cannot exceed what the team can operate. A three-person team running dozens of microservices drowns in ops alone. |
-| Time | Ship next week versus a year of runway forces entirely different solutions. Under time pressure, pick what delivers now, not the theoretical optimum. |
-| Budget | Determines machines, services, and headcount. An elegant plan you cannot afford is empty talk. |
-| Compliance | Red lines like data-residency requirements. Violate and the design is void; no tradeoff space. |
-| Existing systems | Most designs do not start from zero; they accommodate the interfaces and temper of what already runs. |
-| Third-party dependencies | The capability ceiling and failures of an external gateway or cloud service become your ceiling. |
+- Team size limits architecture complexity to what the team can operate. A three-person team running dozens of microservices drowns in ops alone.
+- Shipping next week and having a year of runway force entirely different solutions. Under time pressure, pick what delivers now, not the theoretical optimum.
+- The budget determines machines, services, and headcount. An elegant plan you cannot afford is empty talk.
+- Compliance sets red lines such as data residency. Violate them and the design is void; there is no tradeoff space.
+- Most designs do not start from zero; they accommodate the interfaces and temper of what already runs.
+- The capability ceiling and failures of an external gateway or cloud service become yours.
 
 Constraints are helpers, not obstacles. Without constraints, a design problem has infinite options and nowhere to start; knowing it is a three-person team, three months, must-pass compliance kills most fancy options on the spot. Map the constraints before drawing anything, and you will usually beat the person who starts drawing immediately—faster and steadier.
 
@@ -44,15 +42,13 @@ Constraints are helpers, not obstacles. Without constraints, a design problem ha
 
 Given a system, walk this checklist item by item. For each, ask two questions: does it matter to this system, and what is the target? Most items rating low is itself important information—it tells you not to over-engineer.
 
-| Quality attribute | How to measure | Typical levers | Mainly conflicts with |
-| --- | --- | --- | --- |
-| Performance | Latency (how long one call takes), throughput (how many per second); watch P99, not the average | Caching, read/write splitting, async, CDN, indexes | Cost, consistency, simplicity |
-| Availability | Nines; corresponding allowed downtime per year | Redundancy, eliminating SPOFs, fault-domain isolation, graceful degradation | Cost, consistency |
-| Scalability | Whether N× load is absorbed smoothly by adding resources | Stateless design, horizontal scaling, replication, sharding | Consistency, simplicity, cost |
-| Consistency | Where on the spectrum from strong to eventual | Transactions and coordination protocols (strong); async replication (eventual) | Performance, availability, scalability |
-| Security | Attack surface; worst-case loss | Distrust input, least privilege, defense in depth, data classification | Performance, convenience, cost |
-| Maintainability | How long a change takes; how fast a newcomer gets productive | Clear boundaries, low coupling, observability, recorded decisions | Extreme performance, short-term delivery speed |
-| Cost | Unit cost: per user, per request, per order | The budget, in reverse, caps the targets of other attributes | Conflicts with nearly everything |
+- Performance: measure latency (how long one call takes) and throughput (how many per second), watching P99 rather than the average. Caching, read/write splitting, async, CDN, and indexes are the usual levers. It mainly conflicts with cost, consistency, and simplicity.
+- Availability: measure nines and the corresponding allowed downtime per year. Redundancy, eliminating SPOFs, fault-domain isolation, and graceful degradation are the usual levers. It mainly conflicts with cost and consistency.
+- Scalability: ask whether N× load is absorbed smoothly by adding resources. Stateless design, horizontal scaling, replication, and sharding are the usual levers. It mainly conflicts with consistency, simplicity, and cost.
+- Consistency: place it on the spectrum from strong to eventual. Transactions and coordination protocols buy strong consistency; async replication gives eventual. It mainly conflicts with performance, availability, and scalability.
+- Security: measure the attack surface and worst-case loss. Distrust input, least privilege, defense in depth, and data classification are the usual levers. It mainly conflicts with performance, convenience, and cost.
+- Maintainability: measure how long a change takes and how fast a newcomer gets productive. Clear boundaries, low coupling, observability, and recorded decisions are the usual levers. It mainly conflicts with extreme performance and short-term delivery speed.
+- Cost: measure unit cost per user, request, or order. The budget, in reverse, caps the other attributes' targets. It conflicts with nearly everything.
 
 Cost deserves its own emphasis: it is the most overlooked attribute and often the real constraint. Redundancy costs money, caching costs money, strong consistency costs money because it is hard to scale. An inefficient design burns a few hundred extra yuan a month at ten thousand users—nobody notices—and millions a month at a hundred million, the same flaw amplified by scale. Strip most architecture arguments to the bottom and the dispute is not whether something is technically possible, but whether the money and people are worth it.
 
@@ -80,7 +76,7 @@ Quality attributes and constraints are mostly implicit; they have to be asked ou
 
 There is no best architecture, only the most fitting one under this set of answers. The same chat feature has wildly different answers for a three-person internal tool and a billion-user product; the difference is not engineer skill but different answers to the six questions. When the answers change, the optimum moves.
 
-## How three features grow a quality target table
+## How three features grow quality targets
 
 Requirement: a URL shortener—long URLs to short codes, click to redirect, maybe click stats.
 
@@ -95,15 +91,13 @@ Only three features, almost no design space. Ask the six questions:
 
 Translate the answers into quality targets:
 
-| Attribute | Target | From which answer |
-| --- | --- | --- |
-| Read latency | Redirect under 50ms | Lopsided read ratio; redirect is the core experience |
-| Read scalability | Absorb massive read traffic | The peak is in reads |
-| Durability | Short-link mappings must never be lost | Loss invalidates every shared link |
-| Consistency | Eventual is fine | A second or two of delay is tolerable |
-| Cost | Storage must stay cheap | Data accumulates forever on a limited budget |
+- Read latency: keep redirects under 50ms, because the read/write ratio is lopsided and redirect is the core experience.
+- Read scalability: absorb massive read traffic, because the peak is in reads.
+- Durability: never lose a short-link mapping, because loss invalidates every shared link.
+- Consistency: eventual is fine, because a second or two of delay is tolerable.
+- Cost: keep storage cheap, because data accumulates forever on a limited budget.
 
-This table is what every later decision leans on. Hash the code (simple, but handle collisions) or a global sequence service (clean, but a new moving part); absorb reads with a cache (fast; the price is stale data—acceptable once eventual consistency is confirmed); store mappings in a key-value store (the access shape is a simple key lookup). Every decision traces back to an answer from the six questions. That is the difference between architecture judgment and "just picked a database".
+This list is what every later decision leans on. Hash the code (simple, but handle collisions) or a global sequence service (clean, but a new moving part); absorb reads with a cache (fast; the price is stale data—acceptable once eventual consistency is confirmed); store mappings in a key-value store (the access shape is a simple key lookup). Every decision traces back to an answer from the six questions. That is the difference between architecture judgment and "just picked a database".
 
 ## Explaining tradeoffs to the business
 

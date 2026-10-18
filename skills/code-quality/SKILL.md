@@ -2,7 +2,7 @@
 name: code-quality
 description: Use when evaluating or improving code quality, including maintainability, abstractions, design principles and patterns, refactoring, code smells, test design, and architecture.
 metadata:
-  version: "1.0.4"
+  version: "1.0.5"
 ---
 
 # Code Quality
@@ -19,11 +19,9 @@ If the task does not explicitly require code-quality analysis, do not load any d
 
 Three modes are available. Default to fast review.
 
-| Mode | Trigger | Read |
-| --- | --- | --- |
-| Fast review | Default for daily self-check, small diff, PR review | `./workflow/fast-review.md` |
-| Full review | User explicitly says "full review", "architecture review", "systematic review", "refactoring assessment" | `./workflow/full-review.md` |
-| Analysis | User asks for discussion, brainstorm, design exploration, paradigm comparison, mechanism analysis | `./workflow/analysis.md` |
+- Fast review is the default for daily self-checks, small diffs, and PR review; read `./workflow/fast-review.md`.
+- Full review applies when the user explicitly asks for a "full review", "architecture review", "systematic review", or "refactoring assessment"; read `./workflow/full-review.md`.
+- Analysis applies when the user asks for discussion, brainstorming, design exploration, paradigm comparison, or mechanism analysis; read `./workflow/analysis.md`.
 
 ## Judgment Order
 
@@ -32,58 +30,56 @@ Three modes are available. Default to fast review.
 3. Route to the relevant leaf document below.
 4. Report only issues with sufficient evidence.
 
-| Signal | Read First | Often Pair With |
-| --- | --- | --- |
-| DRY, duplicate knowledge, wrong abstraction | [DRY](./references/design-principles/dry.md) | Rule of Three, duplicated code |
-| Two similar cases, premature abstraction | [Rule of Three](./references/design-principles/rule-of-three.md) | DRY, KISS |
-| Unnecessary complexity | [KISS](./references/design-principles/kiss.md) | YAGNI, deep modules |
-| Premature extension point, unneeded flexibility | [YAGNI](./references/design-principles/yagni.md) | KISS, deep modules |
-| SOLID, responsibility, substitutability, interface size, dependency direction | [SOLID](./references/design-principles/solid.md) | composition over inheritance, dependency inversion |
-| Responsibility assignment, where behavior belongs | [GRASP](./references/design-principles/grasp.md) | Tell Don't Ask, feature envy |
-| Message chains, distant object structure knowledge | [Law of Demeter](./references/design-principles/law-of-demeter.md) | deep modules, facade |
-| Callers query fields then make domain decisions | [Tell Don't Ask](./references/design-principles/tell-dont-ask.md) | GRASP, feature envy |
-| Inheritance vs composition, mixins, subclassing | [Composition over Inheritance](./references/design-principles/composition-over-inheritance.md) | SOLID, dependency inversion |
-| Dependency inversion, DI, composition root | [Dependency Inversion](./references/design-principles/dependency-inversion.md) | adapter, repository, unit of work |
-| TDD, Red-Green-Refactor, behavior-first tests | [TDD](./references/design-principles/tdd.md) | safe refactoring |
-| Test design, test smells, fragile/flaky tests, over-mocking, coverage strategy, fewer stronger tests | [Testing Principles](./references/testing/principles.md) | test smells, TDD |
-| Test breaks on refactor, change-detector, obscure/duplicated tests, testing config/utils | [Test Smells](./references/testing/test-smells.md) | testing principles, code smells |
-| Domain-driven design, bounded contexts, domain modeling | [DDD](./references/design-principles/ddd.md) | deep modules, repository |
-| Abstraction depth, information hiding, shallow modules | [Deep Modules](./references/design-principles/deep-modules.md) | KISS, facade |
-| Object creation varies by type/config/env | [Factory](./references/design-patterns/factory.md) | abstract factory, builder |
-| Matched family of products varies together | [Abstract Factory](./references/design-patterns/abstract-factory.md) | factory, builder |
-| Complex staged construction | [Builder](./references/design-patterns/builder.md) | factory, abstract factory |
-| Algorithm/behavior varies behind stable call site | [Strategy](./references/design-patterns/strategy.md) | factory, functional core |
-| One event notifies multiple subscribers | [Observer](./references/design-patterns/observer.md) | event-driven, command |
-| Foreign interface needs translation | [Adapter](./references/design-patterns/adapter.md) | facade, dependency inversion |
-| Cross-cutting behavior wraps calls/objects | [Decorator](./references/design-patterns/decorator.md) | facade, thin wrapper function |
-| Simple surface over complex subsystem | [Facade](./references/design-patterns/facade.md) | deep modules, adapter |
-| Request queued, retried, audited, undone, scheduled | [Command](./references/design-patterns/command.md) | state, observer |
-| State-specific behavior, GoF State Pattern | [State](./references/design-patterns/state.md) | state machine, command |
-| Operations vary over stable node types (AST/tree/schema) | [Visitor](./references/design-patterns/visitor.md) | strategy |
-| Persistence boundary, ORM isolation | [Repository](./references/design-patterns/repository.md) | unit of work, dependency inversion |
-| Transaction/consistency across repositories | [Unit of Work](./references/design-patterns/unit-of-work.md) | repository, dependency inversion |
-| Refactoring as behavior-preserving Fowler-style work | [Fowler Refactoring](./references/refactoring/fowler-refactoring.md) | safe refactoring, code smells |
-| General smell triage and smell map | [Code Smells](./references/refactoring/code-smells.md) | specific refactoring leaves |
-| Safe behavior-preserving refactoring flow | [Safe Refactoring](./references/refactoring/safe-refactoring.md) | fowler refactoring, TDD |
-| Function mixes phases, policy, I/O, branching | [Long Function](./references/refactoring/long-function.md) | extract function, duplicated code |
-| Repeated rule, mapping, schema, copied knowledge | [Duplicated Code](./references/refactoring/duplicated-code.md) | DRY, extract function |
-| Strings/dicts/primitives carry stable domain meaning | [Primitive Obsession](./references/refactoring/primitive-obsession.md) | DDD, data-oriented |
-| Function envies another object/module data | [Feature Envy](./references/refactoring/feature-envy.md) | move function, GRASP |
-| One change requires many scattered edits | [Shotgun Surgery](./references/refactoring/shotgun-surgery.md) | divergent change, move function |
-| One module changes for many unrelated reasons | [Divergent Change](./references/refactoring/divergent-change.md) | shotgun surgery |
-| Helper/wrapper adds no semantic boundary | [Thin Wrapper Function](./references/refactoring/thin-wrapper-function.md) | KISS, facade |
-| Extract a coherent phase into a function | [Extract Function](./references/refactoring/extract-function.md) | long function, inline function |
-| Inline a misleading or shallow function | [Inline Function](./references/refactoring/inline-function.md) | extract function |
-| Move behavior to a better owner | [Move Function](./references/refactoring/move-function.md) | feature envy, GRASP |
-| Direct steps, scripts, handlers, orchestration | [Imperative](./references/programming-paradigms/imperative.md) | declarative |
-| Config, schema, table-driven, declarations | [Declarative](./references/programming-paradigms/declarative.md) | imperative |
-| Object identity, state, invariants, polymorphism | [Object-Oriented](./references/programming-paradigms/object-oriented.md) | composition over inheritance, SOLID |
-| Separate pure logic from side-effect shell | [Functional Core](./references/programming-paradigms/functional-core.md) | strategy, declarative |
-| Explicit data shapes, mappings, schemas, tables | [Data-Oriented](./references/programming-paradigms/data-oriented.md) | primitive obsession, declarative |
-| Events, hooks, event bus, pub/sub, domain events | [Event-Driven](./references/programming-paradigms/event-driven.md) | observer, command |
-| State/status/event/transition workflow | [State Machine](./references/programming-paradigms/state-machine.md) | state, resource lifecycle |
-| Resource acquisition, ownership, cleanup | [Resource Lifecycle](./references/programming-paradigms/resource-lifecycle.md) | state machine, unit of work |
-| Async tasks, cancellation, timeouts, backpressure | [Async/Concurrency](./references/programming-paradigms/async-concurrency.md) | event-driven, resource lifecycle |
+- When knowledge is duplicated or the abstraction is wrong, read [DRY](./references/design-principles/dry.md), often alongside the Rule of Three and duplicated code.
+- When two similar cases tempt an abstraction, read [Rule of Three](./references/design-principles/rule-of-three.md), often alongside DRY and KISS.
+- When complexity is unnecessary, read [KISS](./references/design-principles/kiss.md), often alongside YAGNI and deep modules.
+- When an extension point or flexibility arrives before the need, read [YAGNI](./references/design-principles/yagni.md), often alongside KISS and deep modules.
+- For responsibility, substitutability, interface size, and dependency direction, read [SOLID](./references/design-principles/solid.md), often alongside composition over inheritance and dependency inversion.
+- For deciding where behavior belongs, read [GRASP](./references/design-principles/grasp.md), often alongside Tell Don't Ask and feature envy.
+- When code walks message chains and knows distant object structure, read [Law of Demeter](./references/design-principles/law-of-demeter.md), often alongside deep modules and facade.
+- When callers query fields and then make domain decisions, read [Tell Don't Ask](./references/design-principles/tell-dont-ask.md), often alongside GRASP and feature envy.
+- When choosing between inheritance and composition, or handling mixins and subclassing, read [Composition over Inheritance](./references/design-principles/composition-over-inheritance.md), often alongside SOLID and dependency inversion.
+- For dependency inversion, DI, and the composition root, read [Dependency Inversion](./references/design-principles/dependency-inversion.md), often alongside adapter, repository, and unit of work.
+- When practicing TDD, Red-Green-Refactor, or behavior-first tests, read [TDD](./references/design-principles/tdd.md), often alongside safe refactoring.
+- For test design, test smells, fragile or flaky tests, over-mocking, coverage strategy, or fewer stronger tests, read [Testing Principles](./references/testing/principles.md), often alongside test smells and TDD.
+- When tests break on refactoring, act as change detectors, are obscure or duplicated, or test config and utilities, read [Test Smells](./references/testing/test-smells.md), often alongside testing principles and code smells.
+- For domain-driven design, bounded contexts, and domain modeling, read [DDD](./references/design-principles/ddd.md), often alongside deep modules and repository.
+- For abstraction depth, information hiding, and shallow modules, read [Deep Modules](./references/design-principles/deep-modules.md), often alongside KISS and facade.
+- When object creation varies by type, configuration, or environment, read [Factory](./references/design-patterns/factory.md), often alongside abstract factory and builder.
+- When a matched family of products varies together, read [Abstract Factory](./references/design-patterns/abstract-factory.md), often alongside factory and builder.
+- For complex staged construction, read [Builder](./references/design-patterns/builder.md), often alongside factory and abstract factory.
+- When an algorithm or behavior varies behind a stable call site, read [Strategy](./references/design-patterns/strategy.md), often alongside factory and functional core.
+- When one event notifies multiple subscribers, read [Observer](./references/design-patterns/observer.md), often alongside event-driven and command.
+- When a foreign interface needs translation, read [Adapter](./references/design-patterns/adapter.md), often alongside facade and dependency inversion.
+- When cross-cutting behavior wraps calls or objects, read [Decorator](./references/design-patterns/decorator.md), often alongside facade and thin wrapper function.
+- For a simple surface over a complex subsystem, read [Facade](./references/design-patterns/facade.md), often alongside deep modules and adapter.
+- When requests are queued, retried, audited, undone, or scheduled, read [Command](./references/design-patterns/command.md), often alongside state and observer.
+- For state-specific behavior and the GoF State pattern, read [State](./references/design-patterns/state.md), often alongside state machine and command.
+- When operations vary over stable node types such as an AST, tree, or schema, read [Visitor](./references/design-patterns/visitor.md), often alongside strategy.
+- For persistence boundaries and ORM isolation, read [Repository](./references/design-patterns/repository.md), often alongside unit of work and dependency inversion.
+- For transactions and consistency across repositories, read [Unit of Work](./references/design-patterns/unit-of-work.md), often alongside repository and dependency inversion.
+- For behavior-preserving refactoring in the Fowler style, read [Fowler Refactoring](./references/refactoring/fowler-refactoring.md), often alongside safe refactoring and code smells.
+- For general smell triage and the smell map, read [Code Smells](./references/refactoring/code-smells.md), often alongside the specific refactoring leaves.
+- For a safe, behavior-preserving refactoring flow, read [Safe Refactoring](./references/refactoring/safe-refactoring.md), often alongside Fowler refactoring and TDD.
+- When a function mixes phases, policy, I/O, and branching, read [Long Function](./references/refactoring/long-function.md), often alongside extract function and duplicated code.
+- When a rule, mapping, schema, or piece of knowledge is copied, read [Duplicated Code](./references/refactoring/duplicated-code.md), often alongside DRY and extract function.
+- When strings, dicts, or primitives carry stable domain meaning, read [Primitive Obsession](./references/refactoring/primitive-obsession.md), often alongside DDD and data-oriented.
+- When a function envies another object's or module's data, read [Feature Envy](./references/refactoring/feature-envy.md), often alongside move function and GRASP.
+- When one change requires scattered edits, read [Shotgun Surgery](./references/refactoring/shotgun-surgery.md), often alongside divergent change and move function.
+- When one module changes for many unrelated reasons, read [Divergent Change](./references/refactoring/divergent-change.md), often alongside shotgun surgery.
+- When a helper or wrapper adds no semantic boundary, read [Thin Wrapper Function](./references/refactoring/thin-wrapper-function.md), often alongside KISS and facade.
+- To extract a coherent phase into a function, read [Extract Function](./references/refactoring/extract-function.md), often alongside long function and inline function.
+- To inline a misleading or shallow function, read [Inline Function](./references/refactoring/inline-function.md), often alongside extract function.
+- To move behavior to a better owner, read [Move Function](./references/refactoring/move-function.md), often alongside feature envy and GRASP.
+- For direct steps, scripts, handlers, and orchestration, read [Imperative](./references/programming-paradigms/imperative.md), often alongside declarative.
+- For configuration, schemas, tables, and declarations, read [Declarative](./references/programming-paradigms/declarative.md), often alongside imperative.
+- For object identity, state, invariants, and polymorphism, read [Object-Oriented](./references/programming-paradigms/object-oriented.md), often alongside composition over inheritance and SOLID.
+- To separate pure logic from a side-effect shell, read [Functional Core](./references/programming-paradigms/functional-core.md), often alongside strategy and declarative.
+- For explicit data shapes, mappings, schemas, and tables, read [Data-Oriented](./references/programming-paradigms/data-oriented.md), often alongside primitive obsession and declarative.
+- For events, hooks, event buses, pub/sub, and domain events, read [Event-Driven](./references/programming-paradigms/event-driven.md), often alongside observer and command.
+- For state, status, event, and transition workflows, read [State Machine](./references/programming-paradigms/state-machine.md), often alongside state and resource lifecycle.
+- For resource acquisition, ownership, and cleanup, read [Resource Lifecycle](./references/programming-paradigms/resource-lifecycle.md), often alongside state machine and unit of work.
+- For async tasks, cancellation, timeouts, and backpressure, read [Async/Concurrency](./references/programming-paradigms/async-concurrency.md), often alongside event-driven and resource lifecycle.
 
 When terminology is unclear or inconsistent, read the [glossary](./glossary.md).
 

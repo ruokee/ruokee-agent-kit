@@ -17,17 +17,15 @@ State is also where the product's entire value lives: user data, orders, relatio
 
 "I'll use the database I know for everything" is a common trap. The right move is looking at what the data looks like and how it is accessed:
 
-| Storage type | Fits which access shape |
-| --- | --- |
-| Relational | Structured, heavily related, transaction-and-strong-consistency core data (users, orders, accounts) |
-| Document | Flexible structure, self-contained, fetched and stored whole by ID (articles, configs, session records) |
-| Key-value | Minimal key-to-value lookup with speed demands (sessions, counters, caches) |
-| Columnar | Analytical aggregation over massive data (reports, statistics) |
-| Graph | Where the relationship network itself is the point (social, fraud links, knowledge graphs) |
-| Vector | Semantic similarity retrieval (embeddings, RAG, recommendations) |
-| Object storage | Large, immutable, fetched whole by ID (images, video, model weights, backups) |
-| Search engine | Full-text search and complex filter/sort (product search, log retrieval) |
-| Time-series | Timestamped, append-only, aggregated by time (monitoring metrics, billing records) |
+- Relational storage fits structured, heavily related core data that needs transactions and strong consistency (users, orders, accounts).
+- Document stores fit flexible, self-contained data fetched and stored whole by ID (articles, configs, session records).
+- Key-value stores fit minimal key-to-value lookups with speed demands (sessions, counters, caches).
+- Columnar stores fit analytical aggregation over massive data (reports, statistics).
+- Graph stores fit cases where the relationship network itself is the point (social, fraud links, knowledge graphs).
+- Vector stores fit semantic similarity retrieval (embeddings, RAG, recommendations).
+- Object storage fits large, immutable objects fetched whole by ID (images, video, model weights, backups).
+- A search engine fits full-text search and complex filter/sort (product search, log retrieval).
+- Time-series stores fit timestamped, append-only data aggregated by time (monitoring metrics, billing records).
 
 Polyglot persistence is a cost forced out by evidence, not a maturity badge: each additional store brings another sync path, consistency boundary, and ops object. Start from one relational database by default; introduce a dedicated store only when a data class's access shape clearly departs from what the primary store is good at and real load evidence proves it cannot cope. Three questions to ask: what is this data's read/write shape; how strong must its consistency be; how big will it grow and how often is it accessed (which decides whether replication and sharding enter the picture). Selection details are in [Data stores](./technology-selection/03-data-stores.md).
 
@@ -50,11 +48,9 @@ When several operations must all succeed or all fail, you need a transaction. De
 
 ## The three cards for scaling data
 
-| Lever | What it solves | Cost |
-| --- | --- | --- |
-| Replication (primary-standby) | Scales reads; redundancy for fault tolerance as a bonus | Primary-standby lag (stale reads); writes do not scale; the primary is the write SPOF with complex failover |
-| Sharding | Scales writes and storage capacity | Cross-shard transactions and joins are mostly gone; a wrong shard key creates hot shards; re-sharding moves mountains of data |
-| Cache | Cuts read latency and database read pressure | Consistency problems; a new component to maintain; cold start dumps traffic onto the database |
+- Primary-standby replication scales reads and adds redundancy for fault tolerance. The cost is replication lag (stale reads), writes do not scale, and the primary is the write SPOF with complex failover.
+- Sharding scales writes and storage capacity. The cost is that cross-shard transactions and joins mostly disappear, a wrong shard key creates hot shards, and re-sharding moves mountains of data.
+- A cache cuts read latency and database read pressure. The cost is consistency problems, another component to maintain, and a cold start that dumps traffic onto the database.
 
 One line to separate them: **replication scales reads, sharding scales writes, caching cuts latency and scales reads**. Do not expect adding replicas to fix a write bottleneck—that is sharding's job.
 

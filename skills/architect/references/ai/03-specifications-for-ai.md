@@ -12,11 +12,9 @@ For example, refund requests carry an idempotency key, repeated requests return 
 
 Constraints layer by enforceability, harder and more unavoidable further down:
 
-| Layer | Vehicle | What it constrains | Who reads it |
-| --- | --- | --- | --- |
-| Decision records | Documents in the project's existing format | Why it was decided, the tradeoffs | Humans + AI (understanding intent) |
-| AGENTS.md-style rule files | Standing rules at the project root | Do / do not | AI (auto-loaded when the runtime supports and is configured) |
-| Fitness functions / lint / CI | Automated tests | Red lines (violations block) | Machines |
+- Decision records live in documents that use the project's existing format. They capture why a decision was made and the tradeoffs, and both humans and AI read them to understand intent.
+- AGENTS.md-style rule files are standing rules at the project root. They say what to do and what not to do, and AI reads them, auto-loaded when the runtime supports and is configured.
+- Fitness functions, lint, and CI are automated tests. They enforce red lines and block violations, and machines read them.
 
 Each layer has a job. Why dual-write was chosen and what it trades away belongs in the decision record. A recurring instruction such as refund idempotency belongs in the rule file. The rule against the domain layer importing the web layer belongs in a dependency check. A small tool may not need all three; maintaining the documents should not become its largest engineering effort. Let machines handle important, repeated checks when the maintenance cost is justified. Documents explain why; automated checks turn red on violations. Both earn their keep.
 
@@ -65,13 +63,11 @@ When design chooses A over B, keep the tradeoff in the decision record. Distill 
 
 The pyramid's bottom layer is the hardest. Constraints sort by machine-verifiability into their destination:
 
-| Constraint | What it becomes |
-| --- | --- |
-| Domain layer decoupled from the framework | CI dependency check blocks on violation |
-| Refund interface requires idempotency | Rule in the rule file; contract test fails on a missing idempotency key |
-| A project has adopted a shared model boundary | Dependency check rejects calls that bypass the adopted boundary |
-| p99 ceiling of 200ms | Performance test fails on breach |
-| Why RAG instead of fine-tuning | Decision record (human-readable only, not machine-verifiable) |
+- When the domain layer must stay decoupled from the framework, a CI dependency check blocks violations.
+- When the refund interface requires idempotency, the rule goes into the rule file and a contract test fails on a missing idempotency key.
+- When a project adopts a shared model boundary, a dependency check rejects calls that bypass it.
+- A p99 ceiling of 200ms becomes a performance test that fails on breach.
+- The reason for choosing RAG over fine-tuning becomes a decision record that only humans can read, not a machine-verifiable rule.
 
 Turn constraints that depend on reminders into checks that turn red. CI does not care whether a human or AI wrote the code; it blocks the violations it covers either way. But a green run only means the written checks passed. Missing tests do not raise their hands. Review still has to trace uncovered behavior and verify the assumptions behind each check.
 

@@ -10,12 +10,10 @@ Failure consequences set the review priorities. A refund path needs authorizatio
 
 The full checklists for general dimensions are not expanded here; route by signal:
 
-| What you hit | Where to check |
-| --- | --- |
-| Touches money/inventory: idempotency, concurrency, transaction boundaries | [Consistency](../09-consistency.md) |
-| Calls external services/high concurrency: timeouts, retries, degradation, resource caps | [Resilience](../10-resilience.md) |
-| Massive users: hotspots, fan-out, pagination, tail latency | [Scaling](../11-scaling.md) |
-| User data/multi-tenant: authn, authz, isolation, secrets | [Security](../14-security.md) |
+- When the change touches money or inventory, check idempotency, concurrency, and transaction boundaries in [Consistency](../09-consistency.md).
+- When it calls external services or faces high concurrency, check timeouts, retries, degradation, and resource caps in [Resilience](../10-resilience.md).
+- When it serves massive users, check hotspots, fan-out, pagination, and tail latency in [Scaling](../11-scaling.md).
+- When it handles user data or multiple tenants, check authn, authz, isolation, and secrets in [Security](../14-security.md).
 
 Below, only the AI-specific items.
 

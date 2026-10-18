@@ -2,7 +2,7 @@
 name: msgspec
 description: Use when defining Structs, validating data, or handling serialization with msgspec, including fields and options, constraints and typed conversion, encoding and decoding, tagged unions, and custom hooks.
 metadata:
-  version: "1.0.3"
+  version: "1.0.4"
 ---
 
 # msgspec
@@ -17,16 +17,14 @@ Activate this Skill when a task involves defining `msgspec.Struct` models, valid
 
 Route to the smallest relevant document. Read only what the task requires.
 
-| Signal | Read first | Often pair with |
-| --- | --- | --- |
-| Struct fields, defaults, renaming, inheritance, options | [struct](./references/struct.md) | supported-types, validation |
-| `Meta`, constraints, `ValidationError`, `__post_init__` | [validation](./references/validation.md) | struct |
-| Supported annotations, `UNSET`, native and custom types | [supported-types](./references/supported-types.md) | struct, converters |
-| `enc_hook`, `dec_hook`, `convert`, `from_attributes` | [converters](./references/converters.md) | supported-types, serialization |
-| JSON, MessagePack, YAML, TOML, JSONL, reusable encoders or decoders | [serialization](./references/serialization.md) | supported-types, converters |
-| Choice between msgspec, Pydantic, and dataclasses | [comparison](./references/comparison.md) | best-practices |
-| Usage guidance and common mistakes | [best-practices](./references/best-practices.md) | the relevant API document |
-| Runnable end-to-end examples | [basic usage](./examples/basic_usage.py), [tagged unions](./examples/tagged_union.py), [custom conversion](./examples/custom_conversion.py) | the matching reference document |
+- For Struct fields, defaults, renaming, inheritance, and options, read [struct](./references/struct.md), often alongside supported-types and validation.
+- For `Meta`, constraints, `ValidationError`, and `__post_init__`, read [validation](./references/validation.md), often alongside struct.
+- For supported annotations, `UNSET`, and native or custom types, read [supported-types](./references/supported-types.md), often alongside struct and converters.
+- For `enc_hook`, `dec_hook`, `convert`, and `from_attributes`, read [converters](./references/converters.md), often alongside supported-types and serialization.
+- For JSON, MessagePack, YAML, TOML, JSONL, or reusable encoders and decoders, read [serialization](./references/serialization.md), often alongside supported-types and converters.
+- When choosing between msgspec, Pydantic, and dataclasses, read [comparison](./references/comparison.md), often alongside best-practices.
+- For usage guidance and common mistakes, read [best-practices](./references/best-practices.md), often alongside the relevant API document.
+- For runnable end-to-end examples, read [basic usage](./examples/basic_usage.py), [tagged unions](./examples/tagged_union.py), and [custom conversion](./examples/custom_conversion.py), often alongside the matching reference document.
 
 When terminology is unclear or inconsistent, read the [glossary](./glossary.md).
 

@@ -2,7 +2,7 @@
 name: architect
 description: Use for system-level architecture analysis, design, review, technology selection, or evolution across module, service, or deployment boundaries, especially system boundaries, data and state ownership, quality attributes, failure, scale, or long-term change. Do not use for single-module design, concrete implementation, code-level review, product behavior, priority ranking, general discussion, or a mention of architecture alone.
 metadata:
-  version: "1.0.7"
+  version: "1.0.8"
 ---
 
 # Architecture
@@ -19,35 +19,33 @@ This Skill does not do concrete implementation. Project facts come from the curr
 
 Choose documents by the signals of the current question and read only what is needed. Numbering is for directory navigation only; documents are not meant to be read in order.
 
-| Signal | Read First | Often Pair With |
-| --- | --- | --- |
-| Forming architecture judgment from requirements, constraints, and quality attributes; tradeoff framing | [Architecture judgment](./references/01-architecture-judgment.md) | system-design, technology-selection/principles |
-| Taking apart an unfamiliar system: starting from code, configuration, and runtime evidence | [System analysis](./references/02-system-analysis.md) | views, distributed-systems |
-| Choosing views and abstraction levels to express boundaries, relationships, and data flow | [Views](./references/03-views.md) | system-analysis |
-| Comparing when monoliths, microservices, event-driven, and other styles fit | [Architecture styles](./references/04-architecture-styles.md) | organization |
-| State ownership, data lifecycles, storage boundaries | [Data ownership](./references/05-data-ownership.md) | consistency, technology-selection/data-stores |
-| Deriving a complete, verifiable system design from requirements | [System design](./references/06-system-design.md) | architecture-judgment, scaling |
-| Recording candidates, tradeoffs, consequences, and re-review conditions | [Architecture decisions](./references/07-architecture-decisions.md) | architecture-judgment |
-| Constraints from networks, time, concurrency, and partial failure | [Distributed systems](./references/08-distributed-systems.md) | consistency, resilience |
-| Consistency models, transaction boundaries, conflict handling | [Consistency](./references/09-consistency.md) | distributed-systems, data-ownership |
-| Timeout, retry, idempotency, isolation, and degradation design | [Resilience](./references/10-resilience.md) | distributed-systems, scaling |
-| Finding bottlenecks from load evidence and choosing how to scale | [Scaling](./references/11-scaling.md) | data-ownership |
-| Splitting, migrating, rolling back, retiring; evolution trigger signals | [Evolution](./references/12-evolution.md) | architecture-decisions, organization |
-| Team ownership, communication structure, and their relation to system boundaries | [Organization](./references/13-organization.md) | architecture-styles, evolution |
-| Trust boundaries, identity and permissions, data isolation, multi-tenant risks | [Security](./references/14-security.md) | data-ownership |
-| Uncertainty, cost, and capability boundaries introduced by AI components | [AI-era judgment](./references/ai/01-ai-era-judgment.md) | ai/ai-system-design |
-| System boundaries of models, context, tools, memory, and orchestration | [AI system design](./references/ai/02-ai-system-design.md) | ai/ai-era-judgment, ai/evaluation-driven-architecture |
-| Turning architecture constraints into AI-executable, verifiable specifications | [Specifications for AI](./references/ai/03-specifications-for-ai.md) | ai/reviewing-ai-output |
-| Reviewing the omissions specific to AI architecture output | [Reviewing AI output](./references/ai/04-reviewing-ai-output.md) | consistency, resilience, scaling, security |
-| Defining AI system quality with evaluation targets, datasets, and feedback | [Evaluation-driven architecture](./references/ai/05-evaluation-driven-architecture.md) | ai/ai-system-design |
-| General questions, comparison dimensions, and exit conditions of technology selection | [Selection principles](./references/technology-selection/01-principles.md) | architecture-decisions |
-| Constraints, team fit, and maintenance cost of languages and backend frameworks | [Languages](./references/technology-selection/02-languages.md) | technology-selection/principles |
-| Data model, consistency, and operational cost of data stores | [Data stores](./references/technology-selection/03-data-stores.md) | data-ownership, consistency |
-| What caches, message queues, and event systems each solve | [Messaging](./references/technology-selection/04-messaging.md) | consistency, resilience |
-| Coupling, performance, and evolution cost of API and service communication styles | [Communication](./references/technology-selection/05-communication.md) | architecture-styles |
-| Delivery, elasticity, and operational constraints of deployment shapes and cloud platforms | [Deployment](./references/technology-selection/06-deployment.md) | scaling, security |
-| How observability and reliability tooling supports failure detection and response | [Observability](./references/technology-selection/07-observability.md) | resilience |
-| AI infrastructure tradeoffs across training, inference, data, and cost | [AI infrastructure](./references/technology-selection/08-ai-infrastructure.md) | ai/ai-era-judgment, ai/evaluation-driven-architecture |
+- To form architecture judgment from requirements, constraints, and quality attributes, read [Architecture judgment](./references/01-architecture-judgment.md); pair it with system-design and technology-selection/principles.
+- To take apart an unfamiliar system from code, configuration, and runtime evidence, read [System analysis](./references/02-system-analysis.md); pair it with views and distributed-systems.
+- To choose views and abstraction levels for boundaries, relationships, and data flow, read [Views](./references/03-views.md); pair it with system-analysis.
+- To compare when monoliths, microservices, event-driven, and other styles fit, read [Architecture styles](./references/04-architecture-styles.md); pair it with organization.
+- For state ownership, data lifecycles, and storage boundaries, read [Data ownership](./references/05-data-ownership.md); pair it with consistency and technology-selection/data-stores.
+- To derive a complete, verifiable system design from requirements, read [System design](./references/06-system-design.md); pair it with architecture-judgment and scaling.
+- To record candidates, tradeoffs, consequences, and re-review conditions, read [Architecture decisions](./references/07-architecture-decisions.md); pair it with architecture-judgment.
+- For constraints from networks, time, concurrency, and partial failure, read [Distributed systems](./references/08-distributed-systems.md); pair it with consistency and resilience.
+- For consistency models, transaction boundaries, and conflict handling, read [Consistency](./references/09-consistency.md); pair it with distributed-systems and data-ownership.
+- For timeout, retry, idempotency, isolation, and degradation design, read [Resilience](./references/10-resilience.md); pair it with distributed-systems and scaling.
+- To find bottlenecks from load evidence and choose how to scale, read [Scaling](./references/11-scaling.md); pair it with data-ownership.
+- For splitting, migrating, rolling back, retiring, and evolution trigger signals, read [Evolution](./references/12-evolution.md); pair it with architecture-decisions and organization.
+- For team ownership, communication structure, and their relation to system boundaries, read [Organization](./references/13-organization.md); pair it with architecture-styles and evolution.
+- For trust boundaries, identity and permissions, data isolation, and multi-tenant risks, read [Security](./references/14-security.md); pair it with data-ownership.
+- For uncertainty, cost, and capability boundaries introduced by AI components, read [AI-era judgment](./references/ai/01-ai-era-judgment.md); pair it with ai/ai-system-design.
+- For system boundaries of models, context, tools, memory, and orchestration, read [AI system design](./references/ai/02-ai-system-design.md); pair it with ai/ai-era-judgment and ai/evaluation-driven-architecture.
+- To turn architecture constraints into AI-executable, verifiable specifications, read [Specifications for AI](./references/ai/03-specifications-for-ai.md); pair it with ai/reviewing-ai-output.
+- To review the omissions specific to AI architecture output, read [Reviewing AI output](./references/ai/04-reviewing-ai-output.md); pair it with consistency, resilience, scaling, and security.
+- To define AI system quality with evaluation targets, datasets, and feedback, read [Evaluation-driven architecture](./references/ai/05-evaluation-driven-architecture.md); pair it with ai/ai-system-design.
+- For general questions, comparison dimensions, and exit conditions of technology selection, read [Selection principles](./references/technology-selection/01-principles.md); pair it with architecture-decisions.
+- For constraints, team fit, and maintenance cost of languages and backend frameworks, read [Languages](./references/technology-selection/02-languages.md); pair it with technology-selection/principles.
+- For data model, consistency, and operational cost of data stores, read [Data stores](./references/technology-selection/03-data-stores.md); pair it with data-ownership and consistency.
+- To see what caches, message queues, and event systems each solve, read [Messaging](./references/technology-selection/04-messaging.md); pair it with consistency and resilience.
+- For coupling, performance, and evolution cost of API and service communication styles, read [Communication](./references/technology-selection/05-communication.md); pair it with architecture-styles.
+- For delivery, elasticity, and operational constraints of deployment shapes and cloud platforms, read [Deployment](./references/technology-selection/06-deployment.md); pair it with scaling and security.
+- To learn how observability and reliability tooling supports failure detection and response, read [Observability](./references/technology-selection/07-observability.md); pair it with resilience.
+- For AI infrastructure tradeoffs across training, inference, data, and cost, read [AI infrastructure](./references/technology-selection/08-ai-infrastructure.md); pair it with ai/ai-era-judgment and ai/evaluation-driven-architecture.
 
 When terminology is unclear, read the [glossary](./glossary.md).
 

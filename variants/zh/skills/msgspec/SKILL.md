@@ -2,7 +2,7 @@
 name: msgspec
 description: 当需要定义结构体、进行数据验证和处理序列化时使用，涵盖 msgspec Struct 字段与选项、约束和类型化转换、编码与解码、标签联合及自定义钩子。
 metadata:
-  version: "1.0.3"
+  version: "1.0.4"
 ---
 
 # msgspec
@@ -17,16 +17,14 @@ metadata:
 
 判断顺序（Judgment Order）：根据任务信号选择最小范围的文档。只阅读任务所需内容。
 
-| 信号 | 优先阅读 | 常搭配阅读 |
-| --- | --- | --- |
-| Struct 字段、默认值、重命名、继承、选项 | [struct](./references/struct.md) | supported-types、validation |
-| `Meta`、约束、`ValidationError`、`__post_init__` | [validation](./references/validation.md) | struct |
-| 支持的类型注解、`UNSET`、原生类型和自定义类型 | [supported-types](./references/supported-types.md) | struct、converters |
-| `enc_hook`、`dec_hook`、`convert`、`from_attributes` | [converters](./references/converters.md) | supported-types、serialization |
-| JSON、MessagePack、YAML、TOML、JSONL、可复用编码器或解码器 | [serialization](./references/serialization.md) | supported-types、converters |
-| 在 msgspec、Pydantic 和 dataclasses 之间选择 | [comparison](./references/comparison.md) | best-practices |
-| 用法建议和常见错误 | [best-practices](./references/best-practices.md) | 对应的 API 文档 |
-| 可运行的端到端示例 | [基础用法](./examples/basic_usage.py)、[标签联合](./examples/tagged_union.py)、[自定义转换](./examples/custom_conversion.py) | 对应的参考文档 |
+- 处理 Struct 字段、默认值、重命名、继承和选项时，读 [struct](./references/struct.md)，常搭配 supported-types 和 validation。
+- 处理 `Meta`、约束、`ValidationError` 和 `__post_init__` 时，读 [validation](./references/validation.md)，常搭配 struct。
+- 处理支持的类型注解、`UNSET`、原生类型和自定义类型时，读 [supported-types](./references/supported-types.md)，常搭配 struct 和 converters。
+- 处理 `enc_hook`、`dec_hook`、`convert` 和 `from_attributes` 时，读 [converters](./references/converters.md)，常搭配 supported-types 和 serialization。
+- 处理 JSON、MessagePack、YAML、TOML、JSONL 或可复用编码器和解码器时，读 [serialization](./references/serialization.md)，常搭配 supported-types 和 converters。
+- 在 msgspec、Pydantic 和 dataclasses 之间选择时，读 [comparison](./references/comparison.md)，常搭配 best-practices。
+- 需要用法建议和常见错误时，读 [best-practices](./references/best-practices.md)，常搭配对应的 API 文档。
+- 需要可运行的端到端示例时，读 [基础用法](./examples/basic_usage.py)、[标签联合](./examples/tagged_union.py) 和 [自定义转换](./examples/custom_conversion.py)，常搭配对应的参考文档。
 
 术语含义或中英文对应不清楚时，读取[术语表](./glossary.md)。
 

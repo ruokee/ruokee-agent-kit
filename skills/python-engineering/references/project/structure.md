@@ -98,15 +98,13 @@ Introduce a workspace only when there are genuinely at least two packages with d
 
 Do not reach for a workspace just because there are many directories, or to split one large application by folder, or when packages import each other's internals with no stable boundary. Without whole-repo tests, type checking, and a dependency-upgrade strategy, a workspace amplifies coupling instead of containing it.
 
-## Decision Table
+## Decision Guide
 
-| Project type | Recommended layout | Signals to migrate up |
-| --- | --- | --- |
-| One-off automation, experiment | Single-file script (PEP 723) | Multiple helpers, test needs, a config file, or another module wants to import it |
-| Small library, simple internal tool | Flat layout | Multiple entry points, dependency groups, or packaging mistakes start slipping through |
-| Published library, SDK, framework | Src layout | (Default for anything maintained or released) |
-| CLI, web/API, service, internal app | Packaged application (src + `[project]`) | Deployment artifacts, entry points, and lockfile needed |
-| App + shared libs, service group, monorepo | Workspace | Two+ packages with stable APIs and a clear dependency direction |
+- A one-off automation or experiment belongs in a single-file script (PEP 723). Move up when multiple helpers appear, tests are needed, a config file shows up, or another module wants to import it.
+- A small library or simple internal tool fits a flat layout. Move up when there are multiple entry points, dependency groups, or packaging mistakes start slipping through.
+- A published library, SDK, or framework should use the src layout. This is the default for anything maintained or released.
+- A CLI, web/API, service, or internal app belongs in a packaged application (src plus `[project]`). Move up when deployment artifacts, entry points, and a lockfile are needed.
+- An app with shared libraries, a service group, or a monorepo calls for a workspace. Move up when two or more packages have stable APIs and a clear dependency direction.
 
 When in doubt between flat and src for anything that will outlive the week, prefer src: the import-safety guarantee is cheap insurance against packaging surprises.
 

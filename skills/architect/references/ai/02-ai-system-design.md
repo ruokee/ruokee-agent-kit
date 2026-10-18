@@ -22,14 +22,12 @@ For example, checking logistics, refunding shipping, and changing an address are
 
 An autonomous agent is the superposition of traditional distributed hard problems; designing an agent is fitting the brakes one by one:
 
-| Hard problem | What it really is | The brake |
-| --- | --- | --- |
-| The action loop can spin in place and burn money forever | Load shedding / circuit breaking | Step/cost/timeout caps + repetition detection; stop on breach |
-| Tool calls have side effects; multi-step resembles a distributed transaction | Saga / idempotency | Idempotent execution; compensation where possible, explicit approval and recovery for irreversible actions |
-| Long tasks run long, nodes die, state must be recoverable | Partial failure | Checkpoints persisted; resume after interruption |
-| Multi-agent collaboration | Distribution + fan-out amplification | Start with a single agent, split only when it cannot hold; control fan-out |
-| Prompt injection is the top threat | Security | Tool sandbox + least privilege; external content as untrusted input |
-| Gradual evolution from prototype | Evolution | Shadow runs to verify; gradual rollout |
+- An action loop can spin in place and burn money forever. The real issue is load shedding and circuit breaking: cap steps, cost, and timeout, detect repetition, and stop on breach.
+- Tool calls have side effects, and a multi-step run resembles a distributed transaction. The real issue is Saga and idempotency: execute idempotently, define compensation where possible, and require explicit approval and a recovery path for irreversible actions.
+- Long tasks run for a long time and nodes die, so state must survive. The real issue is partial failure: persist checkpoints and resume after interruption.
+- Multi-agent collaboration adds distribution and fan-out amplification. Start with a single agent, split only when it cannot hold, and control fan-out.
+- Prompt injection is the top threat. Treat it as a security boundary: sandbox tools, apply least privilege, and keep external content untrusted.
+- A prototype should evolve gradually. Treat it as evolution: verify with shadow runs, then roll out gradually.
 
 An agent loop without control valves can become a machine that burns money on its own and causes damage on the side. Step, cost, and timeout caps stop it; sandboxes, least privilege, and human approval limit what it can touch; call traces help reconstruct an incident. Fit the brakes to the actions and failure costs. A read-only assistant can answer again, but rerunning a payment agent does not erase an extra payment. More autonomy means more possible actions to validate. Authorization and resource limits in the execution service cannot depend on the model behaving itself.
 
