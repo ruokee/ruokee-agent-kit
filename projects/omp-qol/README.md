@@ -15,8 +15,9 @@ Jobs, messages, processes, turns, and compaction stay with OMP. Every adjustment
 - [Replaying native history in a resumed session](./docs/adjustments.md#replaying-native-history-in-a-resumed-session): default on. A resumed session's first request replays the native provider items the previous process ended with, instead of rebuilding the conversation from its generic content, so a prompt cache over that form can serve it. Process-wide, one flag, no body rewrite.
 - [Model prompt rules](#model-prompt-rules): default **off**. Append matching user-authored Markdown bodies to each covered turn's system prompt, without requiring a template or another component.
 - [Task argument cleanup](./docs/adjustments.md#task-argument-cleanup): default on when the built-in task schema exposes the seance-only `sourceSession` field. Remove it and `model` from non-seance task items before host validation; a schema with only the ordinary `model` selector stays untouched.
+- [Copy the last reply](./docs/adjustments.md#copy-the-last-reply): default on. Press `alt+shift+a` in an interactive session to copy the text blocks of the last assistant reply. Thinking, tool calls, and tool output stay out of the clipboard; a streaming turn or a reply without text leaves it unchanged.
 
-The wait adjustment adds an optional `timeout`; replay chooses the stored native items. Neither changes the model, cache key, or stored history. The compaction usage adjustment adds session entries and therefore changes the session file; it changes no request. Recovery starts a turn and wait repeats a call the model already made; provider quota is spent when the model runs. The task argument cleanup rewrites the event input and leaves the task schema unchanged; the host persists the revised arguments in the current assistant message.
+The wait adjustment adds an optional `timeout`; replay chooses the stored native items. Neither changes the model, cache key, or stored history. The compaction usage adjustment adds session entries and therefore changes the session file; it changes no request. Recovery starts a turn and wait repeats a call the model already made; provider quota is spent when the model runs. The task argument cleanup rewrites the event input and leaves the task schema unchanged; the host persists the revised arguments in the current assistant message. The copy shortcut only reads the active branch and writes the system clipboard; it adds no session entry and sends no request.
 
 ## Configuration
 
@@ -31,7 +32,7 @@ Settings are read once per activation. Restart OMP after a change. A running pro
 
 ### General
 
-- `enabled`: default `true`, accepts a boolean. Master switch. When off, no module registers.
+- `enabled`: default `true`, accepts a boolean. Master switch. When off, no module's handler acts. The fixed copy shortcut is still registered during the factory, so its key remains claimed while this switch is off; the handler does nothing.
 
 ### Wait
 
@@ -80,6 +81,10 @@ Restart OMP after changing the switch. Existing rule files need no path or forma
 
 - `taskArgsEnabled`: default `true`, accepts a boolean. When the built-in task schema exposes the seance-only `sourceSession` field, remove it and `model` from non-seance task items before host validation. The registered handler disables speculative task launch and experimental read speculation. On a schema with only the ordinary `model` selector, the module reports `unavailable` and registers no handler. Restart to apply.
 
+### Copy
+
+- `copyEnabled`: default `true`, accepts a boolean. Bind `alt+shift+a` to copy the text blocks of the last assistant reply. The master `enabled` switch must also be on. The shortcut is registered while the extension factory runs, so the key stays claimed even when this switch is off or the settings are rejected; the handler then does nothing. Restart to apply.
+
 ### Validation
 
 - A key that is absent takes its default.
@@ -92,7 +97,7 @@ Restart OMP after changing the switch. Existing rule files need no path or forma
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.5.8
+@ruokee/omp-qol 0.5.9
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -103,6 +108,7 @@ compactionUsage: enabled (entries=2) — enabled=true
 replay: enabled (rewrites=0) — enabled=true
 modelPrompts: disabled (model-prompts-disabled) enabled=false
 taskArgs: enabled (rewrites=0) — enabled=true
+copy: enabled — enabled=true shortcut=alt+shift+a
 ```
 
 `pending` means no session has started in this process. `disabled`, `invalid`, `incompatible`, and `unavailable` each carry a reason code, and `problems:` lists the rejected keys when the settings object was accepted only in part. A rejected settings object replaces every module line with the reason and ends the report with the keys that rejected it.
@@ -169,7 +175,7 @@ The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound.
 
 The package declares `@oh-my-pi/pi-agent-core`, `@oh-my-pi/pi-ai`, `@oh-my-pi/pi-coding-agent`, and `@oh-my-pi/pi-utils` as unrestricted host peers (`*`). Those declarations name the host packages the component imports; they carry no maintenance range, no runtime check, and no claim about any host version.
 
-The automated type check and test suite run against OMP `18.5.0`. Source baselines are path-specific: recovery, the compaction deadline, and replay cite `18.2.8`, where those mechanisms were first read; continuing waits and compaction usage cite `18.5.0`, with compaction usage reading the provider-computed cost on the installed `18.8.3`; task argument cleanup cites `18.11.3`, where the seance task schema was read.
+The automated type check and test suite run against OMP `18.5.0`. Source baselines are path-specific: recovery, the compaction deadline, and replay cite `18.2.8`, where those mechanisms were first read; continuing waits and compaction usage cite `18.5.0`, with compaction usage reading the provider-computed cost on the installed `18.8.3`; task argument cleanup cites `18.11.3`, where the seance task schema was read; copy cites `18.5.0` for the shortcut registry and clipboard export, with the native action table checked on the installed `18.11.3`.
 
 The checks cover what the modules inspect, and not the entry's own imports or a difference no module looks at, so an unrecognized host change can also alter behavior without disabling the adjustment.
 

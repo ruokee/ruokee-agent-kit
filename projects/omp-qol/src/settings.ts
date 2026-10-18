@@ -23,6 +23,7 @@ export const MODULE_IDS = [
   "replay",
   "modelPrompts",
   "taskArgs",
+  "copy",
 ] as const;
 export type ModuleId = (typeof MODULE_IDS)[number];
 
@@ -62,6 +63,7 @@ export const SETTINGS_DEFAULTS = {
   modelPromptsEnabled: false,
   compactionUsageEnabled: true,
   taskArgsEnabled: true,
+  copyEnabled: true,
 } as const;
 
 /**
@@ -109,6 +111,7 @@ export interface QolSettings {
   modelPrompts: { enabled: boolean };
   compactionUsage: { enabled: boolean };
   taskArgs: { enabled: boolean };
+  copy: { enabled: boolean };
 }
 
 /** Why one key failed validation. Rules are named so diagnostics never echo a value. */
@@ -306,6 +309,7 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     SETTINGS_DEFAULTS.compactionUsageEnabled,
   );
   const taskArgsEnabled = readBoolean(raw, "taskArgsEnabled", "taskArgs", SETTINGS_DEFAULTS.taskArgsEnabled);
+  const copyEnabled = readBoolean(raw, "copyEnabled", "copy", SETTINGS_DEFAULTS.copyEnabled);
 
   const reads: Read<unknown>[] = [
     waitEnabled,
@@ -328,6 +332,7 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     modelPromptsEnabled,
     compactionUsageEnabled,
     taskArgsEnabled,
+    copyEnabled,
   ];
   const problems: FieldProblem[] = [];
   for (const read of reads) if (!read.ok) problems.push(read.problem);
@@ -373,6 +378,9 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
       },
       taskArgs: {
         enabled: taskArgsEnabled.ok ? taskArgsEnabled.value : SETTINGS_DEFAULTS.taskArgsEnabled,
+      },
+      copy: {
+        enabled: copyEnabled.ok ? copyEnabled.value : SETTINGS_DEFAULTS.copyEnabled,
       },
     },
   };

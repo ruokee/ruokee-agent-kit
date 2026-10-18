@@ -220,10 +220,26 @@ describe("the /qol command", () => {
     expect(text).toContain("replay: ");
     expect(text).toContain("compactionUsage: incompatible");
     expect(text).toContain("taskArgs: ");
+    expect(text).toContain("copy: ");
+    expect(text).toContain("shortcut=alt+shift+a");
     expect(text).toContain("enabled=false timeoutMs=900000");
     expect(text).not.toContain("user:");
     expect(text).not.toContain("project:");
     expect(runtime.describe()).toBe(text);
+  });
+
+  test("reports the copy switch and shortcut", async () => {
+    const harness = createHarness();
+    const runtime = activate(harness.pi, gatedReader({ copyEnabled: false }).read);
+    await sessionStartOf(harness)({}, harness.context());
+
+    const line = runtime
+      .describe()
+      .split("\n")
+      .find((entry) => entry.startsWith("copy: "));
+    expect(line).toContain("copy: disabled");
+    expect(line).toContain("enabled=false");
+    expect(line).toContain("shortcut=alt+shift+a");
   });
 
   test("an inactive wait module still reports its configured deadline", async () => {
@@ -273,6 +289,7 @@ describe("the /qol command", () => {
         modelPrompts: { status: "disabled" },
         compactionUsage: { status: "disabled", reason: "compactionUsage-disabled" },
         taskArgs: { status: "enabled" },
+        copy: { status: "enabled" },
       },
     });
     expect(defaults).not.toContain("no longer matches");
@@ -293,6 +310,7 @@ describe("the /qol command", () => {
           modelPrompts: { status: "disabled" },
           compactionUsage: { status: "enabled" },
           taskArgs: { status: "enabled" },
+          copy: { status: "enabled" },
         },
       },
       undefined,

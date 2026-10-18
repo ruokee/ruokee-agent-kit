@@ -12,6 +12,7 @@ Spec for [projects/omp-qol](../../projects/omp-qol/README.md).
 - Provide user-authored model rules from this component directly.
 - Record the compaction and handoff request usage a host does not journal itself, until a host does.
 - Remove seance-only task fields from non-seance task items before host validation.
+- Copy the text of the last assistant reply from one fixed keyboard shortcut.
 
 ## Out of scope
 
@@ -24,6 +25,7 @@ Spec for [projects/omp-qol](../../projects/omp-qol/README.md).
 - Matching provider error text, adding recovery settings, or recovering every error.
 - Exactly-once tool execution, rollback, or idempotent continuation.
 - Template strategy, Delivery insertion, footer rewriting, automatic installation or extension reordering, new matching dimensions or search paths, rule caching, configuration hot refresh, per-provider-request refresh, and history-message injection for model rules.
+- Copying selected text, thinking blocks, tool calls, tool output, or images; a `/copy` command, a configurable shortcut, or clipboard history.
 
 ## Public surface
 
@@ -79,6 +81,14 @@ The cleanup does not change the task schema, description, approval policy, dispa
 
 [Task argument cleanup](../../projects/omp-qol/docs/adjustments.md#task-argument-cleanup) states the complete rule, accepted speculation cost, limits, and verification.
 
+### Copy the last reply
+
+The copy module is a switch-gated adjustment: the native boolean `copyEnabled`, defaulting to `true` and subordinate to `enabled`, governs the handler. `alt+shift+a` is registered during the extension factory, before interactive mode reads the shortcut registry; the module registers no `/copy` command and has no configurable key. The key remains claimed for the lifetime of that extension binding while the module is disabled or its settings are rejected, and the handler then does nothing. An invalid `copyEnabled` disables that module alone; a rejected settings object follows the component-wide rule.
+
+When enabled and idle, the handler selects the last assistant message on the current branch, joins its `text` blocks without a separator, trims the result, and writes it through the host's clipboard helper. An aborted message with no content is skipped. A last assistant message with no text, including one with only thinking or tool calls, copies nothing and does not fall back to an older reply. Thinking, tool calls, tool output, images, and other non-text blocks are excluded, and the module adds no session entry or request. While the agent is not idle, the handler warns and copies nothing; the host clipboard helper is best-effort and swallows write failures, so a real failed write is not reported, while a copy function that throws is caught and produces one error notification without retrying.
+
+[Copy the last reply](../../projects/omp-qol/docs/adjustments.md#copy-the-last-reply) states the complete behavior, the key-claim limit, and verification.
+
 ## Invariants
 
 - Preserve every unrelated setting's key, default, range, and validation. The three remote settings `compactionCacheEnabled`, `compactionCacheProvider`, and `compactionCacheMode` are absent and rejected as unknown keys; no runtime compatibility path remains.
@@ -102,6 +112,11 @@ The cleanup does not change the task schema, description, approval policy, dispa
 - The handler is registered only for a built-in `task` whose schema exposes `sourceSession`; a missing or shadowed tool, or a schema with only the ordinary `model` selector, leaves native behavior, preserves `model`, and reports a bounded reason. While it is registered, speculative task launch and experimental read speculation are denied; the module does not change host settings.
 - The module changes the event input. The host persists the revised arguments in the current assistant message, so later requests and the session file observe them. It does not change the task schema, description, approval, dispatch, or result rendering; a call that remains invalid for another reason still fails.
 - An invalid `taskArgsEnabled` disables only the task argument module. Turning off its switch or the master switch restores native arguments and behavior at the next activation.
+- The copy shortcut is registered during factory execution, not on `session_start`; its handler reads the activation snapshot and copies only while the module is enabled.
+- The copy handler writes only `text` blocks of the last assistant message, skips an empty aborted message, and does not fall back to an earlier reply or write an empty string. Thinking, tool calls, tool output, images, and other non-text blocks are excluded.
+- The copy handler copies nothing while the agent is not idle. The host clipboard helper swallows write failures, so a real failed write is not reported; a copy function that throws is caught and reported without escaping the handler.
+- The copy module registers no `/copy` command and no configurable key. The fixed key stays claimed while the module is disabled, the master switch is off, or settings are rejected; the handler then does nothing.
+- An invalid `copyEnabled` disables only the copy module. Turning off its switch or the master switch leaves native behavior at the next activation.
 
 ## Host lower bound
 
@@ -126,6 +141,7 @@ OMP `18.5.0`, declared in [Compatibility](../../projects/omp-qol/README.md#compa
 - Ordinary child Provider-facing requests retain the child's own model, role, and independent blocks. Unrun bypasses remain explicitly unverified.
 - Component descriptions, manifests, root guidance, paired documentation, and current project Specs agree on ownership and approaching deprecation. Preserve all remaining adjustments and every unrelated valid requirement.
 - Task argument cleanup checks cover a flat call, batch items, seance preservation, missing/empty/whitespace/non-string agents, absent target fields, abnormal task shapes, one rewrite per changed call, the built-in guard, flat and batch seance schemas, a model-only schema without `sourceSession`, missing and shadowed tools, disabled and incompatible states, and the off switch. Its real CLI evidence is recorded under the adjustment's verification section or marked not verified.
+- Copy checks cover last-assistant selection, text-block joining and trimming, thinking and tool-call exclusion, an empty aborted message, no fallback when the last message has no text, the inactive/streaming/no-text/clipboard-failure handler paths, factory-time registration, the `/qol` line with the actual key, and copy-specific setting faults. Real CLI key delivery and a system clipboard write are recorded under the adjustment's verification section or marked not verified.
 
 ## Related ADRs
 
@@ -135,3 +151,4 @@ OMP `18.5.0`, declared in [Compatibility](../../projects/omp-qol/README.md#compa
 - [Host maintenance](../adr/decision/2026/09/28-host-maintenance.md)
 - [Component self containment](../adr/decision/2026/08/24-component-self-containment.md)
 - [Task argument cleanup](../adr/decision/2026/10/17-task-argument-cleanup.md)
+- [Copy the last reply](../adr/decision/2026/10/18-copy-last-reply.md)

@@ -29,6 +29,7 @@ import {
   NATIVE_COMPACTION_TIMEOUT_MS,
   stopForeignCompactionPatch,
 } from "./compaction-timeout.ts";
+import { COPY_SHORTCUT, installCopyModule, registerCopyShortcut } from "./copy-last-reply.ts";
 import { installModelPromptsModule } from "./model-prompts.ts";
 import { installRecoveryModule } from "./recovery.ts";
 import {
@@ -53,7 +54,7 @@ import {
 } from "./usage-compensation.ts";
 
 export const PACKAGE_NAME = "@ruokee/omp-qol";
-export const PACKAGE_VERSION = "0.5.8";
+export const PACKAGE_VERSION = "0.5.9";
 export const COMMAND_NAME = "qol";
 
 let activationSequence = 0;
@@ -171,6 +172,7 @@ function describeModule(id: ModuleId, state: ModuleState, settings: QolSettings 
   }
   if (id === "modelPrompts") return `${head} enabled=${settings.modelPrompts.enabled}`;
   if (id === "taskArgs") return `${head} — enabled=${settings.taskArgs.enabled}`;
+  if (id === "copy") return `${head} — enabled=${settings.copy.enabled} shortcut=${COPY_SHORTCUT}`;
   if (id === "compactionUsage") return `${head} — enabled=${settings.compactionUsage.enabled}`;
   const compaction = settings.compaction;
   const floorNote =
@@ -353,7 +355,10 @@ export function activate(pi: ExtensionAPI, readSettings: PluginSettingsReader = 
     state.modules.replay = installModule("replay", installNativeReplayModule);
     state.modules.modelPrompts = installModule("modelPrompts", installModelPromptsModule);
     state.modules.taskArgs = installModule("taskArgs", installTaskArgsModule);
+    state.modules.copy = installModule("copy", installCopyModule);
   };
+
+  registerCopyShortcut(pi, () => state.modules.copy.status === "enabled");
 
   pi.on("session_start", async (_event, ctx) => {
     sessionCtx = ctx;

@@ -39,6 +39,7 @@ describe("settings ranges", () => {
       replayEnabled: false,
       compactionUsageEnabled: false,
       taskArgsEnabled: false,
+      copyEnabled: false,
     });
     expect(problems).toEqual([]);
     expect(settings.enabled).toBe(false);
@@ -48,11 +49,17 @@ describe("settings ranges", () => {
     expect(settings.compaction.guardMs).toBe(COMPACTION_GUARD_MAX_MS);
     expect(settings.compactionUsage.enabled).toBe(false);
     expect(settings.taskArgs.enabled).toBe(false);
+    expect(settings.copy.enabled).toBe(false);
   });
 
   test("the task argument cleanup defaults on", () => {
     const { settings } = parse({});
     expect(settings.taskArgs.enabled).toBe(true);
+  });
+
+  test("the copy module defaults on", () => {
+    const { settings } = parse({});
+    expect(settings.copy.enabled).toBe(true);
   });
 });
 
@@ -78,6 +85,7 @@ describe("rejected values", () => {
     ["a non-boolean replay switch", { replayEnabled: "on" }, "replayEnabled=type"],
     ["a non-boolean compaction usage switch", { compactionUsageEnabled: "on" }, "compactionUsageEnabled=type"],
     ["a non-boolean task arguments switch", { taskArgsEnabled: "on" }, "taskArgsEnabled=type"],
+    ["a non-boolean copy switch", { copyEnabled: "on" }, "copyEnabled=type"],
   ];
 
   for (const [label, raw, expected] of cases) {
@@ -99,6 +107,12 @@ describe("rejected values", () => {
     const { problems, invalidModules } = parse({ taskArgsEnabled: "on" });
     expect(invalidModules).toEqual(["taskArgs"]);
     expect(problems).toEqual([{ module: "taskArgs", key: "taskArgsEnabled", rule: "type" }]);
+  });
+
+  test("an invalid copy switch disables only that module", () => {
+    const { problems, invalidModules } = parse({ copyEnabled: "on" });
+    expect(invalidModules).toEqual(["copy"]);
+    expect(problems).toEqual([{ module: "copy", key: "copyEnabled", rule: "type" }]);
   });
 
   test("an invalid value is reported even when its module is switched off", () => {

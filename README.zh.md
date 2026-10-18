@@ -45,7 +45,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 
 - **[omp-status-bar](./projects/omp-status-bar/README.zh.md)**：OMP 状态栏扩展，提供额外的上下文信息显示，包括当前会话上下文（数值而非原生提供的百分比）、总 Token、输入 Token、缓存 Token、输出 Token、缓存命中率和已回答的模型请求次数。
 - **[omp-context-pin](./projects/omp-context-pin/README.zh.md)**：让少量固定条目在当前会话分支的每次普通模型请求中原样出现，并在每次提交后的压缩之后恢复这些条目。
-- **[omp-qol](./projects/omp-qol/README.zh.md)**：提供可独立开关的等待期限、模型错误后的受限续跑、实验性的压缩期限延长、压缩请求用量补记、原生历史重放、任务参数清理，以及可选择启用的模型提示词规则。
+- **[omp-qol](./projects/omp-qol/README.zh.md)**：提供可独立开关的等待期限、模型错误后的受限续跑、实验性的压缩期限延长、压缩请求用量补记、原生历史重放、任务参数清理、复制最后回复，以及可选择启用的模型提示词规则。
 - **[omp-smart-cache](./projects/omp-smart-cache/README.zh.md)**：使用同一会话已发送的普通请求，对齐原生远端压缩中经过证明的共同内容。默认关闭，覆盖主会话及原生子会话，不把客户端对齐视为 Provider 缓存收益。
 
 ## 安装

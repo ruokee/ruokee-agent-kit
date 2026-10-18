@@ -1,7 +1,7 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.5.8",
-  "description": "OMP adjustments for wait deadlines, model-error recovery, native-history replay, compaction deadlines, compaction request usage, task argument cleanup, and opt-in model prompt rules",
+  "version": "0.5.9",
+  "description": "OMP adjustments for wait deadlines, model-error recovery, native-history replay, compaction deadlines, compaction request usage, task argument cleanup, copying the last reply, and opt-in model prompt rules",
   "license": "MIT",
   "type": "module",
   "keywords": [
@@ -16,7 +16,7 @@
       "enabled": {
         "type": "boolean",
         "default": true,
-        "description": "Master switch. When false, no module changes OMP behavior."
+        "description": "Master switch. When false, no module changes OMP behavior, but the copy shortcut is still registered during the factory and its key remains claimed; the handler does nothing."
       },
       "waitEnabled": {
         "type": "boolean",
@@ -145,6 +145,11 @@
         "type": "boolean",
         "default": true,
         "description": "Remove seance-only sourceSession and model fields from non-seance task items before host validation. On by default; restart to apply."
+      },
+      "copyEnabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Bind alt+shift+a to copy the text blocks of the last assistant reply. On by default and subordinate to enabled; the key stays claimed while the module is off. Restart to apply."
       }
     }
   },

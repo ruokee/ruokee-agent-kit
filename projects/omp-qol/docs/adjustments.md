@@ -415,3 +415,39 @@ The handler is installed only for a built-in `task` whose schema exposes `source
 ### Upstream recheck
 
 Recheck when OMP accepts the fields for non-seance items or exposes a task-specific pre-validation hook. If the host fixes the contract, disable or retire the module rather than keep the speculation cost.
+
+## Copy the last reply
+
+### Native behavior
+
+OMP 18.11.3 interactive mode's built-in clipboard actions copy the prompt (`alt+shift+c`) or the current input line (`alt+shift+l`), and it offers a mouse `Copy answer` action. A `/copy` command asks the user to pick text or code from the conversation. The installed keyboard action table has no shortcut for an assistant reply. The extension API exposes `registerShortcut` and the coding-agent package exports `copyToClipboard`, so an extension can add the keyboard action without changing the host.
+
+### Where it attaches
+
+The module registers one shortcut while the extension factory runs. OMP loads extension factories before it constructs interactive mode, and interactive mode reads the shortcut registry while setting up key handling; a `session_start` registration would happen after that. The key is fixed at `alt+shift+a`, and the module registers no `/copy` command.
+
+The handler reads the activation snapshot. Before the first `session_start` the copy module is `pending`; when it is disabled or invalid, the handler returns without writing.
+
+When the module is enabled and the agent is idle, the handler takes the current branch from `ctx.sessionManager`, scans backward for the last assistant message, joins that message's `text` blocks without a separator, trims the result, and writes it through `copyToClipboard`. An aborted message with no content is skipped. A last assistant message with no text, including one carrying only thinking or tool calls, produces no copy and does not fall back to an older reply. Thinking, tool calls, tool output, images, and other non-text blocks are never copied. The module adds no session entry and sends no request.
+
+While the agent is not idle, the handler warns and copies nothing. When no reply exists, the handler warns that there is nothing to copy. The host's `copyToClipboard` is best-effort: it writes OSC 52, then tries native tools, and swallows write failures. The module therefore reports success after the helper resolves; the module cannot detect a failed write through the helper. A copy function that throws is caught and produces one error notification; the handler does not retry.
+
+### Settings
+
+`copyEnabled` (on by default); see the README for the accepted values. The master switch must also be on. The module switch off reports `disabled` with `copy-disabled`, the master switch off reports `disabled` with `master-disabled`, and an invalid `copyEnabled` disables this module only. Settings are read once per activation; restart OMP to apply.
+
+### Limits
+
+- The shortcut is registered at factory time, so `alt+shift+a` stays claimed for the lifetime of that extension binding, even when `copyEnabled` is off, the master switch is off, or the settings object was rejected. The handler does nothing in those states. The key cannot be released without unloading that extension binding or a host change.
+- The key and behavior are fixed. The module adds no `/copy` command, no configurable key, no selection or range copy, and no option to include thinking or tool output.
+- The handler copies only text blocks of the last assistant message on the context's current branch. A message with only non-text content yields no copy rather than an older reply or an empty clipboard write.
+- A clipboard write depends on the host helper, which treats OSC 52 and the native fallback as best-effort and swallows failures. A real failed write is not reported, and the module does not fall back to a file or to a notification body. A copy function that throws is caught and reported once.
+- The shortcut is registered when an extension factory binds, and each session binding creates its own registration. A session created later in the same process binds the factory again and gets its own handler; a session-journal switch inside one interactive session keeps the registration it already has.
+- If another extension registers the same key, the host decides which registration wins; this module does not detect or resolve the conflict.
+- Real OMP CLI key delivery and system clipboard writes are **not verified**. Tests inject the copy function and never touch the system clipboard.
+
+### Verification
+
+- **Source baseline**: OMP `18.5.0` development types at commit `9348320cc4a30a7195d36a1f05a6c11bcb701a17` for `ExtensionAPI.registerShortcut`, `ExtensionContext.isIdle`, `ReadonlySessionManager.getBranch`, and the `@oh-my-pi/pi-coding-agent/utils/clipboard` export. The installed `18.11.3` action table was read at tag `v18.11.3`, commit `96894a6147d8cc64b7e00ad3a7d7178fd93b9531`; it has the two prompt-copy actions and no reply-copy action.
+- **Automated checks**: OMP `18.5.0` development types, `bun test` and `tsc --noEmit`. Tests cover last-assistant selection, text-block joining and trimming, thinking and tool-call exclusion, an empty aborted message, no fallback when the last message has no text, the inactive/streaming/no-text/clipboard-failure handler paths, factory-time registration, the `/qol` line, and copy-specific settings faults. The copy function is injected; no real clipboard is written.
+- **Real OMP CLI**: **not verified**. Key delivery in a real TUI session and the host's clipboard write, including OSC 52 and the native fallback, have not been run.

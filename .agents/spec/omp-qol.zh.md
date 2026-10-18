@@ -12,6 +12,7 @@
 - 本组件直接提供用户自有的模型规则。
 - 在宿主自己不入账期间，补记压缩与 handoff 请求的用量，直到宿主自己记录为止。
 - 在宿主校验前从非 seance 任务项删除 seance 专用字段。
+- 用一个固定快捷键复制最后一条 assistant 回复的文本。
 
 ## 非目标
 
@@ -24,6 +25,7 @@
 - 匹配服务端错误正文、新增恢复设置，或恢复所有错误。
 - 工具恰好执行一次、回滚或幂等续跑。
 - 将模板策略、Delivery 插入或页脚改写纳入模型规则，自动安装或重排扩展，增加匹配维度或搜索路径、规则缓存、配置热刷新、逐 Provider 请求刷新或历史消息注入。
+- 复制选区、思考块、工具调用、工具输出或图片；`/copy` 命令、可配置快捷键或剪贴板历史。
 
 ## 公共面
 
@@ -79,6 +81,14 @@ Error: Upstream provider closed the connection before the response completed: st
 
 [任务参数清理](../../projects/omp-qol/docs/adjustments.zh.md#任务参数清理)记载完整规则、接受的推测成本、边界与验证。
 
+### 复制最后回复
+
+复制模块由开关控制：原生 boolean `copyEnabled` 默认 `true` 并受 `enabled` 约束，决定处理器是否动作。`alt+shift+a` 在扩展工厂执行时注册，早于交互模式读取快捷键注册表；模块不注册 `/copy` 命令，也没有可配置键位。模块停用或设置被拒绝时，该键位仍在该扩展绑定存续期间被占用，处理器此时不动作。`copyEnabled` 值无效只停用本模块；设置对象被拒绝时沿用整组件规则。
+
+模块启用且 agent 空闲时，处理器选择当前分支最后一条 assistant 消息，把其 `text` 块无分隔符拼接、去除首尾空白，再通过宿主剪贴板助手写入。内容为空的 aborted 消息会被跳过。最后一条 assistant 消息没有文本时，包括只带思考或工具调用的消息，不复制，也不回退到更早的回复。思考、工具调用、工具输出、图片及其他非文本块均被排除，模块不新增会话条目，也不发送请求。agent 不空闲时，处理器提示并且不复制任何内容；宿主剪贴板助手是尽力而为并吞掉写入失败，因此真实写入失败不会被报告，而复制函数抛出异常时会被捕获并给出一条错误提示，不重试。
+
+[复制最后回复](../../projects/omp-qol/docs/adjustments.zh.md#复制最后回复)记载完整行为、键位占用限制与验证。
+
 ## 不变量
 
 - 全部无关设置保留键名、默认值、范围及校验。三个 remote 设置 `compactionCacheEnabled`、`compactionCacheProvider` 和 `compactionCacheMode` 不再存在，并按未知键拒绝；不保留运行时兼容路径。
@@ -102,6 +112,11 @@ Error: Upstream provider closed the connection before the response completed: st
 - handler 只为暴露 `sourceSession` 的内建 `task` 注册；工具缺失或被遮蔽，或 schema 只有普通 `model` 选择器时保留原生行为、保留 `model` 并报告有界原因。注册期间推测启动与实验性推测读取被拒绝；模块不修改宿主设置。
 - 模块改写事件输入。宿主会把改写后的参数持久化到当前 assistant 消息，后续请求和会话文件会看到它们。它不改 task schema、描述、审批、派发或结果渲染；因其他原因无效的调用仍失败。
 - `taskArgsEnabled` 值非法只停用任务参数模块。关闭本模块或总开关后，下一激活恢复原生参数与行为。
+- 复制快捷键在工厂执行时注册，而不是在 `session_start`；处理器读取激活快照，只在模块启用时复制。
+- 复制处理器只写最后一条 assistant 消息的 `text` 块，跳过内容为空的 aborted 消息，不回退到更早的回复，也不写空字符串。思考、工具调用、工具输出、图片及其他非文本块均被排除。
+- agent 不空闲时复制处理器不复制任何内容。宿主剪贴板助手会吞掉写入失败，因此真实写入失败不会被报告；复制函数抛出异常时会被捕获并报告，不会逃出处理器。
+- 复制模块不注册 `/copy` 命令，也没有可配置键位。模块停用、总开关关闭或设置被拒绝时，固定键位仍被占用，处理器此时不动作。
+- `copyEnabled` 值非法只停用复制模块。关闭本模块或总开关后，下一激活保留原生行为。
 
 ## 宿主下限
 
@@ -126,6 +141,7 @@ OMP `18.5.0`，声明在[兼容性](../../projects/omp-qol/README.zh.md#兼容�
 - 普通子 Agent 的 Provider-facing 请求保留自身模型、角色和独立块。未运行旁路明确标为未验证。
 - 组件说明、manifest、仓库指引、双语文档及现行项目 Spec 的归属和即将弃用状态一致，保留全部剩余调整及每项无关有效要求。
 - 任务参数清理检查覆盖扁平调用、批次条目、seance 保留、Agent 缺失/空/空白/非字符串、无目标字段、异常 task 形状、每次改写调用计一次、内建守卫、扁平与批次 seance schema、没有 `sourceSession` 的 model-only schema、缺失与遮蔽工具、停用与不兼容状态，以及关闭开关。真实 CLI 证据记录在对应验证小节，未运行则标为未验证。
+- 复制检查覆盖最后一条 assistant 消息的选择、文本块拼接与去空白、思考与工具调用的排除、空的 aborted 消息、最后一条消息无文本时不回退、停用/流式输出/无文本/剪贴板失败等处理器路径、工厂阶段注册、带实际键位的 `/qol` 行，以及 copy 专用设置错误。真实 CLI 键位投递与系统剪贴板写入记录在对应验证小节，未运行则标为未验证。
 
 ## 相关 ADR
 
@@ -135,3 +151,4 @@ OMP `18.5.0`，声明在[兼容性](../../projects/omp-qol/README.zh.md#兼容�
 - [宿主维护](../adr/decision/2026/09/28-host-maintenance.zh.md)
 - [组件自包含](../adr/decision/2026/08/24-component-self-containment.zh.md)
 - [任务参数清理](../adr/decision/2026/10/17-task-argument-cleanup.zh.md)
+- [复制最后回复](../adr/decision/2026/10/18-copy-last-reply.zh.md)

@@ -76,11 +76,18 @@ export interface RegisteredCommandLike {
   handler: (args: string, ctx: ExtensionContext) => Promise<void>;
 }
 
+/** A registered keyboard shortcut. */
+export interface RegisteredShortcutLike {
+  description?: string;
+  handler: (ctx: ExtensionContext) => Promise<void> | void;
+}
+
 /** Everything a test needs to drive one activation. */
 export interface Harness {
   pi: ExtensionAPI;
   tools: RegisteredTool[];
   commands: Map<string, RegisteredCommandLike>;
+  shortcuts: Record<string, RegisteredShortcutLike>;
   /** Warnings written through `pi.logger.warn`. */
   warnings: string[];
   /** Text shown through `ctx.ui.notify`. */
@@ -99,6 +106,7 @@ export interface Harness {
 export function createHarness(toolInfos?: ToolInfo[]): Harness {
   const tools: RegisteredTool[] = [];
   const commands = new Map<string, RegisteredCommandLike>();
+  const shortcuts: Record<string, RegisteredShortcutLike> = {};
   const warnings: string[] = [];
   const notifications: Array<{ message: string; level: string }> = [];
   const handlers = new Map<string, Array<(event: unknown, ctx: ExtensionContext) => unknown>>();
@@ -123,6 +131,9 @@ export function createHarness(toolInfos?: ToolInfo[]): Harness {
     registerCommand: (name: string, command: RegisteredCommandLike) => {
       commands.set(name, command);
     },
+    registerShortcut: (key: string, shortcut: RegisteredShortcutLike) => {
+      shortcuts[key] = shortcut;
+    },
     getAllTools: () => toolInfos ?? [],
   };
 
@@ -143,6 +154,7 @@ export function createHarness(toolInfos?: ToolInfo[]): Harness {
     pi: pi as unknown as ExtensionAPI,
     tools,
     commands,
+    shortcuts,
     warnings,
     notifications,
     toolInfos: toolInfos ?? [],
