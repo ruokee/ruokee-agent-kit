@@ -246,7 +246,7 @@ tk install --mode cli --skill-root <directory>
 
 `--harness` 与 `--skill-root` 必须且只能提供一个。Harness install 的 `--mode` 默认 `tools`。自定义根目录 install 必须显式传入 `--mode cli`，并拒绝 tools 模式。两种目标的 `--language` 都默认 `en`。四个最终 Skill 分别为 `tk`、`tk-zh`、`tk-cli` 和 `tk-cli-zh`。
 
-Harness install 会在固定目标、注册、模式、语言或所选 Skill 与当前状态不一致时更新。自定义根目录 install 把 `tk-cli` 或 `tk-cli-zh` 放在所提供的父目录下，删除另一个 CLI Skill 目标，并保留 `tk`、`tk-zh` 和其他全部子项。相对根目录按进程当前工作目录解析。组件操作拒绝全局 `--cwd`。
+Harness install 在 `tools` 模式下会在固定目标、注册、语言或所选 Skill 与当前状态不一致时更新。Harness install 在 `cli` 模式下把 `tk-cli` 或 `tk-cli-zh` 写入 Harness 的用户级普通 Skill 根目录：Codex 为 `$CODEX_HOME/skills`，Claude Code 为 `~/.claude/skills`，Pi 为 `~/.pi/agent/skills`，OMP 为 `~/.omp/agent/skills`。它会删除另一个 CLI Skill 目标、该 Harness 的 tools 目标、遗留组件目录和已有 tk 注册。注册移除失败或 Harness 可执行文件不可用时，tools 目标保留，移除项出现在 `uncompleted` 中。自定义根目录 install 把 `tk-cli` 或 `tk-cli-zh` 放在所提供的父目录下，删除另一个 CLI Skill 目标，并保留 `tk`、`tk-zh`、Harness 目标、注册和其他全部子项。相对根目录按进程当前工作目录解析。组件操作拒绝全局 `--cwd`。
 
 install 只使用当前可执行文件内嵌载荷，不访问网络，也不接受本地归档。
 
@@ -262,7 +262,7 @@ tk uninstall --skill-root <directory>
   [--dry-run] [--output <text|json>]
 ```
 
-必须且只能提供一个目标选项。uninstall 不接受模式或语言选择。Harness uninstall 移除当前组件、该 Harness 已知的全部残留 tk Skill variant 和 tk 注册。自定义根目录 uninstall 删除所提供根目录下的 `tk-cli` 和 `tk-cli-zh`，并保留根目录及其他全部子项。
+必须且只能提供一个目标选项。uninstall 不接受模式或语言选择。Harness uninstall 移除 tools 目标、tk 注册、两个 CLI Skill 目录和组件目录。注册移除失败时，该项清理保留在 `uncompleted` 中，Skill 目录仍会删除。自定义根目录 uninstall 删除所提供根目录下的 `tk-cli` 和 `tk-cli-zh`，并保留根目录及其他全部子项。
 
 结果 action 为 `would_uninstall`、`uninstalled` 或 `no_change`。结果必须且只能包含一个目标字段，并列出计划或实际变更。自定义根目录结果报告 `mode: cli`，但省略 `language` 和 `skill`，因为两个 CLI Skill 身份都会被删除。
 
@@ -279,10 +279,10 @@ tk <command> <subcommand> --help
 
 ```json
 {
-  "runtime_version": "0.1.11",
+  "runtime_version": "0.1.12",
   "cli_contract_version": 3,
   "task_schema_version": 1,
-  "component_format_version": 3
+  "component_format_version": 4
 }
 ```
 

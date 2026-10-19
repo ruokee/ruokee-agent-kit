@@ -18,11 +18,11 @@ Component lifecycle commands do not install, update, or remove the runtime itsel
 
 ## Embedded payloads
 
-Cargo builds multiple Harness payloads spanning four Harnesses, two modes, and two languages. It also builds two Harness-independent CLI Skill payloads, one for each language. The build writes one deterministic `tar.zst` and one matching manifest in `OUT_DIR`.
+Cargo builds eight Harness tools payloads spanning four Harnesses and two languages. It also builds two Harness-independent CLI Skill payloads, one for each language. The build writes one deterministic `tar.zst` and one matching manifest in `OUT_DIR`.
 
-The manifest stores Harness payloads under `components`, identified by Harness, mode, language, and Skill. It stores standalone CLI Skill payloads under `cli_skills`, identified by language and Skill with no Harness field. The runtime embeds the manifest and archive through `include_bytes!`. Installation reads only these embedded artifacts and does not access the network.
+The manifest stores Harness tools payloads under `components`, identified by Harness, language, and Skill. It stores standalone CLI Skill payloads under `cli_skills`, identified by language and Skill with no Harness field. The runtime embeds the manifest and archive through `include_bytes!`. Installation reads only these embedded artifacts and does not access the network.
 
-The modes are `tools` and `cli`, and the languages are `en` and `zh`. The [CLI reference](./cli-reference.md#tk-install) holds the command defaults and the resolved Skill names.
+The modes are `tools` and `cli`, and the languages are `en` and `zh`. CLI mode selects a Harness only to choose its ordinary Skill root and its registration cleanup; it uses the `cli_skills` payload rather than a component. The [CLI reference](./cli-reference.md#tk-install) holds the command defaults and the resolved Skill names.
 
 ## Manifest
 
@@ -31,7 +31,7 @@ The manifest records the static facts required for installation:
 - component format version;
 - runtime version and `runtime_compat`;
 - `source_revision`;
-- Harness, mode, language, and Skill name for each Harness component;
+- Harness, language, and Skill name for each Harness tools component;
 - language and Skill name for each standalone CLI Skill;
 - allowed relative paths, file types, permissions, and content digests within the archive.
 
@@ -49,7 +49,7 @@ Complete all of the following before any persistent write:
 4. The requested target, mode, language, Skill name, and payload root match the selected manifest entry.
 5. Every archive path is a canonical relative path, is not absolute, contains no `..`, and does not escape.
 6. File types, permissions, duplicate entries, missing entries, extra entries, and digests match the manifest.
-7. For a Harness operation, the target Harness is available and its official interface or recorded direct configuration method can be executed.
+7. For a Harness tools operation, the target Harness is available and its official interface or recorded direct configuration method can be executed. CLI mode does not require the Harness executable; failed registration cleanup keeps the tools targets and is reported as an incomplete item.
 
 Archive validation does not establish source identity, signatures, installation ownership, or a historical digest system.
 
@@ -57,13 +57,15 @@ Archive validation does not establish source identity, signatures, installation 
 
 Every install and uninstall command selects exactly one target type: a supported Harness through `--harness`, or a Skill root through `--skill-root`.
 
-Harness components have three basic lifecycle actions:
+Harness tools components have three basic lifecycle actions:
 
 - install: write and register the selected component when no current tk component exists;
-- update: replace the current component when its payload, registration, mode, language, or Skill differs from the requested selection;
+- update: replace the current component when its payload, registration, language, or Skill differs from the requested tools selection;
 - uninstall: remove all tk-specific content and registrations, including known residual Skill variants.
 
-Custom-root install requires explicit CLI mode. It writes `tk-cli` for English or `tk-cli-zh` for Chinese under the supplied parent directory, replaces drift inside the selected target, removes the other CLI Skill target, and converges to no_change when the managed targets match. Custom-root uninstall removes both CLI Skill targets and has no mode or language selector.
+A Harness CLI install writes `tk-cli` or `tk-cli-zh` to that Harness's user-level ordinary Skill root, creates no Harness registration, and installs no native manifest. It replaces drift inside the selected target, removes the other CLI Skill target, removes the Harness's tools targets, and removes any existing tk registration. A failed registration removal keeps the tools targets and is reported as incomplete. Custom-root install requires explicit CLI mode and writes the same Skill names under the supplied parent directory; it does not touch Harness targets or registrations.
+
+Harness uninstall removes the tools targets, registrations, both CLI Skill directories, and the component directory. Custom-root uninstall removes both CLI Skill targets and has no mode or language selector.
 
 A relative Skill root resolves from the process working directory. The global `--cwd` option is rejected for component operations. The reported `skill_root` is absolute.
 
@@ -71,9 +73,11 @@ Lifecycle planning uses only the fixed tk-specific targets, known Skill target n
 
 ## Official Harness interfaces
 
-When a supported Harness provides an official installation or uninstall API, use that API first. tk accepts the targets and cleanup behavior defined by the official mechanism and verifies before execution that the command is available.
+When a supported Harness provides an official installation or uninstall API, tools mode uses that API first. tk accepts the targets and cleanup behavior defined by the official mechanism and verifies before execution that the command is available.
 
-Only when a Harness has no usable official interface does tk directly manage the fixed tk-specific targets and tk configuration entries recorded in the component driver.
+Only when a Harness has no usable official interface does tools mode directly manage the fixed tk-specific targets and tk configuration entries recorded in the component driver.
+
+CLI mode does not use the official installation API. It invokes the official uninstall API only to remove an existing tk registration and continues when that command is unavailable.
 
 Specific target paths, configuration keys, and official commands are implementation details of each Harness driver. Custom-root operations do not invoke a Harness interface or install Harness-specific wrappers, manifests, extensions, Packages, Plugins, MCP configuration, or operation registration.
 
@@ -87,27 +91,46 @@ Dry-run and execution share the same preflight checks:
 - planned additions, replacements, and whole-directory deletions;
 - no activity marker exists for a multi-target operation.
 
-Harness operations additionally verify Harness availability, official interfaces, known residual targets, and complete shared-configuration parsing. Custom-root operations verify the absolute resolved root and the exact `tk-cli` and `tk-cli-zh` children. They do not inspect Harness configuration or unrelated entries in the root.
+Harness tools operations additionally verify Harness availability, official interfaces, known residual targets, and complete shared-configuration parsing. Harness CLI operations verify the ordinary Skill root, the tools targets, and registration state. An unavailable Harness command or unreadable registration state does not fail CLI preflight; the registration removal becomes an incomplete cleanup item. Custom-root operations verify the absolute resolved root and the exact `tk-cli` and `tk-cli-zh` children. They do not inspect Harness configuration or unrelated entries in the root.
 
 Preflight checks do not read Task projects, project configuration, WAL, Git state, or earlier installation history.
 
 ## Commit order
 
-Commit an installation or update in this deterministic order:
+Prepare and validate first:
 
 1. Create the minimal cleanup manifest and activity marker.
 2. Prepare the selected payload in a tk temporary location.
-3. Revalidate every observed target and, for Harness operations, shared configuration.
-4. Commit the selected tk-specific files and directories.
-5. For Harness operations, add, replace, or remove tk registration as required by the selected mode.
-6. Delete tk-specific Skill targets superseded by the selection.
-7. Delete the temporary content, manifest, and activity marker.
+3. Revalidate every observed target and, for Harness tools operations, shared configuration.
+
+Then commit target changes in this order.
+
+Harness tools operations:
+
+1. Write or replace the selected component.
+2. Add or update tk registration.
+3. Remove superseded tk Skill targets.
+
+Harness CLI operations:
+
+1. Remove an existing tk registration. If removal fails or registration state is unreadable, keep the tools targets, continue with the Skill operations, and report the registration in `uncompleted`.
+2. Remove the Harness's tools targets when registration cleanup succeeded or no registration was present.
+3. Write or replace `tk-cli` or `tk-cli-zh` as selected by `--language`.
+4. Remove the other CLI Skill variant.
+5. Remove any leftover component directory. This cleanup does not depend on the registration result.
+
+Custom-root operations:
+
+1. Write or replace `tk-cli` or `tk-cli-zh` as selected by `--language`.
+2. Remove the other CLI Skill variant.
+
+Finally, delete the temporary content, manifest, and activity marker.
 
 Custom-root install may create the supplied parent directory and its parents. It treats only `<skill-root>/tk-cli` and `<skill-root>/tk-cli-zh` as managed targets. Configuration must not point to temporary paths.
 
 Stop immediately on an ordinary I/O error. The result lists completed and incomplete items. Do not roll back automatically, generate a continuation token, or continue after the process exits.
 
-Rerunning install reads current files again. If they match the selected embedded payload, return no_change without reading domain state from a previous failure.
+Rerunning install reads current files again. Return `no_change` only when the selected Skill content, the managed target set, and registration cleanup state all match the requested selection. A dry run with planned changes reports `would_install` instead.
 
 ## Clean uninstall
 
@@ -156,4 +179,4 @@ Harness lifecycle operations manage their fixed tk-specific targets, the four kn
 
 The [Harness boundary](./system.md#harness-boundary) owns the split between Rust and the adapters for version compatibility.
 
-If the component format is unsupported, the runtime is incompatible, the selected manifest entry is invalid, or the archive is invalid, fail before any persistent write. Harness operations also fail before writing when the Harness is unavailable.
+If the component format is unsupported, the runtime is incompatible, the selected manifest entry is invalid, or the archive is invalid, fail before any persistent write. Harness tools operations also fail before writing when the Harness is unavailable. CLI operations still write or remove Skill directories; an unavailable Harness leaves only registration cleanup incomplete.

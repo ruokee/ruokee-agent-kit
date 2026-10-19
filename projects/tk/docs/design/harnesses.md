@@ -10,7 +10,7 @@ tk currently supports Codex, Claude Code, Pi, and OMP. Adding a Harness requires
 
 ## Components
 
-A Harness component is a self-contained tk unit assembled and installed for one Harness, mode, and language selection. The Skill mapping is:
+A Harness component is a self-contained tk unit assembled and installed for one Harness and language in tools mode. Installation selections map to Skills as follows:
 
 | Mode | Language | Skill |
 | --- | --- | --- |
@@ -19,23 +19,23 @@ A Harness component is a self-contained tk unit assembled and installed for one 
 | `cli` | `en` | `tk-cli` |
 | `cli` | `zh` | `tk-cli-zh` |
 
-Tools-mode components contain the selected Skill and the Harness's tk integration. CLI-mode components contain the selected CLI Skill. Claude Code, Pi, and OMP also retain the native manifest needed to load it; Codex needs no manifest. CLI-mode components contain no MCP configuration or native tool extension. A component does not contain the runtime executable, another Harness's content, review materials, or product source code.
+Tools-mode components contain the selected Skill and the Harness's tk integration. CLI mode does not use a Harness component. It installs `tk-cli` or `tk-cli-zh` into the Harness's user-level ordinary Skill root, creates no registration, and installs no native manifest. A component does not contain the runtime executable, another Harness's content, review materials, or product source code.
 
 Files within a component directory may reference only one another. The component must not depend on the repository directory layout after installation.
 
 ## Codex
 
-Tools mode installs the selected `tk` or `tk-zh` Skill and an MCP registration that points to the fixed user-level `tk mcp`. CLI mode installs `tk-cli` or `tk-cli-zh` and keeps the tk MCP registration absent.
+Tools mode installs the selected `tk` or `tk-zh` Skill and an MCP registration that points to the fixed user-level `tk mcp`. CLI mode writes `tk-cli` or `tk-cli-zh` to `$CODEX_HOME/skills` and removes the tk MCP registration.
 
 The Skill and optional MCP registration may reside in different official Harness targets, but together they form the selected Codex component.
 
 ## Claude Code
 
-Claude Code uses a self-contained Plugin that follows its native rules. Tools mode contains the selected tools Skill and MCP configuration for the fixed runtime. CLI mode contains the selected CLI Skill and omits MCP configuration. Both modes use the official Plugin lifecycle.
+Claude Code uses a self-contained Plugin that follows its native rules. Tools mode contains the selected tools Skill and MCP configuration for the fixed runtime. CLI mode writes `tk-cli` or `tk-cli-zh` to `~/.claude/skills` and removes the tk plugin and marketplace registrations.
 
 ## Pi
 
-Pi uses a self-contained Package. Tools mode contains the selected tools Skill and a native extension. CLI mode contains the selected CLI Skill and no extension registration.
+Pi uses a self-contained Package. Tools mode contains the selected tools Skill and a native extension. CLI mode writes `tk-cli` or `tk-cli-zh` to `~/.pi/agent/skills` and removes the tk package.
 
 The tools extension registers:
 
@@ -52,7 +52,7 @@ Pi does not set `loadMode`.
 
 ## OMP
 
-OMP uses a separate self-contained Package with the same mode and language choices as Pi. Its tools extension provides the same six operations.
+OMP uses a separate self-contained Package. Tools mode contains the selected tools Skill and a native extension. CLI mode writes `tk-cli` or `tk-cli-zh` to `~/.omp/agent/skills` and removes the tk plugin registration. Its tools extension provides the same six operations.
 
 OMP uses the public API to set search, read, create, update, and log as essential. Only exec is discoverable.
 
@@ -111,7 +111,7 @@ For ordinary native tools, both successful results and valid domain failures are
 
 ## Assembly at build time
 
-Cargo builds use Rust assembly logic to generate multiple Harness component payloads and two Harness-independent CLI Skill payloads, one deterministic `tar.zst` archive, and one manifest. The Harness selections span four Harnesses, two modes, and two languages. Identical inputs must produce identical paths, file bytes, archive bytes, and manifests. Generation writes only to Cargo `OUT_DIR` and Cargo's own target directory.
+Cargo builds use Rust assembly logic to generate eight tools-mode Harness payloads, two Harness-independent CLI Skill payloads, one deterministic `tar.zst` archive, and one manifest. The Harness selections span four Harnesses and two languages. Identical inputs must produce identical paths, file bytes, archive bytes, and manifests. Generation writes only to Cargo `OUT_DIR` and Cargo's own target directory.
 
 Harness assembly reads only the selected Harness source and one of the four Skill trees, plus two shared sources: the reference files common to every Skill of the selected language, and for Pi and OMP the shared mapping layer `common.ts`. The standalone payloads read only `tk-cli` or `tk-cli-zh` and the shared references of that language. Each assembled payload stays self-contained. Publishing, installation, and validation use the same Rust artifacts.
 
@@ -119,7 +119,7 @@ Rust assembly artifacts are the only component inputs used for publishing, insta
 
 ## Skill selection
 
-The Harness installation lifecycle selects, updates, and uninstalls all four Skill identities. The custom-root lifecycle selects only `tk-cli` and `tk-cli-zh`. Language selection is part of `tk install`; it is not a separate manual copy path.
+The tools installation lifecycle selects, updates, and uninstalls the English or Chinese tools Skill. The CLI lifecycle installs `tk-cli` or `tk-cli-zh` into the Harness's ordinary Skill root, including when another Skill root is supplied. Language selection is part of `tk install`; it is not a separate manual copy path.
 
 ## Validation requirements
 

@@ -6,7 +6,7 @@ tk is a persistent task management tool. It keeps task progress, shared understa
 
 ## Access
 
-One Rust runtime provides the `tk` CLI, a stdio MCP server, and native tool integrations for Pi and OMP. Components support Codex, Claude Code, Pi, and OMP, with tools or CLI modes and English or Chinese Skills. CLI Skills can also be installed into another Skill root without a Harness-specific integration.
+One Rust runtime provides the `tk` CLI, a stdio MCP server, and native tool integrations for Pi and OMP. Harness components support Codex, Claude Code, Pi, and OMP in tools mode. CLI mode installs an ordinary `tk-cli` or `tk-cli-zh` Skill into a Harness's user-level Skill root, and a custom root can receive either Skill directly.
 
 The runtime owns Task rules and persistence. Harness components expose those operations without implementing a second set of rules.
 

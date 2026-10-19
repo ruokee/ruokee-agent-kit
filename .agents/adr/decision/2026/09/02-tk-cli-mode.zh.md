@@ -2,35 +2,47 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
+Reverses: [tk CLI 模式](../../../archived/2026/09/02-r1-tk-cli-mode.zh.md)
 
 [English](./02-tk-cli-mode.md) | 中文
 
 ## 动机
 
-提供 `tk-cli` 与 `tk-cli-zh` Skill，其中每个 Task 操作都走公开的 `tk` CLI。
+以 `tk-cli` 与 `tk-cli-zh` Skill 提供 tk 的纯 CLI 形态。
 
-同一份 Skill 同时教授逻辑操作和公开 CLI 时，Agent 可以用两条合法路径完成同一项任务操作，因此后续选择可能跟随先前调用，而不是当前安装的集成合同。
+这些 Skill 通过公开 `tk` CLI 执行全部 Task 操作。tk 将 Task 进度、共识和支撑材料保存在普通项目文件中。
 
-部分安装还需要任务指导，但不需要操作注册或适配器上下文。这个需求应由独立 Skill 身份表达，而不是在 tools Skill 中加入条件化说明。
+同时教授逻辑操作与公开 CLI 的 Skill 会让 Agent 对同一项 Task 操作保留两条路线，路线选择可能受先前调用影响，而不是依据已安装的集成合同。
+
+部分安装还需要 Task 指引，但不希望注册操作或适配器上下文。独立的 Skill 身份可以避免在 tools Skill 里写条件分支。
 
 ## 决定
 
-tk 通过自包含的 `tk-cli` 和 `tk-cli-zh` Skill 提供纯 CLI 模式。这两份 Skill 的所有任务操作都使用公开 `tk` CLI。
+tk 通过自包含的 `tk-cli` 与 `tk-cli-zh` Skill 提供纯 CLI 模式。这些 Skill 中的每项 Task 操作都使用公开 `tk` CLI。
 
-纯 CLI Skill 正文不包含逻辑操作名称、发现说明、入口比较、工具失败处理、回退行为，也不假定另一种入口不存在。每份 Skill 都包含本语言使用所需的完整现行 CLI 指导。
+纯 CLI Skill 内容不含逻辑操作名称、发现说明、路线比较、工具失败处理、回退行为，也不假设其他入口不存在。每个 Skill 包含自身语言所需的完整当前 CLI 指引。
 
-纯 CLI Harness 组件安装所选 CLI Skill。Claude Code、Pi 和 OMP 还会安装加载该 Skill 所需的原生 manifest；Codex 不需要 manifest。纯 CLI 组件不安装 MCP 配置、原生工具 extension 或 tk 操作注册。固定 `$HOME/.local/bin/tk` 可执行文件仍是外部前置条件。
+Harness cli 安装把 `tk-cli` 或 `tk-cli-zh` 写入该 Harness 的用户级普通 Skill 根目录：
+
+- Codex 使用 `$CODEX_HOME/skills`，未设置时为 `~/.codex/skills`。
+- Claude Code 使用 `~/.claude/skills`。
+- Pi 使用 `~/.pi/agent/skills`。
+- OMP 使用 `~/.omp/agent/skills`。
+
+安装不产生 Harness 注册，也不安装原生 manifest。它移除该 Harness 的 tools 目标与已有 tk 注册，并移除同一根目录下的另一个语言变体。注册移除失败时保留 tools 目标，并把移除列为未完成项。tools 安装移除同一根目录下的两个 CLI Skill 目录，因此一个 Harness 只保留一个 tk 选择。
+
+`--mode cli --skill-root <dir>` 仍只写 `<dir>/tk-cli` 或 `<dir>/tk-cli-zh`，不触碰 Harness 目标或注册。固定 `$HOME/.local/bin/tk` 可执行文件仍是外部前置条件。
 
 [Skill 语言选择](./02-tk-language.zh.md)负责两个语言身份。[Harness 组件与自定义根目录 CLI Skill 分发](../08/28-tk-distribution.zh.md)负责安装与打包。
 
 ## 考虑过的替代方案
 
-**保留一份混合 Skill 并加强入口规则。** Agent 仍会加载两套执行方式，并为已有专用操作考虑两条路径。
+**保留一个混合 Skill，并加强路线措辞。** Agent 仍会加载两套执行模型，并为已覆盖操作考虑两条路线。
 
-**在纯 CLI 模式中声明工具不可用。** Skill 不需要这个假设，只需定义自身使用的入口。
+**声明纯 CLI 模式下工具不可用。** Skill 不需要这个假设，只需要定义它使用的路线。
 
 ## 结果
 
-纯 CLI 安装包含的集成内容更少，也不会向 Agent 会话加入 tk 操作 schema。Agent 需要自行选择 CLI 子命令和选项，Harness 无法在调用入口约束请求结构。
+纯 CLI 安装携带更少集成内容，也不向 Agent 会话添加 tk 操作 schema。Agent 需要自行选择 CLI 子命令和选项，Harness 无法在调用边界约束请求结构。
 
-纯 CLI Skill 必须与公开 CLI 合同保持同步，并始终不含集成专用的路由表述。
+普通 Skill 发现取决于 Harness 版本与其用户级 Skill 根目录。Harness 不扫描已安装目录时，即使文件存在也不会加载该 Skill。

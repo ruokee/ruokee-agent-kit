@@ -38,7 +38,7 @@ English and Chinese Skills in the same mode provide equivalent behavior. Install
 
 ## Consequences
 
-Each Harness install resolves to one of four Skill identities. Changing language uses the same component update lifecycle as changing mode.
+Each Harness install resolves to one of four Skill identities. Changing language replaces the selected identity through the same install lifecycle that switches modes.
 
 The two language implementations in each mode must remain semantically aligned, but each directory is packaged and discovered independently.
 

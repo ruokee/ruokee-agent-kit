@@ -46,7 +46,7 @@ The bound states maintenance responsibility. It does not promise that later host
 
 ### Shared OMP floor
 
-Every OMP-facing component declares OMP 18.5.0 as its maintenance lower bound. For `tk`, the bound covers the host-side code of the OMP adapter in `tools` mode; the `cli` mode component and the Pi adapter keep their own statements.
+Every OMP-facing component declares OMP 18.5.0 as its maintenance lower bound. For `tk`, the bound covers the host-side code of the OMP adapter in `tools` mode; `cli` mode carries no host-side code and the Pi adapter keeps its own statement.
 
 The OMP bound is a shared maintenance baseline: the OMP release the components are developed and verified against. It is chosen for all OMP-facing components together rather than derived for each component from the oldest host it could still serve. Where a component has development dependencies on `@oh-my-pi/*`, they use that release, and test fixtures and real-host checks use its host behavior as their baseline.
 

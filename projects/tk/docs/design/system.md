@@ -13,8 +13,8 @@ tk stores state in project files. It does not create a database, global Task reg
 The system consists of the following parts:
 
 - Rust runtime: responsible for Task domain rules, persistence, migration, project discovery, CLI, MCP, generated tool contracts, and component lifecycle. Not responsible for Harness session loops and model calls.
-- Harness components: responsible for Skill, tool registration, configuration or adapters, and their installation targets. Not responsible for Task domain validation and storage rules.
-- Skill variants: responsible for four self-contained mode and language variants for Agent activation, authorization, Task usage, and material maintenance. Not responsible for enforcing runtime invariants or installing components.
+- Harness tools components: responsible for the selected tools Skill, tool registration, configuration or adapters, and its installation target. Task domain validation and storage rules are not their responsibility.
+- Skill variants: responsible for the `tk`, `tk-zh`, `tk-cli`, and `tk-cli-zh` self-contained variants for Agent activation, authorization, Task usage, and material maintenance. Enforcing runtime invariants or installing components is not their responsibility.
 - Public documentation: responsible for current product contracts and user guidance. Not responsible for review history and local Task materials.
 - ADR: responsible for long-term architectural decisions and their rationale. Not responsible for implementation progress and test logs.
 
@@ -45,9 +45,9 @@ A Harness must not duplicate the Task domain rules. Pi and OMP adapters do not i
 
 `projects/tk/` contains one Rust runtime, four self-contained Skills, native component source for the current Harnesses, and public documentation. The specific directory layout is an implementation detail, not a public contract.
 
-Each Harness selection is a self-contained distribution unit. A component must not reference other component directories in the repository. The selected tools or CLI Skill, in English or Chinese, is included in the embedded Harness payload. Two additional payloads contain only the English or Chinese CLI Skill for direct installation into a custom root.
+Each Harness tools selection is a self-contained distribution unit. A component must not reference other component directories in the repository. The selected tools Skill, in English or Chinese, and the Harness integration are included in the embedded Harness payload. Two additional payloads contain only the English or Chinese CLI Skill for installation into a Harness's ordinary Skill root or a custom root.
 
-Only the Rust build logic assembles components. Cargo builds multiple deterministic Harness payloads and two standalone CLI Skill payloads, one archive, and one manifest in `OUT_DIR`, then embeds the archive and manifest in the executable. Installation reads only artifacts embedded in the current executable.
+Only the Rust build logic assembles components. Cargo builds eight deterministic tools Harness payloads, two standalone CLI Skill payloads, one archive, and one manifest in `OUT_DIR`, then embeds the archive and manifest in the executable. Installation reads only artifacts embedded in the current executable.
 
 ## Task operation flow
 
@@ -63,16 +63,18 @@ Caller
   -> Return a structured result
 ```
 
-## Harness component flow
+## Harness tools component flow
 
 ```text
-User selects a Harness
+User selects a Harness in tools mode
   -> tk reads the embedded component
   -> Validate component format, compatibility range, paths, and digests
   -> Validate the Harness target and official interfaces
   -> Install or update tk-specific content and tk configuration entries
   -> Return the actual changes
 ```
+
+A Harness CLI install writes the embedded CLI Skill to the Harness's user-level ordinary Skill root, removes the tools targets and registrations, and returns the actual changes. It selects no component, but it still validates the embedded bundle before writing.
 
 The target result of uninstall is to restore the Harness to the state it would have had if tk had never been installed, while preserving all preexisting content and later changes unrelated to tk.
 
@@ -91,7 +93,7 @@ The target result of uninstall is to restore the Harness to the state it would h
 11. All Task project relationships remain within the same Task root directory.
 12. Harness names and tool schema types are different concepts. A Harness is a product; `mcp` and `native` are schema types.
 13. Component installation does not access the network, read Task projects, or run Git policy checks.
-14. Harness installation, update, and uninstallation operate only on fixed tk-specific targets and tk configuration entries. Custom-root operations manage only the `tk-cli` and `tk-cli-zh` children of the supplied Skill root; install may create the root and its parents. Neither lifecycle maintains installation history.
+14. Harness installation, update, and uninstallation operate only on fixed tk-specific targets, the Harness's ordinary Skill root, and tk configuration entries. Custom-root operations manage only the `tk-cli` and `tk-cli-zh` children of the supplied Skill root; install may create the root and its parents. Neither lifecycle maintains installation history.
 15. Public documentation describes only the current formal contract. It does not retain obsolete development-stage commands or superseded behavior.
 
 ## Platform boundary

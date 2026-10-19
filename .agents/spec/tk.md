@@ -9,7 +9,7 @@ Spec for [projects/tk](../../projects/tk/README.md). It states tk's goals, bound
 - Give Agent work one durable, file-backed, project-local Task record that survives context loss and works across sessions, Harnesses, and the CLI. See [projects/tk/docs/design/system.md](../../projects/tk/docs/design/system.md).
 - Keep Task domain rules, persistence, discovery, migration, maintenance, the CLI, stdio MCP, generated tool contracts, and the Harness component lifecycle in one Rust runtime. See [projects/tk/docs/design/runtime.md](../../projects/tk/docs/design/runtime.md).
 - Reach that runtime through one public executable from every interface: the human CLI, stdio MCP, and native Pi and OMP tools, with one result, error, and version model. See [projects/tk/docs/design/tool-api.md](../../projects/tk/docs/design/tool-api.md) and [projects/tk/docs/design/cli-reference.md](../../projects/tk/docs/design/cli-reference.md).
-- Ship four Skills, tools or CLI mode in English or Chinese, from one shared reference source per language. See [projects/tk/docs/design/skill.md](../../projects/tk/docs/design/skill.md).
+- Ship the `tk` and `tk-zh` tools Skills and the `tk-cli` and `tk-cli-zh` CLI Skills in English or Chinese, from one shared reference source per language. See [projects/tk/docs/design/skill.md](../../projects/tk/docs/design/skill.md).
 - Guide Agents to name each Task by its overall intended outcome while preserving explicit names, research-only scope, and lifecycle semantics. See [Skill behavior](../../projects/tk/docs/design/skill.md).
 - Install, update, and remove Harness components and standalone CLI Skills offline from one embedded bundle. See [projects/tk/docs/design/installation.md](../../projects/tk/docs/design/installation.md) and [projects/tk/docs/design/harnesses.md](../../projects/tk/docs/design/harnesses.md).
 
@@ -43,13 +43,13 @@ Spec for [projects/tk](../../projects/tk/README.md). It states tk's goals, bound
 - Adapters map operations through the public CLI. They do not parse version ranges; the runtime evaluates compatibility.
 - An adapter whose preflight fails registers no operation and reports one bounded diagnostic without ending the session.
 - CLI-mode Skills route every operation through the public CLI and contain no tool-operation names, discovery, route comparison, or fallback wording.
-- Each assembled or installed component, including each Skill, references only files inside itself. Shared Skill references live once per language in the source tree and are copied into every Skill of that language at build time.
+- Each assembled tools component and each installed Skill references only files inside itself. Shared Skill references live once per language in the source tree and are copied into every Skill of that language at build time.
 - Each behavior has one owning design page. Other pages link to it and add only the context their readers need. Public documentation states the current formal contract.
 - No file inside a tk component links to `.agents/spec/`.
 
 ## Host lower bound
 
-The tk OMP adapter follows the shared OMP lower bound, `18.5.0`, for the host-side code it ships in `tools` mode, declared in [projects/tk/omp/README.md](../../projects/tk/omp/README.md#compatibility). The Pi adapter keeps its own statement in [projects/tk/pi/README.md](../../projects/tk/pi/README.md#compatibility). The `cli` mode components and the Claude Code and Codex components ship no host-process code and have no maintenance lower bound. The general rules are in [.agents/spec/host-compatibility.md](./host-compatibility.md).
+The tk OMP adapter follows the shared OMP lower bound, `18.5.0`, for the host-side code it ships in `tools` mode, declared in [projects/tk/omp/README.md](../../projects/tk/omp/README.md#compatibility). The Pi adapter keeps its own statement in [projects/tk/pi/README.md](../../projects/tk/pi/README.md#compatibility). CLI mode installs an ordinary Skill and ships no host-process code; the Claude Code and Codex components also have no maintenance lower bound. The general rules are in [.agents/spec/host-compatibility.md](./host-compatibility.md).
 
 ## Acceptance criteria
 

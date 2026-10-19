@@ -11,10 +11,10 @@ Validate the following static facts:
 - One Cargo package produces the `tk` executable;
 - Rust is the only component assembler;
 - Components have exactly one Rust-based assembly path;
-- Multiple payloads cover the Harness, mode, and language selections without referencing other component directories;
+- Eight tools payloads cover the Harness and language selections without referencing other component directories;
 - The two standalone CLI Skill payloads contain only `tk-cli` or `tk-cli-zh` and have no Harness field;
 - The four Skill identities map exactly to tools or CLI mode and English or Chinese;
-- CLI payloads contain no tk operation registration, while tools payloads contain the selected Harness integration;
+- CLI payloads contain no tk operation registration or native manifest, while tools payloads contain the selected Harness integration;
 - Review records and Task materials are not included in product artifacts.
 
 ## Data model tests
@@ -162,22 +162,24 @@ Unit and process tests for Pi and OMP cover:
 
 ## Component assembly
 
-Repeated builds must produce the same set of Harness payloads, two standalone CLI Skill payloads, file bytes, `tar.zst` bytes, and manifest. Validate target kind, Harness where applicable, mode, language, Skill identity, paths, permissions, digests, missing items, extra items, and `runtime_compat`.
+Repeated builds must produce the same set of eight tools Harness payloads, two standalone CLI Skill payloads, file bytes, `tar.zst` bytes, and manifest. Validate target kind, Harness where applicable, language, Skill identity, paths, permissions, digests, missing items, extra items, and `runtime_compat`.
 
 Validate builds both with and without `TK_SOURCE_REVISION`. Build scripts must not invoke Git or write generated artifacts outside Cargo-managed directories.
 
 ## Installation tests
 
-Isolated tests cover all Harness, mode, and language selections:
+Isolated tests cover every Harness tools and CLI selection, and both custom-root languages:
 
 - install, update, selection switching, no_change, and uninstall;
 - Embedded archives with no network or local sources;
 - The resolved `mode`, `language`, and `skill` in text and JSON install results;
 - Official Harness APIs take precedence;
-- Tools-mode registration and CLI-mode absence of tk operation registration;
+- Tools-mode registration, and CLI-mode writes to each Harness's ordinary Skill root with no registration or native manifest;
+- A tools install removes both CLI Skill directories, and a CLI install removes the tools targets and the other CLI Skill directory;
+- A failed registration removal keeps the tools targets and reports the removal as incomplete, including when no Harness executable is available;
 - The original file remains unchanged if shared configuration parsing fails;
 - Only tk entries are removed from shared configuration;
-- Uninstall completely removes active and known residual tk-specific directories, including modified and extra content;
+- Uninstall completely removes tools targets, registrations, both CLI Skill directories, and component directories, including modified and extra content;
 - Unrelated Harness content and later modifications are preserved;
 - Intermediate I/O failures report completed and incomplete items;
 - GC cleans up only temporary component content and does not continue lifecycle operations.
@@ -191,7 +193,7 @@ Custom-root tests cover both standalone languages, relative and absolute roots, 
 - Pi: real installation, loading, and uninstallation in an isolated environment.
 - OMP: real installation, loading, one real tool call, and uninstallation in an isolated environment.
 
-Each Harness validates all four mode and language selections. OMP tools mode additionally performs the real operation call shown above.
+Each Harness validates tools-mode installation, loading, and uninstallation for both languages. CLI mode is validated as ordinary Skill placement and discovery in the Harness's Skill root. OMP tools mode additionally performs the real operation call shown above.
 
 Real tests must observe the Harness's actual loading result and post-uninstallation state. Checking assembled files alone is insufficient.
 

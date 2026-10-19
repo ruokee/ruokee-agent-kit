@@ -7,11 +7,10 @@ use std::path::{Component, Path, PathBuf};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
-const COMPONENT_FORMAT_VERSION: u32 = 3;
+const COMPONENT_FORMAT_VERSION: u32 = 4;
 const DRIVER_CONTRACT_VERSION: u32 = 1;
 const RUNTIME_COMPAT: &str = ">=0.1,<0.2";
 const HARNESSES: [&str; 4] = ["codex", "claude", "pi", "omp"];
-const MODES: [&str; 2] = ["tools", "cli"];
 const LANGUAGES: [&str; 2] = ["en", "zh"];
 
 #[derive(Clone)]
@@ -37,13 +36,11 @@ fn assemble() -> Result<(), Box<dyn std::error::Error>> {
     let mut payloads: BTreeMap<String, BTreeMap<String, SourceFile>> = BTreeMap::new();
 
     for harness in HARNESSES {
-        for mode in MODES {
-            for language in LANGUAGES {
-                let component = component_id(harness, mode, language);
-                let files = assemble_payload(&project, harness, mode, language)?;
-                validate_payload(&component, &files, &project)?;
-                payloads.insert(component, files);
-            }
+        for language in LANGUAGES {
+            let component = component_id(harness, language);
+            let files = assemble_payload(&project, harness, language)?;
+            validate_payload(&component, &files, &project)?;
+            payloads.insert(component, files);
         }
     }
     for language in LANGUAGES {
@@ -60,24 +57,21 @@ fn assemble() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut components = BTreeMap::new();
     for harness in HARNESSES {
-        for mode in MODES {
-            for language in LANGUAGES {
-                let component = component_id(harness, mode, language);
-                let files = payloads.get(&component).expect("known component payload");
-                let records = file_records(files);
-                components.insert(
-                    component.clone(),
-                    json!({
-                        "harness": harness,
-                        "mode": mode,
-                        "language": language,
-                        "skill": skill_name(mode, language),
-                        "runtime_compat": RUNTIME_COMPAT,
-                        "payload": format!("payloads/{component}"),
-                        "files": records,
-                    }),
-                );
-            }
+        for language in LANGUAGES {
+            let component = component_id(harness, language);
+            let files = payloads.get(&component).expect("known component payload");
+            let records = file_records(files);
+            components.insert(
+                component.clone(),
+                json!({
+                    "harness": harness,
+                    "language": language,
+                    "skill": skill_name("tools", language),
+                    "runtime_compat": RUNTIME_COMPAT,
+                    "payload": format!("payloads/{component}"),
+                    "files": records,
+                }),
+            );
         }
     }
     let mut cli_skills = BTreeMap::new();
@@ -116,8 +110,8 @@ fn assemble() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn component_id(harness: &str, mode: &str, language: &str) -> String {
-    format!("{harness}/{mode}/{language}")
+fn component_id(harness: &str, language: &str) -> String {
+    format!("{harness}/{language}")
 }
 
 fn cli_skill_id(language: &str) -> String {
@@ -152,7 +146,6 @@ fn file_records(files: &BTreeMap<String, SourceFile>) -> BTreeMap<String, Value>
 fn assemble_payload(
     project: &Path,
     harness: &str,
-    mode: &str,
     language: &str,
 ) -> Result<BTreeMap<String, SourceFile>, Box<dyn std::error::Error>> {
     let mut files = BTreeMap::new();
@@ -161,17 +154,14 @@ fn assemble_payload(
         if harness == "pi" || harness == "omp" {
             collect_file(&project.join("adapter/common.ts"), "common.ts", &mut files)?;
         }
-        if mode == "cli" {
-            make_cli_only(harness, &mut files)?;
-        }
     }
 
     let prefix = if harness == "codex" {
         PathBuf::new()
     } else {
-        PathBuf::from("skills").join(skill_name(mode, language))
+        PathBuf::from("skills").join(skill_name("tools", language))
     };
-    collect_skill(project, mode, language, &prefix, &mut files)?;
+    collect_skill(project, "tools", language, &prefix, &mut files)?;
     Ok(files)
 }
 
@@ -191,56 +181,6 @@ fn collect_skill(
         &prefix.join("references"),
         files,
     )
-}
-
-fn make_cli_only(
-    harness: &str,
-    files: &mut BTreeMap<String, SourceFile>,
-) -> Result<(), Box<dyn std::error::Error>> {
-    match harness {
-        "claude" => {
-            files.remove(".mcp.json");
-            let file = files
-                .get_mut(".claude-plugin/plugin.json")
-                .ok_or("Claude component is missing plugin.json")?;
-            let mut value: Value = serde_json::from_slice(&file.bytes)?;
-            let object = value
-                .as_object_mut()
-                .ok_or("Claude plugin.json must contain an object")?;
-            object.remove("mcpServers");
-            object.insert(
-                "description".into(),
-                Value::String("Persistent project-local Tasks through the tk CLI".into()),
-            );
-            file.bytes = serde_json::to_vec_pretty(&value)?;
-            file.bytes.push(b'\n');
-        }
-        "pi" | "omp" => {
-            files.remove("extension.ts");
-            files.remove("common.ts");
-            let file = files
-                .get_mut("package.json")
-                .ok_or("Harness component is missing package.json")?;
-            let mut value: Value = serde_json::from_slice(&file.bytes)?;
-            let object = value
-                .as_object_mut()
-                .ok_or("Harness package.json must contain an object")?;
-            object.remove("dependencies");
-            object.insert(
-                "description".into(),
-                Value::String(format!("First-party tk CLI Skill for {harness}")),
-            );
-            let integration = object
-                .get_mut(harness)
-                .and_then(Value::as_object_mut)
-                .ok_or("Harness package.json is missing its integration object")?;
-            integration.remove("extensions");
-            file.bytes = serde_json::to_vec_pretty(&value)?;
-            file.bytes.push(b'\n');
-        }
-        _ => unreachable!("Codex has no packaged adapter files"),
-    }
-    Ok(())
 }
 
 fn collect_tree(

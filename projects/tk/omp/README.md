@@ -9,15 +9,15 @@ The OMP component of tk, a persistent task runtime. The runtime keeps Task progr
 `tk install --harness omp` selects one mode and one language:
 
 - `tools` carries the native OMP adapter and the selected Skill;
-- `cli` carries only the selected CLI Skill and this Package manifest, with no native tool registration.
+- `cli` installs only `tk-cli` or `tk-cli-zh` into `~/.omp/agent/skills` and removes the tk plugin registration; it uses no Package.
 
-Both modes expose the same six logical operations: search, read, create, update, log, and exec. The first five return a uniform JSON result; exec keeps its raw stdout and stderr contract.
+Tools mode exposes the six logical operations: search, read, create, update, log, and exec. The first five return a uniform JSON result; exec keeps its raw stdout and stderr contract.
 
 ## Compatibility
 
 `18.5.0` is the minimum maintained OMP version, and this section is the authoritative entry for that number. It is a maintenance commitment, not an installation or runtime requirement. There is no upper maintenance bound, and no version number blocks use: no install, loading, registration, or diagnostic path compares the host version against this minimum.
 
-The commitment covers only the host-side code shipped in `tools` mode. The `cli` mode component contains none of that code and carries no OMP-version maintenance commitment. A host below the minimum carries no maintenance commitment, and this declaration does not claim that any version at or above the minimum was verified.
+The commitment covers only the host-side code shipped in `tools` mode. CLI mode installs an ordinary Skill outside this Package and carries no host-side code or OMP-version maintenance commitment. A host below the minimum carries no maintenance commitment, and this declaration does not claim that any version at or above the minimum was verified.
 
 The host version is separate from the runtime contract. Three version markers are claimed or checked in different places:
 
@@ -54,7 +54,7 @@ The shared mapping layer (`common.ts`, `tools` mode only) performs the preflight
 
 The adapter's automated tests run against a stub host and a stub runtime. They cover preflight, argument mapping, cancellation, output limits, zero registration when preflight fails, and the partial-registration behavior described above. They do not show how a real OMP version loads or runs the component. The component assembly tests prove that the shipped files match the component sources and the runtime version; they are not host behavior evidence.
 
-Real OMP validation ran on OMP `18.2.8` with the tk runtime built from these same sources, in an isolated home directory and project. For each of the four mode and language selections it covered installation, loading, and uninstallation. In `tools` mode the host listed all six operations as registered tools, rejected a wrongly typed argument against the declared schema before the call, and executed real search, read, create, update, log, and exec calls against a Task in the project.
+Real OMP validation ran on OMP `18.2.8` with the tk runtime built from these same sources, in an isolated home directory and project. It covered tools-mode installation, loading, and uninstallation for both languages. In `tools` mode the host listed all six operations as registered tools, rejected a wrongly typed argument against the declared schema before the call, and executed real search, read, create, update, log, and exec calls against a Task in the project. CLI mode was not part of these runs; it installs an ordinary Skill and does not load this Package.
 
 A second run covered OMP `18.4.3` with the same component sources and a runtime built from them. Installation through `tk install --harness omp`, loading, and the call path behaved as on `18.2.8`: the host sent search, read, create, update, and log in the model tool list, kept exec out of that list until it was explicitly enabled, and executed real calls against a Task in an isolated project. The adapter took the session working directory and the calling model from the host call context. Four injected preflight failures (a missing runtime, a different compatibility range, a different runtime version in the contract, and a failing schema command) each produced one bounded `tk:` diagnostic and left zero operations registered. `18.2.8` was re-checked with the same payload after that run. Cancellation against a real host is still covered only by the stub tests above.
 

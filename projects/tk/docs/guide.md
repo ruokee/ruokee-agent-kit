@@ -44,7 +44,7 @@ tk install --harness omp --mode cli --language zh
 
 The [CLI reference](./design/cli-reference.md#tk-install) holds the accepted values, defaults, and resolved Skill names.
 
-Tools mode installs the Harness integration and its selected Skill. CLI mode installs only the selected CLI Skill within the Harness component. Running install again with another selection updates the component directly and removes known superseded Skill targets.
+Tools mode installs the Harness integration and its selected Skill. CLI mode writes only `tk-cli` or `tk-cli-zh` to the Harness's user-level ordinary Skill root, creates no registration, and removes the Harness's tools targets. Running install again with another selection replaces the current one and removes known superseded Skill targets.
 
 Install a self-contained CLI Skill into another Skill root:
 
@@ -199,12 +199,12 @@ tk uninstall --harness omp
 tk uninstall --skill-root .agents/skills
 ```
 
-Harness uninstall removes the entire fixed tk-dedicated target, including modified or extra content inside it, and removes only tk's entry from shared configuration. For Codex it also removes all known tk Skill variant targets. Unrelated Harness content remains unchanged.
+Harness uninstall removes the entire fixed tk-dedicated target, both CLI Skill directories, and tk registrations, including modified or extra content inside managed targets. For shared configuration, it removes only tk's entries. Unrelated Harness content remains unchanged.
 
 Custom-root uninstall removes both `tk-cli` and `tk-cli-zh` below the supplied root. It preserves the root, `tk`, `tk-zh`, and every unrelated child.
 
 ## Agent use
 
-tk ships four independently discoverable Skills: [tk](../skills/tk/SKILL.md), [tk-zh](../skills/tk-zh/SKILL.md), [tk-cli](../skills/tk-cli/SKILL.md), and [tk-cli-zh](../skills/tk-cli-zh/SKILL.md). Each is self-contained. Harness mode and language select one for a supported integration. A custom root can receive either CLI-only Skill directly.
+tk ships four independently discoverable Skills: [tk](../skills/tk/SKILL.md), [tk-zh](../skills/tk-zh/SKILL.md), [tk-cli](../skills/tk-cli/SKILL.md), and [tk-cli-zh](../skills/tk-cli-zh/SKILL.md). Each is self-contained. Harness tools mode and language select one for a supported integration. Harness CLI mode installs either CLI-only Skill into that Harness's ordinary Skill root, and a custom root can receive either one directly.
 
 The [design index](./design/README.md) links every current runtime, data, tool, Harness, installation, Skill, and validation contract.

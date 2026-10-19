@@ -9,7 +9,7 @@
 - 为 Agent 工作提供一份持久、基于文件、位于项目内的任务记录，上下文丢失后仍然存在，并可跨会话、跨 Harness 和 CLI 使用。见 [projects/tk/docs/design/system.zh.md](../../projects/tk/docs/design/system.zh.md)。
 - 任务领域规则、持久化、发现、迁移、维护、CLI、stdio MCP、生成的工具契约和 Harness 组件生命周期都由一个 Rust 运行时负责。见 [projects/tk/docs/design/runtime.zh.md](../../projects/tk/docs/design/runtime.zh.md)。
 - 人用 CLI、stdio MCP 以及 Pi 和 OMP 原生工具都经由同一个公开可执行文件访问运行时，共用一套结果、错误和版本模型。见 [projects/tk/docs/design/tool-api.zh.md](../../projects/tk/docs/design/tool-api.zh.md) 和 [projects/tk/docs/design/cli-reference.zh.md](../../projects/tk/docs/design/cli-reference.zh.md)。
-- 提供四个 Skill（tools 或 CLI 模式，英文或中文），每种语言共用一份参考文件源。见 [projects/tk/docs/design/skill.zh.md](../../projects/tk/docs/design/skill.zh.md)。
+- 提供 `tk`、`tk-zh` tools Skill 和 `tk-cli`、`tk-cli-zh` CLI Skill，每种语言共用一份参考文件源。见 [projects/tk/docs/design/skill.zh.md](../../projects/tk/docs/design/skill.zh.md)。
 - 指导 Agent 按任务的整体预期目标命名，同时保留明确名称、仅研究范围和生命周期语义。见 [Skill 行为](../../projects/tk/docs/design/skill.zh.md)。
 - 从一个内嵌 bundle 离线安装、更新和卸载 Harness 组件和独立的 CLI Skill。见 [projects/tk/docs/design/installation.zh.md](../../projects/tk/docs/design/installation.zh.md) 和 [projects/tk/docs/design/harnesses.zh.md](../../projects/tk/docs/design/harnesses.zh.md)。
 
@@ -43,13 +43,13 @@
 - 适配器通过公开 CLI 映射操作，不解析版本范围；兼容性由运行时判断。
 - 预检失败的适配器不注册任何操作，报告一条有界的诊断，不结束会话。
 - CLI 模式的 Skill 通过公开 CLI 执行每个操作，不包含工具操作名称、发现、路线比较或回退措辞。
-- 组装或安装后的每个组件（包括每个 Skill）只引用自身内部的文件。共享的 Skill 参考文件在源码树中每种语言只保存一份，构建时复制到该语言的每个 Skill 中。
+- 每个组装后的 tools 组件和每个安装后的 Skill 只引用自身内部的文件。共享的 Skill 参考文件在源码树中每种语言只保存一份，构建时复制到该语言的每个 Skill 中。
 - 每项行为只有一个负责的设计页面。其他页面链接到它，只补充读者需要的上下文。公开文档陈述当前的正式契约。
 - tk 组件内的任何文件都不链接 `.agents/spec/`。
 
 ## 宿主下限
 
-tk 的 OMP 适配器对其 `tools` 模式随附的宿主端代码遵循共同的 OMP 下限 `18.5.0`，声明在 [projects/tk/omp/README.zh.md](../../projects/tk/omp/README.zh.md#兼容性)。Pi 适配器的声明见 [projects/tk/pi/README.zh.md](../../projects/tk/pi/README.zh.md#兼容性)。`cli` 模式组件以及 Claude Code 和 Codex 组件不包含宿主进程代码，没有维护下限。通用规则见 [.agents/spec/host-compatibility.zh.md](./host-compatibility.zh.md)。
+tk 的 OMP 适配器对其 `tools` 模式随附的宿主端代码遵循共同的 OMP 下限 `18.5.0`，声明在 [projects/tk/omp/README.zh.md](../../projects/tk/omp/README.zh.md#兼容性)。Pi 适配器的声明见 [projects/tk/pi/README.zh.md](../../projects/tk/pi/README.zh.md#兼容性)。cli 模式安装普通 Skill，不包含宿主进程代码；Claude Code 和 Codex 组件也没有维护下限。通用规则见 [.agents/spec/host-compatibility.zh.md](./host-compatibility.zh.md)。
 
 ## 验收标准
 

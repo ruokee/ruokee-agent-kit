@@ -44,7 +44,7 @@ tk install --harness omp --mode cli --language zh
 
 [CLI 参考](./design/cli-reference.zh.md#tk-install)持有可取值、默认值和最终 Skill 名称。
 
-tools 模式安装 Harness 集成和所选 Skill。cli 模式只在 Harness 组件中安装所选 CLI Skill。再次使用其他选择运行 install 时，tk 直接更新组件，并删除新选择所取代的已知 Skill 目标。
+tools 模式安装 Harness 集成和所选 Skill。cli 模式只把 `tk-cli` 或 `tk-cli-zh` 写入 Harness 的用户级普通 Skill 根目录，不产生注册，并移除该 Harness 的 tools 目标。再次使用其他选择运行 install 时，tk 替换当前选择，并删除已知的被取代 Skill 目标。
 
 把自包含 CLI Skill 安装到其他 Skill 根目录：
 
@@ -199,12 +199,12 @@ tk uninstall --harness omp
 tk uninstall --skill-root .agents/skills
 ```
 
-Harness 卸载会删除整个固定 tk 专用目标，包括其中的用户修改和额外内容。对于共享配置，它只删除 tk 对应的结构化配置项。Codex 卸载还会删除全部已知 tk Skill variant 目标。其他 Harness 内容保持不变。
+Harness 卸载会删除整个固定 tk 专用目标、两个 CLI Skill 目录和 tk 注册，包括受管目标内的用户修改和额外内容。对于共享配置，它只删除 tk 对应的条目。其他 Harness 内容保持不变。
 
 自定义根目录卸载会删除所提供根目录下的 `tk-cli` 和 `tk-cli-zh`，并保留根目录、`tk`、`tk-zh` 和其他全部子项。
 
 ## Agent 使用
 
-tk 提供四个可独立发现的 Skill：[tk](../skills/tk/SKILL.md)、[tk-zh](../skills/tk-zh/SKILL.md)、[tk-cli](../skills/tk-cli/SKILL.md) 和 [tk-cli-zh](../skills/tk-cli-zh/SKILL.md)。四者均为自包含目录。已支持 Harness 的模式和语言决定加载哪一个。自定义根目录可以直接接收任一纯 CLI Skill。
+tk 提供四个可独立发现的 Skill：[tk](../skills/tk/SKILL.md)、[tk-zh](../skills/tk-zh/SKILL.md)、[tk-cli](../skills/tk-cli/SKILL.md) 和 [tk-cli-zh](../skills/tk-cli-zh/SKILL.md)。四者均为自包含目录。Harness tools 模式和语言决定加载哪一个。Harness cli 模式把任一纯 CLI Skill 安装到该 Harness 的普通 Skill 根目录，自定义根目录也可以直接接收任一版本。
 
 [设计索引](./design/README.zh.md)列出当前运行时、数据、工具、Harness、安装、Skill 和验证合同。

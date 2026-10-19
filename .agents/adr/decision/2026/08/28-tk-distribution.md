@@ -2,17 +2,17 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
-Reverses: [tk distribution](../../../archived/2026/08/28-r2-tk-distribution.md)
+Reverses: [tk distribution](../../../archived/2026/08/28-r3-tk-distribution.md)
 
 English | [中文](./28-tk-distribution.zh.md)
 
 ## Motivation
 
-Distribute Harness components and Harness-independent CLI Skills from one embedded tk bundle, with a shared install, update, and uninstall path.
+Distribute the Harness tools components and Harness-independent CLI Skills for tk from one embedded bundle, with a shared install, update, and uninstall path.
 
 Component installation must remain deterministic, offline, inspectable, and reversible without a second installation database. Runtime installation and Harness integration keep separate ownership.
 
-The `tk-cli` and `tk-cli-zh` Skills use only the public `tk` executable. They must be installable in a project-local or other Harness Skill directory without pretending that the directory is one of the four supported Harness integrations.
+The `tk-cli` and `tk-cli-zh` Skills use only the public `tk` executable. They must be installable in a project-local or other Harness Skill directory, which is not one of the four supported Harness integrations.
 
 ## Decision
 
@@ -20,19 +20,25 @@ The `tk-cli` and `tk-cli-zh` Skills use only the public `tk` executable. They mu
 
 The Linux runtime remains one regular executable with a Unix execution bit at `$HOME/.local/bin/tk`. Harness components and directly installed CLI Skills verify it but never install, update, remove, wrap, or copy it.
 
-`projects/tk/build.rs` is the only bundle assembler. Cargo produces one deterministic `tar.zst` and one manifest. The `components` collection contains multiple Harness selections spanning four Harnesses, two modes, and two languages. The separate `cli_skills` collection contains `en` and `zh` entries for the Harness-independent `tk-cli` and `tk-cli-zh` payloads.
+`projects/tk/build.rs` is the only bundle assembler. Cargo produces one deterministic `tar.zst` and one manifest. The `components` collection contains tools selections for four Harnesses and two languages. The separate `cli_skills` collection contains `en` and `zh` entries for the Harness-independent `tk-cli` and `tk-cli-zh` payloads.
 
-Each Harness component entry records Harness, mode, language, Skill identity, `runtime_compat`, payload path, file types, Unix modes, and digests. Each `cli_skills` entry records language, Skill identity, `runtime_compat`, payload path, file types, Unix modes, and digests, with no Harness field. The manifest records runtime version and `source_revision` once at the top level. Component format version 3 owns this schema.
+Each Harness component entry records Harness, language, Skill identity, `runtime_compat`, payload path, file types, Unix modes, and digests. Each `cli_skills` entry records language, Skill identity, `runtime_compat`, payload path, file types, Unix modes, and digests, with no Harness field. The manifest records runtime version and `source_revision` once at the top level. Component format version 4 owns this schema.
 
-Tools payloads contain `tk` or `tk-zh` plus the selected Harness integration. Harness CLI payloads contain `tk-cli` or `tk-cli-zh` plus only the native manifest needed by that Harness. Harness-independent CLI payloads contain only the selected self-contained Skill. No payload contains a runtime copy, another component's files, review records, Task materials, or product source.
+Tools payloads contain `tk` or `tk-zh` plus the selected Harness integration. Harness-independent CLI payloads contain only the selected self-contained Skill. The runtime carries ten payloads. No payload contains a runtime copy, another component's files, review records, Task materials, or product source.
 
 ### Public lifecycle
 
 The public `tk install` and `tk uninstall` synopses, their flag defaults and mutual exclusion, their absolute-root reporting, and the archive and result rules live in the [CLI reference](../../../../../projects/tk/docs/design/cli-reference.md); the lifecycle semantics, target layout, custom-root rules, and operation planning live in the [installation design](../../../../../projects/tk/docs/design/installation.md).
 
+A Harness CLI install writes `tk-cli` or `tk-cli-zh` to the Harness's user-level ordinary Skill root and creates no Harness registration. It removes that Harness's tools targets and any existing tk registration, and removes the other language variant. A failed registration removal keeps the tools targets and reports the removal as incomplete. A tools install removes both CLI Skill directories. Uninstall removes the tools targets, registrations, both CLI Skill directories, and any component directory.
+
+Lifecycle planning reads fixed targets, known tk Skill targets, tk registration state, and embedded bytes. It keeps no ownership manifest, installation history, previous-content database, or partial-uninstall state. Dry-run and execution share complete preflight. Operations stage content, revalidate, commit in deterministic order, stop on error or cancellation, and report completed and incomplete items without automatic rollback.
+
+Archive validation rejects unsupported formats, incompatible runtime ranges, escaping paths, symlinks, special files, duplicates, missing or extra entries, metadata mismatches, and digest mismatches before persistent writes. Installation does not use the network, `curl`, a checkout, or a local archive source.
+
 ### Harness ownership
 
-The four supported Harnesses retain their official component lifecycle, and custom-root operations require no Harness executable. tk stores no root list, ownership record, installation history, or continuation state.
+Tools mode retains the four supported Harnesses' official component lifecycle. CLI mode installs ordinary Skills and does not invoke that lifecycle. Custom-root operations require no Harness executable. tk stores no root list, ownership record, installation history, or continuation state.
 
 ## Alternatives considered
 
@@ -46,8 +52,10 @@ The four supported Harnesses retain their official component lifecycle, and cust
 
 ## Consequences
 
-The runtime carries eighteen payloads, so payload changes increase executable size and require rebuilding and redistributing the runtime.
+The runtime carries ten payloads, so payload changes increase executable size and require rebuilding and redistributing the runtime.
 
-Supported user-level Harness integrations keep their existing installation and real-load validation. Other Harnesses and projects can use the same CLI Skills when they can discover an ordinary Skill root, but successful file installation does not prove that a Harness loads the Skill.
+A CLI install or uninstall without a Harness executable still writes or removes Skill directories, while registration cleanup remains an incomplete item. The next run with a working Harness command completes that cleanup.
+
+Supported user-level Harness integrations keep their existing tools installation and real-load validation. CLI installation proves only file placement; the Harness must scan the ordinary Skill root before the Skill is available.
 
 A mistaken Skill root can replace or delete existing `tk-cli` or `tk-cli-zh` directories. Dry-run and complete path reporting expose the planned boundary, while clean install and uninstall deliberately treat those two exact children as tk-owned targets.

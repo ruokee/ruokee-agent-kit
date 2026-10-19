@@ -246,7 +246,7 @@ tk install --mode cli --skill-root <directory>
 
 Exactly one of `--harness` and `--skill-root` is required. Harness install defaults `--mode` to `tools`. Custom-root install requires explicit `--mode cli` and rejects tools mode. `--language` defaults to `en` for both target types. The four resolved Skills are `tk`, `tk-zh`, `tk-cli`, and `tk-cli-zh`.
 
-Harness install updates the fixed target, registration, mode, language, or selected Skill when current state differs. Custom-root install places `tk-cli` or `tk-cli-zh` below the supplied parent directory, removes the other CLI Skill target, and leaves `tk`, `tk-zh`, and every unrelated child unchanged. A relative root resolves from the process working directory. Component operations reject global `--cwd`.
+Harness install with `tools` mode updates the fixed target, registration, language, or selected Skill when current state differs. Harness install with `cli` mode writes `tk-cli` or `tk-cli-zh` to the Harness's user-level ordinary Skill root: `$CODEX_HOME/skills` for Codex, `~/.claude/skills` for Claude Code, `~/.pi/agent/skills` for Pi, and `~/.omp/agent/skills` for OMP. It removes the other CLI Skill target, the Harness's tools targets, any leftover component directory, and any existing tk registration. If registration removal fails or the Harness executable is unavailable, the tools targets stay and the removal appears in `uncompleted`. Custom-root install places `tk-cli` or `tk-cli-zh` below the supplied parent directory, removes the other CLI Skill target, and leaves `tk`, `tk-zh`, Harness targets, registrations, and every unrelated child unchanged. A relative root resolves from the process working directory. Component operations reject global `--cwd`.
 
 Install uses only payloads embedded in the current executable. It does not access the network or accept a local archive.
 
@@ -262,7 +262,7 @@ tk uninstall --skill-root <directory>
   [--dry-run] [--output <text|json>]
 ```
 
-Exactly one target option is required. Uninstall takes no mode or language selector. Harness uninstall removes the active component, all known residual tk Skill variants for that Harness, and tk registrations. Custom-root uninstall removes both `tk-cli` and `tk-cli-zh` below the supplied root, while preserving the root and every other child.
+Exactly one target option is required. Uninstall takes no mode or language selector. Harness uninstall removes the tools targets, tk registrations, both CLI Skill directories, and any component directory. A failed registration removal leaves that cleanup in `uncompleted` while the Skill directories are still removed. Custom-root uninstall removes both `tk-cli` and `tk-cli-zh` below the supplied root, while preserving the root and every other child.
 
 The result action is `would_uninstall`, `uninstalled`, or `no_change`. Results contain exactly one target field and list planned or actual changes. Custom-root results report `mode: cli` and omit `language` and `skill` because both CLI Skill identities are removed.
 
@@ -279,10 +279,10 @@ Version JSON is:
 
 ```json
 {
-  "runtime_version": "0.1.11",
+  "runtime_version": "0.1.12",
   "cli_contract_version": 3,
   "task_schema_version": 1,
-  "component_format_version": 3
+  "component_format_version": 4
 }
 ```
 

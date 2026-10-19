@@ -47,15 +47,6 @@ pub enum Mode {
     Cli,
 }
 
-impl Mode {
-    fn name(self) -> &'static str {
-        match self {
-            Self::Tools => "tools",
-            Self::Cli => "cli",
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Language {
@@ -72,8 +63,8 @@ impl Language {
     }
 }
 
-fn component_id(harness: Harness, mode: Mode, language: Language) -> String {
-    format!("{}/{}/{}", harness.name(), mode.name(), language.name())
+fn component_id(harness: Harness, language: Language) -> String {
+    format!("{}/{}", harness.name(), language.name())
 }
 
 fn skill_name(mode: Mode, language: Language) -> &'static str {
@@ -101,7 +92,6 @@ struct BundleManifest {
 #[serde(deny_unknown_fields)]
 struct ComponentManifest {
     harness: Harness,
-    mode: Mode,
     language: Language,
     skill: String,
     runtime_compat: String,
@@ -168,6 +158,13 @@ pub fn install(
     language: Language,
     dry_run: bool,
 ) -> Result<ComponentResult> {
+    match mode {
+        Mode::Tools => install_tools(harness, language, dry_run),
+        Mode::Cli => install_cli(harness, language, dry_run),
+    }
+}
+
+fn install_tools(harness: Harness, language: Language, dry_run: bool) -> Result<ComponentResult> {
     let home = home()?;
     let runtime = home.join(".local/bin/tk");
     require_runtime(&runtime)?;
@@ -176,20 +173,21 @@ pub fn install(
     let component = bundle
         .manifest
         .components
-        .get(&component_id(harness, mode, language))
+        .get(&component_id(harness, language))
         .expect("validated component exists");
     require_compatible(&component.runtime_compat)?;
 
-    let skill = skill_name(mode, language);
-    let target = component_target(harness, &home, skill);
-    let targets = component_targets(harness, &home);
+    let skill = skill_name(Mode::Tools, language);
+    let target = tools_target(harness, &home, language);
+    let targets = managed_targets(harness, &home);
     let target_before = target_fingerprints(&targets)?;
     let target_existed = entry_exists(&target)?;
     let residual_existing = existing_entries(targets.iter().filter(|path| **path != target))?;
+    let registration_root = registration_root(harness, &home);
     let registration = registration_state(
         harness,
-        mode,
-        &target,
+        Mode::Tools,
+        &registration_root,
         &runtime,
         &bundle.manifest.runtime_version,
     )?;
@@ -218,7 +216,7 @@ pub fn install(
     let result = ComponentResult {
         harness: Some(harness),
         skill_root: None,
-        mode: Some(mode),
+        mode: Some(Mode::Tools),
         language: Some(language),
         skill: Some(skill),
         action: install_action(changed, dry_run, existed),
@@ -252,8 +250,8 @@ pub fn install(
         || {
             let current_registration = registration_state(
                 harness,
-                mode,
-                &target,
+                Mode::Tools,
+                &registration_root,
                 &runtime,
                 &bundle.manifest.runtime_version,
             )?;
@@ -269,8 +267,7 @@ pub fn install(
                 progress.step(REGISTRATION_ITEM, |completed| {
                     configure(
                         harness,
-                        mode,
-                        &target,
+                        &registration_root,
                         &runtime,
                         registration.installed,
                         completed,
@@ -278,6 +275,141 @@ pub fn install(
                 })?;
             }
             progress.remove_entries(&residual_existing)
+        },
+    )
+}
+
+fn install_cli(harness: Harness, language: Language, dry_run: bool) -> Result<ComponentResult> {
+    let home = home()?;
+    let runtime = home.join(".local/bin/tk");
+    require_runtime(&runtime)?;
+    let bundle = embedded_bundle()?;
+    let skill_manifest = bundle
+        .manifest
+        .cli_skills
+        .get(language.name())
+        .expect("validated CLI Skill exists");
+    require_compatible(&skill_manifest.runtime_compat)?;
+
+    let skill = skill_name(Mode::Cli, language);
+    let root = cli_skill_root(harness, &home);
+    let target = root.join(skill);
+    let cli_targets = cli_skill_targets(&root);
+    let tools_targets = tools_targets(harness, &home);
+    let component = component_dir(harness, &home);
+    let targets = managed_targets(harness, &home);
+    let target_before = target_fingerprints(&targets)?;
+    let target_existed = entry_exists(&target)?;
+    let residual_cli = existing_entries(cli_targets.iter().filter(|path| **path != target))?;
+    let existing_tools = existing_entries(&tools_targets)?;
+    let component_existing = entry_exists(&component)? && !existing_tools.contains(&component);
+    let cleanup_targets = residual_cli
+        .iter()
+        .chain(existing_tools.iter())
+        .chain(component_existing.then_some(&component))
+        .cloned()
+        .collect::<Vec<_>>();
+
+    let registration_root = registration_root(harness, &home);
+    let registration = registration_state(
+        harness,
+        Mode::Cli,
+        &registration_root,
+        &runtime,
+        &bundle.manifest.runtime_version,
+    );
+    let registration_present = matches!(&registration, Ok(state) if state.present);
+    let registration_unknown = registration.is_err();
+
+    let target_changed = payload_differs(
+        &target,
+        &skill_manifest.payload,
+        &skill_manifest.files,
+        &bundle.files,
+    )?;
+    let registration_pending = registration_unknown || registration_present;
+    let changed = target_changed || !cleanup_targets.is_empty() || registration_pending;
+    let existed = target_existed || !cleanup_targets.is_empty() || registration_present;
+
+    let mut planned = Vec::new();
+    if target_changed {
+        planned.push(target.display().to_string());
+    }
+    if registration_pending {
+        planned.push(REGISTRATION_ITEM.into());
+    }
+    planned.extend(
+        cleanup_targets
+            .iter()
+            .map(|path| path.display().to_string()),
+    );
+    let result = ComponentResult {
+        harness: Some(harness),
+        skill_root: None,
+        mode: Some(Mode::Cli),
+        language: Some(language),
+        skill: Some(skill),
+        action: install_action(changed, dry_run, existed),
+        version: bundle.manifest.runtime_version.clone(),
+        runtime_compat: skill_manifest.runtime_compat.clone(),
+        source_revision: bundle.manifest.source_revision.clone(),
+        changed,
+        committed: false,
+        partial: false,
+        dry_run,
+        completed: Vec::new(),
+        uncompleted: planned,
+        installed_paths: target_changed.then(|| target.clone()).into_iter().collect(),
+        removed_paths: cleanup_targets.clone(),
+    };
+    commit_plan(
+        Scope::Harness,
+        "installation",
+        &target,
+        result,
+        |operation| {
+            stage_payload(
+                operation,
+                target_changed,
+                "skill",
+                &skill_manifest.payload,
+                &skill_manifest.files,
+                &bundle.files,
+            )
+        },
+        || {
+            let current_registration = registration_state(
+                harness,
+                Mode::Cli,
+                &registration_root,
+                &runtime,
+                &bundle.manifest.runtime_version,
+            );
+            let registration_unchanged = match (&registration, current_registration) {
+                (Ok(before), Ok(after)) => *before == after,
+                (Err(_), Err(_)) => true,
+                _ => false,
+            };
+            Ok(target_fingerprints(&targets)? == target_before && registration_unchanged)
+        },
+        |progress, staging| {
+            let mut tools_retained = registration_unknown;
+            if registration_present {
+                tools_retained = !progress.try_step(REGISTRATION_ITEM, |completed| {
+                    deconfigure(harness, &registration_root, completed)
+                })?;
+            }
+            if !tools_retained {
+                progress.remove_entries(&existing_tools)?;
+            }
+            if let Some(staging) = staging {
+                progress.path_step(&target, || replace_target(&staging, &target))?;
+            }
+            progress.remove_entries(&residual_cli)?;
+            if component_existing {
+                progress.path_step(&component, || remove_entry(&component))?;
+            }
+            Ok(())
         },
     )
 }
@@ -371,31 +503,31 @@ pub fn uninstall(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
     let home = home()?;
     let runtime = home.join(".local/bin/tk");
     require_runtime(&runtime)?;
-    require_harness(harness)?;
     let bundle = embedded_bundle()?;
     let component = bundle
         .manifest
         .components
-        .get(&component_id(harness, Mode::Tools, Language::En))
+        .get(&component_id(harness, Language::En))
         .expect("validated component exists");
     require_compatible(&component.runtime_compat)?;
 
-    let targets = component_targets(harness, &home);
+    let targets = managed_targets(harness, &home);
     let target_before = target_fingerprints(&targets)?;
     let existing_targets = existing_entries(&targets)?;
-    let registration_target =
-        component_target(harness, &home, skill_name(Mode::Tools, Language::En));
+    let registration_root = registration_root(harness, &home);
     let registration = registration_state(
         harness,
         Mode::Tools,
-        &registration_target,
+        &registration_root,
         &runtime,
         &bundle.manifest.runtime_version,
-    )?;
-    let changed = !existing_targets.is_empty() || registration.present;
+    );
+    let registration_present = matches!(&registration, Ok(state) if state.present);
+    let registration_unknown = registration.is_err();
+    let changed = !existing_targets.is_empty() || registration_present || registration_unknown;
 
     let mut planned = Vec::new();
-    if registration.present {
+    if registration_present || registration_unknown {
         planned.push(REGISTRATION_ITEM.into());
     }
     planned.extend(
@@ -425,24 +557,28 @@ pub fn uninstall(harness: Harness, dry_run: bool) -> Result<ComponentResult> {
     commit_plan(
         Scope::Harness,
         "uninstall",
-        &registration_target,
+        &registration_root,
         result,
         |_operation| Ok(None),
         || {
             let current_registration = registration_state(
                 harness,
                 Mode::Tools,
-                &registration_target,
+                &registration_root,
                 &runtime,
                 &bundle.manifest.runtime_version,
-            )?;
-            Ok(target_fingerprints(&targets)? == target_before
-                && current_registration == registration)
+            );
+            let registration_unchanged = match (&registration, current_registration) {
+                (Ok(before), Ok(after)) => *before == after,
+                (Err(_), Err(_)) => true,
+                _ => false,
+            };
+            Ok(target_fingerprints(&targets)? == target_before && registration_unchanged)
         },
         |progress, _staging| {
-            if registration.present {
-                progress.step(REGISTRATION_ITEM, |completed| {
-                    deconfigure(harness, &registration_target, completed)
+            if registration_present {
+                progress.try_step(REGISTRATION_ITEM, |completed| {
+                    deconfigure(harness, &registration_root, completed)
                 })?;
             }
             progress.remove_entries(&existing_targets)
@@ -609,9 +745,9 @@ fn commit_plan(
                 remaining,
             };
             apply(&mut progress, staging)?;
-            Ok(progress.completed)
+            Ok((progress.completed, progress.remaining))
         },
-        |completed, cleanup_path, error| {
+        |(completed, _remaining), cleanup_path, error| {
             TkError::partial_commit(
                 format!(
                     "{} {verb} committed but cleanup failed",
@@ -624,8 +760,8 @@ fn commit_plan(
         },
     )?;
     result.committed = true;
-    result.completed = completed;
-    result.uncompleted.clear();
+    result.completed = completed.0;
+    result.uncompleted = completed.1;
     Ok(result)
 }
 
@@ -678,6 +814,25 @@ impl Progress {
         })
     }
 
+    /// Runs an item whose failure is reported as incomplete instead of
+    /// stopping the lifecycle. Cancellation still stops the lifecycle.
+    fn try_step(
+        &mut self,
+        item: &str,
+        action: impl FnOnce(&mut Vec<String>) -> Result<()>,
+    ) -> Result<bool> {
+        match action(&mut self.completed) {
+            Ok(()) => {
+                self.remaining.retain(|candidate| candidate != item);
+                Ok(true)
+            }
+            Err(error) if matches!(error.category, ErrorCategory::Cancelled) => {
+                Err(self.partial(error))
+            }
+            Err(_) => Ok(false),
+        }
+    }
+
     fn remove_entries(&mut self, paths: &[PathBuf]) -> Result<()> {
         for path in paths {
             self.checkpoint()?;
@@ -712,38 +867,35 @@ fn embedded_bundle() -> Result<Bundle> {
             "Embedded component archive digest does not match its manifest",
         ));
     }
-    if manifest.components.len() != 16 {
+    if manifest.components.len() != 8 {
         return Err(TkError::new(
             "component_manifest_incomplete",
             ErrorCategory::ManagedFile,
-            "Embedded component manifest must contain sixteen selections",
+            "Embedded component manifest must contain eight selections",
         ));
     }
     for harness in [Harness::Codex, Harness::Claude, Harness::Pi, Harness::Omp] {
-        for mode in [Mode::Tools, Mode::Cli] {
-            for language in [Language::En, Language::Zh] {
-                let id = component_id(harness, mode, language);
-                let component = manifest.components.get(&id).ok_or_else(|| {
-                    TkError::new(
-                        "component_manifest_incomplete",
-                        ErrorCategory::ManagedFile,
-                        format!("Missing {id} component"),
-                    )
-                })?;
-                if component.harness != harness
-                    || component.mode != mode
-                    || component.language != language
-                    || component.skill != skill_name(mode, language)
-                    || component.payload != format!("payloads/{id}")
-                {
-                    return Err(TkError::new(
-                        "component_manifest_invalid",
-                        ErrorCategory::ManagedFile,
-                        format!("Invalid component selection metadata for {id}"),
-                    ));
-                }
-                require_compatible(&component.runtime_compat)?;
+        for language in [Language::En, Language::Zh] {
+            let id = component_id(harness, language);
+            let component = manifest.components.get(&id).ok_or_else(|| {
+                TkError::new(
+                    "component_manifest_incomplete",
+                    ErrorCategory::ManagedFile,
+                    format!("Missing {id} component"),
+                )
+            })?;
+            if component.harness != harness
+                || component.language != language
+                || component.skill != skill_name(Mode::Tools, language)
+                || component.payload != format!("payloads/{id}")
+            {
+                return Err(TkError::new(
+                    "component_manifest_invalid",
+                    ErrorCategory::ManagedFile,
+                    format!("Invalid component selection metadata for {id}"),
+                ));
             }
+            require_compatible(&component.runtime_compat)?;
         }
     }
     if manifest.cli_skills.len() != 2 {
@@ -1254,7 +1406,6 @@ fn registration_state(
 
 fn configure(
     harness: Harness,
-    mode: Mode,
     root: &Path,
     runtime: &Path,
     plugin_installed: bool,
@@ -1263,16 +1414,10 @@ fn configure(
     let root = root.to_string_lossy().into_owned();
     let runtime = runtime.to_string_lossy().into_owned();
     match harness {
-        Harness::Codex => match mode {
-            Mode::Tools => {
-                run_driver("codex", &["mcp", "add", "tk", "--", &runtime, "mcp"])?;
-                completed.push("Codex MCP registration".into());
-            }
-            Mode::Cli => {
-                run_driver_allow_absent("codex", &["mcp", "remove", "tk"])?;
-                completed.push("Codex MCP registration removed".into());
-            }
-        },
+        Harness::Codex => {
+            run_driver("codex", &["mcp", "add", "tk", "--", &runtime, "mcp"])?;
+            completed.push("Codex MCP registration".into());
+        }
         Harness::Claude => {
             run_driver(
                 "claude",
@@ -1471,28 +1616,66 @@ fn require_harness(harness: Harness) -> Result<()> {
     ))
 }
 
-fn component_target(harness: Harness, home: &Path, skill: &str) -> PathBuf {
+fn codex_home(home: &Path) -> PathBuf {
+    env::var_os("CODEX_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| home.join(".codex"))
+}
+
+fn component_dir(harness: Harness, home: &Path) -> PathBuf {
+    env::var_os("XDG_DATA_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| home.join(".local/share"))
+        .join("tk/components")
+        .join(harness.name())
+}
+
+fn cli_skill_root(harness: Harness, home: &Path) -> PathBuf {
+    cli_skill_root_in(harness, home, &codex_home(home))
+}
+
+fn cli_skill_root_in(harness: Harness, home: &Path, codex_home: &Path) -> PathBuf {
     match harness {
-        Harness::Codex => env::var_os("CODEX_HOME")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| home.join(".codex"))
-            .join("skills")
-            .join(skill),
-        _ => env::var_os("XDG_DATA_HOME")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| home.join(".local/share"))
-            .join("tk/components")
-            .join(harness.name()),
+        Harness::Codex => codex_home.join("skills"),
+        Harness::Claude => home.join(".claude/skills"),
+        Harness::Pi => home.join(".pi/agent/skills"),
+        Harness::Omp => home.join(".omp/agent/skills"),
     }
 }
 
-fn component_targets(harness: Harness, home: &Path) -> Vec<PathBuf> {
+fn tools_target(harness: Harness, home: &Path, language: Language) -> PathBuf {
     match harness {
-        Harness::Codex => ["tk", "tk-zh", "tk-cli", "tk-cli-zh"]
+        Harness::Codex => cli_skill_root(harness, home).join(skill_name(Mode::Tools, language)),
+        _ => component_dir(harness, home),
+    }
+}
+
+fn tools_targets(harness: Harness, home: &Path) -> Vec<PathBuf> {
+    match harness {
+        Harness::Codex => [Language::En, Language::Zh]
             .into_iter()
-            .map(|skill| component_target(harness, home, skill))
+            .map(|language| tools_target(harness, home, language))
             .collect(),
-        _ => vec![component_target(harness, home, "tk")],
+        _ => vec![component_dir(harness, home)],
+    }
+}
+
+fn registration_root(harness: Harness, home: &Path) -> PathBuf {
+    tools_target(harness, home, Language::En)
+}
+
+fn managed_targets(harness: Harness, home: &Path) -> Vec<PathBuf> {
+    let mut targets = tools_targets(harness, home);
+    for path in cli_skill_targets(&cli_skill_root(harness, home)) {
+        push_unique(&mut targets, path);
+    }
+    push_unique(&mut targets, component_dir(harness, home));
+    targets
+}
+
+fn push_unique(paths: &mut Vec<PathBuf>, path: PathBuf) {
+    if !paths.contains(&path) {
+        paths.push(path);
     }
 }
 
@@ -1546,122 +1729,88 @@ mod tests {
     use super::*;
 
     #[test]
-    fn embedded_bundle_covers_components_and_cli_skills() {
+    fn embedded_bundle_covers_tools_components_and_cli_skills() {
         let bundle = embedded_bundle().unwrap();
         let project = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         assert_eq!(bundle.manifest.runtime_version, env!("CARGO_PKG_VERSION"));
-        assert_eq!(bundle.manifest.components.len(), 16);
+        assert_eq!(
+            bundle.manifest.component_format_version,
+            crate::version::COMPONENT_FORMAT_VERSION
+        );
+        assert_eq!(bundle.manifest.components.len(), 8);
         for harness in [Harness::Codex, Harness::Claude, Harness::Pi, Harness::Omp] {
-            for mode in [Mode::Tools, Mode::Cli] {
-                for language in [Language::En, Language::Zh] {
-                    let component = bundle
-                        .manifest
-                        .components
-                        .get(&component_id(harness, mode, language))
-                        .unwrap();
-                    let skill = skill_name(mode, language);
-                    let skill_path = if harness == Harness::Codex {
-                        "SKILL.md".into()
-                    } else {
-                        format!("skills/{skill}/SKILL.md")
-                    };
-                    assert!(component.files.contains_key(&skill_path));
+            for language in [Language::En, Language::Zh] {
+                let component = bundle
+                    .manifest
+                    .components
+                    .get(&component_id(harness, language))
+                    .unwrap();
+                let skill = skill_name(Mode::Tools, language);
+                let skill_path = if harness == Harness::Codex {
+                    "SKILL.md".into()
+                } else {
+                    format!("skills/{skill}/SKILL.md")
+                };
+                assert!(component.files.contains_key(&skill_path));
 
-                    match (harness, mode) {
-                        (Harness::Claude, Mode::Tools) => {
-                            assert!(component.files.contains_key(".mcp.json"));
-                        }
-                        (Harness::Claude, Mode::Cli) => {
-                            assert!(!component.files.contains_key(".mcp.json"));
-                        }
-                        (Harness::Pi | Harness::Omp, Mode::Tools) => {
-                            assert!(component.files.contains_key("extension.ts"));
-                        }
-                        (Harness::Pi | Harness::Omp, Mode::Cli) => {
-                            assert!(!component.files.contains_key("extension.ts"));
-                            assert!(!component.files.contains_key("common.ts"));
-                        }
-                        (Harness::Codex, _) => {}
+                match harness {
+                    Harness::Claude => {
+                        assert!(component.files.contains_key(".mcp.json"));
                     }
+                    Harness::Pi | Harness::Omp => {
+                        assert!(component.files.contains_key("extension.ts"));
+                        assert!(component.files.contains_key("common.ts"));
+                    }
+                    Harness::Codex => {}
+                }
 
-                    assert_eq!(component.runtime_compat, crate::version::RUNTIME_COMPAT);
+                assert_eq!(component.runtime_compat, crate::version::RUNTIME_COMPAT);
 
-                    if matches!(harness, Harness::Pi | Harness::Omp) {
-                        let harness_dir = project.join(harness.name());
-                        for document in ["README.md", "README.zh.md"] {
-                            let source = fs::read(harness_dir.join(document)).unwrap();
-                            let archived = bundle
-                                .files
-                                .get(&format!("{}/{document}", component.payload))
-                                .unwrap();
-                            assert_eq!(
-                                archived.bytes, source,
-                                "{harness:?}/{mode:?}/{language:?} ships a stale {document}"
-                            );
-                        }
-                        let english = std::str::from_utf8(
-                            &bundle.files[&format!("{}/README.md", component.payload)].bytes,
-                        )
-                        .unwrap();
-                        assert!(
-                            english.contains("](./README.zh.md)"),
-                            "{harness:?}/{mode:?}/{language:?} README.md has no Chinese link"
+                if matches!(harness, Harness::Pi | Harness::Omp) {
+                    let harness_dir = project.join(harness.name());
+                    for document in ["README.md", "README.zh.md"] {
+                        let source = fs::read(harness_dir.join(document)).unwrap();
+                        let archived = bundle
+                            .files
+                            .get(&format!("{}/{document}", component.payload))
+                            .unwrap();
+                        assert_eq!(
+                            archived.bytes, source,
+                            "{harness:?}/{language:?} ships a stale {document}"
                         );
-                        let chinese = std::str::from_utf8(
-                            &bundle.files[&format!("{}/README.zh.md", component.payload)].bytes,
-                        )
-                        .unwrap();
-                        assert!(
-                            chinese.contains("](./README.md)"),
-                            "{harness:?}/{mode:?}/{language:?} README.zh.md has no English link"
-                        );
-
-                        let source_package: Value = serde_json::from_slice(
-                            &fs::read(harness_dir.join("package.json")).unwrap(),
-                        )
-                        .unwrap();
-                        let archived_package: Value = serde_json::from_slice(
-                            &bundle.files[&format!("{}/package.json", component.payload)].bytes,
-                        )
-                        .unwrap();
-                        assert_eq!(archived_package["name"], source_package["name"]);
-                        assert_eq!(archived_package["version"], source_package["version"]);
-                        let integration = archived_package[harness.name()]
-                            .as_object()
-                            .expect("harness integration object");
-                        match mode {
-                            Mode::Tools => {
-                                assert!(archived_package.get("dependencies").is_some());
-                                assert!(integration.contains_key("extensions"));
-                            }
-                            Mode::Cli => {
-                                assert!(archived_package.get("dependencies").is_none());
-                                assert!(!integration.contains_key("extensions"));
-                            }
-                        }
                     }
+                    let english = std::str::from_utf8(
+                        &bundle.files[&format!("{}/README.md", component.payload)].bytes,
+                    )
+                    .unwrap();
+                    assert!(
+                        english.contains("](./README.zh.md)"),
+                        "{harness:?}/{language:?} README.md has no Chinese link"
+                    );
+                    let chinese = std::str::from_utf8(
+                        &bundle.files[&format!("{}/README.zh.md", component.payload)].bytes,
+                    )
+                    .unwrap();
+                    assert!(
+                        chinese.contains("](./README.md)"),
+                        "{harness:?}/{language:?} README.zh.md has no English link"
+                    );
 
-                    if mode == Mode::Cli {
-                        for file_path in component.files.keys() {
-                            let path = format!("{}/{file_path}", component.payload);
-                            let Ok(text) = std::str::from_utf8(&bundle.files[&path].bytes) else {
-                                continue;
-                            };
-                            for name in [
-                                "tk_search",
-                                "tk_read",
-                                "tk_create",
-                                "tk_update",
-                                "tk_log",
-                                "tk_exec",
-                            ] {
-                                assert!(
-                                    !text.contains(name),
-                                    "CLI component {harness:?}/{language:?} contains {name} in {file_path}"
-                                );
-                            }
-                        }
-                    }
+                    let source_package: Value = serde_json::from_slice(
+                        &fs::read(harness_dir.join("package.json")).unwrap(),
+                    )
+                    .unwrap();
+                    let archived_package: Value = serde_json::from_slice(
+                        &bundle.files[&format!("{}/package.json", component.payload)].bytes,
+                    )
+                    .unwrap();
+                    assert_eq!(archived_package["name"], source_package["name"]);
+                    assert_eq!(archived_package["version"], source_package["version"]);
+                    assert!(archived_package.get("dependencies").is_some());
+                    let integration = archived_package[harness.name()]
+                        .as_object()
+                        .expect("harness integration object");
+                    assert!(integration.contains_key("extensions"));
                 }
             }
         }
@@ -1672,7 +1821,83 @@ mod tests {
             assert_eq!(skill.skill, skill_name(Mode::Cli, language));
             assert!(skill.files.contains_key("SKILL.md"));
             assert!(skill.files.keys().all(|path| !path.starts_with("skills/")));
+            for file_path in skill.files.keys() {
+                let path = format!("{}/{file_path}", skill.payload);
+                let Ok(text) = std::str::from_utf8(&bundle.files[&path].bytes) else {
+                    continue;
+                };
+                for name in [
+                    "tk_search",
+                    "tk_read",
+                    "tk_create",
+                    "tk_update",
+                    "tk_log",
+                    "tk_exec",
+                ] {
+                    assert!(
+                        !text.contains(name),
+                        "CLI Skill {language:?} contains {name} in {file_path}"
+                    );
+                }
+            }
         }
+    }
+
+    #[test]
+    fn cli_skill_roots_follow_each_harness() {
+        let home = Path::new("/home/test");
+        let codex_home = Path::new("/codex");
+        assert_eq!(
+            cli_skill_root_in(Harness::Codex, home, codex_home),
+            PathBuf::from("/codex/skills")
+        );
+        assert_eq!(
+            cli_skill_root_in(Harness::Claude, home, codex_home),
+            PathBuf::from("/home/test/.claude/skills")
+        );
+        assert_eq!(
+            cli_skill_root_in(Harness::Pi, home, codex_home),
+            PathBuf::from("/home/test/.pi/agent/skills")
+        );
+        assert_eq!(
+            cli_skill_root_in(Harness::Omp, home, codex_home),
+            PathBuf::from("/home/test/.omp/agent/skills")
+        );
+    }
+
+    #[test]
+    fn deferred_cleanup_failure_keeps_the_item_incomplete() {
+        let mut progress = Progress {
+            scope: Scope::Harness,
+            completed: Vec::new(),
+            remaining: vec![REGISTRATION_ITEM.into(), "target".into()],
+        };
+        let cleaned = progress
+            .try_step(REGISTRATION_ITEM, |_completed| {
+                Err(TkError::new(
+                    "harness_driver_failed",
+                    ErrorCategory::Environment,
+                    "missing",
+                ))
+            })
+            .unwrap();
+        assert!(!cleaned);
+        assert_eq!(
+            progress.remaining,
+            vec![REGISTRATION_ITEM.to_string(), "target".into()]
+        );
+
+        let mut cancelled = Progress {
+            scope: Scope::Harness,
+            completed: Vec::new(),
+            remaining: vec![REGISTRATION_ITEM.into()],
+        };
+        let error = cancelled
+            .try_step(REGISTRATION_ITEM, |_completed| {
+                Err(TkError::new("stop", ErrorCategory::Cancelled, "stopped"))
+            })
+            .unwrap_err();
+        assert_eq!(error.code, "stop");
     }
 
     #[test]
@@ -1709,7 +1934,7 @@ mod tests {
     fn component_diff_detects_extra_directories_and_symlinks() {
         let root = std::env::temp_dir().join(format!("tk-component-test-{}", uuid::Uuid::now_v7()));
         let bundle = embedded_bundle().unwrap();
-        let component = bundle.manifest.components.get("pi/tools/en").unwrap();
+        let component = bundle.manifest.components.get("pi/en").unwrap();
         materialize_payload(&root, &component.payload, &component.files, &bundle.files).unwrap();
         assert!(
             !payload_differs(&root, &component.payload, &component.files, &bundle.files,).unwrap()

@@ -319,10 +319,10 @@ JSON 结果包含：
 
 ```json
 {
-  "runtime_version": "0.1.11",
+  "runtime_version": "0.1.12",
   "cli_contract_version": 3,
   "task_schema_version": 1,
-  "component_format_version": 3
+  "component_format_version": 4
 }
 ```
 

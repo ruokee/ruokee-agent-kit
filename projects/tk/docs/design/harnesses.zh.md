@@ -10,7 +10,7 @@ Harness 是围绕模型、使模型能够作为 Agent 运行的软件环境，�
 
 ## 组件
 
-Harness 组件是针对一个 Harness、模式和语言选择组装并安装的 tk 自包含单元。Skill 映射为：
+Harness 组件是针对一个 Harness 和语言在 tools 模式下组装并安装的 tk 自包含单元。安装选择与 Skill 的映射为：
 
 | 模式 | 语言 | Skill |
 | --- | --- | --- |
@@ -19,23 +19,23 @@ Harness 组件是针对一个 Harness、模式和语言选择组装并安装的 
 | `cli` | `en` | `tk-cli` |
 | `cli` | `zh` | `tk-cli-zh` |
 
-tools 模式组件包含所选 Skill 和该 Harness 的 tk 集成。cli 模式组件包含所选 CLI Skill。Claude Code、Pi 和 OMP 还会保留加载该 Skill 所需的原生 manifest；Codex 不需要 manifest。cli 模式组件不包含 MCP 配置或原生工具 extension。组件不包含运行时可执行文件、其他 Harness 内容、评审材料或产品源码。
+tools 模式组件包含所选 Skill 和该 Harness 的 tk 集成。cli 模式不使用 Harness 组件。它把 `tk-cli` 或 `tk-cli-zh` 安装到 Harness 的用户级普通 Skill 根目录，不产生注册，也不安装原生 manifest。组件不包含运行时可执行文件、其他 Harness 内容、评审材料或产品源码。
 
 组件目录内部的文件只能互相引用。它不能在安装后依赖仓库目录布局。
 
 ## Codex
 
-tools 模式安装所选 `tk` 或 `tk-zh` Skill，并注册指向固定用户级 `tk mcp` 的 MCP。cli 模式安装 `tk-cli` 或 `tk-cli-zh`，并确保 tk MCP 注册不存在。
+tools 模式安装所选 `tk` 或 `tk-zh` Skill，并注册指向固定用户级 `tk mcp` 的 MCP。cli 模式把 `tk-cli` 或 `tk-cli-zh` 写入 `$CODEX_HOME/skills`，并移除 tk MCP 注册。
 
 Skill 和可选 MCP 注册可以位于不同的 Harness 官方目标中，两者共同组成所选 Codex 组件。
 
 ## Claude Code
 
-Claude Code 使用符合原生规则的自包含 Plugin。tools 模式包含所选 tools Skill 和指向固定运行时的 MCP 配置。cli 模式包含所选 CLI Skill，并省略 MCP 配置。两种模式都使用官方 Plugin 生命周期。
+Claude Code 使用符合原生规则的自包含 Plugin。tools 模式包含所选 tools Skill 和指向固定运行时的 MCP 配置。cli 模式把 `tk-cli` 或 `tk-cli-zh` 写入 `~/.claude/skills`，并移除 tk plugin 与 marketplace 注册。
 
 ## Pi
 
-Pi 使用自包含 Package。tools 模式包含所选 tools Skill 和原生扩展。cli 模式包含所选 CLI Skill，不注册扩展。
+Pi 使用自包含 Package。tools 模式包含所选 tools Skill 和原生扩展。cli 模式把 `tk-cli` 或 `tk-cli-zh` 写入 `~/.pi/agent/skills`，并移除 tk package。
 
 tools 扩展注册：
 
@@ -52,7 +52,7 @@ Pi 不设置 `loadMode`。
 
 ## OMP
 
-OMP 使用独立的自包含 Package，模式与语言选择和 Pi 相同。tools 扩展提供同样六项操作。
+OMP 使用独立的自包含 Package。tools 模式包含所选 tools Skill 和原生扩展。cli 模式把 `tk-cli` 或 `tk-cli-zh` 写入 `~/.omp/agent/skills`，并移除 tk plugin 注册。tools 扩展提供同样六项操作。
 
 OMP 通过公开 API 把 search、read、create、update 和 log 设为 essential，只有 exec 为 discoverable。
 
@@ -111,7 +111,7 @@ Rust 在组件安装时判断兼容范围。
 
 ## 构建时组装
 
-Cargo 构建使用 Rust 组装逻辑生成多份 Harness 组件载荷、两份与 Harness 无关的 CLI Skill 载荷、一个确定性 `tar.zst` 归档和一份清单。Harness 选择覆盖四个 Harness、两种模式和两种语言。相同输入必须产生相同路径、文件字节、归档字节和清单。生成过程只写 Cargo `OUT_DIR` 和 Cargo 自身目标目录。
+Cargo 构建使用 Rust 组装逻辑生成八份 tools 模式 Harness 载荷、两份与 Harness 无关的 CLI Skill 载荷、一个确定性 `tar.zst` 归档和一份清单。Harness 选择覆盖四个 Harness 和两种语言。相同输入必须产生相同路径、文件字节、归档字节和清单。生成过程只写 Cargo `OUT_DIR` 和 Cargo 自身目标目录。
 
 Harness 组装只读取所选 Harness 源码、四个 Skill 目录之一，以及两类共用源码：所选语言下各 Skill 共用的参考文件，以及 Pi 和 OMP 共用的映射层 `common.ts`。独立载荷只读取 `tk-cli` 或 `tk-cli-zh` 及同语言的共用参考文件。组装后的每份载荷都自包含。发布、安装和验证使用同一套 Rust 产物。
 
@@ -119,7 +119,7 @@ Rust 组装产物是发布、安装和验证的唯一组件输入。
 
 ## Skill 选择
 
-Harness 安装生命周期负责选择、更新和卸载四个 Skill 身份。自定义根目录生命周期只选择 `tk-cli` 与 `tk-cli-zh`。语言选择属于 `tk install`，不是独立的手工复制流程。
+tools 安装生命周期负责选择、更新和卸载英文或中文 tools Skill。cli 生命周期把 `tk-cli` 或 `tk-cli-zh` 安装到 Harness 的普通 Skill 根目录，包括用户另外提供 Skill 根目录的场景。语言选择属于 `tk install`，不是独立的手工复制流程。
 
 ## 验证要求
 
