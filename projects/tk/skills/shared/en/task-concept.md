@@ -16,7 +16,11 @@ Top-level Tasks normally live at:
 
 New subtasks normally live below the parent's configured `subtasks_dir` and use an `NN--slug` directory name. `subtasks_dir` controls creation placement only. Discovery can recognize Tasks elsewhere below the parent from valid carriers. See [Subtasks](./subtask.md).
 
-Names use NFKC normalization, allow a restricted character set, and occupy at most 32 terminal display columns. Display columns are not Unicode character count. Let the runtime validate names and compute slugs during creation or rename.
+Saved names use NFKC text with letters, numbers, ordinary spaces `U+0020`, hyphens, and underscores, and contain at least one letter or number. Names and generated directory suffixes each occupy at most 32 actual terminal display columns, counting all separators. Display columns are not Unicode character count.
+
+A generated suffix contains no whitespace. Its remaining text must match the name exactly after ignoring ordinary spaces, hyphens, and underscores on both sides. Thus suffix `AI学习` can correspond to `AI 学习`, `AI-学习`, or `AI_学习`. Other text and case differences remain errors; non-generated child directories have no name correspondence requirement.
+
+Let the runtime normalize requests and compute space-free slugs during creation or rename. Reads and checks preserve valid saved names and paths. Ordinary metadata updates and representation switching preserve valid name spellings too.
 
 ### Content
 

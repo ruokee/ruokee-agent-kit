@@ -180,7 +180,9 @@ tk rename <task_ref> <name>
   [global-options]
 ```
 
-rename 只修改任务本身，closed 任务同样适用且保持其状态。它也修复已有字符串名称不规范、为空、规范化后为空或过宽的问题，以及与元数据不一致但结构可识别的生成式后缀。普通发现因旧名称拒绝目标时，完整 UUID、精确任务目录和精确受管载体仍可定位符合条件的修复对象。其他元数据、身份、路径、生命周期、策略和冲突校验保持严格。生成式子任务和顶层任务的 slug 改变时移动目录，非生成式子任务保持目录不变。dry-run 和执行都返回原始旧名称、解析出的父级和 Markdown 引用，不改写引用。名称及其适用路径已经匹配时，重复请求返回无变化。actor 默认为 `cli`。
+rename 只修改任务本身，closed 任务同样适用且保持其状态。它也修复无效、为空或实际过宽的字符串名称，以及结构可识别但不符合[任务名称规则](./data-model.zh.md#任务名称)的生成式后缀。普通发现因旧名称拒绝目标时，完整 UUID、精确任务目录和精确受管载体仍可定位符合条件的修复对象。其他元数据、身份、路径、生命周期、策略和冲突校验保持严格。生成式子任务和顶层任务的 slug 改变时移动目录，非生成式子任务保持目录不变。dry-run 和执行都返回原始旧名称、解析出的父级和 Markdown 引用，不改写引用。只有保存名称和适用路径都精确匹配规范化目标时才返回无变化。actor 默认为 `cli`。
+
+排版对应不表示显式 rename 已完成。例如，保存名称为 `AI 学习`、后缀为 `AI学习` 时，rename 为 `AI 学习` 的目标名称和后缀都是 `AI-学习`。[rename 合同](./data-model.zh.md#rename)也保留精确提交前复检和部分失败重试行为。
 
 dry-run 文本显示 `Old path:`、规范化名称 `New name:` 和绝对目标路径 `Target path:`。每个执行结果都显示目标路径，无变化的结果先输出 `No changes` 再输出 `Target path:`。存在旧路径引用时，文本追加 `References to the old path:` 列表，每个引用以 `path:line` 表示；没有引用时不输出该列表。dry-run 在生成合法计划后始终成功。执行会移动任务路径且存在旧路径引用时，在首次写入前以稳定错误码 `broken_reference_conflict`（`conflict` 类别、退出码 3）停止；错误显示目标路径和每个引用及其行号。`--ignore-brokenlinks` 允许此次移动继续进行。引用文件保持原样，结果中仍会报告它们。
 
@@ -277,7 +279,7 @@ tk <command> <subcommand> --help
 
 ```json
 {
-  "runtime_version": "0.1.9",
+  "runtime_version": "0.1.10",
   "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3

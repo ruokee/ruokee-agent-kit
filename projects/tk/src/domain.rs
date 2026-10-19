@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use unicode_normalization::UnicodeNormalization;
+use unicode_normalization::{UnicodeNormalization, is_nfkc};
 use unicode_width::UnicodeWidthChar;
 use uuid::{Uuid, Version};
 
@@ -51,12 +51,7 @@ impl Metadata {
                 "Task ID must be a UUIDv7",
             ));
         }
-        if normalize_name(&self.name)? != self.name {
-            return Err(TkError::request(
-                "invalid_task_name",
-                "Task name is not in canonical form",
-            ));
-        }
+        validate_name(&self.name)?;
         if self.depends_on.contains(&self.id) || self.related_to.contains(&self.id) {
             return Err(TkError::invariant(
                 "self_relation",
@@ -87,41 +82,78 @@ impl Metadata {
     }
 }
 
-pub fn normalize_name(input: &str) -> Result<String> {
-    let mut normalized = String::new();
-    let mut separator_pending = false;
-
-    for ch in input.nfkc() {
-        if ch.is_whitespace() || ch == '_' || ch == '-' {
-            separator_pending = !normalized.is_empty();
-            continue;
-        }
-        if !ch.is_alphanumeric() {
-            separator_pending = !normalized.is_empty();
-            continue;
-        }
-        if separator_pending {
-            normalized.push('-');
-            separator_pending = false;
-        }
-        normalized.push(ch);
+pub fn validate_name(name: &str) -> Result<()> {
+    let mut has_text = false;
+    let mut width = 0;
+    let valid_chars = name.chars().all(|ch| {
+        let text = ch.is_alphanumeric();
+        has_text |= text;
+        width += ch.width().unwrap_or(0);
+        text || is_name_separator(ch)
+    });
+    if !valid_chars || !has_text || !is_nfkc(name) {
+        return Err(TkError::request(
+            "invalid_task_name",
+            "Task name must be nonempty NFKC text using letters, numbers, spaces, hyphens, or underscores",
+        ));
     }
+    check_name_width(width)
+}
 
+pub fn name_matches_slug(name: &str, slug: &str) -> bool {
+    name.chars()
+        .filter(|ch| !is_name_separator(*ch))
+        .eq(slug.chars().filter(|ch| !is_name_separator(*ch)))
+}
+
+pub fn matches_create_name(existing: &str, normalized: &str) -> bool {
+    // Saved names have already passed validation, including NFKC and actual width.
+    existing == normalized
+        || normalized_name_chars(existing.chars().filter(|ch| *ch != ' ')).eq(normalized.chars())
+}
+
+fn is_name_separator(ch: char) -> bool {
+    matches!(ch, ' ' | '-' | '_')
+}
+
+fn normalized_name_chars(input: impl Iterator<Item = char>) -> impl Iterator<Item = char> {
+    let mut has_text = false;
+    let mut separator_pending = false;
+    input
+        .flat_map(move |ch| {
+            if ch.is_alphanumeric() {
+                let separator = separator_pending.then_some('-');
+                has_text = true;
+                separator_pending = false;
+                [separator, Some(ch)]
+            } else {
+                separator_pending = has_text;
+                [None, None]
+            }
+        })
+        .flatten()
+}
+
+pub fn normalize_name(input: &str) -> Result<String> {
+    let normalized: String = normalized_name_chars(input.nfkc()).collect();
     if normalized.is_empty() {
         return Err(TkError::request(
             "invalid_task_name",
             "Task name is empty after normalization",
         ));
     }
+    check_name_width(normalized.chars().map(|ch| ch.width().unwrap_or(0)).sum())?;
+    Ok(normalized)
+}
 
-    let width: usize = normalized.chars().map(|ch| ch.width().unwrap_or(0)).sum();
+fn check_name_width(width: usize) -> Result<()> {
     if width > 32 {
         return Err(TkError::request(
             "task_name_too_wide",
             format!("Task name occupies {width} terminal columns; maximum is 32"),
         ));
     }
-    Ok(normalized)
+    Ok(())
 }
 
 pub fn validate_extra(value: &Value) -> Result<()> {

@@ -83,3 +83,13 @@ A rename that would move a Task path stops with a conflict error before the firs
 `tk read` returns recent WAL within caller-selectable limits of at most 50 entries and 16000 compact JSON UTF-8 bytes. The `summary` view defaults to 5 entries and 4000 bytes and omits WAL bodies. `detailed` defaults to 50 entries and 16000 bytes and includes WAL bodies. Both views return the complete current Task body. `minimal` reads neither body nor WAL. The runtime selects complete projected entries from newest to oldest, silently omits the rest without a truncation indicator, and returns the selected entries in chronological order. Complete history remains in ordinary `wal/YYYY-MM-DD.md` files.
 
 `tk check` no longer validates WAL through the bounded read path. Its streaming inspector reads every regular daily WAL file and validates every entry in deterministic order without fixed total history limits. It retains no complete WAL history in memory. Required I/O failures and cancellation make the check incomplete, while valid WAL size alone does not.
+
+### 2026-10-19 Task name formatting
+
+Saved names and generated suffixes may differ only in the use or omission of ordinary spaces `U+0020`, hyphens, and underscores. After ignoring those characters, the remaining text must match exactly. NFKC, non-empty text, and the other character requirements remain mandatory, and generated suffixes contain no whitespace. This lets project formatters add readable spaces without requiring name repair or a directory move.
+
+Each saved name and generated suffix independently obeys the 32-terminal-column limit on its actual string, including every separator. Formatting correspondence grants no width exemption and does not change identity, search matching, or Task merging.
+
+Creation and explicit rename retain request normalization and space-free generated paths. Ordinary reads, checks, updates, and representation switching accept valid formatting without rewriting it. Child creation retries ignore newly added ordinary spaces before applying the existing creation-name comparison, while keeping originally distinct normalized requests distinct.
+
+rename still targets a concrete normalized name and applicable path, and returns no change only when both match exactly. Formatting correspondence does not replace narrow damaged-name repair, closed-state preservation, target conflicts, reference protection, exact precommit rechecks, or partial-commit reporting. A directory move followed by a metadata failure may leave a valid readable Task, but retry must still complete the requested target. The [data model](../../../../../projects/tk/docs/design/data-model.md#task-names) owns the full rules.

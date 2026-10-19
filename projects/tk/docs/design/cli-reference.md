@@ -180,7 +180,9 @@ tk rename <task_ref> <name>
   [global-options]
 ```
 
-rename modifies only the Task itself, accepts closed Tasks, and keeps their status. It also repairs an existing string name that is noncanonical, empty, empty after normalization, or too wide, and a recognizable generated suffix that disagrees with metadata. Full UUIDs, exact Task directories, and exact managed carriers can locate eligible repair targets even when ordinary discovery rejects the old name. Other metadata, identity, path, lifecycle, policy, and conflict checks remain strict. Generated child and top-level directories move when their slug changes, while non-generated child directories stay in place. Dry-run and execution return the raw old name, resolved parent, and Markdown references without rewriting them. Repeating a request whose name and applicable path already match returns no change. actor defaults to `cli`.
+rename modifies only the Task itself, accepts closed Tasks, and keeps their status. It also repairs an invalid, empty, or over-wide string name and a recognizable generated suffix that fails the [Task-name rules](./data-model.md#task-names). Full UUIDs, exact Task directories, and exact managed carriers can locate eligible repair targets even when ordinary discovery rejects the old name. Other metadata, identity, path, lifecycle, policy, and conflict checks remain strict. Generated child and top-level directories move when their slug changes, while non-generated child directories stay in place. Dry-run and execution return the raw old name, resolved parent, and Markdown references without rewriting them. Only a saved name and applicable path that exactly match the normalized target return no change. actor defaults to `cli`.
+
+Formatting correspondence does not complete an explicit rename. For example, renaming saved name `AI 学习` at suffix `AI学习` to `AI 学习` targets name and suffix `AI-学习`. The [rename contract](./data-model.md#rename) also retains exact precommit checks and partial-failure retry behavior.
 
 Dry-run text shows `Old path:`, the normalized name as `New name:`, and the absolute destination as `Target path:`. Every execution result shows the target path, and a no-op result prints `No changes` followed by `Target path:`. When references to the old path exist, the text appends a `References to the old path:` list with every reference as `path:line`; the section is absent when there are none. Dry-run always succeeds after a valid plan is built. An execution that would move the Task path stops with the stable error code `broken_reference_conflict` (category `conflict`, exit status 3) before the first write when references to the old path exist; the error shows the target path and every reference with its line. `--ignore-brokenlinks` lets that move proceed. Reference files stay unchanged, and the result still reports them.
 
@@ -277,7 +279,7 @@ Version JSON is:
 
 ```json
 {
-  "runtime_version": "0.1.9",
+  "runtime_version": "0.1.10",
   "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3

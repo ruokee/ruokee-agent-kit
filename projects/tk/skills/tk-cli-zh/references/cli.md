@@ -221,7 +221,7 @@ tk rename <task_ref> <name>
   [--cwd <path>] [--output <text|json>]
 ```
 
-`--dry-run` 返回计划，不写入文件，发现引用时也照常成功。执行只修改目标任务，仅在路径属于生成式路径时移动目录，并报告解析出的父级和 Markdown 引用，不改写引用内容。名称及其适用路径已经匹配时返回无变化。`closed` 任务同样可以改名或修复，并保持其状态。`--actor` 默认是 `cli`。
+`--dry-run` 返回计划，不写入文件，发现引用时也照常成功。执行只修改目标任务，仅在路径属于生成式路径时移动目录，并报告解析出的父级和 Markdown 引用，不改写引用内容。只有保存名称和适用路径都精确匹配规范化目标时才返回无变化。排版已经兼容的名称仍可能产生目录移动。`closed` 任务同样可以改名或修复，并保持其状态。`--actor` 默认是 `cli`。
 
 路径移动会留下旧路径引用时，执行在写入任何内容前以退出码 3 停止。错误会列出每个引用的文件路径和行号。传入 `--ignore-brokenlinks` 可以继续移动；引用文件保持原样，结果中仍会报告它们。
 
@@ -319,7 +319,7 @@ JSON 结果包含：
 
 ```json
 {
-  "runtime_version": "0.1.9",
+  "runtime_version": "0.1.10",
   "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3

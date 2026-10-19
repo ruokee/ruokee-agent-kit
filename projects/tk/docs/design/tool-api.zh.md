@@ -182,6 +182,8 @@ create 请求不接受正文输入；生成标题的规则见[创建正文](./da
 
 创建 open 子任务不需要新的顶层授权。批次只要包含 planning 子任务，就要求 `user_confirmed=true`。首次写入前完成全部校验。新子任务在配置的创建目录下使用 `NN--slug`。编号统计所有叶子目录使用生成式名称的已发现直接子任务，取最大序号且不填补空洞，最大为 `99`。部分创建失败时返回已创建和未创建项。重试只把已发现直接子任务与 create 拥有的请求字段（`name`、`status`、显式提供的 `created_at`、`depends_on`、`related_to`、`extra`）匹配；正文不参与匹配。
 
+重试名称匹配遵循[任务名称规则](./data-model.zh.md#任务名称)，其余请求字段保留既有比较方式。
+
 ## 更新
 
 update 修改关系、`extra` 和至多一个生命周期动作：
@@ -210,6 +212,8 @@ exec 是低频管理入口：
 exec 直接从 argv 调用公开命令解析器，不经过 shell。它拒绝 search、read、create、update、log、mcp、schema、metadata、gc、install、uninstall 和其他首项。
 
 rename 结果包含原始旧名称、存在时的已解析父任务路径、旧路径、规范化后的新名称、目标路径，以及每个 Markdown 引用及其行号。完整 UUID、精确任务目录和精确受管载体可以定位旧字符串名称或可识别生成式后缀需要修复的候选；closed 任务同样适用，并保持其状态。其他校验保持严格。非生成式子任务目录保持不变；生成式子任务和顶层路径保留序号并更新 slug。
+
+判断无变化时，排版对应不替代规范化名称和精确目标路径。精确复检和部分失败重试行为见 [rename 合同](./data-model.zh.md#rename)。
 
 exec 的 rename 与 CLI 采用相同的断链处理。执行会移动任务路径且存在旧路径引用时，在首次写入前以 conflict 错误停止。在 argv 中传入 `--ignore-brokenlinks` 可以继续移动；引用文件保持原样，结果中仍会报告它们。dry-run 在生成合法计划后始终成功。
 

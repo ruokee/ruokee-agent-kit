@@ -221,7 +221,7 @@ tk rename <task_ref> <name>
   [--cwd <path>] [--output <text|json>]
 ```
 
-`--dry-run` returns a plan without writing and always succeeds, including when references exist. Execution changes only the target Task, moves its directory only when it has a generated path, and reports the resolved parent and Markdown references without rewriting them. A name and applicable path that already match return no change. A `closed` Task can be renamed or repaired and keeps its status. `--actor` defaults to `cli`.
+`--dry-run` returns a plan without writing and always succeeds, including when references exist. Execution changes only the target Task, moves its directory only when it has a generated path, and reports the resolved parent and Markdown references without rewriting them. Only a saved name and applicable path that exactly match the normalized target return no change. Formatting-compatible names can still produce a directory move. A `closed` Task can be renamed or repaired and keeps its status. `--actor` defaults to `cli`.
 
 When the path move would leave references to the old path, execution stops with exit status 3 before writing anything. The error lists every reference path and line. Pass `--ignore-brokenlinks` to move anyway; the reference files stay unchanged and the result still reports them.
 
@@ -319,7 +319,7 @@ The JSON payload contains:
 
 ```json
 {
-  "runtime_version": "0.1.9",
+  "runtime_version": "0.1.10",
   "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 3

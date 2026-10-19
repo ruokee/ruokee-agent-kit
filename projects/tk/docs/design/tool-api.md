@@ -182,6 +182,8 @@ Child Task branch:
 
 Open child Tasks do not require new top-level authorization. A batch containing a planning child requires `user_confirmed=true`. All validation completes before the first write in the batch. New children use `NN--slug` under the configured creation directory. Numbering uses all discovered direct children with generated leaf names, takes the largest sequence without filling gaps, and stops at `99`. If creation partially fails, the result returns the created and uncreated items. A retry matches discovered direct children only against the request fields create owns (`name`, `status`, `created_at` when supplied, `depends_on`, `related_to`, `extra`); the body never participates in matching.
 
+Retry name matching follows the [Task-name rules](./data-model.md#task-names); the remaining request fields keep their existing comparisons.
+
 ## Update
 
 update modifies relationships, `extra`, and at most one lifecycle action:
@@ -210,6 +212,8 @@ exec is a low-frequency administrative entry point:
 exec invokes the public command parser directly from argv without using a shell. It rejects search, read, create, update, log, mcp, schema, metadata, gc, install, uninstall, and any other first item.
 
 rename results include the raw old name, the resolved parent Task path when one exists, the old path, the normalized new name, the target path, and every Markdown reference with its line. Full UUIDs, exact Task directories, and exact managed carriers can locate an eligible candidate whose old string name or recognizable generated suffix needs repair. Closed Tasks are eligible and keep their status. Other validation remains strict. Non-generated child directories remain in place; generated child and top-level paths keep their sequence and update the slug.
+
+Formatting correspondence does not replace the normalized name and exact target path when determining no change. See the [rename contract](./data-model.md#rename) for exact rechecks and partial-failure retry behavior.
 
 The exec rename path follows the same broken-reference behavior as the CLI. An execution that would move the Task path stops with a conflict error before the first write when references to the old path exist. Pass `--ignore-brokenlinks` in argv to move anyway; reference files stay unchanged, and the result still reports them. Dry-run always succeeds after a valid plan is built.
 

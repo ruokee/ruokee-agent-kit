@@ -20,7 +20,7 @@ A complete scan that finds problems returns `check_failed`. If a required direct
 
 ## Rename
 
-Run every rename with `--dry-run` first. Confirm the raw old name, normalized new name, resolved parent, target path, conflicts, and reported Markdown references. rename can repair an existing string name that is noncanonical, empty, empty after normalization, or too wide, and a recognizable generated suffix that disagrees with metadata. The runtime changes only the Task's own name, its generated directory when applicable, and metadata. It does not rewrite references in ordinary materials.
+Run every rename with `--dry-run` first. Confirm the raw old name, normalized new name, resolved parent, target path, conflicts, and reported Markdown references. rename can repair an invalid, empty, or over-wide string name and a recognizable generated suffix that fails the name rules. Valid formatting differences described in [Task concepts](./task-concept.md) need no repair. Explicit rename still reaches its concrete normalized name and applicable path, even when the source formatting is valid. The runtime changes only the Task's own name, its generated directory when applicable, and metadata. It does not rewrite references in ordinary materials.
 
 A path-moving rename that finds references to the old path stops with a conflict error before the first write. One option is to update the reported references and run the rename again. To proceed while accepting broken links, pass `--ignore-brokenlinks` to `tk_exec rename`; the reference files stay unchanged, and the result still reports them.
 

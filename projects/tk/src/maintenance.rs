@@ -1598,6 +1598,62 @@ mod tests {
         fs::remove_dir_all(root).unwrap();
     }
 
+    #[test]
+    fn rename_reaches_exact_target_from_compatible_formatting() {
+        for mode in [MetadataMode::Split, MetadataMode::Embed] {
+            for (old_name, slug, requested) in [
+                ("source", "source", "so-urce"),
+                ("so urce", "source", "so urce"),
+                ("so-urce", "so_urce", "so-urce"),
+            ] {
+                let root =
+                    std::env::temp_dir().join(format!("tk-rename-format-{}", Uuid::now_v7()));
+                fs::create_dir(&root).unwrap();
+                let project = rename_test_project(&root, mode, GitPolicy::None);
+                let directory = project.task_root.join(format!("2026/08/31-01--{slug}"));
+                let metadata = task_metadata(old_name);
+                let body = b"# Independent title\n";
+                task_store::create_task_files(&directory, &metadata, body, mode).unwrap();
+                assert!(
+                    task_store::discover_tasks(&project.task_root, mode)
+                        .unwrap()
+                        .invalid_candidates
+                        .is_empty()
+                );
+
+                let result = rename(
+                    &project,
+                    &metadata.id.to_string(),
+                    requested,
+                    false,
+                    false,
+                    "test:agent",
+                )
+                .unwrap();
+                let target = project.task_root.join("2026/08/31-01--so-urce");
+                assert!(result.changed && result.committed);
+                assert_eq!(result.plan.old_name, old_name);
+                assert_eq!(result.plan.target_path, target);
+                assert!(!directory.exists());
+                let changed = task_store::read_task(&target, mode).unwrap().metadata;
+                assert_eq!(changed.id, metadata.id);
+                assert_eq!(changed.name, "so-urce");
+                assert_eq!(task_store::read_body_bytes(&target, mode).unwrap(), body);
+                let retry = rename(
+                    &project,
+                    &metadata.id.to_string(),
+                    requested,
+                    false,
+                    false,
+                    "test:agent",
+                )
+                .unwrap();
+                assert!(!retry.changed && !retry.committed);
+                fs::remove_dir_all(root).unwrap();
+            }
+        }
+    }
+
     fn damage_task_name(directory: &Path, mode: MetadataMode, old_name: &str) {
         let path = match mode {
             MetadataMode::Split => directory.join("tk.toml"),
@@ -1620,7 +1676,7 @@ mod tests {
     fn rename_repairs_invalid_names_in_split_and_embed() {
         for mode in [MetadataMode::Split, MetadataMode::Embed] {
             let old_names = [
-                "source name".to_owned(),
+                "source/name".to_owned(),
                 String::new(),
                 "!!!".to_owned(),
                 "a".repeat(33),
@@ -1952,7 +2008,7 @@ mod tests {
         fs::create_dir(&root).unwrap();
         let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
         let (directory, _) = rename_closed_task_directory(&root, MetadataMode::Split);
-        damage_task_name(&directory, MetadataMode::Split, "closed name");
+        damage_task_name(&directory, MetadataMode::Split, "closed/name");
         let reopen = |task_ref: &str| {
             crate::app::update(
                 &project,

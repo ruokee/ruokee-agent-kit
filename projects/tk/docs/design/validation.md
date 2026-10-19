@@ -27,6 +27,9 @@ Cover split and embed:
 - Direct, configured-directory, and ordinary-material nested children with nearest-valid-ancestor parenthood;
 - Marked invalid carriers, symbolic links, runtime-owned paths, discovery limits, duplicate identities, and logical sibling sequences;
 - UUIDv7, generated name-path agreement, relation deduplication, cross-root references, and dependency cycles;
+- Formatting correspondence for ordinary spaces, hyphens, and underscores without case folding or text changes, across top-level Tasks and generated children;
+- Actual 32/33-column boundaries for names and generated suffixes, counting all separators independently and rejecting whitespace in generated directories;
+- Valid saved spellings survive managed writes and both representation-switching directions without implicit name changes, directory moves, or new diagnostics;
 - Child sequence allocation after `subtasks_dir` changes, gap preservation, and exhaustion at `99`;
 - Non-generated child rename without a directory move and generated rename with a stable sequence;
 - planning, open, and closed transitions and closing constraints;
@@ -35,7 +38,7 @@ Cover split and embed:
 - Strict and permissive creation;
 - create rejects `--body` as an unknown CLI argument and rejects `body` as an unknown field in create requests and child Task items;
 - The runtime writes an initial body of exactly `# <normalized-name>` for both split and embed creation;
-- subtask retry matches only fields create owns, so a retry after the body was rewritten returns no changes and no duplicates;
+- subtask retry matches only fields create owns, ignores added ordinary formatting spaces and edited bodies, and keeps distinct normalized requests such as `AI学习` and `AI-学习` separate;
 - Git `track`, `ignore`, and `none` preflight checks only before writes;
 - Reverse project discovery from absolute discovered Task, carrier, and material paths;
 - Bounded ancestor checks for non-Git discovery.
@@ -93,6 +96,9 @@ Cover name and path updates, unchanged results for repeated identical rename ope
 - `ignore` and `none` scan ordinary Markdown under task_root;
 - Bodies in both split and embed participate;
 - Closed Tasks rename and repair while keeping the status;
+- Formatting-compatible sources still reach the exact normalized name and applicable path, including separator-only changes and repeated requests for a displayed name;
+- Empty or actually over-wide names and recognizable suffix defects remain repairable; exact precommit rechecks retain `stale_rename_plan`;
+- A real directory move followed by metadata I/O failure reports partial completion, and a readable intermediate state still requires retry to reach the exact target;
 - A metadata-only rename reports references without applying the path-move gate, and a no-op request still reports them;
 - A file deleted from the worktree but still present in the Git index does not fail the scan, and untracked files participate;
 - Unreadable reference files fail the command explicitly, and a scan that exceeds its depth or directory limit stops with `reference_scan_limit_exceeded`;

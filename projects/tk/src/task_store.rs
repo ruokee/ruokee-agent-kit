@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use chrono::NaiveDate;
 
-use crate::domain::Metadata;
+use crate::domain::{Metadata, name_matches_slug, validate_name};
 use crate::error::{ErrorCategory, Result, TkError};
 use crate::path::{atomic_write, atomic_write_with, storage_error};
 use crate::project::MetadataMode;
@@ -450,17 +450,23 @@ fn read_discovery_candidate(
     validation: MetadataValidation,
 ) -> Result<std::result::Result<StoredTask, TkError>> {
     match read_task_with_validation(directory, mode, validation) {
-        Ok(task)
+        Ok(task) => {
             if validation == MetadataValidation::Strict
-                && expected_name.is_some_and(|name| task.metadata.name != name) =>
-        {
-            Ok(Err(managed_error(
-                "task_name_path_mismatch",
-                directory,
-                "Task metadata name does not match its generated directory suffix",
-            )))
+                && let Some(slug) = expected_name
+            {
+                if let Err(error) = validate_name(slug) {
+                    return Ok(Err(managed_error(&error.code, directory, error.message)));
+                }
+                if slug.contains(' ') || !name_matches_slug(&task.metadata.name, slug) {
+                    return Ok(Err(managed_error(
+                        "task_name_path_mismatch",
+                        directory,
+                        "Task metadata name does not match its generated directory suffix",
+                    )));
+                }
+            }
+            Ok(Ok(task))
         }
-        Ok(task) => Ok(Ok(task)),
         Err(error)
             if matches!(
                 error.category,
@@ -877,6 +883,89 @@ mod tests {
         let path = std::env::temp_dir().join(format!("tk-store-test-{}", Uuid::now_v7()));
         fs::create_dir(&path).unwrap();
         path
+    }
+
+    #[test]
+    fn formatted_names_survive_managed_writes_and_discovery() {
+        for mode in [MetadataMode::Split, MetadataMode::Embed] {
+            let root = temp_directory();
+            let top = root.join("2026/08/28-01--AI学习");
+            let child = top.join("children/01--AI_学习");
+            let mut top_metadata = named_metadata("AI学习");
+            let mut child_metadata = named_metadata("AI-学习");
+            let body = b"Ordinary body without a heading.\r\n";
+            create_task_files(&top, &top_metadata, body, mode).unwrap();
+            create_task_files(&child, &child_metadata, body, mode).unwrap();
+
+            for name in ["AI学习", "AI 学习", "AI-学习", "AI_学习"] {
+                top_metadata.name = name.into();
+                child_metadata.name = name.into();
+                replace_metadata(&top, &top_metadata, mode).unwrap();
+                replace_metadata(&child, &child_metadata, mode).unwrap();
+                let graph = discover_tasks(&root, mode).unwrap();
+                assert!(graph.invalid_candidates.is_empty());
+                assert_eq!(graph.tasks.len(), 2);
+                assert_eq!(graph.tasks[0].task.metadata, top_metadata);
+                assert_eq!(graph.tasks[1].task.metadata, child_metadata);
+                assert_eq!(graph.tasks[1].parent, Some(0));
+                assert_eq!(read_body_bytes(&top, mode).unwrap(), body);
+                assert_eq!(read_body_bytes(&child, mode).unwrap(), body);
+            }
+            fs::remove_dir_all(root).unwrap();
+        }
+    }
+
+    #[test]
+    fn managed_name_width_counts_every_separator() {
+        for mode in [MetadataMode::Split, MetadataMode::Embed] {
+            for separator in [' ', '-', '_'] {
+                let root = temp_directory();
+                let mut value =
+                    named_metadata(&format!("{}{separator}{}", "中".repeat(10), "a".repeat(11)));
+                create_task_files(&root, &value, b"body\n", mode).unwrap();
+                let original = value.clone();
+                value.name.push('a');
+                let error = replace_metadata(&root, &value, mode).unwrap_err();
+                assert_eq!(error.code, "task_name_too_wide");
+                assert_eq!(read_task(&root, mode).unwrap().metadata, original);
+                fs::remove_dir_all(root).unwrap();
+            }
+        }
+    }
+
+    #[test]
+    fn managed_names_keep_character_constraints() {
+        for mode in [MetadataMode::Split, MetadataMode::Embed] {
+            let root = temp_directory();
+            for name in ["", " -_ ", "AI\t学习", "ＡＩ学习", "AI/学习", "AI.学习"] {
+                let error =
+                    create_task_files(&root, &named_metadata(name), b"body\n", mode).unwrap_err();
+                assert_eq!(error.code, "invalid_task_name");
+            }
+            fs::remove_dir_all(root).unwrap();
+        }
+    }
+
+    #[test]
+    fn discovery_rejects_invalid_generated_suffixes() {
+        for mode in [MetadataMode::Split, MetadataMode::Embed] {
+            for (slug, code) in [
+                ("AI 学习".into(), "task_name_path_mismatch"),
+                (format!("AI{}学习", "_".repeat(27)), "task_name_too_wide"),
+                ("AI知识".into(), "task_name_path_mismatch"),
+                ("ai学习".into(), "task_name_path_mismatch"),
+            ] {
+                let root = temp_directory();
+                let directory = root.join(format!("2026/08/28-01--{slug}"));
+                create_task_files(&directory, &named_metadata("AI学习"), b"body\n", mode).unwrap();
+                let graph = discover_tasks(&root, mode).unwrap();
+                assert!(graph.tasks.is_empty());
+                assert_eq!(graph.invalid_candidates.len(), 1);
+                assert_eq!(graph.invalid_candidates[0].directory, directory);
+                assert_eq!(graph.invalid_candidates[0].error.code, code);
+                fs::remove_dir_all(root).unwrap();
+            }
+        }
     }
 
     #[test]

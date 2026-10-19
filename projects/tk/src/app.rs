@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::{NoContext, Timestamp, Uuid};
 
-use crate::domain::{Metadata, Status, normalize_name, validate_extra};
+use crate::domain::{Metadata, Status, matches_create_name, normalize_name, validate_extra};
 use crate::error::{ErrorCategory, Result, TkError};
 use crate::path::storage_error;
 use crate::project::{CreationPolicy, Project};
@@ -1028,7 +1028,7 @@ fn direct_subtasks(graph: &task_store::TaskGraph, parent: usize) -> Vec<&StoredT
 
 fn prepared_matches(prepared: &PreparedTask, existing: &StoredTask) -> bool {
     let metadata = &existing.metadata;
-    metadata.name == prepared.metadata.name
+    matches_create_name(&metadata.name, &prepared.metadata.name)
         && metadata.status == prepared.metadata.status
         && metadata.depends_on == prepared.metadata.depends_on
         && metadata.related_to == prepared.metadata.related_to
@@ -1974,7 +1974,7 @@ mod tests {
     }
 
     #[test]
-    fn subtask_retry_ignores_agent_edited_body() {
+    fn subtask_retry_ignores_formatted_spaces_and_agent_edited_body() {
         let (root, project) = temp_project_with_policy(CreationPolicy::Permissive);
         let parent = create(
             &project,
@@ -1990,7 +1990,7 @@ mod tests {
             &project,
             CreateRequest::Subtasks {
                 parent_ref: parent.id.to_string(),
-                subtasks: vec![subtask_input("first")],
+                subtasks: vec![subtask_input("AI学习")],
                 user_confirmed: false,
             },
         )
@@ -2003,12 +2003,18 @@ mod tests {
             "# first\n\nAgent rewrote this body after creation.\n",
         )
         .unwrap();
+        let mut formatted = task_store::read_task(&first.task_dir, project.config.metadata_mode)
+            .unwrap()
+            .metadata;
+        formatted.name = "AI 学习".into();
+        task_store::replace_metadata(&first.task_dir, &formatted, project.config.metadata_mode)
+            .unwrap();
 
         let retry = create(
             &project,
             CreateRequest::Subtasks {
                 parent_ref: parent.id.to_string(),
-                subtasks: vec![subtask_input("first")],
+                subtasks: vec![subtask_input("AI学习")],
                 user_confirmed: false,
             },
         )
@@ -2027,6 +2033,24 @@ mod tests {
             fs::read_to_string(first.task_dir.join("TASK.md")).unwrap(),
             "# first\n\nAgent rewrote this body after creation.\n"
         );
+        assert_eq!(
+            task_store::read_task(&first.task_dir, project.config.metadata_mode)
+                .unwrap()
+                .metadata,
+            formatted
+        );
+        let distinct = create(
+            &project,
+            CreateRequest::Subtasks {
+                parent_ref: parent.id.to_string(),
+                subtasks: vec![subtask_input("AI-学习")],
+                user_confirmed: false,
+            },
+        )
+        .unwrap();
+        assert_eq!(distinct.created.len(), 1);
+        assert_ne!(distinct.created[0].id, first.id);
+        assert_eq!(distinct.created[0].name, "AI-学习");
         fs::remove_dir_all(root).unwrap();
     }
 

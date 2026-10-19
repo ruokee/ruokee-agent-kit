@@ -171,6 +171,8 @@ tk rename <task_ref> "New name" --dry-run
 tk rename <task_ref> "New name"
 ```
 
+Saved names may contain formatting spaces while a generated directory keeps its space-free suffix. Reads and checks preserve that valid spelling; see [Task names](./design/data-model.md#task-names). Explicit rename normalizes the requested name and may move the directory even when the source formatting is already valid.
+
 A rename that moves the Task path stops with exit status 3 when references to the old path exist. Update the reported references and run the rename again. To proceed while accepting broken links, add `--ignore-brokenlinks`.
 
 The same command repairs eligible old string names and recognizable generated suffix mismatches in split and embed. Use a full UUID, exact Task directory, or exact managed carrier; other managed-data validation remains strict. Closed Tasks can be renamed or repaired and keep their status.

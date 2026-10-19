@@ -42,7 +42,7 @@ The current initial schema version is 1. Metadata contains only:
 
 - `schema_version`: required positive integer.
 - `id`: required UUIDv7, immutable after creation.
-- `name`: required normalized name, modifiable only by rename.
+- `name`: required name satisfying the Task-name rules, modifiable only by rename.
 - `status`: `planning`, `open`, or `closed`.
 - `created_at`: required RFC 3339 timestamp with a time zone, immutable after creation.
 - `depends_on`: set of UUIDs within the same Task root.
@@ -84,14 +84,14 @@ After creation the caller maintains the body as ordinary content. Neither rename
 
 ## Candidate identification
 
-Top-level Task discovery requires the canonical `YYYY/MM/DD-NN--slug` topology, including fixed sequence widths, the `--` separator, a valid calendar date, a non-empty slug, and a metadata name matching the slug. After discovering a valid top-level Task, the runtime recursively scans real descendant directories. Ordinary material directories remain traversable because a child Task may be below them.
+Top-level Task discovery requires the canonical `YYYY/MM/DD-NN--slug` topology, including fixed sequence widths, the `--` separator, a valid calendar date, a non-empty slug, and a metadata name corresponding to the slug under the [Task-name rules](#task-names). After discovering a valid top-level Task, the runtime recursively scans real descendant directories. Ordinary material directories remain traversable because a child Task may be below them.
 
 A descendant directory first needs an intentional marker for the project's `metadata_mode`:
 
 - In split mode, a regular `tk.toml` is the marker. A valid Task also requires a regular paired `TASK.md`.
 - In embed mode, a regular `TASK.md` is a marker only when it starts with the tk YAML delimiter and `schema_version` header. The complete frontmatter must then pass strict validation.
 
-A marked directory becomes a Task only after its carrier, schema, UUIDv7 identity, representation, and project path pass validation. A generated `NN--slug` child must also match its metadata name. A non-generated child has no path-to-name requirement. Marked but invalid directories are omitted from normal discovery and reported by `check`; unrelated `TASK.md` files and ordinary YAML frontmatter remain materials.
+A marked directory becomes a Task only after its carrier, schema, UUIDv7 identity, representation, and project path pass validation. A generated `NN--slug` child must also correspond to its metadata name under the Task-name rules. A non-generated child has no path-to-name requirement. Marked but invalid directories are omitted from normal discovery and reported by `check`; unrelated `TASK.md` files and ordinary YAML frontmatter remain materials.
 
 The nearest enclosing valid Task is the discovered parent. Invalid marked directories and ordinary material directories do not replace that ancestor. Symbolic links, special files, WAL directories, `.tk-tmp`, cleanup data, and paths outside the Task root do not participate in discovery.
 
@@ -103,7 +103,19 @@ Traversal order is deterministic. One scan accepts at most 100,000 real director
 
 ## Task identity
 
-UUIDv7 is the authoritative identity. Paths are locators and may change through rename. Names are normalized using NFKC, restricted characters, and a limit of 32 terminal display columns.
+UUIDv7 is the authoritative identity. Paths are locators and may change through rename. Names describe Tasks.
+
+## Task names
+
+Saved names must be NFKC text containing at least one letter or number. Only letters, numbers, ordinary spaces `U+0020`, hyphens `-`, and underscores `_` are allowed.
+
+Saved names and generated directory suffixes each occupy at most 32 actual terminal display columns. Count every space, hyphen, and underscore in the stored string, without stripping or normalizing it first. A name that grows from 32 to 33 columns through formatting fails with `task_name_too_wide`. Date and sequence prefixes are not part of the suffix width.
+
+A generated suffix satisfies the same character and non-empty-text rules and contains no whitespace. Compare a valid name and suffix by ignoring only ordinary spaces, hyphens, and underscores on both sides. The remaining text must match exactly, including case. For example, suffix `AI学习` corresponds to names `AI学习`, `AI 学习`, `AI-学习`, and `AI_学习`. This comparison is not identity, a search alias, or a rule for merging Tasks. Non-generated child directories have no name correspondence requirement.
+
+Creation and explicit rename retain request normalization with NFKC, restricted characters, and collapsed hyphen separators. New generated directories contain no spaces. Ordinary reads and `check` do not normalize saved names or move directories; metadata updates and representation switching preserve a valid saved spelling.
+
+For child creation retries, validate the saved name completely, remove its ordinary spaces, then apply the existing creation normalization before comparing it with the normalized request name. Other request fields keep their existing matching conditions. Formatting spaces therefore do not duplicate an existing child, while requests `AI学习` and `AI-学习` remain distinct.
 
 ## Relationships
 
@@ -241,7 +253,7 @@ Switching does not append Task WAL entries.
 
 ## rename
 
-rename performs ordinary renaming and repairs an existing string name that is noncanonical, empty, empty after normalization, or wider than 32 display columns. It also repairs a recognizable generated directory whose nonempty suffix disagrees with metadata:
+rename applies request normalization and a concrete target even when the saved name and generated suffix already correspond under formatting comparison. It also repairs an invalid, empty, or over-wide string name, or a recognizable generated suffix that fails the [Task-name rules](#task-names):
 
 1. Resolve one eligible candidate by full UUID, exact Task directory, or exact managed carrier. Repairable candidates participate in UUID uniqueness and parent ownership; indeterminate ancestry is rejected.
 2. Normalize the new name and validate the complete metadata with that replacement. Missing or incorrectly typed names, damaged identity, unsupported schema, invalid relationships or `extra`, unsafe paths, and unrecognizable generated structures remain errors.
@@ -251,6 +263,10 @@ rename performs ordinary renaming and repairs an existing string name that is no
 6. Move a generated directory without overwriting. Skip this step for a non-generated child.
 7. Update metadata while preserving the body, the status, and all fields except `name`.
 8. Append WAL.
+
+Only exact equality of the saved name and applicable target path returns no change. Renaming name `AI 学习` at suffix `AI学习` to `AI 学习` targets name and suffix `AI-学习`. Renaming name `AI-学习` at suffix `AI_学习` to the same name still moves the directory.
+
+Before committing, compare the current path, complete metadata, target, and references exactly with the plan. Formatting equivalence never suppresses `stale_rename_plan`. If directory movement succeeds but metadata replacement fails, return the original partial-commit error and completed and incomplete items. A readable intermediate state does not complete the rename; the same request replans and finishes the exact target.
 
 The runtime does not automatically rewrite references. With `git_policy=track`, it scans Markdown across the project from the file system, independent of Git staging state. With `ignore` or `none`, it scans regular Markdown under `task_root`. Task bodies in both split and embed are included. Managed frontmatter, WAL, and temporary content are excluded. A scan that exceeds its depth or directory limit fails with `reference_scan_limit_exceeded`.
 
