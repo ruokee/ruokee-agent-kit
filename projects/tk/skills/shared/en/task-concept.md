@@ -33,6 +33,10 @@ A Task directory contains four kinds of content:
 
 The runtime owns managed metadata and WAL. An Agent may maintain the `TASK.md` body and ordinary materials, but must not rewrite managed fields outside the runtime or edit, delete, or reorder existing WAL entries.
 
+Body headings are ordinary content, separate from the managed name and generated directory suffix. A level-one heading is optional, may differ from both, and is not subject to the name's 32-column display-width limit. Within existing body-edit permissions, an Agent may edit headings without `rename`, metadata changes, or directory moves. Rename does not synchronize them, and closed Tasks retain their existing read-only boundary.
+
+Prefer spaces between words in headings for readability, while preserving user-specified wording and meaningful identifiers. This is optional, not a rule to mechanically replace `-` or `_`. The runtime-generated initial heading remains valid without an extra post-creation edit.
+
 WAL records durable events that happened, such as decisions, corrections, recoverable milestones, verification results, collaboration results, and blockers. It is append-only history, not a current-state summary. Keep only current facts in the body. Put longer reusable content in ordinary materials and link it from the body.
 
 Ordinary materials are not governed by the tk schema and are not added to the Task index. They may be documents, code, data, images, command output, or other files. Do not use the managed names `tk.toml`, `TASK.md`, or `wal/` for ordinary materials.

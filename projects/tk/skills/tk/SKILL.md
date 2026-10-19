@@ -49,7 +49,8 @@ Search names, directory basenames, UUID prefixes, text, regular expressions, bra
 Use `create` to create Tasks.
 
 - New Tasks default to `open`. Use `planning` only when the user explicitly wants to preserve an idea, investigation, or plan that is still forming.
-- When the user does not supply a name, choose one that states the purpose clearly. Prefer a short imperative, phrase, or noun. Do not combine independent work with conjunctions such as `and`.
+- When the user does not supply a name, choose one that states the Task's overall intended outcome, not only its first preparatory step. Prefer a short imperative, phrase, or noun. Do not combine independent work with conjunctions such as `and`.
+- Prefer names without preparatory terms such as analysis, evaluation, or planning. This is a preference, not a ban; preserve user-specified names. Keep explicitly research-only work within its stated scope. Select `planning` by its existing rules, not by words in a name.
 - Report the new Task's name, status, and path in the same response.
 - Pass `created_at` only when adding a historical Task.
 - The tk runtime automatically writes `# <normalized-name>` as the initial `TASK.md` body when it creates a Task. After creation succeeds, edit `TASK.md` with a separate file operation when the Task needs durable goals, constraints, decisions, or material links.
@@ -134,6 +135,10 @@ An Agent may create or update ordinary text files without per-file confirmation.
 Keep `TASK.md` compact. Store only the current objective, scope, constraints, stable decisions that still apply, important material links, and active blockers. Put command transcripts, chat history, long research, detailed designs, check records, and volatile steps in ordinary materials.
 
 You may edit the `TASK.md` body and ordinary materials. Metadata must be changed through tk tools.
+
+`TASK.md` headings are ordinary body content. A level-one heading is optional, may differ from the managed name and directory, and is not subject to the name's 32-column display-width limit. Within existing body-edit permissions, edit headings directly without requiring `rename`, metadata changes, or directory moves. Rename does not synchronize body headings. Closed Tasks retain their existing read-only boundary.
+
+Prefer spaces between words in headings for readability. This is optional: preserve user-specified wording and meaningful identifiers rather than mechanically replacing `-` or `_`. The runtime-generated initial heading remains valid and does not require an extra post-creation edit.
 
 Read [Usage patterns](./references/patterns.md) when the user explicitly requests a pattern or when signals such as chronological records, work spanning dates, repeated major redesigns, research, or drafts appear.
 

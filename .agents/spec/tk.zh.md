@@ -10,6 +10,7 @@
 - 任务领域规则、持久化、发现、迁移、维护、CLI、stdio MCP、生成的工具契约和 Harness 组件生命周期都由一个 Rust 运行时负责。见 [projects/tk/docs/design/runtime.zh.md](../../projects/tk/docs/design/runtime.zh.md)。
 - 人用 CLI、stdio MCP 以及 Pi 和 OMP 原生工具都经由同一个公开可执行文件访问运行时，共用一套结果、错误和版本模型。见 [projects/tk/docs/design/tool-api.zh.md](../../projects/tk/docs/design/tool-api.zh.md) 和 [projects/tk/docs/design/cli-reference.zh.md](../../projects/tk/docs/design/cli-reference.zh.md)。
 - 提供四个 Skill（tools 或 CLI 模式，英文或中文），每种语言共用一份参考文件源。见 [projects/tk/docs/design/skill.zh.md](../../projects/tk/docs/design/skill.zh.md)。
+- 指导 Agent 按任务的整体预期目标命名，同时保留明确名称、仅研究范围和生命周期语义。见 [Skill 行为](../../projects/tk/docs/design/skill.zh.md)。
 - 从一个内嵌 bundle 离线安装、更新和卸载 Harness 组件和独立的 CLI Skill。见 [projects/tk/docs/design/installation.zh.md](../../projects/tk/docs/design/installation.zh.md) 和 [projects/tk/docs/design/harnesses.zh.md](../../projects/tk/docs/design/harnesses.zh.md)。
 
 ## 非目标
@@ -36,6 +37,7 @@
 - `projects/tk/` 是唯一维护的源码区域。一个 Cargo 包构建一个 `tk` 可执行文件，Rust 构建是唯一的 bundle 组装者。
 - 项目文件是任务状态的唯一权威来源。
 - 任务名称的排版差异在每个运行时接口中保持可用，不隐式改名。保存名称和生成式后缀各自遵守实际显示宽度上限，创建重试保留不同规范化请求的区分，显式 rename 达到精确目标。见[任务名称](../../projects/tk/docs/design/data-model.zh.md#任务名称)。
+- `TASK.md` 标题保持为普通正文，与受管名称和目录后缀相互独立。标题指导不增加运行时校验、rename 要求、强制写入或正文编辑权限。见 [Skill 行为](../../projects/tk/docs/design/skill.zh.md#任务文件内容)。
 - 普通任务材料支持软链接，发现和完整性检查不因链接产生诊断，也不遍历目标。受管存储保留其类型要求。见[任务发现与 check](../../projects/tk/docs/design/data-model.zh.md)。
 - Harness 组件注册工具和配置，但不重复任务校验或存储。它们直接启动固定的公开运行时，从不安装第二个运行时、包装器或私有可执行文件。
 - 适配器通过公开 CLI 映射操作，不解析版本范围；兼容性由运行时判断。

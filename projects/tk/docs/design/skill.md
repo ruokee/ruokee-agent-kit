@@ -49,6 +49,12 @@ A normal catchup is read-only: read the summary, the `TASK.md` entry point, and 
 
 The [creation authorization](./data-model.md#creation-authorization) rules decide when creation is allowed. This section covers how an Agent acts on them.
 
+### Names
+
+When the user does not specify a name, choose one that expresses the Task's overall intended outcome, not only its first preparatory step. Prefer avoiding preparatory terms such as analysis, evaluation, or planning. This is a naming preference, not a ban, and does not override user-specified names.
+
+Keep explicitly research-only work within its stated scope. Use the existing lifecycle rules to select `planning`; do not infer status from words in a name.
+
 ### strict
 
 An Agent must not treat "this issue may be important" as confirmation.
@@ -81,6 +87,10 @@ Use batch creation only for independent, genuine work units under the same paren
 It does not store step-by-step chat transcripts, command logs, long-form research, or superseded plans. Write detailed materials as ordinary files in the Task directory and link to them from `TASK.md`.
 
 An Agent may edit the `TASK.md` body and ordinary materials. Managed metadata must be changed through tk operations.
+
+Headings are ordinary body content, independent of the managed name and directory. A level-one heading is optional, may differ from both, and is not subject to the name's 32-column display-width limit. Within existing body-edit permissions, edit headings directly without requiring `rename`, metadata changes, or directory moves. Rename does not synchronize body headings, and closed Tasks retain their existing read-only boundary.
+
+Prefer spaces between words in headings for readability. This is optional: preserve user-specified wording and meaningful identifiers rather than mechanically replacing `-` or `_`. The runtime still generates `# <normalized-name>` as the initial body; this preference does not require an extra post-creation write.
 
 ## Logging
 

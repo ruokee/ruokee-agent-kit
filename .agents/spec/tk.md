@@ -10,6 +10,7 @@ Spec for [projects/tk](../../projects/tk/README.md). It states tk's goals, bound
 - Keep Task domain rules, persistence, discovery, migration, maintenance, the CLI, stdio MCP, generated tool contracts, and the Harness component lifecycle in one Rust runtime. See [projects/tk/docs/design/runtime.md](../../projects/tk/docs/design/runtime.md).
 - Reach that runtime through one public executable from every interface: the human CLI, stdio MCP, and native Pi and OMP tools, with one result, error, and version model. See [projects/tk/docs/design/tool-api.md](../../projects/tk/docs/design/tool-api.md) and [projects/tk/docs/design/cli-reference.md](../../projects/tk/docs/design/cli-reference.md).
 - Ship four Skills, tools or CLI mode in English or Chinese, from one shared reference source per language. See [projects/tk/docs/design/skill.md](../../projects/tk/docs/design/skill.md).
+- Guide Agents to name each Task by its overall intended outcome while preserving explicit names, research-only scope, and lifecycle semantics. See [Skill behavior](../../projects/tk/docs/design/skill.md).
 - Install, update, and remove Harness components and standalone CLI Skills offline from one embedded bundle. See [projects/tk/docs/design/installation.md](../../projects/tk/docs/design/installation.md) and [projects/tk/docs/design/harnesses.md](../../projects/tk/docs/design/harnesses.md).
 
 ## Out of scope
@@ -36,6 +37,7 @@ Spec for [projects/tk](../../projects/tk/README.md). It states tk's goals, bound
 - `projects/tk/` is the only maintained source area. One Cargo package builds one `tk` executable, and the Rust build is the only bundle assembler.
 - Project files are the only authoritative Task state.
 - Task-name formatting differences remain usable through every runtime interface without implicit renaming. Saved names and generated suffixes each obey their actual display-width limit; creation retries preserve distinct normalized requests, and explicit rename reaches its exact target. See [Task names](../../projects/tk/docs/design/data-model.md#task-names).
+- `TASK.md` headings remain ordinary body content, independent of managed names and directory suffixes. Heading guidance adds no runtime validation, rename requirement, mandatory write, or body-edit permission. See [Skill behavior](../../projects/tk/docs/design/skill.md#task-file-contents).
 - Ordinary Task materials support symbolic links without link diagnostics or target traversal during discovery and integrity checking. Managed storage retains its type requirements. See [Task discovery and check](../../projects/tk/docs/design/data-model.md).
 - Harness components register tools and configuration but do not duplicate Task validation or storage. They start the fixed public runtime directly and never install a second runtime, wrapper, or private executable.
 - Adapters map operations through the public CLI. They do not parse version ranges; the runtime evaluates compatibility.
