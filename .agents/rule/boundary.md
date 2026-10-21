@@ -18,7 +18,8 @@ The [repository spec](../spec/repository.md) states what this repository should 
 - Keep each capability in its host-native or build-native format. Do not force Plugins, extensions, executables, or host packages into `./skills/`.
 - Store English Skills under `./skills/<name>/` and Chinese variants under `./variants/zh/skills/<name>/`.
 - Keep a pure Skill tree to host-discoverable Skill material such as `SKILL.md`, workflows, references, examples, and glossaries. Do not copy Plugin manifests, marketplace metadata, package changelogs, or host-specific Agent definitions into it.
-- Keep every distributable component, including each language variant, self-contained. Its files may reference only files inside that component and must not link to, depend on, or instruct use of other repository content.
+- Keep every distributable component, including each language variant, self-contained. Its files may reference only files inside that component. A component may name another component, tool, or Skill and declare it as a prerequisite. The component must not link to, import, or read another component's files or package, or depend on repository support files.
+- State a prerequisite explicitly instead of implying it through a link into another component's files.
 - Write links inside a variant for the installed `skills/<name>/` path, without the source-only `variants/zh/` prefix.
 - Add a top-level area only when a real component needs it, and do not prebuild empty capability categories.
 

@@ -23,7 +23,7 @@ OMP 实验性的 `context_notes` 为每个分支保存一整本笔记，并按�
 
 ### 组件范围
 
-按[第一方能力边界](../../../decision/2026/08/20-first-party-capabilities.zh.md)和[组件自包含契约](../../../decision/2026/08/24-component-self-containment.zh.md)，在 `projects/omp-context-pin/` 添加第一方包 `@ruokee/omp-context-pin`。该包通过 `package.json` 的 `omp.extensions` 元数据声明扩展入口，运行时、检查以及双语 `README.md` 和 `README.zh.md` 都位于组件目录内，并且只使用公开的 OMP 扩展 API。它不导入宿主私有模块，不修改上游源码或已安装的二进制，也不依赖其他仓库组件中的文件。
+按[第一方能力边界](../../../decision/2026/08/20-first-party-capabilities.zh.md)和[组件自包含契约](../08/24-r1-component-self-containment.zh.md)，在 `projects/omp-context-pin/` 添加第一方包 `@ruokee/omp-context-pin`。该包通过 `package.json` 的 `omp.extensions` 元数据声明扩展入口，运行时、检查以及双语 `README.md` 和 `README.zh.md` 都位于组件目录内，并且只使用公开的 OMP 扩展 API。它不导入宿主私有模块，不修改上游源码或已安装的二进制，也不依赖其他仓库组件中的文件。
 
 该包只注册一个斜杠命令 `/ctx-pin` 和一个原生工具 `ctx_pin`。`/pin` 是内置保留命令名，用于切换会话在恢复列表中的置顶状态，OMP 会过滤重用保留名的扩展命令并记录冲突警告，因此本扩展使用不同名称。
 

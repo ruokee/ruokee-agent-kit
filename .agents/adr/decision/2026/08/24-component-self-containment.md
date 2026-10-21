@@ -1,41 +1,48 @@
 # Component self containment
 
 Decision owner: Ruokee
-Decision writer: OMP GPT-5.6 Sol
+Decision writer: OMP DeepSeek V4.1 Flash
+Reverses: [2026-08-24 r1 component self containment](../../../archived/2026/08/24-r1-component-self-containment.md)
 
 English | [中文](./24-component-self-containment.zh.md)
 
 ## Motivation
 
-Make every Skill, Extension, Plugin, and Package a self-contained distributable component that may not link to another component's files.
+Keep component files self-contained while allowing component text to declare the tools and Skills it requires.
 
-A repository-relative link from one distributable component to another may work in the source tree while failing when only the first component is installed. Skills, Extensions, Plugins, and Packages are installed and distributed as separate components, so such a link also creates an undeclared requirement for both to use compatible revisions.
+The earlier decision prohibited component files from linking to, depending on, or instructing Agents to load another Skill, Extension, Plugin, or Package, and covered examples whose operation required another repository component. Read literally, that wording also prohibited a workflow from stating that it requires tk, or a Skill from naming another Skill it can load. The failure the rule targets is a repository file reference that resolves outside the component and breaks when only that component is installed. Naming a tool or Skill through its public interface creates no such file reference. Components have legitimate runtime prerequisites, and a reader needs them stated.
 
-The Python-specific code-quality migration exposed this problem directly. `python-engineering` linked back to files owned by `code-quality`, so the installed Skill was not self-contained. Similar links to repository support files have the same failure mode.
-
-Language variants need the same boundary. A variant replaces or installs as one component and cannot assume that the source repository or another language tree is present.
+Repository support files and cross-component links have the same failure mode. A component that links to files owned by another component or to repository-level material may work in the source tree but fail after installation, and it creates an undeclared requirement for compatible revisions. Language variants have the same boundary because a variant installs as one component.
 
 ## Decision
 
 Treat every Skill, Extension, Plugin, and Package as a self-contained distributable component. For current Skills, the component roots are `skills/<name>/` and each `variants/<language>/skills/<name>/` tree. Future component categories follow the same rule under their own roots.
 
-A repository file reference inside a component must resolve within that component's directory. Component files must not link to, depend on, or instruct Agents to load another Skill, Extension, Plugin, or Package. They must not depend on repository support files outside the component either.
+A repository file reference inside a component must resolve within that component's directory. This covers Markdown links, written file paths, imports, package dependencies, and runtime file reads. A component must not link to, import, or read another repository component's files or package, and must not depend on repository support files outside its directory, including `.agents/spec/`, `.agents/rule/`, and other repository-level material. References such as `../code-quality/...`, `../../docs/...`, `skills/<name>/...`, repository-root-relative paths, and absolute paths do not resolve inside the component and violate this boundary.
 
-This rule covers Markdown links, written file paths, and examples whose operation requires another repository component. It does not prohibit discussing a general concept or naming an external library that happens to share a component name. Public external sources and upstream documentation may still be cited when the component remains usable without another repository component.
+Component text may name another component, tool, or Skill, declare it as a prerequisite, and instruct its use by name or through a public interface, including loading a Skill such as `skill://grill-me`. A declared prerequisite is not a file or code dependency. The component does not need to bundle the prerequisite, copy its implementation, or provide a fallback. A prerequisite must be stated explicitly rather than implied by a link into another component's files.
+
+Self-containment means the component's file set is complete, installs independently, has a determinate version, and can be read on its own. It does not mean the component has no runtime prerequisites; its full function may depend on a declared prerequisite.
+
+An example that needs files from another repository component violates the boundary. An example that invokes a public tool or Skill by name without reading another component's files is allowed. Public external sources, external URLs, upstream documentation, general concepts, and external libraries that share a component name remain allowed, provided the component does not need another repository component's files.
 
 Repository-wide documentation, ADRs, manifests, installers, and integration code outside component directories may reference components when describing or assembling them. The restriction applies to references originating inside a distributable component.
 
 ## Alternatives considered
 
-None
+**Keep the broad prohibition.** A component could not declare a real prerequisite, so readers would have to infer it. Legitimate name references, such as a workflow requiring tk or a Skill naming another Skill to load, would remain boundary violations.
+
+**Prohibit only Markdown links.** Written paths, imports, and runtime reads would be allowed. A component could still refer to a file outside itself in a form that breaks after installation, so the failure the rule targets would return.
+
+**Bundle every prerequisite.** A component would copy another component's files or implementation so no external prerequisite exists. This duplicates content across components and lets copies drift in version and behavior.
 
 ## Consequences
 
-Each component can be installed, versioned, and read without another repository component or the source repository layout.
+Each component's file set remains installable, versionable, and readable without another repository component or the source repository layout. A component may state the tools or Skills it requires, so readers see the declared prerequisite. Its full function may depend on that prerequisite, and the repository cannot guarantee a compatible version; a missing or incompatible prerequisite can cause a failure or a weaker result. Components still may not link another component's implementation.
 
-Related components may repeat a small amount of guidance. Keep that material specific to each component instead of mirroring whole documents. When content moves between components, move the necessary explanation and remove the old cross-boundary reference in the same change.
+Related components may repeat a small amount of guidance. Keep that material specific to each component instead of mirroring whole documents. When content moves between components, move the necessary explanation and remove the old cross-boundary reference in the same change. Reviews must treat a component file reference that resolves outside its own directory as a boundary violation.
 
-Repository-level documentation remains the place for comparisons, composition guidance, and relationships between components. Reviews must treat a component link that resolves outside its own directory as a boundary violation.
+Repository-level documentation remains the place for comparisons, composition guidance, and relationships between components.
 
 ## Changes
 

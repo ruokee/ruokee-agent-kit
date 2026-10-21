@@ -31,7 +31,7 @@ OMP 需要一份维护者自有系统提示词来描述运行时和如实交付�
 
 ### 包
 
-在 `projects/omp-system-prompt/` 添加第一方包 `@ruokee/omp-system-prompt`，通过原生 `omp.extensions` 元数据声明入口。运行代码、维护者自有英文提示词、检查和双语 README 均位于组件内。该选择遵循[第一方能力边界](../../../decision/2026/08/20-first-party-capabilities.zh.md)和[组件自包含契约](../../../decision/2026/08/24-component-self-containment.zh.md)，无需反转这两个决定。
+在 `projects/omp-system-prompt/` 添加第一方包 `@ruokee/omp-system-prompt`，通过原生 `omp.extensions` 元数据声明入口。运行代码、维护者自有英文提示词、检查和双语 README 均位于组件内。该选择遵循[第一方能力边界](../../../decision/2026/08/20-first-party-capabilities.zh.md)和[组件自包含契约](../08/24-r1-component-self-containment.zh.md)，无需反转这两个决定。
 
 使用公开 OMP 扩展 API，不导入私有提示词装配器，不重新扫描资源，不复制上下文发现机制，也不收录上游模板副本。不依赖其他仓库组件中的文件或特定机器的安装。安装、启用、禁用和卸载采用原生机制，不替用户写入 `SYSTEM.md`。
 

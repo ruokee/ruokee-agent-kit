@@ -21,7 +21,7 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 [Boundary rules](./.agents/rule/boundary.md)
 
 - Keep only components authored by the maintainer in this repository. Do not add third-party capabilities, forks, or upstream mirrors.
-- Keep every distributable component self-contained. Its files may reference only files inside that component and must not link to, depend on, or instruct use of other repository content.
+- Keep every distributable component self-contained. Its files may reference only files inside it. Naming another component, tool, or Skill, or declaring one as a prerequisite, is not a file reference. Declare a prerequisite explicitly.
 - Avoid tracking local directories, sensitive information, credentials, private hostnames, internal service URLs, or the device's model, provider, or channel configuration.
 - Commit a component's `X.Y.Z` version update together with the functional change it ships. Increment `Z` by default; the maintainer decides changes to `X` or `Y`.
 

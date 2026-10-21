@@ -23,7 +23,7 @@ Reversed by: [模型提示词规则](./14-r2-model-prompt-rules.zh.md)
 
 ### 组件
 
-本能力由 `projects/omp-system-prompt` 承载，遵循 [只由组件模板渲染系统提示词策略](./07-r4-omp-system-prompt.zh.md) 与 [保持组件自包含](../../../decision/2026/08/24-component-self-containment.zh.md) 两项决定。包名、原生 `omp.extensions` 入口、`renderDelivery` 设置与 peer dependency 合同保持不变；其他仓库组件中的文件不参与。
+本能力由 `projects/omp-system-prompt` 承载，遵循 [只由组件模板渲染系统提示词策略](./07-r4-omp-system-prompt.zh.md) 与 [保持组件自包含](../08/24-r1-component-self-containment.zh.md) 两项决定。包名、原生 `omp.extensions` 入口、`renderDelivery` 设置与 peer dependency 合同保持不变；其他仓库组件中的文件不参与。
 
 没有规则文件时，每个 turn 的行为与之前一致，因此该变更对已安装用户是增量式的。不提供启用开关：规则文件是否存在决定该能力是否生效。
 

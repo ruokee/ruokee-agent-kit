@@ -8,7 +8,7 @@ Spec for the ordinary Skills under `skills/` and their Chinese variants under `v
 
 - Ship each Skill as a self-contained, host-discoverable component: the English base at `skills/<name>/` and the Chinese variant at `variants/zh/skills/<name>/`.
 - Install a selected language variant at the host's normal Skill path, `<skill root>/<name>/`, without the source-only `variants/zh/` prefix.
-- Keep each Skill understandable on its own. A link to another Skill may only point to related reading.
+- Keep each Skill understandable on its own. A Skill may name another Skill as related reading; it may not link to that Skill's files.
 - Mark each Skill in the repository capability index as user-invoked or Agent-invoked.
 
 ## Out of scope
@@ -25,7 +25,7 @@ Spec for the ordinary Skills under `skills/` and their Chinese variants under `v
 
 ## Invariants
 
-- References inside a Skill resolve within that Skill's directory. A Skill does not link to, depend on, or instruct loading another repository component or a repository support file.
+- File references inside a Skill resolve within that Skill's directory. A Skill may name another Skill, tool, or component and declare it as a prerequisite. It must not link to, import, or read another component's files or package, or depend on a repository support file.
 - Links inside a Chinese variant use the installed `skills/<name>/` form.
 - The two language variants of a Skill have the same file set and the same scope. Neither omits an observable capability or a required instruction that the other has, and both change together.
 - A Skill tree holds host-discoverable material such as `SKILL.md`, workflows, references, examples, and glossaries, and carries no license or notice files. `grill-me` keeps its `agents/openai.yaml` invocation policy.
@@ -42,7 +42,7 @@ None. Skills are instructions and do not load code into a host process, so they 
 ## Acceptance criteria
 
 - Every Skill under `skills/` has a same-name Chinese variant with the same file list.
-- No link inside a Skill resolves outside its own directory.
+- No file reference inside a Skill resolves outside its own directory.
 - `pnpm check:skills` passes.
 - The English and Chinese capability indexes in the repository README list the same Skills with the same invocation mode and link to both variants.
 - Skills whose decisions require real-host or real-model checks, such as `grill-me` and `well-said`, keep those checks when their behavior changes.

@@ -22,7 +22,7 @@ Reversed by: [OMP 状态栏](./04-r3-omp-status-bar.zh.md)
 
 ### 包
 
-`projects/omp-status-bar/` 是一个第一方、自包含的 OMP Plugin Package。[第一方能力套件决定](../../../decision/2026/08/20-first-party-capabilities.zh.md)允许真实能力使用 `projects/`，[组件自包含决定](../../../decision/2026/08/24-component-self-containment.zh.md)要求每个可分发组件保持独立。`package.json` 通过 `omp.extensions` 声明原生扩展入口；Package 只使用公开的上游 OMP API，不包含、不修补、也不要求本地 Fork。
+`projects/omp-status-bar/` 是一个第一方、自包含的 OMP Plugin Package。[第一方能力套件决定](../../../decision/2026/08/20-first-party-capabilities.zh.md)允许真实能力使用 `projects/`，[组件自包含决定](../08/24-r1-component-self-containment.zh.md)要求每个可分发组件保持独立。`package.json` 通过 `omp.extensions` 声明原生扩展入口；Package 只使用公开的上游 OMP API，不包含、不修补、也不要求本地 Fork。
 
 实现拆分为状态 Host 和注册制 Provider。Provider 注册通过 `package.json#exports` 条目 `@ruokee/omp-status-bar/provider` 成为受支持的 Package API。注册使用通过 `Symbol.for()` 索引的带版本进程级 Registry，因此解析到自己 Package 副本的 Extension 仍注册到同一个 Registry，注册也不依赖 Extension 加载顺序。Registry 在注册时拒绝重复 Provider ID 和不兼容合同版本。Host 创建每个实例前从 Registry 解析配置中的 ID，并再次校验其合同版本。
 

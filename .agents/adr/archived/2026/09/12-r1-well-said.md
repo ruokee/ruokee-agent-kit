@@ -35,7 +35,7 @@ The English component is [skills/well-said/SKILL.md](../../../../../skills/well-
 
 Keep the required content complete, including the retained unslop material. Do not prebuild specialist reference files. Consider extracting substantial, infrequently used supplementary material only when the actual content and loading measurements justify it; ordinary writing must remain supported by the complete rules in `SKILL.md`.
 
-Follow the [self-contained component decision](../../../decision/2026/08/24-component-self-containment.md). Each language component includes its own rules and examples, with internal references resolving inside that component. Installed-path examples use `skills/well-said/` in both languages. The component must work without another Skill, personal instructions, private research, or the source repository.
+Follow the [self-contained component decision](../08/24-r1-component-self-containment.md). Each language component includes its own rules and examples, with internal references resolving inside that component. Installed-path examples use `skills/well-said/` in both languages. The component must work without another Skill, personal instructions, private research, or the source repository.
 
 Apply the [first-party capability decision](../../../decision/2026/08/20-first-party-capabilities.md) by identifying the capability that is the subject of development and maintenance. A first-party capability may cite, quote, or adapt third-party content. Whether it is a fork depends on whether the third-party capability itself is that subject, rather than on the presence or amount of reused content alone.
 

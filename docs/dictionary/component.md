@@ -10,7 +10,7 @@ A first-party capability in this repository, kept in its host-native or build-na
 
 Each component is a distributable unit. English Skills live under `skills/<name>/`, Chinese variants under `variants/zh/skills/<name>/`, and extensions, executables, and host packages under `projects/<name>/`. A component ships with the files its host or build system expects, plus its own checks.
 
-Components are self-contained. A file inside one component references only files inside that component; it does not link to another component or to repository support files.
+Components are self-contained, so each installs and ships without the rest of the repository.
 
 ## Example
 
@@ -26,4 +26,4 @@ A complete translation of a component with the same file set and scope, maintain
 
 ## Self-contained
 
-A property of a distributable component: its files reference only files inside that component and do not depend on other repository content. Self-containment lets the component install, run, and ship without the rest of the repository.
+A property of a distributable component: its files reference only files inside that component and its code does not depend on other repository content. Component text may name another component, tool, or Skill and declare it as a runtime prerequisite; a name or declaration is not a file reference. A declared prerequisite may be absent or incompatible.

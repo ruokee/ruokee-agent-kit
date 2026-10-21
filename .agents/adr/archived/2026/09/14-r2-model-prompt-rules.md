@@ -20,7 +20,7 @@ The public `before_agent_start` event exposes the current turn's system-prompt b
 
 ### Component switches
 
-The self-contained `@ruokee/omp-qol` owns the rules under [Keep components self-contained](../../../decision/2026/08/24-component-self-containment.md) and [Maintain the extension that improves the OMP experience](../../../decision/2026/09/20-omp-qol.md). `modelPromptsEnabled` is a native boolean setting, defaults to `false`, and is subordinate to `enabled`. Both switches must be on for the rule handler, rule directory access, and unused-file diagnostics. Settings are read once at activation; changes require restarting OMP, and navigation or a new session does not refresh the snapshot.
+The self-contained `@ruokee/omp-qol` owns the rules under [Keep components self-contained](../08/24-r1-component-self-containment.md) and [Maintain the extension that improves the OMP experience](../../../decision/2026/09/20-omp-qol.md). `modelPromptsEnabled` is a native boolean setting, defaults to `false`, and is subordinate to `enabled`. Both switches must be on for the rule handler, rule directory access, and unused-file diagnostics. Settings are read once at activation; changes require restarting OMP, and navigation or a new session does not refresh the snapshot.
 
 An invalid boolean disables this module only. Unknown settings, a non-object settings root, or a settings read failure reject all modules under the existing QoL contract. `/qol` shows the module's effective state, boolean, and inactive reason without running a model or exposing rule bodies or model identifiers.
 

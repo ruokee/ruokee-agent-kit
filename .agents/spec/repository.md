@@ -39,7 +39,8 @@ The [rule layer](../rule/README.md) states how work is done here.
 
 ## Invariants
 
-- A file inside a distributable component references only files inside that component. Components do not link to, depend on, or instruct use of another repository component, repository support files, `.agents/spec/`, or `.agents/rule/`.
+- A file inside a distributable component references only files inside that component. Components do not link to, import, or read another repository component's files or package, and do not depend on repository support files such as `.agents/spec/` and `.agents/rule/`.
+- Component text may name another component, tool, or Skill, declare it as a prerequisite, and instruct its use by name or through a public interface. A declared prerequisite is not a file reference.
 - English Skills live under `skills/<name>/` and Chinese variants under `variants/zh/skills/<name>/`. The tk Skills keep their paths under `projects/tk/skills/`.
 - Code, comments, configuration, and default public documentation are in English. Ordinary public documentation is paired as same-directory `name.md` and `name.zh.md`, entry pages as `README.md` and `README.zh.md`, with reciprocal language links. Both languages change together.
 - Repository file links are relative to the containing document. They use `./` for the current directory or a descendant and `../` to leave it, never a leading `/`, a repository-root-relative destination, or an absolute GitHub URL.
@@ -60,7 +61,7 @@ The [rule layer](../rule/README.md) states how work is done here.
 - `.agents/rule/` holds the layer README pair and one page pair per activity, and a Markdown-only change under it selects documentation checks instead of the complete check.
 - Complete `pnpm check` passes on the clean, committed final candidate that contains the target `main`.
 - Every public Markdown page outside Skills has its same-directory language pair with reciprocal links: ordinary pages as `name.md` and `name.zh.md`, entry pages as `README.md` and `README.zh.md`. Skills are checked against their existing layouts instead: English Skills under `skills/<name>/` with Chinese variants under `variants/zh/skills/<name>/`, and independently named tk Skills at their paths under `projects/tk/skills/`. This criterion does not move Skill files or add cross-language links between Skills.
-- No reference inside a component resolves outside that component's directory.
+- No file reference inside a component resolves outside that component's directory.
 - Same-day, cross-month, and cross-year reversals leave the canonical current path unchanged, keep later versions separately accessible, and advance only that decision's continuous sequence. Extracting an independent topic and correcting names follow the [ADR rules](../adr/README.md), and a reader can follow accurate direct predecessors and successors without mistaking a later version for an earlier record's direct successor.
 - Every retained ADR meets the [ADR rules](../adr/README.md) for layout, naming, language pairs, and preserved historical content.
 - The ADR mechanism, guide, documentation rules, specification, dictionary, and actual references express the same contract. Current and historical citations, reciprocal language links, and heading fragments resolve to the intended content.

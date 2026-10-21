@@ -23,7 +23,7 @@ OMP has no model-scoped instruction mechanism at the [checked revision](https://
 
 ### Component
 
-`projects/omp-system-prompt` carries this capability under [Render the system prompt strategy only from the component template](./07-r4-omp-system-prompt.md) and [Keep components self-contained](../../../decision/2026/08/24-component-self-containment.md). The package name, the native `omp.extensions` entry, the `renderDelivery` setting, and the peer dependency contract stay as decided; no file from another repository component takes part.
+`projects/omp-system-prompt` carries this capability under [Render the system prompt strategy only from the component template](./07-r4-omp-system-prompt.md) and [Keep components self-contained](../08/24-r1-component-self-containment.md). The package name, the native `omp.extensions` entry, the `renderDelivery` setting, and the peer dependency contract stay as decided; no file from another repository component takes part.
 
 With no rule files present, every turn behaves as before, so the change is additive for installed users. No enable setting exists: the presence of rule files selects the capability.
 

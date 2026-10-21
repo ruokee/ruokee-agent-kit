@@ -31,7 +31,7 @@ The evidence baseline is OMP `v18.1.11`, commit `e3106be68f778635da3a17106835ce2
 
 ### Package
 
-Add `projects/omp-system-prompt/` as the first-party package `@ruokee/omp-system-prompt`. Declare its entry through native `omp.extensions` metadata. Keep its runtime, maintainer-owned English prompt, checks, and bilingual README documentation inside the component. This follows the [first-party capability boundary](../../../decision/2026/08/20-first-party-capabilities.md) and [self-contained component contract](../../../decision/2026/08/24-component-self-containment.md); neither decision needs reversal.
+Add `projects/omp-system-prompt/` as the first-party package `@ruokee/omp-system-prompt`. Declare its entry through native `omp.extensions` metadata. Keep its runtime, maintainer-owned English prompt, checks, and bilingual README documentation inside the component. This follows the [first-party capability boundary](../../../decision/2026/08/20-first-party-capabilities.md) and [self-contained component contract](../08/24-r1-component-self-containment.md); neither decision needs reversal.
 
 Use public OMP extension APIs. Do not import private prompt builders, rescan resources, duplicate context discovery, or vendor upstream templates. Do not require files from another repository component or a machine-specific installation. Use native installation, activation, disablement, and removal mechanisms. Do not write `SYSTEM.md` on the user's behalf.
 

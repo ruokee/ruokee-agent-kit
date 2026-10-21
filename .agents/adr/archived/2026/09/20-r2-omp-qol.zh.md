@@ -24,7 +24,7 @@ Reversed by: [OMP QoL](./20-r3-omp-qol.zh.md)
 
 ### 组件范围
 
-在 [第一方能力边界](../../../decision/2026/08/20-first-party-capabilities.md)与[自包含组件合同](../../../decision/2026/08/24-component-self-containment.md)下新增 `projects/omp-qol/`，包名 `@ruokee/omp-qol`。一个包包含三个可独立开关的模块：持续等待 hub、可续跑模型错误后的续跑，以及实验性的压缩期限延长。安装、配置入口与检查各只有一处，而每个模块保留自己的开关、可用状态与故障报告。
+在 [第一方能力边界](../../../decision/2026/08/20-first-party-capabilities.md)与[自包含组件合同](../08/24-r1-component-self-containment.md)下新增 `projects/omp-qol/`，包名 `@ruokee/omp-qol`。一个包包含三个可独立开关的模块：持续等待 hub、可续跑模型错误后的续跑，以及实验性的压缩期限延长。安装、配置入口与检查各只有一处，而每个模块保留自己的开关、可用状态与故障报告。
 
 组件只通过 OMP 插件设置配置，遵循[原生设置决定](./06-r2-codex-web-access.md)，取值、项目级覆盖与解析都由 OMP 负责。等待与保守的错误恢复默认启用，压缩延长明确为选择启用。模块报告自己的有效状态与不生效的原因，单个模块的故障不会停用其他模块。被拒绝的设置只写键与规则，不回显取值。
 

@@ -40,7 +40,7 @@ The parent directory that contains installed Skills, each at `<skill root>/<name
 
 **[self-contained](./component.md#self-contained)**（自包含）
 
-A property of a distributable component: its files reference only files inside that component and do not depend on other repository content.
+A property of a distributable component: its files reference only files inside that component and its code does not depend on other repository content. Component text may declare another component, tool, or Skill as a runtime prerequisite.
 
 **[user-invoked](./skill.md#user-invoked)**（用户调用）
 

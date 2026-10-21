@@ -23,7 +23,7 @@ This decision defines the first-party `omp-context-pin` component that supplies 
 
 ### Component scope
 
-Add the first-party package `projects/omp-context-pin/`, named `@ruokee/omp-context-pin`, under the [first-party capability boundary](../../../decision/2026/08/20-first-party-capabilities.md) and the [self-contained component contract](../../../decision/2026/08/24-component-self-containment.md). The package declares its extension entry through `omp.extensions` metadata in `package.json`, keeps its runtime, checks, and bilingual `README.md` and `README.zh.md` inside the component directory, and uses only public OMP extension APIs. It does not import private host modules, patch upstream source or installed binaries, or require files from another repository component.
+Add the first-party package `projects/omp-context-pin/`, named `@ruokee/omp-context-pin`, under the [first-party capability boundary](../../../decision/2026/08/20-first-party-capabilities.md) and the [self-contained component contract](../08/24-r1-component-self-containment.md). The package declares its extension entry through `omp.extensions` metadata in `package.json`, keeps its runtime, checks, and bilingual `README.md` and `README.zh.md` inside the component directory, and uses only public OMP extension APIs. It does not import private host modules, patch upstream source or installed binaries, or require files from another repository component.
 
 The package registers exactly one slash command, `/ctx-pin`, and exactly one native tool, `ctx_pin`. `/pin` is a reserved built-in command name used for session pinning in the resume list, and OMP filters extension commands that reuse a reserved name while logging a conflict warning, so this extension uses a distinct name.
 

@@ -26,7 +26,7 @@ Reversed by: [Remote 对齐](../../../decision/2026/10/10-remote-alignment.zh.md
 
 ### 组件配置
 
-在 `projects/omp-smart-cache` 维护自包含包 `@ruokee/omp-smart-cache`，使用自己的原生 `omp.extensions` 入口、设置、检查及中英文文档。遵循[第一方边界](../../../decision/2026/08/20-first-party-capabilities.zh.md)与[自包含组件合同](../../../decision/2026/08/24-component-self-containment.zh.md)。不从 QoL 或本地原型导入运行时代码、设置读取器或文档。
+在 `projects/omp-smart-cache` 维护自包含包 `@ruokee/omp-smart-cache`，使用自己的原生 `omp.extensions` 入口、设置、检查及中英文文档。遵循[第一方边界](../../../decision/2026/08/20-first-party-capabilities.zh.md)与[自包含组件合同](../08/24-r1-component-self-containment.zh.md)。不从 QoL 或本地原型导入运行时代码、设置读取器或文档。
 
 Remote 公共合同使用 OMP 原生设置：`compactionCacheEnabled` 默认 `false`，`compactionCacheProvider` 默认 `""`，`compactionCacheMode` 默认 `"hooks"`。模式只接受 `standard` 和 `hooks`，不决定是否启用修复。用户显式选择一个准确的已配置 Provider 名称。不新增 Provider 列表、其他模式、Handoff 占位设置或第二种配置来源。
 

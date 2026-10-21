@@ -26,7 +26,7 @@ The reuse boundary therefore supports complete retained ranges and independently
 
 ### Component configuration
 
-Maintain the self-contained package `@ruokee/omp-smart-cache` at `projects/omp-smart-cache`, with its own native `omp.extensions` entry, settings, checks, and English and Chinese documentation. Follow the [first-party boundary](../../../decision/2026/08/20-first-party-capabilities.md) and [self-contained component contract](../../../decision/2026/08/24-component-self-containment.md). Do not import runtime code, settings readers, or documents from QoL or a local prototype.
+Maintain the self-contained package `@ruokee/omp-smart-cache` at `projects/omp-smart-cache`, with its own native `omp.extensions` entry, settings, checks, and English and Chinese documentation. Follow the [first-party boundary](../../../decision/2026/08/20-first-party-capabilities.md) and [self-contained component contract](../08/24-r1-component-self-containment.md). Do not import runtime code, settings readers, or documents from QoL or a local prototype.
 
 The remote public contract has native OMP settings `compactionCacheEnabled` defaulting to `false`, `compactionCacheProvider` defaulting to `""`, and `compactionCacheMode` defaulting to `"hooks"`. The mode accepts only `standard` and `hooks`; it does not enable the repair. A user explicitly selects one exact configured Provider name. No Provider list, extra mode, Handoff placeholder setting, or second configuration source is added.
 
