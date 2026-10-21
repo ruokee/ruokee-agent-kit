@@ -52,11 +52,9 @@ All non-conflicting rules of the archived decision remain binding, and they now 
 
 ## Alternatives considered
 
-- **Ship Handoff alignment as a separate package or a second extension entry.** Considered while choosing the home of the second capability. It keeps this package untouched, but the host exposes one method per seam and the existing capability's ownership check rejects a foreign wrapper, so remote alignment stops with a reported conflict instead of continuing. It also duplicates the registration, lifecycle handling, and diagnostics the package already has.
-- **Append the Handoff capability under `## Changes` and keep the remote decision current.** Considered while choosing the contract form. Adding a capability does not contradict the effective remote rules, so that form was available. It was rejected because the current decision keeps remote alignment as its subject and keeps the clauses that place Handoff elsewhere, so no archived relationship would record the scope change.
+None
 
 ## Consequences
 
 - Two capabilities in one coordinator can interfere. A change made for one capability can alter the shared wrapper, the per-session lifecycle, or the other capability's diagnostics, so a regression in one can ship together with an improvement in the other. Moving the existing capability's rules unchanged and re-running its acceptance before release are the guard.
 - A local trial extension and a maintained capability can wrap the same session methods. If a capability's switch is enabled while the trial extension is still discovered, one wrapper can drop the other and alignment stops with a reported conflict, or a wrapper loop repeats the same rewrite. The conservative conflict report and the restart-based cutover bound this, but a user can still install both.
-- Splitting one package into per-capability decisions can drift. A clause that belongs to one capability can be read as if it covered the other, so a boundary or a promise ends up weaker than the contract requires. Keeping the capability model explicit and reviewing each clause against the archived text at every reversal are the guard.

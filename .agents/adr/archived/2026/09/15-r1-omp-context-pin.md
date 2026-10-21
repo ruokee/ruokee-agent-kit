@@ -123,6 +123,8 @@ The snapshot carries the boundary identity and the pin contents, and no current 
 
 Verification compares provider-facing effective context, including the preceding requests when the host sends chained deltas. Attribute host-originated changes separately and check whether Pin introduces an avoidable prefix rewrite.
 
+Request captures exclude sensitive transport fields before writing and leave the request sent to the model unchanged.
+
 ### Capacity
 
 - An operation written through either `/ctx-pin` form has `source: user`; one written through `ctx_pin` has `source: agent`. `list` and `get` report the source recorded at creation. An operation the Agent performs in response to an ordinary user message is `source: agent`: the entry point decides the source, not the intent behind the request.
@@ -133,19 +135,8 @@ Verification compares provider-facing effective context, including the preceding
 
 ## Alternatives considered
 
-- Keep the host's `context_notes` as the mechanism. Considered when choosing whether a new component is needed. It gives one whole-note body per branch with branch-aware restore, but it has no entry-level operations, each write replaces the whole note, and the newest note is injected at the start of the message array, which moves previously stable bytes on every edit. Enabling the experimental mode also changes automatic context maintenance.
-- Republish the complete pin set at the front of the request after each change. Considered when choosing where a change goes. It is the simplest way to keep the full text visible and was kept as a comparison baseline, but each edit then shortens the reusable prefix of the request.
-- Append tail messages only, without a base snapshot. Considered when choosing how pinned text survives compaction. Tail appends alone leave the pinned text at the mercy of compaction, and only the log would still hold bodies that the model can no longer see.
-- Adopt a broader context-management extension. Considered while comparing retrieval, archive search, history folding, and full context planning with entry-level Pin requirements. Those additional responsibilities exceed this component's scope. Importing an existing third-party capability into this repository would also conflict with its first-party ownership boundary.
-- Replace the host's compaction. Considered when deciding how much control the extension needs over summaries. It would let the extension compose the summary, but native remote, snapcompact, handoff, soft, and shake paths each have their own semantics, and the extension reads the committed boundary instead.
-- Let a confirmation in the `/ctx-pin` dialog write state directly. Considered while choosing when a user operation becomes effective, and used in an early candidate. The receipt is immediate, but the operation takes effect before the message reaches the host, so a queued, edited, or withdrawn message can leave a change the user never sent, and the running turn never receives it as steering.
-- Parse a natural language request into Pin operations inside the extension. Considered when asking how an ordinary message could manage Pins without depending on the model. It would need a command syntax, a precedence rule against ordinary prose, and its own error path, while the tool already gives the Agent the operation, so the request is left to the model.
-- Start a model turn to make the host save the session. Considered while working around the session file boundary for an initial fresh session. It spends a turn the user did not ask for on a host responsibility, and it still returns no confirmation that the write happened.
-- Keep the generated UUID strings as entry and operation identities. Considered while revisiting the identity format. No observed model failure was caused by a UUID, so the reason to change is readability and context cost: an integer is easier to read, easier to pick from a list, and shorter in every message that carries it.
-- Append an identity marker to the confirmed message. Considered while simplifying the message shape, and used in earlier candidates. The marker kept an operation number and a scope token inside the message, so the extension never had to match text, but it also made the message differ from the words the user wrote, asked the user to keep a tag they had not written, and left a delete statement that read like machine output. Matching the consumed message against the text the extension handed to the host keeps the message readable and editable, and a submission whose text is not held is not accepted.
-- Keep the stored `title` as the list label. Considered while changing how entries are presented. A title can drift from the body it labels, while an integer id plus a summary derived from the body already distinguishes entries, so the field is removed and no de-duplication rule for repeated titles is needed.
-- Declare the mutating actions as write-class operations. Considered while defining the tool's approval class. It makes the host prompt for a create in `always-ask` even though the operation touches no file, process, or network resource, and host policy already governs the tool, so the single lowest class is declared for every action.
-- Keep delivering Agent changes through the default send path with `triggerTurn: false`. Considered while defining the delivery path. The host routes such a message into steering and drains the queue, which can add a turn or cancel work in the same batch; the explicit non-initiating delivery mode is used instead.
+- Let a confirmation in the `/ctx-pin` dialog write state directly. The receipt is immediate, but the operation takes effect before the message reaches the host, so a queued, edited, or withdrawn message can leave a change the user never sent, and the running turn never receives it as steering.
+- Append an identity marker to the confirmed message. The marker keeps an operation number and a scope token inside the message, so the extension does not have to match text, but it makes the message differ from the words the user wrote and requires the user to preserve the tag when editing. Matching the consumed message against the submitted text keeps the message readable and editable, at the cost of claiming an unrelated identical message while the submission is held.
 
 ## Consequences
 
@@ -155,7 +146,5 @@ Verification compares provider-facing effective context, including the preceding
 - Provider-native remote compaction keeps part of the history opaque. The extension leaves that payload unmodified and orders its snapshot against it without claiming to deduplicate opaque contents.
 - Pinned bodies and accumulated revisions consume context. The byte limits bound active bodies rather than tokens, metadata, or older tail messages, so a full request can still overflow after compaction.
 - Retained context can be read as granting authority, and session-scoped integers can collide across sessions or be restored from the wrong range. Source labels, the note wording, and session-wide high-water marks are the controls, and the provider-boundary role is verified rather than assumed.
-- Non-initiating delivery can postpone a change to the next ordinary prompt, so the current request keeps deriving its change from canonical records.
-- Request captures can leak credentials. Capture excludes sensitive transport fields before writing and leaves the request sent to the model unchanged.
 - A submission is recognized by the text the extension handed to the host, so a message that repeats those words while the submission is held is claimed once and settles with the submission.
 - The component's checks run inside `pnpm check`, and automated checks do not replace real-machine acceptance on a supported runtime.

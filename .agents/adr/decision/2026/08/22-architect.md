@@ -58,19 +58,11 @@ Keep explanations, derivations, counterexamples, complete cases, and experience-
 
 ## Alternatives considered
 
-**Keep manual invocation.** The reversed decision selected deliberate user activation and prevented automatic false activations. It also left the Agent unable to load the repository's architecture guidance for a clearly system-level request unless the user remembered the Skill name.
-
-**Adopt `architecture-copilot` directly.** It provides a related Skill, but its references compress the source heavily and its interaction style favors sustained questioning. The repository instead keeps an independently authored capability with references designed for this contract.
-
-**Add task workflows.** Workflows could standardize output steps, but they would constrain model reasoning to predefined procedures. The capability needs a concise Skill entry and reference navigation rather than a `workflow/` layer.
-
-**Put all knowledge in one file.** A single file would mix system design, distributed systems, security, evolution, and technology selection. Topic-based references let the Agent read only material relevant to the current problem.
+None
 
 ## Consequences
 
-- Architect can load from clear system-level task signals and through explicit user invocation. False activation remains possible, so the catalog descriptions carry narrow positive and negative signals.
+- Architect can load from system-level task signals and through explicit invocation. Model, host, and language differences can cause activation outside the intended scope. Catalog descriptions narrow the signals; real-host checks record the environment and loading evidence.
 - The public English and Chinese capability indexes classify architect as Agent-invoked. `grill-me` remains user-invoked through its own configuration.
 - Each language component keeps the glossary and reference layout and has no `workflow/` directory. The policy-only `agents/openai.yaml` files are removed.
 - The system-level scope, source and license obligations, evidence requirements, reference navigation, and output contract remain in force. Concrete implementation and product-priority work remain outside the Skill.
-- Both language variants remain complete and semantically aligned. Model, host, and language differences can still produce different activation judgments, so real-host checks record the environment and loading evidence.
-- The capability still relies on model reasoning and cannot guarantee correct analysis. Outputs continue to distinguish evidence, derivation, assumptions, recommendations, and user decisions.

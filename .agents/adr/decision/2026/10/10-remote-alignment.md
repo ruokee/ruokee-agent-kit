@@ -103,11 +103,8 @@ Component documentation owns detailed settings and commands, applicability, side
 
 ## Alternatives considered
 
-- **Expand QoL first, then migrate.** Considered while choosing the delivery location. It reduces the first installation change but adds an interim multi-session contract, release, configuration, and migration validation. Direct smart-cache delivery avoids that intermediate maintained path.
-- **Keep the unrestricted alignment promise and stop at the limitation.** Considered while choosing the reuse contract. When an indivisible result's dependency is removed, more observation cannot produce a missing sent sub-result without changing another requirement. It preserves the old promise but prevents a complete deliverable.
-- **Introduce a frozen pure-projection cooperation protocol.** Considered for trimmed cross-range transformations. It can compute a new result after one stateful preparation, but requires cooperating handlers and proof of no side effects, changes the sent-result reuse contract, and gives no guarantee that the new result reuses old Provider cache. This decision adds no such protocol.
-- **Rerun ordinary preparation or issue a new reference request.** Considered during final-context design. It repeats stateful handler effects, can read state newer than the operation snapshot, and may spend another request. Reusing already sent results preserves the selected boundary.
-- **Wait for an equivalent native interface or use Handoff instead.** Considered while assessing wrapper maintenance. Waiting leaves current remote differences unresolved; Handoff changes the selected compaction protocol and has separate evidence. An equivalent native interface remains the replacement condition.
+- **Expand QoL first, then migrate.** It reduces the first installation change but adds an interim multi-session contract, release, configuration, and migration validation. Direct smart-cache delivery avoids that intermediate maintained path.
+- **Introduce a frozen pure-projection cooperation protocol.** It can compute a new result after one stateful preparation, but requires cooperating handlers and proof of no side effects, changes the sent-result reuse contract, and gives no guarantee that the new result reuses old Provider cache. This decision adds no such protocol.
 
 ## Consequences
 

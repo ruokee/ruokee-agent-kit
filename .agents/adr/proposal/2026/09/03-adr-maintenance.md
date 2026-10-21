@@ -53,10 +53,6 @@ Keep the first release to one `SKILL.md` in each language component. The procedu
 
 **Continue with review, repository search, and Git history.** The current ADR mechanism selected this course while the rules were new. It adds no distributed capability, but each ADR task must reconstruct the same classification, authority, bilingual-maintenance, and review procedure from repository files.
 
-**Add a checker before a Skill.** The current mechanism decision deferred both. A checker can enforce stable mechanical invariants, but the observed maintenance work depended on classifying changes, finding decision ownership, judging whether alternatives were real, and comparing bilingual meaning. Those are not established mechanical checks.
-
-**Require manual invocation.** This would make ADR maintenance available only when a user explicitly names the Skill. Direct ADR operations and project rules that require ADR review provide narrower activation signals. Requiring users to remember a separate invocation would allow the maintenance procedure to be skipped when it is most relevant.
-
 ## Acceptance criteria
 
 1. `skills/adr/SKILL.md` and `variants/zh/skills/adr/SKILL.md` provide complete, semantically aligned variants of one model-invoked Skill. Each component contains only its own `SKILL.md`.
@@ -70,5 +66,3 @@ Keep the first release to one `SKILL.md` in each language component. The procedu
 ## Risks
 
 The Skill's general classification procedure may lag behind ADR practices used by individual projects. An Agent could enter the wrong maintenance path before applying local rules, producing an unnecessary proposal or modifying the wrong current record.
-
-If project instructions rely on model activation as the only ADR trigger, an indirect durable change that the model fails to classify can bypass decision review and conflict with an existing decision.

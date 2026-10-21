@@ -49,13 +49,7 @@ The repository instructions and entry documents that direct readers to the ADR r
 
 ## Alternatives considered
 
-**Keep target state in ADRs and existing documentation.** This was the existing arrangement and adds no files to maintain. A reader still has to merge current decisions, their `Changes` entries, and component or repository documentation to learn the target of a component, the Skill system, or repository conventions.
-
-**Place each spec inside its component directory.** This was considered when choosing the location. A spec would sit next to the code it describes, but it would ship in the distributed component and reach maintainer material that users do not need. The Skill system and repository conventions have no single component directory to hold their specs.
-
-**Write specs in English only.** This was considered when weighing the translation cost of a new document set. It halves that cost, but Chinese review of targets would lose the paired, independently readable copy that other public documentation and ADRs provide.
-
-**Replace the specification passages of current decisions with links to specs.** This was suggested during the requirement analysis as a way to remove duplicate content once specs exist. It conflicts with the rule in the ADR mechanism decision that a link to changing current documentation cannot replace a historical contract, and would require reversing that decision. The requirement for the layer does not call for it.
+**Place each spec inside its component directory.** A spec would sit next to the code it describes, but it would ship in the distributed component and reach maintainer material that users do not need. The Skill system and repository conventions have no single component directory to hold their specs.
 
 ## Consequences
 
@@ -64,7 +58,5 @@ Maintainers and Agents find one current statement of goals, boundaries, invarian
 A spec, a current decision, and a component document can describe the same target. A later change that updates only one of them leaves the others stale, and a maintainer or Agent who follows the stale text builds toward the wrong target or reports a false conflict. Linking to owning pages narrows the overlap but does not remove it, and no mechanical check proves agreement. Changes that alter a target therefore update the spec in the same change.
 
 A spec that omits a later decision change, or carries over a rule from an archived decision, states a target that no current decision supports, and work that follows it can remove behavior a current decision still requires. A current decision wins over a spec that disagrees with it, and the spec is corrected.
-
-The English and Chinese copies of a spec can drift, so readers of each language would work from different targets. Both copies change in the same change and are reviewed together.
 
 Adding or removing a component, or a repository area that needs its own spec, also updates the spec list in the spec README.

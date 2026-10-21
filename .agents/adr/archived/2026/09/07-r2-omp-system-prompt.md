@@ -74,13 +74,7 @@ Component checks must exercise structural recognition, byte preservation, idempo
 
 ## Alternatives considered
 
-### Exact host version
-
-An exact-version requirement disables the extension before it examines a potentially compatible rendered prompt on any other version, so it does not meet the compatibility requirement.
-
-### Version allowlist
-
-An allowlist disables the extension on every unlisted release and adds recurring maintenance. Structural checks still have to run for permitted versions, so the allowlist adds no compatibility proof.
+None
 
 ## Consequences
 

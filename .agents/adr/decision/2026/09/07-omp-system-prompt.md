@@ -43,18 +43,10 @@ Bringing the [host floor decision's](./28-host-maintenance.md) inventory of OMP-
 
 ## Alternatives considered
 
-**Keep the component and stop maintaining it.** Considered while deciding how to retire the component. The repository component inventory stays unchanged, but the repository keeps carrying a component that serves no need, and its approaching-deprecation status stays open indefinitely without a removal date.
-
-**Archive the retention decision and keep the component.** Considered while deciding what the record should say about a component that serves no need. This records the status change without touching the component, but the archived decision and the retained component would describe different states of the repository, and the same maintenance cost remains.
-
-**Move the Delivery chapter and the footer correction into another component.** Considered while judging whether the two remaining behaviors need a home. This preserves them, but the reason for removing the extension is that this customization is no longer needed, so the maintenance surface would stay for behavior that is no longer wanted.
-
-**Leave the clauses about the component in the two current decisions.** Considered while checking how far the removal reaches into the records. Those decisions would then state the present role of a deleted component, which is the state the removal introduces and the records must not contradict.
+None
 
 ## Consequences
 
 - The Delivery chapter and the `<project-context>` footer correction stop applying in every session where the extension does not run, which means it is disabled or uninstalled and the process no longer executes its handler. A complete plugin copy that the host still loads keeps producing both. A kept template copy supplies the strategy text alone, because both behaviors belong to the handler rather than to a template render.
-- A reference the removal misses leaves the repository describing a component that does not exist.
 - An installed copy that keeps running does so against a host version its patches were not written for, and its patch can fail without a diagnostic, so a user can believe the strategy text is still applied.
-- Removing the local installation changes state outside the repository. Without a record of the previous plugin list, restoring it needs a fresh link or install command.
 - The component inventory in the specification layer, the documentation, and the changed-path check configuration describes a smaller set of components, and the specification layer owns that inventory for later readers.

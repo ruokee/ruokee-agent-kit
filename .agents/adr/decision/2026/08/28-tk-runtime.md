@@ -55,15 +55,7 @@ The complete command syntax lives in the [CLI reference](../../../../../projects
 
 ## Alternatives considered
 
-**Implement each interface separately.** Separate CLI, MCP, and native implementations would duplicate validation, defaults, error mapping, and compatibility behavior.
-
-**Use a resident daemon.** A daemon would add process supervision, synchronization, cache invalidation, and service availability to a local file-based product.
-
-**Expose private subcommands for adapters.** Hidden entry points would create a second process contract and allow Harness behavior to diverge from public CLI behavior.
-
-**Encode every failure in a distinct exit number.** Numeric expansion would give scripts a second error taxonomy. Stable JSON codes and categories carry detail while exit codes retain broad shell semantics.
-
-**Allow unbounded protocol and process output.** A malformed project or subprocess could exhaust a Harness session. Fixed limits make the failure boundary explicit.
+None
 
 ## Consequences
 

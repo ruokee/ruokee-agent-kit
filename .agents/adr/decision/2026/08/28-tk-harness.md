@@ -30,7 +30,7 @@ The current contract lives in [Harness integration](../../../../../projects/tk/d
 
 ## Alternatives considered
 
-**Retry failed logical operations through the CLI.** This could hide integration failures and repeat requests across transports.
+None
 
 ## Consequences
 

@@ -70,15 +70,9 @@ The complete user and driver contracts live in the [installation design](../../.
 
 ## Alternatives considered
 
-**Install the runtime through each Harness component.** This would create multiple owners and versions of the executable. A fixed prerequisite keeps runtime distribution separate from Harness registration.
-
 **Download release assets or accept a local source.** Network and source selection would add identity, trust, availability, and version coupling to an operation that can use bytes already carried by the executable.
 
 **Maintain ownership manifests and installation history.** Historical state would become another database and could conflict with current targets after manual changes. Fixed targets and current configuration provide the required plan.
-
-**Keep generated component trees or a Python assembler in the repository.** Multiple source and assembly paths could produce different payloads. One Rust build path gives publishing, installation, and validation the same bytes.
-
-**Preserve modified files inside a tk-specific target.** This would leave fragments that no longer form a usable component and would violate the clean-uninstall result.
 
 ## Consequences
 

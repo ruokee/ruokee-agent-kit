@@ -163,13 +163,7 @@ Earlier extensions' independent blocks remain intact. An earlier edit that makes
 
 ## Alternatives considered
 
-### Use a CLI flag
-
-A CLI flag would affect one invocation, would not persist the choice, and would not provide a project-level override. It does not meet the requirement for a durable user setting that projects can shadow, so it was rejected.
-
-### Use an alternate configuration source
-
-A component-owned file would create a second configuration source. Parsing `omp-plugins.lock.json` or another host file directly would copy OMP's configuration responsibility and bypass the public API. Both approaches were rejected in favor of the native plugin setting and public effective-settings lookup.
+None
 
 ## Consequences
 
@@ -188,7 +182,7 @@ The component and its public documentation carry the following observable contra
 9. A representative configured-host scenario includes enabled plugins, their visible and hidden Skills and devices, and externally managed components with working paths. With Skill commands enabled, it must demonstrate successful owned-policy and PROJECT replacement and visible-description normalization despite hidden command candidates. Do not remove plugins or change hide flags to obtain success. Record host input, command metadata, handler output, final provider content, and diagnostics from the same run to detect missing or added capabilities. Exercise Skill fallback separately and verify that the other replacements still reach the Provider; fallback cases do not substitute for the representative success case. A minimal scenario includes only the model configuration needed for its request. Label partial environments as partial; private inventories and prompt captures stay out of public artifacts.
 10. Behavioral checks exercise analysis-only requests, requested prototypes, project-specific compatibility requirements, authorization boundaries, justified pauses, honest verification claims, quoted control tags, genuine runtime notices, and changed workspace context. Use the configured model when model execution is authorized. Record each scenario's input, expected behavior, observed actions or replies, and result. Confirm the owned prompt was applied on covered paths before using model behavior as evidence for that policy; request capture or a confirmation token alone is insufficient. Record observed scope without claiming a security guarantee.
 11. Component checks and the repository's `pnpm check` pass before release. Public documentation reports verified behavior, successful hidden-Skill support, Skill-only fallback, and whole-prompt fallback in the exercised scenarios without private prompt captures. Do not make the extension a daily default while required runtime or behavioral checks remain unverified.
-12. `package.json` declares `renderDelivery` under `omp.settings` as a boolean with default `true`. Documentation shows the native `omp plugin config` command and `.omp/plugin-overrides.json` project override. Every `before_agent_start` turn reads the public effective-settings API for the current cwd; read failures and non-boolean values preserve Delivery, emit a bounded session-deduplicated diagnostic, and do not block the model request.
+12. `package.json` declares `renderDelivery` under `omp.settings` as a boolean with default `true`. Documentation shows the native `omp plugin config` command and `.omp/plugin-overrides.json` project override; both examples must state the complete chapter boundary. Every `before_agent_start` turn reads the public effective-settings API for the current cwd; read failures and non-boolean values preserve Delivery, emit a bounded session-deduplicated diagnostic, and do not block the model request.
 
 ### Risks
 
@@ -205,7 +199,3 @@ A turn override remains active through mid-turn base rebuilds. Its catalog may b
 Normal turns, Handoff, and other side requests can follow different static policies; ephemeral requests can also inherit whichever live prompt is active. Later extensions can replace the owned output. Coverage and ordering documentation must make these differences visible.
 
 Changing instruction-source wording can affect recognition of genuine host controls as well as quoted content. Prompt changes alone cannot prove correct provenance handling. Behavioral failures in either direction block adoption as the daily default.
-
-An incorrect configuration read, precedence rule, or type check could leave an unexpected Delivery shape across turns. Per-turn reads through the public effective-settings API, exact boolean validation, the `true` fallback, transition checks for both owned-output shapes, and bounded diagnostics reduce this risk.
-
-Disabling Delivery intentionally removes Task scope, Completion, Evidence, and Pausing. Users or project maintainers who expect the full delivery contract could miss those instructions if they set the option without understanding its exact boundary. The command and project-override examples must state that this is the complete chapter boundary.

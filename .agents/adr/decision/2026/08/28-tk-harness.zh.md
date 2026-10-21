@@ -30,7 +30,7 @@ Codex 和 Claude Code 使用 MCP。Pi 和 OMP 使用原生 extension。Pi 不设
 
 ## 考虑过的替代方案
 
-**逻辑操作失败后通过 CLI 重试。** 这可能隐藏集成故障，并跨传输重复请求。
+无
 
 ## 结果
 

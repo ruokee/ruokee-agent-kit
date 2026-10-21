@@ -23,12 +23,12 @@ Provide `deep-research` as a pure Skill, following the [language variant packagi
 
 ## Alternatives considered
 
-Distribute the capability as a Plugin for Claude Code and Codex. This would require host-specific packaging and distribution entry points. A pure Skill provides the research instructions without that additional maintenance.
+None
 
 ## Consequences
 
 Either variant can be installed and used independently. Each component contains only its research instructions, without host-specific packaging to maintain.
 
-Both variants use `name: deep-research`, with equivalent `description` fields describing when to use the Skill. Their research requirements remain semantically aligned. An incomplete translation could omit an evidence requirement or change when research stops, so review the English and Chinese instructions together.
+Both variants use `name: deep-research`, with equivalent `description` fields describing when to use the Skill. Their research requirements remain semantically aligned.
 
 Keep the capability-index links in both repository READMEs valid, and pass the repository check defined by the [repository check decision](./12-repository-checks.md).

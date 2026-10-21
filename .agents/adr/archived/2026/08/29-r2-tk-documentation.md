@@ -133,13 +133,7 @@ The authoritative maintenance details live in the [documentation design](../../.
 
 ## Alternatives considered
 
-**Repeat complete contracts on every related page.** Duplication would make routine changes require many synchronized edits and leave readers unsure which copy is authoritative.
-
-**Keep implementation history in public design pages.** Development chronology would obscure the current contract and turn unreleased experiments into accidental compatibility promises.
-
-**Put every technical term in the glossary.** A large general glossary would duplicate ordinary technical documentation and create needless translation maintenance.
-
-**Build a tk-specific bilingual structure checker.** Structural similarity cannot prove semantic equivalence or natural Chinese. Existing checks plus direct review are sufficient until a repeated mechanical failure identifies a useful rule.
+None
 
 ## Consequences
 

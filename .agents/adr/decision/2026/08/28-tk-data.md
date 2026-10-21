@@ -42,14 +42,6 @@ The complete format and operation details live in the [data model](../../../../.
 
 **Keep child discovery under `subtasks_dir`.** This narrows scanning and guarantees generated paths, but changing a placement preference can hide valid carriers and make imported children unreachable.
 
-**Require manual name repair before rename.** This prevents the runtime operation responsible for name repair from loading its target and gives split and embed unequal recovery paths.
-
-**Require reopening before rename.** This keeps the closed read-only rule intact but cannot serve as a recovery path because reopen requires the damaged name to load under strict validation. It also turns name maintenance into a lifecycle transition with reason and authorization requirements that change no lifecycle fact.
-
-**Limit closed rename to damaged-name repair.** This would keep ordinary name corrections rejected for closed Tasks. Distinguishing repair from ordinary rename would add a second classification of the same request while still blocking a legitimate correction, and the maintenance value of a canonical name does not depend on why the old one was wrong.
-
-**Keep Git index enumeration and tolerate missing files.** Skipping entries whose files are gone would remove the failure, but the scan would still miss present untracked Markdown and would still depend on staging state. Querying Git per directory or per path keeps the same dependence for every candidate.
-
 ## Consequences
 
 Task state remains readable with ordinary file tools and portable across interfaces. Changing `subtasks_dir` no longer changes visibility, and imported or reorganized valid child carriers remain usable.

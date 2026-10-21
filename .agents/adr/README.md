@@ -201,27 +201,37 @@ Defensive rules must address the actual operation and harm. Ordinary validation,
 
 ### Reviewing the entries
 
-When reviewing `## Alternatives considered` and `## Risks`, require the ADR to identify the requirement discussion or analysis in which each alternative became a real option and to name the harmful outcome of each risk. Delete unsupported or misclassified entries instead of rewriting them to sound plausible.
+Review alternatives and risk statements wherever they occur, including a decision's `## Consequences`. First check that an alternative actually entered the choice or that a risk has a credible causal basis. Then ask what material tradeoff, harm, or boundary the reader would lose if the entry were removed. Passing the first check does not establish lasting decision value.
+
+Locate the supporting requirement, analysis, proposal, or historical evidence when reviewing an alternative. The entry's own claim that it was considered or rejected is not evidence. Keep review evidence in task materials; the ADR records the choice and its necessary reasons, not the discussion transcript or a claim that the author followed this checklist.
+
+Delete unsupported, misclassified, or immaterial entries instead of making them sound plausible or moving them elsewhere. Preserve any unique binding clause or necessary reason in its proper place. Combine repeated causes and consequences without losing their conditions. Do not use entry counts, deletion ratios, or word-count targets as a quality measure.
+
+Consequences may include important benefits and accepted costs; they need not all be risks. Review a historical entry against the requirements and evidence of its own time, not constraints established later.
 
 Use descriptive level-three headings inside a required section when its content needs structure. Do not replace required level-two headings or use subsections for progress history and copied implementation inventories.
 
 ### Alternatives considered
 
-The required `## Alternatives considered` section records the result of checking for real alternatives. It does not require the author to produce alternatives when none existed.
+The required `## Alternatives considered` section records the result of checking for real, material alternatives. Start with `None` and add only entries that pass the checks; an empty result is complete.
 
-Do not invent alternatives to make an ADR look complete. Record only options that already existed when the ADR was drafted or were genuinely considered while discussing or analyzing the requirement. An option that is merely imaginable, but never entered the choice, is not a considered alternative.
+Do not invent alternatives to make an ADR look complete. Record only different courses of action for the same durable decision that genuinely entered the choice and explain a material tradeoff. An option's existence, plausibility, or appearance in a discussion is not sufficient by itself.
 
-Each entry must be a different course of action for the same decision. A fact about the current repository, a requirement or constraint, an acceptance criterion, an implementation detail, or a restatement of the proposal is not an alternative.
+A fact, requirement, acceptance criterion, restatement of the chosen approach, simple negation of a settled requirement, or implementation variation without a material tradeoff is not a considered alternative. Copying thinking when the requirement is reply text, for example, only negates the agreed scope.
+
+An option that was genuinely viable before a later constraint or feasibility finding may still explain an important choice. Preserve that reason without reproducing the exploration process or treating every rejected implementation idea as a separate alternative.
 
 If no entry meets these rules, write only `None` in the English section and only `无` in the Chinese section. That is a complete section, not missing content.
 
 ### Risks
 
-The required `## Risks` section records credible ways the proposal could cause harm. It does not require the author to produce risks when none are known.
+The required `## Risks` section records credible ways the proposal could cause material harm. Start with `None` and add only entries that pass the checks; there is no required number of risks.
 
-Do not invent risks to make an ADR look complete. A risk must describe a plausible harmful outcome caused by adopting the proposal or by failing to address or consider something relevant. Name the harmful outcome. A fact, requirement, constraint, invariant, acceptance criterion, or task is not a risk by itself.
+Name the relevant condition or omission, the causal mechanism, and the harmful outcome that matters to this choice. Preserve material residual risks, compatibility losses, continuing costs, and technical uncertainty that affects adoption. An omission can still be a risk when it creates a decision-specific, consequential failure path; do not exclude it merely because implementation is involved.
 
-For example, `Behavior must remain consistent` states a constraint, not a risk. A risk needs a credible failure path, such as separate implementations drifting and producing inconsistent behavior. The relevant failure path depends on the ADR.
+Facts, requirements, invariants, acceptance criteria, tasks, repeated behavior descriptions, and temporary verification gaps are not risks by themselves. Generic warnings that code may fail, documents may drift, or users may misunderstand do not establish a risk specific to the decision.
+
+For example, `Behavior must remain consistent` states a constraint. Separately maintained authorities that can drift and produce conflicting behavior describe a failure mechanism. Removing a revision check can let an older draft overwrite a newer body; that is a concrete accepted cost. Likewise, a handler that disables speculative task startup imposes an execution cost under its registration conditions. Keep the causal conditions rather than adding generic maintenance warnings to every ADR.
 
 If no entry meets these rules, write only `None` in the English section and only `无` in the Chinese section.
 

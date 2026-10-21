@@ -31,17 +31,10 @@ The [component README](../../../../../projects/omp-context-pin/README.md) and it
 
 ## Alternatives considered
 
-- Keep `expectedRevision` required. Considered because it detects concurrent changes. It keeps read-before-write work and refuses a write after an unrelated update, so it does not satisfy the requirement that revision not be a caller condition.
-- Make `expectedRevision` optional. Considered as a compatibility middle ground. It leaves two write modes with different concurrency behavior and keeps the old read-before-write path as the normal path.
-- Keep `get` as the only full read. Considered to avoid a new action. Reading several entries requires several calls and can mix revisions from different moments.
-- Give `show` an id parameter. Considered for symmetry with `get`. It would duplicate `get` and lose the single-call view of the complete active set.
-- Keep the previous capacity text. Considered because it already reported the limit and attempted size. It did not direct attention to other active entries or explain why splitting does not reduce active bytes.
+None
 
 ## Consequences
 
-- An older user draft can overwrite a body changed while the dialog was open. The user confirms the write, but the dialog no longer protects against a concurrent change.
-- An Agent that edits from an older view can overwrite a newer body. Removing the revision gate removes the refusal that made this visible.
+- An older user draft or an Agent editing from an older view can overwrite a newer body. The user confirms a dialog write, but neither path has the revision gate that refused concurrent changes.
 - `show` can return a large body set and consume context. It is an explicit read, not a default action.
-- A caller may ignore the whole-set capacity guidance and keep shortening one body. The guidance changes the message, not the model's behavior.
 - Existing callers that still send `expectedRevision` may fail if the host rejects unknown fields. The public documentation and schema change together.
-- The component README, component specification, and tool description can drift. They change in the same implementation, and this decision links the public surfaces.

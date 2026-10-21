@@ -77,11 +77,7 @@ The archived decision's still-effective rules keep their meaning under this deci
 
 ## Alternatives considered
 
-**Extend the existing converter to recognize the upgrade target's default block.** Considered while choosing how to keep the strategy on a new host. It keeps one path and needs no user configuration, but the component would keep maintaining a parser of host-authored prose, and every host rewording of that block would repeat the same failure.
-
-**Use the plain-text custom prompt route instead of a template.** Considered while comparing supported routes. Plain text is simpler to install, but that route renders the session data from the host's plain-custom template rather than from the component's own text, so the maintained tool, device, internal-URL, and runtime sections could not be kept.
-
-**Put the Delivery chapter inside the template.** Considered while deciding where that chapter lives. It needs no per-turn insertion, but the template cannot read plugin settings, so the documented switch and its per-turn change would be lost.
+**Extend the existing converter to recognize the upgrade target's default block.** It keeps one path and needs no user configuration, but the component would keep maintaining a parser of host-authored prose, and every host rewording of that block would repeat the same failure.
 
 ## Consequences
 
@@ -105,6 +101,6 @@ Insert a neutral, non-instructional ownership comment only when all three condit
 
 Recognize converted footers through owned loading guidance or the comment at its validated structural position, never through marker text inside opaque data. Reprocessing preserves the complete block array and returns no replacement when settings are unchanged. Delivery changes alter only that chapter. Keep the `<project-context>` block start, array position, and static-prefix cache boundary; use no process-local ownership cache or new setting. This remains textual recognition, not provenance or a security boundary. The default-block path, bounded failures, strategy, template artifact, model rules, maintenance floor, and structure-based eligibility retain their contracts, without a host-version gate or installed-host changes.
 
-Marking every footer without loading guidance was considered but changes ordinary old output unnecessarily. Carrying source or processing state outside the prompt was also considered; it preserves prompt bytes but needs a separate interface and lifecycle design. The conditional comment keeps state in the validated footer while limiting its provider-visible cost to the ambiguous case. Consumers requiring complete byte identity can still reject that affected output. Recognizing a marker outside its validated position could leave native policy in place, so opaque text must not participate in ownership recognition.
+Carrying source or processing state outside the prompt preserves prompt bytes but needs a separate interface and lifecycle design. The conditional comment keeps state in the validated footer while limiting its provider-visible cost to the ambiguous case. Consumers requiring complete byte identity can still reject that affected output. Recognizing a marker outside its validated position could leave native policy in place, so opaque text must not participate in ownership recognition.
 
 `projects/omp-system-prompt/README.md#how-it-works` owns the concrete footer contract and separates API regressions from real-host Provider observations. Those observations must cover required-marker and no-marker cases, including an ordinary subagent, without claiming general host certification.

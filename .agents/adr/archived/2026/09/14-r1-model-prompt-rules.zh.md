@@ -88,23 +88,11 @@ Reversed by: [模型提示词规则](./14-r2-model-prompt-rules.zh.md)
 
 ### 分发独立扩展
 
-该方案在决定能力归属时进入选择。两个组件变换同一个数组时，可见结果取决于安装顺序，因为处理器按扩展顺序运行且没有优先级选项，同时要求替换步骤识别或保留另一个组件拥有的文本。合并到同一个组件可以消除这两项依赖。
-
-### 前缀标记
-
-该方案在加固独立扩展设计时进入选择。组件自有的标记会让替换步骤的块识别失败，而不是识别错误。它把组件内部的记账文本写进本应逐字节注入的提示词内容，因此随独立扩展方案一并放弃。
+独立扩展可以单独安装。两个组件变换同一个数组时，可见结果取决于扩展加载顺序，因为处理器按该顺序运行且没有优先级选项，同时要求替换步骤识别或保留另一个组件拥有的文本。合并到同一个组件可以消除这两项依赖。
 
 ### 首条消息注入
 
-该方案在决定注入位置时进入选择。`message` 通道把 `role: "custom"` 消息插入该 turn 的消息列表（[consumption](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/session/agent-session.ts#L6496-L6525)），会话把它们记录为 `custom_message` 条目（[persistence](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/session/agent-session.ts#L2806-L2820)、[entry](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/session/session-manager.ts#L2488-L2499)），因此每个 turn 都会向历史追加一份指令副本。切换模型后，历史仍保留为上一个模型选择的指令，且该文本的权威级别低于系统提示词。因此选择了每个 turn 都会重建的系统提示词。
-
-### 角色别名匹配
-
-该方案在决定匹配维度时进入选择。宿主不记录启动角色，因此角色条件只能表示该角色当前解析到的模型，这是另一个问题。该方案被放弃，只保留上述四个键。
-
-### 载荷补丁
-
-该方案在考虑按每次 Provider 请求而非每个 turn 刷新时进入选择。它需要掌握各 Provider 的载荷结构，而现有扩展点没有发布 Provider 请求载荷的契约。所需行为不需要逐请求刷新，因此该方案保留为未来变更的备选，不进入本决定。
+`message` 通道避开系统块分类，但会把 `role: "custom"` 消息插入该 turn 的消息列表（[consumption](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/session/agent-session.ts#L6496-L6525)），会话把它们记录为 `custom_message` 条目（[persistence](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/session/agent-session.ts#L2806-L2820)、[entry](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/session/session-manager.ts#L2488-L2499)），因此每个 turn 都会向历史追加一份指令副本。切换模型后，历史仍保留为上一个模型选择的指令，且该文本的权威级别低于系统提示词。因此选择了每个 turn 都会重建的系统提示词。
 
 ## 结果
 

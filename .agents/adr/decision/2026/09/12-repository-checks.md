@@ -30,12 +30,6 @@ The check entry points and their ordered targets, the affected-selection mapping
 
 **Use a worktree for every task and prepare dependencies by scope.** This keeps the simplest isolation rule and remains the fallback when exclusivity is uncertain. It still creates another directory and prepares root tools for serial explanatory documentation.
 
-**Migrate to a workspace or add a task-graph tool.** These provide package graphs and affected tasks but would change independent lockfiles, environment preparation, and repository structure beyond the need. Explicit scopes reuse existing checks.
-
-**Format all Markdown without consumer checks.** This is simpler, but runtime templates, packaged content, and tested installation steps can regress until final validation. Known consumers remain in affected scope.
-
-**Keep the baseline and document a separate manual complete sequence.** This makes missing checks visible but still requires every caller to remember the sequence. One explicit complete entry point keeps its success meaningful.
-
 ## Consequences
 
 Documentation and local component work can prepare and run only affected environments during development and review. Shared or unknown changes still need every complete-check prerequisite. Every merge result retains the complete automated gate, which can block even a documentation merge when an unrelated component fails.

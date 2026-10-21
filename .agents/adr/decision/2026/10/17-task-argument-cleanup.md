@@ -81,13 +81,7 @@ The host should ignore empty values or expose the fields only to `seance` items.
 
 ## Alternatives considered
 
-- **Wrap the `task` tool through the extension tool API.** The extension API can delegate to the native implementation through `ctx.invokeTool`, so the wrapper does not have to reproduce dispatch, approval, or background lifecycle. It would still replace the tool definition, schema, description, and native rendering path, and would need to preserve them across host changes. The `tool_call` handler changes less and keeps the native tool intact. Rejected.
-- **Ask the model in a prompt or Skill to omit the fields.** It adds no handler and no speculation cost, but depends on every model and session following the instruction. The observed failures show that this is not reliable. Rejected.
-- **React to the `tool_result` error and ask the model to retry.** It avoids argument rewriting, but spends a failed round and depends on the retry being correct. Rejected.
-- **Remove only empty strings.** It is narrower and would preserve a non-empty `model` that a future host might accept, but the observed placeholders include `/dev/null` and `@ds-flash`, so it would not fix the reported cases. Rejected.
-- **Infer the default agent when `agent` is missing or empty.** It would cover more shapes, but duplicates the host spawn policy and can resolve to `seance`. The extension cannot reliably know the host's default. Rejected.
-- **Make the module default off.** It preserves speculative execution by default, but leaves the failure in place for users who do not change settings. The module only changes calls the host would reject. Rejected.
-- **Wait for an upstream fix and document the workaround.** It avoids new component behavior, but the current host has no fix and users continue to lose batches. Rejected as the sole action.
+- **Wrap the `task` tool through the extension tool API.** The extension API can delegate to the native implementation through `ctx.invokeTool`, so the wrapper does not have to reproduce dispatch, approval, or background lifecycle. It would still replace the tool definition, schema, description, and native rendering path, and would need to preserve them across host changes. The `tool_call` handler changes less and keeps the native tool intact.
 
 ## Consequences
 
@@ -95,7 +89,4 @@ The host should ignore empty values or expose the fields only to `seance` items.
 - **Continued cost after an upstream fix.** If a later host stops exposing the fields to non-seance items but keeps `sourceSession` in the schema, the handler remains registered for the current process and the speculation cost remains until the module is disabled or retired. If the field disappears from the schema, the next activation reports unavailable and registers no handler.
 - **A future legitimate `model` selector.** A host that exposes `sourceSession` while also letting ordinary agents select a model through `model` would lose that choice; the current 18.11.3 seance schema does not. A schema with only the ordinary selector is left unavailable and unchanged.
 - **Last-wins input revision.** When several extensions return `input` for one call, the host uses the last result. The qol revision can overwrite another extension's revision, or be overwritten by one registered later. Each handler sees the original input.
-- **Incomplete coverage.** Calls with no usable agent are left unchanged, so their outcome depends on the host's default agent and native validation. Calls with the fields at the batch level are also left unchanged. A user may read the module as a complete fix for every seance-field error.
-- **Silent correction.** The module hides the model's argument mistake. The `/qol` counter is the only signal, so a prompt or schema problem can persist without a visible failure.
 - **Dependence on host details.** The cleanup relies on the event input replacement contract, the `sourceSession` schema marker, the schema default behavior, and built-in tool provenance. A host change to any of them can make the module inactive or delete a field the host now accepts.
-- **Verification gap.** The automated checks cover the rewrite rule, the guards, the flat and batch seance schema shapes, the model-only schema, and the status line. A real OMP CLI run on `18.11.3` with `gpt-6-luna` and the `ds-flash` preset dispatched a non-seance batch item that carried both fields, and the cleaned call succeeded; the loss of speculative launch, a real seance item, a flat single call, and multi-item batches remain unverified.

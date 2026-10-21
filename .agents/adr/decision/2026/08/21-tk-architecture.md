@@ -53,11 +53,7 @@ The following ADRs own the detailed contracts within this architecture:
 
 ## Alternatives considered
 
-**Bind Tasks to Harness sessions.** Session state disappears or becomes inaccessible when the Harness, model, or context changes. It cannot be the authoritative project record.
-
-**Run tk as a daemon or hosted service.** A service would require process lifecycle, synchronization, availability, and remote-state contracts that ordinary project files do not need.
-
-**Create Tasks only after an execution commitment.** This would prevent a project from preserving an early investigation or plan. Persistence and execution commitment are separate decisions.
+None
 
 ## Consequences
 

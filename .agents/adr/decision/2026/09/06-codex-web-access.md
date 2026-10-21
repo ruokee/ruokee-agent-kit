@@ -30,11 +30,7 @@ Archived decisions and Git history keep their mentions of the component.
 
 ## Alternatives considered
 
-**Keep the component for page extraction and remove only the search tool.** Considered while deciding whether page extraction needs a home. It preserves the tool the host does not provide, but the repository would keep maintaining the component, its checks, and its documentation for one tool whose need the maintainer no longer recognized.
-
-**Keep the component in place and stop maintaining it.** Considered while deciding how to retire the component. It leaves the component inventory and every reference unchanged, but the repository would keep an entry for a component that no longer serves a need, and the approaching-deprecation status would stay open with no removal date.
-
-**Remove the component without reversing the settings decision.** Considered while choosing whether the removal needs the ADR flow. It avoids a proposal and an archive, but a current decision would keep maintaining a component that no longer exists, and the decision chain would lose the record of why it was removed.
+None
 
 ## Consequences
 

@@ -28,19 +28,11 @@ Every current proposal and decision template opens with `Motivation`. Historical
 
 ## Alternatives considered
 
-**Keep `Problem`.** This is direct when a decision addresses a defect, but it continues to make new capability proposals sound like defect reports.
-
-**Allow either `Problem` or `Motivation`.** This avoids rewriting the template, but gives one structural field two names and makes authoring and bilingual review less predictable.
-
-**Require both sections.** Separate sections can distinguish a current deficiency from the reason for acting, but many ADRs would repeat the same material or leave one section artificial.
+None
 
 ## Consequences
 
-`Motivation` is broader than `Problem`, so writers may use it for vague aspirations. Review must still require a concrete reason for considering the decision.
-
 Repository history contains both opening headings, but every current ADR uses `Motivation`; the one-time historical search distinction is accepted.
-
-The English and Chinese documentation describe the same rule.
 
 ## Changes
 

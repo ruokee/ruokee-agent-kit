@@ -61,15 +61,7 @@ The authoritative integration details live in [Harness integration](../../../../
 
 ## Alternatives considered
 
-**Use MCP for every Harness component.** Pi and OMP provide native tool APIs with session context, cancellation, and load metadata. Ignoring them would give those Harnesses a less direct integration while still requiring component-specific setup.
-
-**Write a separate schema in each adapter.** Handwritten copies would drift in fields, defaults, unions, descriptions, and tool names. Rust-generated schemas keep one contract source.
-
-**Implement Task rules in TypeScript adapters.** This would create host-specific behavior and repeat compatibility, validation, and error logic outside the runtime.
-
-**Start the runtime through a shell.** Shell invocation would add quoting, command interpretation, and platform-specific behavior to a fixed executable call.
-
-**Terminate the Harness when tk fails to load.** tk is one optional capability inside a larger session. A load error should disable tk and remain visible without taking down unrelated Agent work.
+None
 
 ## Consequences
 

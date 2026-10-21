@@ -42,13 +42,7 @@ Tools mode retains the four supported Harnesses' official component lifecycle. C
 
 ## Alternatives considered
 
-**Keep custom installation as a manual copy.** Manual copying provides no embedded source selection, digest validation, dry-run, deterministic update, residual-language cleanup, or bounded uninstall behavior.
-
-**Add a `generic` Harness value.** A generic target has no Harness executable, official loading API, fixed path, or real-load validation. It would misuse the Harness concept and still require a directory argument.
-
-**Add separate `tk skill install` and `tk skill uninstall` commands.** These commands would duplicate the current selection, archive, dry-run, result, and failure contracts for a second lifecycle with the same mechanics.
-
-**Treat the argument as the final Skill directory.** Callers would need to choose or append the discovery name themselves, and language switching could overwrite one Skill identity with another at the same path.
+None
 
 ## Consequences
 

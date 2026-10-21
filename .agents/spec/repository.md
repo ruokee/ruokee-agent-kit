@@ -50,6 +50,7 @@ The [rule layer](../rule/README.md) states how work is done here.
 - `pnpm check:changed` selects the affected checks for a change. Unknown, shared, or unreliably classified inputs fall back to one complete check.
 - The complete aggregate, the selector mapping, and the selector regression tests cover the same components and document consumers.
 - Every retained ADR follows the [ADR rules](../adr/README.md) for its body layout, identity date, revision sequence, naming, language pair, and maintenance, and writing or changing one follows the [documentation rules](../rule/documentation.md). A spec never conflicts with a current decision.
+- ADR alternatives have evidence that they entered the same durable choice and explain material tradeoffs. Risk statements and accepted costs have credible causes and material consequences, including when recorded under `Consequences`. The [authoring rules](../adr/README.md#authoring-rules) own the criteria; genuine contracts, reasons, historical conditions, and bilingual meaning remain intact.
 - A component's `X.Y.Z` version changes with the behavior it ships, and the [boundary rules](../rule/boundary.md) own the increment and its authority.
 - Components keep no unreachable code, duplicate implementation, or design held for a hypothetical requirement. Simplification keeps each component's goals, public commands, tools, settings, file formats, and behavior.
 
@@ -64,6 +65,7 @@ The [rule layer](../rule/README.md) states how work is done here.
 - No file reference inside a component resolves outside that component's directory.
 - Same-day, cross-month, and cross-year reversals leave the canonical current path unchanged, keep later versions separately accessible, and advance only that decision's continuous sequence. Extracting an independent topic and correcting names follow the [ADR rules](../adr/README.md), and a reader can follow accurate direct predecessors and successors without mistaking a later version for an earlier record's direct successor.
 - Every retained ADR meets the [ADR rules](../adr/README.md) for layout, naming, language pairs, and preserved historical content.
+- Reviewing every retained ADR pair finds no unsupported, misclassified, or immaterial alternatives or risk statements. Empty alternatives and risk sections use the prescribed `None` or `无`; retained entries preserve their basis and conditions, not generic warnings or review logs.
 - The ADR mechanism, guide, documentation rules, specification, dictionary, and actual references express the same contract. Current and historical citations, reciprocal language links, and heading fragments resolve to the intended content.
 
 ## Related ADRs

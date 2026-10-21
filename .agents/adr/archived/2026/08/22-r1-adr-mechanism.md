@@ -64,25 +64,15 @@ The first version has no dedicated Skill, classification system, translation sid
 
 ## Alternatives considered
 
-**Use `ADR` as the repository term.** It is familiar, but it describes architecture more narrowly than the process, storage, distribution, and host-contract decisions this repository also needs to preserve. It also competes with `Agent Note`, the established term in the reference design.
-
-**Write only Chinese records.** This gives the maintainer the lowest-cost audit path, but conflicts with the public repository's English documentation policy and withholds rationale from external contributors.
-
-**Put English and Chinese in one file.** A single file avoids missing counterparts, but every reader and Agent must load both languages. The structure becomes harder to scan, while semantic drift can still occur between the two sections.
-
-**Adopt DeepSeek Harness's complete triplet and validation system now.** Hash sidecars, classification gates, translation tooling, and a frozen archive solve real problems at hundreds of notes. They add files and maintenance before this repository has shown the same failures.
-
-**Keep decisions in ordinary documentation and Git history.** This avoids a new mechanism but does not give proposals, current decisions, rejected alternatives, and frozen history distinct identities or maintenance rules.
+None
 
 ## Consequences
 
 The repository now has one searchable place for proposed, implemented, rejected, and archived decisions, with rationale and alternatives available in both languages.
 
-Two authoritative language files can drift. Same-change review and reciprocal links are sufficient at the initial scale but depend on discipline.
-
 Requiring Chinese before merge adds work for external contributors. The contributor does not need to translate it personally; the maintainer or an Agent may complete the counterpart in the same branch.
 
-Living implemented notes can duplicate source and user documentation. Notes should retain stable rationale and boundaries, then link to schemas, code, tests, and usage docs rather than copying their inventories.
+Notes should retain stable rationale and boundaries, then link to schemas, code, tests, and usage docs rather than copying their inventories.
 
 Without classifications or an index, discovery depends on good slugs and repository search. Add structure only when the active tree becomes measurably difficult to search.
 

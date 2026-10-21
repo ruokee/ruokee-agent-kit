@@ -60,9 +60,7 @@ The [ADR guide](../../../README.md) owns detailed formats and operations, with i
 
 ## Alternatives considered
 
-**Keep per-record dates and the flat layout.** Considered for stable decision references and same-day reversals. Current paths would still change at each reversal, dates would not distinguish same-day archives, and lifecycle roots would accumulate ungrouped records.
-
-**Apply the conventions only to future records.** Considered for historical correction. Existing long names, inconsistent identity dates, and incorrect relationships would remain, forcing readers to follow two conventions within one history.
+None
 
 ## Consequences
 

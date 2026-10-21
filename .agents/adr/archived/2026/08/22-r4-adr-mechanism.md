@@ -96,9 +96,7 @@ The full authoring policy lives in [the ADR guide](../../../README.md), with its
 
 ## Alternatives considered
 
-**Keep the prefix as a format literal.** Considered while scoping this change, on the reading that the header template rather than prose mandates it. This would repeat in the title what the directory already states and leave the conflict with the heading rule unresolved.
-
-**Leave the ADR titles unchanged and clean the other surfaces only.** Considered while scoping this change. The heading rule covers ADR titles as well, so this would leave the repository disagreeing with its own rule.
+None
 
 ## Consequences
 
@@ -107,8 +105,6 @@ The repository has one searchable bilingual location for proposals and decisions
 A title states the topic alone, so a reader or a script that classifies a record by its title alone misreads its type. The directory, the metadata block, and the reciprocal language links carry that information.
 
 A proposal and its implementation require separate branches and mainline commits. This adds one review boundary but prevents implementation from silently defining the rationale it is supposed to follow.
-
-Two authoritative language files can drift. Same-change review and reciprocal links reduce the risk but do not prove semantic equivalence mechanically.
 
 Reversing a decision requires reconstructing a complete current contract. Review must compare the archived decision and accepted proposal so still-effective rules are not lost.
 

@@ -116,31 +116,13 @@ Raising the OMP-facing components to 18.5.0 removes three behaviors that still w
 
 ## Alternatives considered
 
-### Keep numeric gates
-
-The maintenance lower bound could have remained in peer dependencies or become an activation condition. This rejects out-of-range hosts early, but also rejects hosts that have the required capabilities and could run the component. It does not meet the requirement that the maintenance lower bound must not obstruct use.
-
-### Host pair verification
-
-A fixed pair standardizes verification steps, but imposes the same requirement on small changes whose behavior is unaffected. It also leaves distinct adaptation paths outside that pair uncovered. Verification therefore follows actual impact while preserving existing component release requirements.
-
-### Implementation approval
-
-This retains maintainer approval but leaves no separate public rationale for each reduction in host support. Each raise therefore still requires its own ADR.
-
 ### Per-component OMP bounds
 
 This was the rule before this decision. It keeps hosts down to each component's earlier bound wherever the code still serves them, but it leaves the six components on different bounds below the development host, and the components keep maintaining the default-block route and the speculation band estimate, which work only on older hosts.
 
-### Bound location
-
-This was suggested while analyzing why the bounds drifted. It removes the decision step from each raise, but it depends on a specification layer the repository does not have, so raises stay decisions.
-
 ## Consequences
 
 - Removing numeric gates lets previously rejected hosts reach loading and execution. If capability and behavior checks miss a real incompatibility, the component fails during use rather than at installation.
-- A maintenance lower bound states responsibility, not verification. A host at or above the bound can still hold an unverified difference, so the evidence records and the per-change verification carry that weight instead of the number.
 - Multiple implementations kept for different maintained hosts may evolve separately during later maintenance, causing configuration meanings or failure behavior on older maintained hosts to diverge from the same feature's contract.
 - A user who keeps an OMP release below 18.5.0 and updates a component loses the removed behavior without a warning: the system prompt strategy stops applying on a host before 18.3.0 unless the user selects the template, the total-deadline wait stops applying on a `hub` host, and the speculation band indicator becomes a static glyph on a host before 18.4.0.
 - The shared OMP bound moves only through a decision for all OMP-facing components, so a component that could drop an older host earlier waits for the next shared raise, and every raise needs a decision and review that covers all six components.
-- The decision adds no checker, compatibility manager, or supported-version table, so nothing mechanically enforces the declaration; review and the component documentation keep it accurate.

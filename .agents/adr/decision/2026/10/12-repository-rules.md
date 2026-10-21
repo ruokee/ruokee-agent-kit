@@ -56,19 +56,15 @@ The root `AGENTS.md` gives up the long text of its working rules and keeps repos
 
 The layer has no spec of its own: the repository spec carries the rule layer's goals, boundaries, and acceptance, because the area this layer describes is the repository itself. A rule that holds on one machine only, that names the device's model, provider, endpoint, or absolute path, or that carries a personal working preference stays out of the layer and out of tracked files. The same applies to a working convention that exists only outside Git, such as how task state and task materials are kept. Component-internal rules stay with the component: the instructions in a `SKILL.md` are the product delivered to a host, not a repository rule. The first delivery also covers repository working rules that already applied and had no owning document, so its source is the repository's publishable working rules rather than a file list.
 
+Record the disposition of every source item and compare moved rules against their source text, preserving conditions, exceptions, permissions, and unrelated spec requirements. Selector regression tests cover the new rule paths and retain the complete-check fallback for shared inputs and unknown paths.
+
 ### Reading the rules
 
 The layer [README](../../../../rule/README.md) states the layer's definition, its file layout, how a single rule is written, editing a rule, the reference direction, and this decision, and it indexes the rules by activity. `AGENTS.md` states where the layer is, links its entry the way the ADR and spec entry points are linked, carries the navigation and the non-trivial rules, and states at the strength of "as far as possible" that validation and evaluation work reads the applicable rules. A host injects `AGENTS.md` at the start of a session, while a rule page is read only when a reader chooses to open it, so a rule page may never arrive and a committed compaction can drop what a session already read; `AGENTS.md` therefore repeats the rules a change applies most often and the rules a reader is least likely to think of loading. Reading stays on demand for the remaining rules: no host injection mechanism and no requirement to load every rule is added.
 
 ## Alternatives considered
 
-**Name the layer `standard` instead of `rule`.** Considered while choosing the layer name. Standards literature and several document taxonomies pair a third layer with ADRs under "standards", which reads as a published document set for readers outside the team.
-
-**Write the rules into a single root `RULES.md` file.** Considered while choosing where the layer lives. One file is easy to find, but it cannot carry a language pair per topic, and every activity would be edited through the same file, which does not fit the repository's documentation layout.
-
-**Keep the working rules in the root `AGENTS.md` and add no layer.** Considered as the existing arrangement. It needs no new document type, but `AGENTS.md` carries navigation, positioning, and rules together, the repository spec duplicates several of them in another form, and no page owns a rule as its subject.
-
-**Number the rules and maintain an inventory.** Considered while choosing how a rule is cited. A number and a manifest make a rule easy to reference from a checklist, but the repository keeps no such list for its ADRs or specs, and the number would need maintenance on every rule added or removed.
+None
 
 ## Consequences
 
@@ -76,12 +72,4 @@ One page per activity states the current constraint that binds an action, and `A
 
 Rules that leave `AGENTS.md` no longer arrive with the instructions a host injects at the start of a session, so an agent can act without reading a detail that binds its work. `AGENTS.md` repeats the rules a change applies most often and the rules a reader is least likely to think of loading, and the remaining detail stays on demand: navigation entries, the per-activity index, and the request in `AGENTS.md` to read the applicable rules bound this, but nothing enforces it.
 
-A rule can lose a condition, an exception, or a permission while moving, and the resulting text then allows or forbids the wrong thing, for example by dropping the statement that a review request does not authorize edits to the reviewed files, or by turning "as far as possible" into a requirement. A recorded disposition for every moved rule and a reviewer's comparison against the source text are the guard.
-
 `AGENTS.md` and a rule page state the same constraint for the resident rules, and a later edit that updates one of them leaves the other describing an older rule. `AGENTS.md` repeats only the rules a change applies most often and the rules a reader is least likely to load, and reviewers compare the two texts, because nothing checks them mechanically.
-
-The repository spec can lose a requirement that is not a working procedure while its procedure statements are removed, such as the commit scope set, the bilingual pairing rule, or an acceptance criterion. A recorded disposition for every source item keeps unrelated requirements traceable.
-
-The changed-path selector can classify a rule-only change wrongly, or a widened pattern can stop routing shared inputs and unknown paths to the complete check, so a branch is recorded as documentation-only while it changes a shared input. The selector regression tests cover the new path.
-
-An English rule and its Chinese pair can drift, so the two authoritative texts disagree about a constraint and readers of each language follow a different rule. Both files change together and review compares meaning, because the format check cannot see a semantic difference.

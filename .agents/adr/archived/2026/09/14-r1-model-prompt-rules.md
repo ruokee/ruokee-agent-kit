@@ -88,23 +88,11 @@ Real-host checks record the exercised OMP release, the models, and the observed 
 
 ### Distribute a separate extension
 
-This option was considered when choosing where the capability lives. Two components transforming the same array make the visible result depend on installation order, because handlers run in extension order with no priority option, and they require the replacement to recognize or preserve text owned by another component. Merging into one component removes both dependencies.
-
-### Prefix marker
-
-This option was considered while hardening the separate-extension design. A component-owned marker would make the replacement's block classification fail rather than misclassify. It writes component bookkeeping text into prompt content that is otherwise injected verbatim, so it was dropped together with the separate-extension design.
+A separate extension can be installed independently. Two components transforming the same array make the visible result depend on extension load order, because handlers run in that order with no priority option, and they require the replacement to recognize or preserve text owned by another component. Merging into one component removes both dependencies.
 
 ### First message injection
 
-This option was considered when choosing the injection position. The `message` channel inserts `role: "custom"` messages into the turn's message list ([consumption](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/session/agent-session.ts#L6496-L6525)), and the session records them as `custom_message` entries ([persistence](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/session/agent-session.ts#L2806-L2820), [entry](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/session/session-manager.ts#L2488-L2499)), so every turn would add another copy of the instructions to the history. After a model switch, the history keeps instructions selected for the previous model, and the text sits below system-prompt authority. The system prompt, rebuilt for each turn, was chosen instead.
-
-### Role alias matching
-
-This option was considered when deciding the matching dimensions. Because the host does not record the starting role, a role condition could only mean the model that role currently resolves to, which is another question. It was dropped, leaving the four keys above.
-
-### Payload patching
-
-This option was considered as a way to refresh on every provider request rather than once per turn. It requires per-provider payload knowledge, and no available extension point publishes a contract for provider request payloads. Per-request refresh is not needed for the requested behavior, so the option stays available for a future change rather than part of this decision.
+The `message` channel avoids system-block classification but inserts `role: "custom"` messages into the turn's message list ([consumption](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/session/agent-session.ts#L6496-L6525)), and the session records them as `custom_message` entries ([persistence](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/session/agent-session.ts#L2806-L2820), [entry](https://github.com/can1357/oh-my-pi/blob/61b1b8aef634334eaf1412afd003a763e1d1b9c1/packages/coding-agent/src/session/session-manager.ts#L2488-L2499)), so every turn would add another copy of the instructions to the history. After a model switch, the history keeps instructions selected for the previous model, and the text sits below system-prompt authority. The system prompt, rebuilt for each turn, was chosen instead.
 
 ## Consequences
 

@@ -88,8 +88,6 @@ The complete format and operation details live in the [data model](../../../../.
 
 **Keep child discovery under `subtasks_dir`.** This narrows scanning and guarantees generated paths, but changing a placement preference can hide valid carriers and make imported children unreachable.
 
-**Require manual name repair before rename.** This prevents the runtime operation responsible for name repair from loading its target and gives split and embed unequal recovery paths.
-
 ## Consequences
 
 Task state remains readable with ordinary file tools and portable across interfaces. Changing `subtasks_dir` no longer changes visibility, and imported or reorganized valid child carriers remain usable.

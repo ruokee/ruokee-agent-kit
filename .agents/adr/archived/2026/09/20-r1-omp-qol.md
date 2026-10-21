@@ -49,20 +49,18 @@ Document each adjustment in the component's own `docs/` in English and Chinese, 
 
 Verified claims stay separate per adjustment. A package-wide peer range is metadata about the host API and is not verification of any adjustment, and reading the source is not a run. Items without a real-session run are documented as unverified.
 
+Validation of the compaction experiment requires a remote compaction longer than the native deadline to complete with usable model requests afterwards. On host upgrades, re-read the cited source and update the affected documentation rather than widening the declared peer range.
+
 ## Alternatives considered
 
-- **Separate extension packages per adjustment.** Considered while assessing packaging. Independent releases and independent failures are the gain; configuration, compatibility, migration, and checks spread across three installations are the cost, and the three adjustments share one host baseline. One package keeps those entry points together.
-- **A dedicated configuration file with its own parser.** Considered while choosing a configuration source. The required settings fit OMP plugin settings, so a separate parser, precedence rule, and update path would add maintenance without a capability the adjustment needs.
-- **Replacement of the native compaction flow.** Considered while judging how much control the deadline needs. It gives direct control over the request options, but transfers the compaction protocol, history replacement, retry, and fallback paths to this component, including the paths that produce the summaries the session depends on.
-- **Deferral of the compaction adjustment until OMP exposes a request-level interface.** Considered while assessing isolation. It avoids process-wide effects and keeps maintenance small, but leaves the fixed deadline in place; the decision instead makes the bounded global mechanism an explicit, disabled experiment with the replacement condition above.
-- **Only documenting the three limitations without an extension.** Considered before proposing a component. It adds no code and no compatibility surface, but leaves each case to repeated user or model intervention, which is what the adjustments exist to reduce.
+- **Separate extension packages per adjustment.** Independent releases and independent failures are the gain; configuration, compatibility, migration, and checks spread across three installations are the cost, and the three adjustments share one host baseline. One package keeps those entry points together.
+- **Replacement of the native compaction flow.** It gives direct control over the request options, but transfers the compaction protocol, history replacement, retry, and fallback paths to this component, including the paths that produce the summaries the session depends on.
+- **Deferral of the compaction adjustment until OMP exposes a request-level interface.** It avoids process-wide effects and keeps maintenance small, but leaves the fixed deadline in place; the decision instead makes the bounded global mechanism an explicit, disabled experiment with the replacement condition above.
 
 ## Consequences
 
 - One component shares a release, a lockfile, and one check entry point across three adjustments. A host change that breaks one module also stops the component from being installed as a whole, and a single dependency upgrade affects all three.
-- Automated checks cannot establish host behavior. Each adjustment needs its own real-session evidence, and the compaction experiment's benefit stays unproven until a remote compaction longer than the native deadline completes with usable model requests afterwards.
 - The adjustments depend on host details that carry no compatibility promise: the builtin tool description and the shape of an empty window, `stopReason: "error"` together with the public classifier, the identity of `AbortSignal.timeout`, and the order of compaction lifecycle events. Each module is written to stay inactive and say why rather than to guess, so a host upgrade can disable an adjustment without breaking the session, and the adjustment is trusted again only after a re-check.
 - Continuations re-send the conversation and spend provider quota, and a re-run turn can repeat a side effect from the failed turn. Bounded attempts, the fixed exclusion list, and the host cap reduce exposure without promising exactly-once behavior.
 - A wait deadline leaves work running that the model may no longer be watching. The result states that the deadline passed, and checking again is the model's next step.
 - The compaction experiment lengthens matching deadlines of unrelated work in the same process while a window is open, and the window's opening events do not name the request that will be timed. Cleanup cannot shorten a deadline that already exists, and one process hosts one wrapper.
-- Documentation is maintained against a fixed host baseline, so a host upgrade requires re-reading the cited source and updating the affected sections rather than widening the declared peer range.

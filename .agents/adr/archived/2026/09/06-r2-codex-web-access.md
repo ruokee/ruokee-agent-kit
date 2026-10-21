@@ -89,7 +89,7 @@ The tools share request and response behavior for answer text, citation collecti
 
 ## Alternatives considered
 
-Keep the dedicated YAML file as the configuration source. It preserves the existing file and registration-time behavior, but it leaves a separate configuration interface and cannot provide OMP's native project overrides. It was rejected in favor of the native settings contract.
+None
 
 ## Consequences
 

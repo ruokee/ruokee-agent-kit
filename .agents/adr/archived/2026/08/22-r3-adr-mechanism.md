@@ -96,17 +96,13 @@ The full authoring policy lives in [the ADR guide](../../../README.md), with its
 
 ## Alternatives considered
 
-**Keep Agent Note as the primary term.** This would retain the old paths and much existing prose, but it would preserve the single-document status model that obscured the distinction between proposals and decisions.
-
-**Package ADR maintenance as a Skill now.** The mechanism is still changing through use. A distributed Skill would freeze rules before the repository has enough evidence that they are stable.
+None
 
 ## Consequences
 
 The repository has one searchable bilingual location for proposals and decisions, with directory names that state document type and lifecycle state.
 
 A proposal and its implementation require separate branches and mainline commits. This adds one review boundary but prevents implementation from silently defining the rationale it is supposed to follow.
-
-Two authoritative language files can drift. Same-change review and reciprocal links reduce the risk but do not prove semantic equivalence mechanically.
 
 Reversing a decision requires reconstructing a complete current contract. Review must compare the archived decision and accepted proposal so still-effective rules are not lost.
 

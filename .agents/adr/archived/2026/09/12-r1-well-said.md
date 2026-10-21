@@ -100,25 +100,13 @@ The English and Chinese capability indexes describe the same scope and activatio
 
 ## Alternatives considered
 
-- Keep general style cleanup in the existing unslop Skill and add a separate leakage Skill. This was considered when choosing the capability boundary. It separates the rules that must jointly preserve meaning and does not provide the chosen unified writing behavior.
-- Keep a short core and three specialist guides loaded on demand. This was considered when comparing file layouts. It can reduce context use when substantial specialist material is rarely needed, but adds signal recognition, file retrieval, and combined-guide handling. The complete single file avoids those dependencies for everyday writing; actual context savings and behavioral differences have not been measured.
-- Put only navigation in the entry point and require the full unslop guide for every user-visible output. This was considered when deciding how to expose binding prohibitions. It requires additional reading while leaving the entry point unable to provide the unified writing rules on its own.
-- Soften unslop's explicit prohibitions into defaults with stylistic exceptions. This was considered when choosing rule strength. The chosen writing preference retains the prohibitions while protecting literal material and meaning.
-- Restrict edits to local wording and ask before structural changes. This was considered when choosing editing scope. It would add confirmation for authorized restructuring that proof-posture cleanup can require.
+- Keep a short core and three specialist guides loaded on demand. It can reduce context use when substantial specialist material is rarely needed, but adds signal recognition, file retrieval, and combined-guide handling. The complete single file avoids those dependencies for everyday writing.
 
 ## Consequences
 
 Overaggressive cleanup can erase qualifications, migration obligations, evidence, useful history, or author voice, producing fluent but misleading text. Shared preservation rules and paired keep/change cases must constrain every section.
 
 Loading all guidance can consume context with details irrelevant to a particular response, and a long file can make essential rules easier to overlook. Measure the actual content and loading behavior, keep the structure readable, and check both missed cleanup and harmful edits.
-
-An Agent may fail to discover the Skill, receive only part of its text, lose content from context, or ignore rules that it has read. A single file removes specialist retrieval steps but does not guarantee complete loading or compliance; loading evidence and actual outputs are both needed to locate failures.
-
-Rules within the Skill and existing writing instructions can overlap or conflict, causing inconsistent edits. Existing rules can also mask weaknesses in the candidate and lead to overstated effectiveness.
-
-Tuning rules to familiar examples can improve those examples without helping new writing. Fresh-input tests and regression checks are needed to expose that failure.
-
-Copying source text without verifying its provenance and license can omit required attribution or distribute material without permission. The ownership of the new component does not resolve those obligations.
 
 ## Changes
 

@@ -30,11 +30,7 @@ English and Chinese Skills in the same mode provide equivalent behavior. Install
 
 ## Alternatives considered
 
-**Use `--skill <tk|tk-zh|tk-cli|tk-cli-zh>`.** A four-value option hides the independent mode and language dimensions and duplicates Skill identities in the command contract.
-
-**Require an explicit language every time.** This would break the existing install command. The English default preserves its behavior.
-
-**Keep Chinese Skills outside tk install.** The selected language would remain unmanaged and could drift from the active component.
+None
 
 ## Consequences
 

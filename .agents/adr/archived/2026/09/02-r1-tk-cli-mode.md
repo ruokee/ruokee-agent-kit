@@ -27,9 +27,7 @@ A CLI-only Harness component installs the selected CLI Skill. Claude Code, Pi, a
 
 ## Alternatives considered
 
-**Keep one mixed Skill and strengthen route wording.** The Agent would still load both execution models and consider two routes for covered operations.
-
-**State that tools are unavailable in CLI-only mode.** The Skill does not need that assumption. It only needs to define the route it uses.
+None
 
 ## Consequences
 

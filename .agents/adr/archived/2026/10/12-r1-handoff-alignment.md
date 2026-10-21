@@ -67,16 +67,12 @@ The local trial extension stays installed only until this capability passes its 
 
 ## Alternatives considered
 
-- **Ship Handoff alignment as a separate package or a second extension entry.** Considered while choosing the home of the capability. The host exposes one method per seam and the remote capability's ownership check rejects a foreign wrapper, so a separate wrapper stops remote alignment with a reported conflict and duplicates the registration, lifecycle handling, and diagnostics the package already has.
-- **Fold Handoff alignment into remote's V2 reuse rules.** Considered while choosing the capability boundary. Handoff and remote align requests of different shapes under different protocol rules, and remote's decision already excludes applying its V2 rules to Handoff. One rule set would either drop remote's Provider-specific checks or apply them to requests they were not written for.
-- **Keep only the local trial extension.** Considered as the status quo. It aligns manual handoff on this machine, but it stays outside the repository and has no settings, no per-session isolation, no accepted evidence for the uncovered paths, and no release process.
-- **Gate rewriting on full request equality.** Considered while choosing what the capability refuses. Requiring the side request to match the reference in every field, as later trial versions did, abandons the rewrite on any unrelated field difference and hides which projection failed. Restoring axis by axis keeps the ownership and prefix checks and counts what it cannot project.
-- **Require an exact Provider name, as remote does.** Considered while defining the switch. A Provider key adds configuration surface and a second Provider inventory; the session, model, prompt, and tool identity checks already protect the reference, so component documentation declares the verified matrix and its gaps instead.
+None
 
 ## Consequences
 
 - Two capabilities in one coordinator can interfere. A change made for one capability can alter the shared wrapper, the per-session lifecycle, or the other capability's diagnostics, so a regression in one can ship together with an improvement in the other. Moving remote's rules unchanged and re-running its acceptance before release are the guard.
 - A user can enable the switch while the trial extension is still discovered. One wrapper can then drop the other, so alignment stops with a reported conflict, or a wrapper loop repeats the same rewrite; the conservative conflict report and the restart-based cutover bound this without preventing the coexistence.
-- Aligning a request does not guarantee a Provider cache hit, and the observed benefit comes from one pair of requests. The capability can add maintenance without repeating that benefit, and the uncovered paths above mean its support cannot be claimed as complete.
+- Aligning a request does not guarantee a Provider cache hit. The capability can add maintenance without repeating the observed benefit.
 - A host change to the side-request path can leave the reference unmatched, so the capability refuses and reports the fixed reason while losing the benefit; with boundary checks that are too loose it can instead restore a system prompt or tool choice the host no longer intends, producing a wrong or truncated handoff document.
 - Restoring the online tool choice into a request the host builds for document generation can make the model call a tool instead of producing text, and the host's document extraction then fails. The capability executes no tool and adds no retry, so that failure stays the host's own outcome rather than a capability success.

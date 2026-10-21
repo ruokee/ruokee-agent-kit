@@ -100,22 +100,10 @@ The remaining current decisions are checked and kept:
 
 ## Alternatives considered
 
-### Keep numeric gates
-
-The maintenance lower bound could have remained in peer dependencies or become an activation condition. This rejects out-of-range hosts early, but also rejects hosts that have the required capabilities and could run the component. It does not meet the requirement that the maintenance lower bound must not obstruct use.
-
-### Host pair verification
-
-A fixed pair standardizes verification steps, but imposes the same requirement on small changes whose behavior is unaffected. It also leaves distinct adaptation paths outside that pair uncovered. Verification therefore follows actual impact while preserving existing component release requirements.
-
-### Implementation approval
-
-This retains maintainer approval but leaves no separate public rationale for each reduction in host support. Each raise therefore still requires its own ADR.
+None
 
 ## Consequences
 
 - Removing numeric gates lets previously rejected hosts reach loading and execution. If capability and behavior checks miss a real incompatibility, the component fails during use rather than at installation.
-- A maintenance lower bound states responsibility, not verification. A host at or above the bound can still hold an unverified difference, so the evidence records and the per-change verification carry that weight instead of the number.
 - Multiple implementations kept for different maintained hosts may evolve separately during later maintenance, causing configuration meanings or failure behavior on older maintained hosts to diverge from the same feature's contract.
 - Keeping a lower bound delays the smaller code a raise could buy, and every raise needs its own decision and review; a component may carry compatibility work for a host version it could otherwise drop.
-- The decision adds no checker, compatibility manager, or supported-version table, so nothing mechanically enforces the declaration; review and the component documentation keep it accurate.

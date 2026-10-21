@@ -106,21 +106,13 @@ The direct `@oh-my-pi/*` imports declare peer dependencies with the range `>=18.
 
 ## Alternatives considered
 
-**Keep `setStatus()` with per-metric styled plain text.** The `setStatus()` channel accepts any string, so a provider could embed raw ANSI sequences. The Host could still parse and selectively allow them, but that turns styling into a complex, fragile escape-sequence protocol between Host and providers; width truncation would have to parse arbitrary provider output, and a blink would require each provider to swap strings on its own timer. With structured spans the Host stays the single point that sanitizes, styles, composes, and truncates.
-
-**Publish each metric as plain text without the speculation glyph.** This keeps `setStatus()` viable, since the remaining content is one uncolored string. It sacrifices the blink indication, the fixed metric colors, and controlled truncation.
-
-**Render metrics inside the native statusline through the `setStatus()` channel or custom segments.** The native statusline is user-configured; `showHookStatus` and preset segments control placement and visibility, so the package could not guarantee a stable row, and segment registration would replace user-visible native components. A persistent widget row makes the capability independent of the user's statusline configuration.
-
-**Use one provider with display toggles instead of independent metric providers.** A single provider with per-metric switches would duplicate the selection and ordering that `statuses` already provides, and the two mechanisms could disagree about which metrics show and in what order. Independent providers let one structure both select and order.
+**Keep plain-text metrics in the native statusline.** This keeps `setStatus()` viable, but leaves placement and visibility to `showHookStatus` and preset segments. It sacrifices the blink indication, fixed metric colors, controlled truncation, and an independently persistent row.
 
 ## Consequences
 
 The Host owns sanitization, composition, truncation, and the widget lifecycle, so providers stay small and cannot corrupt the row. Third-party extensions gain a stable, versioned contract for adding providers without touching the Host.
 
 The package is coupled to OMP's public widget, context-usage, and compaction-resolution APIs for the 18.x range. Every release verifies that range with real TUI checks before tagging, because the automated suite is headless and cannot see the terminal.
-
-The builtin inventory now lives in the package usage documentation. The code and that documentation must change together, and a metric added to one without the other leaves the published inventory wrong.
 
 The speculation indicator is an estimate, not an observation; users see an approximation whose limits the documentation states explicitly.
 

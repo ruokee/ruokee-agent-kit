@@ -68,11 +68,7 @@ The reversal changes the two clauses above and nothing else in the choice. This 
 
 ## Alternatives considered
 
-Reversing the archived decision had these options.
-
-- **Keep the archived decision current and rewrite its two clauses as factual maintenance.** Considered while checking which mechanism fits. Maintenance keeps a current decision accurate when paths, names, or verification entry points move; here the clauses lose their subject, so a rewrite would reverse a decision through the mechanism that is not allowed to reverse one.
-- **Withdraw the two clauses by appending a `## Changes` entry to the current decision.** Considered as the lighter mechanism. An update is allowed only when the added content does not conflict with the decision, and an entry that withdraws the binding force of an existing clause conflicts with it, so this route is closed.
-- **Move the model prompt rules out of QoL together with the removed component.** Considered while judging whether the rules still have a subject. The removal deletes a component rather than a capability: the rules serve sessions on any host, they never depended on the extension's template to run, and public documentation already describes them as a QoL module.
+None
 
 ## Consequences
 

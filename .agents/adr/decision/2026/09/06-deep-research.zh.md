@@ -23,12 +23,12 @@ Decision writer: OMP
 
 ## 考虑过的替代方案
 
-以面向 Claude Code 和 Codex 的 Plugin 形式分发这项能力。这需要宿主专用的包装和分发入口。纯 Skill 可以提供研究指令，而无需承担这些额外的维护工作。
+无
 
 ## 结果
 
 任一变体均可独立安装使用。每个组件仅包含自身的研究指令，无需维护宿主专用的包装。
 
-两种变体均使用 `name: deep-research`，`description` 字段含义等价，说明何时使用该 Skill。两者的研究要求保持语义一致。翻译遗漏证据要求或改变研究停止条件，可能导致行为差异，因此应对照审查中英文指令。
+两种变体均使用 `name: deep-research`，`description` 字段含义等价，说明何时使用该 Skill。两者的研究要求保持语义一致。
 
 保持两份仓库 README 中的能力索引链接有效，并通过[仓库检查决定](./12-repository-checks.zh.md)定义的仓库检查。

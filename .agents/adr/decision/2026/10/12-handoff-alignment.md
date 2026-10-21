@@ -90,33 +90,7 @@ The package replaces and disables the local trial extension after this capabilit
 
 ## Alternatives considered
 
-### Independent extension
-
-A separate package or second entry was considered when choosing capability ownership. It duplicates registration and diagnostics and breaks wrapper ownership because each seam exposes one method, so the existing package coordinates the capability.
-
-### Shared V2 rules
-
-Folding Handoff into remote was considered when choosing protocol boundaries. Request shapes, generation policies, and Provider checks differ. Sharing rules would drop V2 checks or apply them incorrectly to Handoff, so only confirmed observations are shared.
-
-### Retain the trial
-
-The status quo had narrow evidence for one machine's manual path and lacked native configuration, per-session isolation, and a release process. It cannot deliver the required scope.
-
-### Full field equality
-
-Full field equality was considered when choosing refusal conditions. Unrelated differences would abandon otherwise proved valid projections, so necessary ownership and prefix boundaries stay while other axes are handled independently.
-
-### Provider inventory
-
-An exact Provider name, as used by remote, was considered when defining the switch. Handoff identity and protocol checks already protect its reference. Another inventory adds configuration and maintenance without adding proof.
-
-### Preparation-stage restoration
-
-Restoring context before serialization was considered when choosing the Responses restoration stage. Later hooks and stateful preparation can still change the wire prefix, and final-send proof remains necessary, so projection uses observed results.
-
-### API condition alone
-
-Routing Responses directly into the Chat path was considered when choosing API scope. That path relies on messages and flat reasoning fields. It cannot capture Responses sources or retain native generation semantics, so Responses uses an independent projection.
+None
 
 ## Consequences
 

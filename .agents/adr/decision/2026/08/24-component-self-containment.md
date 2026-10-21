@@ -30,11 +30,7 @@ Repository-wide documentation, ADRs, manifests, installers, and integration code
 
 ## Alternatives considered
 
-**Keep the broad prohibition.** A component could not declare a real prerequisite, so readers would have to infer it. Legitimate name references, such as a workflow requiring tk or a Skill naming another Skill to load, would remain boundary violations.
-
-**Prohibit only Markdown links.** Written paths, imports, and runtime reads would be allowed. A component could still refer to a file outside itself in a form that breaks after installation, so the failure the rule targets would return.
-
-**Bundle every prerequisite.** A component would copy another component's files or implementation so no external prerequisite exists. This duplicates content across components and lets copies drift in version and behavior.
+None
 
 ## Consequences
 

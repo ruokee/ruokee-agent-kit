@@ -88,23 +88,15 @@ These rules from the system prompt decisions keep their meaning:
 
 ## Alternatives considered
 
-**Extend the existing converter to recognize the upgrade target's default block.** Considered while choosing how to keep the strategy on a new host. It keeps a route that needs no user configuration, but the component would keep maintaining a parser of host-authored prose, and every host rewording of that block would repeat the same failure.
+**Extend the existing converter to recognize the upgrade target's default block.** It keeps a route that needs no user configuration, but the component would keep maintaining a parser of host-authored prose, and every host rewording of that block would repeat the same failure.
 
-**Use the plain-text custom prompt route instead of a template.** Considered while comparing supported routes. Plain text is simpler to install, but that route renders the session data from the host's plain-custom template rather than from the component's own text, so the maintained tool, device, internal-URL, and runtime sections could not be kept.
+**Keep the diagnostic when no template render is recognized.** It tells a user whose template failed to match, but a user of `SYSTEM.md`, `--system-prompt`, or no template gets a failure report for a path the component does not serve.
 
-**Put the Delivery chapter inside the template.** Considered while deciding where that chapter lives. It needs no per-turn insertion, but the template cannot read plugin settings, so the documented switch and its per-turn change would be lost.
-
-**Ship a default template that applies without user action.** This was the first direction for replacing the default-block route. It would restore the strategy for users who select nothing, but the component would have to write or select a host prompt file, which this decision excludes and which would override a choice the host leaves to the user.
-
-**Keep the diagnostic when no template render is recognized.** This was the behavior before this decision. It tells a user whose template failed to match, but a user of `SYSTEM.md`, `--system-prompt`, or no template gets a failure report for a path the component does not serve.
-
-**Mark every converted footer, or carry conversion state outside the prompt.** Considered while designing the footer ownership marker. Marking every footer without loading guidance changes ordinary output unnecessarily. Carrying source or processing state outside the prompt preserves prompt bytes but needs a separate interface and lifecycle design. The conditional comment keeps state in the validated footer while limiting its provider-visible cost to the ambiguous case.
+**Carry conversion state outside the prompt.** Carrying source or processing state outside the prompt preserves prompt bytes but needs a separate interface and lifecycle design. The conditional comment keeps state in the validated footer while limiting its provider-visible cost to the ambiguous case.
 
 ## Consequences
 
 A template that does not apply is silent. A user whose template is shadowed by a higher-priority `SYSTEM.md`, whose copy of `host-template.hbs` is outdated, or who edited its static skeleton gets the host prompt with no diagnostic and may believe the strategy is in effect. An edit confined to a dynamic slot body is claimed, because slot bodies lie outside the recognition basis.
-
-A user who selects no template gets the host's own strategy text. The component's strategy applies only after the optional installation step.
 
 The template route publishes the component's text as a file the host reads directly. Because the template binds host-side sections, a host reword or field change in those sections needs a matching update to the component's template; until then the render carries the older section text rather than failing.
 

@@ -52,7 +52,7 @@ This repository verification policy complements [the Markdown formatting decisio
 
 ## Alternatives considered
 
-**Keep the baseline command and document a separate manual command sequence.** This makes the omitted checks visible and allows developers to run them individually. It still leaves success of the standard root entry point insufficient to establish complete automated coverage, and requires every caller to remember the additional sequence.
+None
 
 ## Consequences
 

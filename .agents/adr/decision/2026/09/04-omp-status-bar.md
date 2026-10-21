@@ -90,27 +90,13 @@ The direct `@oh-my-pi/*` imports declare their host packages as peer dependencie
 
 ## Alternatives considered
 
-**Keep `setStatus()` with per-metric styled plain text.** The `setStatus()` channel accepts any string, so a provider could embed raw ANSI sequences. The Host could still parse and selectively allow them, but that turns styling into a complex, fragile escape-sequence protocol between Host and providers, and width truncation would have to parse arbitrary provider output. With structured spans the Host stays the single point that sanitizes, styles, composes, and truncates.
-
-**Publish each metric as plain text.** This keeps `setStatus()` viable, since the content is one uncolored string. It sacrifices the fixed metric colors and controlled truncation.
-
-**Render metrics inside the native statusline through the `setStatus()` channel or custom segments.** The native statusline is user-configured; `showHookStatus` and preset segments control placement and visibility, so the package could not guarantee a stable row, and segment registration would replace user-visible native components. A persistent widget row makes the capability independent of the user's statusline configuration.
-
-**Use one provider with display toggles instead of independent metric providers.** A single provider with per-metric switches would duplicate the selection and ordering that `statuses` already provides, and the two mechanisms could disagree about which metrics show and in what order. Independent providers let one structure both select and order.
-
-**Subtract the out-of-band records from the session aggregate.** This keeps the session statistics as the base. The aggregate exposes no per-purpose split, so the subtraction would have to walk the same branch and classify the same records the direct sum reads, then subtract them from a total that already contains them. The result would rest on two sides that must keep agreeing, the aggregate that sets the base and the classification that sets the correction, and a host change to either side would leave a residual the package cannot account for.
-
-**Keep the session statistics and add a reading for out-of-band traffic.** This keeps every existing number and reports the excluded amount beside it. It leaves the readings a reader compares against the conversation's own cost distorted, and it asks the reader to subtract one reading from another to recover the conversation's usage.
-
-**Make the corrected scope depend on an upstream change.** OMP could report the judgment calls' real cache fields, or expose a per-purpose split. Both are outside the package's control and neither is promised, so the readings would stay distorted for an unknown period.
+**Keep plain-text metrics in the native statusline.** This keeps `setStatus()` viable, but leaves placement and visibility to `showHookStatus` and preset segments. It sacrifices the fixed metric colors, controlled truncation, and an independently persistent row.
 
 ## Consequences
 
 The Host owns sanitization, composition, truncation, and the widget lifecycle, so providers stay small and cannot corrupt the row. Third-party extensions gain a stable, versioned contract for adding providers without touching the Host.
 
 The package is coupled to OMP's public widget and context-usage APIs. It declares a maintenance lower bound and no maintenance upper bound, which states the maintenance commitment rather than a promise that every later release works, and the versions and scenarios actually verified stay in the component documentation beside that declaration. Every release runs its real TUI check on the host it targets before tagging, because the automated suite is headless and cannot see the terminal.
-
-The builtin inventory now lives in the package usage documentation. The code and that documentation must change together, and a metric added to one without the other leaves the published inventory wrong.
 
 The row no longer indicates that the context has probably entered OMP's speculation band. A user who relied on the blink learns of compaction only from OMP's own interface, and on a host before 18.4.0 the indicator that still worked there becomes the static glyph.
 
@@ -120,6 +106,6 @@ The package ships no compatibility layer for the plain-text contract, the `token
 
 The token readings and the cache-hit rate describe the conversation rather than the session. OMP's own statusline and any cost report still include out-of-band traffic, so the row and those readings differ by design, and the usage documentation states the scope and the excluded records beside the formulas.
 
-A host that stops reporting `task` usage on the tool result, or that records conversation usage in another shape, leaves the readings under-counting without any test noticing it, because the tests pin the shapes read today. Such a change reaches the package as readings that no longer match the conversation, through a user report or through the release TUI check on a real ledger.
+A host that stops reporting `task` usage on the tool result, or that records conversation usage in another shape, leaves the readings under-counting.
 
 Each sample walks the branch, so the work grows with the session's entry count on the sampling cadence. The walk reads only the fields it needs and runs at most once per tick for all five readings.

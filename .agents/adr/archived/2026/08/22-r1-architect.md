@@ -41,6 +41,8 @@ Matt Pocock's [Model-invoked vs user-invoked](https://github.com/mattpocock/skil
 
 Keep `SKILL.md` short. Invocation policy lives in frontmatter and `agents/openai.yaml`; the body contains only scope, reference navigation, evidence requirements, and the output contract. The Skill has no `workflow/` directory.
 
+Output distinguishes project facts, assumptions, recommendations, and user-owned decisions, and states uncertainty when evidence is missing.
+
 Put architecture knowledge under `references/`, with the glossary at the Skill root to match existing Skills. References serve both Agents and developers. Documents within one directory use two-digit prefixes to keep listings in a stable reading order. Directories are not numbered, and the numbers do not require sequential reading by the Agent. This numbering convention applies only to `architect`.
 
 The tree below defines every first-release file in each language directory: 29 Markdown documents plus the invocation policy at `agents/openai.yaml`. The release does not ship a document subset. If review of the Chinese draft requires merging or splitting documents, update the trees and responsibility tables in both ADR files first, then reassign the numbers. The first release still ships every document in the updated tree.
@@ -137,13 +139,7 @@ The English version expresses the approved Chinese meaning naturally rather than
 
 ## Alternatives considered
 
-**Adopt `architecture-copilot` directly.** It already provides a related Skill, but its references compress the source heavily and its interaction style favors sustained questioning. This proposal uses `awesome-architecture` as the first-release topic map and redesigns the references for the current requirement, so it cannot adopt that Skill directly.
-
-**Add task workflows.** Workflows could standardize output steps, but they would constrain model reasoning to predefined procedures. The current requirement needs a concise Skill entry and references. There is no evidence that it also needs a `workflow/` layer.
-
-**Put all knowledge in one file.** A single file is simple, but system design, distributed systems, security, evolution, and technology selection would be mixed together. Topic-based references let the Agent read material relevant to the current problem.
-
-**Allow automatic activation.** Automatic activation occasionally identifies an applicable case, but a false activation can derail a task that does not need architecture design. The model also cannot determine from the current task alone whether the real requirements call for architecture design, so the cost of a false activation is higher.
+None
 
 ## Consequences
 
@@ -152,11 +148,8 @@ The English version expresses the approved Chinese meaning naturally rather than
 - Each variant contains 29 Markdown documents: a concise `SKILL.md`, a root glossary, 14 core references, 5 AI references, and 8 technology-selection references. There is no `workflow/` directory. Reference files use two-digit prefixes only within their directory.
 - `awesome-architecture` at revision `7f43e49b95ad9c255418733738fddab4eb0f6a68` remains the topic map. Both `SKILL.md` files identify JingWen Fan and the MIT license, while the published material is rewritten rather than copied verbatim.
 - References retain explanations, derivations, counterexamples, and cases that support judgment. Architecture-decision guidance follows the current project's recording convention instead of imposing a separate format.
-- The Chinese variant was completed and reviewed before the English version. Both variants were then reviewed for semantic alignment, technical accuracy, sources, and links.
-- The English and Chinese capability indexes document the manual invocation condition and scope. Repository checks pass for the implemented files.
+- The English and Chinese capability indexes document the manual invocation condition and scope.
 
 The topic split trades some navigation and assembly cost for selective reading. If related knowledge becomes hard to find together, revise the document boundaries rather than adding another navigation system prematurely.
 
 The references preserve reasons and tradeoffs instead of collapsing into conclusions and checklists. They also avoid carrying over course pacing or reader exercises that do not help architecture tasks.
-
-The capability still relies on model reasoning and cannot guarantee a correct analysis. It therefore distinguishes project facts, assumptions, recommendations, and user-owned decisions, and states uncertainty when evidence is missing.

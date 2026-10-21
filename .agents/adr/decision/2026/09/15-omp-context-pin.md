@@ -24,11 +24,7 @@ The complete usage, record, numbering, reset, limit, persistence, and cache deta
 
 ## Alternatives considered
 
-The archived record holds the alternatives considered when the component's earlier choices were made. The reversal itself had these options.
-
-- Keep the capacity values in this decision and reverse it whenever a value changes. Considered while deciding where the values belong. Each adjustment would carry a proposal, a successor decision, and an archive of the previous decision, which is more record than a usage-dependent default justifies.
-- Remove the values by appending a `## Changes` entry to the previous decision. Considered as the lighter mechanism. An update is allowed only when the added content does not conflict with the decision, and an entry that withdraws the binding force of an existing clause conflicts with it, so this route is closed.
-- State the values in the specification layer instead. Considered while checking which layer owns them. The component specification states goals, invariants, and acceptance criteria and points to the component README for the size limits. Repeating tunable values there adds a second place to keep in sync.
+None
 
 ## Consequences
 

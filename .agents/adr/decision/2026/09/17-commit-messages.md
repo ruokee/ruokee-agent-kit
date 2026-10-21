@@ -21,14 +21,11 @@ The [repository specification](../../../../spec/repository.md) states the scope 
 
 ## Alternatives considered
 
-- Migrate to the Python `pre-commit` framework. This was considered when choosing the hook mechanism. It runs message checks and general file checks through one hook manager, but it adds a Python toolchain to a repository that runs pnpm, Rust, and Bun, and the existing Prettier hook would either move into a local hook or run beside a second hook manager.
-- Check messages with a script maintained in the repository. This was considered when comparing dependencies. It avoids adding packages, but it reimplements the message shapes that existing tooling already handles: `fixup!`, `revert`, and merge commits, plus breaking-change markers such as `feat!:` and multi-line bodies.
-- Give every Skill and component its own scope. This was considered when defining the scope set. It names the changed unit precisely, but every new Skill and component requires a list edit, and a forgotten edit blocks commits until someone updates the configuration.
-- Keep the requirement human-enforced. This was considered when deciding whether to add a check at all. It leaves the toolchain untouched, and it leaves inconsistent scope use in place.
+- Migrate to the Python `pre-commit` framework. It runs message checks and general file checks through one hook manager, but it adds a Python toolchain to a repository that runs pnpm, Rust, and Bun, and the existing Prettier hook would either move into a local hook or run beside a second hook manager.
+- Check messages with a script maintained in the repository. It avoids adding packages, but it reimplements the message shapes that existing tooling already handles: `fixup!`, `revert`, and merge commits, plus breaking-change markers such as `feat!:` and multi-line bodies.
 
 ## Consequences
 
 - A squash merge performed on the hosting service never passes through the check, and the repository runs no CI job, so a message the rules reject can still enter the history. The scopes recorded there stay unreliable for searching history.
 - Scopes describe areas of the repository rather than a single component. The check reads the message alone and cannot tell whether the chosen scope matches the files in the commit, so different authors may still classify the same two-area change differently.
-- An author who finds no fitting scope can select an unrelated one, leaving a message that passes the check while naming the wrong area. Bypassing the hook removes the rule's effect for that author entirely.
 - The check adds no dependency outside the root pnpm project, and `pnpm check` is unaffected.

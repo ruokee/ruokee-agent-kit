@@ -31,7 +31,7 @@ Any intentional formatting exception must be explicit and reviewed against a con
 
 ## Alternatives considered
 
-**Keep Markdown formatting manual.** This leaves layout dependent on each author and editor and gives repository checks no common expected result.
+None
 
 ## Consequences
 

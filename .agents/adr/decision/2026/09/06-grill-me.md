@@ -62,7 +62,7 @@ The component provides these rules without depending on another component or har
 
 ## Alternatives considered
 
-Distribute the capability as a Plugin. A Plugin would package the same Skill content and descriptive metadata without adding runtime behavior. The pure-Skill layout is sufficient and avoids a separate package contract.
+None
 
 ## Consequences
 

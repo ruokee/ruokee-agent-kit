@@ -106,21 +106,13 @@ context Provider 的文本配有一个字形，表示上下文大概进入了 OM
 
 ## 考虑过的替代方案
 
-**保留 `setStatus()` 并按指标输出带样式的纯文本。** `setStatus()` 通道接受任意字符串，Provider 可以内嵌原生 ANSI 序列。Host 仍可以解析并选择性放行，但那会把样式变成 Host 和 Provider 之间复杂脆弱的转义序列协议；宽度截断必须解析任意 Provider 输出，闪烁则要求每个 Provider 用自己的 timer 换字符串。采用结构化 span 后，Host 保持为清理、着色、组合和截断的唯一入口。
-
-**把每个指标发布为纯文本，不带投机字形。** 这样 `setStatus()` 仍然可行，因为剩余内容只是一个不带颜色的字符串。代价是失去闪烁指示、固定指标颜色和受控截断。
-
-**通过 `setStatus()` 通道或自定义段把指标渲染进原生 statusline。** 原生 statusline 由用户配置；`showHookStatus` 和 preset 段控制位置和可见性，Package 无法保证稳定的一行，段注册还会替换用户可见的原生组件。常驻 Widget 行让该能力不受用户 statusline 配置影响。
-
-**用一个带显示开关的 Provider 代替独立指标 Provider。** 单个 Provider 加按指标开关会重复 `statuses` 已经提供的选择和排序能力，两个机制还可能对显示哪些指标、按什么顺序各执一词。独立 Provider 让一个结构同时完成选择和排序。
+**在原生 statusline 中保留纯文本指标。** 这样仍可使用 `setStatus()`，但位置与可见性取决于 `showHookStatus` 和 preset 段，代价是失去闪烁指示、固定指标颜色、受控截断及独立常驻的一行。
 
 ## 结果
 
 Host 负责清理、组合、截断和 Widget 生命周期，Provider 保持很小，也无法破坏整行。第三方扩展获得一个稳定、带版本的合同来增加 Provider，不需要触碰 Host。
 
 Package 与 OMP 公开的 Widget、上下文用量和压缩解析 API 在 18.x 范围内耦合。每次发布打标签前都用真实 TUI 检查验证该范围，因为自动化测试全部无头运行，看不到终端。
-
-内置清单现在由 Package 使用文档持有。代码和该文档必须一起变更；只改一侧会让公布的清单失真。
 
 投机指示器是估计而不是观察；用户看到的是一个近似，其限制在文档中明确说明。
 

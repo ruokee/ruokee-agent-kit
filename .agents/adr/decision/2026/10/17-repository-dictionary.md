@@ -41,24 +41,12 @@ Entry organization follows Matt Pocock's [`dictionary-of-ai-coding`](https://git
 
 ## Alternatives considered
 
-**A single file at `docs/dictionary.md`.** It has fewer files, but long explanations and examples crowd one page, and concurrent edits conflict. Rejected.
-
-**A distributable Skill.** It could align vocabulary in other projects, but the confirmed requirement is repository development, and a self-contained Skill cannot reference a repository-wide dictionary. Rejected.
-
-**Merge the Skill glossaries into the dictionary.** This would create one source, but it breaks component self-containment and removes the glossaries that installed Skills carry. Rejected.
-
-**Copy Matt's entries.** This would cover the vocabulary quickly, but the source has no license. Rejected.
-
-**Add a terminology check.** It would enforce stronger consistency than the confirmed requirement, which stops at a normative rule and review. Rejected.
+None
 
 ## Consequences
 
 The repository now has a shared reference for cross-component and AI coding terms, and the terminology rule makes its use normative. Component glossaries keep their self-contained copies and must agree with the shared definitions; the repository maintains no separate ADR glossary.
 
-The first batch is large. Entries that only need a sentence can become shallow definitions, and the linked pages may absorb too many terms. The split rule keeps pages to terms that need a mechanism, examples, or a boundary note.
-
 Chinese canonical terms can conflict with established usage. The dictionary settles one term per concept, which may require edits to existing documents.
 
-The dictionary and component glossaries can drift after this change. The normative rule and review control this; no automated check is added.
-
-The English and Chinese pages can diverge in meaning. Both files change together, and reviewers read them as a pair.
+Component glossaries retain self-contained copies instead of linking to the shared dictionary. A definition change therefore requires updating those copies; otherwise an installed Skill and repository guidance can assign different meanings to the same term. The terminology rule and review govern agreement, with no automated check.
