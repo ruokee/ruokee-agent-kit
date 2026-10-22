@@ -42,3 +42,7 @@ Imports preserve body meaning and distinguish path adaptations from editorial ch
 ### 2026-09-02 tk language Skill names
 
 tk uses the independently discoverable Skills `tk`, `tk-zh`, `tk-cli`, and `tk-cli-zh`. They are separate Skill identities rather than same-name language variants, so all four live under `projects/tk/skills/<name>/`. This does not change the same-name variant rule for other Skills.
+
+### 2026-10-22 workloop language Skill names
+
+workloop uses the independently discoverable Skills `workloop` and `workloop-zh` under `projects/workloop/skills/<name>/`. Each is a complete, self-contained Skill with the same required contract and version, maintained in the same change. They are separate identities rather than same-name language variants. The ordinary Skill layout and same-name variant rule remain unchanged.

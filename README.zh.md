@@ -23,6 +23,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 **由用户触发的**
 
 - **[grill-me](./skills/grill-me/SKILL.md)**：通过证据优先的分轮提问，将不完整想法或已有方案收敛为共同理解和可行动规格，并维护长期记录和全局问题编号，核验需求、偏好和假设。使用 `/skill:grill-me` 显式调用；普通规划和审查请求不会自动启用。 [中文变体](./variants/zh/skills/grill-me/SKILL.md)
+- **[workloop](./projects/workloop/README.zh.md)**：引导新 tk Task 完成目标澄清、规划、执行、独立核验及项目定义的交付。完整的 `workloop` 和 `workloop-zh` Skill 可跨 Harness 独立使用，以自然语言请求操作。
 
 **由 Agent 触发的**
 

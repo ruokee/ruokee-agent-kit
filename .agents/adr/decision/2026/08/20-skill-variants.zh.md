@@ -42,3 +42,7 @@ Decision writer: OMP GPT-5.6 Sol
 ### 2026-09-02 tk 语言 Skill 名称
 
 tk 使用可独立发现的 `tk`、`tk-zh`、`tk-cli` 和 `tk-cli-zh`。它们是不同的 Skill 身份，不属于同名语言 variant，因此四者都位于 `projects/tk/skills/<name>/`。其他 Skill 的同名 variant 规则保持不变。
+
+### 2026-10-22 workloop 语言 Skill 名称
+
+workloop 使用可独立发现的 `workloop` 和 `workloop-zh`，位于 `projects/workloop/skills/<name>/`。每个 Skill 都完整、自包含，必需合同和版本相同，同次维护。二者是不同身份，不属于同名语言 variant。普通 Skill 布局及同名变体规则保持不变。

@@ -23,6 +23,7 @@ These are the Skills I use in my daily work.
 **User-invoked**
 
 - **[grill-me](./skills/grill-me/SKILL.md)** turns an incomplete idea or existing plan into shared understanding and an action-ready specification through evidence-first question rounds. It maintains a durable record and global question numbering while checking requirements, preferences, and assumptions. Invoke it explicitly with `/skill:grill-me`; ordinary planning and review requests do not activate it. [Chinese variant](./variants/zh/skills/grill-me/SKILL.md)
+- **[workloop](./projects/workloop/README.md)** guides new tk Tasks through goal clarification, planning, execution, independent verification, and project-defined delivery. Its complete `workloop` and `workloop-zh` Skills are independently usable across Harnesses through natural-language requests.
 
 **Agent-invoked**
 

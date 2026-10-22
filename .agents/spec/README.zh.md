@@ -14,6 +14,7 @@
 - [.agents/spec/omp-qol.zh.md](./omp-qol.zh.md) 覆盖 `projects/omp-qol`。
 - [.agents/spec/omp-smart-cache.zh.md](./omp-smart-cache.zh.md) 覆盖 `projects/omp-smart-cache`。
 - [.agents/spec/omp-status-bar.zh.md](./omp-status-bar.zh.md) 覆盖 `projects/omp-status-bar`。
+- [.agents/spec/workloop.zh.md](./workloop.zh.md) 覆盖 `projects/workloop` 中的纯指令工作流。
 
 `projects/` 下的每个组件都有一份以其目录命名的 spec。增加或删除组件，或者增加需要单独 spec 的仓库领域时，在同一次变更中更新这份清单。
 
