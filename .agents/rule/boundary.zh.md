@@ -17,7 +17,7 @@
 
 - 每项能力保持宿主原生或构建原生的格式。不把 Plugin、Extension、可执行程序或宿主 Package 塞进 `./skills/`。
 - 普通英文 Skill 位于 `./skills/<name>/`，其中文变体位于 `./variants/zh/skills/<name>/`。
-- 独立命名的 tk 和 workloop Skill 保留在所属 `projects/<component>/skills/` 目录，遵循[语言身份决定](../adr/decision/2026/08/20-skill-variants.zh.md#变更)。
+- 以独立项目形式维护的组件，其包含的 Skill 放在所属 `projects/<component>/skills/` 目录，遵循 [Skill 布局决定](../adr/decision/2026/08/20-skill-variants.zh.md#变更)。
 - 纯 Skill 目录只放宿主可发现的 Skill 材料，例如 `SKILL.md`、workflow、reference、example 和 glossary。不把 Plugin manifest、市场元数据、包 changelog 或宿主专用的 Agent 定义复制进去。
 - 每个可分发组件，包括每个语言变体，都保持自包含。其文件只引用该组件内的文件。组件可以按名称提及其他组件、工具或 Skill，并把它声明为前置条件。组件不得链接、导入或读取其他组件的文件或包，也不得依赖仓库支持文件。
 - 前置条件必须显式声明，不能通过指向另一个组件文件的链接隐式形成。
@@ -33,5 +33,7 @@
 ## 组件版本
 
 - 将组件的 `X.Y.Z` 版本号更新与所包含的功能变更一并提交。
+- 按任务分支最终 squash 合并的整体变更计版，不按分支内的提交或修订次数重复递增。
+- 新组件首次添加默认使用 `0.1.0`。发布前对该次添加的修订保持选定版本。
 - 默认只递增 `Z`；调整 `X` 或 `Y` 由维护者决定。Agent 不按变更规模自行选择级别。
 - 组件 manifest 与组件文档中声明版本的位置保持一致。

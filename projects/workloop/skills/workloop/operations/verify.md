@@ -1,6 +1,6 @@
 # Verify
 
-Read the [common contract](../SKILL.md) in full. Independently judge the selected materials or implementation candidate. Keep the target read-only. Authorize only the checks and report writes permitted by the request and project; verification does not grant repairs.
+Read the [common contract](../SKILL.md) in full. Independently judge the selected materials or implementation candidate. Keep the target read-only. Perform only the checks and report writes permitted by the request and project; verification does not grant repairs.
 
 ## Resolve the target
 

@@ -2,13 +2,7 @@
 
 [English](./installation.md) | 中文
 
-本指南只覆盖本仓库的普通 Skill。扩展组件保留各自的安装与更新说明：
-
-- [tk](../projects/tk/README.zh.md)
-- [omp-status-bar](../projects/omp-status-bar/README.zh.md)
-- [omp-context-pin](../projects/omp-context-pin/README.zh.md)
-- [omp-qol](../projects/omp-qol/README.zh.md)
-- [omp-smart-cache](../projects/omp-smart-cache/README.zh.md)
+本指南只覆盖本仓库的普通 Skill。以独立项目形式维护的组件位于 `projects/`，安装与更新说明由各自的组件文档维护。
 
 ## 选择要安装的内容
 
@@ -162,7 +156,7 @@ ln -s "$PWD/skills/code-quality" "$HOME/.omp/agent/skills/code-quality"
 
 - `check` 比较克隆中的来源与你指定的目标。缺少历史基准时，它无法判断差异来自仓库更新还是本机修改，因此只报告需要核对的差异，从不授权直接覆盖。
 - 运行中的 Harness 是否读取写入的 Skill、是否跟随顶层链接、是否在变更后重新加载，取决于该 Harness 自身。脚本无法观察这些行为。内容相同只能证明两个目录一致。请按 Harness 自身的规则重新加载或重启。
-- 脚本只管理普通 Skill 目录。它不修改 Harness 配置，也不拉取 Git。
+- 脚本只管理普通 Skill 目录，不管理 `projects/` 下的组件，不修改 Harness 配置，也不拉取 Git。
 - 会写入本仓库源码的操作会在创建任何内容前被拒绝：目标根目录等于、包含或位于 `skills/` 或 `variants/zh/skills/` 之内，以及位于这两棵目录树下的备份位置。无论 `--language` 选择哪种语言，两种语言的源码树都受保护。Skill 条目本身是符号链接时仍按链接替换或移除，链接指向的目录绝不会被写入。
 - 缺失部分包含 `.` 或 `..` 的路径按字面保留并直接拒绝，不做折叠：命令返回 `2`、指出该分量并且不创建任何内容。折叠此类路径得到的解析结果与文件系统解析实际写入路径的结果可能不同。
 - `check` 和 `install` 读取脚本自身所在的检出目录，因此结果始终对应该克隆。要比较更新的内容，请先在该克隆中执行 `git pull`。

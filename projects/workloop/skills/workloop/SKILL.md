@@ -27,7 +27,7 @@ For initialization or reconfiguration, read [Setup](./setup.md).
 
 Use the user's language. Apply the project's writing rules and a writing Skill such as well-said when available. Keep facts, decisions, conditions, negation, attribution, and genuine uncertainty intact when revising materials.
 
-Workloop serves new tasks. It does not recognize old workflow aliases or migrate old material names. Continue, repair, and recover Tasks begun with workloop under their existing identity and effective requirements.
+workloop serves new tasks. It does not recognize old workflow aliases or migrate old material names. Continue, repair, and recover Tasks begun with workloop under their existing identity and effective requirements.
 
 ## Preserve requirements
 

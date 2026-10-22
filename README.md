@@ -23,7 +23,7 @@ These are the Skills I use in my daily work.
 **User-invoked**
 
 - **[grill-me](./skills/grill-me/SKILL.md)** turns an incomplete idea or existing plan into shared understanding and an action-ready specification through evidence-first question rounds. It maintains a durable record and global question numbering while checking requirements, preferences, and assumptions. Invoke it explicitly with `/skill:grill-me`; ordinary planning and review requests do not activate it. [Chinese variant](./variants/zh/skills/grill-me/SKILL.md)
-- **[workloop](./projects/workloop/README.md)** guides new tk Tasks through goal clarification, planning, execution, independent verification, and project-defined delivery. Its complete `workloop` and `workloop-zh` Skills are independently usable across Harnesses through natural-language requests.
+- **[workloop](./projects/workloop/README.md)** guides new tk Tasks through goal clarification, planning, execution, independent verification, and project-defined delivery. Its complete `workloop` and `workloop-zh` Skills are independently usable across Harnesses through natural-language requests; an OMP resource package adds five thin `/wl-*` commands.
 
 **Agent-invoked**
 
@@ -51,9 +51,9 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 
 ## Install
 
-Skill installation is separate from the development setup below. Follow [Installing Skills](./docs/installation.md) for the language choice, the Skill root, and the check, install, update, and uninstall commands.
+Skill installation is separate from the development setup below. Follow [Installing Skills](./docs/installation.md) for ordinary Skills.
 
-Extensions and the tk runtime are built and installed from their own directories, as their READMEs describe. Install the tk runtime separately from its Harness components.
+Follow each project component's README for its build and installation requirements. Install the tk runtime separately from its Harness components.
 
 ## Development
 

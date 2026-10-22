@@ -2,13 +2,7 @@
 
 English | [中文](./installation.zh.md)
 
-This guide covers the ordinary Skills in this repository. Extensions keep their own installation and update instructions:
-
-- [tk](../projects/tk/README.md)
-- [omp-status-bar](../projects/omp-status-bar/README.md)
-- [omp-context-pin](../projects/omp-context-pin/README.md)
-- [omp-qol](../projects/omp-qol/README.md)
-- [omp-smart-cache](../projects/omp-smart-cache/README.md)
+This guide covers the ordinary Skills in this repository. Components maintained under `projects/` keep their own installation and update instructions in their component documentation.
 
 ## Choose what to install
 
@@ -162,7 +156,7 @@ Install one Skill at a time. Neither the script nor this guide installs every Sk
 
 - `check` compares the source in your clone with the target you name. Without an earlier baseline it cannot tell whether a difference came from the repository or from a local edit, so it reports a difference to review and never authorizes an overwrite.
 - Whether a running Harness reads a written Skill, follows a top-level link, or reloads after a change is that Harness's own behavior. The script cannot observe it. Identical content proves only that two directories match. Reload or restart the Harness according to its own rules.
-- The script manages ordinary Skill directories only. It does not edit Harness configuration or pull Git.
+- The script manages ordinary Skill directories only. It does not manage components under `projects/`, edit Harness configuration, or pull Git.
 - A write that would reach this repository's own sources is refused before anything is created: a target root that is, contains, or lies inside `skills/` or `variants/zh/skills/`, and a backup location under either tree. The refusal covers both languages, whatever `--language` selected. A Skill entry that is itself a symlink is still replaced or unlinked as a link, and the directory it points to is never written through.
 - A path whose missing part contains `.` or `..` is refused rather than folded: the command exits `2`, names that component, and creates nothing. Folding such a path would resolve it differently from how the filesystem resolves the path used for writing.
 - `check` and `install` read the checkout in which the script itself is stored, so it always reflects that clone. Use a fresh `git pull` in that clone to compare against newer content.

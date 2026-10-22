@@ -133,6 +133,90 @@ test("only registered explanatory Markdown is formatting-only", () => {
     assert.equal(selectChecks([path]).full, true, path);
 });
 
+test("workloop registers only its distributed Markdown", () => {
+  const operations = ["clarify", "exec", "verify", "ship", "supervise"];
+  const paths = [
+    "projects/workloop/README.md",
+    "projects/workloop/README.zh.md",
+    "projects/workloop/docs/installation.md",
+    "projects/workloop/docs/installation.zh.md",
+    ...operations.map((operation) => `projects/workloop/commands/wl-${operation}.md`),
+    ...["workloop", "workloop-zh"].flatMap((name) =>
+      ["SKILL.md", "setup.md", ...operations.map((operation) => `operations/${operation}.md`)].map(
+        (file) => `projects/workloop/skills/${name}/${file}`,
+      ),
+    ),
+  ];
+  const plan = selectChecks(paths);
+  assert.equal(plan.full, false);
+  assert.deepEqual(plan.ids, []);
+  assert.deepEqual(plan.markdown, [...paths].sort());
+  assert.deepEqual(
+    buildCommands(plan, ROOT).map((command) => command.id),
+    ["markdown"],
+  );
+});
+
+test("workloop package and unregistered inputs force complete fallback even in mixed changes", () => {
+  for (const path of [
+    "package.json",
+    "README.txt",
+    "docs/new.md",
+    "commands/wl-new.md",
+    "prompts/wl-exec.md",
+    "skills/other/SKILL.md",
+    "skills/workloop/references/new.md",
+    "skills/workloop/operations/new.md",
+    "src/prompt.md",
+  ]) {
+    const plan = selectChecks([
+      "projects/workloop/README.md",
+      "projects/omp-qol/src/code.ts",
+      `projects/workloop/${path}`,
+    ]);
+    assert.equal(plan.full, true, path);
+    assert.deepEqual(
+      buildCommands(plan, ROOT).map((command) => command.id),
+      ["complete"],
+    );
+  }
+});
+
+test("workloop Markdown joins existing consumers without duplicate checks", () => {
+  const paths = [
+    "projects/workloop/skills/workloop-zh/operations/exec.md",
+    "docs/installation.md",
+    "projects/omp-qol/src/code.ts",
+    "projects/omp-qol/test/code.ts",
+  ];
+  const plan = selectChecks([...paths, ...paths]);
+  assert.equal(plan.full, false);
+  assert.deepEqual(plan.ids, ["omp-qol:typecheck", "omp-qol:test", "skills"]);
+  assert.deepEqual(plan.markdown, [paths[1], paths[0]]);
+});
+
+test("removed workloop Markdown keeps rename destinations in classification", () =>
+  repository(
+    (cwd) => {
+      git(cwd, "switch", "-qc", "feature");
+      git(cwd, "rm", "projects/workloop/README.md");
+      const deleted = selectChecks(collectChanges(cwd).paths);
+      assert.equal(deleted.full, false);
+      assert.deepEqual(buildCommands(deleted, cwd), []);
+      git(cwd, "mv", "projects/workloop/commands/wl-exec.md", "projects/workloop/commands/unknown.md");
+      const renamed = selectChecks(collectChanges(cwd).paths);
+      assert.equal(renamed.full, true);
+      assert.deepEqual(
+        buildCommands(renamed, cwd).map((command) => command.id),
+        ["complete"],
+      );
+    },
+    {
+      "projects/workloop/README.md": "# workloop\n",
+      "projects/workloop/commands/wl-exec.md": "Execute the requested Task.\n",
+    },
+  ));
+
 test("every OMP component selects its own two checks; Markdown consumers take priority", () => {
   for (const name of OMP_COMPONENTS) {
     const expected = [`${name}:typecheck`, `${name}:test`];

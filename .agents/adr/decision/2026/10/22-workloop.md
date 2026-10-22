@@ -1,7 +1,7 @@
 # workloop
 
-Draft owner: Ruokee
-Draft writer: OMP GPT-6 Astra
+Decision owner: Ruokee
+Decision writer: OMP GPT-6 Astra
 
 English | [中文](./22-workloop.zh.md)
 
@@ -13,7 +13,7 @@ Goal clarification, implementation, verification, and delivery need a common con
 
 The workflow needs both Harness-independent use and convenient OMP entry points. Markdown can express these instructions without a runtime, while a component directory can keep the complete Skills and optional host resources together. Packaging changes instruction discovery, not the Agent's ability to obey instructions.
 
-## Proposal
+## Decision
 
 ### Component
 
@@ -21,7 +21,7 @@ Maintain workloop under `projects/workloop/` as a first-party instruction compon
 
 The English `workloop` and Chinese `workloop-zh` are independently discoverable Skill identities under `projects/workloop/skills/`. Each contains its complete common contract, operation bodies, and initialization guidance. Both languages provide the same capabilities and required instructions, change together, and carry the same component version. Do not maintain additional copies under the repository's ordinary Skill or variant roots.
 
-Each installed Skill references only files inside its own directory. Its `SKILL.md` provides the common contract and operation index; operation bodies load on demand. Host prompts pass the operation, user input, and loading instructions without becoming another workflow authority. This applies the existing [component self-containment decision](../../../decision/2026/08/24-component-self-containment.md).
+Each installed Skill references only files inside its own directory. Its `SKILL.md` provides the common contract and operation index; operation bodies load on demand. Host prompts pass the operation, user input, and loading instructions without becoming another workflow authority. This applies the existing [component self-containment decision](../08/24-component-self-containment.md).
 
 Require tk for task management through its name and public interfaces, without importing its implementation or referencing its files. Other tools or Skills become prerequisites only where the operation needs them. Installing workloop does not install tk or a collaboration tool. Task management through GitHub or GitLab Issues or PRs is deferred, not permanently prohibited; a project may still define submitting a PR as its delivery goal.
 
@@ -81,7 +81,7 @@ Follow the requested operation directly. Do not add proactive checks for tool, e
 
 ### Distribution
 
-Document normal installation, update, removal, and reload conditions for the complete selected-language Skill through the target Harness's existing discovery and loading mechanisms. Support complete-directory copying and links where the Harness supports them. The instructions do not impose a closed list of Harnesses, guess unknown host paths, or require identical maintenance steps across hosts. The repository's ordinary Skill installer does not manage this project's Skills or prompts.
+Document normal installation, update, removal, and reload conditions for the complete selected-language Skill through the target Harness's existing discovery and loading mechanisms. Support complete-directory copying and links where the Harness supports them. The instructions do not impose a closed list of Harnesses, guess unknown host paths, or require identical maintenance steps across hosts. The repository's ordinary Skill installer does not manage this component.
 
 OMP additionally receives a native resource package containing both complete Skills and thin prompts for `/wl-clarify`, `/wl-exec`, `/wl-verify`, `/wl-ship`, and `/wl-supervise`. Entry points honor an explicit language-Skill selection and otherwise use English. Package resources share the component version. Document native package maintenance separately from standalone Skill installation, using the host's actual interfaces and resource-conflict behavior. Do not introduce host runtime code or dedicated integrations for other Harnesses.
 
@@ -89,23 +89,15 @@ Other Harnesses use the complete Skill and select operations through natural lan
 
 ### Specifications
 
-The component Spec states its goals, boundaries, and observable outcomes; the Skills and component documentation own operation and usage details. Maintain the formal Spec with the delivered capability, without declaring unimplemented distribution support available.
+The [component Spec](../../../../spec/workloop.md) states its goals, boundaries, and observable outcomes; the Skills and [component documentation](../../../../../projects/workloop/README.md) own operation and usage details. Keep the Spec aligned with the delivered capability.
 
-Extend the [Skill language decision](../../../decision/2026/08/20-skill-variants.md) with the independently named workloop Skills, following its tk precedent. Keep the ordinary same-name language-variant rule intact. Maintain the corresponding repository specification and any affected boundary rules without changing the existing permission to declare dependencies by name. After the proposal is approved and its full scope is implemented, record the workloop decision and remove the consumed bilingual proposal under the [ADR lifecycle](../../../README.md). Proposal approval, implementation verification, and integration remain separate.
+The [Skill layout decision](../08/20-skill-variants.md#changes) keeps project-owned Skills within their component and preserves the ordinary same-name language-variant rule. Dependencies remain declared by name. Repository checks format the registered component Markdown without adding runtime checks; the package manifest and unregistered inputs retain complete-check fallback.
 
 ## Alternatives considered
 
 Keeping the complete Skills under the ordinary root Skill and language-variant directories would reuse that layout, but leave the OMP prompts and package resources with a different owner. The project layout keeps those resources together while preserving independently installable Skills. It accepts a separate distribution path outside the ordinary Skill installer rather than duplicating the Skill bodies across both layouts.
 
-## Acceptance criteria
-
-- Either language Skill has the complete common contract, operation bodies, and discoverable initialization guidance, with no file dependency on another language, host prompts, or repository support files.
-- Operations preserve the required Plan, continuous execution within scope, material ownership, check counts, independent verification, permission separation, and recovery contract. Examples and both languages express the same requirements.
-- Normal Skill installation is Harness-independent; OMP additionally provides the native resource package and five thin entry points. Installation, update, removal, reload conditions, and prerequisite ownership are clear for each distribution method.
-- Formal specifications, the language-identity decision, component documentation, and distribution resources describe the same delivered boundary. The ordinary Skill and installer contracts remain intact, and repository checks recognize the component without weakening unknown-input fallback.
-- Verification evidence names what was actually exercised. File completeness and valid resource paths are not reported as successful host discovery, real-model compliance, or user acceptance.
-
-## Risks
+## Consequences
 
 An instruction-only component cannot enforce operation or permission boundaries. An Agent that fails to load the current body or disregards a visible rule can still skip required checks or perform unauthorized work. Self-contained loading and recovery instructions reduce missing-context failure paths, but packaging and rereading do not eliminate the need for independent verification or establish reliable model behavior.
 

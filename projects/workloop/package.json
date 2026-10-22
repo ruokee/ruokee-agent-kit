@@ -1,0 +1,14 @@
+{
+  "name": "@ruokee/workloop",
+  "version": "0.1.0",
+  "description": "Bilingual instruction workflow with complete Skills and thin OMP commands",
+  "license": "MIT",
+  "files": [
+    "skills/",
+    "commands/",
+    "docs/",
+    "README.md",
+    "README.zh.md"
+  ],
+  "omp": {}
+}

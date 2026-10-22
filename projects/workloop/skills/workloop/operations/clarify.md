@@ -30,7 +30,7 @@ When the user has decided to pursue execution, naturally form the required `plan
 
 Every executable task has a Plan, even if it contains one short unit. Preserve existing labels, completed results, and valid evidence when revising it. Read linked subtasks before changing their parent contract. Use a mix of inline units and tk subtask links when useful; create tasks only under tk's applicable permission, not merely to obtain a material directory.
 
-For each unit provide an independently assessable result, its goal and design basis, changes and non-goals, prerequisites, observable acceptance, required checks, permission requirements, and material owner. A linked unit may leave its detail in the subtask while the parent keeps its goal, dependency, and link. Choose units with enough result value to justify independent Verify and small enough to implement and review completely.
+For each unit provide an independently assessable result, its goal and design basis, changes and non-goals, prerequisites, observable acceptance, required checks, permission requirements, and material owner. A linked unit may leave its detail in the subtask while the parent keeps its goal, dependency, and link. Choose units that deliver a complete result worth independent verification and can be fully implemented and reviewed.
 
 Order actual dependencies and identify independent work. Distinguish a code dependency available from a verified predecessor candidate from an external deployment, service, or published artifact that must really exist. Do not make an ungranted merge a development prerequisite when the project permits verified dependency branches. Do not add delivery, installation, or expensive real-model experiments without a requirement and the relevant grant.
 

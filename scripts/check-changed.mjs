@@ -197,6 +197,13 @@ export function selectChecks(paths) {
       else if (/^(README(?:\.zh)?\.md$|docs\/)/.test(relative)) scopes.add("documentation");
       else reasons.push(`Unknown tk scope: ${JSON.stringify(path)}`);
     } else if (
+      /^projects\/workloop\/(README|docs\/installation)(\.zh)?\.md$/.test(path) ||
+      /^projects\/workloop\/skills\/workloop(-zh)?\/(SKILL|setup)\.md$/.test(path) ||
+      /^projects\/workloop\/skills\/workloop(-zh)?\/operations\/(clarify|exec|verify|ship|supervise)\.md$/.test(path) ||
+      /^projects\/workloop\/commands\/wl-(clarify|exec|verify|ship|supervise)\.md$/.test(path)
+    ) {
+      scopes.add("documentation");
+    } else if (
       ["docs/installation.md", "docs/installation.zh.md", "scripts/skills.sh", "scripts/tests/skills.sh"].includes(path)
     ) {
       scopes.add("skills");

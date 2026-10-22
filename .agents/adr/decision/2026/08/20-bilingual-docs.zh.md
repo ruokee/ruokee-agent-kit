@@ -28,7 +28,7 @@ ADR 使用 [ADR 机制决定](./22-adr-mechanism.zh.md)定义的更严格文件�
 
 ### Skill 打包
 
-Skill 语言变体保留宿主可发现的组件布局。根据 [Skill 打包决定](./20-skill-variants.zh.md)，英文 Skill 位于 `skills/<name>/`，中文变体位于 `variants/zh/skills/<name>/`。独立命名的 tk Skill 保留 `projects/tk/skills/` 下的路径。普通文档的文件名规则不改变 Skill 文件名、身份或安装路径。
+Skill 语言变体按 [Skill 打包决定](./20-skill-variants.zh.md)保留宿主可发现的组件布局。普通英文 Skill 位于 `skills/<name>/`，中文变体位于 `variants/zh/skills/<name>/`。以独立项目形式维护的组件，其包含的 Skill 保留在 `projects/<component>/skills/` 下。普通文档的文件名规则不改变 Skill 文件名、身份或安装路径。
 
 ### 公开入口
 

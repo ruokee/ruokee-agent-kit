@@ -10,7 +10,13 @@ Choose the complete English [workloop](./skills/workloop/SKILL.md) or Chinese [w
 
 Install tk separately and use its public interface under the project's Task rules. Collaboration uses the selected supported terminal tool; Herdr is recommended, not required. Other Skills are used for relevant activities under their own entry rules, not installed or made mandatory by this component.
 
-Workloop is for new tasks. It continues and repairs its own Tasks across sessions but does not migrate old workflow entries or material names.
+workloop is for new tasks. It continues and repairs its own Tasks across sessions but does not migrate old workflow entries or material names.
+
+## Install
+
+Follow [installation](./docs/installation.md) for complete-directory copying, supported links, updates, removal, and reload conditions. Standalone Skills use the target Harness's existing mechanism. OMP additionally supports the `@ruokee/workloop` resource package with both Skills and `/wl-clarify`, `/wl-exec`, `/wl-verify`, `/wl-ship`, and `/wl-supervise`. The commands load an explicit language choice or default to English.
+
+The repository's ordinary Skill installer does not manage this component. The OMP package contains only resources, with no Extension, build step, or runtime dependencies.
 
 ## Choose an operation
 
@@ -59,7 +65,7 @@ For Chinese guidance, request `workloop-zh` and express the operation in Chinese
 
 Initialization is optional. Ask to initialize or reconfigure the selected Skill; its short setup link leads to the full instructions. Settings belong in appropriate external guidance such as `AGENTS.md`: independent role models and reasoning, the two self-check limits, collaboration choice, project work conventions, and Ship's intended result. A Senior default model does not activate a Senior.
 
-Explicit current choices override continuing choices, which override applicable defaults. Preserve exact model selectors and aliases. Workloop does not embed machine-specific models or create a user/project configuration hierarchy. Ordinary operations do not perform proactive availability checks; actual errors lead to focused diagnosis.
+Explicit current choices override continuing choices, which override applicable defaults. Preserve exact model selectors and aliases. workloop does not embed machine-specific models or create a user/project configuration hierarchy. Ordinary operations do not perform proactive availability checks; actual errors lead to focused diagnosis.
 
 ## Recover work
 

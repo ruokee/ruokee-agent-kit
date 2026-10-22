@@ -28,7 +28,7 @@ ADRs use the stricter paired format defined by [the ADR mechanism decision](./22
 
 ### Skill packaging
 
-Skill language variants retain their host-discoverable component layouts. English Skills live under `skills/<name>/`, and Chinese variants live under `variants/zh/skills/<name>/`, as defined by the [Skill packaging decision](./20-skill-variants.md). Independently named tk Skills retain their paths under `projects/tk/skills/`. The ordinary documentation filename convention does not rename Skill files, identities, or installed paths.
+Skill language variants retain their host-discoverable component layouts under the [Skill packaging decision](./20-skill-variants.md). Ordinary English Skills live under `skills/<name>/`, and Chinese variants under `variants/zh/skills/<name>/`. Skills included in independently maintained project components stay under `projects/<component>/skills/`. The ordinary documentation filename convention does not rename Skill files, identities, or installed paths.
 
 ### Public entry points
 
