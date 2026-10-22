@@ -20,7 +20,7 @@
 
 **[技能](./skill.zh.md)**（Skill）
 
-宿主可以发现并加载的自包含指令组件，包含 `SKILL.md` 和辅助文件。
+宿主可发现的一组指令，包含 `SKILL.md` 和辅助文件。公开 Skill 是自包含组件，内部项目 Skill 属于仓库维护材料。
 
 **[语言变体](./component.zh.md#语言变体)**（language variant）
 

@@ -11,6 +11,7 @@
 - 每个普通公开 Markdown 页面维护语言配对：同目录的 `name.md` 与 `name.zh.md`，入口页为 `README.md` 与 `README.zh.md`，并在每个文件的标题下方紧接互相指向的语言链接。
 - 同一对文件的两种语言在同一次变更中更新，语义保持一致。
 - Skill 语言变体保持在各自现有的组件布局中，不在 Skill 之间新增跨语言链接。
+- `.agents/skills/` 下的内部项目 Skill 使用英文。它们是维护材料，不是普通公开页面或公开语言变体。
 
 ## 命名
 
@@ -35,9 +36,9 @@
 
 ## 决定
 
-- 创建、更新或反转 ADR 时遵循 [ADR 规则](../adr/README.zh.md)。
+- 创建、修复、更新、反转、拒绝、归档或审查 ADR，以及项目工作影响持久选择时，先加载 [maintain-adr](../skills/maintain-adr/SKILL.md) 并读取 [ADR 项目补充](../adr/README.zh.md)。Skill 持有主要维护方法，补充持有项目语言、Git 和权限政策。
 
 ## 规格
 
-- 改变组件或仓库领域的目标、边界或验收之前，先读[规格规则](../spec/README.zh.md)和受影响的规格，并在同一次变更中更新它们。
+- 维护或审查长期规格，或改变组件及仓库领域的目标、边界、验收之前，先加载 [maintain-spec](../skills/maintain-spec/SKILL.md)，读取[项目补充](../spec/README.zh.md)和受影响规格，并随变更同步更新。Skill 不维护任务 Goal，加载任一维护 Skill 都不扩大写入权限。
 - 与决定同时更新受影响的规格。

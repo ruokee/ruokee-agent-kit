@@ -16,6 +16,7 @@ The [rule layer](../rule/README.md) states how work is done here.
 - Record durable decisions as bilingual ADRs, and state the current target of each component and repository area as a bilingual spec.
 - Keep each decision's current reference stable through reversals, retain separately accessible historical versions, and group ADRs by lifecycle and first proposal year and month.
 - State the repository's working rules as bilingual pages under `.agents/rule/`, so each normative statement has one owning layer.
+- Provide two internal maintenance Skills so Agents load the applicable method, read effective sources, and correctly maintain long-lived specs and ADRs during project work.
 - Develop on short-lived branches squash-merged into `main`, with affected checks during development and a complete check on the final candidate.
 
 ## Out of scope
@@ -25,6 +26,7 @@ The [rule layer](../rule/README.md) states how work is done here.
 - Empty capability categories or structure prebuilt for hypothetical Skills, hosts, or requirements.
 - Checks that install dependencies, format source files, or use global tools to hide missing local setup.
 - Rules that apply only in a developer's local environment, or that contain sensitive information, specific models, providers, endpoints, or absolute paths.
+- Public distribution or cross-project adaptation of the internal maintenance Skills, task Goal maintenance by those Skills, and a new sidecar, archive manifest, maintenance CLI, or general adaptation framework.
 
 ## Public surface
 
@@ -34,14 +36,17 @@ The [rule layer](../rule/README.md) states how work is done here.
 - Git workflow, commit rules, and hooks: [Git](../../README.md#git), [Git rules](../rule/git.md), and [validation rules](../rule/development.md#validation).
 - Check prerequisites, affected checks, and the complete merge gate: [Check prerequisites](../../README.md#check-prerequisites), [Affected checks](../rule/development.md#checks), and [Complete merge validation](../../README.md#complete-merge-validation).
 - Common commands: [Common commands](../../README.md#common-commands).
-- ADR rules: [.agents/adr/README.md](../adr/README.md). ADR terms: [dictionary's ADR page](../../docs/dictionary/adr.md).
-- Spec rules: [.agents/spec/README.md](./README.md).
+- ADR maintenance: [maintain-adr](../skills/maintain-adr/SKILL.md) and [project supplements](../adr/README.md). ADR terms: [dictionary's ADR page](../../docs/dictionary/adr.md).
+- Spec maintenance: [maintain-spec](../skills/maintain-spec/SKILL.md) and [project supplements](./README.md).
 
 ## Invariants
 
 - A file inside a distributable component references only files inside that component. Components do not link to, import, or read another repository component's files or package, and do not depend on repository support files such as `.agents/spec/` and `.agents/rule/`.
 - Component text may name another component, tool, or Skill, declare it as a prerequisite, and instruct its use by name or through a public interface. A declared prerequisite is not a file reference.
-- Ordinary English Skills live under `skills/<name>/` and Chinese variants under `variants/zh/skills/<name>/`. Skills included in independently maintained project components live under their owning `projects/<component>/skills/` directories.
+- Ordinary public English Skills live under `skills/<name>/` and Chinese variants under `variants/zh/skills/<name>/`. Skills included in independently maintained project components live under their owning `projects/<component>/skills/` directories.
+- Internal English Skills live at `.agents/skills/maintain-spec/` and `.agents/skills/maintain-adr/`, with native project discovery and descriptions that identify applicable work before loading. They may reference maintained project documents and are not public installation sources. Public component self-containment stays unchanged.
+- Each maintenance method has one main owner in its Skill and necessary references. Spec and ADR READMEs keep project coverage, language policy, Git workflow, authority, and navigation rather than a second complete method.
+- `maintain-spec` covers creation, adjustment, removal, and boundary clarification of long-lived targets; `maintain-adr` covers creation, factual repair, non-conflicting updates, reversal, rejection, and archival. Both preserve effective requirements and project policy. Neither owns task Goals or task lifecycle, expands write permission, requires the other unconditionally, or creates ADRs for changes without a durable choice.
 - Code, comments, configuration, and default public documentation are in English. Ordinary public documentation is paired as same-directory `name.md` and `name.zh.md`, entry pages as `README.md` and `README.zh.md`, with reciprocal language links. Both languages change together.
 - Repository file links are relative to the containing document. They use `./` for the current directory or a descendant and `../` to leave it, never a leading `/`, a repository-root-relative destination, or an absolute GitHub URL.
 - Prettier formats all tracked Markdown.
@@ -49,8 +54,8 @@ The [rule layer](../rule/README.md) states how work is done here.
 - `main` is the only long-lived branch. Each change is developed on a short-lived branch and squash-merged into `main` after explicit authorization.
 - `pnpm check:changed` selects the affected checks for a change. Unknown, shared, or unreliably classified inputs fall back to one complete check.
 - The complete aggregate, the selector mapping, and the selector regression tests cover the same components and document consumers.
-- Every retained ADR follows the [ADR rules](../adr/README.md) for its body layout, identity date, revision sequence, naming, language pair, and maintenance, and writing or changing one follows the [documentation rules](../rule/documentation.md). A spec never conflicts with a current decision.
-- ADR alternatives have evidence that they entered the same durable choice and explain material tradeoffs. Risk statements and accepted costs have credible causes and material consequences, including when recorded under `Consequences`. The [authoring rules](../adr/README.md#authoring-rules) own the criteria; genuine contracts, reasons, historical conditions, and bilingual meaning remain intact.
+- Every retained ADR follows [maintain-adr](../skills/maintain-adr/SKILL.md) and the [project supplements](../adr/README.md) for body layout, identity date, revision sequence, naming, language pairs, and maintenance. Writing or changing one follows the [documentation rules](../rule/documentation.md). A spec never conflicts with a current decision.
+- ADR alternatives have evidence that they entered the same durable choice and explain material tradeoffs. Risk statements and accepted costs have credible causes and material consequences, including when recorded under `Consequences`. The [writing rules](../skills/maintain-adr/references/writing.md) own the criteria; genuine contracts, reasons, historical conditions, and bilingual meaning remain intact.
 - A component's `X.Y.Z` version changes with the behavior it ships, and the [boundary rules](../rule/boundary.md) own the increment and its authority.
 - Components keep no unreachable code, duplicate implementation, or design held for a hypothetical requirement. Simplification keeps each component's goals, public commands, tools, settings, file formats, and behavior.
 
@@ -60,13 +65,15 @@ The [rule layer](../rule/README.md) states how work is done here.
 - The commit-msg hook rejects a message with an unknown type or an out-of-set scope.
 - `pnpm check:selector` passes.
 - `.agents/rule/` holds the layer README pair and one page pair per activity, and a Markdown-only change under it selects documentation checks instead of the complete check.
+- Markdown under `.agents/skills/` selects documentation checks. Non-Markdown, unknown scopes, and shared selector inputs retain complete checks. Internal Skills are English maintenance material and require no public translation package.
+- Actual project maintenance shows both Skills loaded when applicable without repeated user naming, followed by relevant current specs, decisions and `Changes`, active proposals, project supplements, and necessary component sources. Resulting documents preserve unaffected requirements, required language meaning, identity, lifecycle, and citations. Evidence identifies the actual files or candidate used; discovery or formatting alone does not meet this criterion.
 - Complete `pnpm check` passes on the clean, committed final candidate that contains the target `main`.
 - Every public Markdown page outside Skills has its same-directory language pair with reciprocal links: ordinary pages as `name.md` and `name.zh.md`, entry pages as `README.md` and `README.zh.md`. Skills follow the layouts defined above and keep their file locations and identities, without cross-language links between Skills.
 - No file reference inside a component resolves outside that component's directory.
-- Same-day, cross-month, and cross-year reversals leave the canonical current path unchanged, keep later versions separately accessible, and advance only that decision's continuous sequence. Extracting an independent topic and correcting names follow the [ADR rules](../adr/README.md), and a reader can follow accurate direct predecessors and successors without mistaking a later version for an earlier record's direct successor.
-- Every retained ADR meets the [ADR rules](../adr/README.md) for layout, naming, language pairs, and preserved historical content.
+- Same-day, cross-month, and cross-year reversals leave the canonical current path unchanged, keep later versions separately accessible, and advance only that decision's continuous sequence. Extracting an independent topic and correcting names follow the [record rules](../skills/maintain-adr/references/records.md), and readers can follow accurate direct predecessors and successors without mistaking a later version for an earlier record's direct successor.
+- Every retained ADR meets the [record rules](../skills/maintain-adr/references/records.md) and [project supplements](../adr/README.md) for layout, naming, language pairs, and preserved historical content.
 - Reviewing every retained ADR pair finds no unsupported, misclassified, or immaterial alternatives or risk statements. Empty alternatives and risk sections use the prescribed `None` or `无`; retained entries preserve their basis and conditions, not generic warnings or review logs.
-- The ADR mechanism, guide, documentation rules, specification, dictionary, and actual references express the same contract. Current and historical citations, reciprocal language links, and heading fragments resolve to the intended content.
+- Current decisions, maintenance Skills, project supplements, documentation rules, specifications, dictionary, and actual references express the same effective contract. Current and historical citations, reciprocal language links, and heading fragments resolve to the intended content; historical records retain their own contracts.
 
 ## Related ADRs
 

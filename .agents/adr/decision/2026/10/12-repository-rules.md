@@ -9,7 +9,7 @@ English | [中文](./12-repository-rules.zh.md)
 
 State the repository's working rules in a bilingual layer under `.agents/rule/`, beside specifications and ADRs, so that one normative statement has one owning layer.
 
-The repository had a document type for what each component and area should be and one for why a durable choice was made, and neither owned how work is done here. Commit, branch, worktree, validation, and documentation rules sat in the root `AGENTS.md`, which also carried repository positioning and navigation, and the Invariants of the [repository spec](../../../../spec/repository.md) mixed constraints on actions with properties of the delivered repository. The [spec rules](../../../../spec/README.md) named the gap themselves: their division of work gives the repository documentation and the README the job of telling contributors how to work and `AGENTS.md` the job of navigation and non-trivial rules, and no page owned the working rules themselves. The [ADR rules](../../../README.md) cannot hold it, because a rule has no alternatives or consequences to record.
+The repository had a document type for what each component and area should be and one for why a durable choice was made, and neither owned how work is done here. Commit, branch, worktree, validation, and documentation rules sat in the root `AGENTS.md`, which also carried repository positioning and navigation, and the Invariants of the [repository spec](../../../../spec/repository.md) mixed constraints on actions with properties of the delivered repository. The [historical spec contract](../../../archived/2026/10/04-r1-specifications.md#division-of-work) named the gap: contributor guidance belonged to repository documentation and the README, while `AGENTS.md` supplied navigation and non-trivial rules, but no page owned the working rules themselves. The [historical ADR contract](../../../archived/2026/08/22-r6-adr-mechanism.md#authoring-the-record) could not hold them, because a rule has no alternatives or consequences to record.
 
 ## Analysis
 
@@ -17,11 +17,11 @@ A normative statement in this repository falls into five kinds. A statement that
 
 The same constraint often appears in two forms, which is not duplication: the spec says a commit message is an English Conventional Commit whose scope comes from a fixed set, while the rule says when to run the formatting hook, which files belong to the current task, and which authorization each Git action needs. Only two layers stating the same thing is duplication, and this layer removes that.
 
-The following current decisions bear on the layer, and none of them conflicts with it:
+The following decisions informed the layer. Historical citations identify the choices used at adoption; current references identify continuing constraints. None conflicted with adding the layer:
 
-- [Add a specification layer](./04-specifications.md) recorded the division of work for specs, ADRs, and component documentation and left contributor instructions to the repository documentation, the README, and `AGENTS.md`. This decision adds a fourth document type to that division and reverses no part of it.
-- [Clarify the ADR content boundaries](../08/22-adr-mechanism.md) keeps ADR content rules and lifecycle unchanged. A rule keeps no history, so it cannot replace a contract that a decision records.
-- [Keep distributable components self contained](../08/24-component-self-containment.md) forbids references from inside a component to files outside it. The rule layer is repository documentation outside component directories, and the reference direction keeps every component independent of it.
+- [Add a specification layer](../../../archived/2026/10/04-r1-specifications.md) recorded the division of work for specs, ADRs, and component documentation and left contributor instructions to repository documentation, the README, and `AGENTS.md`. This decision adds a fourth document type to that division and reverses no part of it.
+- [Clarify the ADR content boundaries](../../../archived/2026/08/22-r6-adr-mechanism.md) kept ADR content rules and lifecycle unchanged. A rule keeps no history, so it cannot replace a contract that a decision records.
+- [Keep distributable components self contained](../08/24-component-self-containment.md) forbids references from inside a distributed component to files outside it. The rule layer is repository documentation outside component directories, and the reference direction keeps every distributed component independent of it.
 - [Colocate bilingual public documentation](../08/20-bilingual-docs.md) requires same-directory language pairs for ordinary public pages, and rule pages follow it.
 - [Scope development checks](../09/12-repository-checks.md) defines how affected checks are selected and how the complete gate is recorded. Rules state when those checks run and what evidence they leave.
 - [Review authorization](../09/06-review-authorization.md) keeps a review request from authorizing edits to the reviewed files, and the Git rules state it for branch work.
@@ -32,7 +32,7 @@ The following current decisions bear on the layer, and none of them conflicts wi
 
 `.agents/rule/` carries the repository's working rules, and the [layer's entry page](../../../../rule/README.md) defines the layer. Its directory name is singular like `spec`.
 
-One normative statement has one owning layer, and the [spec layer](../../../../spec/README.md#division-of-work) states how specs, decisions, rules, component documentation, the repository documentation, and `AGENTS.md` divide their work. A rule `AGENTS.md` states keeps its owning page in this layer, and a change updates both texts.
+One normative statement has one owning layer, and [maintain-spec](../../../../skills/maintain-spec/SKILL.md#division-of-work) states how specs, decisions, rules, component documentation, repository documentation, and `AGENTS.md` divide their work. A rule `AGENTS.md` states keeps its owning page in this layer, and a change updates both texts.
 
 ### Files
 
@@ -73,3 +73,9 @@ One page per activity states the current constraint that binds an action, and `A
 Rules that leave `AGENTS.md` no longer arrive with the instructions a host injects at the start of a session, so an agent can act without reading a detail that binds its work. `AGENTS.md` repeats the rules a change applies most often and the rules a reader is least likely to think of loading, and the remaining detail stays on demand: navigation entries, the per-activity index, and the request in `AGENTS.md` to read the applicable rules bound this, but nothing enforces it.
 
 `AGENTS.md` and a rule page state the same constraint for the resident rules, and a later edit that updates one of them leaves the other describing an older rule. `AGENTS.md` repeats only the rules a change applies most often and the rules a reader is least likely to load, and reviewers compare the two texts, because nothing checks them mechanically.
+
+## Changes
+
+### 2026-10-22 Internal maintenance methods
+
+[maintain-spec](../../../../skills/maintain-spec/SKILL.md) and [maintain-adr](../../../../skills/maintain-adr/SKILL.md) own the main methods for their document types. The spec and ADR README pairs own project supplements and navigation; this rule layer retains cross-cutting project rules. Internal project Skills are repository maintenance material, distinct from instructions inside distributed components. Each normative statement still has one main owner, with triggers and navigation in project entry points rather than duplicate complete methods.

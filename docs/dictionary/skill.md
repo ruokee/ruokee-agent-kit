@@ -4,13 +4,13 @@ English | [中文](./skill.zh.md) | [Dictionary](./README.md)
 
 Chinese term: 技能
 
-A self-contained instruction component that a host discovers and loads, with a `SKILL.md` and supporting files.
+A set of instructions that a host discovers and loads, with a `SKILL.md` and supporting files. Publicly distributed Skills are self-contained components; internal project Skills are repository maintenance material.
 
 ## Mechanism
 
-A Skill is instructions, not code loaded into the host process. The host discovers it at its skill root and loads the instructions when the task matches or the user invokes it. The English base lives at `skills/<name>/`; the Chinese variant lives at `variants/zh/skills/<name>/` with the same file set and scope. Installation copies the selected variant to `<skill root>/<name>/`.
+A Skill is instructions, not code loaded into the host process. The host discovers it at its skill root and loads the instructions when the task matches or the user invokes it. Public English Skills live at `skills/<name>/`; their Chinese variants live at `variants/zh/skills/<name>/` with the same file set and scope. Installation copies the selected variant to `<skill root>/<name>/`.
 
-A Skill may include references, workflows, examples, and a glossary. It must be self-contained: its files reference only files inside its own directory.
+A public Skill may include references, workflows, examples, and a glossary. Its files reference only files inside its own directory. Internal project Skills under `.agents/skills/` may read the project documents they maintain and are not public installation sources; the [repository spec](../../.agents/spec/repository.md) covers them.
 
 ## Example
 

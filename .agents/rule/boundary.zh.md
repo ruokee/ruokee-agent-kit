@@ -16,8 +16,9 @@
 ## 内容布局
 
 - 每项能力保持宿主原生或构建原生的格式。不把 Plugin、Extension、可执行程序或宿主 Package 塞进 `./skills/`。
-- 普通英文 Skill 位于 `./skills/<name>/`，其中文变体位于 `./variants/zh/skills/<name>/`。
+- 普通公开英文 Skill 位于 `./skills/<name>/`，其中文变体位于 `./variants/zh/skills/<name>/`。
 - 以独立项目形式维护的组件，其包含的 Skill 放在所属 `projects/<component>/skills/` 目录，遵循 [Skill 布局决定](../adr/decision/2026/08/20-skill-variants.zh.md#变更)。
+- 内部项目维护 Skill 位于 `.agents/skills/`，可引用所维护的项目文档，不属于可分发组件或公开安装源。公开组件仍保持自包含。
 - 纯 Skill 目录只放宿主可发现的 Skill 材料，例如 `SKILL.md`、workflow、reference、example 和 glossary。不把 Plugin manifest、市场元数据、包 changelog 或宿主专用的 Agent 定义复制进去。
 - 每个可分发组件，包括每个语言变体，都保持自包含。其文件只引用该组件内的文件。组件可以按名称提及其他组件、工具或 Skill，并把它声明为前置条件。组件不得链接、导入或读取其他组件的文件或包，也不得依赖仓库支持文件。
 - 前置条件必须显式声明，不能通过指向另一个组件文件的链接隐式形成。

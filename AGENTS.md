@@ -9,10 +9,11 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 - `./variants/`: Language variants of components, with the same purpose and separate distributable directories.
 - `./docs/`: Repository-wide user and development documentation, such as installation, maintenance, and terminology reference.
 - `./scripts/`: Repository-wide installation, maintenance, and check scripts; component-specific scripts stay with their component.
-- `./.agents/`: Decisions, specifications, and rules for repository development.
+- `./.agents/`: Internal maintenance Skills, decisions, specifications, and rules for repository development.
     - `adr/`: Durable choices and their reasons, including proposals and decisions.
     - `spec/`: Goals, boundaries, and acceptance criteria for components or repository areas.
     - `rule/`: Working rules organized by activity, governing actions, order, and permissions.
+    - `skills/`: English project-internal maintenance Skills, not public installation sources.
 
 ## Rules
 
@@ -33,8 +34,8 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 - Provide English and Chinese project documentation as same-directory `name.md` and `name.zh.md` pairs. Keep translations and reciprocal links aligned.
 - Keep documentation in sync with the code it describes. Update affected documents in the same change.
 - Write a file name and each heading as a short imperative sentence, a short phrase, or a noun unless an additional requirement calls for another form. Keep one subject, and add a second one or list its parts only when an additional requirement calls for it.
-- Specs define each component's goals and live in `./.agents/spec`. Read the [spec rules](./.agents/spec/README.md) when editing specs.
-- ADRs record choices, including proposals and decisions, and live in `./.agents/adr`. Read the [ADR rules](./.agents/adr/README.md) when editing ADRs.
+- Specs define long-lived component or repository targets under `./.agents/spec`. Before maintaining or reviewing one, or when feature work changes its goals, boundaries, or acceptance, load [maintain-spec](./.agents/skills/maintain-spec/SKILL.md) and read the [project supplements](./.agents/spec/README.md).
+- ADRs record durable choices under `./.agents/adr`. Before creating, repairing, updating, reversing, rejecting, archiving, or reviewing one, or when project work affects a durable choice, load [maintain-adr](./.agents/skills/maintain-adr/SKILL.md) and read the [project supplements](./.agents/adr/README.md). Loading either Skill grants no write or lifecycle permission and does not transfer task Goal ownership.
 - Rules define repository working rules and live in `./.agents/rule`. Read the [rule layer's rules](./.agents/rule/README.md) when editing rules.
 - Use the [repository dictionary](./docs/dictionary/README.md) for shared terms, and read the [terminology rules](./.agents/rule/terminology.md) when adding or changing one.
 
@@ -43,7 +44,7 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 [Git rules](./.agents/rule/git.md)
 
 - Use trunk-based development.
-- Create a short-lived branch from current `main` for each change. Never edit or commit directly on `main`.
+- Create a short-lived branch from current `main` for each change, or use a verified dependency candidate for authorized continued development under the Git rules. Never edit or commit directly on `main`.
 - Write commit messages in English and follow Conventional Commits. Use types from the standard set.
 - Let `git commit` run the quality hooks. If a hook modifies task files, review and restage them before retrying the commit.
 - Use `git commit --amend` only to edit a commit message. Never use amend to add, remove, or replace committed file changes.

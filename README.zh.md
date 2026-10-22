@@ -61,11 +61,13 @@ Skill 安装与下方的开发环境准备相互独立。普通 Skill 见[安装
 
 长期仓库决定通过双语 [ADRs](./.agents/adr/README.zh.md) 记录。双语[规格](./.agents/spec/README.zh.md)说明每个组件和仓库领域的当前目标，并链接到拥有细节的决定和文档。双语[规则层](./.agents/rule/README.zh.md)说明在这个仓库里工作要怎么做：贡献者或 Agent 必须做什么、按什么顺序、持哪项授权，以及什么被禁止。这些工作使用的共享用词由双语[词典](./docs/dictionary/README.zh.md)定义。
 
+内部 [maintain-spec](./.agents/skills/maintain-spec/SKILL.md) 和 [maintain-adr](./.agents/skills/maintain-adr/SKILL.md) Skill 持有主要维护方法。维护或审查对应文档前加载适用 Skill，也覆盖影响长期目标或持久选择的功能工作。各层 README 保留项目补充和导航。
+
 [开发规则](./.agents/rule/development.zh.md)说明规划改动、准备环境、运行检查和合并门禁。
 
 ### Git
 
-项目遵循 [Trunk-Based](https://trunkbaseddevelopment.com/) 开发模式。`main` 是唯一长期分支，工作从当前 `main` 创建的短期分支开始，并在明确授权后通过 squash merge 集成。提交信息使用英文 Conventional Commits。[Git 规则](./.agents/rule/git.zh.md)说明分支、工作目录、提交、scope 以及每个动作需要的授权。
+项目遵循 [Trunk-Based](https://trunkbaseddevelopment.com/) 开发模式。`main` 是唯一长期分支，工作从当前 `main` 创建短期分支，或在已授权依赖开发中使用已验证前置候选。明确授权后分别通过 squash merge 集成。提交信息使用英文 Conventional Commits。[Git 规则](./.agents/rule/git.zh.md)说明分支、工作目录、提交、scope 以及每个动作需要的授权。
 
 开始开发之前，先确保安装了 Git 钩子：
 
@@ -78,9 +80,9 @@ pnpm hooks:install
 
 ### 仓库布局
 
-英文 Skill 位于 `skills/<name>/`，中文 variant 位于 `variants/zh/skills/<name>/`。Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或构建系统预期的布局。
+公开英文 Skill 位于 `skills/<name>/`，中文 variant 位于 `variants/zh/skills/<name>/`。内部英文维护 Skill 位于 `.agents/skills/`，不是公开安装源。Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或构建系统预期的布局。
 
-布局规则和文档配对由[仓库规格](./.agents/spec/repository.zh.md)持有，Skill 自身包含什么由 [Skill 规格](./.agents/spec/skills.zh.md)持有。
+[仓库规格](./.agents/spec/repository.zh.md)持有仓库约定、文档配对和内部维护 Skill，[Skill 规格](./.agents/spec/skills.zh.md)覆盖公开分发的普通 Skill。
 
 ### 组件宿主维护
 

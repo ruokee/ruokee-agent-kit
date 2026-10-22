@@ -2,7 +2,7 @@
 
 English | [中文](./skills.zh.md)
 
-Spec for the ordinary Skills under `skills/` and their Chinese variants under `variants/zh/skills/`. The tk Skills ship with tk and are covered by [.agents/spec/tk.md](./tk.md).
+Spec for publicly distributed ordinary Skills under `skills/` and their Chinese variants under `variants/zh/skills/`. The tk Skills ship with tk and are covered by [.agents/spec/tk.md](./tk.md). Internal maintenance Skills under `.agents/skills/` are covered by [.agents/spec/repository.md](./repository.md), not this distribution and installation contract.
 
 ## Goals
 

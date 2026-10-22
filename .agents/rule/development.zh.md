@@ -35,7 +35,7 @@
 
 [选择器](../../scripts/check-changed.mjs)维护变更范围到选中检查的显式映射：
 
-- 已知说明性 Markdown，包括 ADR、规格、规则页面、根 README、Skill 和组件文档
+- 已知说明性 Markdown，包括 ADR、规格、规则页面、根 README、公开 Skill、内部 `.agents/skills/` 材料和组件文档
     - 对仍存在的变更文件运行 Prettier，保留仓库配置和忽略规则
 - 已登记 OMP 组件的非 Markdown 文件，或其 `src/`、`test/` 下的 Markdown
     - 该组件的 `typecheck`、`test`，以及变更 Markdown 格式检查

@@ -217,6 +217,51 @@ test("removed workloop Markdown keeps rename destinations in classification", ()
     },
   ));
 
+test("internal Skill Markdown selects only formatting and keeps full-check boundaries", () => {
+  const paths = [
+    ".agents/skills/maintain-spec/SKILL.md",
+    ".agents/skills/maintain-adr/SKILL.md",
+    ".agents/skills/maintain-adr/references/records.md",
+  ];
+  repository((cwd) => {
+    for (const path of paths) write(cwd, path);
+    const plan = selectChecks(paths);
+    assert.equal(plan.full, false);
+    assert.deepEqual(plan.scopes, ["documentation"]);
+    assert.deepEqual(plan.ids, []);
+    assert.deepEqual(
+      buildCommands(plan, cwd).map(({ command, args }) => ({ command, args })),
+      [
+        {
+          command: "pnpm",
+          args: [
+            "exec",
+            "prettier",
+            "--check",
+            "--log-level",
+            "warn",
+            "--ignore-unknown",
+            ...paths.toSorted().map((path) => `./${path}`),
+          ],
+        },
+      ],
+    );
+    for (const boundary of [
+      ".agents/skills/maintain-spec/example.json",
+      ".agents/unknown/example.md",
+      "scripts/check-changed.mjs",
+      "scripts/tests/check-changed.test.mjs",
+    ]) {
+      const full = selectChecks([...paths, boundary]);
+      assert.equal(full.full, true, boundary);
+      assert.deepEqual(
+        buildCommands(full, cwd).map(({ command, args }) => ({ command, args })),
+        [{ command: "pnpm", args: ["check"] }],
+      );
+    }
+  });
+});
+
 test("every OMP component selects its own two checks; Markdown consumers take priority", () => {
   for (const name of OMP_COMPONENTS) {
     const expected = [`${name}:typecheck`, `${name}:test`];

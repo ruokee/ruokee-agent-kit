@@ -61,11 +61,13 @@ Follow each project component's README for its build and installation requiremen
 
 Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/README.md). Bilingual [specifications](./.agents/spec/README.md) state the current target of each component and repository area, linking to the decisions and documents that own the details. The bilingual [rule layer](./.agents/rule/README.md) states how work is done here: what a contributor or an Agent must do, in what order, with which permission, and what is forbidden. Shared terms for that work are defined in the bilingual [dictionary](./docs/dictionary/README.md).
 
+The internal [maintain-spec](./.agents/skills/maintain-spec/SKILL.md) and [maintain-adr](./.agents/skills/maintain-adr/SKILL.md) Skills own the main maintenance methods. Load the applicable Skill before maintaining or reviewing those documents, including feature work that affects a long-lived target or durable choice. Their layer READMEs hold project supplements and navigation.
+
 The [development rules](./.agents/rule/development.md) cover planning a change, preparing environments, running checks, and the merge gate.
 
 ### Git
 
-The project follows [Trunk-Based Development](https://trunkbaseddevelopment.com/). `main` is the only long-lived branch, work happens on a short-lived branch from current `main`, and integration happens through squash merge after explicit authorization. Commit messages are English Conventional Commits. The [Git rules](./.agents/rule/git.md) cover branches, working directories, commits, and the authorization each action needs.
+The project follows [Trunk-Based Development](https://trunkbaseddevelopment.com/). `main` is the only long-lived branch. Work uses a short-lived branch from current `main`, or a verified predecessor for authorized dependent development. Integration uses separate squash merges after explicit authorization. Commit messages are English Conventional Commits. The [Git rules](./.agents/rule/git.md) cover branches, working directories, commits, and the authorization each action needs.
 
 Before development, install the Git hooks:
 
@@ -78,9 +80,9 @@ The hooks format staged files before each commit and check the commit message. A
 
 ### Repository layout
 
-English Skills live under `skills/<name>/`, and their Chinese variants under `variants/zh/skills/<name>/`. Plugins, extensions, executables, and Harness packages keep the layout their Harness or build system expects.
+Public English Skills live under `skills/<name>/`, and their Chinese variants under `variants/zh/skills/<name>/`. Internal English maintenance Skills live under `.agents/skills/` and are not public installation sources. Plugins, extensions, executables, and Harness packages keep the layout their Harness or build system expects.
 
-The [repository specification](./.agents/spec/repository.md) owns the layout rules and the documentation pairs, and the [Skill specification](./.agents/spec/skills.md) owns what a Skill contains.
+The [repository specification](./.agents/spec/repository.md) owns repository conventions, documentation pairs, and internal maintenance Skills. The [Skill specification](./.agents/spec/skills.md) covers publicly distributed ordinary Skills.
 
 ### Component host maintenance
 

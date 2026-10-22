@@ -2,61 +2,56 @@
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
+Reverses: [Specifications](../../../archived/2026/10/04-r1-specifications.md)
 
 English | [中文](./04-specifications.zh.md)
 
 ## Motivation
 
-Keep bilingual specifications under `.agents/spec/` that describe the current target state of each component and repository area, while ADRs continue to record decisions and their reasons.
+Maintain bilingual current-target specifications through the internal `maintain-spec` Skill.
 
-The repository had no document type whose job is to state what each component should be as a whole. That information was spread across current decisions, their dated `Changes` entries, and component documentation. For example, the target of a component removed since combined [the template-only decision](../../../archived/2026/09/07-r4-omp-system-prompt.md), [the model prompt rules decision](../../../archived/2026/09/14-r1-model-prompt-rules.md), and the component README pair. A reader had to merge these sources to learn the current target. The rules for the Skill system and for repository conventions were spread in the same way across current decisions, `AGENTS.md`, and the [repository README](../../../../../README.md).
+A spec gives maintainers and Agents one statement of what a component or repository area should be, its boundaries, and observable acceptance. Current decisions and their dated changes explain the reasons; component documentation owns the detailed user contract. None of those roles replaces the others.
 
-ADRs are not meant to fill that role. The [ADR guide](../../../README.md) defines an ADR as the rationale and contract of a durable decision, and a successor decision "does not reproduce the component's implementation specification". Component documentation serves people who install and use the component, and the repository instructions and README serve contributors working in the repository. None of them gives maintainers and Agents one current statement of goals, boundaries, and acceptance for a component, the Skill system, or repository conventions.
-
-## Analysis
-
-The following current decisions bear on the layer. None of them conflicts with it, so this decision reverses no decision.
-
-- [Colocate bilingual public documentation](../08/20-bilingual-docs.md) requires same-directory `name.md` and `name.zh.md` pairs with reciprocal links for ordinary public pages, and `README.md` and `README.zh.md` for entry pages. Maintainer-only artifacts need translation only when their audience needs it. Specs are written for maintainers and Agents, and making them bilingual is within that decision. Its rule that detailed commands, parameters, and normative behavior stay on their owning pages also applies to specs.
-- [Clarify the ADR content boundaries](../08/22-adr-mechanism.md) defines what an ADR must contain. It states that relocating a binding clause does not cancel it and that a link to changing current documentation cannot replace the historical contract. A spec changes directly and keeps no history, so it cannot replace the contract recorded in a decision. ADR content rules and lifecycle stay unchanged.
-- [Keep distributable components self contained](../08/24-component-self-containment.md) forbids references from inside a component to files outside it and allows repository-wide documentation outside component directories to reference components. A spec under `.agents/spec/` is such documentation. Its `Changes` entry keeps each component's maintenance declaration inside the component.
-- [Align tk usage patterns with shared Skill reference sources](../08/29-tk-documentation.md) gives each tk behavior one primary owning page under `projects/tk/docs/`, including system boundaries, invariants, and validation. A tk spec that restated them would create a second owner, so a spec links to an owning page instead.
-- [Establish a first party Agent capability kit](../08/20-first-party-capabilities.md) adds new top-level structure only with a real component. `.agents/` already exists, so the layer adds no top-level area.
+The [predecessor](../../../archived/2026/10/04-r1-specifications.md) assigned writing, maintenance, and division-of-work rules to the spec README. Giving those rules to the Skill makes the complete method available on demand, while the README keeps the project inventory and supplements instead of a duplicate full guide.
 
 ## Decision
 
 ### Location
 
-Specifications live in `.agents/spec/`, beside `.agents/adr/`. A README pair at that root states how specs are written and how specs, ADRs, and component documentation divide their work.
+Specs live under `.agents/spec/`, beside ADRs and rules. Each component under `projects/`, including tk as a whole, has a spec. Distributed Skills, repository conventions, and host compatibility have specs. The [spec README](../../../../spec/README.md) owns the inventory and project supplements; adding or removing a component or a repository area needing a spec updates that inventory in the same change.
 
-Each component under `projects/`, including `projects/tk` as a whole, has a spec. The Skill system, covering `skills/` and the Chinese variants under `variants/zh/skills/`, has a spec, and so do repository-wide conventions and the host compatibility policy. The spec README owns the list of spec files. Specs are derived from current decisions and component documentation. Archived decisions are not current authority and are not copied into a spec.
+[maintain-spec](../../../../skills/maintain-spec/SKILL.md) is an English internal project Skill under `.agents/skills/`. The repository spec covers it and the internal ADR maintenance Skill. The public Skill spec continues to cover `skills/` and `variants/zh/skills/`; internal maintenance adds no public installation source or translation package.
 
-### Spec format
+### Target authority
 
-The [spec layer's entry page](../../../../spec/README.md#writing-a-spec) owns how a spec is written, the sections it uses and their order, and the statement that a spec is edited in place.
+A spec is a current target edited in place, with no revision history, review notes, task records, or session information. Derive it from confirmed requirements, current decisions including `Changes`, and owning component documentation. Archived decisions are not current authority and must not be cited or copied into a current spec. Existing implementation is not by itself approval of the target.
 
-### Division of work
+A spec must not conflict with a current decision. Identify conflicting clauses and follow the ADR mechanism before changing the target. A change that makes no durable choice needs no ADR. A decision can link a spec without replacing the decision's own contract. A change to a component target updates the spec, component, and component documentation together.
 
-The [spec layer's entry page](../../../../spec/README.md#division-of-work) owns how specs, decisions, rules, component documentation, the repository documentation, and `AGENTS.md` divide their work, and how a spec change relates to a current decision.
+### Maintenance ownership
+
+The Skill owns [structure](../../../../skills/maintain-spec/SKILL.md#write-the-current-target), [division of work](../../../../skills/maintain-spec/SKILL.md#division-of-work), and the maintenance method for creation, adjustment, removal, and boundary clarification. Applicable sections retain their order: goals, out of scope, public surface, invariants, host lower bound, acceptance criteria, and related ADRs. Inapplicable sections are omitted. Detailed commands, parameters, settings, formats, and maintenance declarations stay on their owning pages; a spec links them and supplies only needed context.
+
+The project supplement owns same-directory English and Chinese pairs with reciprocal links immediately below the title and same-change semantic alignment. Language and Git policies are project choices, not universal requirements imposed by the Skill.
+
+Agent entry points and the Skill description identify applicable work before loading. Agents load it for spec maintenance or review and when feature work affects a long-lived target. They read effective decisions and their changes, proposals, supplements, and necessary component sources, preserve unaffected requirements, and verify the resulting documents. Read-only requests remain read-only.
+
+Task Goals can supply confirmed requirements, but the Skill does not form, interview for, revise, rename, or save them, or manage task lifecycle. An existing task file named `spec.md` remains task material. Use `maintain-adr` only when the work requires its distinct responsibility.
 
 ### Reference direction
 
-The [spec layer's entry page](../../../../spec/README.md#reference-direction) owns the reference direction and the statement that specs are explanatory documentation.
+Specs may link component files, component documentation, ADRs, and rules. Distributed components do not link to, name paths in, or depend on `.agents/spec/` for running, building, or distribution. Internal project Skills can read their maintained project documents; this does not relax public component self-containment.
 
-### Repository entry points
-
-The repository instructions and entry documents that direct readers to the ADR rules also name `.agents/spec/` and its purpose.
+Specs remain explanatory documentation handled by Markdown checks, without a dedicated checker or runtime consumer for the layer. The maintenance Skills themselves use native project discovery; their Markdown belongs to the known documentation check scope. Unknown files and shared check inputs retain complete validation.
 
 ## Alternatives considered
 
-**Place each spec inside its component directory.** A spec would sit next to the code it describes, but it would ship in the distributed component and reach maintainer material that users do not need. The Skill system and repository conventions have no single component directory to hold their specs.
+Place each spec inside its component directory. This puts it beside the code, but distributes maintainer material that reaches repository sources users do not need. Distributed Skills and repository conventions also lack a single component directory for their collective specs.
+
+Keep full maintenance rules in the spec README and use a Skill only for steps. This preserves the old ownership, but splits the method across a procedure and a full rule source; the chosen ownership requires migrating effective clauses and references once.
 
 ## Consequences
 
-Maintainers and Agents find one current statement of goals, boundaries, invariants, and acceptance for each component, the Skill system, repository conventions, and the host compatibility policy, with links to the decisions and documents that own the details.
+Maintainers and Agents have one current statement of goals, boundaries, invariants, and acceptance per subject, with links to the decisions and documents that own details. The Skill and project supplement each have one responsibility.
 
-A spec, a current decision, and a component document can describe the same target. A later change that updates only one of them leaves the others stale, and a maintainer or Agent who follows the stale text builds toward the wrong target or reports a false conflict. Linking to owning pages narrows the overlap but does not remove it, and no mechanical check proves agreement. Changes that alter a target therefore update the spec in the same change.
-
-A spec that omits a later decision change, or carries over a rule from an archived decision, states a target that no current decision supports, and work that follows it can remove behavior a current decision still requires. A current decision wins over a spec that disagrees with it, and the spec is corrected.
-
-Adding or removing a component, or a repository area that needs its own spec, also updates the spec list in the spec README.
+A stale spec, omitted decision change, or imported historical rule can direct implementation toward the wrong target or remove required behavior. Current decisions govern conflicts, and target changes synchronize affected documents. Formatting cannot prove semantic agreement or successful use of the Skill. Actual maintenance sessions must show applicable loading, correct reading, and correct document results against confirmed requirements.

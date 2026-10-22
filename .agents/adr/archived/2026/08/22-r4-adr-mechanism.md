@@ -92,7 +92,7 @@ Archived decisions freeze after relationship and factual link repairs, and rejec
 
 Use review, repository search, and Git history rather than a dedicated ADR Skill, classification system, translation sidecar, archive manifest, or custom checker. Add a mechanical check only after repeated maintenance or an observed failure identifies a concrete invariant.
 
-The full authoring policy lives in [the ADR guide](../../../README.md), with its [Chinese counterpart](../../../README.zh.md) and paired glossary.
+The ADR guide, its Chinese counterpart, and paired glossary owned the full authoring policy. This record retains its [format](#record-format), [authoring contract](#authoring-the-record), and [dated changes](#changes).
 
 ## Alternatives considered
 
@@ -120,7 +120,7 @@ The glossary stays deliberately small. Ordinary wording and unconfirmed synonyms
 
 ### 2026-09-29 Single sentence opening
 
-`Motivation` now opens with one short sentence stating what is to be done, written as the action itself rather than as a description of the record, and the concrete problem, background, reasons, and evidence move to the paragraphs after it. This replaces the earlier requirement that the first sentence identify the concrete problem, intended change, or goal. The rule itself is stated in [the ADR guide](../../../README.md), and the [motivation decision](../../../decision/2026/08/22-adr-opening.md) records the same update.
+`Motivation` now opens with one short sentence stating what is to be done, written as the action itself rather than as a description of the record, and the concrete problem, background, reasons, and evidence move to the paragraphs after it. This replaces the earlier requirement that the first sentence identify the concrete problem, intended change, or goal. The [motivation decision](../../../decision/2026/08/22-adr-opening.md#2026-09-29-single-sentence-opening) records the same update.
 
 ### 2026-10-14 Allow one bounded naming cleanup
 

@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [ADR mechanism](./22-r4-adr-mechanism.md)
 Archived: 2026-10-17
-Reversed by: [ADR mechanism](../../../decision/2026/08/22-adr-mechanism.md)
+Reversed by: [ADR mechanism](./22-r6-adr-mechanism.md)
 
 English | [中文](./22-r5-adr-mechanism.zh.md)
 
@@ -20,27 +20,27 @@ The [previous mechanism](./22-r4-adr-mechanism.md) required naming maintenance t
 
 ### Terminology
 
-Use **ADR** as the primary term, with `.agents/adr` as the root. The [ADR guide](../../../README.md#document-layout) owns the document types, the state the directory expresses, the action phrases, and the glossary rules. Maintain `glossary.md` and `glossary.zh.md` at the ADR root; they carry ADR, proposal, decision, `Update decision`, and `Reverse decision`, and a new entry requires the maintainer to establish its meaning explicitly.
+Use **ADR** as the primary term, with `.agents/adr` as the root. The ADR guide's [retained layout contract](./22-r6-adr-mechanism.md#terminology) owns the document types, the state the directory expresses, and the action phrases. Maintain `glossary.md` and `glossary.zh.md` at the ADR root; they carry ADR, proposal, decision, `Update decision`, and `Reverse decision`, and a new entry requires the maintainer to establish its meaning explicitly.
 
 ### Identity
 
-A decision's first proposal date and short canonical English topic name identify its current record and every archived version, and a topic extracted into an independent decision gets its own identity. The [ADR guide](../../../README.md#document-layout) owns the directory placement, the dates each record keeps, and the treatment of successors and extracted topics.
+A decision's first proposal date and short canonical English topic name identify its current record and every archived version, and a topic extracted into an independent decision gets its own identity. The guide's [retained identity contract](./22-r6-adr-mechanism.md#identity) owns the directory placement, the dates each record keeps, and the treatment of successors and extracted topics.
 
 ### Paths
 
-The four lifecycle roots, the `YYYY/MM/DD` placement, the `rN` sequence, the `.gitkeep` rule, and the root location of the guide and glossary are in the [ADR guide](../../../README.md#document-layout).
+The four lifecycle roots, the `YYYY/MM/DD` placement, the `rN` sequence, the `.gitkeep` rule, and the root location of the guide are in the guide's [retained path contract](./22-r6-adr-mechanism.md#paths). The glossary also stays at the ADR root.
 
 ### Proposal workflow
 
-One requirement gets one proposal unless the maintainer requests another split, and an approved proposal merges to `main` as a dedicated change before implementation begins. The [ADR guide](../../../README.md#active-proposal) owns the merge order, the post-implementation steps, and the removal of the consumed proposal.
+One requirement gets one proposal unless the maintainer requests another split, and an approved proposal merges to `main` as a dedicated change before implementation begins. The guide's [retained proposal contract](./22-r6-adr-mechanism.md#proposal-workflow) owns the merge order, the post-implementation steps, and the removal of the consumed proposal.
 
 ### Record format
 
-Each ADR is one same-directory English and Chinese pair with reciprocal language links, and both files are semantically authoritative, complete in the same change, and moved together. The [ADR guide](../../../README.md#bilingual-files) owns the pair layout, the metadata fields and their order, and the language-link placement, its [document layout](../../../README.md#document-layout) owns the file naming rules, and its [proposal format](../../../README.md#proposal-format) and [decision format](../../../README.md#decision-format) own the title form and the required sections of each document type.
+Each ADR is one same-directory English and Chinese pair with reciprocal language links, and both files are semantically authoritative, complete in the same change, and moved together. The guide's [retained record format](./22-r6-adr-mechanism.md#record-format) owns the pair layout, the metadata fields and their order, the language-link placement, the title form, and the required sections of each document type; its [path contract](./22-r6-adr-mechanism.md#paths) owns file naming.
 
 ### Authoring the record
 
-The [authoring rules](../../../README.md#authoring-rules) in the ADR guide own how a record opens, when `Analysis` is warranted, what contract material belongs in it, how closed constraints and defensive rules are stated, and which alternatives and risks qualify.
+The guide's [retained authoring rules](./22-r6-adr-mechanism.md#authoring-the-record) own how a record opens, when `Analysis` is warranted, what contract material belongs in it, how closed constraints and defensive rules are stated, and which alternatives and risks qualify.
 
 ### Decision lifecycle
 
@@ -56,7 +56,7 @@ Direct relationships follow versions. If A is reversed by B and later B by C, A'
 
 Use review, repository search, and Git history rather than a dedicated ADR Skill, classification system, translation sidecar, archive manifest, index, or permanent maintenance script. Add a mechanical check only after repeated maintenance or an observed failure identifies a concrete invariant.
 
-The [ADR guide](../../../README.md) owns detailed formats and operations, with its [Chinese counterpart](../../../README.zh.md) and paired glossary. The [repository specification](../../../../spec/repository.md) states lasting goals and observable invariants. Keep the guide, glossary, documentation rules, specification, and affected references aligned in both languages.
+The ADR guide owns detailed formats and operations, with its Chinese counterpart and paired glossary; its [retained maintenance contract](./22-r6-adr-mechanism.md#maintenance) preserves the relevant rules. The [repository specification](../../../../spec/repository.md) states lasting goals and observable invariants. Keep the guide, glossary, documentation rules, specification, and affected references aligned in both languages.
 
 ## Alternatives considered
 

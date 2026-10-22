@@ -11,6 +11,7 @@ The [repository spec](../spec/repository.md) states the language, pairing, and l
 - Maintain a language pair for every ordinary public Markdown page: same-directory `name.md` and `name.zh.md`, entry pages as `README.md` and `README.zh.md`, with reciprocal language links directly below the title of each file.
 - Update both languages of a pair in the same change, and keep their meaning aligned.
 - Keep Skill language variants in their existing component layouts instead of adding cross-language links between them.
+- Write internal project Skills under `.agents/skills/` in English. They are maintenance material, not ordinary public pages or public language variants.
 
 ## Naming
 
@@ -35,9 +36,9 @@ The [repository spec](../spec/repository.md) states the language, pairing, and l
 
 ## Decisions
 
-- Follow the [ADR rules](../adr/README.md) when creating, updating, or reversing an ADR.
+- Before creating, repairing, updating, reversing, rejecting, archiving, or reviewing an ADR, or when project work affects a durable choice, load [maintain-adr](../skills/maintain-adr/SKILL.md) and read the [ADR project supplements](../adr/README.md). The Skill owns the main maintenance method; the supplements own project language, Git, and authority policy.
 
 ## Specs
 
-- Read the [spec rules](../spec/README.md) and the affected specs before changing a component's or a repository area's goals, boundaries, or acceptance, and update them in the same change.
+- Before maintaining or reviewing a long-lived spec, or changing a component's or repository area's goals, boundaries, or acceptance, load [maintain-spec](../skills/maintain-spec/SKILL.md), read the [project supplements](../spec/README.md) and affected specs, and update them with the change. The Skill does not maintain task Goals. Loading either maintenance Skill does not expand write permission.
 - Update the affected spec in the same change as the decision it follows.

@@ -2,60 +2,27 @@
 
 English | [中文](./README.zh.md)
 
-A specification, or spec, states the current target state of one component or repository area: what it should be, where its boundaries are, and which observable results show that it meets them. ADRs record the decisions and reasons behind that target.
+Specifications state the current target of a component or repository area. Before creating, changing, removing, or reviewing one, or when feature work changes that target, load [maintain-spec](../skills/maintain-spec/SKILL.md). The Skill owns the main writing and maintenance method. This page supplies repository locations, language conventions, and navigation.
+
+## Project supplements
+
+- Keep long-lived specs under `.agents/spec/`. Each component under `projects/` has a spec named after its directory. Adding or removing a component or a repository area that needs its own spec updates the inventory below in the same change.
+- Each spec is a same-directory `name.md` and `name.zh.md` pair with reciprocal language links immediately below the title. Both describe the same target and change together.
+- Use the Skill's section order. The Chinese headings are `目标`, `非目标`, `公共面`, `不变量`, `宿主下限`, `验收标准`, and `相关 ADR`, corresponding to `Goals`, `Out of scope`, `Public surface`, `Invariants`, `Host lower bound`, `Acceptance criteria`, and `Related ADRs`.
+- Follow the [documentation rules](../rule/documentation.md), [Git rules](../rule/git.md), and [development checks](../rule/development.md#checks). These are project policies, not requirements for other users of the maintenance method.
+- For a durable decision change, use [maintain-adr](../skills/maintain-adr/SKILL.md) with the [ADR project supplements](../adr/README.md).
 
 ## Spec files
 
-- [.agents/spec/repository.md](./repository.md) covers repository conventions: boundary, layout, documentation, Git workflow, and checks.
+- [.agents/spec/repository.md](./repository.md) covers repository conventions and internal project maintenance Skills.
 - [.agents/spec/host-compatibility.md](./host-compatibility.md) covers maintenance lower bounds for components that load code into a host process.
-- [.agents/spec/skills.md](./skills.md) covers the Skill system: `skills/` and the Chinese variants under `variants/zh/skills/`.
+- [.agents/spec/skills.md](./skills.md) covers distributed Skills in `skills/` and `variants/zh/skills/`.
 - [.agents/spec/tk.md](./tk.md) covers `projects/tk` as a whole.
 - [.agents/spec/omp-context-pin.md](./omp-context-pin.md) covers `projects/omp-context-pin`.
 - [.agents/spec/omp-qol.md](./omp-qol.md) covers `projects/omp-qol`.
 - [.agents/spec/omp-smart-cache.md](./omp-smart-cache.md) covers `projects/omp-smart-cache`.
 - [.agents/spec/omp-status-bar.md](./omp-status-bar.md) covers `projects/omp-status-bar`.
 - [.agents/spec/workloop.md](./workloop.md) covers the instruction workflow in `projects/workloop`.
-
-Each component under `projects/` has a spec named after its directory. A change that adds or removes a component, or a repository area that needs its own spec, updates this list in the same change.
-
-## Writing a spec
-
-Each spec is a same-directory pair, `name.md` and `name.zh.md`, with reciprocal language links directly below the title. Both languages describe the same target and change together.
-
-A spec uses these sections, in this order, where they apply to its subject:
-
-- Goals
-- Out of scope
-- Public surface
-- Invariants
-- Host lower bound
-- Acceptance criteria
-- Related ADRs
-
-A section that does not apply is omitted. Repository conventions, for example, have no host lower bound.
-
-A spec states the current target and is edited in place. It keeps no revision history, review notes, task records, or session information. Its content comes from current decisions, including their `Changes` entries, and from component documentation. Archived decisions are not current authority, and a spec neither cites nor copies them.
-
-A spec links to the page that owns a detail instead of restating it. Command and parameter references, settings tables, file formats, and a component's maintenance declaration stay on their owning pages, and the spec adds only the context its readers need. Related ADRs are listed as links. Links follow the repository's document-relative link rules.
-
-## Division of work
-
-- A spec states what its subject should be.
-- An ADR records a durable choice, its reasons, its alternatives, and its consequences.
-- A [rule](../rule/README.md) states the constraint that binds an action.
-- Component documentation tells users how to install and use the component.
-- The repository documentation and the README tell contributors how to work in the repository.
-- `AGENTS.md` provides navigation and non-trivial rules.
-
-A spec must not conflict with a current decision. A target change that conflicts with a current decision goes through the [ADR process](../adr/README.md) before the spec changes. A spec change that alters no durable choice needs no ADR, and the ADR rules decide when one is required. A decision may link to a spec, but the link does not replace the contract the decision records.
-
-A change that alters a component's target updates the spec, the component, and the component documentation in the same change.
-
-## Reference direction
-
-References run one way. A spec may link to component files, component documentation, ADRs, and rules. No file inside a distributable component links to, names a path in, or depends on `.agents/spec/`, so an installed component stays usable without the repository.
-
-Specs are explanatory documentation. No component depends on them to run, build, or be distributed, and repository checks treat them like other Markdown documentation, with no check or other consumer added for the layer.
 
 ## Related ADRs
 

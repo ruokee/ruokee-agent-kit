@@ -35,7 +35,7 @@ English | [中文](./development.zh.md)
 
 The [selector](../../scripts/check-changed.mjs) maintains an explicit mapping from a changed scope to the checks it selects:
 
-- Known explanatory Markdown, including ADRs, specifications, rule pages, root READMEs, Skills, and component documentation
+- Known explanatory Markdown, including ADRs, specifications, rule pages, root READMEs, public Skills, internal `.agents/skills/` material, and component documentation
     - Prettier for changed files that still exist, using the repository configuration and ignore rules
 - Registered OMP component non-Markdown files, or Markdown under its `src/` or `test/`
     - That component's `typecheck` and `test`, plus changed Markdown formatting

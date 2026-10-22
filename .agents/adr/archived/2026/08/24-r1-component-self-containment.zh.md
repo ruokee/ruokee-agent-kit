@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-10-21
-Reversed by: [组件自包含](../../../decision/2026/08/24-component-self-containment.zh.md)
+Reversed by: [组件自包含](./24-r2-component-self-containment.zh.md)
 
 [English](./24-r1-component-self-containment.md) | 中文
 

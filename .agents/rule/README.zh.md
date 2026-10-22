@@ -6,6 +6,8 @@
 
 读者需要规则背后的理由时，规则链接拥有该理由的决定，或拥有它所执行性质的规格。
 
+[规格维护 Skill](../skills/maintain-spec/SKILL.md) 和 [ADR 维护 Skill](../skills/maintain-adr/SKILL.md) 持有对应文档的主要方法。本层提供跨活动规则和导航，Spec、ADR README 提供项目专用补充。
+
 ## 按活动的规则
 
 - [boundary.zh.md](./boundary.zh.md) 覆盖第一方范围、内容布局、公开内容和组件版本。

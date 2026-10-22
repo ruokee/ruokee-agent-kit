@@ -20,7 +20,7 @@ A unit of Agent functionality that the repository distributes as a component, su
 
 **[Skill](./skill.md)**（技能）
 
-A self-contained instruction component that a host discovers and loads, with a `SKILL.md` and supporting files.
+A set of host-discoverable instructions with a `SKILL.md` and supporting files. Public Skills are self-contained components; internal project Skills are repository maintenance material.
 
 **[language variant](./component.md#language-variant)**（语言变体）
 

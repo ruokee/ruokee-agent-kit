@@ -6,6 +6,8 @@ Rules state how work is done in this repository: what a contributor or an Agent 
 
 When a reader needs the reason behind a rule, the rule links the decision that owns it or the spec that owns the property it enforces.
 
+The [spec maintenance Skill](../skills/maintain-spec/SKILL.md) and [ADR maintenance Skill](../skills/maintain-adr/SKILL.md) own their main document methods. This layer supplies cross-cutting rules and navigation; the spec and ADR READMEs supply project-specific supplements.
+
 ## Rules by activity
 
 - [boundary.md](./boundary.md) covers first-party scope, content layout, public content, and component versions.

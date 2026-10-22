@@ -2,7 +2,7 @@
 
 [English](./skills.md) | 中文
 
-`skills/` 下的普通 Skill 及其位于 `variants/zh/skills/` 的中文变体的规格。tk 的 Skill 随 tk 分发，由 [.agents/spec/tk.zh.md](./tk.zh.md) 覆盖。
+公开分发的 `skills/` 下普通 Skill 及其位于 `variants/zh/skills/` 的中文变体的规格。tk 的 Skill 随 tk 分发，由 [.agents/spec/tk.zh.md](./tk.zh.md) 覆盖。`.agents/skills/` 下的内部维护 Skill 由 [.agents/spec/repository.zh.md](./repository.zh.md) 覆盖，不适用本页的分发和安装契约。
 
 ## 目标
 

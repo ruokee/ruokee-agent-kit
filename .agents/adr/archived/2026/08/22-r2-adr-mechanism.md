@@ -70,7 +70,7 @@ Keep current decisions accurate when factual paths, names, or verification entry
 
 Use review, repository search, and Git history rather than a dedicated ADR Skill, classification system, translation sidecar, archive manifest, or custom checker. Add a mechanical check only after repeated maintenance or an observed failure identifies a concrete invariant.
 
-The full authoring policy lives in [the ADR guide](../../../README.md), with its [Chinese counterpart](../../../README.zh.md) and paired glossary.
+The ADR guide, its Chinese counterpart, and paired glossary owned the full authoring policy. This record retains its [format](#record-format), [maintenance rules](#maintenance-rules), and [dated refinement](#2026-09-03-refine-the-entry-authoring-rules).
 
 ## Alternatives considered
 

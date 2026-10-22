@@ -8,7 +8,7 @@ An **ADR** (Architecture Decision Record) is a bilingual record under `.agents/a
 
 ## Mechanism
 
-A proposal is reviewed and merged before implementation. After implementation, the decision records the agreed contract. Later changes either add non-conflicting content under `Changes` or create a successor decision and archive the old version.
+A proposal is reviewed separately from implementation and integrated first. Authorized dependent development may begin from a verified unmerged proposal under the [project integration policy](../../.agents/adr/README.md#integration). After implementation, the decision records the agreed contract. Later changes either add non-conflicting content under `Changes` or create a successor decision and archive the old version. [maintain-adr](../../.agents/skills/maintain-adr/SKILL.md) owns the maintenance method.
 
 ## Example
 
@@ -20,7 +20,7 @@ Avoid "ADR" for a progress log, release note, temporary plan, or routine change 
 
 ## Proposal
 
-An ADR that describes a change for review before implementation and before any resulting decision is created or reversed. A proposal uses its own first proposal date and short canonical topic name. After approval, it merges to `main` as a dedicated change before implementation begins.
+An ADR that describes a change for review before implementation and before any resulting decision is created or reversed. A proposal uses its own first proposal date and short canonical topic name. After approval, it merges to `main` as a dedicated change before implementation is integrated; project policy determines when dependent development may start.
 
 ## Decision
 
