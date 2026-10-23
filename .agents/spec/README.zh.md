@@ -20,7 +20,7 @@
 - [.agents/spec/tk.zh.md](./tk.zh.md) 覆盖 `projects/tk` 整体。
 - [.agents/spec/omp-context-pin.zh.md](./omp-context-pin.zh.md) 覆盖 `projects/omp-context-pin`。
 - [.agents/spec/omp-qol.zh.md](./omp-qol.zh.md) 覆盖 `projects/omp-qol`。
-- [.agents/spec/omp-smart-cache.zh.md](./omp-smart-cache.zh.md) 覆盖 `projects/omp-smart-cache`。
+- [.agents/spec/omp-smart-context.zh.md](./omp-smart-context.zh.md) 覆盖 `projects/omp-smart-context`。
 - [.agents/spec/omp-status-bar.zh.md](./omp-status-bar.zh.md) 覆盖 `projects/omp-status-bar`。
 - [.agents/spec/workloop.zh.md](./workloop.zh.md) 覆盖 `projects/workloop` 中的纯指令工作流。
 

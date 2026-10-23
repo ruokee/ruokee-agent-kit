@@ -24,7 +24,7 @@ The host maintenance rules keep one shared lower bound for the remaining OMP-fac
 
 ### Rules that do not survive
 
-The reversed decision had one subject, the component: its package, its two tools, its settings keys, its activation, its migration rule, and its model execution. None of those clauses keeps an object once the component is gone, so the removal keeps none of them. The plugin settings contract that [Maintain the extension that improves the OMP experience](./20-omp-qol.md) and [Provide remote alignment through smart-cache](../10/10-remote-alignment.md) rely on is stated by those decisions themselves: OMP owns the settings file, the user and project scope merge, and the parsing.
+The reversed decision had one subject, the component: its package, its two tools, its settings keys, its activation, its migration rule, and its model execution. None of those clauses keeps an object once the component is gone, so the removal keeps none of them. The plugin settings contract that [Maintain the extension that improves the OMP experience](./20-omp-qol.md) and [Remote alignment](../10/10-remote-alignment.md) rely on is stated by those decisions themselves: OMP owns the settings file, the user and project scope merge, and the parsing.
 
 Archived decisions and Git history keep their mentions of the component.
 

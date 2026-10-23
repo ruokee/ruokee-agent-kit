@@ -6,7 +6,7 @@
 
 ## 目标
 
-- 所有面向 OMP 的组件按一个共同的维护下限 OMP `18.5.0` 维护。面向 OMP 的组件是 `omp-context-pin`、`omp-qol`、`omp-smart-cache`、`omp-status-bar` 以及 `tk` 的 OMP 适配器。
+- 所有面向 OMP 的组件按一个共同的维护下限 OMP `18.5.0` 维护。面向 OMP 的组件是 `omp-context-pin`、`omp-qol`、`omp-smart-context`、`omp-status-bar` 以及 `tk` 的 OMP 适配器。
 - 每个组件在用户会阅读的位置声明自己的下限。
 - 宿主升级后，组件在受维护的宿主上继续工作，不保留只服务维护范围以外宿主的代码。
 
@@ -23,7 +23,7 @@
 
 - [projects/omp-context-pin/README.zh.md](../../projects/omp-context-pin/README.zh.md#兼容性)
 - [projects/omp-qol/README.zh.md](../../projects/omp-qol/README.zh.md#兼容性)
-- [projects/omp-smart-cache/README.zh.md](../../projects/omp-smart-cache/README.zh.md#兼容性)
+- [projects/omp-smart-context/README.zh.md](../../projects/omp-smart-context/README.zh.md#兼容性)
 - [projects/omp-status-bar/README.zh.md](../../projects/omp-status-bar/README.zh.md#兼容性)
 - [projects/tk/omp/README.zh.md](../../projects/tk/omp/README.zh.md#兼容性)：tk OMP 适配器的 `tools` 模式
 - [projects/tk/pi/README.zh.md](../../projects/tk/pi/README.zh.md#兼容性)：tk Pi 适配器的 `tools` 模式
@@ -53,6 +53,6 @@
 - [组件自包含](../adr/decision/2026/08/24-component-self-containment.zh.md)
 - [OMP 状态栏](../adr/decision/2026/09/04-omp-status-bar.zh.md)
 - [OMP QoL](../adr/decision/2026/09/20-omp-qol.zh.md)
-- [smart-cache](../adr/decision/2026/10/12-smart-cache.zh.md)
+- [Smart context](../adr/decision/2026/10/12-smart-cache.zh.md)
 - [Remote 对齐](../adr/decision/2026/10/10-remote-alignment.zh.md)
 - [Handoff 对齐](../adr/decision/2026/10/12-handoff-alignment.zh.md)

@@ -2,13 +2,15 @@
 
 Decision owner: Ruokee
 Decision writer: OMP
-Reverses: [OMP QoL](../../../archived/2026/09/20-r8-omp-qol.md)
+Reverses: [OMP QoL](../../../archived/2026/09/20-r9-omp-qol.md)
 
 English | [中文](./20-omp-qol.zh.md)
 
 ## Motivation
 
-Maintain `@ruokee/omp-qol` with its independently switchable adjustments. Remote cache alignment belongs to the independent smart-cache component; wait continues to serve the standalone `wait` entry only.
+Maintain `@ruokee/omp-qol` with its independently switchable behavior adjustments.
+
+Request alignment, compaction usage, and model prompt rules belong to smart-context. QoL retains standalone waits, bounded error recovery, the compaction deadline experiment, native history replay, task-parameter cleanup, and copying the last reply.
 
 The original four adjustments are: a `wait` that keeps waiting to a total deadline, a bounded continuation after an eligible model error, an opt-in extension of the remote compaction deadline, and a process-wide wrapper that keeps a resumed process's first request in the provider's native history form. A native `wait` returns when its window ends while the background work it watches is still running, so the model must ask again and each such return costs a turn. A turn that ends with an upstream error stays settled even when the error is transient, because the native retry budget was exhausted or the error fell outside it. A remote compaction request is cut off at a fixed request deadline, and the compaction falls back instead of finishing. A resumed process otherwise re-encodes the history it replays, and the wrapper keeps that first request in the native replay form. Each adjustment selects the implementation a given host needs.
 
@@ -28,13 +30,21 @@ This decision defines the first-party `omp-qol` component, the responsibility sp
 
 One package, `@ruokee/omp-qol`, carries independently switchable modules under the [first-party capability boundary](../08/20-first-party-capabilities.md) and the [self-contained component contract](../08/24-component-self-containment.md): one installation, one configuration entry, and one set of checks, while each module keeps its own switch, availability status, and failure reporting. Configuration stays in OMP plugin settings, with OMP owning values, project overrides, and parsing.
 
-Continuing waits, conservative error recovery, and native history replay are on by default; the compaction deadline and model prompt adjustments are opt-in, and a fault in one module does not disable the others. The component stays limited to these behavior adjustments, and installation and migration remain with the user.
+Continuing waits, conservative error recovery, and native history replay are on by default; the compaction deadline experiment is opt-in. Task-parameter cleanup and copying the last reply retain their own contracts. A fault in one module does not disable the others. Installation and migration remain with the user.
 
-The compaction deadline is a default-off experiment with a bounded, process-wide timeout adjustment. Enabling it accepts its boundary: a matching timeout call from unrelated work in the same process is lengthened as well, so it provides neither request isolation nor strict project isolation. The component README compatibility section declares the maintenance lower bound as that bound's authoritative statement, with no maintenance upper bound, and [smart-cache owns remote alignment](../10/10-remote-alignment.md).
+The compaction deadline is a default-off experiment with a bounded, process-wide timeout adjustment. Enabling it accepts its boundary: matching timeout calls from unrelated work in the same process are lengthened as well, so it provides neither request isolation nor strict project isolation. The component README compatibility section owns the maintenance-floor declaration, with no upper bound, under the [shared OMP floor](./28-host-maintenance.md). [Smart-context](../10/12-smart-cache.md) owns the migrated context capabilities.
 
 The module mechanics, setting keys, defaults, ranges, status reporting, eligibility rules, ownership and release rules, and per-adjustment evidence live in the [component README](../../../../../projects/omp-qol/README.md), the [component specification](../../../../spec/omp-qol.md), and the component's own `docs/`.
 
 Each adjustment needs its own real-session evidence. Validation of the compaction experiment requires a remote compaction longer than the native deadline to complete with usable model requests afterwards. On host upgrades, re-read the cited source and update the affected documentation; changing the declared maintenance bound does not replace those steps.
+
+Preserve wait delegation and total deadlines; recovery exclusions and continuation bounds; the deadline module's process-wide matching, single-owner windows, matching-activation reuse, and terminal `owner-stopped`; and replay's independent ownership and conditional restoration. Alignment's renewable coordinator never applies to the deadline owner. Replay remains in QoL despite its cache-related behavior.
+
+Preserve the master switch and every unrelated setting, default, range, validation rule, status, failure boundary, and privacy obligation. Native settings remain authoritative. Acceptance for unchanged QoL features retains its own evidence requirements; smart-context's controlled integration gate does not weaken them.
+
+The [usage](../10/13-compaction-usage.md) and [model-rule](./14-model-prompt-rules.md) successors own those complete contracts. Remove their QoL implementations, registration and stop paths, settings parsing and declarations, status sections, and exclusive dependencies. QoL neither reads their old keys nor forwards them to another package.
+
+Users clear `compactionUsageEnabled` and `modelPromptsEnabled` from both user and project QoL settings, preserving all other values. Resolve each scope's former effective master and module switches, then carry `enabled && moduleEnabled` into smart-context. Removed keys retain unknown-key rejection and can reject all QoL configuration. Update extension entries and settings before restarting; do not migrate real user configuration automatically. This replaces only the archived ownership and settings-preservation obligations for the migrated capabilities.
 
 ## Alternatives considered
 

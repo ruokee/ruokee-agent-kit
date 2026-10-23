@@ -11,13 +11,11 @@ Jobs, messages, processes, turns, and compaction stay with OMP. Every adjustment
 - [Continuing waits](./docs/adjustments.md#continuing-waits): default on. A `wait` call continues across all-running job snapshots to one total deadline, 20 minutes by default, instead of returning each empty native window.
 - [Continuing after a transient model error](./docs/adjustments.md#continuing-after-a-transient-model-error): default on. A turn that ended with an eligible upstream error continues in the same session after 1 s and again with a doubling delay up to 8 s, at most 8 continuation turns per failure chain. Eligible covers classifier-flagged transient and timeout failures, turns the host marked as interrupted mid-stream, and errors carrying neither a status nor a classification.
 - [Extending one compaction deadline](./docs/adjustments.md#extending-one-compaction-deadline): default **off**. Within one compaction window, a matching `AbortSignal.timeout` call gets a longer deadline, so a remote compaction that needs more than the native 5 minutes is not cut off. Process-wide and experimental.
-- [Recording compaction request usage](./docs/adjustments.md#recording-compaction-request-usage): default on. Each completed `soft` summarization and `handoff` request is written to the session journal as a `model_usage` entry with the provider's tokens and per-component cost, so the session statistics count what those requests cost. Process-wide; a host that records them itself leaves it inactive.
 - [Replaying native history in a resumed session](./docs/adjustments.md#replaying-native-history-in-a-resumed-session): default on. A resumed session's first request replays the native provider items the previous process ended with, instead of rebuilding the conversation from its generic content, so a prompt cache over that form can serve it. Process-wide, one flag, no body rewrite.
-- [Model prompt rules](#model-prompt-rules): default **off**. Append matching user-authored Markdown bodies to each covered turn's system prompt, without requiring a template or another component.
 - [Task argument cleanup](./docs/adjustments.md#task-argument-cleanup): default on when the built-in task schema exposes the seance-only `sourceSession` field. Remove it and `model` from non-seance task items before host validation; a schema with only the ordinary `model` selector stays untouched.
 - [Copy the last reply](./docs/adjustments.md#copy-the-last-reply): default on. Press `alt+shift+a` in an interactive session to copy the text blocks of the last assistant reply. Thinking, tool calls, and tool output stay out of the clipboard; a streaming turn or a reply without text leaves it unchanged.
 
-The wait adjustment adds an optional `timeout`; replay chooses the stored native items. Neither changes the model, cache key, or stored history. The compaction usage adjustment adds session entries and therefore changes the session file; it changes no request. Recovery starts a turn and wait repeats a call the model already made; provider quota is spent when the model runs. The task argument cleanup rewrites the event input and leaves the task schema unchanged; the host persists the revised arguments in the current assistant message. The copy shortcut only reads the active branch and writes the system clipboard; it adds no session entry and sends no request.
+The wait adjustment adds an optional `timeout`; replay chooses the stored native items. Neither changes the model, cache key, or stored history. Recovery starts a turn and wait repeats a call the model already made; provider quota is spent when the model runs. The task argument cleanup rewrites the event input and leaves the task schema unchanged; the host persists the revised arguments in the current assistant message. The copy shortcut only reads the active branch and writes the system clipboard; it adds no session entry and sends no request.
 
 ## Configuration
 
@@ -59,23 +57,9 @@ Settings are read once per activation. Restart OMP after a change. A running pro
 - `compactionWindowGuardMs`: default `3600000`, accepts an integer from `compactionTimeoutMs` up to `14400000`. Longest lifetime of one compaction window, counted from the event that opened it.
 - `compactionTimeoutNotify`: default `true`, accepts a boolean. Show a warning line the first time a window rewrites a deadline.
 
-### Compaction usage
-
-- `compactionUsageEnabled`: default `true`, accepts a boolean. Record the token usage of the compaction and handoff requests the host does not journal itself. A host that records them itself leaves the adjustment inactive.
-
 ### Replay
 
 - `replayEnabled`: default `true`, accepts a boolean. Install the process-wide wrapper that keeps a resumed session's first request on the provider's native history. On by default; the adjustment is inert for a session that carries no stored items.
-
-### Model prompts
-
-- `modelPromptsEnabled`: default `false`, accepts a boolean. Append model-matched rule bodies. The master `enabled` switch must also be on.
-
-```bash
-omp plugin config set @ruokee/omp-qol modelPromptsEnabled true
-```
-
-Restart OMP after changing the switch. Existing rule files need no path or format migration. Both switches must be on for handler registration, rule reads, and unused-file diagnostics.
 
 ### Task arguments
 
@@ -97,73 +81,19 @@ Restart OMP after changing the switch. Existing rule files need no path or forma
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.5.9
+@ruokee/omp-qol 0.5.10
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
 wait: enabled (entry=wait effectiveDefaultSeconds=1200 messageContinuation=not-applicable processWait=not-applicable serviceContinuation=not-applicable) — enabled=true continueEmptyWindows=true
 recovery: enabled — enabled=true mode=knownTransient maxAttempts=8 backoffBaseMs=1000 backoffMaxMs=8000 notify=true
 compaction: disabled (compaction-disabled) — enabled=false timeoutMs=900000 floorMs=300000 windowGuardMs=3600000 notify=true
-compactionUsage: enabled (entries=2) — enabled=true
 replay: enabled (rewrites=0) — enabled=true
-modelPrompts: disabled (model-prompts-disabled) enabled=false
 taskArgs: enabled (rewrites=0) — enabled=true
 copy: enabled — enabled=true shortcut=alt+shift+a
 ```
 
 `pending` means no session has started in this process. `disabled`, `invalid`, `incompatible`, and `unavailable` each carry a reason code, and `problems:` lists the rejected keys when the settings object was accepted only in part. A rejected settings object replaces every module line with the reason and ends the report with the keys that rejected it.
-
-## Model prompt rules
-
-Each covered turn reads `model-prompts` under the active profile's user agent directory, resolved by `getAgentDir()`, and under `getProjectAgentDir(ctx.cwd)`, that is `<cwd>/.omp/model-prompts`. Only direct, non-hidden regular files with a lowercase `.md` suffix participate. File symlinks and subdirectories are ignored; no ancestor directory or resource root is searched. A missing directory is empty.
-
-Names sort in JavaScript string order within each directory. User bodies precede project bodies. Project files do not shadow same-named user files; identical bodies from different files still contribute separate blocks. Read completion order cannot change this order.
-
-### Rule files
-
-```markdown
----
-metadata: optional, ignored
-match:
-  - exact: example-provider/example-model-1.0
-  - model: another-model-1.0
-  - contains: example-model
-  - regex: ^example-provider/example-model-1\.0
----
-
-Text appended to the system prompt.
-```
-
-UTF-8 Markdown may begin with one BOM. Delimiter lines must contain exactly `---`, with LF or CRLF endings. `match` is a required, non-empty array. Each entry has exactly one of these keys and a non-blank string value:
-
-- `exact` compares the complete `${model.provider}/${model.id}`.
-- `model` compares the complete `model.id`, including any `/` in the id.
-- `contains` tests a literal substring of `${model.provider}/${model.id}`.
-- `regex` tests that same string with a JavaScript `RegExp` compiled without flags.
-
-Entries are alternatives; a file matching several entries contributes once. Matching is case-sensitive and textual. It does not resolve aliases, roles, families, display names, wire names, or thinking-level suffixes, and adds no glob or model-list syntax. Extra top-level frontmatter keys are ignored and never injected. An unknown key or multiple keys inside an entry invalidates the whole file.
-
-Each matching file contributes one block at the end of the incoming turn array. The body starts after the closing delimiter's line ending and stays byte-for-byte, including headings, blank lines, LF/CRLF, indentation, HTML comments, template-like text, and trailing newlines. Frontmatter and the opening BOM are excluded. No wrapper, heading, trimming, template render, context rewrite, message, or history entry is added. Existing blocks keep their bytes and order.
-
-### Rule loading
-
-Rules and the effective model are read anew at each covered turn. Additions, edits, deletions, and repairs take effect next turn without restart. Failed files do not reuse an earlier body. With no model, no rules, or no match, the incoming prompt stays unchanged. OMP's turn-scoped override survives a mid-turn rebuild; its next turn starts from the host base prompt, so bodies do not accumulate. Settings still use the activation snapshot and need a restart.
-
-An invalid document is skipped as a whole at its first failure: `frontmatter-missing`, `frontmatter-invalid`, `match-missing`, `match-empty`, `entry-shape`, `entry-key`, `entry-value`, `regex-invalid`, or `body-blank`. `file-unreadable` affects one file and `directory-unreadable` one directory; other valid sources continue. A handler exception reports `unexpected-error` and keeps the incoming prompt, including earlier handlers' results.
-
-Rule diagnostics carry a fixed reason and scope-relative source such as `project/20-rules.md`, deduplicated by session, source, and reason. Each turn uses its current UI notification channel, or the host logger when headless. Bodies, absolute directories, parser errors, regex source, and conversation content are not reported. New or forked sessions have separate histories; returning to a visited session retains that activation's history. Invalid switch types disable only this module; a rejected settings object follows the existing whole-component rejection rule. `/qol` shows state, effective switch, and reason, not model identities or rule bodies.
-
-### Coverage
-
-Ordinary main turns and ordinary child turns that run `before_agent_start` are covered. Each child matches its own effective model and keeps its role, independent blocks, and host protocol. Plan-mode children, Handoff, title generation, and difficulty classification gain no injection route. Side requests keep the host's treatment of the live Agent prompt. This is a turn-level contract, not independent refresh on every provider request, fallback, or temporary model switch. Later handlers can overwrite the result; the module neither reorders extensions nor claims final-provider precedence.
-
-### Trust
-
-When enabled, project rules become system instructions. This adds no project-trust gate or security isolation. JavaScript regular expressions have no sandbox or execution timeout. Matching bodies have no size or quota limit, so large files can consume prompt space and slow directories delay turn assembly. Keep personal rules in the user directory and inspect project rules before enabling them.
-
-### Upstream recheck
-
-When OMP ships model-scoped instructions, through [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) or an equivalent facility, re-check matching dimensions, replacement/append composition and block position, refresh timing, and directory discovery/precedence/order. Decide whether to retain the local capability, keep only the missing parts, or remove it, and record the corresponding version change. Host templates alone do not establish equivalent model-rule behavior.
 
 ## Limits
 
@@ -173,9 +103,9 @@ Each adjustment lists its own limits in [Adjustments](./docs/adjustments.md).
 
 The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound. This section states the maintenance commitment; it is not an installation or runtime requirement. An earlier host may still run the package without gaining a maintenance commitment. The declaration does not promise that later releases keep working, and it does not mean every version at or above the minimum was verified.
 
-The package declares `@oh-my-pi/pi-agent-core`, `@oh-my-pi/pi-ai`, `@oh-my-pi/pi-coding-agent`, and `@oh-my-pi/pi-utils` as unrestricted host peers (`*`). Those declarations name the host packages the component imports; they carry no maintenance range, no runtime check, and no claim about any host version.
+The package declares `@oh-my-pi/pi-agent-core`, `@oh-my-pi/pi-ai`, and `@oh-my-pi/pi-coding-agent` as unrestricted host peers (`*`). Those declarations name the host packages the component imports; they carry no maintenance range, no runtime check, and no claim about any host version.
 
-The automated type check and test suite run against OMP `18.5.0`. Source baselines are path-specific: recovery, the compaction deadline, and replay cite `18.2.8`, where those mechanisms were first read; continuing waits and compaction usage cite `18.5.0`, with compaction usage reading the provider-computed cost on the installed `18.8.3`; task argument cleanup cites `18.11.3`, where the seance task schema was read; copy cites `18.5.0` for the shortcut registry and clipboard export, with the native action table checked on the installed `18.11.3`.
+The automated type check and test suite run against OMP `18.5.0`. Source baselines are path-specific: recovery, the compaction deadline, and replay cite `18.2.8`, where those mechanisms were first read; continuing waits cite `18.5.0`; task argument cleanup cites `18.11.3`, where the seance task schema was read; copy cites `18.5.0` for the shortcut registry and clipboard export, with the native action table checked on the installed `18.11.3`.
 
 The checks cover what the modules inspect, and not the entry's own imports or a difference no module looks at, so an unrecognized host change can also alter behavior without disabling the adjustment.
 
@@ -219,7 +149,11 @@ bun test
 
 The test suite replaces the host with a small recording host and keeps the package boundaries real: the settings getter from the installed `@oh-my-pi/pi-coding-agent`, the error classifier from the installed `@oh-my-pi/pi-ai`, and `AbortSignal.timeout` and `Map.prototype.set` in both their native and patched form. Each adjustment records the checks its tests cover in [Adjustments](./docs/adjustments.md).
 
-Real CLI and TUI observations, with their limits, are recorded in [Model prompt rules](./docs/adjustments.md#model-prompt-rules).
+## Changes
+
+### 0.5.10
+
+Compaction usage and model prompt rules belong to `@ruokee/omp-smart-context`. Remove `compactionUsageEnabled` and `modelPromptsEnabled` from both user and project QoL settings; either leftover key rejects the whole QoL configuration. Before removal, preserve each capability's effective `enabled && moduleEnabled` result in the new package's independent setting, including project overrides. Keep every other QoL setting and the existing rule files unchanged. Restart OMP after replacing the old registrations and configuration. QoL neither installs nor stops the migrated modules.
 
 ## License
 

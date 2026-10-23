@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [OMP QoL](../09/20-r8-omp-qol.md)
 Archived: 2026-10-12
-Reversed by: [Remote alignment](../../../decision/2026/10/10-remote-alignment.md) and [smart-cache](../../../decision/2026/10/12-smart-cache.md)
+Reversed by: [Remote alignment](./10-r2-remote-alignment.md) and [smart-cache](./12-r1-smart-cache.md)
 
 English | [中文](./10-r1-remote-alignment.zh.md)
 
@@ -97,7 +97,7 @@ This decision retains online confirmation, immutable root snapshots, native life
 
 Deliver remote directly in smart-cache, without a QoL multi-session interim release. Remove QoL's remote implementation, settings consumption, types, tests for obsolete behavior, aliases, re-exports, and public status entry. Keep no shim or runtime cross-component dependency. Preserve valid consumer-visible assertions and every unrelated QoL behavior.
 
-The component [Spec](../../../../spec/omp-smart-cache.md) states this contract's acceptance criteria.
+The component [Spec](../../../../spec/omp-smart-context.md) states this contract's acceptance criteria.
 
 Public migration guidance belongs in the repository README pair. It must cover user and project layers, not just the merged effective object: preserve the old effective Provider and mode, and enable the new repair only when the old effective QoL master `enabled` and `compactionCacheEnabled` were both valid and enabled. Defaults or invalid settings must not turn a previously inactive repair on. Users explicitly set the new package's values and remove all three old remote keys from every applicable QoL layer while retaining other settings. Old keys become unknown QoL keys and can reject the whole component, so deletion, new installation, and restart must be coordinated before the changed source is loaded. Runtime code neither reads QoL settings as a fallback nor edits user configuration or installation.
 

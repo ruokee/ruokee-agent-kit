@@ -15,16 +15,7 @@
  */
 
 /** The modules this package can switch on and off. */
-export const MODULE_IDS = [
-  "wait",
-  "recovery",
-  "compaction",
-  "compactionUsage",
-  "replay",
-  "modelPrompts",
-  "taskArgs",
-  "copy",
-] as const;
+export const MODULE_IDS = ["wait", "recovery", "compaction", "replay", "taskArgs", "copy"] as const;
 export type ModuleId = (typeof MODULE_IDS)[number];
 
 /** Recovery eligibility modes. */
@@ -60,8 +51,6 @@ export const SETTINGS_DEFAULTS = {
   compactionWindowGuardMs: 3_600_000,
   compactionTimeoutNotify: true,
   replayEnabled: true,
-  modelPromptsEnabled: false,
-  compactionUsageEnabled: true,
   taskArgsEnabled: true,
   copyEnabled: true,
 } as const;
@@ -108,8 +97,6 @@ export interface QolSettings {
   recovery: RecoverySettings;
   compaction: CompactionSettings;
   replay: ReplaySettings;
-  modelPrompts: { enabled: boolean };
-  compactionUsage: { enabled: boolean };
   taskArgs: { enabled: boolean };
   copy: { enabled: boolean };
 }
@@ -296,18 +283,6 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     SETTINGS_DEFAULTS.compactionTimeoutNotify,
   );
   const replayEnabled = readBoolean(raw, "replayEnabled", "replay", SETTINGS_DEFAULTS.replayEnabled);
-  const modelPromptsEnabled = readBoolean(
-    raw,
-    "modelPromptsEnabled",
-    "modelPrompts",
-    SETTINGS_DEFAULTS.modelPromptsEnabled,
-  );
-  const compactionUsageEnabled = readBoolean(
-    raw,
-    "compactionUsageEnabled",
-    "compactionUsage",
-    SETTINGS_DEFAULTS.compactionUsageEnabled,
-  );
   const taskArgsEnabled = readBoolean(raw, "taskArgsEnabled", "taskArgs", SETTINGS_DEFAULTS.taskArgsEnabled);
   const copyEnabled = readBoolean(raw, "copyEnabled", "copy", SETTINGS_DEFAULTS.copyEnabled);
 
@@ -329,8 +304,6 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     guardMs,
     compactionNotify,
     replayEnabled,
-    modelPromptsEnabled,
-    compactionUsageEnabled,
     taskArgsEnabled,
     copyEnabled,
   ];
@@ -369,12 +342,6 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
       },
       replay: {
         enabled: replayEnabled.ok ? replayEnabled.value : SETTINGS_DEFAULTS.replayEnabled,
-      },
-      modelPrompts: {
-        enabled: modelPromptsEnabled.ok ? modelPromptsEnabled.value : SETTINGS_DEFAULTS.modelPromptsEnabled,
-      },
-      compactionUsage: {
-        enabled: compactionUsageEnabled.ok ? compactionUsageEnabled.value : SETTINGS_DEFAULTS.compactionUsageEnabled,
       },
       taskArgs: {
         enabled: taskArgsEnabled.ok ? taskArgsEnabled.value : SETTINGS_DEFAULTS.taskArgsEnabled,

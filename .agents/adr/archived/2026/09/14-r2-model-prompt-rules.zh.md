@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [模型提示词规则](./14-r1-model-prompt-rules.zh.md)
 Archived: 2026-10-15
-Reversed by: [模型提示词规则](../../../decision/2026/09/14-model-prompt-rules.zh.md)
+Reversed by: [模型提示词规则](./14-r3-model-prompt-rules.zh.md)
 
 [English](./14-r2-model-prompt-rules.md) | 中文
 

@@ -4,7 +4,7 @@ import { delimiter, dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-export const OMP_COMPONENTS = ["omp-status-bar", "omp-context-pin", "omp-qol", "omp-smart-cache"];
+export const OMP_COMPONENTS = ["omp-status-bar", "omp-context-pin", "omp-qol", "omp-smart-context"];
 const PRETTIER = "node_modules/.bin/prettier";
 const SKILL_TOOLS = [
   "sh",

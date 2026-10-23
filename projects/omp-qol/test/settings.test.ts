@@ -37,7 +37,6 @@ describe("settings ranges", () => {
       compactionWindowGuardMs: COMPACTION_GUARD_MAX_MS,
       compactionTimeoutNotify: false,
       replayEnabled: false,
-      compactionUsageEnabled: false,
       taskArgsEnabled: false,
       copyEnabled: false,
     });
@@ -47,7 +46,6 @@ describe("settings ranges", () => {
     expect(settings.recovery.mode).toBe("unclassified");
     expect(settings.compaction.timeoutMs).toBe(COMPACTION_TIMEOUT_MAX_MS);
     expect(settings.compaction.guardMs).toBe(COMPACTION_GUARD_MAX_MS);
-    expect(settings.compactionUsage.enabled).toBe(false);
     expect(settings.taskArgs.enabled).toBe(false);
     expect(settings.copy.enabled).toBe(false);
   });
@@ -83,7 +81,6 @@ describe("rejected values", () => {
     ["guard above the maintenance bound", { compactionWindowGuardMs: 14_400_001 }, "compactionWindowGuardMs=range"],
     ["fractional timeout", { compactionTimeoutMs: 900_000.5 }, "compactionTimeoutMs=integer"],
     ["a non-boolean replay switch", { replayEnabled: "on" }, "replayEnabled=type"],
-    ["a non-boolean compaction usage switch", { compactionUsageEnabled: "on" }, "compactionUsageEnabled=type"],
     ["a non-boolean task arguments switch", { taskArgsEnabled: "on" }, "taskArgsEnabled=type"],
     ["a non-boolean copy switch", { copyEnabled: "on" }, "copyEnabled=type"],
   ];
@@ -137,6 +134,8 @@ describe("global faults", () => {
     ["retired remote enabled key", { compactionCacheEnabled: true }, "compactionCacheEnabled=unknown-key"],
     ["retired remote provider key", { compactionCacheProvider: "synthetic" }, "compactionCacheProvider=unknown-key"],
     ["retired remote mode key", { compactionCacheMode: "hooks" }, "compactionCacheMode=unknown-key"],
+    ["migrated usage key", { compactionUsageEnabled: true }, "compactionUsageEnabled=unknown-key"],
+    ["migrated model rules key", { modelPromptsEnabled: false }, "modelPromptsEnabled=unknown-key"],
     ["a wrong master switch", { enabled: "true" }, "enabled=type"],
     ["an explicit null master switch", { enabled: null }, "enabled=null"],
   ];

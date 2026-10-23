@@ -271,20 +271,24 @@ test("every OMP component selects its own two checks; Markdown consumers take pr
   }
 });
 
-test("remote cutover selects both component checks and deduplicates shared paths", () => {
+test("context cutover selects both component checks and deduplicates shared paths", () => {
   const plan = selectChecks([
-    "projects/omp-smart-cache/src/runtime.ts",
-    "projects/omp-smart-cache/package.json",
-    "projects/omp-qol/src/compaction-cache.ts",
+    "projects/omp-smart-context/src/runtime.ts",
+    "projects/omp-smart-context/package.json",
+    "projects/omp-qol/src/settings.ts",
     "projects/omp-qol/src/extension.ts",
   ]);
   assert.equal(plan.full, false);
   assert.deepEqual(plan.ids, [
     "omp-qol:typecheck",
     "omp-qol:test",
-    "omp-smart-cache:typecheck",
-    "omp-smart-cache:test",
+    "omp-smart-context:typecheck",
+    "omp-smart-context:test",
   ]);
+});
+
+test("deleted smart-cache paths require complete fallback", () => {
+  assert.equal(selectChecks(["projects/omp-smart-cache/src/runtime.ts"]).full, true);
 });
 
 test("tk packaging trees select Rust and adapters, installation docs select Skill checks", () => {

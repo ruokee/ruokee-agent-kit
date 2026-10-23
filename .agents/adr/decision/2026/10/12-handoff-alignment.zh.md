@@ -2,13 +2,13 @@
 
 Decision owner: Ruokee
 Decision writer: OMP
-Reverses: [前一决定](../../../archived/2026/10/12-r1-handoff-alignment.zh.md)
+Reverses: [Handoff 对齐](../../../archived/2026/10/12-r2-handoff-alignment.zh.md)
 
 [English](./12-handoff-alignment.md) | 中文
 
 ## 动机
 
-把 Handoff 缓存对齐作为 `@ruokee/omp-smart-cache` 的独立能力维护。
+把 Handoff 缓存对齐作为 `@ruokee/omp-smart-context` 的独立能力维护。
 
 Handoff 根据实际对话生成交接文档或压缩摘要，其侧请求会重复普通主循环已经发送的系统提示词、工具及历史。重建后的共同前缀不同，会使本可复用的输入失去缓存资格。Responses Handoff 不携带 V2 压缩 trigger，因此需要自己的协议投影，不能由 [remote 对齐](./10-remote-alignment.zh.md)代为处理。[扩展决定](./12-smart-cache.zh.md)记录本包、能力模型和共同维护下限。
 
@@ -24,7 +24,7 @@ Responses 与 Chat Completions 的系统提示词和 reasoning 表达不同。Re
 
 ### 公共配置
 
-Handoff 对齐是 [smart-cache](./12-smart-cache.zh.md) 的一项能力，拥有自己的开关、状态、计数和验收，不新增安装、包、设置读取器或扩展入口。
+Handoff 对齐是 [smart-context](./12-smart-cache.zh.md) 的一项能力，拥有自己的开关、状态、计数和验收，不新增安装、包、设置读取器或扩展入口。
 
 唯一 Handoff 设置为原生 boolean `handoffCacheEnabled`，默认 `false`。它只启用本能力，与 remote 设置一起读取为同一激活快照，变更后重启 OMP。关闭时所有请求保持原生。不新增 Provider 清单、模式或第二配置源。remote 的 `compactionCacheEnabled`、`compactionCacheProvider` 与 `compactionCacheMode` 不变。Handoff 依靠同会话、模型、API、提示词和工具归属保护参照，组件文档声明验证范围和缺口。
 
@@ -72,9 +72,11 @@ Handoff 指令、新增历史、原生工具 schema 与调用配对、图片、r
 
 ### 独立性
 
+遵循[共享对齐合同](./22-request-alignment.zh.md)，其他上下文模块不加入该协调器。
+
 两项能力共享本包、协调器、逐会话登记、每个原生方法的一层包装，以及同次普通 dispatch 的不可变观察事实。每项能力独立解释事实并证明资格，不共享协议规则、载荷形状规则、原因码或收益证据。Handoff 不复用 remote V2 算法，一项拒绝或接口缺失不影响另一项。
 
-`/smart-cache` 不启动模型 turn，分别显示两项能力的状态、在线确认、绑定、候选与发送原因，以及有界操作、物理发送、重试、对齐和拒绝计数。状态包含 disabled、unavailable、awaiting-reference、already-aligned、rewritten 和 rejected。诊断不输出正文、opaque、凭据、端点、私密路径或动态私密键。
+`/smart-context` 不启动模型 turn，分别显示两项能力的状态、在线确认、绑定、候选与发送原因，以及有界操作、物理发送、重试、对齐和拒绝计数。状态包含 disabled、unavailable、awaiting-reference、already-aligned、rewritten 和 rejected。诊断不输出正文、opaque、凭据、端点、私密路径或动态私密键。
 
 ### 原生职责
 
@@ -87,6 +89,12 @@ Chat Completions 还原工具选择可能使模型返回工具调用而不是文
 ### 试验扩展切换
 
 本机试验扩展在本能力通过自身验收、随后获得安装授权后由本包替换并停用。本决定不执行安装切换。
+
+把用户级和项目级的既有开关迁入 smart-context，移除旧包入口并重启，不叠加包装或转移活跃参照。运行时不回退读取旧命名空间，不自动迁移用户设置。
+
+[组件 Spec](../../../../spec/omp-smart-context.zh.md) 使用仓库检查，以及实际宿主库的本地受控请求验收集成。覆盖两种 API 的正例与拒绝、独立 remote 设置、一条请求最多一次改写、handler 不重复执行和只读状态。真实模型调用和完整 CLI/TUI 矩阵不是集成门槛。历史试验与安装证据保留原归属及条件，Provider 收益声明需要可比真实测量。
+
+本后继替代归档中的包归属、状态入口和集成门槛。全部协议、生命周期、原生策略、失败及替换规则继续有效。
 
 ## 考虑过的替代方案
 

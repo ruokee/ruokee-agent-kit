@@ -46,8 +46,8 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 
 - **[omp-status-bar](./projects/omp-status-bar/README.md)** adds an OMP status bar with extra context information, including current session context usage as a number rather than the native percentage, total tokens, input tokens, cached tokens, output tokens, cache-hit rate, and the number of model requests the session has answered.
 - **[omp-context-pin](./projects/omp-context-pin/README.md)** keeps a small set of pinned text entries present word for word in every ordinary model request on the current session branch, and restores them after each committed compaction.
-- **[omp-qol](./projects/omp-qol/README.md)** provides independently switchable wait deadlines, bounded model-error recovery, experimental compaction deadlines, compaction request usage, native history replay, task argument cleanup, copying the last reply, and opt-in model prompt rules.
-- **[omp-smart-cache](./projects/omp-smart-cache/README.md)** aligns proved shared content in native remote compaction with the same session's already-sent ordinary request. It is opt-in, supports main and native child sessions, and does not claim Provider cache benefit from client alignment.
+- **[omp-qol](./projects/omp-qol/README.md)** provides independently switchable wait deadlines, bounded model-error recovery, experimental compaction deadlines, native history replay, task argument cleanup, and copying the last reply.
+- **[omp-smart-context](./projects/omp-smart-context/README.md)** provides remote and Handoff request alignment, compaction usage accounting, and opt-in model prompt rules, with independent switches and state.
 
 ## Install
 
@@ -106,7 +106,7 @@ For complete validation, install each OMP component's locked dependencies:
 (cd projects/omp-status-bar && bun install --frozen-lockfile)
 (cd projects/omp-context-pin && bun install --frozen-lockfile)
 (cd projects/omp-qol && bun install --frozen-lockfile)
-(cd projects/omp-smart-cache && bun install --frozen-lockfile)
+(cd projects/omp-smart-context && bun install --frozen-lockfile)
 ```
 
 ### Complete merge validation
@@ -119,7 +119,7 @@ The complete command runs the selector's complete check list, `node scripts/chec
 2. TypeScript checks and tests for [omp-status-bar](./projects/omp-status-bar/package.json).
 3. TypeScript checks and tests for [omp-context-pin](./projects/omp-context-pin/package.json).
 4. TypeScript checks and tests for [omp-qol](./projects/omp-qol/package.json).
-5. TypeScript checks and tests for [omp-smart-cache](./projects/omp-smart-cache/package.json).
+5. TypeScript checks and tests for [omp-smart-context](./projects/omp-smart-context/package.json).
 6. tk native adapter tests with `bun test projects/tk/adapter-tests`.
 7. Skill lifecycle tests with `sh scripts/tests/skills.sh` through `pnpm check:skills`.
 8. Affected-selector regression tests through `pnpm check:selector`.

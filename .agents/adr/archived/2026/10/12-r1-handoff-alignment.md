@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP
 Archived: 2026-10-16
-Reversed by: [Handoff alignment](../../../decision/2026/10/12-handoff-alignment.md)
+Reversed by: [Handoff alignment](./12-r2-handoff-alignment.md)
 
 English | [中文](./12-r1-handoff-alignment.zh.md)
 

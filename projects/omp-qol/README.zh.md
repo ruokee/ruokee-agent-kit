@@ -11,13 +11,11 @@
 - [持续等待](./docs/adjustments.zh.md#持续等待)：默认开启。`wait` 调用在全部任务仍运行的快照之间持续到同一个总期限，默认 20 分钟，而不是每个空的原生窗口都返回。
 - [上游错误后续跑](./docs/adjustments.zh.md#上游错误后续跑)：默认开启。以可续跑的上游错误结束的轮次在同一会话内继续，首次等待 1 秒并按倍增延长至上限 8 秒，每条失败链最多 8 次续跑。可续跑的判据包括：分类器判定为瞬时或超时、宿主标记为流中途中断，以及既无状态也无分类结论的错误。
 - [延长单个压缩期限](./docs/adjustments.zh.md#延长单个压缩期限)：默认**关闭**。在一个压缩窗口内，命中的 `AbortSignal.timeout` 调用获得更长期限，使超过原生 5 分钟的远端压缩不被中断。进程级生效，实验性质。
-- [补记压缩请求用量](./docs/adjustments.zh.md#补记压缩请求用量)：默认开启。每个完成的 `soft` 摘要请求与 `handoff` 请求都会作为 `model_usage` 条目写入会话文件，带提供方的 token 数与分项成本，会话统计因此计入这些请求的开销。进程级生效；宿主自己记录这些请求时该项保持不生效。
 - [恢复会话时沿用原生历史](./docs/adjustments.zh.md#恢复会话时沿用原生历史)：默认开启。恢复会话的首次请求沿用上一个进程结束时的原生提供方条目，而不是按通用内容重建对话，使基于该形式的提示缓存可以服务这次请求。进程级生效，只设置一个标志，不改写请求体。
-- [模型提示词规则](#模型提示词规则)：默认**关闭**。向每个受覆盖 turn 的系统提示词追加命中的用户 Markdown 正文，无需模板或其他组件。
 - [任务参数清理](./docs/adjustments.zh.md#任务参数清理)：默认开启，仅在内建 task schema 暴露 seance 专用字段 `sourceSession` 时生效。在宿主校验前从非 seance 任务项删除该字段与 `model`；只有普通 `model` 选择器的 schema 保持不变。
 - [复制最后回复](./docs/adjustments.zh.md#复制最后回复)：默认开启。在交互式会话按 `alt+shift+a`，把最后一条 assistant 回复的文本块写入系统剪贴板。思考、工具调用与工具输出不会进入剪贴板；回复仍在流式输出或没有文本时，剪贴板保持不变。
 
-等待调整新增可选 `timeout`，重放选择已存的原生条目。两者均不改模型、缓存键或已存历史。压缩请求用量调整会新增会话条目，因此会改动会话文件；它不改动任何请求。恢复启动模型轮次，等待重复模型已经发出的调用，模型运行时会消耗服务额度。任务参数清理改写事件输入，不改变 task schema；宿主会把改写后的参数持久化到当前 assistant 消息。复制快捷键只读取活动分支并写入系统剪贴板，不新增会话条目，也不发送请求。
+等待调整新增可选 `timeout`，重放选择已存的原生条目。两者均不改模型、缓存键或已存历史。恢复启动模型轮次，等待重复模型已经发出的调用，模型运行时会消耗服务额度。任务参数清理改写事件输入，不改变 task schema；宿主会把改写后的参数持久化到当前 assistant 消息。复制快捷键只读取活动分支并写入系统剪贴板，不新增会话条目，也不发送请求。
 
 ## 配置
 
@@ -59,23 +57,9 @@ omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 - `compactionWindowGuardMs`：默认 `3600000`，取值不小于 `compactionTimeoutMs`、上限 `14400000` 的整数。一个压缩窗口的最长存活时间，从打开窗口的事件开始计算。
 - `compactionTimeoutNotify`：默认 `true`，取值 boolean。窗口内首次改写期限时显示一行提示。
 
-### 压缩请求用量
-
-- `compactionUsageEnabled`：默认 `true`，取值 boolean。记录宿主自己不入账的压缩与 handoff 请求的 token 用量。宿主自己记录这些请求时，该项保持不生效。
-
 ### 重放
 
 - `replayEnabled`：默认 `true`，取值 boolean。安装进程级包装，使恢复会话的首次请求沿用提供方的原生历史。默认开启；未携带已存条目的会话不受影响。
-
-### 模型提示词
-
-- `modelPromptsEnabled`：默认 `false`，取值 boolean。追加按模型匹配的规则正文，总开关 `enabled` 也须开启。
-
-```bash
-omp plugin config set @ruokee/omp-qol modelPromptsEnabled true
-```
-
-修改开关后重启 OMP。既有规则文件无需迁移路径或格式。两个开关都开启时才注册 handler、读取规则并诊断未使用文件。
 
 ### 任务参数
 
@@ -97,73 +81,19 @@ omp plugin config set @ruokee/omp-qol modelPromptsEnabled true
 `/qol` 打印当前状态，不做任何修改。它不启动模型轮次，也不读取设置 schema 之外的值。
 
 ```
-@ruokee/omp-qol 0.5.9
+@ruokee/omp-qol 0.5.10
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
 wait: enabled (entry=wait effectiveDefaultSeconds=1200 messageContinuation=not-applicable processWait=not-applicable serviceContinuation=not-applicable) — enabled=true continueEmptyWindows=true
 recovery: enabled — enabled=true mode=knownTransient maxAttempts=8 backoffBaseMs=1000 backoffMaxMs=8000 notify=true
 compaction: disabled (compaction-disabled) — enabled=false timeoutMs=900000 floorMs=300000 windowGuardMs=3600000 notify=true
-compactionUsage: enabled (entries=2) — enabled=true
 replay: enabled (rewrites=0) — enabled=true
-modelPrompts: disabled (model-prompts-disabled) enabled=false
 taskArgs: enabled (rewrites=0) — enabled=true
 copy: enabled — enabled=true shortcut=alt+shift+a
 ```
 
 `pending` 表示该进程尚未执行过会话启动。`disabled`、`invalid`、`incompatible` 和 `unavailable` 各自带原因码；设置对象只被部分接受时，`problems:` 列出被拒绝的键。设置对象整体被拒绝时，每个模块行替换为拒绝原因，报告末尾列出导致拒绝的键。
-
-## 模型提示词规则
-
-每个受覆盖 turn 读取当前 profile 用户 agent 目录下的 `model-prompts`，由 `getAgentDir()` 解析，以及 `getProjectAgentDir(ctx.cwd)` 下的同名目录，即 `<cwd>/.omp/model-prompts`。只处理直接子项中以小写 `.md` 结尾的非隐藏普通文件。忽略文件符号链接和子目录，不向祖先目录或资源根目录搜索。目录缺失视为空集。
-
-每个目录内按文件名的 JavaScript 字符串顺序排序，用户正文先于项目正文。项目文件不遮蔽同名用户文件，不同文件的相同正文仍分别贡献块。读取完成顺序不能改变该顺序。
-
-### 规则文件
-
-```markdown
----
-metadata: optional, ignored
-match:
-  - exact: example-provider/example-model-1.0
-  - model: another-model-1.0
-  - contains: example-model
-  - regex: ^example-provider/example-model-1\.0
----
-
-Text appended to the system prompt.
-```
-
-UTF-8 Markdown 开头可有一个 BOM。分隔行须恰好为 `---`，支持 LF 和 CRLF。`match` 是必需的非空数组，每个条目恰好有下列一个键，值为非空白字符串：
-
-- `exact` 比较完整的 `${model.provider}/${model.id}`。
-- `model` 比较完整的 `model.id`，包括 id 自身包含的 `/`。
-- `contains` 测试 `${model.provider}/${model.id}` 的字面子串。
-- `regex` 以不带 flags 的 JavaScript `RegExp` 测试同一字符串。
-
-条目之间是“或”的关系，一个文件命中多个条目仍只贡献一次。匹配区分大小写，按文本比较，不解析别名、角色、家族、显示名、传输名或思考等级后缀，不增加 glob 或模型列表语法。frontmatter 顶层额外键被忽略且永不注入；条目内未知键或多个键使整个文件无效。
-
-每个匹配文件向传入的 turn 数组末尾贡献一个块。正文从闭合分隔行的行尾之后开始，逐字节保留标题、空行、LF/CRLF、缩进、HTML 注释、模板形似文本和末尾换行。frontmatter 和开头 BOM 不注入。不添加包装、标题、裁剪、模板渲染、上下文改写、消息或历史条目，既有块保持字节与顺序。
-
-### 规则加载
-
-每个受覆盖 turn 重新读取规则与有效模型。新增、编辑、删除和修复在下一 turn 生效，无需重启；失败文件不沿用旧正文。没有模型、没有规则或没有命中时，传入提示词不变。OMP 的 turn 级 override 在轮内重建时保留，下一 turn 从宿主基础提示词开始，因此正文不累积。设置仍采用激活快照，修改需重启。
-
-无效文档在第一个失败点整文件跳过，原因包括 `frontmatter-missing`、`frontmatter-invalid`、`match-missing`、`match-empty`、`entry-shape`、`entry-key`、`entry-value`、`regex-invalid` 和 `body-blank`。`file-unreadable` 只影响一个文件，`directory-unreadable` 只影响一个目录，其他有效来源继续处理。handler 异常报告 `unexpected-error`，保留传入提示词，包括更早 handler 的结果。
-
-规则诊断包含固定原因与作用域相对来源，例如 `project/20-rules.md`，按会话、来源和原因去重。每个 turn 使用自己的当前 UI 通知通道，无 UI 时使用宿主 logger。不报告正文、绝对目录、解析错误、正则源码或对话内容。新建或分叉会话有独立历史，返回已访问会话时保留本次激活的记录。开关类型错误只停用本模块，设置对象整体被拒绝时沿用既有整组件拒绝规则。`/qol` 显示状态、有效开关及原因，不显示模型身份或规则正文。
-
-### 覆盖
-
-覆盖运行 `before_agent_start` 的普通主 turn 和普通子 turn。子 Agent 按自身有效模型匹配，保留角色、独立块及宿主协议。plan-mode 子 Agent、Handoff、标题生成与难度分类不新增注入入口，旁路请求沿用宿主对当前 Agent 提示词的处理。这是 turn 级合同，不在每次 Provider 请求、回退或临时模型切换时独立刷新。后续 handler 可以覆盖结果，模块不重排扩展，也不声称最终 Provider 优先权。
-
-### 信任
-
-启用后，项目规则会成为系统指令，不增加项目信任门槛或安全隔离。JavaScript 正则没有沙箱或执行超时，匹配正文没有大小或额度限制，因此大文件会占用提示词空间，缓慢目录会拖慢 turn 装配。个人规则放用户目录，启用前检查项目规则。
-
-### 上游复核
-
-OMP 通过 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) 或等价机制提供模型级指令后，重新核对匹配维度、替换或追加的组合及块位置、刷新时机、目录发现及优先级和顺序。判断保留本能力、只补宿主缺失部分或移除，并记录对应版本变化。宿主模板本身不能证明模型规则行为等价。
 
 ## 限制
 
@@ -173,9 +103,9 @@ OMP 通过 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) 或等
 
 最低维护 OMP 版本为 `18.5.0`，不设置维护版本上限。本小节声明维护责任，不作为安装或运行条件。更早的宿主仍可能运行本包，但不因此获得维护承诺。这一声明不保证后续版本继续可用，也不表示下限及以上的每个版本都已验证。
 
-包的 peer 以无限制的范围 `*` 声明 `@oh-my-pi/pi-agent-core`、`@oh-my-pi/pi-ai`、`@oh-my-pi/pi-coding-agent` 与 `@oh-my-pi/pi-utils`。该声明只列出组件导入的宿主包，不构成维护范围，不带运行时检查，也不表示任何宿主版本可用。
+包的 peer 以无限制的范围 `*` 声明 `@oh-my-pi/pi-agent-core`、`@oh-my-pi/pi-ai` 与 `@oh-my-pi/pi-coding-agent`。该声明只列出组件导入的宿主包，不构成维护范围，不带运行时检查，也不表示任何宿主版本可用。
 
-自动化类型检查与测试套件针对 OMP `18.5.0` 运行。源码基线按路径区分：上游错误后续跑、压缩期限与原生历史重放引用最初阅读这些机制时的 `18.2.8`，持续等待与压缩请求用量引用 `18.5.0`，其中压缩请求用量的提供方计算成本依据已安装的 `18.8.3` 阅读；任务参数清理引用 `18.11.3`，即读取 seance task schema 的版本；复制引用 `18.5.0` 的快捷键注册表与剪贴板导出，原生动作表则在已安装的 `18.11.3` 上检查。
+自动化类型检查与测试套件针对 OMP `18.5.0` 运行。源码基线按路径区分：上游错误后续跑、压缩期限与原生历史重放引用最初阅读这些机制时的 `18.2.8`，持续等待引用 `18.5.0`；任务参数清理引用 `18.11.3`，即读取 seance task schema 的版本；复制引用 `18.5.0` 的快捷键注册表与剪贴板导出，原生动作表则在已安装的 `18.11.3` 上检查。
 
 这些检查只覆盖各模块实际查看的内容，不覆盖入口自身的导入，也不覆盖没有任何模块检查的差异，因此无法识别的宿主变化也可能在不被停用的情况下改变行为。
 
@@ -219,7 +149,11 @@ bun test
 
 测试套件用一个小型记录宿主替代宿主，同时保留真实的包边界：来自已安装 `@oh-my-pi/pi-coding-agent` 的设置 getter、来自已安装 `@oh-my-pi/pi-ai` 的错误分类器，以及原生与已替换两种状态的 `AbortSignal.timeout` 与 `Map.prototype.set`。各调整项的检查覆盖记录在[调整项](./docs/adjustments.zh.md)。
 
-真实 CLI/TUI 观察及其边界见[模型提示词规则](./docs/adjustments.zh.md#模型提示词规则)。
+## 更新
+
+### 0.5.10
+
+压缩请求用量和模型提示词规则归属 `@ruokee/omp-smart-context`。从用户级和项目级 QoL 设置中删除 `compactionUsageEnabled`、`modelPromptsEnabled`，任一遗留键都会导致 QoL 整体拒绝配置。删除前，把每项能力原 `enabled && 模块开关` 的有效结果保存为新包的独立设置，包括项目覆盖。保留其余所有 QoL 设置及既有规则文件。替换旧注册和配置后重启 OMP。QoL 不安装或停止迁出的模块。
 
 ## 许可证
 

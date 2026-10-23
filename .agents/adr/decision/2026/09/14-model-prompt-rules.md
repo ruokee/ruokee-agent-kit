@@ -2,33 +2,35 @@
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
-Reverses: [Model prompt rules](../../../archived/2026/09/14-r2-model-prompt-rules.md)
+Reverses: [Model prompt rules](../../../archived/2026/09/14-r3-model-prompt-rules.md)
 
 English | [中文](./14-model-prompt-rules.zh.md)
 
 ## Motivation
 
-Keep the model prompt rules in QoL after the system prompt extension they were compared against leaves the repository.
+Maintain model prompt rules in smart-context without changing rule files or turn-level behavior.
 
-The archived decision moved the rules out of `@ruokee/omp-system-prompt` into QoL and, in the same act, kept the template, the Delivery chapter, and the footer with that component and required it to run before QoL in actual load order. [Remove the omp-system-prompt extension](./07-omp-system-prompt.md) deletes that component, so a boundary that assigns these behaviors to it and a load-order requirement between two components have no subject. The rules, their matching, their diagnostic channel, and their coverage are unaffected.
+The capability needs its own switch in the context extension, independent of QoL's master switch. Moving ownership must preserve matching, diagnostics, prompt fidelity, and existing coverage without adding injection paths.
 
 ## Analysis
 
-A maintainer needs user-authored Markdown rules that give different models different system instructions without editing extension source, host files, or a distribution, and QoL provides that capability independently of any component template or strategy replacement. The public `before_agent_start` event exposes the current turn's system-prompt blocks and effective model and accepts an extended array. Native handlers chain in actual extension load order without a priority setting, and installation-command order does not establish execution order.
+A maintainer needs user-authored Markdown rules that give different models different system instructions without editing extension source, host files, or a distribution. Smart-context provides that capability independently of any component template or strategy replacement. The public `before_agent_start` event exposes the current turn's system-prompt blocks and effective model and accepts an extended array. Native handlers chain in actual extension load order without a priority setting, and installation-command order does not establish execution order.
 
 ## Decision
 
 ### Component switches
 
-The self-contained `@ruokee/omp-qol` owns the rules under [Keep components self-contained](../08/24-component-self-containment.md) and [Maintain the extension that improves the OMP experience](./20-omp-qol.md). `modelPromptsEnabled` is a native boolean setting, defaults to `false`, and is subordinate to `enabled`. Both switches must be on for the rule handler, rule directory access, and unused-file diagnostics. Settings are read once at activation; changes require restarting OMP, and navigation or a new session does not refresh the snapshot.
+The self-contained `@ruokee/omp-smart-context` owns the rules under the [component boundary](../08/24-component-self-containment.md) and [package contract](../10/12-smart-cache.md). `modelPromptsEnabled` is an independent native boolean setting, defaulting to `false`, with no master switch. When disabled, register no injection handler, read no rule directory, and diagnose no unused rule files. Read settings once at activation; changes require restarting OMP, and navigation or a new session does not refresh the snapshot.
 
-An invalid boolean disables this module only. Unknown settings, a non-object settings root, or a settings read failure reject all modules under the existing QoL contract. `/qol` shows the module's effective state, boolean, and inactive reason without running a model or exposing rule bodies or model identifiers.
+An invalid boolean disables this module only. Unknown settings, a non-object settings root, or a settings-reader failure reject the package configuration. `/smart-context` shows the module's effective state and inactive reason without running a model or exposing rule bodies or model identifiers.
 
 The component declares a direct pi-utils peer; host peers stay unrestricted, and its maintenance lower bound is declared in the compatibility section of the component README, which is the authority for that bound. The component is maintained against OMP 18.5.0 under [Maintain host components against a shared OMP floor](./28-host-maintenance.md), which owns the bound for every OMP-facing component.
 
 ### Rule application
 
-The append step reads a user rule directory and a project rule directory on every turn the hook runs, matches each rule document's frontmatter against that turn's effective model, and returns a new array containing every incoming block in its original order followed by one block per matching file. A matching rule contributes its body byte-for-byte, and the step neither modifies an incoming block nor wraps, trims, re-renders, or rewrites host content. User-directory bodies precede project-directory bodies, filename order applies inside one directory, and asynchronous reads cannot change the result. The component README's [model prompt rules section](../../../../../projects/omp-qol/README.md#model-prompt-rules) is the current public contract for the matching keys, the document format, the validation reasons, and the ordering rules.
+The append step reads the current profile's user agent `model-prompts` directory and the project's `.omp/model-prompts` on every covered turn. Read only direct, non-hidden, lowercase `.md` regular files. Preserve case-sensitive `exact`, `model`, `contains`, and `regex` matching, OR semantics within a file, and one append per matching file. Validate and remove frontmatter and remove a leading BOM; preserve the body byte-for-byte, including line endings.
+
+Return a new array containing every incoming block in its original order followed by one block per matching file. Do not modify incoming blocks or wrap, trim, re-render, or rewrite host content. User-directory bodies precede project-directory bodies, filename order applies within a directory, and asynchronous reads cannot change the result. The README's [model prompt rules](../../../../../projects/omp-smart-context/README.md#model-prompt-rules) section owns the detailed file and matching contract.
 
 When nothing matches, the step returns nothing and leaves the turn input untouched. The system-prompt channel is the only channel.
 
@@ -57,14 +59,13 @@ The outcome decides whether the local capability stays, covers only what the hos
 
 Component checks cover the matching keys with positive and negative cases, alternative semantics within one file, rule validation and BOM handling, body fidelity for LF and CRLF, ordering across both directories regardless of read completion order, missing directories, and the non-accumulation of appended blocks across turns.
 
-Real-host checks record the exercised OMP release, the models, and the observed provider-facing request, and a handler return value is not provider evidence. They confirm that appended text reaches the request, that frontmatter never does, that a model switch re-matches against the new model, that host blocks and dynamic content survive, and that no appended text is duplicated across consecutive turns or after a mid-turn prompt rebuild.
+Controlled runs through actual prompt assembly and serialization record the candidate, locked host library, effective fixture models, and final requests. A handler return value alone is not Provider-facing evidence. Verify that appended bodies reach the request once without frontmatter, model changes re-match, host blocks and dynamic content survive, and consecutive turns or prompt rebuilds do not accumulate text. Real-model calls and a full CLI/TUI matrix are not integration gates. Preserve historical runs with their actual owner and conditions.
 
-### Decision reversal
+### Migration
 
-- Effective clause: the template, the Delivery chapter, and the footer stay with the system prompt component, which continues to maintain them. Conflict: that component and its repository content are deleted by [Remove the omp-system-prompt extension](./07-omp-system-prompt.md). A boundary that assigns these behaviors to a component the repository no longer contains cannot stay in force.
-- Effective clause: the two components coexist with the system prompt component before QoL in actual load order, with neither depending on the other's files. Conflict: one of the two components no longer exists, so the requirement has no subject. Nothing in the prompt pipeline now depends on another extension being installed or ordered first.
+Remove QoL's implementation, registration, setting, and status. Clear `modelPromptsEnabled` from both user and project QoL settings. Preserve the former effective `enabled && modelPromptsEnabled` result at each scope, resolving project overrides first. Keep unrelated settings and rule files unchanged. Restart after updating extension entries and settings; add no runtime fallback or automatic configuration migration.
 
-The reversal changes the two clauses above and nothing else in the choice. This decision records the complete rules that stay in QoL: component switches, rule matching and injection, diagnostics and failure isolation, coverage, the upstream re-check, and verification. The archived decision explains why the rules moved into QoL and which alternatives were considered at that time, and it carries no current constraint. The reversal of [Add model scoped prompt rules to the system prompt extension](../../../archived/2026/09/14-r1-model-prompt-rules.md) moves with those rules and is carried here, because the component it moved the rules into is the component this decision records.
+The successor replaces QoL ownership, master-switch dependence, and mandatory real-host coverage with the controlled integration gate above. Matching, injection, diagnostics, failure isolation, coverage, trust boundaries, and native replacement rechecks remain binding. No other extension must be installed or ordered first.
 
 ## Alternatives considered
 
@@ -72,9 +73,10 @@ None
 
 ## Consequences
 
-- The rules no longer depend on another extension being installed, ordered before QoL, or updated in step. The two-component update procedure that produced the module disappears with it.
+- The rules do not depend on another extension being installed, ordered first, or updated in step. Their settings and runtime dependencies remain within smart-context.
 - Rule files in the project directory turn repository content into system-prompt text. OMP performs no project-trust gating, and project settings and extensions load unconditionally for the current directory, so a cloned repository that ships `.omp/model-prompts/*.md` can add instructions to any session opened inside it. A maintainer keeps their own rules in the user directory.
 - Appended text could compound if a host change starts feeding a previous turn's override back as input. The append step relies on the host building each turn's prompt from its base prompt, and a change there would add another copy of every matching body on each turn.
 - Rule bodies grow the system prompt of every matching turn. No size limit or budget check exists, so one large rule file adds its full text to all subsequent turns of a session and can crowd out other prompt content.
 - Text matching cannot distinguish an intended match from a coincidental one. A `contains` or `regex` rule can apply to more models than its author expected, and an uncompilable regular expression drops that rule with a diagnostic that does not say which models the author meant to cover.
 - The append step reads both rule directories on every turn the hook runs, so a slow or remote directory delays prompt assembly for each turn with no cache to amortize it.
+- Copying the module switch without QoL's former effective master state can activate rules the user disabled. Migration therefore calculates both scopes before removing the old keys.

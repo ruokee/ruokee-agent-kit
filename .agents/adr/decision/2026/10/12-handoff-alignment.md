@@ -2,13 +2,13 @@
 
 Decision owner: Ruokee
 Decision writer: OMP
-Reverses: [Previous decision](../../../archived/2026/10/12-r1-handoff-alignment.md)
+Reverses: [Handoff alignment](../../../archived/2026/10/12-r2-handoff-alignment.md)
 
 English | [中文](./12-handoff-alignment.zh.md)
 
 ## Motivation
 
-Maintain Handoff cache alignment as an independent capability of `@ruokee/omp-smart-cache`.
+Maintain Handoff cache alignment as an independent capability of `@ruokee/omp-smart-context`.
 
 Handoff generates a handoff document or compaction summary from the live conversation. Its side request repeats system prompts, tools, and history already sent by the ordinary main loop. Rebuilding a different common prefix loses eligibility to reuse that input. Responses Handoff carries no V2 compaction trigger and therefore needs its own protocol projection rather than [remote alignment](./10-remote-alignment.md). The [extension decision](./12-smart-cache.md) records the package, capability model, and shared maintenance floor.
 
@@ -24,7 +24,7 @@ Responses and Chat Completions express system prompts and reasoning differently.
 
 ### Public configuration
 
-Handoff alignment is one [smart-cache](./12-smart-cache.md) capability, with its own switch, state, counters, and acceptance. It adds no installation, package, settings reader, or extension entry.
+Handoff alignment is one [smart-context](./12-smart-cache.md) capability, with its own switch, state, counters, and acceptance. It adds no installation, package, settings reader, or extension entry.
 
 The only Handoff setting is the native boolean `handoffCacheEnabled`, defaulting to `false`. It enables this capability alone and is read with remote settings in one activation snapshot. Changes require restarting OMP. With the switch off, all requests remain native. No Provider inventory, mode, or second configuration source is added. Remote retains `compactionCacheEnabled`, `compactionCacheProvider`, and `compactionCacheMode`. Handoff protects references through same-session, model, API, prompt, and tool ownership; component documentation declares verified coverage and gaps.
 
@@ -72,9 +72,11 @@ Install one owned wrapper per method and preserve native arguments, receivers, p
 
 ### Independence
 
+Apply the [shared alignment contract](./22-request-alignment.md). Other context modules do not join its coordinator.
+
 The capabilities share the package, coordinator, per-session registration, one wrapper per native method, and immutable observations of the same ordinary dispatch. Each interprets those facts and proves eligibility independently. They share no protocol rules, payload-shape rules, reason codes, or benefit evidence. Handoff does not reuse the remote V2 algorithm; refusal or a missing interface in one leaves the other working.
 
-`/smart-cache` starts no model turn. Separate sections report each capability's state, online confirmation, binding, candidate and sending reasons, and bounded operation, physical-send, retry, alignment, and refusal counters. States include disabled, unavailable, awaiting-reference, already-aligned, rewritten, and rejected. Diagnostics contain no bodies, opaque bytes, credentials, endpoints, private paths, or private dynamic keys.
+`/smart-context` starts no model turn. Separate sections report each capability's state, online confirmation, binding, candidate and sending reasons, and bounded operation, physical-send, retry, alignment, and refusal counters. States include disabled, unavailable, awaiting-reference, already-aligned, rewritten, and rejected. Diagnostics contain no bodies, opaque bytes, credentials, endpoints, private paths, or private dynamic keys.
 
 ### Native responsibility
 
@@ -87,6 +89,12 @@ Replace the adaptation after behavioral verification that a maintained native in
 ### Trial extension cutover
 
 The package replaces and disables the local trial extension after this capability passes its own acceptance and installation authorization follows. This decision does not perform installation cutover.
+
+Move the existing switch at both user and project scope to smart-context, remove the old package entry, and restart rather than stack wrappers or transfer live references. No runtime fallback reads the old namespace and no automatic migration changes user settings.
+
+The [component Spec](../../../../spec/omp-smart-context.md) uses repository checks and local controlled requests through the actual host library for integration acceptance. Cover both APIs' positive projections and refusals, independent remote settings, one rewrite per request, no repeated handler, and read-only status. Real-model calls and a full CLI/TUI matrix are not integration gates. Preserve historical trial and installation evidence with its original owner and conditions; Provider benefit claims require comparable actual measurements.
+
+This successor replaces the archived package ownership, status entry, and integration gate. All protocol, lifecycle, native-policy, failure, and replacement rules remain in force.
 
 ## Alternatives considered
 

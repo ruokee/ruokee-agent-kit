@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [OMP QoL](../09/20-r8-omp-qol.zh.md)
 Archived: 2026-10-12
-Reversed by: [Remote 对齐](../../../decision/2026/10/10-remote-alignment.zh.md)、[smart-cache](../../../decision/2026/10/12-smart-cache.zh.md)
+Reversed by: [Remote 对齐](./10-r2-remote-alignment.zh.md)、[smart-cache](./12-r1-smart-cache.zh.md)
 
 [English](./10-r1-remote-alignment.md) | 中文
 
@@ -97,7 +97,7 @@ OMP 保留准备、触发、投机启动与等待、取消、认证及传输重�
 
 正式 remote 直接交付到 smart-cache，不发布 QoL 多会话过渡版。移除 QoL 的 remote 实现、设置消费、类型、旧行为测试、别名、再导出及公共状态入口，不保留 shim 或跨组件运行时依赖。保留有效消费者行为断言与全部无关 QoL 行为。
 
-本合同的验收标准由组件 [Spec](../../../../spec/omp-smart-cache.zh.md) 表达。
+本合同的验收标准由组件 [Spec](../../../../spec/omp-smart-context.zh.md) 表达。
 
 公共迁移说明放在仓库 README 双语页，须覆盖用户与项目层，不能只处理合并后的有效对象：保留旧有效 Provider 与模式，且只有旧有效 QoL 总开关 `enabled` 和 `compactionCacheEnabled` 均合法且启用时，才启用新修复。默认值或非法设置不能开启此前未生效的修复。用户显式设置新包值，从每个适用 QoL 层移除全部三个旧 remote 键并保留其他设置。旧键会成为 QoL 未知键，可能使整个组件拒绝配置，因此必须在变更源码加载前协调删除、新安装及重启。运行时代码不回退读取 QoL 设置，也不编辑用户配置或安装。
 

@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [Model prompt rules](./14-r1-model-prompt-rules.md)
 Archived: 2026-10-15
-Reversed by: [Model prompt rules](../../../decision/2026/09/14-model-prompt-rules.md)
+Reversed by: [Model prompt rules](./14-r3-model-prompt-rules.md)
 
 English | [中文](./14-r2-model-prompt-rules.zh.md)
 

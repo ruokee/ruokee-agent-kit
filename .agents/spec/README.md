@@ -20,7 +20,7 @@ Specifications state the current target of a component or repository area. Befor
 - [.agents/spec/tk.md](./tk.md) covers `projects/tk` as a whole.
 - [.agents/spec/omp-context-pin.md](./omp-context-pin.md) covers `projects/omp-context-pin`.
 - [.agents/spec/omp-qol.md](./omp-qol.md) covers `projects/omp-qol`.
-- [.agents/spec/omp-smart-cache.md](./omp-smart-cache.md) covers `projects/omp-smart-cache`.
+- [.agents/spec/omp-smart-context.md](./omp-smart-context.md) covers `projects/omp-smart-context`.
 - [.agents/spec/omp-status-bar.md](./omp-status-bar.md) covers `projects/omp-status-bar`.
 - [.agents/spec/workloop.md](./workloop.md) covers the instruction workflow in `projects/workloop`.
 

@@ -9,9 +9,8 @@
 
 import { afterEach, describe, expect, test } from "bun:test";
 import type { ExtensionContext, ToolInfo } from "@oh-my-pi/pi-coding-agent";
-import { activate, COMMAND_NAME, describeState, PACKAGE_NAME, PACKAGE_VERSION } from "../src/extension.ts";
-import type { QolSettings } from "../src/settings.ts";
-import { MODULE_IDS, parseQolSettings } from "../src/settings.ts";
+import { activate, COMMAND_NAME, PACKAGE_NAME, PACKAGE_VERSION } from "../src/extension.ts";
+import { MODULE_IDS } from "../src/settings.ts";
 import { createHarness, resetNativeReplay, type Harness } from "./host.ts";
 
 type SessionHandler = (event: unknown, ctx: ExtensionContext) => Promise<void>;
@@ -35,13 +34,6 @@ function gatedReader(settings: Record<string, unknown> | Error, gate?: Promise<u
     return settings;
   };
   return { read, calls };
-}
-
-/** The one activation snapshot an empty settings object produces. */
-function defaultSettings(): QolSettings {
-  const parsed = parseQolSettings({});
-  if (parsed.kind !== "loaded") throw new Error("an empty settings object must load");
-  return parsed.settings;
 }
 
 describe("activation", () => {
@@ -218,7 +210,6 @@ describe("the /qol command", () => {
     expect(text).toContain("recovery: ");
     expect(text).toContain("compaction: ");
     expect(text).toContain("replay: ");
-    expect(text).toContain("compactionUsage: incompatible");
     expect(text).toContain("taskArgs: ");
     expect(text).toContain("copy: ");
     expect(text).toContain("shortcut=alt+shift+a");
@@ -261,65 +252,5 @@ describe("the /qol command", () => {
     expect(off).not.toStartWith("wait: enabled");
     expect(off).toContain("enabled=false");
     expect(off).toContain("jobsSeconds=42");
-  });
-
-  test("states that a floor above the native request deadline stops the compaction request from matching", async () => {
-    const harness = createHarness();
-    const { read } = gatedReader({ compactionTimeoutMs: 900_000, compactionTimeoutFloorMs: 400_000 });
-    const runtime = activate(harness.pi, read);
-    await sessionStartOf(harness)({}, harness.context());
-
-    const line = runtime
-      .describe()
-      .split("\n")
-      .find((entry) => entry.startsWith("compaction: "));
-    expect(line).toContain("floorMs=400000");
-    expect(line).toContain("no longer matches");
-
-    const defaults = describeState({
-      cwd: "/x",
-      settings: defaultSettings(),
-      problems: [],
-      global: { status: "ok" },
-      modules: {
-        wait: { status: "enabled" },
-        recovery: { status: "enabled" },
-        compaction: { status: "enabled" },
-        replay: { status: "enabled" },
-        modelPrompts: { status: "disabled" },
-        compactionUsage: { status: "disabled", reason: "compactionUsage-disabled" },
-        taskArgs: { status: "enabled" },
-        copy: { status: "enabled" },
-      },
-    });
-    expect(defaults).not.toContain("no longer matches");
-  });
-
-  test("reports the compaction usage line from its own branch, not from the compaction values", () => {
-    const text = describeState(
-      {
-        cwd: "/x",
-        settings: defaultSettings(),
-        problems: [],
-        global: { status: "ok" },
-        modules: {
-          wait: { status: "enabled" },
-          recovery: { status: "enabled" },
-          compaction: { status: "enabled" },
-          replay: { status: "enabled" },
-          modelPrompts: { status: "disabled" },
-          compactionUsage: { status: "enabled" },
-          taskArgs: { status: "enabled" },
-          copy: { status: "enabled" },
-        },
-      },
-      undefined,
-      (id, recorded) =>
-        id === "compactionUsage" ? { status: "enabled", detail: "entries=2 costMissing=1" } : recorded,
-    );
-
-    const line = text.split("\n").find((entry) => entry.startsWith("compactionUsage: "));
-    expect(line).toBe("compactionUsage: enabled (entries=2 costMissing=1) — enabled=true");
-    expect(line).not.toContain("timeoutMs");
   });
 });
