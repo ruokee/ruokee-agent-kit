@@ -39,7 +39,7 @@ All actions declare approval level `read`. With no explicit per-tool policy, `al
 
 ### Agent guidance
 
-The tool description directs the Agent to pin information proactively when its loss would change later action, while honoring explicit pinning requirements. Judge content by its current use rather than its format. Keep recovery pointers and completion facts that prevent repeated work. Skip easily recovered or short-lived facts unless explicitly required.
+The tool description directs the Agent to pin information proactively when its loss would change later action, while honoring explicit pinning requirements. Judge content by its current use rather than its format. Keep recovery pointers and completion facts that prevent repeated work. Skip easily recovered facts unless explicitly required.
 
 Relevant information includes decisions, permissions, restrictions, roles, destinations, recovery pointers, conclusions, and blockers. Separate independently changing topics; update an existing topic instead of duplicating it, including user-confirmed pins.
 

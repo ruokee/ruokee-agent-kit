@@ -2,6 +2,10 @@
 
 [中文](./CHANGELOG.zh.md)
 
+## 0.1.2
+
+- Clarify Pin retention guidance so short-lived information is not excluded solely because of its lifetime.
+
 ## 0.1.1
 
 - Clarify when the Agent should proactively pin, update, delete, or leave information unchanged, according to its use for later action.

@@ -45,7 +45,7 @@ Every action uses approval level `read`. Without an explicit per-tool policy, `a
 
 ### Agent practice
 
-Proactively pin information whose loss would change later action, without waiting for a reminder. Follow explicit pinning requirements; otherwise skip easily recovered or short-lived facts. Judge information by its use, not its format. Current facts, recovery pointers, and completion reminders belong in Pin while they guide later action or prevent repeated work.
+Proactively pin information whose loss would change later action, without waiting for a reminder. Follow explicit pinning requirements; otherwise skip easily recovered facts. Judge information by its use, not its format. Current facts, recovery pointers, and completion reminders belong in Pin while they guide later action or prevent repeated work.
 
 Separate topics that change independently. Update an existing topic rather than create a duplicate. Send the complete replacement body, preserving every still-valid condition, negation, exception, uncertainty, obligation, and protected quotation. A new candidate does not expand permissions or settle an unresolved condition.
 
