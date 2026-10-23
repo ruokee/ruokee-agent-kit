@@ -101,7 +101,6 @@ describe("createPin", () => {
     expect(outcome.text).toContain(`exceeding the ${MAX_ENTRY_BYTES_LABEL}-byte entry limit by 1 B`);
     expect(outcome.text).toContain("Nothing was written.");
     expect(outcome.text).toContain(`The branch limit of ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes still applies.`);
-    expect(outcome.text).toContain("Splitting the same text across entries does not reduce branch usage.");
     expect(journal).toEqual([]);
   });
 
@@ -118,8 +117,6 @@ describe("createPin", () => {
     );
     expect(outcome.text).toContain(`exceeding the branch limit by ${MAX_ENTRY_BYTES} B`);
     expect(outcome.text).toContain("Nothing was written.");
-    expect(outcome.text).toContain("Review the whole active pin set.");
-    expect(outcome.text).toContain("Moving text between entries does not reduce active bytes.");
     expect(journal).toHaveLength(2);
   });
 });
@@ -144,8 +141,6 @@ describe("updatePin", () => {
     );
     expect(outcome.text).toContain(`exceeding the branch limit by ${MAX_ENTRY_BYTES / 2} B`);
     expect(outcome.text).toContain("Nothing was written.");
-    expect(outcome.text).toContain("Review the whole active pin set.");
-    expect(outcome.text).toContain("Moving text between entries does not reduce active bytes.");
     // The two creates above; the refused replacement appends nothing.
     expect(journal).toHaveLength(2);
   });

@@ -45,9 +45,11 @@ Every action uses approval level `read`. Without an explicit per-tool policy, `a
 
 ### Agent practice
 
-Pin information whose loss could change later action: decisions, permissions, restrictions, roles, destinations, recovery pointers, current conclusions, or blockers. Skip easily recovered or short-lived facts unless explicitly required.
+Proactively pin information whose loss would change later action, without waiting for a reminder. Follow explicit pinning requirements; otherwise skip easily recovered or short-lived facts. Judge information by its use, not its format. Current facts, recovery pointers, and completion reminders belong in Pin while they guide later action or prevent repeated work.
 
 Separate topics that change independently. Update an existing topic rather than create a duplicate. Send the complete replacement body, preserving every still-valid condition, negation, exception, uncertainty, obligation, and protected quotation. A new candidate does not expand permissions or settle an unresolved condition.
+
+Use `update` when a topic remains useful but its facts change or part of the body becomes obsolete. Use `delete` when the whole entry is obsolete, superseded, or duplicated. Do not retain a summary of history that no longer affects later action, or discard useful information along with obsolete parts.
 
 Correct revoked permissions and invalid destinations before acting. Combine ordinary changes within a turn and retain recovery-relevant state before waiting or yielding. Unchanged reads, routine commands, a new request, or compaction alone do not require another write. Do not repeat an accepted user write. References are recovery pointers; the tool does not read them automatically.
 
@@ -55,7 +57,11 @@ Correct revoked permissions and invalid destinations before acting. Combine ordi
 
 One body and all active bodies on one branch each have a `16,384` UTF-8 byte limit. These limits count bytes, not characters or tokens. Splitting text across entries does not reduce total usage.
 
-An over-limit write changes nothing. The refusal reports body or branch usage, the proposed total, applicable limit, and excess. Review the whole active set before retrying. Reads and deletion remain available over capacity. Metadata, tool history, and old revisions are not bounded by the active-body limit, so a whole request can still be too large.
+An over-limit write changes nothing. A single-entry refusal reports the body size, entry limit, and excess. A branch refusal reports current total bytes, replaced-body bytes or zero for a create, proposed-body bytes, attempted total, limit, and excess. Neither includes active-entry previews.
+
+Review the whole active set before retrying; `list` provides an overview. For an entry-limit refusal, shorten that body. Deleting other entries cannot fix its size. For a branch-limit refusal, delete obsolete entries and update mixed entries to remove obsolete parts, then condense redundant text. Do not repeatedly shorten the proposed body without reviewing the other entries.
+
+Preserve still-valid facts, requirements, and required verbatim text. If all content is needed, explain the capacity conflict and condense only without loss; stop the write if it still cannot fit. Reads and deletion remain available over capacity. Metadata, tool history, and old revisions are not bounded by the active-body limit, so a whole request can still be too large.
 
 ## Reset
 

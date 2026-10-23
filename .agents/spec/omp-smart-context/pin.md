@@ -39,7 +39,11 @@ All actions declare approval level `read`. With no explicit per-tool policy, `al
 
 ### Agent guidance
 
-The tool's guidance asks Agents to pin information whose loss would change later action, including decisions, permissions, restrictions, roles, destinations, recovery pointers, conclusions, and blockers. Honor explicit pinning requirements and otherwise skip short-lived or easily recovered facts. Separate independently changing topics; update an existing topic instead of duplicating it, including user-confirmed pins.
+The tool description directs the Agent to pin information proactively when its loss would change later action, while honoring explicit pinning requirements. Judge content by its current use rather than its format. Keep recovery pointers and completion facts that prevent repeated work. Skip easily recovered or short-lived facts unless explicitly required.
+
+Relevant information includes decisions, permissions, restrictions, roles, destinations, recovery pointers, conclusions, and blockers. Separate independently changing topics; update an existing topic instead of duplicating it, including user-confirmed pins.
+
+Use `update` for a still-useful topic whose facts change, preserving valid content while removing obsolete parts. Use `delete` for a wholly obsolete, superseded, or duplicate entry, rather than retain a summary of irrelevant history. The extension leaves these choices to the Agent and adds no automatic maintenance or content-based rejection.
 
 Updates replace the complete body. Preserve still-valid facts, conditions, sequence, negation, exceptions, uncertainty, obligations, and protected quotations. A new candidate grants no permission and settles no unresolved condition. Correct revoked permissions and invalid destinations before acting; retain recovery-relevant state before waiting or yielding. Routine reads, unchanged state, or compaction alone require no write. References are recovery pointers, not automatic file reads.
 
@@ -84,6 +88,8 @@ Both one body and all active bodies on one branch are limited to `16,384` UTF-8 
 
 The limits count bytes, not characters or tokens. Metadata, tool history, and old revisions are outside the active-body limit, so the complete model request can still exceed its own capacity.
 
+Refusals include no active-entry previews. Entry-limit guidance requires shortening that body, not deleting other entries. Branch-limit guidance requires deleting obsolete entries, removing obsolete parts from still-useful entries, and condensing redundant text before retrying. Both preserve valid facts, requirements, and required verbatim text. When necessary content cannot fit without loss, explain the capacity conflict and stop that write rather than discard it. Guidance must not invite repeated shortening without whole-set review.
+
 ### Lifecycle
 
 `/new` creates an independent session and numbering. Successful `/clear` ends the branch's Pin period without lowering session-wide numbering. `/fresh` rotates Provider stream state but retains local history and pins. Switch, branch navigation, `/tree`, and restart replay the current branch's period. A retry from a reset period returns its recorded outcome, not a new operation.
@@ -100,5 +106,6 @@ The host owns session-file creation and flushing. Appending a record is not conf
 
 - Default-off, explicit-off, and invalid settings expose no Pin tool, command, or new projection, preserve records/history, and leave other capabilities working.
 - Six actions, user confirmation, source retention, current-entry updates, retry-before-lookup, complete reads, numbering, refusal details, and unchanged-state behavior match the contract.
+- The tool description distinguishes proactive pinning, updates, deletion, and correct non-action by information use. Capacity guidance addresses the actual limit without sacrificing valid information or repeating active-entry previews.
 - Pending, cancelled, edited, restored, repeated, and branch-switched user messages apply only when eligible. Agent writes start no turn; accepted retries append nothing and cannot restore stale state.
 - Reset, branch replay, supported V2 records, damage, capacity, and persistence limits remain intact. Final requests after committed compaction carry the latest body verbatim without stale ordering or duplicate projections.

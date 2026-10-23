@@ -2,6 +2,11 @@
 
 [中文](./CHANGELOG.zh.md)
 
+## 0.1.1
+
+- Clarify when the Agent should proactively pin, update, delete, or leave information unchanged, according to its use for later action.
+- Direct capacity refusals at the exceeded limit: shorten an oversized body or remove obsolete branch content, preserving valid information and reviewing the whole active set before retrying.
+
 ## 0.1.0
 
 First release of `@ruokee/omp-smart-context`:

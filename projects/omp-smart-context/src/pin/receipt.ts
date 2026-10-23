@@ -106,8 +106,8 @@ export function refusalText(error: MutationError): string {
       return [
         `This body is ${capacity.bodyBytes} B, exceeding the ${MAX_ENTRY_BYTES_LABEL}-byte entry limit by ${capacity.excessBytes} B. Nothing was written.`,
         `The branch limit of ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes still applies.`,
-        "Reduce the amount of pinned text. Splitting the same text across entries does not reduce branch usage.",
-        "Review the active pin set before retrying; preserve still-valid facts and required verbatim text.",
+        "Review the whole active pin set before retrying, then shorten this body while preserving still-valid facts, requirements and required verbatim text. Deleting other entries cannot fix this entry limit; splitting the same text does not reduce branch usage.",
+        "If the necessary content cannot fit without loss, explain the capacity conflict and stop this write. Do not discard valid information to fit the limit.",
       ].join("\n");
     }
     const target =
@@ -118,8 +118,9 @@ export function refusalText(error: MutationError): string {
       `Branch limit: ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes.`,
       `Current branch: ${capacity.currentBytes} B; ${target}; proposed body: ${capacity.bodyBytes} B.`,
       `This write would hold ${capacity.attemptedBytes} B, exceeding the branch limit by ${capacity.excessBytes} B. Nothing was written.`,
-      "Review the whole active pin set. Retire obsolete content and condense redundant text while preserving still-valid requirements and required verbatim text.",
-      "Moving text between entries does not reduce active bytes. Do not keep retrying a slightly shorter version of this body without reviewing the other active entries.",
+      "Before retrying, review the whole active pin set; use list for an overview if needed. Delete obsolete entries and remove obsolete parts from entries that still contain useful information, then condense redundant text. Preserve still-valid facts, requirements and required verbatim text.",
+      "Moving or splitting text between entries does not reduce active bytes. Do not keep retrying a slightly shorter version of this body without reviewing the other active entries.",
+      "If all active content is still needed, preserve it and explain the capacity conflict. Condense without losing information if possible; otherwise stop this write.",
     ].join("\n");
   }
   const lines = [error.message];
