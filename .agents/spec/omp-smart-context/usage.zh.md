@@ -1,7 +1,5 @@
 # 压缩用量
 
-[English](./usage.md) | 中文
-
 ## 目标
 
 补齐 soft 压缩及 Handoff 请求缺失的原生会话用量，不重复记账，不改请求，不保存正文，不猜测身份或价格。
@@ -12,21 +10,21 @@
 
 ## 公共面
 
-`compactionUsageEnabled` 为布尔值，默认 `true`，遵守[组件配置合同](./README.zh.md#配置)。宿主原生记账时以 `host-records-usage` 停用补记。`/smart-context` 报告实时进程状态、条目数、`costMissing` 和请求未解析计数，例如 `unrecorded=api-unresolved`。关闭补记只停止后续写入，保留历史 `model_usage` 条目。
+`compactionUsageEnabled` 为 boolean，默认 `true`。OMP 项目设置覆盖用户设置，变更需重启。不需要单独遥测配置。宿主原生记账时以 `host-records-usage` 停用补记。`/smart-context` 报告实时进程状态、条目数、`costMissing` 和请求未解析计数，例如 `unrecorded=api-unresolved`。关闭补记只停止后续写入，历史 `model_usage` 条目保留并继续出现在 OMP 会话统计中。
 
 ## 不变量
 
 ### 请求范围
 
-封闭映射为 summary 对应 `compaction:summary`，short-summary 对应 `compaction:short-summary`，turn-prefix 对应 `compaction:turn-prefix`，Handoff 对应 `compaction:handoff`。从已观察的请求自身用量事件 span 读取 oneshot 类型。`compaction_native`、`branch_summary`、评估、Skill 描述、图片问答及所有其他用途均排除。
+封闭映射为 summary 对应 `compaction:summary`，short-summary 对应 `compaction:short-summary`，turn-prefix 对应 `compaction:turn-prefix`，Handoff 对应 `compaction:handoff`。用途必须由该请求自身已观察的用量事件确认，不根据正文或时序猜测。`compaction_native`、`branch_summary`、评估、Skill 描述、图片问答及所有其他用途均排除。
 
-完成且报告 token 的范围内请求，通过 `appendModelUsage` 在所属活跃会话分支写一条原生 `model_usage`。全零用量不写。失败但产生计费 token 的尝试仍记账。宿主自身包装内重试后被隐藏的尝试，不能从最终事件重建。
+完成且报告 token 的范围内请求，恰好向所属活跃会话分支贡献一条原生 `model_usage`。全零用量不写。失败但报告计费 token 的尝试仍记账。宿主内部重试隐藏的尝试不能从最终事件重建。
 
 ### 身份
 
-通过所属会话模型注册表解析实际 API、Provider id 和 model id。规范化的遥测提供方标签不是请求身份，即使它恰好等于已登记 Provider 名称。优先使用成本估算路径在规范化前提供的原始请求 Provider id；没有时，只接受在会话目录内唯一的 model id。不从提供相同 id 的多个 Provider 中择一，不替换成另一模型的 API。
+使用所属会话的实际 API、Provider id 和 model id。规范化遥测提供方标签不是身份，即使恰好等于已登记 Provider 名称。优先使用遥测规范化前观察到的原始请求 Provider id，否则只接受在该会话模型目录内唯一的 model id。不从提供相同 id 的多个 Provider 中择一，不替换成另一模型的 API。
 
-按事件会话 id 定位活跃会话，缺少时使用 agent 已登记的会话。会话未登记或身份未解析时不写入，并增加相应固定计数。`/new`、`/resume` 或分叉后，以当前身份重新登记同一管理器并移除旧身份。晚到且仍指向旧会话的请求不能写入新会话。
+按事件的活跃会话 id 归属，缺少时使用 agent 已登记的会话。会话未登记或身份未解析时不写入，并增加对应固定计数。`/new`、`/resume` 和 fork 改变活动身份；指向旧会话的迟到请求不得写入新会话。
 
 ### 记账
 
@@ -36,11 +34,11 @@
 
 ### 遥测归属
 
-单个进程注册表拥有可读 `Agent.prototype.telemetry` 访问器补丁，并服务已登记会话。后续兼容激活只登记，不再包装。没有用户配置时提供惰性 tracer，使原生埋点可运行但不导出数据，`isRecording=false`，不添加内容属性、链接或事件。因此即使用户未配置遥测，也会增加埋点处理工作。
+兼容激活共享进程级观察，不重复回调或记账。没有用户遥测配置时仍可观察用量，但不导出数据，报告 `isRecording=false`，不添加内容属性、链接或事件。因此即使用户未配置遥测，也会增加埋点处理工作。
 
-存在用户配置时，保留每个字段、tracer 接收者、已知 span 方法、成本估算器、回调及导出行为。先解开子配置继承的本模块包装，再重新包装，避免父子复制重复回调或写入。`setTelemetry`、普通轮次读取的私有字段及其他类成员保持不变。
+保留全部用户遥测字段、tracer 接收者行为、受支持 span 方法、成本估算器、回调及导出行为。父子和多级配置继承不得重复回调或用量条目。普通轮次遥测和无关宿主行为保持不变。
 
-缺少可读访问器、用量写入接口、已知注册表布局、本模块持有的安装、已观察事件 span 或可读请求类型时，拒绝安装或记账，不虚构数据。安装被拒后恢复替换前访问器。关闭激活释放已安装补丁；设置不可读或被拒时停止其他激活安装的补丁，自身不安装。所有会话实时状态保留已停止注册表的原因。其他扩展替换访问器时，本模块以被替换状态退出，不接管。
+缺少可读遥测、用量写入接口、可识别所有权、已观察事件或可读请求类型时，拒绝激活或记账，不虚构数据。激活被拒后恢复仍由自身拥有的修改。关闭激活释放共享调整；设置不可读或被拒时停止另一激活的可识别调整，不启用任何补记。各会话实时状态保留停止原因。外来替换结束本组件所有权，不接管他方替代项。
 
 ### 原生替代
 
@@ -53,9 +51,4 @@
 - 四种用途均正确归属并产生与宿主统计增量一致的条目。零 token 和范围外事件不写，计费失败尝试保留报告用量。
 - 原始身份、唯一目录解析、重复模型 id、规范化标签、API 未解析、会话缺失及日志切换均不产生猜测或错记。
 - 提供方分项成本保留且仅使用一次，缺失时为零并计数。用户遥测及多级子会话继承不重复回调或条目。
-- 关闭、配置拒绝、外部访问器、已停止实现及原生记账均符合既定拒绝和释放行为。普通轮次及请求路由不变。
-
-## 相关 ADR
-
-- [压缩用量](../../adr/decision/2026/10/13-compaction-usage.zh.md)
-- [上下文包](../../adr/decision/2026/10/12-smart-cache.zh.md)
+- 关闭、配置拒绝、外来所有权、已停止所有者和原生记账均符合既定拒绝和释放行为。普通轮次及请求路由不变。

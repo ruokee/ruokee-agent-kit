@@ -58,7 +58,7 @@ Skill 安装与下方的开发环境准备相互独立。普通 Skill 见[安装
 
 ### 文档分层
 
-长期仓库决定通过双语 [ADRs](./.agents/adr/README.zh.md) 记录。双语[规格](./.agents/spec/README.zh.md)说明每个组件和仓库领域的当前目标，并链接到拥有细节的决定和文档。双语[规则层](./.agents/rule/README.zh.md)说明在这个仓库里工作要怎么做：贡献者或 Agent 必须做什么、按什么顺序、持哪项授权，以及什么被禁止。这些工作使用的共享用词由双语[词典](./docs/dictionary/README.zh.md)定义。
+长期仓库决定通过双语 [ADRs](./.agents/adr/README.zh.md) 记录。双语[规格](./.agents/spec/README.zh.md)完整说明组件或仓库领域的目标要求和可观察结果，独立于实现及其说明资料。索引提供语言、主题和决定导航，规格正文不含仓库文件链接。双语[规则层](./.agents/rule/README.zh.md)说明在这个仓库里工作要怎么做：贡献者或 Agent 必须做什么、按什么顺序、持哪项授权，以及什么被禁止。这些工作使用的共享用词由双语[词典](./docs/dictionary/README.zh.md)定义。
 
 内部 [maintain-spec](./.agents/skills/maintain-spec/SKILL.md) 和 [maintain-adr](./.agents/skills/maintain-adr/SKILL.md) Skill 持有主要维护方法。维护或审查对应文档前加载适用 Skill，也覆盖影响长期目标或持久选择的功能工作。各层 README 保留项目补充和导航。
 

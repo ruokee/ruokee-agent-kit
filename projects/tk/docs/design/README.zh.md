@@ -2,9 +2,9 @@
 
 [English](./README.md)
 
-这些页面定义 tk 当前的公开合同，遵循[文档规则](./documentation.zh.md)。
+这些页面解释 tk 实现，并提供可独立使用的既定公开行为参考，遵循[文档规则](./documentation.zh.md)。规格包含完整要求和验收，组件文档不要求读者访问仓库规格。
 
-[用户指南](../guide.zh.md)介绍安装和日常使用。[CLI 参考](./cli-reference.zh.md)统一定义命令语法、选项、默认值和退出状态。
+[用户指南](../guide.zh.md)介绍安装和日常使用。[CLI 参考](./cli-reference.zh.md)列出命令语法、选项、默认值和退出状态。
 
 ## 架构
 
@@ -28,6 +28,6 @@
 
 ## 维护
 
-- [验证](./validation.zh.md)定义可观察的验收合同。
+- [验证](./validation.zh.md)说明验证方法和场景。
 - [文档](./documentation.zh.md)定义公开文档归属、双语维护、链接和当前状态写法。
 - [术语表](./GLOSSARY.zh.md)定义产品特殊术语和固定中文形式。

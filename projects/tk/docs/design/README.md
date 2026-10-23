@@ -2,9 +2,9 @@
 
 [简体中文](./README.zh.md)
 
-These pages define tk's current public contracts and follow the [documentation rules](./documentation.md).
+These pages explain tk's implementation and provide independently usable references to its specified public behavior. They follow the [documentation rules](./documentation.md). Specifications contain the complete requirements and acceptance; component documentation does not require readers to access repository specifications.
 
-The [user guide](../guide.md) covers installation and routine use. The [CLI reference](./cli-reference.md) owns command syntax, options, defaults, and exit statuses.
+The [user guide](../guide.md) covers installation and routine use. The [CLI reference](./cli-reference.md) lists command syntax, options, defaults, and exit statuses.
 
 ## Architecture
 
@@ -28,6 +28,6 @@ The [user guide](../guide.md) covers installation and routine use. The [CLI refe
 
 ## Maintenance
 
-- [Validation](./validation.md) defines the observable acceptance contract.
+- [Validation](./validation.md) describes validation methods and scenarios.
 - [Documentation](./documentation.md) defines public document ownership, bilingual maintenance, links, and current-state writing.
 - [Glossary](./GLOSSARY.md) defines product terms and fixed Chinese forms.

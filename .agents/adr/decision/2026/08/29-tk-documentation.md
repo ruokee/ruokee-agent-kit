@@ -2,25 +2,25 @@
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
-Reverses: [tk documentation](../../../archived/2026/08/29-r2-tk-documentation.md)
+Reverses: [tk documentation](../../../archived/2026/08/29-r3-tk-documentation.md)
 
 English | [中文](./29-tk-documentation.zh.md)
 
 ## Motivation
 
-Define tk's four built-in usage patterns and the ownership and bilingual consistency rules for the pages that describe them.
+Maintain tk's four material patterns with complete specifications, independently usable component guidance, and aligned bilingual documentation.
 
 One shared protocol lets an Agent and a user reach the same understanding of what a pattern adds, what it requires, and which page owns which contract.
 
 Each tk Skill reference that is identical across the tools and CLI Skills of one language keeps one source file, and the build copies it into every Skill of that language. Keeping a complete copy in each of the four Skill source directories would repeat every shared edit in both Skill trees of a language, and a change that reaches only one tree leaves the tools and CLI Skills telling the Agent different rules.
 
-The [Skill pattern reference](../../../../../projects/tk/skills/shared/en/patterns.md) and the [Skill design](../../../../../projects/tk/docs/design/skill.md) state the four patterns.
+The [Agent behavior specification](../../../../spec/tk-agent.md) states the required pattern behavior. The [Skill pattern reference](../../../../../projects/tk/skills/shared/en/patterns.md) and [Skill guidance](../../../../../projects/tk/docs/design/skill.md) explain their use.
 
 ## Analysis
 
 The [archived documentation decision](../../../archived/2026/08/29-r1-tk-documentation.md) fixes the Chinese form of `scratchpad` as `临时记事区`, which conflicts with `草稿纸` as the pattern's Chinese name.
 
-The [predecessor decision](../../../archived/2026/08/29-r2-tk-documentation.md) required each of the four Skill trees to keep its own complete pattern reference. A shared reference with one source per language cannot satisfy that clause, so this decision replaces it and carries the predecessor's other rules unchanged.
+An [earlier decision](../../../archived/2026/08/29-r2-tk-documentation.md) required each of the four Skill trees to keep its own complete pattern reference. The shared source per language avoids duplicated edits and remains the distribution choice. The [direct predecessor](../../../archived/2026/08/29-r3-tk-documentation.md) assigned required behavior and acceptance exclusively to component pages. That ownership leaves a specification incomplete without those pages. Specifications therefore contain the complete requirements, while component guidance, design, and validation retain their distinct purposes.
 
 ## Decision
 
@@ -82,7 +82,7 @@ The tk build copies each shared reference of a language into the `references/` d
 
 Self-containment applies to the assembled and installed Skills under the [self-contained component decision](./24-component-self-containment.md). Each installed Skill references only files inside itself and carries every shared reference of its language, and the sources stay inside the tk component directory `projects/tk/`.
 
-The [Skill design](../../../../../projects/tk/docs/design/skill.md) owns the Agent behavior contract. The [glossary](../../../../../projects/tk/docs/design/GLOSSARY.md) owns the four names and their meanings. The [documentation design](../../../../../projects/tk/docs/design/documentation.md) owns translation maintenance, and [validation](../../../../../projects/tk/docs/design/validation.md) owns observable acceptance. These contracts, their language counterparts, and the Skill references change together.
+The [Agent behavior specification](../../../../spec/tk-agent.md) contains complete Agent behavior and acceptance requirements. [Skill guidance](../../../../../projects/tk/docs/design/skill.md) remains independently usable. The [glossary](../../../../../projects/tk/docs/design/GLOSSARY.md) owns the four names and their meanings. The [documentation design](../../../../../projects/tk/docs/design/documentation.md) owns translation maintenance, and [validation](../../../../../projects/tk/docs/design/validation.md) describes validation methods, scenarios, and evidence. These materials, their language counterparts, and the Skill references change together.
 
 ### Public documentation set
 
@@ -99,9 +99,9 @@ Review records, revision numbers, Task paths, branch status, implementation logs
 
 ### Topic ownership
 
-Each behavior has one primary owning page. The system page owns product boundaries and invariants. The data-model page owns Task formats and persistence. Runtime owns process and failure behavior. Tool API owns logical requests and results. CLI reference owns command spelling and exit behavior. Harness integration owns component forms and adapters. Installation owns component lifecycle. Skill owns Agent behavior and material patterns. Validation owns observable acceptance. Documentation owns maintenance rules. The glossary owns only project-specific terms and fixed translations.
+The complete [tk specification set](../../../../spec/README.md#tk) owns required behavior and acceptance. Within component documentation, each detailed explanation has one primary topic page. System explains product boundaries and invariants. Data-model explains Task formats and persistence. Runtime explains process and failure behavior. Tool API references logical requests and results. CLI reference lists command spelling and exit behavior. Harness integration explains component forms and adapters. Installation explains component lifecycle. Skill guides Agent behavior and material patterns. Validation holds methods and scenarios. Documentation owns maintenance rules. The glossary owns only project-specific terms and fixed translations.
 
-A parameter table, algorithm, or normative field definition appears only on its owning page. Other pages link to it and state only the context needed by their readers.
+Specifications fully state necessary commands, parameters, fields, defaults, limits, failure semantics, and compatibility. User references independently describe the same contract; design holds algorithms and internal mechanisms. Component pages may link to their primary topic explanations, but specifications do not delegate requirements or link repository files. Distributed component documentation does not depend on repository specifications.
 
 ADRs preserve durable decisions, alternatives, and consequences. They link to current public contracts instead of copying full command, field, or test inventories.
 
@@ -131,7 +131,7 @@ ADR proposals and decisions use separate repository formats and directories. Eng
 
 ### Maintenance
 
-A public behavior change updates the owning design page, affected guide and CLI examples, both languages, affected Skill content, every current ADR that owns the decision, and the corresponding validation contract in the same change.
+A public behavior change updates complete affected specifications, relevant design and reference pages, affected guide and CLI examples, both languages, affected Skill content, every current ADR that owns the decision, and the corresponding validation methods and scenarios in the same change.
 
 Repository Markdown, link, formatting, and spelling checks are combined with manual bilingual review. tk does not add a custom documentation structure or translation checker until repeated maintenance or an observed drift failure establishes a concrete invariant worth automating.
 
@@ -143,7 +143,7 @@ The authoritative maintenance details live in the [documentation design](../../.
 
 ## Consequences
 
-Readers can enter through a guide, design topic, Skill, or ADR and follow relative links to the owning contract. Each normative detail has one main maintenance location.
+Readers can determine the complete required behavior from the specification set or use component guidance independently. Design and validation have separate implementation and evidence responsibilities. These documents describe the same contract without making component users depend on repository specifications.
 
 Shared Skill references and bilingual public contracts describe the same patterns. A shared reference has one source per language, so the tools and CLI Skills of that language cannot differ in those files. Keeping the Skill references, the four `SKILL.md` files, and both languages aligned still requires maintaining them together; a change that reaches only some files can leave the rules inconsistent, so an Agent may follow different adoption or maintenance rules from those users read.
 

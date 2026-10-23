@@ -2,25 +2,25 @@
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
-Reverses: [tk 文档](../../../archived/2026/08/29-r2-tk-documentation.zh.md)
+Reverses: [tk 文档](../../../archived/2026/08/29-r3-tk-documentation.zh.md)
 
 [English](./29-tk-documentation.md) | 中文
 
 ## 动机
 
-定义 tk 的四个内置使用模式，以及描述它们的页面的归属与双语一致性规则。
+通过完整规格、独立可用的组件指导和一致的双语文档，维护 tk 的四种材料模式。
 
 这套共同规则让 Agent 和用户对模式会增加什么、需要维护什么，以及每项合同由哪个页面负责，形成一致理解。
 
 同一语言的 tools Skill 与 CLI Skill 中内容相同的 tk 参考文件，源码只保留一份，由构建复制到该语言的每个 Skill。如果四个 Skill 源码目录各保留一份完整副本，每次共享修改都要在同语言的两个 Skill 目录里重复一遍；只改到其中一个目录时，tools Skill 和 CLI Skill 会向 Agent 给出不同的规则。
 
-[Skill 模式参考](../../../../../projects/tk/skills/shared/zh/patterns.md)与 [Skill 设计](../../../../../projects/tk/docs/design/skill.zh.md)给出四种模式。
+[Agent 行为规格](../../../../spec/tk-agent.zh.md)规定模式行为要求，[Skill 模式参考](../../../../../projects/tk/skills/shared/zh/patterns.md)与 [Skill 指导](../../../../../projects/tk/docs/design/skill.zh.md)说明其用法。
 
 ## 分析
 
 [已归档的文档维护决定](../../../archived/2026/08/29-r1-tk-documentation.zh.md)将 `scratchpad` 固定译为“临时记事区”，与“草稿纸”作为模式中文名称冲突。
 
-[先前的决定](../../../archived/2026/08/29-r2-tk-documentation.zh.md)要求四个 Skill 目录各自保留完整的模式参考文件。每种语言只有一份源码的共享参考文件无法满足这一条款，因此本决定替换该条款，并原样沿用先前决定的其余规则。
+[早期决定](../../../archived/2026/08/29-r2-tk-documentation.zh.md)要求四个 Skill 目录各自保留完整模式参考。每种语言一份共享源码避免重复修改，继续作为分发选择。[直接前驱](../../../archived/2026/08/29-r3-tk-documentation.zh.md)将必要行为和验收唯一归给组件页面，使规格离开这些页面便不完整。因此规格包含完整要求，组件指导、设计和验证保留各自职责。
 
 ## 决定
 
@@ -82,7 +82,7 @@ tk 构建在组装分发载荷时，把每种语言的共享参考文件复制�
 
 按照[组件自包含决定](./24-component-self-containment.zh.md)，自包含要求作用于组装后和已安装的 Skill。每个已安装 Skill 只引用自身内部的文件，并带有本语言的全部共享参考文件；源码保留在 tk 组件目录 `projects/tk/` 内。
 
-[Skill 设计](../../../../../projects/tk/docs/design/skill.zh.md)负责 Agent 行为合同，[术语表](../../../../../projects/tk/docs/design/GLOSSARY.zh.md)负责四种名称及其含义，[文档设计](../../../../../projects/tk/docs/design/documentation.zh.md)负责译名维护，[验证合同](../../../../../projects/tk/docs/design/validation.zh.md)负责可观察验收。这些合同及其语言对应页与 Skill 参考一并维护。
+[Agent 行为规格](../../../../spec/tk-agent.zh.md)包含完整 Agent 行为和验收要求，[Skill 指导](../../../../../projects/tk/docs/design/skill.zh.md)保持独立可用。[术语表](../../../../../projects/tk/docs/design/GLOSSARY.zh.md)负责四种名称及其含义，[文档设计](../../../../../projects/tk/docs/design/documentation.zh.md)负责译名维护，[验证](../../../../../projects/tk/docs/design/validation.zh.md)说明验证方法、场景和证据。这些材料及其语言对应页与 Skill 参考一并维护。
 
 ### 公开文档集合
 
@@ -99,9 +99,9 @@ tk 构建在组装分发载荷时，把每种语言的共享参考文件复制�
 
 ### 主题归属
 
-每项行为只有一个主要归属页面。system 负责产品边界和不变量。data-model 负责任务格式和持久化。runtime 负责进程和失败行为。tool API 负责逻辑请求与结果。CLI reference 负责命令拼写和退出行为。Harness integration 负责组件形式和适配器。installation 负责组件生命周期。Skill 负责 Agent 行为与材料模式。validation 负责可观察验收。documentation 负责维护规则。术语表只负责项目特殊术语和固定译法。
+完整 [tk 规格集合](../../../../spec/README.zh.md#tk)负责必要行为和验收。组件文档内部，每项详细说明有一个主要主题页。system 解释产品边界和不变量，data-model 解释任务格式和持久化，runtime 解释进程和失败行为，tool API 提供逻辑请求与结果参考，CLI reference 列出命令拼写和退出行为，Harness integration 解释组件形式和适配器，installation 解释组件生命周期，Skill 指导 Agent 行为与材料模式，validation 保存方法和场景，documentation 负责维护规则，术语表只负责项目特殊术语和固定译法。
 
-参数表、算法或规范字段定义只出现在归属页面。其他页面链接到该页面，只陈述读者所需的上下文。
+规格完整表达必要命令、参数、字段、默认值、上限、失败语义和兼容性。用户参考独立描述相同合同，设计保存算法和内部机制。组件页面可以链接主要主题说明，但规格不委托要求，也不链接仓库文件。可分发组件文档不依赖仓库规格。
 
 ADR 保存长期决定、替代方案和结果。它们链接当前公开合同，不复制完整命令、字段或测试清单。
 
@@ -131,7 +131,7 @@ ADR 提案和决定使用独立的仓库格式与目录。英文和中文文件�
 
 ### 维护
 
-公开行为发生变化时，同一变更必须更新归属设计页面、受影响的指南和 CLI 示例、两种语言、受影响的 Skill 内容、负责该决定的全部当前 ADR，以及对应验证合同。
+公开行为变化时，同一变更更新完整的受影响规格、相关设计和参考页、受影响的指南与 CLI 示例、两种语言、受影响 Skill 内容、负责该决定的全部当前 ADR，以及对应验证方法和场景。
 
 仓库现有 Markdown、链接、格式和拼写检查与人工双语审查共同使用。在重复维护或实际偏差证明某项机械不变量值得自动化前，tk 不增加自定义文档结构或翻译检查器。
 
@@ -143,7 +143,7 @@ ADR 提案和决定使用独立的仓库格式与目录。英文和中文文件�
 
 ## 结果
 
-读者可以从指南、设计专题、Skill 或 ADR 进入，并通过相对链接找到归属合同。每项规范细节只有一个主要维护位置。
+读者可以从规格集合确定完整必要行为，也可以独立使用组件指导。设计和验证分别承担实现及证据职责。这些文档描述相同合同，不使组件用户依赖仓库规格。
 
 共享的 Skill 参考文件和双语公开合同描述同一套模式。共享参考文件每种语言只有一份源码，同语言的 tools Skill 和 CLI Skill 因此不会在这些文件上出现差异。Skill 参考文件、四个 `SKILL.md` 和两种语言仍需一同维护；只更新部分文件可能造成规则不一致，让 Agent 遵循的采用或维护规则与用户读到的规则不同。
 

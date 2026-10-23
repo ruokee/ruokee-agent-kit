@@ -4,11 +4,13 @@ English | [中文](./spec.zh.md) | [Dictionary](./README.md)
 
 Chinese term: 规格
 
-A statement of a target state and its acceptance, as a long-term component or repository spec under `.agents/spec/` or as a Task Spec for one Task.
+A complete, implementation-independent statement of a target and its acceptance, as a long-term component or repository spec under `.agents/spec/` or as a Task Spec for one Task.
 
 ## Mechanism
 
-A spec describes the target state, not the implementation or its history. It links the decisions that own the reasons behind its rules and must not conflict with a current decision. When a choice changes a component's goals, boundaries, or acceptance, the spec changes in the same change.
+A long-lived spec states the purpose, required capabilities, conditions, observable results, and acceptance completely. After the original implementation and its explanatory material are removed, the spec set still supports rebuilding substantially the same functionality with different internals. It contains no implementation descriptions or repository-file links, including language and decision links. An external index supplies navigation. Bare paths or references to current behavior cannot substitute for requirements.
+
+Authors use confirmed requirements, effective decisions, and relevant sources to establish the target; the spec reader does not need those sources to fill gaps. A spec must not conflict with a current decision. Changes to goals, boundaries, or acceptance update the spec in the same change. ADRs retain the reasons and necessary historical contract; design explains implementation; user documentation remains independently usable.
 
 ## Task Spec
 
@@ -32,7 +34,7 @@ An observable condition that distinguishes a conforming result from a deviation.
 
 ## Public surface
 
-The commands, formats, files, and behaviors that users or other components rely on and that a change must preserve or update. A spec names the surface; the owning documentation holds the detailed reference.
+The commands, formats, files, and behaviors that users or other components rely on and that a change must preserve or update. A spec completely states their confirmed requirements, including necessary parameters, quantities, defaults, failures, and compatibility. User documentation explains the same contract for its readers without becoming a prerequisite for understanding the spec.
 
 ## Out of scope
 

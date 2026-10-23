@@ -2,6 +2,7 @@
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
+Reverses: [Repository rules](../../../archived/2026/10/12-r1-repository-rules.md)
 
 English | [中文](./12-repository-rules.zh.md)
 
@@ -15,7 +16,7 @@ The repository had a document type for what each component and area should be an
 
 A normative statement in this repository falls into five kinds. A statement that can be checked from the deliverable alone is a spec invariant: repository file links are relative to their containing document, ordinary public pages come in language pairs, and Prettier formats all tracked Markdown. A statement that constrains an action, a step, an order, a permission, or a prohibition is a rule: commit, merge, push, and branch deletion are separate authorizations, development checks run before review, and the complete check runs on the final candidate. A statement that records a choice, its alternatives, and its consequences is a decision. Instructions for installing and using a component are component documentation. Entry points and the non-trivial rules that must hold without further reading belong to `AGENTS.md`, and each of those rules keeps its owning page in this layer.
 
-The same constraint often appears in two forms, which is not duplication: the spec says a commit message is an English Conventional Commit whose scope comes from a fixed set, while the rule says when to run the formatting hook, which files belong to the current task, and which authorization each Git action needs. Only two layers stating the same thing is duplication, and this layer removes that.
+The same constraint often appears in two forms: the spec states the complete properties of a valid deliverable, while a rule governs actions and permissions. User references may independently describe the same behavior. These roles do not justify omitting requirements from a spec or creating competing requirements.
 
 The following decisions informed the layer. Historical citations identify the choices used at adoption; current references identify continuing constraints. None conflicted with adding the layer:
 
@@ -52,7 +53,7 @@ The [rule layer's entry page](../../../../rule/README.md#reference-direction) ow
 
 ### What moves
 
-The root `AGENTS.md` gives up the long text of its working rules and keeps repository positioning, per-activity navigation, and the non-trivial rules that every change keeps in view, linking the rule page that owns each complete statement. The [repository spec](../../../../spec/repository.md) gives up its working-procedure statements and keeps the properties of the delivered repository, its acceptance results, and every requirement the migration does not touch, linking the page that owns a moved detail. The [root README](../../../../../README.md) gives up the procedure paragraphs that restate `AGENTS.md` and keeps its contributor-facing overview, its layout section, and its links to the layers.
+The root `AGENTS.md` keeps repository positioning, per-activity navigation, and the non-trivial rules every change must keep in view, linking the rule page that owns each complete procedure. The [repository spec](../../../../spec/repository.md) states the complete properties of the delivered repository and its acceptance, without working procedures or repository-file links. Non-spec indexes provide navigation to the related rules and decisions. The [root README](../../../../../README.md) keeps the contributor-facing overview, layout, and links to the layers rather than duplicating long procedures.
 
 The layer has no spec of its own: the repository spec carries the rule layer's goals, boundaries, and acceptance, because the area this layer describes is the repository itself. A rule that holds on one machine only, that names the device's model, provider, endpoint, or absolute path, or that carries a personal working preference stays out of the layer and out of tracked files. The same applies to a working convention that exists only outside Git, such as how task state and task materials are kept. Component-internal rules stay with the component: the instructions in a `SKILL.md` are the product delivered to a host, not a repository rule. The first delivery also covers repository working rules that already applied and had no owning document, so its source is the repository's publishable working rules rather than a file list.
 

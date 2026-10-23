@@ -53,3 +53,9 @@ A CLI install or uninstall without a Harness executable still writes or removes 
 Supported user-level Harness integrations keep their existing tools installation and real-load validation. CLI installation proves only file placement; the Harness must scan the ordinary Skill root before the Skill is available.
 
 A mistaken Skill root can replace or delete existing `tk-cli` or `tk-cli-zh` directories. Dry-run and complete path reporting expose the planned boundary, while clean install and uninstall deliberately treat those two exact children as tk-owned targets.
+
+## Changes
+
+### 2026-10-23 Specification completeness
+
+The [distribution specification](../../../../spec/tk-distribution.md) and [interface specification](../../../../spec/tk-interface.md) fully state lifecycle behavior, selections, defaults, failures, compatibility, and acceptance. The CLI reference independently describes the same usage contract; installation design explains its implementation and operation planning. These references do not replace specification requirements. This applies the [specification decision](../10/04-specifications.md) without changing distribution or lifecycle behavior.

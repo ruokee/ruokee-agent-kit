@@ -58,7 +58,7 @@ Follow each project component's README for its build and installation requiremen
 
 ### Documentation layers
 
-Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/README.md). Bilingual [specifications](./.agents/spec/README.md) state the current target of each component and repository area, linking to the decisions and documents that own the details. The bilingual [rule layer](./.agents/rule/README.md) states how work is done here: what a contributor or an Agent must do, in what order, with which permission, and what is forbidden. Shared terms for that work are defined in the bilingual [dictionary](./docs/dictionary/README.md).
+Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/README.md). Bilingual [specifications](./.agents/spec/README.md) completely state each component's or repository area's required target and observable results, independently of its implementation and explanatory documents. Their index provides language, topic, and decision navigation; spec bodies contain no repository-file links. The bilingual [rule layer](./.agents/rule/README.md) states how work is done here: what a contributor or an Agent must do, in what order, with which permission, and what is forbidden. Shared terms for that work are defined in the bilingual [dictionary](./docs/dictionary/README.md).
 
 The internal [maintain-spec](./.agents/skills/maintain-spec/SKILL.md) and [maintain-adr](./.agents/skills/maintain-adr/SKILL.md) Skills own the main maintenance methods. Load the applicable Skill before maintaining or reviewing those documents, including feature work that affects a long-lived target or durable choice. Their layer READMEs hold project supplements and navigation.
 

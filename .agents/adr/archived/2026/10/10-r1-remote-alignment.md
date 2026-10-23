@@ -76,7 +76,7 @@ Apply the [shared OMP maintenance floor](../../../decision/2026/09/28-host-maint
 
 ### Decision reversal
 
-This decision and the [complete QoL successor](../../../decision/2026/09/20-omp-qol.md) reverse [Maintain QoL model prompts](../09/20-r8-omp-qol.md). The conflicting choices are:
+This decision and the [complete QoL successor](../09/20-r9-omp-qol.md) reverse [Maintain QoL model prompts](../09/20-r8-omp-qol.md). The conflicting choices are:
 
 | Effective clause in that decision | Replacement choice and conflict |
 | --- | --- |

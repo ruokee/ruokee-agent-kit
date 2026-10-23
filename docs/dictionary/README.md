@@ -66,7 +66,7 @@ The full repository check run on the clean, committed final candidate before int
 
 **[spec](./spec.md)**（规格）
 
-A statement of a target state and its acceptance: a long-term component or repository spec under `.agents/spec/`, or a Task Spec that states the requirements and acceptance conditions for one Task.
+A complete, implementation-independent statement of a target and its acceptance: a long-term component or repository spec under `.agents/spec/`, or a Task Spec for one Task.
 
 **[invariant](./spec.md#invariant)**（不变量）
 

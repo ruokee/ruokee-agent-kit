@@ -2,7 +2,7 @@
 
 [English](./cli-reference.md)
 
-本文是公开 CLI 拼写、默认值、选项和退出状态的唯一归属文档。深层数据语义见[数据模型](./data-model.zh.md)，逻辑 JSON 请求见[工具 API](./tool-api.zh.md)。
+本文提供公开 CLI 拼写、默认值、选项和退出状态，作为可独立使用的既定合同参考。深层数据语义见[数据模型](./data-model.zh.md)，逻辑 JSON 请求见[工具 API](./tool-api.zh.md)。
 
 ## 调用规则
 

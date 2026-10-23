@@ -1,7 +1,5 @@
 # 远端对齐
 
-[English](./remote.md) | 中文
-
 ## 目标
 
 将符合条件的原生 Remote V2 请求与同一会话已确认的普通请求对齐，保留原生压缩决策和输出。
@@ -12,7 +10,7 @@ Codex 请求，非 Codex `openai-responses` V2 以外的 API，新压缩方式�
 
 ## 公共面
 
-`compactionCacheEnabled` 默认 `false`，`compactionCacheProviderFilter` 默认空字符串，`compactionCacheMode` 默认 `hooks`，接受 `standard` 或 `hooks`。设置遵守[组件激活合同](./README.zh.md#配置)。空筛选值报告 `provider-filter-empty`，不启用对齐。
+`compactionCacheEnabled` 为 boolean，默认 `false`；`compactionCacheProviderFilter` 为字符串，默认 `""`；`compactionCacheMode` 默认 `hooks`，接受 `standard` 或 `hooks`。OMP 项目设置覆盖用户设置，缺少键时取默认值，有效激活快照只在重启后改变。空筛选值报告 `provider-filter-empty`，对齐不可用。`/smart-context` 分别报告 Remote 和 Handoff。
 
 当前会话模型必须支持 Remote，OMP 必须选择 Remote，当前模型的 Provider 必须精确匹配已启用修复的筛选值。筛选不改变模型、Provider、路由或压缩方式。不匹配时原生压缩照常进行。主会话、原生 task 子会话及 Eval 子会话保留既有覆盖。Handoff 拥有独立开关和协议合同。
 
@@ -20,11 +18,11 @@ Codex 请求，非 Codex `openai-responses` V2 以外的 API，新压缩方式�
 
 ## 不变量
 
-遵守[共享参照及归属要求](./request-alignment.zh.md)。保留普通和非目标请求、未知字段、显式策略差异及原生回退。模型或工具不匹配、身份歧义、证明不足、取消、外部包装及接口缺失均保留完整原生 Remote 请求。
+共同请求对齐要求适用于本能力。只复用同一会话已确认的普通发送，并在原生操作及其重试期间保留初始参照。保留普通和非目标请求、未知字段、显式策略差异及原生回退。模型或工具不匹配、身份歧义、证明不足、取消、外来所有权及接口缺失均保留完整原生 Remote 请求，不阻断、延迟或丢弃。
 
 ### 来源
 
-原生压缩重建会话日志历史。仅被观察的原生会话可将隐藏且归属于 Agent 的 `eval-state-context` 识别为规范来源以外的显示投影。普通请求和捕获的原始消息保持不变。检查完整规范来源保留前，只排除该精确投影。`standard` 还使用未过滤来源核对已识别的准备行为。
+只有已确认原生会话中隐藏且归属于 Agent 的 `eval-state-context`，才能作为显示派生内容从规范来源保留要求中排除。普通请求和原始消息不变，除此之外仍须完整保留规范来源。`standard` 还要求已识别准备与未过滤来源相符。
 
 相同文本的用户消息、归属于用户的自定义内容、其他自定义类型及未确认构造均保留全部来源依赖。该识别不赋予局部独立性，不恢复被裁剪输出。
 
@@ -35,7 +33,7 @@ Codex 请求，非 Codex `openai-responses` V2 以外的 API，新压缩方式�
 - `standard` 接受已识别的原生准备差异。
 - `hooks` 还可复用已证明的完成处理结果。完整保留范围允许合法插入、重排、恢复、跨范围合并、图片和已有载荷后变换。有状态处理器只运行一次。
 
-完整保留来源证明优先于局部匹配，来源消息重复仍可获得完整证明。局部复用要求可独立提取的已发送单元，以及每项保留的依赖和处理条件。输出、长度、索引或来源标记相同均不足以证明。
+完整保留来源证明允许复用，即使来源消息重复。局部匹配不能推翻完整范围条件。局部复用要求可独立提取的已发送单元，以及每项保留的依赖和处理条件。输出、长度、索引或来源标记相同均不足以证明。
 
 保留原生工具输出改写、删除的依赖、新增普通消息及工具和图片尾部、不透明历史、调用及结果配对和触发边界。不可拆结果的依赖变化时，完整请求保持原生并报告 `projection-dependency-changed`；来源或单元边界未确认时报告 `projection-unconfirmed`。两种拒绝均视为未对齐并计入总数。不提供冻结的纯投影协议，不重复运行黑盒处理器。
 
@@ -50,8 +48,3 @@ Codex 请求，非 Codex `openai-responses` V2 以外的 API，新压缩方式�
 - 完整保留及合格局部复用保留普通内容，不重复运行处理器或恢复裁剪数据。依赖未证明时以相应原因拒绝完整改写。
 - 可从规范历史排除精确原生 Eval 元数据，但不排除相似用户消息或其他自定义消息。
 - 最终实际传输保留未知字段、原生限制、新尾部、不透明字节及独立 Handoff 行为。
-
-## 相关 ADR
-
-- [远端对齐](../../adr/decision/2026/10/10-remote-alignment.zh.md)
-- [请求对齐](../../adr/decision/2026/10/22-request-alignment.zh.md)

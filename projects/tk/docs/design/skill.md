@@ -2,7 +2,7 @@
 
 [简体中文](./skill.zh.md)
 
-This page defines the ideal behavior for Agents using tk. The runtime enforces metadata, path, lifecycle, relationship, Git, and persistence rules. Skill does not duplicate these rules.
+This page guides Agents using tk under its required behavior. The runtime enforces metadata, path, lifecycle, relationship, Git, and persistence rules. Skill does not duplicate these rules. Specifications retain the complete behavior and acceptance requirements; this component guidance remains independently usable.
 
 ## When to use tk
 

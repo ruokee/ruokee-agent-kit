@@ -31,7 +31,7 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 
 [Documentation rules](./.agents/rule/documentation.md)
 
-- Provide English and Chinese project documentation as same-directory `name.md` and `name.zh.md` pairs. Keep translations and reciprocal links aligned.
+- Provide English and Chinese project documentation as same-directory `name.md` and `name.zh.md` pairs. Keep translations and reciprocal links aligned, except that Spec bodies keep language navigation in the non-spec index and contain no repository-file links.
 - Keep documentation in sync with the code it describes. Update affected documents in the same change.
 - Write a file name and each heading as a short imperative sentence, a short phrase, or a noun unless an additional requirement calls for another form. Keep one subject, and add a second one or list its parts only when an additional requirement calls for it.
 - Specs define long-lived component or repository targets under `./.agents/spec`. Before maintaining or reviewing one, or when feature work changes its goals, boundaries, or acceptance, load [maintain-spec](./.agents/skills/maintain-spec/SKILL.md) and read the [project supplements](./.agents/spec/README.md).

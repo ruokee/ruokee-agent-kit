@@ -84,3 +84,7 @@ The create interface owns no body input. `tk create task` rejects `--body` as an
 ### 2026-09-08 Rename restores name repair
 
 `tk rename` and `tk_exec rename` accept the existing exact reference forms for an eligible Task whose old string name or recognizable generated suffix needs repair. They retain the same command arguments, result shape, reference protection, validation outside the repair scope, and CLI contract version.
+
+### 2026-10-23 Specification completeness
+
+The [interface specification](../../../../spec/tk-interface.md) fully states the public commands, fields, defaults, result and failure semantics, limits, and compatibility. The CLI reference remains independently usable and describes the same contract. Runtime design explains implementation choices rather than supplying requirements missing from the specification. This applies the [specification decision](../10/04-specifications.md) without changing runtime behavior or contract versions.

@@ -1,69 +1,59 @@
 # tk
 
-[English](./tk.md) | 中文
-
-[projects/tk](../../projects/tk/README.zh.md) 的规格。本文说明 tk 的目标、边界和不变量。详细契约由 [projects/tk/docs/design](../../projects/tk/docs/design/README.zh.md) 下的设计页面负责，本文链接到这些页面，不复述其内容。
-
 ## 目标
 
-- 为 Agent 工作提供一份持久、基于文件、位于项目内的任务记录，上下文丢失后仍然存在，并可跨会话、跨 Harness 和 CLI 使用。见 [projects/tk/docs/design/system.zh.md](../../projects/tk/docs/design/system.zh.md)。
-- 任务领域规则、持久化、发现、迁移、维护、CLI、stdio MCP、生成的工具契约和 Harness 组件生命周期都由一个 Rust 运行时负责。见 [projects/tk/docs/design/runtime.zh.md](../../projects/tk/docs/design/runtime.zh.md)。
-- 人用 CLI、stdio MCP 以及 Pi 和 OMP 原生工具都经由同一个公开可执行文件访问运行时，共用一套结果、错误和版本模型。见 [projects/tk/docs/design/tool-api.zh.md](../../projects/tk/docs/design/tool-api.zh.md) 和 [projects/tk/docs/design/cli-reference.zh.md](../../projects/tk/docs/design/cli-reference.zh.md)。
-- 提供 `tk`、`tk-zh` tools Skill 和 `tk-cli`、`tk-cli-zh` CLI Skill，每种语言共用一份参考文件源。见 [projects/tk/docs/design/skill.zh.md](../../projects/tk/docs/design/skill.zh.md)。
-- 指导 Agent 按任务的整体预期目标命名，同时保留明确名称、仅研究范围和生命周期语义。见 [Skill 行为](../../projects/tk/docs/design/skill.zh.md)。
-- 从一个内嵌 bundle 离线安装、更新和卸载 Harness 组件和独立的 CLI Skill。见 [projects/tk/docs/design/installation.zh.md](../../projects/tk/docs/design/installation.zh.md) 和 [projects/tk/docs/design/harnesses.zh.md](../../projects/tk/docs/design/harnesses.zh.md)。
+为 Agent 工作提供持久的项目内任务记录，使其在上下文丢失后仍可跨会话、跨 Harness 和 CLI 使用。项目文件是状态的权威来源。用户无需运行 tk 即可读取普通 Markdown 材料。
+
+提供任务发现、搜索、读取、创建、关系维护、生命周期变更、日志、完整性检查、改名、元数据迁移、表示切换和临时文件清理。人用 CLI、stdio MCP 以及 Pi 和 OMP 原生工具使用同一领域规则和公开运行时。
+
+提供英文和中文的 tools Skill 与 CLI Skill。使用当前可执行文件携带的分发内容，离线安装、更新、切换和卸载 Harness 集成及独立 CLI Skill。
+
+完整 tk 规格集合由本产品规格，以及数据、接口、分发、Agent 行为四份主题规格组成。这些主题定义要求，不规定内部模块布局。
 
 ## 非目标
 
 - 数据库、全局任务注册表、后台索引、远程服务或常驻守护进程。
-- 优先级、排期、收件箱、看板、Issue 镜像、Agent 协调、工作流执行或会话绑定。
-- 锁、租约、compare-and-swap、自动合并、自动回滚，或多目标操作的续做状态。
-- rename 时改写 Markdown 引用。
-- 增加元数据、schema 字段、运行时状态、命令或自动目录的使用模式。
+- 优先级、排期、收件箱、看板、Issue 镜像、Agent 协调、工作流执行或持久会话绑定。
+- 锁、租约、compare-and-swap、自动合并、自动回滚或多目标操作的续做状态。
+- rename 时自动改写 Markdown 引用。
+- 增加元数据、schema 字段、运行时状态、命令或自动目录的材料模式。
 
 ## 公共面
 
-- 产品范围、系统组成和系统级不变量：[projects/tk/docs/design/system.zh.md](../../projects/tk/docs/design/system.zh.md)。
-- 任务数据模型、生命周期、写入、迁移、rename、check 和 GC：[projects/tk/docs/design/data-model.zh.md](../../projects/tk/docs/design/data-model.zh.md)。
-- 工具操作、结果和错误：[projects/tk/docs/design/tool-api.zh.md](../../projects/tk/docs/design/tool-api.zh.md)。
-- CLI 命令、输出和退出状态：[projects/tk/docs/design/cli-reference.zh.md](../../projects/tk/docs/design/cli-reference.zh.md)。
-- Harness 组件和适配器：[projects/tk/docs/design/harnesses.zh.md](../../projects/tk/docs/design/harnesses.zh.md)。
-- bundle、安装、更新和卸载：[projects/tk/docs/design/installation.zh.md](../../projects/tk/docs/design/installation.zh.md)。
-- Skill 行为和使用模式：[projects/tk/docs/design/skill.zh.md](../../projects/tk/docs/design/skill.zh.md)。
-- 入门：[projects/tk/docs/guide.zh.md](../../projects/tk/docs/guide.zh.md)。
+公开可执行文件为 `tk`。所有接口都访问该运行时，并提供一致的任务身份、存储语义、结果信封、稳定错误类别和版本信息。Harness 集成不维护第二份任务存储，也不独立改变校验规则。
+
+四个 Skill 身份为：
+
+| 模式 | 英文 | 中文 |
+| --- | --- | --- |
+| tools | `tk` | `tk-zh` |
+| cli | `tk-cli` | `tk-cli-zh` |
+
+tools 模式支持 Codex、Claude Code、Pi 和 OMP。cli 模式将普通 Skill 放入支持的 Harness Skill 根目录或用户指定的 Skill 根目录。组件和已安装 Skill 包含其引用的全部文件，不依赖仓库规格、任务材料或审查记录。
 
 ## 不变量
 
-- `projects/tk/` 是唯一维护的源码区域。一个 Cargo 包构建一个 `tk` 可执行文件，Rust 构建是唯一的 bundle 组装者。
-- 项目文件是任务状态的唯一权威来源。
-- 任务名称的排版差异在每个运行时接口中保持可用，不隐式改名。保存名称和生成式后缀各自遵守实际显示宽度上限，创建重试保留不同规范化请求的区分，显式 rename 达到精确目标。见[任务名称](../../projects/tk/docs/design/data-model.zh.md#任务名称)。
-- `TASK.md` 标题保持为普通正文，与受管名称和目录后缀相互独立。标题指导不增加运行时校验、rename 要求、强制写入或正文编辑权限。见 [Skill 行为](../../projects/tk/docs/design/skill.zh.md#任务文件内容)。
-- 普通任务材料支持软链接，发现和完整性检查不因链接产生诊断，也不遍历目标。受管存储保留其类型要求。见[任务发现与 check](../../projects/tk/docs/design/data-model.zh.md)。
-- Harness 组件注册工具和配置，但不重复任务校验或存储。它们直接启动固定的公开运行时，从不安装第二个运行时、包装器或私有可执行文件。
-- 适配器通过公开 CLI 映射操作，不解析版本范围；兼容性由运行时判断。
-- 预检失败的适配器不注册任何操作，报告一条有界的诊断，不结束会话。
-- CLI 模式的 Skill 通过公开 CLI 执行每个操作，不包含工具操作名称、发现、路线比较或回退措辞。
-- 每个组装后的 tools 组件和每个安装后的 Skill 只引用自身内部的文件。共享的 Skill 参考文件在源码树中每种语言只保存一份，构建时复制到该语言的每个 Skill 中。
-- 每项行为只有一个负责的设计页面。其他页面链接到它，只补充读者需要的上下文。公开文档陈述当前的正式契约。
-- tk 组件内的任何文件都不链接 `.agents/spec/`。
+- 任务身份、受管元数据、关系、生命周期和受管路径由 tk 管理。普通任务正文及支持材料在用户授权范围内保持可独立编辑。
+- `TASK.md` 标题属于正文，与受管名称和目录后缀相互独立，不受 32 列上限约束，也不要求 rename。
+- 合法保存名称的排版在读取、检查、无关元数据写入和表示切换后保持不变。显式 rename 达到精确的规范化目标。
+- 不遍历普通材料软链接，也不单纯因为它是链接而产生诊断。受管存储保留自己的类型要求。
+- 多目标操作在首次持久写入前完成全部领域校验。之后的 I/O 失败或取消报告真实进度，不自动回滚或续做。
+- 领域拒绝与进程或传输失败相互区分。任何接口都不为不完整或格式错误的传输输出伪造成功领域结果。
+- 公开使用文档保持独立可用，并表达相同要求。设计解释实现，验证材料记录方法和证据。两者都不替代规格集合中的必要行为。
 
 ## 宿主下限
 
-tk 的 OMP 适配器对其 `tools` 模式随附的宿主端代码遵循共同的 OMP 下限 `18.5.0`，声明在 [projects/tk/omp/README.zh.md](../../projects/tk/omp/README.zh.md#兼容性)。Pi 适配器的声明见 [projects/tk/pi/README.zh.md](../../projects/tk/pi/README.zh.md#兼容性)。cli 模式安装普通 Skill，不包含宿主进程代码；Claude Code 和 Codex 组件也没有维护下限。通用规则见 [.agents/spec/host-compatibility.zh.md](./host-compatibility.zh.md)。
+OMP tools 模式宿主端代码的维护下限为 `18.5.0`，Pi 为 `0.84.4`。这些值是维护承诺，没有上限，不是运行时版本门禁。Codex 和 Claude Code 集成不声明宿主维护下限。cli 模式不包含宿主进程代码，也没有宿主维护下限。
+
+运行时及 native/component 契约的版本检查是独立的兼容性要求，不能由宿主维护版本检查替代。
 
 ## 验收标准
 
-tk 的验收义务（包括真实 Harness 验证）由 [projects/tk/docs/design/validation.zh.md](../../projects/tk/docs/design/validation.zh.md) 负责。tk 的 Rust、适配器和 Skill 生命周期检查包含在仓库完整的 `pnpm check` 中。
+符合要求的实现必须同时满足数据、接口、分发和 Agent 行为规格：
 
-## 相关 ADR
-
-- [tk 架构](../adr/decision/2026/08/21-tk-architecture.zh.md)
-- [tk 运行时](../adr/decision/2026/08/28-tk-runtime.zh.md)
-- [tk Task 数据](../adr/decision/2026/08/28-tk-data.zh.md)
-- [tk Harness 集成](../adr/decision/2026/08/28-tk-harness.zh.md)
-- [tk CLI 模式](../adr/decision/2026/09/02-tk-cli-mode.zh.md)
-- [tk Skill 语言](../adr/decision/2026/09/02-tk-language.zh.md)
-- [tk 分发](../adr/decision/2026/08/28-tk-distribution.zh.md)
-- [tk 文档](../adr/decision/2026/08/29-tk-documentation.zh.md)
-- [宿主维护](../adr/decision/2026/09/28-host-maintenance.zh.md)
-- [组件自包含](../adr/decision/2026/08/24-component-self-containment.zh.md)
+- 同一项目数据经 CLI、MCP 和原生工具产生相同的领域行为，包括拒绝写入和非致命 WAL 警告。
+- 两种元数据表示在支持的元数据操作及表示切换中保留任务身份和正文原始字节。
+- 合法名称排版、精确 rename、普通软链接、完整发现失败、生命周期授权和多目标部分结果在公开接口上保持可观察。
+- 四种 Harness 集成及两种语言均在真实隔离 Harness 环境中安装、加载和卸载。OMP tools 模式额外完成一次真实工具调用。cli 模式作为普通 Skill 被发现。观察真实加载结果和卸载后状态，不从安装文件推断成功。
+- 通过已安装 Skill 的场景验证任务选择、创建策略、生命周期权限、catchup、WAL、修复授权、材料模式和模式专属路由。编译和 Markdown 检查不能证明 Agent 行为。
+- 产品产物自包含，不携带审查记录或任务材料。语言配对保留相同行为和约束。

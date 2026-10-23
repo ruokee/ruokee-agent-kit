@@ -2,7 +2,7 @@
 
 Decision owner: Ruokee
 Decision writer: OMP
-Reverses: [OMP QoL](../../../archived/2026/09/20-r9-omp-qol.md)
+Reverses: [OMP QoL](../../../archived/2026/09/20-r10-omp-qol.md)
 
 English | [中文](./20-omp-qol.zh.md)
 
@@ -34,7 +34,7 @@ Continuing waits, conservative error recovery, and native history replay are on 
 
 The compaction deadline is a default-off experiment with a bounded, process-wide timeout adjustment. Enabling it accepts its boundary: matching timeout calls from unrelated work in the same process are lengthened as well, so it provides neither request isolation nor strict project isolation. The component README compatibility section owns the maintenance-floor declaration, with no upper bound, under the [shared OMP floor](./28-host-maintenance.md). [Smart-context](../10/12-smart-cache.md) owns the migrated context capabilities.
 
-The module mechanics, setting keys, defaults, ranges, status reporting, eligibility rules, ownership and release rules, and per-adjustment evidence live in the [component README](../../../../../projects/omp-qol/README.md), the [component specification](../../../../spec/omp-qol.md), and the component's own `docs/`.
+The [component specification](../../../../spec/omp-qol.md) states the complete required behavior and acceptance, including setting keys, defaults, ranges, status reporting, eligibility, and externally observable ownership and release conditions. The [component README](../../../../../projects/omp-qol/README.md) remains an independently usable reference. Internal module mechanics and per-adjustment validation evidence belong to component design and validation materials, not the specification.
 
 Each adjustment needs its own real-session evidence. Validation of the compaction experiment requires a remote compaction longer than the native deadline to complete with usable model requests afterwards. On host upgrades, re-read the cited source and update the affected documentation; changing the declared maintenance bound does not replace those steps.
 

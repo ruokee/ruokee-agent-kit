@@ -15,7 +15,7 @@ The system consists of the following parts:
 - Rust runtime: responsible for Task domain rules, persistence, migration, project discovery, CLI, MCP, generated tool contracts, and component lifecycle. Not responsible for Harness session loops and model calls.
 - Harness tools components: responsible for the selected tools Skill, tool registration, configuration or adapters, and its installation target. Task domain validation and storage rules are not their responsibility.
 - Skill variants: responsible for the `tk`, `tk-zh`, `tk-cli`, and `tk-cli-zh` self-contained variants for Agent activation, authorization, Task usage, and material maintenance. Enforcing runtime invariants or installing components is not their responsibility.
-- Public documentation: responsible for current product contracts and user guidance. Not responsible for review history and local Task materials.
+- Public documentation: explains implementation and provides independently usable user references to the specified product contract. Specifications contain complete requirements and acceptance. Review history and local Task materials remain separate.
 - ADR: responsible for long-term architectural decisions and their rationale. Not responsible for implementation progress and test logs.
 
 One Cargo package builds one `tk` executable. Short-lived commands exit after execution. The MCP server exists only for the duration of one stdio connection and does not cache project state.

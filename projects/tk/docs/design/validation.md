@@ -2,7 +2,7 @@
 
 [简体中文](./validation.zh.md)
 
-This page defines the observable contracts that must be proven when implementing the current tk contract. Validation does not replace the design and must not weaken the contract for implementation convenience.
+This page describes validation methods and scenarios for tk's required behavior and implementation choices. Specifications contain the complete behavior and acceptance requirements; design explains implementation. Validation must not weaken either obligation for implementation convenience.
 
 ## Repository boundaries
 

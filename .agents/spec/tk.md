@@ -1,69 +1,59 @@
 # tk
 
-English | [中文](./tk.zh.md)
-
-Spec for [projects/tk](../../projects/tk/README.md). It states tk's goals, boundaries, and invariants. The design pages under [projects/tk/docs/design](../../projects/tk/docs/design/README.md) own the detailed contracts, and this spec links to them instead of restating them.
-
 ## Goals
 
-- Give Agent work one durable, file-backed, project-local Task record that survives context loss and works across sessions, Harnesses, and the CLI. See [projects/tk/docs/design/system.md](../../projects/tk/docs/design/system.md).
-- Keep Task domain rules, persistence, discovery, migration, maintenance, the CLI, stdio MCP, generated tool contracts, and the Harness component lifecycle in one Rust runtime. See [projects/tk/docs/design/runtime.md](../../projects/tk/docs/design/runtime.md).
-- Reach that runtime through one public executable from every interface: the human CLI, stdio MCP, and native Pi and OMP tools, with one result, error, and version model. See [projects/tk/docs/design/tool-api.md](../../projects/tk/docs/design/tool-api.md) and [projects/tk/docs/design/cli-reference.md](../../projects/tk/docs/design/cli-reference.md).
-- Ship the `tk` and `tk-zh` tools Skills and the `tk-cli` and `tk-cli-zh` CLI Skills in English or Chinese, from one shared reference source per language. See [projects/tk/docs/design/skill.md](../../projects/tk/docs/design/skill.md).
-- Guide Agents to name each Task by its overall intended outcome while preserving explicit names, research-only scope, and lifecycle semantics. See [Skill behavior](../../projects/tk/docs/design/skill.md).
-- Install, update, and remove Harness components and standalone CLI Skills offline from one embedded bundle. See [projects/tk/docs/design/installation.md](../../projects/tk/docs/design/installation.md) and [projects/tk/docs/design/harnesses.md](../../projects/tk/docs/design/harnesses.md).
+Give Agent work a durable project-local Task record that survives context loss and remains usable across sessions, Harnesses, and the CLI. Project files are the authoritative state. Users can inspect ordinary Markdown materials without running tk.
+
+Provide Task discovery, search, reading, creation, relationships, lifecycle changes, logging, integrity checking, rename, metadata migration, representation switching, and temporary-file cleanup. Human CLI, stdio MCP, and Pi and OMP native tools use the same domain rules and public runtime.
+
+Provide English and Chinese tools Skills and CLI Skills. Install, update, switch, and remove Harness integrations and standalone CLI Skills offline, using the distribution carried by the running executable.
+
+The complete tk specification set comprises this product specification and the data, interface, distribution, and Agent behavior specifications. Those areas define requirements, not a required internal module layout.
 
 ## Out of scope
 
 - A database, global Task registry, background index, remote service, or resident daemon.
-- Priorities, scheduling, inboxes, boards, Issue mirroring, Agent coordination, workflow execution, or session binding.
-- Locks, leases, compare-and-swap, automatic merges, automatic rollback, or continuation state for multi-target operations.
-- Rewriting Markdown references during rename.
-- Usage patterns that add metadata, schema fields, runtime states, commands, or automatic directories.
+- Priorities, scheduling, inboxes, boards, Issue mirroring, Agent coordination, workflow execution, or persistent session binding.
+- Locks, leases, compare-and-swap, automatic merging, automatic rollback, or continuation state for multi-target operations.
+- Automatic rewriting of Markdown references during rename.
+- Material patterns that add metadata, schema fields, runtime states, commands, or automatic directories.
 
 ## Public surface
 
-- Product scope, system parts, and system-level invariants: [projects/tk/docs/design/system.md](../../projects/tk/docs/design/system.md).
-- Task data model, lifecycle, writes, migration, rename, check, and GC: [projects/tk/docs/design/data-model.md](../../projects/tk/docs/design/data-model.md).
-- Tool operations, results, and errors: [projects/tk/docs/design/tool-api.md](../../projects/tk/docs/design/tool-api.md).
-- CLI commands, output, and exit statuses: [projects/tk/docs/design/cli-reference.md](../../projects/tk/docs/design/cli-reference.md).
-- Harness components and adapters: [projects/tk/docs/design/harnesses.md](../../projects/tk/docs/design/harnesses.md).
-- Bundle, install, update, and uninstall: [projects/tk/docs/design/installation.md](../../projects/tk/docs/design/installation.md).
-- Skill behavior and usage patterns: [projects/tk/docs/design/skill.md](../../projects/tk/docs/design/skill.md).
-- Getting started: [projects/tk/docs/guide.md](../../projects/tk/docs/guide.md).
+The public executable is `tk`. All interfaces reach that runtime and expose consistent Task identities, storage semantics, result envelopes, stable error categories, and version information. Harness integrations do not maintain a second Task store or independently change validation rules.
+
+The four Skill identities are:
+
+| Mode | English | Chinese |
+| --- | --- | --- |
+| tools | `tk` | `tk-zh` |
+| cli | `tk-cli` | `tk-cli-zh` |
+
+Tools mode supports Codex, Claude Code, Pi, and OMP. CLI mode provides an ordinary Skill in a supported Harness's Skill root or a user-selected Skill root. Components and installed Skills contain all files they reference and do not depend on repository specifications, task materials, or review records.
 
 ## Invariants
 
-- `projects/tk/` is the only maintained source area. One Cargo package builds one `tk` executable, and the Rust build is the only bundle assembler.
-- Project files are the only authoritative Task state.
-- Task-name formatting differences remain usable through every runtime interface without implicit renaming. Saved names and generated suffixes each obey their actual display-width limit; creation retries preserve distinct normalized requests, and explicit rename reaches its exact target. See [Task names](../../projects/tk/docs/design/data-model.md#task-names).
-- `TASK.md` headings remain ordinary body content, independent of managed names and directory suffixes. Heading guidance adds no runtime validation, rename requirement, mandatory write, or body-edit permission. See [Skill behavior](../../projects/tk/docs/design/skill.md#task-file-contents).
-- Ordinary Task materials support symbolic links without link diagnostics or target traversal during discovery and integrity checking. Managed storage retains its type requirements. See [Task discovery and check](../../projects/tk/docs/design/data-model.md).
-- Harness components register tools and configuration but do not duplicate Task validation or storage. They start the fixed public runtime directly and never install a second runtime, wrapper, or private executable.
-- Adapters map operations through the public CLI. They do not parse version ranges; the runtime evaluates compatibility.
-- An adapter whose preflight fails registers no operation and reports one bounded diagnostic without ending the session.
-- CLI-mode Skills route every operation through the public CLI and contain no tool-operation names, discovery, route comparison, or fallback wording.
-- Each assembled tools component and each installed Skill references only files inside itself. Shared Skill references live once per language in the source tree and are copied into every Skill of that language at build time.
-- Each behavior has one owning design page. Other pages link to it and add only the context their readers need. Public documentation states the current formal contract.
-- No file inside a tk component links to `.agents/spec/`.
+- Task identities, managed metadata, relations, lifecycle, and managed paths belong to tk. Ordinary Task prose and supporting materials remain independently editable within the user's authorization.
+- `TASK.md` headings are body content. They are independent of the managed name and directory suffix, have no 32-column limit, and do not require rename.
+- Saved valid name formatting survives reads, checks, unrelated metadata writes, and representation switches. An explicit rename reaches its exact normalized target.
+- Ordinary material symbolic links are neither followed nor diagnosed merely for being links. Managed storage keeps its own type requirements.
+- Every domain check for a multi-target operation finishes before the first persistent write. Later I/O failure or cancellation reports actual progress without automatic rollback or continuation.
+- Domain rejection is distinct from process or transport failure. No interface invents a successful domain result for incomplete or malformed transport output.
+- Public usage documentation remains independently usable and describes the same requirements. Design explains implementation; validation material records methods and evidence. Neither replaces required behavior in the specification set.
 
 ## Host lower bound
 
-The tk OMP adapter follows the shared OMP lower bound, `18.5.0`, for the host-side code it ships in `tools` mode, declared in [projects/tk/omp/README.md](../../projects/tk/omp/README.md#compatibility). The Pi adapter keeps its own statement in [projects/tk/pi/README.md](../../projects/tk/pi/README.md#compatibility). CLI mode installs an ordinary Skill and ships no host-process code; the Claude Code and Codex components also have no maintenance lower bound. The general rules are in [.agents/spec/host-compatibility.md](./host-compatibility.md).
+Tools-mode OMP host code has a maintenance lower bound of `18.5.0`; Pi host code has a lower bound of `0.84.4`. These are maintenance commitments, with no upper bound, and are not runtime version gates. Codex and Claude Code integrations declare no host maintenance lower bound. CLI mode contains no host-process code and has no host maintenance lower bound.
+
+The runtime and native/component contract version checks are separate compatibility requirements. They must not be replaced by host maintenance-version checks.
 
 ## Acceptance criteria
 
-[projects/tk/docs/design/validation.md](../../projects/tk/docs/design/validation.md) owns tk's acceptance obligations, including the real Harness validation. The tk Rust, adapter, and Skill lifecycle checks run inside the repository's complete `pnpm check`.
+A conforming implementation must satisfy the data, interface, distribution, and Agent behavior requirements together:
 
-## Related ADRs
-
-- [tk architecture](../adr/decision/2026/08/21-tk-architecture.md)
-- [tk runtime](../adr/decision/2026/08/28-tk-runtime.md)
-- [tk Task data](../adr/decision/2026/08/28-tk-data.md)
-- [tk Harness integration](../adr/decision/2026/08/28-tk-harness.md)
-- [tk CLI mode](../adr/decision/2026/09/02-tk-cli-mode.md)
-- [tk Skill language](../adr/decision/2026/09/02-tk-language.md)
-- [tk distribution](../adr/decision/2026/08/28-tk-distribution.md)
-- [tk documentation](../adr/decision/2026/08/29-tk-documentation.md)
-- [Host maintenance](../adr/decision/2026/09/28-host-maintenance.md)
-- [Component self containment](../adr/decision/2026/08/24-component-self-containment.md)
+- The same project data yields the same domain behavior through CLI, MCP, and native tools, including rejected writes and non-fatal WAL warnings.
+- Both metadata representations preserve Task identity and body bytes across supported metadata operations and representation changes.
+- Valid name formatting, exact rename, ordinary symbolic links, complete discovery failures, lifecycle authorization, and multi-target partial results remain observable at public interfaces.
+- All four Harness integrations and both languages install, load, and uninstall in real isolated Harness environments. OMP tools mode additionally completes one real tool call. CLI mode is discovered as an ordinary Skill. The actual loading result and post-uninstallation state are observed, not inferred from installed files.
+- Skill scenarios exercise Task selection, creation policy, lifecycle permissions, catchup, WAL, repair authorization, material patterns, and mode-specific routing through installed Skills. Compilation and Markdown checks do not establish Agent behavior.
+- Product artifacts are self-contained and exclude review records and task materials. Language pairs preserve the same behavior and constraints.

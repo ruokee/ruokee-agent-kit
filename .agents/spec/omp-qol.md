@@ -1,114 +1,169 @@
 # omp-qol
 
-English | [中文](./omp-qol.zh.md)
-
-Spec for [projects/omp-qol](../../projects/omp-qol/README.md).
-
 ## Goals
 
-- Carry independently switchable OMP adjustments in one package.
-- Give them one installation, one configuration entry, and one set of checks, with a separate switch, availability state, and failure report for each adjustment.
-- Continue interrupted work in the same main session automatically after an eligible stream closure.
-- Remove seance-only task fields from non-seance task items before host validation.
-- Copy the text of the last assistant reply from one fixed keyboard shortcut.
+Provide six independently switchable OMP adjustments in one package: continued job waiting, main-session error recovery, an experimental compaction deadline extension, native-history replay on resume, task argument cleanup, and copying the last assistant reply. Share installation and configuration while exposing each adjustment's effective state, settings, and failure reason.
 
 ## Out of scope
 
-- Guards for external tools, and host behavior unrelated to these adjustments.
-- Installing or migrating on the user's behalf, or modifying other extensions, user configuration, or installed host files.
-- Message-only continuation, named-process waiting, or service-only continuation on the wait entry.
-- Reducing unrelated settings during the remote cutover.
-- Changing native in-turn retries, the host classifier, provider selection, or subagent recovery.
-- Matching provider error text, adding recovery settings, or recovering every error.
-- Exactly-once tool execution, rollback, or idempotent continuation.
-- Copying selected text, thinking blocks, tool calls, tool output, or images; a `/copy` command, a configurable shortcut, or clipboard history.
+- Installing or migrating for the user, modifying installed host files or other extensions, or changing unrelated host behavior.
+- Message-only continuation, named-process waiting, service-only continuation, or polling to simulate them.
+- Changing native in-turn retries, provider selection, the host error classifier, or subagent recovery.
+- Matching provider error prose, recovering every error, exactly-once tool execution, rollback, or idempotent continuation.
+- Remote request alignment, compaction usage, or model rules. These belong to `omp-smart-context`; QoL neither activates nor stops them.
+- Selected-text copying, thinking, tool calls, tool output, images, a `/copy` command, configurable keys, or clipboard history.
 
 ## Public surface
 
-- Adjustments and defaults: [Adjustments](../../projects/omp-qol/README.md#adjustments).
-- Settings, keys, defaults, and ranges: [Configuration](../../projects/omp-qol/README.md#configuration) and the `omp.settings` manifest in `package.json`.
-- `/qol` status command: [Status](../../projects/omp-qol/README.md#status).
-- Per-adjustment behavior, limits, and verification: [projects/omp-qol/docs/adjustments.md](../../projects/omp-qol/docs/adjustments.md).
+### Configuration
+
+Use OMP plugin settings for `@ruokee/omp-qol`, with project values overriding user values. Read the effective settings once per activation. Restart OMP to apply changes; creating another session in the same running process does not reload that snapshot.
+
+All switches and notification fields are booleans. The following table gives every key and default:
+
+| Key | Default |
+| --- | --- |
+| `enabled` | `true` |
+| `waitEnabled` | `true` |
+| `waitContinueEmptyWindows` | `true` |
+| `waitJobsSeconds` | `1200` |
+| `waitMessagesSeconds` | `1200` |
+| `waitProcessSeconds` | `1200` |
+| `recoveryEnabled` | `true` |
+| `recoveryMode` | `knownTransient` |
+| `recoveryMaxAttempts` | `8` |
+| `recoveryBackoffBaseMs` | `1000` |
+| `recoveryBackoffMaxMs` | `8000` |
+| `recoveryNotify` | `true` |
+| `compactionTimeoutEnabled` | `false` |
+| `compactionTimeoutMs` | `900000` |
+| `compactionTimeoutFloorMs` | `300000` |
+| `compactionWindowGuardMs` | `3600000` |
+| `compactionTimeoutNotify` | `true` |
+| `replayEnabled` | `true` |
+| `taskArgsEnabled` | `true` |
+| `copyEnabled` | `true` |
+
+Numeric and enum constraints are:
+
+- The three wait settings accept finite numbers from `0.05` through `3600` seconds. `waitMessagesSeconds` and `waitProcessSeconds` remain validated but have no effect on supported hosts.
+- `recoveryMode` accepts only `knownTransient` and `unclassified`. `recoveryMaxAttempts` is an integer from 1 through 8.
+- `recoveryBackoffBaseMs` is an integer from 1 through 10000. `recoveryBackoffMaxMs` is an integer greater than the base and at most 10000.
+- `compactionTimeoutFloorMs` is an integer from 300000 through 3599999. `compactionTimeoutMs` is an integer greater than that floor and at most 3600000.
+- `compactionWindowGuardMs` is an integer from the effective timeout through 14400000.
+
+An absent key takes its default. Explicit null, a wrong type, non-finite number, fraction for an integer field, out-of-range value, or unknown enum disables the owning module only. An unknown key, non-object settings root, settings-read failure, or invalid master `enabled` disables every module. Do not activate defaults after rejecting the settings object.
+
+The absent keys `compactionCacheEnabled`, `compactionCacheProvider`, `compactionCacheMode`, `compactionUsageEnabled`, and `modelPromptsEnabled` are unknown keys and reject the whole configuration. There are no compatibility aliases. Migration removes those keys from both user and project scopes, preserves unrelated settings and effective enablement, and requires its own authorization.
+
+Diagnostics name the rejected key and rule, never its value. Report a module reason once per activation through the host log and, when available, UI. The master switch gates all module action; the copy key remains claimed while its extension binding exists even when action is disabled.
+
+### Status
+
+`/qol` is read-only and starts no model turn. Show package identity and version, activation cwd, the restart refresh policy, settings validity, and all six module states with their effective configuration. Use `pending` before session start and distinguish `enabled`, `disabled`, `invalid`, `incompatible`, and `unavailable`, with bounded reason codes. List rejected keys for partial or total settings rejection without printing their values.
+
+The wait line shows `entry=wait`, `effectiveDefaultSeconds`, and `messageContinuation`, `processWait`, and `serviceContinuation` as `not-applicable`. Recovery shows mode, attempt limit, base, cap, and notification setting. Compaction shows timeout, floor, guard, notification setting, and its actual process-wide state. Replay shows actual process-wide state and rewrite count. Task arguments show the activation's rewritten-call count. Copy shows the actual fixed key `alt+shift+a`.
+
+### Continued waiting
+
+Extend only the recognized standalone builtin `wait` entry. A missing, foreign, or unrecognized entry, or missing required host capability, leaves native behavior and reports a bounded reason. Preserve the native read approval, strict validation, interruptibility, and essential load behavior.
+
+The public optional `timeout` is a finite number in `(0, 3600]` seconds and sets the total deadline of that call. Omission uses `waitJobsSeconds`. The tool parameter's lower bound is not the configuration's `0.05` lower bound.
+
+With `waitContinueEmptyWindows=true`, continue within the same call only when the native result marks an empty window with a nonempty job list whose jobs are all still running. Judge the host's structured result, not its text. Messages, a settled job, absent jobs, errors, steering, cancellation, unknown result shapes, and service events return immediately. With the switch false, return the first native window.
+
+The deadline ends only this wait call. It starts or cancels no job or process and does not consume messages or results outside native waiting. Caller cancellation takes precedence and retains its reason. A native result that arrives despite the deadline wins and is returned unchanged. Convert a rejection to a deadline result only after this call's own deadline and only for recognized host aborts, `ToolAbortError`, `AbortError`, or the exact message `Operation aborted`. Propagate other errors unchanged.
+
+On a deadline without a terminal result, return the last certain all-running window with a bounded deadline note, or a minimal note if none arrived. The note identifies another `wait` call and `proc://` as available next actions. Release call-owned waiting resources on every exit.
 
 ### Error recovery
 
-Recovery applies to main-session runs that end with an assistant error, including errors that remain after the host's native retries finish. Recovery keys off the run's stop reason, so a successful stop keeps its normal handling whatever text it contains.
+Recover only a main-session run whose last assistant message has `stopReason: "error"`, including errors remaining after native retries. Successful output quoting an error is ordinary output. Missing required recovery interfaces or disabled switches preserve native behavior. Do not alter the original assistant error.
 
-With the master and recovery switches enabled, the default `knownTransient` mode must continue after this assistant error unless cancellation, either continuation cap, a safety exclusion, or a terminal client status prevents it:
+`knownTransient` accepts host-classified `Transient` or `Timeout` errors, `stopDetails.type` equal to `stream_interrupted_after_content`, and errors with neither HTTP status nor a classification. Unclassified means host error id zero or outside its class mask. A statusless unclassified error needs no interruption mark. `unclassified` accepts transient or timeout errors and all unclassified errors, subject to the same exclusions; an interruption mark does not broaden that mode.
+
+Both modes exclude content blocked, user interrupt, abort, silent abort, authentication failure, OAuth expiry, usage limit, account policy, context overflow, payload rejected, grammar rejection, unsupported mode, thinking loop, stale responses item, and deterministic tool JSON. HTTP 4xx statuses except 408 and 429 are terminal. Exclusions and terminal statuses win over modes and interruption marks.
+
+With default switches and mode, the following assistant error is eligible through its host fields unless cancellation, an exclusion, a terminal status, or either cap prevents continuation:
 
 ```text
 Error: Upstream provider closed the connection before the response completed: stream ended without terminal event or completed response
 ```
 
-The default mode accepts host-classified transient or timeout errors, the host's `stream_interrupted_after_content` stop-detail mark, and an error with neither an HTTP status nor a classifier verdict. A statusless unclassified error needs no interruption mark. The broader `unclassified` mode accepts transient or timeout errors and all unclassified errors after the same safety checks, but gains no additional scope from the interruption mark.
+Continue in the same main session without a new user message. For attempt numbers starting at 1, wait `min(base × 2^(attempt - 1), max)` milliseconds. The per-chain budget and backoff survive model-run boundaries. The host's independent cap of 8 continuations still applies. Only a continuation actually requested by this module consumes an attempt. Duplicate stop events for the same run and turn add neither a delay nor a continuation.
 
-This is a native session-stop continuation, not an exact replay of the failed request. Settings and the complete exclusion list remain owned by [the recovery behavior documentation](../../projects/omp-qol/docs/adjustments.md#continuing-after-a-transient-model-error).
+Normal completion, an out-of-scope error, or cancellation ends the chain. A later independent chain starts with a fresh budget. Another stop hook's continuation does not inherit this module's exhausted budget. A new run, session switch, shutdown, or invalidated chain prevents an old delayed continuation. Esc during the delay cancels it without consuming an attempt. Enabled notifications show one warning with the attempt and delay for each continuation.
 
-### Task argument cleanup
+Use this fixed continuation text, without provider error bodies, commands, or tool output:
 
-The task argument module is a switch-gated adjustment: the native boolean `taskArgsEnabled`, defaulting to `true` and subordinate to `enabled`, installs one `tool_call` handler for the built-in `task` tool. It installs the handler only when the built-in task schema exposes `sourceSession`; a schema with only the ordinary `model` selector leaves the module unavailable and unchanged. An invalid value disables that module alone; a rejected settings object follows the component-wide rule.
+```text
+The previous turn was interrupted by an upstream transport error, so its work may be incomplete. Check what already exists and what side effects already happened, then continue the task from there. Do not redo work that is already done.
+```
 
-A flat call is one item and a `tasks` array is a batch. For every item whose `agent` is a string, trims non-empty, and is not `seance`, the handler removes that item's own `sourceSession` and `model` and copies only changed objects. Items with a missing, empty, whitespace, non-string, or `seance` agent, non-object items, batch-level fields, and every other argument are unchanged. It returns a revised input only when something changed; one changed call increments one counter.
+This is a new continuation turn, not byte-for-byte replay of the failed request. It re-sends conversation context and consumes provider quota. Completed side effects remain and may be repeated; previously unexecuted calls may run. OMP continues to own history, scheduling, and approvals. Keep the original error in history and use the host's hidden continuation context rather than adding a user request.
 
-The cleanup does not change the task schema, description, approval policy, dispatch, background lifecycle, or result rendering. The host persists the revised arguments in the current assistant message, so later requests and the session file observe them. Registering the handler disables OMP's speculative task launch and experimental read speculation while the module is enabled; the module does not change the host setting, and turning it off restores the native behavior at the next activation. The module is installed only for a built-in `task` whose schema exposes `sourceSession`; a missing or shadowed tool, or a built-in schema without that field, leaves native behavior and reports a bounded reason.
+### Compaction deadline
 
-[Task argument cleanup](../../projects/omp-qol/docs/adjustments.md#task-argument-cleanup) states the complete rule, accepted speculation cost, limits, and verification.
+The timeout adjustment is an opt-in process-wide experiment. A window opens for remote automatic compaction, before manual compaction, or when the host reports an active compaction. During that window, a finite `AbortSignal.timeout(ms)` request satisfying `floor <= ms < timeout` receives the configured timeout. Other inputs retain native behavior, including native errors for invalid input. Outside the window all inputs retain native behavior.
 
-### Copy the last reply
+The first un-aborted compaction cancellation signal belongs to that operation. An already-aborted signal closes the window; later cancellation closes its own window, never a subsequent one. Repeated notifications with the same signal, including serial fallback methods, continue the same window without renewing its guard deadline or duplicating notifications and resources. A different live signal, overlapping operation, another session's window, or unrecognized event order stops the experiment for the process and reports the reason, including `overlapping-round` for a second live operation.
 
-The copy module is a switch-gated adjustment: the native boolean `copyEnabled`, defaulting to `true` and subordinate to `enabled`, governs the handler. `alt+shift+a` is registered during the extension factory, before interactive mode reads the shortcut registry; the module registers no `/copy` command and has no configurable key. The key remains claimed for the lifetime of that extension binding while the module is disabled or its settings are rejected, and the handler then does nothing. An invalid `copyEnabled` disables that module alone; a rejected settings object follows the component-wide rule.
+Close the window at the earliest compaction end, committed compaction, session switch, shutdown, cancellation, or guard expiry. The guard runs from the original opening event. With notifications enabled, report only the first extended deadline in each window.
 
-When enabled and idle, the handler selects the last assistant message on the current branch, joins its `text` blocks without a separator, trims the result, and writes it through the host's clipboard helper. An aborted message with no content is skipped. A last assistant message with no text, including one with only thinking or tool calls, copies nothing and does not fall back to an older reply. Thinking, tool calls, tool output, images, and other non-text blocks are excluded, and the module adds no session entry or request. While the agent is not idle, the handler warns and copies nothing; the host clipboard helper is best-effort and swallows write failures, so a real failed write is not reported, while a copy function that throws is caught and produces one error notification without retrying.
+One activation owns the process-wide experiment. A later activation with the same package version and effective settings keeps it without taking ownership or opening windows, and reports `incompatible` with `patch-owned-elsewhere`. It still shares the process-wide effect while the owner's window is open. A different version or settings snapshot stops a recognizable existing experiment. A disabled or invalid activation also stops it without enabling any module; its own switch state remains distinct from the actual process state shown by `/qol`.
 
-[Copy the last reply](../../projects/omp-qol/docs/adjustments.md#copy-the-last-reply) states the complete behavior, the key-claim limit, and verification.
+An owner ending its session stops the experiment and leaves `owner-stopped` as a terminal state for that process. Restart OMP to reactivate it. A session switch closes the window without ending the activation. Refuse coexistence with a recognized earlier compaction patch, unknown ownership state, an overwritten owned adjustment, missing required host capability, or a process in which the experiment has already stopped. Failed event registration reports `registration-error` and leaves no active experiment. Release only resources still owned by this component; never overwrite a replacement installed by another extension.
+
+The accepted costs and limits are:
+
+- The window covers a time period, not an isolated request or project. Every matching timeout in the process is extended, including unrelated callers and other sessions.
+- It can only lengthen a newly created deadline. Closing a window cannot shorten signals already created. The deadline limits one signal, not the combined time of retries and fallbacks.
+- Enabling the experiment gives up host speculative compaction. Do not start, defer the threshold to, or consume speculative compaction while interception applies. Compaction previously prepared in the background may therefore make the foreground wait.
+- Native compaction uses 300000 ms. A floor above that value prevents the compaction request itself from matching; `/qol` states this explicitly.
+- The process-level adjustment writes no persistent configuration or session state. Disabling it and restarting restores native behavior.
+
+### Native-history replay
+
+When enabled, the first `openai-responses` request after resuming a session uses the stored provider-native history, including replayable thinking signatures, as the host would in a warmed session. Do not rebuild, filter, or sanitize that history. Do not alter session files. A session without stored native items has nothing to replay. Other protocols, including `openai-codex-responses`, Anthropic, and completions, remain unchanged.
+
+The effect applies process-wide. Another enabled activation shares it and its rewrite count rather than creating a second adjustment. It may remain active after its original activation ends. An off switch releases a recognizable owned adjustment; rejected settings stop it with `runtime-conflict` without enabling defaults. Unknown ownership reports `registry-unrecognized`, foreign replacement reports `patch-overwritten`, and inability to activate reports `install-failed`. A refusal leaves unrelated state untouched, and release never overwrites a foreign replacement. `/qol` reflects the live process state, not a stale activation result.
+
+Replay assumes the endpoint accepts the stored native items. Rejection can fail the first request where native rebuilding might have succeeded. The amount of reusable prompt context varies; there is no cache-hit or cost-saving guarantee. This adjustment neither changes other provider protocols nor promises coverage of host histories rebuilt outside the recognized provider-state creation path.
+
+### Task arguments
+
+Act before host validation only for the builtin `task` whose schema exposes `sourceSession`. Missing tools report `unavailable`; shadowed tools report `incompatible`. A schema without that field reports `unavailable` with `task-tool-without-seance-fields`, preserving its ordinary `model` selector and speculative launch.
+
+A flat call is one item; a `tasks` array is a batch. For each object whose `agent` is a string that trims nonempty and is not `seance`, remove only that object's own `sourceSession` and `model`, regardless of their values. Preserve missing, empty, whitespace-only, non-string, and `seance` agents, non-object entries, batch-level fields, and all other arguments. Infer no default agent. One changed call increments the counter once, even if several items change; an unchanged call does not increment it.
+
+The host displays, executes, and persists the revised current assistant arguments. Later requests and the session file therefore see the cleaned call. Do not rewrite earlier history or add a session entry. Keep the native task schema, description, approvals, dispatch, background lifecycle, and result rendering. Calls invalid for another reason still fail. If multiple extensions revise an input, the host's last revision wins.
+
+The accepted cost is disabling speculative task launch and experimental read speculation while cleanup is registered, including for calls it leaves unchanged. Do not change the host settings themselves. Disabling the module restores native behavior at the next activation. A schema lacking `sourceSession` incurs none of this cost. A host changing the meaning or scope of these fields requires re-evaluation; do not extend cleanup by guessing.
+
+### Copying replies
+
+Bind `alt+shift+a` before the interactive host reads extension shortcuts. Each extension binding owns its registration; a session-journal switch retains the existing binding. The key remains claimed for that binding's lifetime when pending, disabled, or invalid, but the handler does nothing. A conflicting extension key is resolved by the host, not this module.
+
+When enabled and idle, select the current branch's last assistant message, skipping an aborted message with no content. Join that message's `text` blocks with no separator and trim the result. Copy a nonempty result through the host clipboard helper. A last message with only thinking, tool calls, or other non-text content yields no copy and no fallback to an earlier reply. Never write an empty string or copy non-text blocks.
+
+While busy, warn and leave the clipboard unchanged. With no copyable reply, warn and write nothing. The host helper is best-effort, using OSC 52 and native clipboard tools, and swallows write failures. A resolved helper call is reported as success even when the underlying write failed. A thrown copy error is caught and reported once without retry, file fallback, or a notification containing the copied body. Copying adds no session entry and starts no request.
 
 ## Invariants
 
-- Preserve every unrelated setting's key, default, range, and validation. Remote alignment, compaction usage, and model rules belong to `omp-smart-context`. The keys `compactionCacheEnabled`, `compactionCacheProvider`, `compactionCacheMode`, `compactionUsageEnabled`, and `modelPromptsEnabled` are absent and rejected as unknown keys; no runtime compatibility path remains. QoL neither installs nor stops the migrated modules.
-- `waitMessagesSeconds` and `waitProcessSeconds` have no effect on supported hosts. The English and Chinese documentation and the manifest setting descriptions say so.
-- Wait continuation serves only the standalone `wait` entry. A missing, foreign, or unrecognized entry leaves native behavior in place and reports a bounded reason.
-- The compaction deadline patch keeps its ownership checks. It refuses to coexist with a patch carrying the `Symbol.for("ruokee.omp.compaction-timeout.patched")` marker, and a later matching activation does not take over an existing owner.
-- Configuration comes only from OMP plugin settings and is read once per activation.
-- A fault in one adjustment does not disable the others. A rejected setting is named by key and rule without echoing its value.
-- Every code path the component keeps serves OMP 18.5.0 and later, including the wait path for the standalone `wait` entry.
-- Recovery acts only on a main-session assistant error. Successful output that quotes an error does not trigger it; disabled switches or missing required host interfaces retain native behavior.
-- Safety exclusions and the terminal 4xx rule take precedence over both modes and the interruption mark. The recovery module classifies a copy without changing the original assistant error.
-- The existing per-chain continuation budget and doubling backoff apply across model runs. Only returned continuations consume budget; duplicate stop events for the same run and turn schedule no extra wait or continuation. The host cap applies independently.
-- Normal completion, an out-of-scope error, or cancellation ends the chain. A later independent chain starts with fresh budget. A session switch, shutdown, new run, or invalidated chain prevents an old pending wait from continuing.
-- Recovery uses the existing fixed continuation text, asks the model to check completed work and side effects, and includes no provider error body, command, or tool output. OMP retains ownership of history, tool scheduling, and approvals.
-- Recovery notifications follow the existing switch and show the attempt and delay. `/qol` reports effective state and settings without starting a model run.
-- Task argument cleanup removes only `sourceSession` and `model` from items whose `agent` is a non-empty, non-seance string. Missing, empty, whitespace, non-string, and `seance` agents, non-object items, batch-level fields, and every other argument remain unchanged.
-- The handler is registered only for a built-in `task` whose schema exposes `sourceSession`; a missing or shadowed tool, or a schema with only the ordinary `model` selector, leaves native behavior, preserves `model`, and reports a bounded reason. While it is registered, speculative task launch and experimental read speculation are denied; the module does not change host settings.
-- The module changes the event input. The host persists the revised arguments in the current assistant message, so later requests and the session file observe them. It does not change the task schema, description, approval, dispatch, or result rendering; a call that remains invalid for another reason still fails.
-- An invalid `taskArgsEnabled` disables only the task argument module. Turning off its switch or the master switch restores native arguments and behavior at the next activation.
-- The copy shortcut is registered during factory execution, not on `session_start`; its handler reads the activation snapshot and copies only while the module is enabled.
-- The copy handler writes only `text` blocks of the last assistant message, skips an empty aborted message, and does not fall back to an earlier reply or write an empty string. Thinking, tool calls, tool output, images, and other non-text blocks are excluded.
-- The copy handler copies nothing while the agent is not idle. The host clipboard helper swallows write failures, so a real failed write is not reported; a copy function that throws is caught and reported without escaping the handler.
-- The copy module registers no `/copy` command and no configurable key. The fixed key stays claimed while the module is disabled, the master switch is off, or settings are rejected; the handler then does nothing.
-- An invalid `copyEnabled` disables only the copy module. Turning off its switch or the master switch leaves native behavior at the next activation.
+Each valid adjustment remains usable when another has a local configuration or availability failure. Unknown required host shapes preserve native behavior rather than guessing. Process-wide effects obey the ownership and teardown rules above. Settings names, defaults, ranges, absent-key rejection, and unrelated values remain consistent across declarations and both user-document languages.
 
 ## Host lower bound
 
-OMP `18.5.0`, declared in [Compatibility](../../projects/omp-qol/README.md#compatibility). The `@oh-my-pi/*` development dependencies are locked at `18.5.0`, and tests use that host's behavior as their baseline. The general rules are in [.agents/spec/host-compatibility.md](./host-compatibility.md).
+The minimum maintained OMP version is `18.5.0`, without an upper maintenance bound. This is not an installation or runtime gate, nor proof that every later version works. Earlier hosts may run without being maintained. Host peers remain unrestricted; required host capabilities determine a module's availability. Do not retain paths solely for hosts below the maintenance floor.
 
 ## Acceptance criteria
 
-- `bun run typecheck` and `bun test` pass in the component directory.
-- Unrelated settings retain their keys, defaults, ranges, and validation. Retired remote keys and the migrated usage/rule keys trigger whole-configuration unknown-key rejection. Migration removes migrated keys at both user and project scopes, preserving effective enablement and unrelated settings.
-- The descriptions of `waitMessagesSeconds` and `waitProcessSeconds` state that they have no effect.
-- Each adjustment's real OMP CLI evidence is recorded under its verification section in [projects/omp-qol/docs/adjustments.md](../../projects/omp-qol/docs/adjustments.md), with unrun scenarios marked as not verified.
-- A real OMP CLI run on a maintained host demonstrates automatic continuation after an eligible upstream stream closure in the same main session, with default recovery settings and no intervening user message. Native retries alone or an enabled `/qol` line do not prove this behavior.
-- Behavioral checks cover the reported error's authentic host fields under the default mode. Reproducing its exact wording in a new real session is not a development prerequisite; an unrun exact-error scenario remains documented as not verified.
-- The same fault with recovery disabled yields no QoL continuation. A real TUI run shows the attempt and delay, and cancellation during that wait prevents continuation.
-- Behavioral checks cover both modes, marked and unmarked statusless errors, safety precedence, independent caps, backoff, cross-run chains, duplicate events, invalidated waits, switches, notifications, and the unchanged error and fixed-context boundaries.
-- Component descriptions, manifests, root guidance, paired documentation, and current project Specs agree on ownership and approaching deprecation. Preserve all remaining adjustments and every unrelated valid requirement.
-- Task argument cleanup checks cover a flat call, batch items, seance preservation, missing/empty/whitespace/non-string agents, absent target fields, abnormal task shapes, one rewrite per changed call, the built-in guard, flat and batch seance schemas, a model-only schema without `sourceSession`, missing and shadowed tools, disabled and incompatible states, and the off switch. Its real CLI evidence is recorded under the adjustment's verification section or marked not verified.
-- Copy checks cover last-assistant selection, text-block joining and trimming, thinking and tool-call exclusion, an empty aborted message, no fallback when the last message has no text, the inactive/streaming/no-text/clipboard-failure handler paths, factory-time registration, the `/qol` line with the actual key, and copy-specific setting faults. Real CLI key delivery and a system clipboard write are recorded under the adjustment's verification section or marked not verified.
-
-## Related ADRs
-
-- [OMP QoL](../adr/decision/2026/09/20-omp-qol.md)
-- [Host maintenance](../adr/decision/2026/09/28-host-maintenance.md)
-- [Component self containment](../adr/decision/2026/08/24-component-self-containment.md)
-- [Task argument cleanup](../adr/decision/2026/10/17-task-argument-cleanup.md)
-- [Copy the last reply](../adr/decision/2026/10/18-copy-last-reply.md)
+- Check all settings defaults, type and range failures, module-local rejection, whole-object rejection, retired keys, restart semantics, and truthful read-only `/qol` output.
+- Waiting covers explicit and default deadlines, the all-running continuation condition, every terminal outcome, caller cancellation, native-result races, unrelated errors, and refusal to replace an unrecognized entry. Background work continues after a wait deadline.
+- A real maintained OMP CLI session demonstrates eligible stream-error continuation with default recovery settings, in the same main session and without an intervening user message. Native retries or an enabled status alone do not establish it. The same fault with recovery disabled produces no QoL continuation. A real TUI shows the attempt and delay; cancellation prevents continuation.
+- Behavioral recovery checks cover the reported error's real host fields, both modes, marked and unmarked statusless errors, exclusion precedence, independent caps, backoff, cross-run chains, duplicate events, invalidated delays, switches, notifications, unchanged errors, and fixed context. Reproducing the exact error prose in a new real session is not a development prerequisite.
+- Compaction checks cover interval boundaries, unchanged native errors, same-signal fallback, cancellation, guard expiry, overlapping operations, matching and conflicting activations, owner exit, foreign ownership, default-off behavior, and process-wide effects. Replay checks cover eligible resumed native history, unaffected protocols, sharing, release, and truthful counters.
+- A real remote compaction longer than the native deadline completes successfully, and model requests remain usable afterwards. Host upgrades revalidate this behavior; changing a maintenance declaration does not replace that evidence.
+- Task cleanup covers flat and batch calls, seance preservation, every excluded agent shape, absent target fields, malformed task shapes, one increment per changed call, builtin/schema guards, model-only schemas, missing or shadowed tools, and switches. Persisted current arguments reflect the result.
+- Copy checks cover last-message selection, joining and trimming, empty aborted messages, non-text exclusion, no fallback, disabled and busy states, no-text and clipboard errors, early key availability, and the actual key in `/qol`.
+- Record each adjustment's real CLI or TUI evidence in its validation material, separating source inspection, automated checks, and actual runtime observations. Mark unrun scenarios, including exact-error reproduction or real key delivery and clipboard writing, as unverified rather than inferring success.

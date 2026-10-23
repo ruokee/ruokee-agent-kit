@@ -1,66 +1,58 @@
 # Request alignment
 
-English | [中文](./request-alignment.zh.md)
-
 ## Goals
 
-Let Remote and Handoff reuse proved common content from the same session's ordinary request. Share observation and transport coordination without merging their protocol eligibility, reasons, or benefit evidence.
+Define the shared content-reuse, isolation, invalidation, and failure requirements for Remote and Handoff alignment. Both reuse proved common content from an ordinary request of the same session. Their protocol eligibility, allowed repairs, reasons, and benefit evidence remain independent.
 
 ## Out of scope
 
-Owning Pin, usage, or model-rule state; rebuilding a sent result by rerunning a handler; changing ordinary or non-target requests; taking over native maintenance or a competing wrapper.
+Owning Pin, usage, or model-rule state; rerunning handlers to reconstruct a sent result; changing ordinary or non-target requests; taking over native maintenance or another extension's ownership.
 
 ## Public surface
 
-The [package](./README.md) owns configuration and status. [Remote](./remote.md) and [Handoff](./handoff.md) own independent applicability and repair rules. A refusal means the complete native request still sends; it never blocks, delays, or drops the request.
+Alignment is optional. A refusal leaves the complete native request unchanged and does not block, delay, or drop it. Each capability reports reference confirmation, operation binding, candidate validation, and actual sending separately. Physical sends and retries count once at transport, not at payload preparation. Refusals remain in totals; off or unavailable Remote does not make Handoff unavailable, or vice versa.
 
 ## Invariants
 
 ### Ordinary reference
 
-A reference contains raw source, completed preparation, callbacks, and the actual outgoing payload from one ordinary main-loop dispatch. Confirm that they belong to the same dispatch and reach transport unchanged. Title, warming, advisor, and Handoff requests do not establish ordinary references. Handoff additionally requires a prepared tool set.
+Only a confirmed ordinary main-loop dispatch can supply reusable reference content. Its raw source, completed preparation, handler results, and actual outgoing payload must belong to the same dispatch and reach transport unchanged. Title, warming, advisor, and Handoff requests do not establish an ordinary reference. Handoff additionally requires a prepared tool set.
 
-Each actual AgentSession registers its own effective model, API, tools, prompt, persistent identity, Provider identity, dispatch, and epoch. An epoch is the session's reference-validity generation. Equal models, text, endpoints, cache keys, or timing never prove session ownership. Main sessions, native task children, and Eval children retain separate references and counts.
+Main sessions, native task children, and Eval children have separate references and counts. Reuse must retain the owning session, persistent and Provider identities, effective model and API, tools, prompt, and dispatch. Equal model names, text, endpoints, cache keys, or timing do not establish session ownership.
 
-Native CLI/SDK construction publication is observed before `session_start`; continuously check original agent, runner, and stream identities. This is not an authentication interface for arbitrary Agent instances. Unobserved or changed construction may retain complete-range proof, but equal lengths or outputs cannot grant local native independence. History-dependent image preparation and later date/cwd reminders require complete-range proof unless local dependencies are established.
+Native CLI and SDK session provenance must be established rather than inferred for arbitrary Agent instances. If that provenance becomes unknown or changes, complete-source proof can still justify reuse, but equal lengths or outputs do not justify local independence. Image preparation that depends on history, and later date or cwd reminders, require complete-range proof unless their local dependencies are established.
 
 ### Operation lifetime
 
-Each native operation freezes its first reference, including absence, for its entire lifetime. Newer ordinary work, handler-state changes, authentication refresh, and transport retries cannot replace it.
+A native operation uses its first eligible reference for its entire lifetime, including the initial absence of a reference. Later ordinary work, handler-state changes, authentication refresh, and transport retries cannot substitute another reference.
 
-Navigation revokes the old epoch before switch, branch, or tree work. After native transition settles, fresh ordinary work can restore eligibility whether that transition succeeded, failed, or was cancelled. Model, tools, system, thinking, history, cancellation, compaction commit, and session release invalidate affected facts. Late responses, retries, or restored old values cannot revive invalidated work.
+Before session switching, branching, or tree navigation begins, revoke the affected prior reference eligibility. After the native transition settles, fresh ordinary work may establish future eligibility whether the transition succeeded, failed, or was cancelled. Changes to model, tools, system prompt, thinking, history, cancellation, compaction commit, or session lifetime invalidate affected work. Late responses, retries, or restoration of previous values cannot revive it.
 
-Automatic maintenance may commit between tool-loop steps without changing the run signal. A new ordinary dispatch binds its own credential resolver to its current epoch, preparation, and final send. It can restore the session reference while the old root operation remains permanently revoked. Only a new operation root can capture the restored reference. Ambiguous identity, a cancelled signal, or an earlier dispatch's resolver remains ineligible.
+Automatic maintenance can commit between tool-loop steps without changing the run's cancellation signal. A fresh ordinary dispatch can establish a new reference using its own current identity and credentials, preparation, and final send. It cannot revive the old operation. Only a new native operation may use that new reference. Ambiguous identity, a cancelled signal, or credentials associated with an earlier dispatch cannot establish eligibility.
 
-### Reuse
+### Content reuse
 
-Prove the complete retained source range before attempting local reuse. Duplicate source messages do not invalidate a complete proof. Partial reuse requires independently extractable already-sent units, all retained dependencies, and retained processing conditions. Output equality, position, length, or provenance alone is insufficient. Do not rerun a black-box context or request handler.
+Complete retention of the source range permits reuse of its confirmed processing result, even with duplicate source messages. Partial reuse additionally requires an independently extractable already-sent unit, all its retained dependencies, and unchanged processing conditions. Equality of output, position, length, or provenance alone is insufficient. Do not run a black-box context or request handler again to obtain proof.
 
-Opaque history remains opaque. Native trimming, deleted dependencies, tool call/result pairing, image history, and new tails retain their native boundaries. Do not restore removed tool output or invent a pure-projection protocol.
+Opaque history remains opaque. Native trimming, deleted dependencies, tool call/result pairing, image history, and new tails retain their boundaries. Never restore removed tool output or assume an unestablished pure-projection contract.
 
-### Coordination
+### Sending
 
-Use one process coordinator, separate session registrations, immutable facts from the same ordinary dispatch, and one wrapper per native method or actual model registry. A physical request has at most one rewriting capability. V2 proof does not grant Handoff eligibility. A refusal or missing interface in one capability leaves the other usable.
+Each physical request has at most one alignment writer. Remote V2 evidence does not grant Handoff eligibility. Required proof must still hold for the final request after payload callbacks. Apply the entire validated repair or leave the entire native body unchanged with a fixed reason. Do not partially publish a candidate whose required proof failed. An identical candidate is `already-aligned` and retains its original serialization.
 
-Coordinator and activation records carry a contract version. A foreign version is neither reused nor changed and reports `coordinator-conflict`; activation snapshots use this contract version's own process-global key.
-
-Construct the complete candidate, validate it at final transport after payload callbacks, then replace it atomically. An identical candidate is already aligned and is not reserialized. Missing proof preserves the whole native body with a fixed reason. Count actual transport delegations and retries, not payload callbacks; maintain independent bounded counters and keep refusals in totals.
+Compatible activations share observation without duplicating interception or counts. An incompatible alignment contract reports `coordinator-conflict`; do not reuse or alter the other owner's state. Failure or a missing interface in one capability leaves the other usable.
 
 ### Native ownership
 
-OMP owns triggering, preparation, trimming, speculation, credentials, cancellation, retries, fallback, adoption, commits, and continuation. Add no compaction entry point, `session_before_compact` handler, summary fabrication, or retry. A compaction veto remains with its installing component.
+OMP owns triggering, preparation, trimming, speculation, credentials, cancellation, retries, fallback, adoption, commits, and continuation. Add no compaction entry point, `session_before_compact` interception, fabricated summary, or retry. A compaction veto stays with the component that installed it.
 
-Preserve native arguments, receivers, results, exceptions, signals, and still-owned property shapes. Release a finished or replaced child only from its own registration. Restore only wrappers still owned by this package, never a competing wrapper. Release shared resources after the last registration. Retain only current references and snapshots reachable from live operations. In-flight references remain in the running process until settings or registrations are changed and OMP restarts.
+Preserve native arguments, receiver behavior, results, exceptions, cancellation signals, and externally observable property behavior. Finishing or replacing a child releases only that child's resources. Cleanup releases only resources still owned by this package and preserves foreign replacements. Release shared resources when no registration needs them. Do not retain dead operations or obsolete references. In-flight work remains with its running process; setting or registration changes take effect after OMP restarts.
 
 ## Acceptance criteria
 
-- Concurrent sessions with the same model remain isolated, including task and Eval children, cancellation, replacement, and revival.
-- A reference is established only by a confirmed ordinary send. Ordinary and non-target bodies remain unchanged, and handlers execute once.
-- Invalidation permanently revokes old operations; fresh ordinary work restores only future eligibility, including continuation on an unchanged run signal.
-- Independent off and refusal states preserve native requests and the other alignment capability. Each physical send has at most one writer and is counted once.
-- Cleanup preserves foreign wrappers and native method behavior, and releases only the departing session's resources.
-
-## Related ADRs
-
-- [Request alignment](../../adr/decision/2026/10/22-request-alignment.md)
-- [Context package](../../adr/decision/2026/10/12-smart-cache.md)
+- Same-model concurrent sessions remain isolated, including task and Eval children, cancellation, replacement, and resumed activity.
+- Only confirmed ordinary sends establish references. Ordinary and non-target request bodies remain unchanged, and each handler executes once.
+- Invalidation permanently revokes old operations. Fresh ordinary work restores only future eligibility, including continuations with an unchanged run signal.
+- Complete-range and partial-unit cases enforce their distinct proof requirements without restoring trimmed content or interpreting opaque history.
+- Independent off, refusal, or unavailable states preserve native requests and the other alignment capability. Each physical send has at most one writer and is counted once.
+- Cleanup preserves foreign ownership and native behavior, releasing only the departing session's resources.

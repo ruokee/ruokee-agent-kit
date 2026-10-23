@@ -102,3 +102,9 @@ Keeping the complete Skills under the ordinary root Skill and language-variant d
 An instruction-only component cannot enforce operation or permission boundaries. An Agent that fails to load the current body or disregards a visible rule can still skip required checks or perform unauthorized work. Self-contained loading and recovery instructions reduce missing-context failure paths, but packaging and rereading do not eliminate the need for independent verification or establish reliable model behavior.
 
 The two independently installable language Skills each carry a complete authoritative contract. A change applied to only one body can give users of the other language different permissions or required checks even when both copies load successfully. Maintaining both in the same change and reviewing semantic equivalence is a continuing cost of independent language distribution; matching version numbers alone cannot establish equivalence.
+
+## Changes
+
+### 2026-10-23 Specification completeness
+
+The component specification completely states required operation behavior, permissions, boundaries, and acceptance, without implementation descriptions or repository-file links. Skills supply the executable Agent instructions and component documentation supplies independently usable guidance for the same contract. The non-spec index carries language, topic, and decision navigation. This preserves the division between required outcomes and their operation or usage methods.

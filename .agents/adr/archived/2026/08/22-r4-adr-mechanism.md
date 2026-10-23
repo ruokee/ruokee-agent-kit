@@ -18,7 +18,7 @@ The problem is inside individual records: a reader cannot always identify the ch
 
 ## Analysis
 
-The existing rules already exclude progress logs and copied implementation inventories, and the [tk documentation decision](../../../decision/2026/08/29-tk-documentation.md) assigns detailed contracts to their owning pages. They do not explain when a technical detail is essential to a decision, or require the opening to identify the work without its title.
+The existing rules already exclude progress logs and copied implementation inventories, and the [tk documentation decision](./29-r3-tk-documentation.md) assigns detailed contracts to their owning pages. They do not explain when a technical detail is essential to a decision, or require the opening to identify the work without its title.
 
 Following the current reversal rules can still leave an unnecessarily narrow promise in place. The archived QoL decisions ([2026-09-20](../09/20-r1-omp-qol.md), [2026-09-21](../09/20-r2-omp-qol.md)) show one record stopping a process-wide adjustment whenever another owner was registered, and its successor allowing a matching activation to preserve the installed patch. That successor changed an explicit rule, so a reversal was warranted. The tk documentation successor instead treated a single fixed translation as the conflict that required restating a whole documentation policy, which made the reversal broader than the changed term.
 

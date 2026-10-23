@@ -2,6 +2,7 @@
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
+Reverses: [任务参数清理](../../../archived/2026/10/17-r1-task-argument-cleanup.zh.md)
 
 [English](./17-task-argument-cleanup.md) | 中文
 
@@ -33,7 +34,7 @@ schema 的正常校验会删除可选字段中的 `null` 和字符串 `"null"`�
 
 ### 与组件的契合
 
-`@ruokee/omp-qol` 在一个包、一个设置入口和一套检查下提供可独立开关的调整。[OMP QoL 决定](../09/20-omp-qol.zh.md)已经确定该边界。[组件 README](../../../../../projects/omp-qol/README.zh.md) 与[组件规格](../../../../spec/omp-qol.zh.md)负责模块机制和逐项证据。wait 模块已经确立了一种模式：会话没有暴露预期的内建工具时拒绝动作。组件的维护下限是 OMP 18.5.0，该版本提供这里使用的 `tool_call` 输入替换契约。在未暴露 seance 字段的宿主上，模块保持 `unavailable` 且不注册 handler。
+`@ruokee/omp-qol` 在一个包、一个设置入口和一套检查下提供可独立开关的调整。[OMP QoL 决定](../09/20-omp-qol.zh.md)负责该边界。[组件规格](../../../../spec/omp-qol.zh.md)包含完整必要行为和验收。[组件 README](../../../../../projects/omp-qol/README.zh.md) 提供独立用户参考，组件设计和验证材料保存机制及逐项证据。wait 模块已经确立了一种模式：会话没有暴露预期的内建工具时拒绝动作。组件的维护下限是 OMP 18.5.0，该版本提供这里使用的 `tool_call` 输入替换契约。在未暴露 seance 字段的宿主上，模块保持 `unavailable` 且不注册 handler。
 
 ## 决定
 

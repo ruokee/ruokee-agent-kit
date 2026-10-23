@@ -37,3 +37,9 @@ None
 All tools-mode Harnesses share the same requests, schemas, domain rules, and unified results. Adapters remain thin but must enforce compatibility, resource limits, context mapping, cancellation, load isolation, and transport failure reporting.
 
 A native registration failure can leave an accepted prefix. This is a Harness API boundary, not a transaction guarantee.
+
+## Changes
+
+### 2026-10-23 Specification completeness
+
+The complete [tk specification set](../../../../spec/README.md#tk) states the required tool behavior, Harness integration, Agent behavior, and acceptance. Component references and installed Skills remain independently usable and express the same contract; design explains implementation. This applies the [specification decision](../10/04-specifications.md) without changing routing, registration, compatibility, or failure behavior.

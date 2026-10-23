@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-07
-Reversed by: [Bilingual documentation](../../../decision/2026/08/20-bilingual-docs.md)
+Reversed by: [Bilingual documentation](./20-r2-bilingual-docs.md)
 
 English | [中文](./20-r1-bilingual-docs.zh.md)
 

@@ -2,6 +2,7 @@
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
+Reverses: [Task argument cleanup](../../../archived/2026/10/17-r1-task-argument-cleanup.md)
 
 English | [中文](./17-task-argument-cleanup.zh.md)
 
@@ -33,7 +34,7 @@ OMP denies both forms when an extension registers a `tool_call`, `tool_result`, 
 
 ### Fit with the component
 
-`@ruokee/omp-qol` carries independently switchable adjustments under one package, one settings entry, and one check surface. The [OMP QoL decision](../09/20-omp-qol.md) already owns that boundary. The [component README](../../../../../projects/omp-qol/README.md) and [component specification](../../../../spec/omp-qol.md) own the module mechanics and per-adjustment evidence. The wait module establishes the pattern for declining to act when the session does not expose the expected built-in tool. The component's maintenance floor is OMP 18.5.0, which exposes the `tool_call` input replacement contract used here. On a host that does not expose the seance fields, the module stays unavailable and registers no handler.
+`@ruokee/omp-qol` carries independently switchable adjustments under one package, one settings entry, and one check surface. The [OMP QoL decision](../09/20-omp-qol.md) owns that boundary. The [component specification](../../../../spec/omp-qol.md) contains complete required behavior and acceptance. The [component README](../../../../../projects/omp-qol/README.md) provides an independent user reference; component design and validation materials hold mechanics and per-adjustment evidence. The wait module establishes the pattern for declining to act when the session does not expose the expected built-in tool. The component's maintenance floor is OMP 18.5.0, which exposes the `tool_call` input replacement contract used here. On a host that does not expose the seance fields, the module stays unavailable and registers no handler.
 
 ## Decision
 

@@ -8,7 +8,7 @@ The [repository spec](../spec/repository.md) states the language, pairing, and l
 
 - Keep documentation in sync with the code it describes, and update the affected documents in the same change.
 - Write code, comments, configuration, and default public documentation in English.
-- Maintain a language pair for every ordinary public Markdown page: same-directory `name.md` and `name.zh.md`, entry pages as `README.md` and `README.zh.md`, with reciprocal language links directly below the title of each file.
+- Maintain a language pair for every ordinary public Markdown page: same-directory `name.md` and `name.zh.md`, entry pages as `README.md` and `README.zh.md`, with reciprocal language links directly below the title. Spec bodies contain no repository-file links; keep their language navigation in the non-spec index.
 - Update both languages of a pair in the same change, and keep their meaning aligned.
 - Keep Skill language variants in their existing component layouts instead of adding cross-language links between them.
 - Write internal project Skills under `.agents/skills/` in English. They are maintenance material, not ordinary public pages or public language variants.
@@ -42,3 +42,4 @@ The [repository spec](../spec/repository.md) states the language, pairing, and l
 
 - Before maintaining or reviewing a long-lived spec, or changing a component's or repository area's goals, boundaries, or acceptance, load [maintain-spec](../skills/maintain-spec/SKILL.md), read the [project supplements](../spec/README.md) and affected specs, and update them with the change. The Skill does not maintain task Goals. Loading either maintenance Skill does not expand write permission.
 - Update the affected spec in the same change as the decision it follows.
+- State the complete confirmed requirements in the spec without implementation descriptions or repository-file links. Keep navigation outside the spec body; do not delegate requirements through paths or references.

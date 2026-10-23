@@ -1,7 +1,5 @@
 # Handoff alignment
 
-English | [中文](./handoff.zh.md)
-
 ## Goals
 
 Align native Handoff requests with a confirmed ordinary request from the same session, preserving native document generation, adoption, and continuation.
@@ -12,19 +10,19 @@ APIs other than `openai-completions` and `openai-responses`, new commands or doc
 
 ## Public surface
 
-`handoffCacheEnabled` is a boolean, default `false`, read in the [package activation snapshot](./README.md#configuration). It has no Provider filter or mode and is independent of Remote settings. Responses Handoff does not require Remote activation, a matching Provider, or any particular Remote mode. V2 remains Remote's responsibility. Unsupported APIs keep their native behavior.
+`handoffCacheEnabled` is boolean, default `false`. OMP project settings override user settings, missing keys take defaults, and changes require restart. It has no Provider filter or mode and is independent of Remote settings. Responses Handoff does not require Remote activation, a matching Provider, or any particular Remote mode. V2 remains Remote's responsibility. Unsupported APIs keep native behavior. `/smart-context` reports Handoff's state and counts separately.
 
 ## Invariants
 
-Apply the [shared reference and lifetime contract](./request-alignment.md). Dispatch by actual request kind after proving operation ownership; each physical request has at most one writer.
+The shared request-alignment requirements apply to Handoff. The actual request kind and confirmed operation ownership determine eligibility; each physical request has at most one writer. Main sessions, native task children, and Eval children remain isolated even when their models and request text are equal.
 
 ### Reference confirmation
 
-Capture the same confirmed ordinary dispatch together with Provider, model identity, API, system prompt, thinking state, and tool set. A prepared request without tools supplies no reference. Pending confirmation freezes dispatch epoch, persistent and Provider identities, cancellation signal, and the complete owner, then rechecks them after the successful response. Invalidated or cancelled work cannot publish a reference. Freeze tool definitions through the host's native wire-schema conversion, including callable schemas.
+The reference belongs to one confirmed ordinary dispatch with its Provider and persistent session identities, effective model and API, system prompt, thinking state, and tool set. These facts and cancellation status must remain valid through the successful response. A prepared request without tools supplies no reference. Tool definitions must match the host's wire representation, including callable schemas. Invalidated or cancelled work cannot establish a reference.
 
-The operation's reference is immutable across newer work, authentication refresh, transport retries, and handler-state changes. Capture Responses source from that same ordinary context dispatch, never from public Agent state that may not yet be synchronized. Confirmed final ordinary transport and a 2xx response establish the independent reference. Alignment calls themselves never become references.
+The operation's reference is immutable across newer work, authentication refresh, transport retries, and handler-state changes. Responses source must belong to that same ordinary context dispatch, even while public Agent state is not yet synchronized. Only confirmed final ordinary transport followed by a 2xx response establishes the reference. Alignment calls never become references.
 
-Observe the native construction baseline of both Handoff methods before registration. An unconfirmed baseline leaves them untouched; loss of an installed wrapper makes Handoff unavailable. Check the operation's complete owner on every physical send before consulting cached operation results. An owner change permanently revokes that operation, even if later values or request bodies match the old ones. The payload callback marks preparation only; final transport performs projection and counts each delegation or retry.
+Unknown native Handoff provenance leaves the request unchanged. Loss of required interception makes Handoff unavailable. Complete operation ownership must remain valid at every physical send; a changed owner permanently revokes the operation even if later values or bodies return to their old values. Payload callbacks are preparation, not sends. Validate the actual final transport request and count every delegation and retry there.
 
 ### Common history
 
@@ -38,19 +36,19 @@ Restore the ordinary system/developer fragments and `reasoning_effort`. Restore 
 
 ### Responses
 
-Use the native serializer to identify the prepared system expression and restore only the proved missing system content.
+Recognize the system expression in the host's prepared wire format and restore only proved missing system content.
 
 For top-level instructions, match the known ordinary system fragments with native side instructions as a text prefix. Replacing instructions leaves the complete input untouched. For a leading developer expression, known ordinary fragments and common history must identify exactly one side-system boundary. Replace only that leading system, preserving positions of historical developer messages. Both missing complete fragments and a missing suffix within a fragment can be restored.
 
 Tool definitions must match. Images, new history, call/result pairing, cache keys, and side identity stay native. Nested reasoning, native configuration updates, and `none` are not projected to ordinary values. Keep the host's existing auto-only compatibility retry. Exclude strictly recognized reasoning configuration updates only from common-history comparison, never insert or remove them in outgoing input. Native effective reasoning and generation semantics remain, with differences counted as axes or unprojected.
 
-Missing required proof preserves the whole request. Skip and count an independently unrestorable axis; unrelated fields do not veto proved system projection. Replace the complete validated candidate atomically at final transport after payload hooks. Identical candidates are not reserialized.
+Missing required proof preserves the whole request. Skip and count an independently unrestorable axis; unrelated fields do not veto proved system projection. The complete candidate must remain valid after payload hooks and be applied as one final-transport replacement. Identical candidates retain their original serialization.
 
 ### Native behavior
 
 Invalidated operations, unconfirmed or changed references, and changed system prefixes or history projections send natively with fixed reasons. `rejected` never means blocked, delayed, or dropped.
 
-OMP owns generation, triggering, speculation, cancellation, authentication and transport retries, model and method fallback, document validation, history commits, and continuation. Keep native routing and the independent side session unchanged. Native manual focus and automatic entry use the host generator. Register no `session_before_compact` handler and add no retry, command, or document store.
+OMP owns generation, triggering, speculation, cancellation, authentication and transport retries, model and method fallback, document validation, history commits, and continuation. Keep native routing, the independent side session, and native manual-focus and automatic generation behavior. Add no `session_before_compact` interception, retry, command, or document store.
 
 Replace the adaptation only after behavioral verification that a maintained native interface provides equivalent results, configuration semantics, isolation, and failure behavior across required paths. An upstream merge alone is insufficient.
 
@@ -60,9 +58,4 @@ Replace the adaptation only after behavioral verification that a maintained nati
 - Responses covers both system expressions, historical developer positions, missing fragments and suffixes, image history, callable tools, native reasoning updates, and ordinary state not yet synchronized.
 - Bookkeeping-only backfill is accepted; changed content, replay payloads, unknown source fields, and changed final wire history are refused.
 - Navigation, cancellation, tool/model/system/thinking/Provider changes, compaction, and release cannot revive old references or operations. A retry after owner restoration remains native once revoked.
-- Actual sends and retries are counted at transport, later payload options survive, competing wrappers remain installed, and native document adoption or failure remains native.
-
-## Related ADRs
-
-- [Handoff alignment](../../adr/decision/2026/10/12-handoff-alignment.md)
-- [Request alignment](../../adr/decision/2026/10/22-request-alignment.md)
+- Actual sends and retries are counted at transport, later payload options survive, foreign ownership remains intact, and native document adoption or failure remains native.

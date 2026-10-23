@@ -2,7 +2,7 @@
 
 [简体中文](./cli-reference.zh.md)
 
-This page is the single source of truth for public CLI spellings, defaults, options, and exit statuses. For detailed data semantics, see [Data model](./data-model.md). For logical JSON requests, see [Tool API](./tool-api.md).
+This page provides the public CLI spellings, defaults, options, and exit statuses as an independently usable reference to the specified contract. For detailed data semantics, see [Data model](./data-model.md). For logical JSON requests, see [Tool API](./tool-api.md).
 
 ## Invocation rules
 

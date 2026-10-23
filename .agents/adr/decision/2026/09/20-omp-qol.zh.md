@@ -2,7 +2,7 @@
 
 Decision owner: Ruokee
 Decision writer: OMP
-Reverses: [OMP QoL](../../../archived/2026/09/20-r9-omp-qol.zh.md)
+Reverses: [OMP QoL](../../../archived/2026/09/20-r10-omp-qol.zh.md)
 
 [English](./20-omp-qol.md) | 中文
 
@@ -34,7 +34,7 @@ Reverses: [OMP QoL](../../../archived/2026/09/20-r9-omp-qol.zh.md)
 
 压缩期限是默认关闭的实验，采用受约束的进程级超时调整。启用它即接受同进程无关工作的匹配超时调用也被延长，因此不提供请求隔离或严格项目隔离。组件 README 兼容性章节按[共同 OMP 下限](./28-host-maintenance.zh.md)拥有维护下限声明，不设上限。[Smart-context](../10/12-smart-cache.zh.md) 拥有迁出的上下文能力。
 
-模块机制、设置键与默认值、范围、状态报告、判定条件、归属与释放规则，以及逐项证据见[组件 README](../../../../../projects/omp-qol/README.zh.md)、[组件规范](../../../../spec/omp-qol.zh.md)与组件自身的 `docs/`。
+[组件规格](../../../../spec/omp-qol.zh.md)完整表达必要行为和验收，包括设置键、默认值、范围、状态报告、判定条件及外部可观察的归属和释放条件。[组件 README](../../../../../projects/omp-qol/README.zh.md) 保持独立可用的参考。内部模块机制和逐项验证证据属于组件设计及验证材料，不进入规格。
 
 每项调整都需要自己的真实会话证据。压缩实验的验证要求超过原生期限的远端压缩成功完成，随后仍能正常发起模型请求。宿主升级时，重新阅读引用源码并更新受影响文档；修改声明的维护下限不能替代这些步骤。
 

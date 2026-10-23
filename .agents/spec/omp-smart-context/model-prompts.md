@@ -1,7 +1,5 @@
 # Model prompt rules
 
-English | [中文](./model-prompts.zh.md)
-
 ## Goals
 
 Append user-authored model-specific system instructions on each covered ordinary turn without replacing host templates, changing existing blocks, or accumulating prior-turn bodies.
@@ -12,13 +10,13 @@ New match dimensions or discovery roots, aliases or model families, glob or mode
 
 ## Public surface
 
-`modelPromptsEnabled` is a boolean, default `false`, using the [package activation contract](./README.md#configuration). Disabled rules register no injection handler, read no rule directory or file, and diagnose no unused files. The switch is independent of Pin, alignment, and usage. `/smart-context` reports state and a fixed reason, without bodies or model identities.
+`modelPromptsEnabled` is boolean, default `false`. OMP project values override user values; changes require restart. Disabled rules read no rule directory or file, inject nothing, and diagnose no unused files. The switch is independent of Pin, alignment, and usage. `/smart-context` reports state and a fixed reason, without bodies or model identities.
 
 ## Invariants
 
 ### Discovery
 
-On each covered turn, read `model-prompts` in the active profile's user agent directory from `getAgentDir()` and in `getProjectAgentDir(ctx.cwd)`, which is the current project's `.omp/model-prompts`. Read only direct, non-hidden, regular files with lowercase `.md` suffix. Ignore file symlinks and subdirectories; search no ancestor or additional resource root. A missing directory is empty. No effective model means no rule read.
+On each covered turn, read the active profile's user agent directory's `model-prompts` and the current project's `.omp/model-prompts`. The default unprofiled user location is `~/.omp/agent/model-prompts`; profile and agent-directory overrides use their own directory. Read only direct, non-hidden, regular files with lowercase `.md` suffix. Ignore file symlinks and subdirectories; search no ancestor or additional resource root. A missing directory is empty. No effective model means no rule read.
 
 User-directory bodies precede project-directory bodies. Within a directory, sort filenames in JavaScript string order. Project files do not shadow same-named user files; identical bodies from different files remain separate blocks. Asynchronous completion order cannot change ordering.
 
@@ -35,7 +33,7 @@ Entries are alternatives; several matches append the file once. Matching is case
 
 ### Injection
 
-Return a new array with every incoming block unchanged and in order, followed by one independent block per matching file. The body starts after the closing delimiter's line ending. Exclude frontmatter and the opening BOM; preserve body bytes, LF/CRLF, indentation, blank lines, headings, comments, template-like text, and trailing newlines. Add no wrapper, heading, trim, rendering, context rewrite, message, or journal entry.
+Preserve every incoming system block unchanged and in order, then append one independent block per matching file. The body starts after the closing delimiter's line ending. Exclude frontmatter and the opening BOM; preserve body bytes, LF/CRLF, indentation, blank lines, headings, comments, template-like text, and trailing newlines. Add no wrapper, heading, trimming, rendering, context rewrite, message, or journal entry.
 
 Rules and the effective event model refresh on every covered turn. Additions, edits, deletions, and repairs apply next turn without restart. Failed reads do not reuse old bodies. No model, rule, or match preserves incoming blocks. The host's turn override survives an intra-turn rebuild; the next turn starts from the host base prompt, so earlier bodies do not accumulate. Setting changes still require restart.
 
@@ -63,8 +61,3 @@ When OMP ships model-scoped instructions through [issue #6739](https://github.co
 - Final assembled and serialized requests contain matching bodies once, byte-for-byte without metadata, preserving host blocks and dynamic content. Consecutive turns and prompt rebuilds do not accumulate bodies.
 - File additions, edits, deletions, repairs, cwd changes, and effective-model changes take effect at the specified turn boundary.
 - File and directory failures remain local, unexpected failures preserve input, diagnostics retain privacy and per-session ownership, and ordinary children use their own model without adding bypass coverage.
-
-## Related ADRs
-
-- [Model prompt rules](../../adr/decision/2026/09/14-model-prompt-rules.md)
-- [Context package](../../adr/decision/2026/10/12-smart-cache.md)
