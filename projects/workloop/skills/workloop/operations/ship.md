@@ -1,6 +1,6 @@
 # Ship
 
-Read the [common contract](../SKILL.md) in full. Deliver the selected result according to the project's Ship definition, actual user request, and effective permissions. Ship has no fixed bundle of actions and is not necessarily production release or the end of the Task.
+Apply the loaded [entry](../SKILL.md) and read [Task ownership](../references/task.md). Deliver according to the project's Ship definition, actual request, and effective permission. Ship has no fixed action bundle and is not necessarily production release or the end of the Task. Read [collaboration](../references/collaboration.md) only if delivery involves cross-session work, and [role selection](../references/roles.md) when selecting a role. Consume saved Verify reports without loading the self-check algorithm.
 
 ## Resolve delivery
 
@@ -30,7 +30,7 @@ On an evidenced implementation defect, return affected work to [Execute](./exec.
 
 ## Return
 
-Save the permitted delivery record with Task and scope, source candidate and actual delivered identity, target, project-defined outcome, actions and checks performed, observations, evidence locations, deviations, and remaining requirements. Link the relevant execution and verification records.
+Save the permitted delivery record, normally `ship.md`, with Task and scope, source candidate and actual delivered identity, target, project-defined outcome, actions and checks performed, observations, evidence locations, deviations, and remaining requirements. Link the relevant execution and verification records. Keep the current target, candidate, effective grants, completed actions, actual state, and next action recoverable; check effects before repeating an interrupted action.
 
 Report actual states separately: project goal achieved or blocked, running or submitted for review, acceptance result, integration, installation or restart when relevant, and publication or production release. Omit genuinely inapplicable states, not unfinished required work. If feedback requires another Clarify or Execute step, name its affected scope.
 

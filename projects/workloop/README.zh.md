@@ -6,7 +6,7 @@ workloop 用 Markdown 指引 Agent 的任务工作流：澄清目标、按 Plan 
 
 ## 使用 Skill
 
-选择完整英文 [workloop](./skills/workloop/SKILL.md) 或中文 [workloop-zh](./skills/workloop-zh/SKILL.md) 目录。两者均可独立发现，包含同一必需合同、全部操作正文和初始化说明。通过 Harness 加载所选 Skill，以自然语言请求操作。保留完整目录，不只保留 `SKILL.md`。
+选择完整英文 [workloop](./skills/workloop/SKILL.md) 或中文 [workloop-zh](./skills/workloop-zh/SKILL.md) 目录。每套包含入口、全部操作正文、条件 Reference 和初始化说明。通过 Harness 加载所选 Skill，以自然语言请求操作。保留完整目录，不只保留 `SKILL.md`。入口路由到活动，正文仅在需要时加载共享规则。
 
 单独安装 tk，按项目 Task 规则使用其公开接口。协作采用所选受支持的终端工具，推荐 Herdr，但不强制使用。其他 Skill 按各自启用规则用于相关活动，本组件不会安装它们或将其统一设为必需。
 
@@ -14,13 +14,13 @@ workloop 面向新任务，支持自身 Task 的跨会话继续和返工，不�
 
 ## 安装
 
-完整目录复制、受支持的链接、更新、移除和重新加载条件见[安装说明](./docs/installation.zh.md)。独立 Skill 使用目标 Harness 现有机制。OMP 额外支持 `@ruokee/workloop` 资源包，包含两个 Skill 及 `/wl-clarify`、`/wl-exec`、`/wl-verify`、`/wl-ship`、`/wl-supervise`。命令加载明确选择的语言，未指定时默认英文。
+首次安装、完整替换、切换语言、移除和加载条件见[安装说明](./docs/installation.zh.md)。一次安装一种完整语言 Skill，OMP 另安装对应的 `/wl-clarify`、`/wl-exec`、`/wl-verify`、`/wl-ship`、`/wl-supervise` Prompt 模板。语言由安装的模板固定，不按每次调用输入选择。空输入沿用足够的当前 Task 上下文，不产生空输入段落或重复提问。
 
-仓库普通 Skill 安装器不管理本组件。OMP 包只有资源，不包含 Extension、构建步骤或运行时依赖。
+组件没有 OMP 包清单、Extension、构建步骤、运行时依赖或专用安装器，仓库普通 Skill 安装器不管理它。直装前解除既有 workloop 包，移除自己安装的同名文件命令。创建或更新模板后启动新 OMP 会话，`/reload-plugins` 不重载 Prompt 模板。Setup 可选，不是安装步骤。
 
 ## 选择操作
 
-- **Clarify** 澄清目标，按需调研或诊断，完成设计，生成或修订 `plan.md`。目标明确时可直接规划。用户只请求设计时，不扩展到规划或实现。
+- **Clarify** 澄清目标，按需调研或诊断，完成设计。目标、必要设计和重要选择就绪后，同次形成或修订 `plan.md`。仅讨论、仅设计、不做 Plan、暂停和写入限制仍有效，准备不启动实现。
 - **Execute** 当前会话实现并协调自检和独立 Verify。未限制更小范围时连续完成剩余 Plan，通常同一时间只处理一个单元，可以串行完成多个。
 - **Verify** 独立评估指定材料或实现候选，不修改目标。每份报告记录候选、证据、结论及限制。
 - **Ship** 按实际请求和许可完成项目定义的交付，不一定表示生产发布或 Task 关闭。
@@ -32,7 +32,7 @@ Check 是前期隐含材料检查，Start 和 End 描述流程位置，不是额
 
 材料保存在所属 tk Task。`goal.md` 说明预期结果和停止条件，不写实现方法。可选 `design.md` 说明方案。可选诊断记录问题及有依据的原因，不写修复建议。Research 汇总来源，Grill 保留讨论。
 
-每个进入 Execute 的任务都需要独立 `plan.md`，单单元改动也不例外。它可直接展开部分单元，另一些链接到 tk 子任务。执行记录保存候选及检查，`verification.md` 逐轮追加独立评估，不替换旧失败。可选材料不需要空文件或职责对应表。
+每个进入 Execute 的任务都需要独立 `plan.md`，单单元改动也不例外。它可以内联展开单元或链接 tk 子任务。执行记录保存候选及检查。准备自检通常使用 `plan-check.md`，按请求进行的独立准备审查追加到 `material_check.md`，执行候选的独立 Verify 追加到 `verification.md`。仅产出 Markdown 的执行单元仍属于实现候选。保留历史评估及失败，可选活动不需要空文件或职责对应表。
 
 ## 理解检查
 
@@ -69,7 +69,7 @@ Plan 形成后默认自检前期材料。前期材料的独立 Verify 由用户�
 
 ## 恢复工作
 
-将 Task、操作、范围、候选、许可、明确禁令、检查次数及下一动作保存在能跨压缩保留的状态。完整合同或当前操作退出上下文后，从所选安装 Skill 重读。记得链接不等于正文已加载，不要求特定 Pin API。
+在可恢复状态中保留当前活动的 Task 或配置范围、依据、适用候选、许可、限制、适用检查次数和下一步。入口、操作或当前必需 Reference 缺失时，从所选安装 Skill 重新加载。记得链接不等于正文仍在，不要求特定 Pin API。
 
 ## 验证范围
 

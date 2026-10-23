@@ -140,12 +140,17 @@ test("workloop registers only its distributed Markdown", () => {
     "projects/workloop/README.zh.md",
     "projects/workloop/docs/installation.md",
     "projects/workloop/docs/installation.zh.md",
-    ...operations.map((operation) => `projects/workloop/commands/wl-${operation}.md`),
-    ...["workloop", "workloop-zh"].flatMap((name) =>
-      ["SKILL.md", "setup.md", ...operations.map((operation) => `operations/${operation}.md`)].map(
-        (file) => `projects/workloop/skills/${name}/${file}`,
-      ),
-    ),
+    ...["workloop", "workloop-zh"].flatMap((name) => [
+      ...operations.map((operation) => `projects/workloop/prompts/${name}/wl-${operation}.md`),
+      ...[
+        "SKILL.md",
+        "setup.md",
+        ...operations.map((operation) => `operations/${operation}.md`),
+        ...["task", "self-check", "roles", "collaboration", "execution"].map(
+          (reference) => `references/${reference}.md`,
+        ),
+      ].map((file) => `projects/workloop/skills/${name}/${file}`),
+    ]),
   ];
   const plan = selectChecks(paths);
   assert.equal(plan.full, false);
@@ -157,13 +162,16 @@ test("workloop registers only its distributed Markdown", () => {
   );
 });
 
-test("workloop package and unregistered inputs force complete fallback even in mixed changes", () => {
+test("workloop unregistered inputs force complete fallback even in mixed changes", () => {
   for (const path of [
     "package.json",
     "README.txt",
     "docs/new.md",
     "commands/wl-new.md",
+    "commands/wl-exec.md",
     "prompts/wl-exec.md",
+    "prompts/workloop/wl-new.md",
+    "prompts/other/wl-exec.md",
     "skills/other/SKILL.md",
     "skills/workloop/references/new.md",
     "skills/workloop/operations/new.md",
@@ -203,7 +211,7 @@ test("removed workloop Markdown keeps rename destinations in classification", ()
       const deleted = selectChecks(collectChanges(cwd).paths);
       assert.equal(deleted.full, false);
       assert.deepEqual(buildCommands(deleted, cwd), []);
-      git(cwd, "mv", "projects/workloop/commands/wl-exec.md", "projects/workloop/commands/unknown.md");
+      git(cwd, "mv", "projects/workloop/prompts/workloop/wl-exec.md", "projects/workloop/prompts/workloop/unknown.md");
       const renamed = selectChecks(collectChanges(cwd).paths);
       assert.equal(renamed.full, true);
       assert.deepEqual(
@@ -213,7 +221,7 @@ test("removed workloop Markdown keeps rename destinations in classification", ()
     },
     {
       "projects/workloop/README.md": "# workloop\n",
-      "projects/workloop/commands/wl-exec.md": "Execute the requested Task.\n",
+      "projects/workloop/prompts/workloop/wl-exec.md": "Execute the requested Task.\n",
     },
   ));
 

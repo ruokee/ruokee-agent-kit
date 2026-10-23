@@ -1,47 +1,35 @@
 # Setup
 
-Read the [common contract](./SKILL.md) in full. Use this guidance when the user requests workloop initialization or reconfiguration, or an actual failure calls for the relevant preparation detail. Setup is not a prerequisite to ordinary use and does not authorize implementation or delivery.
+Apply the loaded [entry](./SKILL.md) when initialization or reconfiguration is requested, or an actual failure needs a specific preparation detail. Setup manages external defaults, not installation. It is not a prerequisite to ordinary use and authorizes no implementation or delivery. Do not load Task, execution, or inspection details merely to configure defaults.
 
-## Resolve settings
+## Resolve the destination
 
-Read the user's intended scope and the applicable existing external guidance. Reuse established choices instead of asking the same questions. Put durable defaults in the appropriate `AGENTS.md` or equivalent instruction file according to the project's convention and the user's write permission. Do not save these settings inside the installed Skill, Task results, a new workloop configuration database, or an invented user/project override hierarchy.
+Read intended scope and applicable external guidance. Reuse established choices. Identify the exact permitted destination, such as the project's existing `AGENTS.md` or equivalent instruction file, before editing. Initialization grants no unrelated global or protected writes. Preserve unknown and unrelated content.
 
-Clarify only choices that affect use and cannot be resolved from evidence. Respect current question restrictions. Identify the exact destination before editing; a request to initialize workloop does not grant unrelated global or protected writes. Preserve other guidance and do not overwrite unknown content.
+Resolve only consequential choices missing from evidence, under current question restrictions. Do not store defaults in the installed Skill, Task results, a new configuration database, or an invented user/project override hierarchy. No placeholder Task is needed.
 
-## Select roles
+## Choose defaults
 
-Record independent defaults for the quick self-checker, Verify, and Senior where the user wants them, with host, exact model selector or alias, and reasoning level when the host supports it. Worker defaults may follow the project's existing Agent conventions. Do not put a specific model or provider into workloop's distributed instructions.
+When configuring roles, read [role selection](./references/roles.md). Record the requested independent defaults for checker, Verify, and Senior, with host, exact model selector or alias, supported reasoning level, and applicable working location. Worker defaults may follow project Agent conventions. A Senior default does not activate that role.
 
-Resolve effective choices in this order: current explicit request, continuing choice for the same execution, then applicable external defaults. Preserve aliases when sending them to the host. An unavailable choice produces its actual error, not a silent substitute. A Verify choice is not inferred from the executor. A Senior default does not assign a Senior; that role remains opt-in.
+If requested, record separate self-check maxima for preparation materials and implementation units. Without a configured maximum, the executor chooses three to five. A maximum limits inspections, not a minimum to complete. The [self-check policy](./references/self-check.md) owns counting, early pass, and exhaustion; do not copy that algorithm into external settings or start a check during Setup.
 
-## Set inspection limits
-
-Record separate maximum counts for preparation-material self-check and implementation-unit quick check if the user configures them. Otherwise the executor chooses a default maximum from three to five according to the task. An explicit maximum such as four is a limit, not a requirement to perform four inspections.
-
-A pass may end on the first inspection. First inspection and rechecks share the count, preparation and each implementation unit count separately, and revisions or independent Verify feedback do not reset it. At the limit, stop adding inspections, finish actionable repairs, and report unresolved and unrechecked work. Independent Verify has no self-check count limit. Keep those semantics alongside any configured number.
-
-## Choose collaboration
-
-Use the project's selected terminal collaboration mechanism. Recommend Herdr when a choice is needed, without making it mandatory; tmux or another supported mechanism is valid. Record the chosen tool and relevant project conventions in external guidance.
-
-Each mechanism must support normal session startup, ordinary-message assignment, role isolation, appropriate session reuse, explicit working locations and reply routes, candidate freezing, final-result waiting, and recovery of saved results after delivery failure. Follow that tool's instructions for concrete commands. `nowait` changes only cross-session request waiting; native self-check completion barriers remain required.
-
-Do not start all roles, install tools, or probe the environment just to establish defaults. Use the selected mechanism when actual work calls for it. If that action fails, address the concrete error rather than treating setup as a general preflight checklist.
+Record the chosen collaboration tool and project-specific conventions when requested. Recommend Herdr if a choice is needed; tmux or another supported mechanism is valid. The [collaboration contract](./references/collaboration.md) owns session use, waiting, and result recovery. Do not duplicate it in settings. Do not launch roles, install tools, or probe the environment to establish defaults.
 
 ## Record project conventions
 
-Help maintain the project's working arrangement only when requested and permitted. This may include branch and worktree conventions, candidate preservation, checks, and ownership of shared edits. Workloop follows those external rules rather than prescribing a universal development layout.
+When requested and permitted, record selected branch/worktree practices, candidate preservation, required checks, and shared-edit ownership. Use the project's arrangement rather than imposing a universal layout.
 
-Record the project's Ship meaning as an observable outcome with required actions, checks, acceptance conditions, protected permissions, and allowed cleanup. Examples include submitting a PR for review, running a local application for evaluation, or updating a Harness installation for an authorized trial. Select the actual project goal; do not combine examples into mandatory steps.
+Define the project's Ship outcome with its required actions, checks, acceptance, protected permissions, and permitted cleanup. Examples include submitting a PR for review, running a local application for evaluation, or updating a Harness installation for an authorized trial. Select the actual outcome rather than combining examples into mandatory steps.
 
-Separate a procedure from permission to perform it. Documenting a release or installation process does not grant a current release or installation. Defining Ship does not automatically close Tasks or require production delivery. A missing custom definition does not block another well-defined operation.
+A procedure grants no current permission to perform it. Defining Ship does not close Tasks or require production delivery. A missing custom definition does not block another well-defined operation.
 
-## Apply changes
+## Apply settings
 
-Edit only the approved external guidance and keep its existing style. Explain which choices were recorded and where, including any unresolved setting that affects use. Do not copy session routes, temporary grants, live Agent identities, or pending assignments into durable defaults.
+Edit only authorized external guidance, preserving its style. Save selected values and project-specific choices, not generic workflows or session routes, temporary grants, live identities, and pending assignments. Replace the applicable default instead of appending a conflicting duplicate.
 
-For reconfiguration, replace the applicable existing default rather than adding a conflicting duplicate. Preserve current explicit selections until the user changes them; a default update does not silently replace a role already chosen for an active execution. Re-read changed guidance when it becomes relevant.
+Current explicit selections remain effective until changed by the user. Updating defaults does not silently replace an active role choice. Reread changed guidance when relevant. Keep the configuration scope, destination, effective choices, permission, and next action in recoverable state.
 
-When an actual load or tool action fails, record the error, obtain the minimum relevant details, and resolve the specific prerequisite under the available permission. Report a missing capability directly if it cannot be supplied. Do not weaken acceptance or claim a configuration change has proved host or model behavior.
+After an actual failure, record it and obtain only the details needed to resolve that prerequisite under current permission. Report an unavailable capability directly, without weakening acceptance or claiming settings prove host or model behavior.
 
-Return the changed guidance location, effective defaults and scope, observed checks if any, and remaining blockers. Do not start implementation, delivery, or Task closure merely because setup is complete.
+Return changed guidance locations, effective defaults and scope, observed checks if any, and actual blockers. Setup completion begins neither implementation, delivery, nor Task closure.

@@ -1,49 +1,51 @@
 # Verify
 
-Read the [common contract](../SKILL.md) in full. Independently judge the selected materials or implementation candidate. Keep the target read-only. Perform only the checks and report writes permitted by the request and project; verification does not grant repairs.
+Apply the loaded [entry](../SKILL.md) and read [Task ownership](../references/task.md). Independently judge the selected preparation materials or executed candidate. Keep the target read-only and perform only permitted checks and report writes. Verification does not grant repair. For cross-session receipt or return, read [collaboration](../references/collaboration.md); when selecting a role, read [role selection](../references/roles.md).
 
 ## Resolve the target
 
-Resolve the owning Task, requested unit or material scope, goal, Plan and linked details, design, effective decisions, project rules, current candidate location, and live reply owner. Reusing this session does not carry a previous scope or verdict onto a new assignment.
+Resolve the owning Task, requested unit or material scope, goal, Plan and linked details, design, effective decisions, project rules, candidate location, and live reply owner. Session reuse carries no earlier scope or verdict onto a new assignment.
 
-Read source requirements and user decisions where needed. The implementation or author's checklist is evidence of what was done, not the authority for what should have been done. Do not substitute a narrower requirement because the candidate is easier to verify. Do not import a different Task's restrictions or reinterpret a later decision as prior authorization.
+Read source requirements and user decisions where needed. Implementation and an author's checklist describe what was done, not what was required. Do not narrow a requirement to suit the candidate, import another Task's restrictions, or reinterpret later permission as prior authorization.
 
-Name the exact candidate before assessing it. For code, use the project's commit/tree or equivalent identity and current working state. For materials, identify the file set and revision or frozen snapshot. Clarify an ambiguous, moving, missing, or conflicting target rather than guessing. Do not modify or format the target. An author must not edit it while assessment is active.
+Classify the actual object, not its file extension. Goal, design, and Plan materials reviewed before execution are preparation. An executed unit is an implementation candidate even when its entire result is Markdown, such as an ADR proposal. This classification determines the assessment and report below.
 
-## Assess the result
+Name the exact candidate. Use the project's commit/tree or equivalent identity and working state for implementation; use a file set and revision or frozen snapshot for preparation. Clarify an ambiguous, moving, missing, or conflicting target. Do not modify or format it, and require the author to keep it frozen during assessment.
 
-For preparation materials, check the goal, design, Plan, and referenced unit details against current requirements. Look for contradictions, lost conditions, unsupported additions, infeasible dependencies, unresolved product choices, and foreseeable execution blockers. Preserve distinct material responsibilities and confirmed limitations. Do not turn material review into proactive environment preflight or implementation.
+## Assess
 
-For an implementation unit, inspect the complete relevant change and affected consumers against the goal, Plan acceptance, applicable Skills, and project rules. Trace the behavior the user actually needs, including relevant failure and boundary cases. Check permission scope, documentation, dependency bases, self-check history and repairs, and whether the delivered result is complete rather than a placeholder or partial substitute.
+For preparation, compare goal, design, Plan, and linked details with current requirements. Check contradictions, lost conditions, unsupported additions, infeasible dependencies, unresolved choices, and foreseeable blockers. Preserve material responsibilities and confirmed limits. Do not turn review into environment preflight or implementation.
 
-Read execution evidence with its candidate and coverage. Independently exercise the changed path and run proportionate non-destructive checks where permitted and needed. Consult a check's actual behavior before invoking it if it may write or create external effects; read-only verification does not authorize such effects. When a needed check cannot be performed within the grant, identify that exact gap instead of silently skipping it.
+For implementation, inspect the complete relevant change and consumers against the goal, Plan acceptance, applicable Skills, and project rules. Trace needed behavior and relevant failure or boundary cases. Check permission, documentation, dependency bases, self-check history, repairs, and completeness rather than accepting placeholders or partial substitutes.
 
-Reuse valid unchanged evidence by naming who produced it, its candidate, conditions, inputs, result, and scope. Do not claim to have independently rerun it. A file-path check does not prove host discovery, a controlled provider does not prove real-model behavior, and an automated pass does not prove interactive correctness. Keep real limits without rejecting sufficient evidence for a narrower requested result.
+Read execution evidence with its candidate and coverage. Independently exercise changed behavior and run proportionate non-destructive checks where permitted and needed. Inspect a check's behavior before invoking it when it may write or create external effects. Read-only review does not authorize those effects; name any resulting evidence gap.
 
-Report only actionable findings supported by evidence. For each, state severity, location, observed fact, violated requirement or consequential risk, and the smallest correction that restores the goal. Do not pad findings with stylistic preferences or require unrelated features. An optional improvement is not a mandatory failure.
+Reuse unchanged evidence with producer, candidate, conditions, inputs, result, and scope stated. Do not claim an independent rerun. File paths, host discovery, controlled providers, real models, and interactive behavior establish different facts. Keep relevant limits without rejecting sufficient evidence for the actual requested scope.
+
+Report actionable, evidenced findings with severity, location, observed fact, violated requirement or consequential risk, and the smallest correction restoring the goal. Do not require unrelated features or turn optional style preferences into failures.
 
 ## Decide
 
 Use one verdict for the current scope:
 
-- `passed`: the candidate meets its required result and has sufficient evidence for this scope. State remaining limits without extending the pass beyond them.
-- `changes required`: an evidenced defect or unmet requirement needs correction. Identify affected work and evidence needed after repair.
-- `unable to determine`: necessary information, capability, stable identity, permission, or evidence is missing. Name the missing prerequisite and what would make a judgment possible. This is neither a pass nor an evidenced implementation defect.
+- `passed`: required result met with sufficient evidence. State limits without extending the pass beyond them.
+- `changes required`: an evidenced defect or unmet requirement needs correction. Name affected work and required repair evidence.
+- `unable to determine`: necessary information, capability, stable identity, permission, or evidence is missing. State the prerequisite for judgment. This is neither a pass nor an evidenced implementation defect.
 
-A material or design defect belongs to [Clarify](./clarify.md); an implementation deviation belongs to [Execute](./exec.md). Do not make those repairs yourself. Assess only affected work on recheck while preserving enough surrounding coverage to detect regression.
+A material or design defect returns to [Clarify](./clarify.md); implementation deviation returns to [Execute](./exec.md). The author repairs. Recheck affected work with enough surrounding coverage to detect regression. Independent Verify has no self-check inspection limit.
 
 ## Save the assessment
 
-Append to the owning Task's existing verification record, normally `verification.md`. Preserve each prior verdict and candidate, including failed rounds. A new candidate gets a new assessment rather than a replacement success label on an old failure.
+Append independent preparation review to `material_check.md`. Append independent assessment of executed candidates to `verification.md`. Keep these records separate from each other and automatic self-check. Preserve historical files without renaming them for uniformity, and create no report for an unrequested review.
 
-Record scope, candidate identity and base where relevant, basis, actual conditions and inputs, performed checks and observations, reused evidence, findings, verdict, limits, and any missing prerequisites. Separate self-check claims, the independent judgment, user acceptance, and delivery status. Link the execution record rather than duplicating it.
+Preserve each prior verdict and candidate, including failed rounds. A new candidate gets a new assessment, not a success label replacing an old failure. Record scope, candidate and relevant base, basis, conditions and inputs, checks and observations, reused evidence, findings, verdict, limits, and missing prerequisites. Link the execution record instead of duplicating it. Keep self-check claims, independent judgment, user acceptance, and delivery status separate.
 
-Explicit no-record or narrower restrictions govern report saving. State the limitation and do not claim a saved report. If progression requires a saved report, that gate remains unmet until the necessary storage permission or destination is available.
+No-record and narrower restrictions govern saving. State the limit without claiming a saved report. A gate requiring a saved report remains unmet until permission and destination allow it.
 
 ## Return
 
-In a delegated assignment, save the permitted report, then send the live owner a final-only result as the last action, without waiting on the owner. Include sender, Task/unit or material scope, candidate, verdict, actionable findings or blocker, and report path. For a direct user request, return the same concise result to the user.
+Save the permitted report, then return a final-only result to the live owner as the last action, without waiting on that owner. A direct request returns to the user. Include sender, Task/unit or material scope, candidate, verdict, actionable findings or blocker, and report path.
 
-If delivery fails after saving, retain and recover the same report rather than repeating the assessment. A recheck uses the same suitable isolated session, resolves the current assignment anew, and appends its own result. Independent Verify has no self-check inspection limit. Honor a user restriction to one round or report-only review; otherwise requested preparation review and authorized execution may return for necessary in-scope rechecks.
+On delivery failure, recover the saved report instead of repeating the assessment. Use the same suitable isolated session for rechecks, resolving each current assignment anew. Honor one-round or report-only limits; otherwise requested preparation review and authorized execution include necessary in-scope rechecks.
 
-A pass is scoped evidence, not proposal approval, merge permission, installation, production delivery, or Task closure. Do not add user-acceptance gates between units that the execution contract already authorizes to continue.
+Keep target identity, scope, basis, assessment state, report location, and next action recoverable; collaboration owns live routing. A pass grants no proposal approval, integration, installation, publication, or Task closure, and adds no user-acceptance gate between already-authorized units.

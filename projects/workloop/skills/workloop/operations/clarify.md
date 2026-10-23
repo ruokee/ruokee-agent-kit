@@ -1,53 +1,56 @@
 # Clarify
 
-Read the [common contract](../SKILL.md) in full, then apply this operation to the user's actual request. Clarify includes goal discussion, necessary investigation and design, and planning. It does not authorize implementation.
+Apply the loaded [entry](../SKILL.md), then read [Task ownership](../references/task.md) before resolving materials. Clarify covers goal discussion, necessary investigation, design, and planning. It may maintain ordinary analysis materials and necessary temporary files, but grants no implementation, configuration, Git, or managed-metadata changes.
 
 ## Resolve the request
 
-Read the owning Task, current goal, relevant decisions, existing materials, and project rules. Determine whether the user wants an initial discussion, a specific design question, direct Plan creation, or revision of existing materials. Use what is already clear; do not restart a finished interview because the entry point is the same.
+Read the owning Task, current goal, relevant decisions, existing materials, and project rules. Distinguish initial discussion, a design question, Plan creation, and revision. Use settled information without restarting a completed interview. Establish the problem, intended result, scope, constraints, and stopping conditions only where missing.
 
-For a new idea, establish the problem, intended result, scope, constraints, and conditions for stopping. Assess whether action is useful and feasible before choosing a solution. For a known goal, move directly to the requested design or Plan work. Honor discussion-only, design-only, no-plan, pause, and no-write limits.
+Question usefulness and feasibility before selecting a solution. Honor discussion-only, design-only, no-plan, pause, no-write, and other explicit limits.
 
 ## Investigate
 
-Read project facts and existing patterns first. Use local or public research where facts are missing; start from an existing research summary and trace individual evidence when necessary. Apply relevant research, diagnosis, architecture, or interview Skills according to their entry conditions, rather than making every activity mandatory.
+Read project facts and patterns first. Use local or public research where facts are missing. Start from an existing research summary and trace underlying sources when needed. Apply research, diagnosis, architecture, or interview Skills only when their entry conditions apply.
 
-A diagnosis records symptoms, actual conditions, evidence, and supported or uncertain causes. Keep repair suggestions out of that report. Develop repair approaches in design when the user wants them. Distinguish measurements and observations from conclusions or assumptions.
+Explain unresolved consequential choices with alternatives, evidence, recommendation, and the decision needed. Use the permitted interview method, including structured questions where allowed. Do not decide user-only priorities or treat an Agent proposal as a requirement.
 
-For unresolved user requirements or consequential tradeoffs, explain the alternatives, evidence, recommendation, and decision needed. Use the applicable interview method, including structured questions only where allowed. Check available facts before asking. Do not decide user-only priorities or convert an Agent proposal into a confirmed requirement. Preserve the discussion record when an interview occurs.
+## Maintain materials
 
-## Define the result
+Reuse the owning Task's established files:
 
-Save confirmed requirements in `goal.md` using natural language: what should happen, which cases and constraints matter, what is outside the current scope, and how to recognize completion or a justified stop. Keep implementation details in optional `design.md`. Match each acceptance condition to a confirmed requirement or necessary evidence; do not add benefit metrics, migrations, installations, or experiments to make the plan look comprehensive.
+- `goal.md`: confirmed requirements in natural language, intended result, relevant cases, constraints, exclusions, and completion or justified stopping conditions. Exclude implementation methods and code detail.
+- Optional `design.md`: how to achieve the goal using the existing system and smallest adequate change. Include consequential alternatives, ownership, dependencies, failure behavior, algorithms, data structures, or implementation detail only where needed.
+- Optional diagnosis: symptoms, actual conditions, evidence, and supported or uncertain causes. Keep repair methods and recommendations in design, not diagnosis.
+- Optional research: a summary with traceable sources, separating observation, conclusion, and assumption.
+- Optional Grill, commonly `grill.md`: the interview discussion without replacing current requirements and decisions.
+- `plan.md`: the executable units described below. It is required before Execute, including for a one-unit task.
 
-Necessary design belongs within Clarify. Explain how the goal can be achieved using the existing system and the smallest adequate change. Include consequential alternatives and their actual tradeoffs, ownership, dependencies, failure behavior, and implementation detail only where needed. A design-only request may maintain `design.md` without forcing the other materials or planning.
+Match acceptance to confirmed requirements or necessary evidence. Do not invent benefit metrics, migration, installation, or experiments. A design-only request may maintain design without forcing other materials or a Plan.
 
-If the work is infeasible, unnecessary, or the user decides not to continue, save the conclusion and its basis. End the operation without creating a Plan merely to fill a stage. When closure is appropriate, follow tk and project lifecycle permission; stopping at Clarify neither forbids closure nor grants it automatically.
+If work is infeasible, unnecessary, or the user decides not to continue, save the supported conclusion within recording permission and end without forcing a Plan. Follow tk and project permission if closure is appropriate; stopping here neither forbids nor grants it.
 
 ## Form the Plan
 
-When the user has decided to pursue execution, naturally form the required `plan.md` within Clarify. Do not ask a routine extra question just to move from goal discussion to planning. This is preparation for execution, not permission to start it. Explicit limits still apply, and real unresolved choices must be settled rather than hidden in the Plan.
+When the goal and necessary design are clear, foreseeable consequential user choices are resolved, and no discussion-only, design-only, no-plan, pause, or writing restriction prevents it, form the Plan and self-check in this same Clarify operation. Do not require an additional declaration of intent to execute or a routine planning confirmation. Preparation does not authorize implementation.
 
-Every executable task has a Plan, even if it contains one short unit. Preserve existing labels, completed results, and valid evidence when revising it. Read linked subtasks before changing their parent contract. Use a mix of inline units and tk subtask links when useful; create tasks only under tk's applicable permission, not merely to obtain a material directory.
+Read [execution constraints](../references/execution.md) when forming the Plan, arranging dependencies, and resolving permission. Clarify retains its permitted interview method. Settle foreseeable choices before issuing an action-ready Plan; keep a genuine blocker outside that contract rather than hiding a decisions-pending list inside it.
 
-For each unit provide an independently assessable result, its goal and design basis, changes and non-goals, prerequisites, observable acceptance, required checks, permission requirements, and material owner. A linked unit may leave its detail in the subtask while the parent keeps its goal, dependency, and link. Choose units that deliver a complete result worth independent verification and can be fully implemented and reviewed.
+Preserve unit labels, completed results, and valid evidence. A Plan may mix inline units and links to tk subtasks. Keep each unit's goal, dependencies, and link in the parent while its detailed contract remains with the subtask. Create subtasks under tk permission, not to obtain a directory.
 
-Order actual dependencies and identify independent work. Distinguish a code dependency available from a verified predecessor candidate from an external deployment, service, or published artifact that must really exist. Do not make an ungranted merge a development prerequisite when the project permits verified dependency branches. Do not add delivery, installation, or expensive real-model experiments without a requirement and the relevant grant.
-
-Write a Plan another Agent can execute without inventing product choices. Resolve foreseeable user decisions during preparation; do not leave a "decisions pending" list as the execution contract. If a decision really remains missing, state the blocker outside the action-ready Plan and preserve the settled work.
+Each unit defines a complete independently assessable result, goal and design basis, changes and non-goals, prerequisites, observable acceptance, checks, permission needs, and material owner. Order real dependencies and identify independent work. Use verified predecessor candidates where permitted; distinguish them from genuinely required deployments, services, or published artifacts. Do not make ungranted integration a development prerequisite or add delivery and expensive trials without requirement and permission.
 
 ## Check the materials
 
-After forming a Plan, initiate preparation self-check under the common inspection contract. Compare the current goal, design, Plan, linked subtask materials, and relevant discussion decisions. Check changed requirements propagated correctly, no capability or condition was lost, units are complete, dependencies are usable, and foreseeable permission or product decisions have been addressed. Check writing and project-document rules as applicable.
+After forming a Plan, read [self-check](../references/self-check.md) and follow its role and collaboration links when starting inspection. Check current goal, design, Plan, linked details, discussion decisions, project rules, completeness, dependencies, foreseeable permissions, and writing. This is not tool or environment preflight. Do not install dependencies, change Git state, or format outside authorized materials.
 
-This is a materials check, not a tool, environment, or file-availability preflight. Do not install dependencies, change Git state, or run a formatter that writes beyond the authorized materials under this analysis permission.
+Save this automatic check in the established preparation self-check record, normally `plan-check.md`, never in `material_check.md` or `verification.md`. Repair as author under the shared inspection rules. An unresolved significant requirement returns to discussion.
 
-Repair in-scope material issues as author, then use a fresh read-only inspection while below the selected limit. Apply early pass, cumulative counts, and limit exhaustion exactly as the common contract states. An unresolved requirement or significant choice returns to discussion, not an invented solution.
+Independent preparation review starts only on user request, not because self-check exhausted its limit. Then read [role selection](../references/roles.md) and [collaboration](../references/collaboration.md), freeze the materials, and assign [Verify](./verify.md). The verifier determines the report under that operation; independent preparation review uses `material_check.md`. Do not create an empty report when no review was requested.
 
-Preparation's independent Verify is not automatic. When the user requests it, freeze the current materials and use the selected isolated verifier with the owning Task, material scope, candidate locator, and reply owner. The user request covers in-scope author repairs and rechecks by that same verifier until a current pass or a real blocker. Honor an explicit one-round, report-only, or narrower limit. Verify remains read-only; it does not take over the author's repairs. Unable to determine is not passed.
+The review request covers in-scope author repairs and necessary rechecks by the same suitable verifier until a current pass or real blocker, unless limited to one round, report-only, or a narrower scope. The verifier remains read-only; the author repairs. Unable to determine is not passed.
 
 ## Return
 
-Save the permitted materials and check results. Return their paths, the established result, the inspection count and verdict, independent Verify outcome when requested, and genuine remaining choices or blockers. Keep earlier failures with their original scope and candidate. Do not claim implementation from a completed goal, design, Plan, or material review.
+Save permitted results and preserve earlier failures with their scope and candidate. Return material paths, established result, self-check count and verdict, requested independent outcome, and actual blockers. Keep the current Task, basis, material revision, inspection count and limit, effective restrictions, and next action in recoverable state.
 
-Finish within Clarify. Do not invite, recommend, or ask to start execution at the end of a preparation request. Execute only if the user actually requested execution as well, under its own scope and permissions.
+Finish within Clarify. Do not invite, recommend, or ask to begin execution. Execute only if the user also actually requested it under its own scope and permissions. Completed preparation or review is not implementation.

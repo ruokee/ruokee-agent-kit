@@ -2,80 +2,50 @@
 
 [English](./installation.md) | 中文
 
-每个安装的 Skill 选择一种管理方式：通过 Harness 管理独立目录，或使用 OMP 资源包。两者都提供完整工作流，OMP 资源包还提供五个斜杠命令。两种方式都不安装 tk、协作工具或辅助 Skill。
+安装一种完整语言 Skill，OMP 另安装对应的五个 Prompt 模板。组件没有包清单、构建步骤、运行时依赖或专用安装器，仓库普通 Skill 安装器不管理它。单独安装 tk 及所需协作工具。Setup 配置可选工作流默认值，不是安装或普通使用的前置条件。
 
-仓库普通 Skill 安装器不管理本组件。不需要构建或安装组件依赖。
+## 解除既有包
 
-## 安装独立 Skill
-
-使用 Harness 文档说明的 Skill 发现与加载机制。根据实际 Harness 的文档确定用户级或项目级 Skill 根目录，不假定另一宿主的路径适用。从本组件 `skills/` 中选择完整英文 `workloop` 或中文 `workloop-zh` 目录。
-
-对于能发现普通 Skill 目录的 Harness，以下 POSIX shell 示例复制一个完整 Skill。从包含 `package.json`、`skills/` 和 `commands/` 的组件根目录执行，将 `skill_root` 设为实际发现根目录。目标 `$skill_root/$skill` 必须不存在，已有安装使用更新步骤。
+直装前，按原管理方式移除已有的 `@ruokee/workloop` 安装。OMP 原生包管理命令如下：
 
 ```sh
-component_root="$PWD"
-skill=workloop
-skill_root="/path/to/skill-root"
-mkdir -p "$skill_root"
-cp -R "$component_root/skills/$skill" "$skill_root/$skill"
-```
-
-中文设置 `skill=workloop-zh`。两个名称独立，可按需同时安装。保留所选目录下的全部文件，只复制 `SKILL.md` 会丢失操作正文和初始化说明。
-
-Harness 支持目录符号链接时，可以用链接替代复制：
-
-```sh
-ln -s "$component_root/skills/$skill" "$skill_root/$skill"
-```
-
-将链接来源保留在稳定位置。安装后按 Harness 的规则重新加载或重启，再按名称使用所选 Skill，以自然语言请求操作。独立安装不会增加 `/wl-*` 命令。
-
-### 更新独立 Skill
-
-先取得所需组件版本，替换前核对安装目录中的本地修改。对于复制安装，将旧的完整目录移到 Harness 发现根目录之外的新备份位置，再复制新的完整目录。这也会移除新版本已不再包含的文件。
-
-将 `backup_root` 设为新位置，确保 `$backup_root/$skill` 不存在：
-
-```sh
-backup_root="/path/to/new-backup"
-mkdir -p "$backup_root"
-mv "$skill_root/$skill" "$backup_root/$skill"
-cp -R "$component_root/skills/$skill" "$skill_root/$skill"
-```
-
-复制失败时，旧目录仍在备份中，恢复该目录后再使用 Skill。对于链接安装，更新来源即更新链接内容；来源移动后，仅将安装的链接替换为指向新位置的链接。两种更新都需按 Harness 规则重新加载或重启。目录复制或版本相同，不表示运行中的会话已经加载新正文。
-
-### 移除独立 Skill
-
-复制安装在保存本地修改后，只删除所选安装目录：
-
-```sh
-rm -r -- "$skill_root/$skill"
-```
-
-链接安装只移除链接，不加尾部斜杠：
-
-```sh
-rm -- "$skill_root/$skill"
-```
-
-不删除共享 Skill 根目录、另一语言安装或来源检出目录。按 Harness 规则重新加载或重启，使发现状态反映移除结果。
-
-## 安装 OMP 资源包
-
-包名为 `@ruokee/workloop`。`omp` 清单启用原生包发现，OMP 从 `skills/` 读取完整 Skill，从 `commands/` 读取 Markdown 命令 Prompt。包没有 Extension 入口或运行时依赖，与两个 Skill 共用同一版本。
-
-以下命令使用 OMP 的本地包链接接口。从组件根目录执行：
-
-```sh
-component_root="$PWD"
-omp plugin link "$component_root"
 omp plugin list
+omp plugin uninstall @ruokee/workloop
 ```
 
-这会注册指向本组件的用户级链接，包含两个语言 Skill 及全部五个命令。保留来源目录。OMP 18.12.3 的本地包链接属于用户级，`--scope project` 不会使其变成项目级链接。同包名链接会替换已有包链接，只对准备管理的安装执行此操作。
+只对列表中准备替换的安装运行 uninstall。OMP 18.12.3 会移除注册包和插件状态，不删除链接的来源检出目录，也不移除独立副本或手动安装的命令。直装组件没有包清单，不对它运行 `plugin link`。
 
-链接后，在活动 OMP 会话中运行 `/reload-plugins`，或启动新会话。使用以下入口之一：
+定位自己安装在实际用户级或项目级 `commands/` 目录中的 workloop 文件命令。安装模板前，将五个自有文件 `wl-clarify.md`、`wl-exec.md`、`wl-verify.md`、`wl-ship.md`、`wl-supervise.md` 移到发现根之外。同名文件命令先于 Prompt 模板运行，会让旧入口继续生效。不移除无关命令或其他所有者的文件。其他同名处理器冲突应与其所有者解决，不依赖发现顺序。
+
+## 定位 OMP 目录
+
+从包含 `skills/` 和 `prompts/` 的组件根目录运行示例。默认配置下，OMP 使用 `~/.omp/agent/skills/` 和 `~/.omp/agent/prompts/`。环境设置或 profile 改变位置时，通过实际 CLI 解析有效 agent 目录：
+
+```sh
+component_root="$PWD"
+agent_root="$(omp config path)"
+skill_root="$agent_root/skills"
+prompt_root="$agent_root/prompts"
+skill=workloop
+```
+
+使用与目标 OMP 会话相同的环境和 profile 运行 `config path`。例如命名 profile 使用 `omp --profile work config path`，不要用默认路径替代输出。自定义 Skill 来源和项目资源也可能存在冲突，验证发现时核对报告来源。明确采用项目级安装时，改用该项目实际的 `.omp/skills/` 和 `.omp/prompts/` 根目录。
+
+英文选择 `skill=workloop`，中文选择 `skill=workloop-zh`。每项都提供完整 Skill 及固定到该身份的模板。只安装所选语言，将两个 Prompt 子目录都复制到发现根会产生同 basename 命令。模板不根据用户输入选择语言。
+
+## 安装到 OMP
+
+所选 Skill 目标、另一语言 workloop 目标及五个模板文件必须不存在。已有自有安装使用下方替换步骤，未知内容先保留，不直接覆盖。
+
+```sh
+mkdir -p "$skill_root" "$prompt_root"
+cp -R "$component_root/skills/$skill" "$skill_root/$skill"
+cp "$component_root/prompts/$skill"/wl-*.md "$prompt_root/"
+```
+
+复制完整 Skill，包括 `operations/`、`references/` 和 `setup.md`。只将所选的五个模板文件直接复制到 Prompt 根，不复制上层 `prompts/` 或语言子目录。OMP 即使递归扫描，也按 basename 命名模板。
+
+安装或更新模板后启动新的 OMP 会话。`/reload-plugins` 刷新插件资源、Skill 和文件命令，不重载 Prompt 模板。在新会话中按名称使用所选 Skill，或使用以下入口：
 
 ```text
 /wl-clarify <idea or Task reference>
@@ -85,39 +55,67 @@ omp plugin list
 /wl-supervise <Task reference>
 ```
 
-明确的语言 Skill 选择优先，未指定时命令加载英文 `workloop`。例如：
+当前 Task 和目标明确时可以不传参数。空参数不增加输入标题，非空输入保留宿主解析后的字符。入口先请求安装的 Skill，再沿该 Skill 自身路由加载操作，不在 Prompt 目录寻找工作流正文。
 
-```text
-/wl-exec 使用 workloop-zh，执行这个 Task 的剩余 Plan
-```
+## 替换安装
 
-入口加载所选 Skill，并根据实际加载的 Skill 目录定位操作正文，不到全局 Prompt 目录寻找工作流正文。两个 Skill 也可以不经斜杠命令，直接按名称使用。
-
-### 更新 OMP 资源包
-
-将链接的组件检出目录更新到所需版本，再运行 `/reload-plugins` 或启动新 OMP 会话。组件移动后，用新的绝对路径执行 `omp plugin link`。`omp plugin upgrade @ruokee/workloop` 不更新本地链接，OMP 对该操作拒绝链接来源。更新链接不会更新单独复制的 Skill。
-
-### 移除 OMP 资源包
+取得所需组件版本，核对已安装资源中的本地修改。使用发现根之外的新备份位置。`old_skill` 指定当前语言，`skill` 指定目标语言；相同值表示更新，不同值表示切换。切换时新的 Skill 目标必须不存在。
 
 ```sh
-omp plugin uninstall @ruokee/workloop
+old_skill=workloop
+skill=workloop-zh
+backup_root="/path/to/new-backup"
+mkdir -p "$backup_root/skills" "$backup_root/prompts"
+mv "$skill_root/$old_skill" "$backup_root/skills/$old_skill"
+for operation in clarify exec verify ship supervise; do
+  mv "$prompt_root/wl-$operation.md" "$backup_root/prompts/"
+done
+cp -R "$component_root/skills/$skill" "$skill_root/$skill"
+cp "$component_root/prompts/$skill"/wl-*.md "$prompt_root/"
 ```
 
-随后运行 `/reload-plugins` 或启动新会话。卸载移除注册的包链接及插件状态，不删除来源组件目录，也不移除独立 Skill 副本或手动安装的命令，后者按各自安装方式管理。
+备份目标必须是新位置，来源资源须属于自己的安装。先移走完整旧目录可避免嵌套复制，并将废弃文件移出发现范围。整体移走五个模板可避免混合语言入口，无关文件保持不变。
 
-### 处理资源重名
+复制失败时，先恢复保存的完整安装再使用。备份留在发现根之外。替换或切换后启动新 OMP 会话，已有会话可能仍保留旧模板内容或 Skill 正文。
 
-每个 Skill 名称使用一种安装方式，避免加载不同版本。OMP 18.12.3 中，原生 `.omp` 资源优先级为 100，包资源为 90。同名 Skill 内容不同时，高优先级副本保留原名称，其他副本获得带命名空间的身份；相同副本会去重。自定义 Skill 目录另有更高优先级的覆盖行为。先核对报告的来源，不假定 `workloop` 就是包内副本。
+## 移除安装
 
-原生同名文件命令优先于包内文件命令。内置、Extension 和自定义命令处理器先于文件命令运行，文件命令先于 Prompt 模板。`wl-` 前缀不保证不会与用户定义冲突。只移除或重命名自己管理的冲突安装，再重新加载，不依赖同优先级来源之间的顺序。
+保存本地修改后，只移除所选 Skill 和这五个模板：
 
-### 接口依据
+```sh
+rm -r -- "$skill_root/$skill"
+for operation in clarify exec verify ship supervise; do
+  rm -- "$prompt_root/wl-$operation.md"
+done
+```
 
-上述 CLI 和源码合同按 OMP 18.12.3 核对。这是接口依据，不是宿主维护下界或实机安装声明：
+Skill 为符号链接时，改用不带尾部斜杠的 `rm -- "$skill_root/$skill"`，不删除来源。保留共享根目录、无关资源、备份和来源检出目录。启动新 OMP 会话，使发现状态反映移除结果。
 
-- [包管理](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/plugin-manager-installer-plumbing.md)说明链接、更新限制、移除及约定资源目录。
-- [命令发现](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/slash-command-internals.md)说明 `commands/`、优先级及展开。
-- [Skill 重名](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/skills.md#collision-and-duplicate-handling)说明同名处理。
-- [重载实现](https://github.com/can1357/oh-my-pi/blob/v18.12.3/packages/coding-agent/src/slash-commands/builtin-marketplace.ts)通过 `/reload-plugins` 刷新 Skill 及文件命令。
+## 使用其他 Harness
 
-其他 OMP 版本遵循其当前公开接口。文件复制和清单检查证明资源完整性，验证具体安装时另行检查实际宿主发现与模型行为。
+采用该 Harness 文档说明的 Skill 根目录和加载机制，将 `skills/` 中所选完整目录复制到实际 Skill 根。除非宿主明确支持该格式，否则不复制 OMP 模板。不需要专用命令或运行时集成，按名称引用 Skill 并以自然语言请求操作。
+
+宿主支持时，可以用目录符号链接替代复制：
+
+```sh
+ln -s "$component_root/skills/$skill" "$skill_root/$skill"
+```
+
+来源保持在稳定位置。更新复制的 Skill 时，先将完整旧目录移到发现根之外的新备份，再复制新目录。切换语言先将旧身份移出发现范围。链接安装更新来源；来源移动时只替换链接。移除时只处理安装目录或链接。遵循该 Harness 实际重载或重启要求，不假定 OMP 步骤适用。
+
+## 核对加载
+
+分别核对以下结果：
+
+- 文件放置：一种完整所选 Skill，OMP 下有五个同语言模板，没有嵌套副本、旧语言或自有同名文件命令冲突。
+- 宿主发现：所需 Skill 身份和命令来源，没有冲突安装抢占入口。
+- 实际加载：新会话从真实安装位置加载所选入口要求的 Skill 和操作。发现结果或版本一致不表示已经加载指令正文或 Agent 行为正确。
+
+接口依据为 OMP 18.12.3，不是维护下界：
+
+- [Prompt 模板](https://omp.sh/docs/prompt-templates)说明发现、参数和会话加载，[18.12.3 实现](https://github.com/can1357/oh-my-pi/blob/v18.12.3/packages/coding-agent/src/config/prompt-templates.ts)定义该版本的发现及展开行为。
+- [包管理](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/plugin-manager-installer-plumbing.md)说明旧包移除。
+- [命令发现](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/slash-command-internals.md)说明文件命令优先级。
+- [配置 CLI](https://github.com/can1357/oh-my-pi/blob/v18.12.3/packages/coding-agent/src/cli/config-cli.ts) 定义 `config path`。
+
+其他版本使用其当前公开接口。文件操作和发现检查各自需要实际观察，模型行为和用户验收需要单独证据。

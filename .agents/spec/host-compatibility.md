@@ -12,7 +12,7 @@ Keep required behavior on maintained hosts as they evolve. Users receive a clear
 
 - An upper maintenance bound, supported-version allowlist, public support matrix, compatibility manager, or shared compatibility library.
 - Blocking installation, loading, registration, diagnostics, or operation solely because a host is below the maintenance floor. Such a host may work without a maintenance commitment.
-- Host maintenance floors for instructions or configuration without host-process code. Ordinary Skills, tk CLI-mode Skills, tk's Claude Code and Codex MCP configuration, and the workloop resource package have no such floor.
+- Host maintenance floors for instructions or configuration without host-process code. Ordinary Skills, tk CLI-mode Skills, tk's Claude Code and Codex MCP configuration, and the workloop instruction distribution have no such floor.
 
 ## Public surface
 

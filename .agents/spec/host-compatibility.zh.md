@@ -12,7 +12,7 @@
 
 - 维护上限、支持版本白名单、公开支持矩阵、兼容管理器或共享兼容库。
 - 仅因宿主低于维护下限就阻止安装、加载、注册、诊断或运行。低版本可能工作，但没有维护承诺。
-- 为没有宿主进程代码的指令或配置设置维护下限。普通 Skill、tk CLI 模式 Skill、tk 的 Claude Code 与 Codex MCP 配置、workloop 资源包都没有此类下限。
+- 为没有宿主进程代码的指令或配置设置维护下限。普通 Skill、tk CLI 模式 Skill、tk 的 Claude Code 与 Codex MCP 配置、workloop 指令分发都没有此类下限。
 
 ## 公共面
 

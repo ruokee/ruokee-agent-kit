@@ -2,80 +2,50 @@
 
 English | [中文](./installation.zh.md)
 
-Choose one management method for each installed Skill: a standalone directory managed through your Harness, or the OMP resource package. Both provide the complete workflow. The OMP package also supplies five slash commands. Neither method installs tk, collaboration tools, or auxiliary Skills.
+Install one complete language Skill and, for OMP, its matching five Prompt templates. The component has no package manifest, build step, runtime dependency, or dedicated installer. The repository's ordinary Skill installer does not manage it. Install tk and any required collaboration tools separately. Setup configures optional workflow defaults; it is not an installation or ordinary-use prerequisite.
 
-The repository's ordinary Skill installer does not manage this component. No build or component dependency installation is required.
+## Retire an existing package
 
-## Install a standalone Skill
-
-Use your Harness's documented Skill discovery and loading mechanism. Determine the actual user or project Skill root from that Harness's documentation; do not assume another host's path. Choose the complete English `workloop` or Chinese `workloop-zh` directory from this component's `skills/` directory.
-
-For a Harness that discovers ordinary Skill directories, the following POSIX shell example copies one complete Skill. Run it from the component root containing `package.json`, `skills/`, and `commands/`. Set `skill_root` to the actual discovery root. The destination `$skill_root/$skill` must not already exist; use the update procedure for an existing installation.
+Before direct installation, remove an existing `@ruokee/workloop` installation through the manager that installed it. For OMP's native package manager:
 
 ```sh
-component_root="$PWD"
-skill=workloop
-skill_root="/path/to/skill-root"
-mkdir -p "$skill_root"
-cp -R "$component_root/skills/$skill" "$skill_root/$skill"
-```
-
-For Chinese, set `skill=workloop-zh`. The names are independent, so both can be installed if wanted. Keep every file beneath the selected directory. Copying only `SKILL.md` loses the operation bodies and setup guidance.
-
-If the Harness supports directory symlinks, use a link instead of the copy:
-
-```sh
-ln -s "$component_root/skills/$skill" "$skill_root/$skill"
-```
-
-Keep the linked source at a stable location. Follow the Harness's reload or restart procedure after installation, then use the selected Skill by name and request an operation in natural language. Standalone installation does not add `/wl-*` commands.
-
-### Update a standalone Skill
-
-Obtain the desired component revision first. Review local changes in the installed directory before replacing it. For a copied installation, move the old whole directory to a new backup location outside the Harness's discovery roots, then copy the new whole directory. This also removes files that the new version no longer contains.
-
-Set `backup_root` to a new location whose `$backup_root/$skill` does not exist:
-
-```sh
-backup_root="/path/to/new-backup"
-mkdir -p "$backup_root"
-mv "$skill_root/$skill" "$backup_root/$skill"
-cp -R "$component_root/skills/$skill" "$skill_root/$skill"
-```
-
-The old directory remains in the backup if copying fails. Restore that directory before using the Skill again. For a linked installation, updating its source updates the linked content; if the source moves, replace only the installed link with one pointing at the new source. Reload or restart through the Harness after either kind of update. A directory copy or matching version does not establish that a running session has loaded the new body.
-
-### Remove a standalone Skill
-
-For a copied installation, remove only the selected installed directory, after preserving any local changes:
-
-```sh
-rm -r -- "$skill_root/$skill"
-```
-
-For a symlink installation, unlink it without a trailing slash:
-
-```sh
-rm -- "$skill_root/$skill"
-```
-
-Do not remove the shared Skill root, another language installation, or the source checkout. Reload or restart according to the Harness so its discovery state reflects removal.
-
-## Install the OMP package
-
-The package is `@ruokee/workloop`. Its `omp` manifest enables native package discovery; OMP reads complete Skills from `skills/` and Markdown command prompts from `commands/`. There is no Extension entry or runtime dependency. The package and both Skills share one version.
-
-The commands below use OMP's local package linking interface. From the component root:
-
-```sh
-component_root="$PWD"
-omp plugin link "$component_root"
 omp plugin list
+omp plugin uninstall @ruokee/workloop
 ```
 
-This registers a user-scoped link to this component, including both language Skills and all five commands. Keep the source directory available. In OMP 18.12.3, local package linking is user-scoped; `--scope project` does not turn it into a project-scoped link. Linking the same package name replaces its existing package link, so use this operation only for the installation you intend to manage.
+Run uninstall only for a listed installation you intend to replace. In OMP 18.12.3 it removes the registered package and plugin state, not a linked source checkout. It does not remove standalone copies or manually installed commands. Do not run `plugin link` against the direct-install component; it has no package manifest.
 
-After linking, run `/reload-plugins` in the active OMP session, or start a new session. Use one of:
+Locate any workloop file commands you installed under the effective user or project `commands/` directory. Move those five owned `wl-clarify.md`, `wl-exec.md`, `wl-verify.md`, `wl-ship.md`, and `wl-supervise.md` files outside discovery roots before installing templates. A same-name file command runs before a Prompt template and would keep the old entry active. Do not remove unrelated commands or another owner's files. Resolve any other same-name handler with its owner rather than relying on discovery order.
+
+## Locate OMP directories
+
+Run the examples from the component root containing `skills/` and `prompts/`. With default configuration, OMP uses `~/.omp/agent/skills/` and `~/.omp/agent/prompts/`. Resolve the effective agent directory through the actual CLI when environment settings or a profile relocate it:
+
+```sh
+component_root="$PWD"
+agent_root="$(omp config path)"
+skill_root="$agent_root/skills"
+prompt_root="$agent_root/prompts"
+skill=workloop
+```
+
+Run `config path` with the same environment and profile as the intended OMP session, for example `omp --profile work config path` for a named profile. Do not substitute the default path for its output. Custom Skill sources and project-local resources may also contain conflicts; inspect the reported source when validating discovery. For a deliberately project-local installation, use the project's actual `.omp/skills/` and `.omp/prompts/` roots instead.
+
+Choose `skill=workloop` for English or `skill=workloop-zh` for Chinese. Each choice supplies a complete Skill and templates fixed to that identity. Install only that language; copying both Prompt subdirectories into a discovery root creates duplicate basename commands. Templates do not select a language from the user's input.
+
+## Install in OMP
+
+The selected Skill destination, the other workloop language destination, and the five template filenames must be absent. For an existing owned installation, use replacement below. Preserve unknown content instead of overwriting it.
+
+```sh
+mkdir -p "$skill_root" "$prompt_root"
+cp -R "$component_root/skills/$skill" "$skill_root/$skill"
+cp "$component_root/prompts/$skill"/wl-*.md "$prompt_root/"
+```
+
+Copy the whole Skill, including `operations/`, `references/`, and `setup.md`. Copy only the selected five template files directly into the Prompt root, not the parent `prompts/` directory or a language subdirectory. OMP names templates by basename even when it scans recursively.
+
+Start a new OMP session after installing or updating templates. `/reload-plugins` refreshes plugin resources, Skills, and file commands, but does not reload Prompt templates. In the new session, use the installed Skill by name or one of these entries:
 
 ```text
 /wl-clarify <idea or Task reference>
@@ -85,39 +55,67 @@ After linking, run `/reload-plugins` in the active OMP session, or start a new s
 /wl-supervise <Task reference>
 ```
 
-An explicit language-Skill choice wins; without one the command loads English `workloop`. For example:
+Arguments are optional when the current Task and goal are already clear. Empty arguments add no input heading; nonempty input preserves the host parser's resulting characters. The entry requests the installed Skill first, then follows that Skill's own routing to the operation. It does not search the Prompt directory for workflow bodies.
 
-```text
-/wl-exec 使用 workloop-zh，执行这个 Task 的剩余 Plan
-```
+## Replace an installation
 
-The entry loads the selected Skill and its operation relative to the actual loaded Skill directory. It does not look for workflow bodies in a global prompt directory. Both Skills also remain usable by name without a slash command.
-
-### Update the OMP package
-
-Update the linked component checkout to the intended revision, then run `/reload-plugins` or start a new OMP session. If the component moved, run `omp plugin link` with its new absolute path. `omp plugin upgrade @ruokee/workloop` does not update local links; OMP rejects linked sources for that operation. Updating a link does not update a separately copied Skill.
-
-### Remove the OMP package
+Obtain the intended component revision and inspect local changes in the installed resources. Use a new backup location outside all discovery roots. Set `old_skill` to the currently installed language and `skill` to the desired one; use the same value to update, or the other value to switch language. A different destination Skill must not already exist.
 
 ```sh
-omp plugin uninstall @ruokee/workloop
+old_skill=workloop
+skill=workloop-zh
+backup_root="/path/to/new-backup"
+mkdir -p "$backup_root/skills" "$backup_root/prompts"
+mv "$skill_root/$old_skill" "$backup_root/skills/$old_skill"
+for operation in clarify exec verify ship supervise; do
+  mv "$prompt_root/wl-$operation.md" "$backup_root/prompts/"
+done
+cp -R "$component_root/skills/$skill" "$skill_root/$skill"
+cp "$component_root/prompts/$skill"/wl-*.md "$prompt_root/"
 ```
 
-Then run `/reload-plugins` or start a new session. Uninstall removes the registered package link and its plugin state, not the source component directory. It does not remove standalone Skill copies or manually installed commands; manage those through the method that installed them.
+The backup destinations must be new and the source resources must be your installation. Moving the complete old directory first prevents nested copies and removes obsolete files from discovery. Moving all five templates prevents mixed-language entries. Unrelated files remain untouched.
 
-### Resolve resource collisions
+If copying fails, restore the saved complete installation before using it. Keep backups outside discovery roots. Start a new OMP session after replacement or switching. Existing sessions may still hold old template content or Skill text.
 
-Use one installation method per Skill name to avoid loading different revisions. In OMP 18.12.3, native `.omp` resources have priority 100 and package resources priority 90. For differing same-name Skills, the higher-precedence copy keeps the bare name and other copies get namespaced identities; identical copies are deduplicated. A custom Skill directory has its own higher-precedence override behavior. Inspect the reported source before assuming that `workloop` names the package copy.
+## Remove an installation
 
-Native same-name file commands outrank package file commands. Built-in, extension, and custom command handlers run before file commands; file commands run before prompt templates. The `wl-` prefix does not guarantee freedom from user-defined collisions. Remove or rename only the conflicting installation you own, then reload. Do not rely on order between equal-priority sources.
+Preserve any local changes, then remove only your selected Skill and these five templates:
 
-### Interface basis
+```sh
+rm -r -- "$skill_root/$skill"
+for operation in clarify exec verify ship supervise; do
+  rm -- "$prompt_root/wl-$operation.md"
+done
+```
 
-The CLI and source contracts above were checked against OMP 18.12.3. This is an interface reference, not a host maintenance lower bound or a live installation claim:
+For a Skill symlink, use `rm -- "$skill_root/$skill"` without a trailing slash instead of removing its source. Keep shared roots, unrelated resources, backups, and the source checkout. Start a new OMP session so discovery reflects removal.
 
-- [Package management](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/plugin-manager-installer-plumbing.md) describes linking, update restrictions, removal, and conventional resources.
-- [Command discovery](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/slash-command-internals.md) describes `commands/`, precedence, and expansion.
-- [Skill collisions](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/skills.md#collision-and-duplicate-handling) describes same-name handling.
-- [Reload implementation](https://github.com/can1357/oh-my-pi/blob/v18.12.3/packages/coding-agent/src/slash-commands/builtin-marketplace.ts) refreshes Skills and file commands through `/reload-plugins`.
+## Use another Harness
 
-For other OMP versions, follow their current public interface. File copies and manifest inspection establish resource completeness; check actual host discovery and model behavior separately when validating an installation.
+Use that Harness's documented Skill roots and loading mechanism. Copy the complete selected directory from `skills/` to its actual Skill root. Do not copy OMP templates unless the host explicitly supports that format. No dedicated command or runtime integration is required; name the Skill and request an operation in natural language.
+
+Where supported, a directory symlink may replace the copy:
+
+```sh
+ln -s "$component_root/skills/$skill" "$skill_root/$skill"
+```
+
+Keep the source at a stable location. Replace a copied Skill by moving the old complete directory to a fresh backup outside discovery before copying the new one. Switch language by removing the old identity from discovery first. For a linked Skill, update the source or replace only its link if the source moves. Remove only the installed directory or link. Follow that Harness's actual reload or restart requirements rather than assuming OMP's procedure applies.
+
+## Verify loading
+
+Check these separately:
+
+- File placement: one complete selected Skill, five matching templates for OMP, no nested copy, stale language, or owned conflicting file command.
+- Host discovery: the intended Skill identity and command source, with no conflicting installation taking precedence.
+- Actual loading: in a new session, the selected entry loads the intended Skill and operation from their real installed paths. Discovery or a matching version alone does not establish loaded instruction text or correct Agent behavior.
+
+The interface basis is OMP 18.12.3, not a maintenance lower bound:
+
+- [Prompt templates](https://omp.sh/docs/prompt-templates) explains discovery, arguments, and session loading. The [18.12.3 implementation](https://github.com/can1357/oh-my-pi/blob/v18.12.3/packages/coding-agent/src/config/prompt-templates.ts) defines the versioned discovery and expansion behavior.
+- [Package management](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/plugin-manager-installer-plumbing.md) explains old-package removal.
+- [Command discovery](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/slash-command-internals.md) explains file-command precedence.
+- [Config CLI](https://github.com/can1357/oh-my-pi/blob/v18.12.3/packages/coding-agent/src/cli/config-cli.ts) defines `config path`.
+
+For another version, use its current public interfaces. File operations and discovery checks need their own observations; model behavior and user acceptance require separate evidence.

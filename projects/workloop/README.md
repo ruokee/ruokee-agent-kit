@@ -6,7 +6,7 @@ workloop is a Markdown workflow for Agent tasks: clarify the goal, implement a P
 
 ## Use a Skill
 
-Choose the complete English [workloop](./skills/workloop/SKILL.md) or Chinese [workloop-zh](./skills/workloop-zh/SKILL.md) directory. Both are independently discoverable and contain the same required contract, all operation bodies, and setup guidance. Load the selected Skill through your Harness and request an operation in natural language. Keep the whole directory, not just `SKILL.md`.
+Choose the complete English [workloop](./skills/workloop/SKILL.md) or Chinese [workloop-zh](./skills/workloop-zh/SKILL.md) directory. Each contains an entry, all operation bodies, conditional references, and setup guidance. Load the selected Skill through your Harness and request an operation in natural language. Keep the whole directory, not just `SKILL.md`. The entry routes to the activity; its body loads shared rules only when needed.
 
 Install tk separately and use its public interface under the project's Task rules. Collaboration uses the selected supported terminal tool; Herdr is recommended, not required. Other Skills are used for relevant activities under their own entry rules, not installed or made mandatory by this component.
 
@@ -14,13 +14,13 @@ workloop is for new tasks. It continues and repairs its own Tasks across session
 
 ## Install
 
-Follow [installation](./docs/installation.md) for complete-directory copying, supported links, updates, removal, and reload conditions. Standalone Skills use the target Harness's existing mechanism. OMP additionally supports the `@ruokee/workloop` resource package with both Skills and `/wl-clarify`, `/wl-exec`, `/wl-verify`, `/wl-ship`, and `/wl-supervise`. The commands load an explicit language choice or default to English.
+Follow [installation](./docs/installation.md) for first installation, full replacement, language switching, removal, and loading conditions. Install one complete language Skill. OMP also receives its matching set of `/wl-clarify`, `/wl-exec`, `/wl-verify`, `/wl-ship`, and `/wl-supervise` Prompt templates. Their language is fixed by the installed set, not selected from each invocation's input. Empty input continues sufficient current Task context without an empty input section or a repeated question.
 
-The repository's ordinary Skill installer does not manage this component. The OMP package contains only resources, with no Extension, build step, or runtime dependencies.
+The component has no OMP package manifest, Extension, build step, runtime dependencies, or dedicated installer. The repository's ordinary Skill installer does not manage it. Retire an existing workloop package and owned same-name file commands before direct installation. Start a new OMP session after creating or updating templates; `/reload-plugins` does not reload Prompt templates. Setup is optional, not an installation step.
 
 ## Choose an operation
 
-- **Clarify** resolves goals, performs necessary research or diagnosis, develops design, and forms or revises `plan.md`. A known goal can go straight to planning. A design-only request stays design-only.
+- **Clarify** resolves goals, performs necessary research or diagnosis, develops design, and forms or revises `plan.md` in the same operation once the goal, necessary design, and consequential choices are settled. Explicit discussion-only, design-only, no-plan, pause, and writing restrictions remain effective. Preparation does not start implementation.
 - **Execute** implements in the current session and coordinates self-check and independent Verify. Without a narrower limit, it continues the remaining Plan, usually one unit at a time and several serially.
 - **Verify** independently evaluates specified materials or an implementation candidate without editing it. Each report names its candidate, evidence, verdict, and limits.
 - **Ship** performs the delivery defined by the project under the actual request and permissions. It need not mean production release or Task closure.
@@ -32,7 +32,7 @@ Check is preparation's implicit material inspection. Start and End describe work
 
 The owning tk Task holds the materials. `goal.md` states the desired result and stopping conditions without implementation methods. Optional `design.md` explains the approach. Optional diagnosis records the problem and supported causes without repair recommendations. Research summarizes sources; Grill preserves discussion.
 
-Every task entering Execute needs an independent `plan.md`, even a single-unit change. It can expand some units inline and link others to tk subtasks. Execution records preserve candidates and checks; `verification.md` appends each independent assessment without replacing earlier failures. Optional materials need no empty files or role matrix.
+Every task entering Execute needs an independent `plan.md`, even a single-unit change. It can expand units inline or link to tk subtasks. Execution records preserve candidates and checks. Preparation self-check normally uses `plan-check.md`; requested independent preparation review appends to `material_check.md`; independent Verify of an executed candidate appends to `verification.md`. An executed Markdown-only unit is still an implementation candidate. Preserve prior assessments and failures. Optional activities need no empty files or role matrix.
 
 ## Understand checks
 
@@ -69,7 +69,7 @@ Explicit current choices override continuing choices, which override applicable 
 
 ## Recover work
 
-Retain Task, operation, scope, candidate, permissions, explicit prohibitions, inspection count, and next action in state that survives compaction. When the full contract or current operation leaves context, reload it from the selected installed Skill. A remembered link is not a loaded body. No particular Pin API is required.
+Retain the current activity's Task or configuration scope, basis, candidate where relevant, permissions, restrictions, inspection count when applicable, and next action in recoverable state. Reload a missing entry, operation, or currently required reference from the selected installed Skill. A remembered link is not loaded text. No particular Pin API is required.
 
 ## Validation scope
 
