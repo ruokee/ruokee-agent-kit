@@ -48,7 +48,7 @@ An attempt that consumed no tokens writes nothing, so a cancelled or failed atte
 
 ### Retirement
 
-Read the native `compactionRequestUsage` export on activation and stay inactive with a reason when the host records these requests itself, preventing duplicate entries. The [upstream recheck](../../../../../projects/omp-smart-context/docs/usage.md#upstream-recheck) names the native recording and statistics behavior to verify. Merge of PR #15034 triggers that recheck; it is not proof that a particular installed host records usage correctly.
+Read the native `compactionRequestUsage` export on activation and stay inactive with a reason when the host records these requests itself, preventing duplicate entries. The [usage Spec](../../../../spec/omp-smart-context/usage.md#native-replacement) owns the native recording and statistics behavior to verify. Merge of PR #15034 triggers that recheck; it is not proof that a particular installed host records usage correctly.
 
 Once verified published native behavior replaces compensation, remove this module's code, setting, status, documentation, and checks, update its decision and the capability inventory, and retain historical journal entries. Do not remove request alignment or reverse the package contract solely because this capability retires.
 
@@ -70,5 +70,5 @@ None
 - Usage can be attributed to the wrong request or branch. If an event's span differs from the span whose kind was read, the entry describes another request; if it lands on another branch, the intended statistics miss it. Totals can therefore be wrong while `/smart-context` reports an active state. Read the kind from the event's own span, skip unknown spans, and resolve branch position when writing.
 - Once the host records these requests itself, compensation left enabled inflates tokens and cost. Native detection and `/smart-context` state guard against duplication until removal.
 - Entries precede their compaction and depend on the host's active-window accounting. A host change can omit them from totals without rejecting the journal entries, so controlled acceptance observes the host's statistics delta as well as the records.
-- Provider cost depends on a host field that arrived after the component's declared lower bound. A host that stops stamping the kind or hands the event a span this module did not see makes the adjustment write nothing. Component documentation records each unverified scenario rather than implying a continuous range of hosts.
+- Provider cost depends on a host field that arrived after the component's declared lower bound. A host that stops stamping the kind or hands the event a span this module did not see makes the adjustment write nothing. Maintenance evidence records each unverified scenario rather than implying a continuous range of hosts.
 - Leaving removed keys in either QoL settings scope rejects its whole configuration. Copying module values without the former master-switch result can unexpectedly enable accounting.

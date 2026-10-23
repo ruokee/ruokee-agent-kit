@@ -26,7 +26,7 @@ Responses and Chat Completions express system prompts and reasoning differently.
 
 Handoff alignment is one [smart-context](./12-smart-cache.md) capability, with its own switch, state, counters, and acceptance. It adds no installation, package, settings reader, or extension entry.
 
-The only Handoff setting is the native boolean `handoffCacheEnabled`, defaulting to `false`. It enables this capability alone and is read with remote settings in one activation snapshot. Changes require restarting OMP. With the switch off, all requests remain native. No Provider inventory, mode, or second configuration source is added. Remote retains `compactionCacheEnabled`, `compactionCacheProvider`, and `compactionCacheMode`. Handoff protects references through same-session, model, API, prompt, and tool ownership; component documentation declares verified coverage and gaps.
+The only Handoff setting is the native boolean `handoffCacheEnabled`, defaulting to `false`. It enables this capability alone and is read with remote settings in one activation snapshot. Changes require restarting OMP. With the switch off, all requests remain native. No Provider inventory, mode, or second configuration source is added. Remote uses `compactionCacheEnabled`, `compactionCacheProviderFilter`, and `compactionCacheMode`. Handoff protects references through same-session, model, API, prompt, and tool ownership; maintenance evidence records verified coverage and gaps.
 
 ### Request ownership
 
@@ -92,7 +92,7 @@ The package replaces and disables the local trial extension after this capabilit
 
 Move the existing switch at both user and project scope to smart-context, remove the old package entry, and restart rather than stack wrappers or transfer live references. No runtime fallback reads the old namespace and no automatic migration changes user settings.
 
-The [component Spec](../../../../spec/omp-smart-context.md) uses repository checks and local controlled requests through the actual host library for integration acceptance. Cover both APIs' positive projections and refusals, independent remote settings, one rewrite per request, no repeated handler, and read-only status. Real-model calls and a full CLI/TUI matrix are not integration gates. Preserve historical trial and installation evidence with its original owner and conditions; Provider benefit claims require comparable actual measurements.
+The [Handoff Spec](../../../../spec/omp-smart-context/handoff.md) uses repository checks and local controlled requests through the actual host library for integration acceptance. Cover both APIs' positive projections and refusals, independent remote settings, one rewrite per request, no repeated handler, and read-only status. Real-model calls and a full CLI/TUI matrix are not integration gates. Preserve historical trial and installation evidence with its original owner and conditions; Provider benefit claims require comparable actual measurements.
 
 This successor replaces the archived package ownership, status entry, and integration gate. All protocol, lifecycle, native-policy, failure, and replacement rules remain in force.
 

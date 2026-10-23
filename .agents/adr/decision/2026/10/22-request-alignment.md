@@ -34,7 +34,7 @@ Alignment registers no `session_before_compact`, replaces no manual compaction e
 
 [Remote](./10-remote-alignment.md) and [Handoff](./12-handoff-alignment.md) retain their algorithms, settings, reason codes, and benefit evidence. They share no protocol or payload-shape rules. Pin journals, usage telemetry, and model-rule state are outside this mechanism. Do not add a general strategy registry or a new capability through this shared contract.
 
-The [component Spec](../../../../spec/omp-smart-context.md) owns acceptance. Existing positive and refusal cases retain their independent switches and protocol behavior. Controlled integration must establish separate session references, at most one rewrite per request, no repeated context handler, irreversible operation invalidation, and ownership-conditional release.
+The [request alignment Spec](../../../../spec/omp-smart-context/request-alignment.md) owns acceptance. Existing positive and refusal cases retain their independent switches and protocol behavior. Controlled integration must establish separate session references, at most one rewrite per request, no repeated context handler, irreversible operation invalidation, and ownership-conditional release.
 
 ## Alternatives considered
 

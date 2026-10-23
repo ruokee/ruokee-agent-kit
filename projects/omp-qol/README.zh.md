@@ -122,7 +122,7 @@ omp install "$(pwd)" --scope user
 
 `omp install` 是 `omp plugin install` 的别名，`omp plugin link "$(pwd)" --scope user` 注册同一目录。OMP 从 `package.json` 读取 `omp.extensions` 并加载 `src/extension.ts`，无需手工设置扩展路径。
 
-### 更新
+### 更新安装
 
 注册指向该检出目录，安装会一直从该目录读取包及其依赖。
 
@@ -149,11 +149,17 @@ bun test
 
 测试套件用一个小型记录宿主替代宿主，同时保留真实的包边界：来自已安装 `@oh-my-pi/pi-coding-agent` 的设置 getter、来自已安装 `@oh-my-pi/pi-ai` 的错误分类器，以及原生与已替换两种状态的 `AbortSignal.timeout` 与 `Map.prototype.set`。各调整项的检查覆盖记录在[调整项](./docs/adjustments.zh.md)。
 
-## 更新
+## 更新记录
 
 ### 0.5.10
 
-压缩请求用量和模型提示词规则归属 `@ruokee/omp-smart-context`。从用户级和项目级 QoL 设置中删除 `compactionUsageEnabled`、`modelPromptsEnabled`，任一遗留键都会导致 QoL 整体拒绝配置。删除前，把每项能力原 `enabled && 模块开关` 的有效结果保存为新包的独立设置，包括项目覆盖。保留其余所有 QoL 设置及既有规则文件。替换旧注册和配置后重启 OMP。QoL 不安装或停止迁出的模块。
+压缩请求用量和模型提示词规则归属 `@ruokee/omp-smart-context`。
+
+1. 先合并项目覆盖，将每项模块原 `enabled && 模块开关` 的有效结果保存在新包。
+2. 从用户级和项目级 QoL 设置中移除 `compactionUsageEnabled`、`modelPromptsEnabled`。任一遗留都会拒绝整个 QoL 配置。保留所有无关设置及既有规则文件。
+3. 同时迁移旧 smart-cache 或独立 Pin 时，替换其注册及手动扩展路径。修改注册或配置后重启 OMP。
+
+QoL 不再负责迁出模块的安装和停止。
 
 ## 许可证
 

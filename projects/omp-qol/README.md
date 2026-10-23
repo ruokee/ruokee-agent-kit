@@ -153,7 +153,13 @@ The test suite replaces the host with a small recording host and keeps the packa
 
 ### 0.5.10
 
-Compaction usage and model prompt rules belong to `@ruokee/omp-smart-context`. Remove `compactionUsageEnabled` and `modelPromptsEnabled` from both user and project QoL settings; either leftover key rejects the whole QoL configuration. Before removal, preserve each capability's effective `enabled && moduleEnabled` result in the new package's independent setting, including project overrides. Keep every other QoL setting and the existing rule files unchanged. Restart OMP after replacing the old registrations and configuration. QoL neither installs nor stops the migrated modules.
+Compaction usage and model prompt rules belong to `@ruokee/omp-smart-context`.
+
+1. Preserve each module's effective `enabled && moduleEnabled` result in the new package, resolving project overrides first.
+2. Remove `compactionUsageEnabled` and `modelPromptsEnabled` from both user and project QoL settings. Either leftover rejects the whole QoL configuration. Keep every unrelated setting and existing rule file.
+3. Replace old smart-cache and standalone Pin registrations when migrating those capabilities, including manual extension paths. Restart OMP after changing registrations or configuration.
+
+QoL neither installs nor stops the migrated modules.
 
 ## License
 

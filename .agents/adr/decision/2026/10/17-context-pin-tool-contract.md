@@ -27,7 +27,7 @@ A confirmed user edit or delete acts on the current entry. The revision shown wh
 
 Existing supported journal records replay unchanged; entry ids, operation identities, and revisions are not renumbered or migrated.
 
-The [component README](../../../../../projects/omp-context-pin/README.md) and its [Chinese edition](../../../../../projects/omp-context-pin/README.zh.md) are the public contract for the action list and observable behavior. The [component specification](../../../../spec/omp-context-pin.md) states the goals and invariants. The [current component decision](../09/15-omp-context-pin.md) remains in force; this decision extends it without changing its ownership, its `read` approval level, or its delegation of tunable limits to the component.
+The [Pin Spec](../../../../spec/omp-smart-context/pin.md) owns the action list and observable behavior contract of the smart-context Pin capability. The [main Spec](../../../../spec/omp-smart-context/README.md) states common goals and invariants; the [Pin guide](../../../../../projects/omp-smart-context/docs/pin.md) explains user operations. The [current Pin decision](../09/15-omp-context-pin.md) owns activation and remains in force; this tool contract preserves its `read` approval level and delegation of tunable limits to the component.
 
 ## Alternatives considered
 

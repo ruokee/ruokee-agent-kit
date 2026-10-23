@@ -34,7 +34,7 @@ Reverses: [smart-cache](../../../archived/2026/10/12-r1-smart-cache.zh.md)
 
 [Remote](./10-remote-alignment.zh.md) 与 [Handoff](./12-handoff-alignment.zh.md) 保留自己的算法、设置、原因码和收益证据，不共享协议或载荷形状规则。Pin journal、用量 telemetry 和模型规则状态不属于该机制。不通过共享合同增加通用策略注册表或新能力。
 
-[组件 Spec](../../../../spec/omp-smart-context.zh.md) 拥有验收要求。既有正例与拒绝用例保留独立开关和协议行为。受控集成需要验证逐会话参照、一条请求最多一次改写、上下文处理器不重复执行、失效操作不恢复，以及按归属释放。
+[请求对齐 Spec](../../../../spec/omp-smart-context/request-alignment.zh.md) 维护验收要求。既有正例与拒绝用例保留独立开关和协议行为。受控集成需要验证逐会话参照、一条请求最多一次改写、上下文处理器不重复执行、失效操作不恢复，以及按归属释放。
 
 ## 考虑过的替代方案
 

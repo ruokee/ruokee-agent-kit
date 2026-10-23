@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
 Archived: 2026-10-15
-Reversed by: [omp-context-pin](../../../decision/2026/09/15-omp-context-pin.md)
+Reversed by: [omp-context-pin](./15-r2-omp-context-pin.md)
 
 English | [中文](./15-r1-omp-context-pin.zh.md)
 

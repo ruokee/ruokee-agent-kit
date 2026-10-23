@@ -20,11 +20,11 @@ type Model = {
 const AGENT = "runtime-test-agent";
 
 const handoffOnly: AlignmentSettings = {
-  remote: { ok: true, settings: { enabled: false, provider: "", mode: "hooks" } },
+  remote: { ok: true, settings: { enabled: false, providerFilter: "", mode: "hooks" } },
   handoff: { ok: true, settings: { enabled: true } },
 };
 const bothOff: AlignmentSettings = {
-  remote: { ok: true, settings: { enabled: false, provider: "", mode: "hooks" } },
+  remote: { ok: true, settings: { enabled: false, providerFilter: "", mode: "hooks" } },
   handoff: { ok: true, settings: { enabled: false } },
 };
 
@@ -232,7 +232,7 @@ test("a switched-off handoff session reports no dispatch bookkeeping at all", as
 });
 
 const remoteOnly: AlignmentSettings = {
-  remote: { ok: true, settings: { enabled: true, provider: "test", mode: "hooks" } },
+  remote: { ok: true, settings: { enabled: true, providerFilter: "test", mode: "hooks" } },
   handoff: { ok: true, settings: { enabled: false } },
 };
 
@@ -523,7 +523,7 @@ test("native display-only Eval context is a prepared projection, not a deleted h
       await fetch(endpoint, { method: "POST", body: JSON.stringify(body), signal: AbortSignal.any([signal]) });
     };
     const settings: AlignmentSettings = {
-      remote: { ok: true, settings: { enabled: true, provider: "test", mode: scenario.mode } },
+      remote: { ok: true, settings: { enabled: true, providerFilter: "test", mode: scenario.mode } },
       handoff: remoteOnly.handoff,
     };
     const { session, hooks, registration, registry, modelRegistry } = activate(
@@ -588,11 +588,11 @@ test("Responses Handoff confirms its own ordinary dispatch independently of remo
   const selections: AlignmentSettings[] = [
     handoffOnly,
     {
-      remote: { ok: true, settings: { enabled: true, provider: "another-provider", mode: "standard" } },
+      remote: { ok: true, settings: { enabled: true, providerFilter: "another-provider", mode: "standard" } },
       handoff: handoffOnly.handoff,
     },
     {
-      remote: { ok: true, settings: { enabled: true, provider: "test", mode: "hooks" } },
+      remote: { ok: true, settings: { enabled: true, providerFilter: "test", mode: "hooks" } },
       handoff: handoffOnly.handoff,
     },
   ];

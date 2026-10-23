@@ -1,7 +1,7 @@
 {
   "name": "@ruokee/omp-smart-context",
   "version": "0.1.0",
-  "description": "OMP context capabilities for request alignment, compaction usage, and model prompt rules",
+  "description": "OMP context capabilities for request alignment, compaction usage, model prompt rules, and optional Pin",
   "license": "MIT",
   "type": "module",
   "keywords": [
@@ -18,10 +18,10 @@
         "default": false,
         "description": "Align owned non-Codex Responses V2 remote compaction without changing native maintenance. Off by default; restart to apply."
       },
-      "compactionCacheProvider": {
+      "compactionCacheProviderFilter": {
         "type": "string",
         "default": "",
-        "description": "Exact configured Provider name eligible for remote alignment. Empty keeps alignment inactive; restart to apply."
+        "description": "Enable remote alignment only for an exact match with the current session model's Provider. Does not select a model, route, or compaction method. Empty keeps alignment inactive; restart to apply."
       },
       "compactionCacheMode": {
         "type": "enum",
@@ -46,6 +46,11 @@
         "type": "boolean",
         "default": false,
         "description": "Append matching model-prompts documents each covered turn. Off by default; restart to apply."
+      },
+      "pinEnabled": {
+        "type": "boolean",
+        "default": false,
+        "description": "Register Context Pin tools, commands, and journal projection. Off by default; restart to apply."
       }
     }
   },
@@ -53,12 +58,14 @@
     "@oh-my-pi/pi-agent-core": "*",
     "@oh-my-pi/pi-ai": "*",
     "@oh-my-pi/pi-coding-agent": "*",
+    "@oh-my-pi/pi-tui": "*",
     "@oh-my-pi/pi-utils": "*"
   },
   "devDependencies": {
     "@oh-my-pi/pi-agent-core": "18.5.0",
     "@oh-my-pi/pi-ai": "18.5.0",
     "@oh-my-pi/pi-coding-agent": "18.5.0",
+    "@oh-my-pi/pi-tui": "18.5.0",
     "@oh-my-pi/pi-utils": "18.5.0",
     "@types/bun": "1.4.2",
     "typescript": "5.9.3"

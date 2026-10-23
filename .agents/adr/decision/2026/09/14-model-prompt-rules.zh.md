@@ -30,7 +30,7 @@ Reverses: [模型提示词规则](../../../archived/2026/09/14-r3-model-prompt-r
 
 追加步骤在每个被覆盖的 turn 读取当前 profile 的用户 agent `model-prompts` 目录及项目 `.omp/model-prompts`。只读取直接子级、非隐藏、小写 `.md` 普通文件。保留区分大小写的 `exact`、`model`、`contains` 和 `regex` 匹配、同文件条目的 OR 语义，以及每个匹配文件仅追加一次。校验并移除 frontmatter，移除开头 BOM，正文逐字节保留，包括换行符。
 
-返回新数组，先按原顺序保留全部输入块，再为每个匹配文件追加一个块。不修改输入块，不包装、裁剪、重新渲染或改写宿主内容。用户目录正文先于项目目录，同目录按文件名排序，异步读取不改变结果。README 的[模型提示词规则](../../../../../projects/omp-smart-context/README.zh.md#模型提示词规则)小节拥有详细文件与匹配合同。
+返回新数组，先按原顺序保留全部输入块，再为每个匹配文件追加一个块。不修改输入块，不包装、裁剪、重新渲染或改写宿主内容。用户目录正文先于项目目录，同目录按文件名排序，异步读取不改变结果。[模型提示词规则 Spec](../../../../spec/omp-smart-context/model-prompts.zh.md) 维护详细文件与匹配合同。
 
 没有匹配时该步骤不返回值，turn 输入保持不变。系统提示词是唯一渠道。
 
@@ -46,7 +46,7 @@ Reverses: [模型提示词规则](../../../archived/2026/09/14-r3-model-prompt-r
 
 ### 上游复核
 
-组件记录当宿主自己提供模型作用域指令时需要做的复核，形式见上游 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) 或等价能力：
+[模型提示词规则 Spec](../../../../spec/omp-smart-context/model-prompts.zh.md) 维护宿主提供模型作用域指令时的复核合同，形式见上游 [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) 或等价能力：
 
 - 宿主覆盖哪些匹配维度，例如精确的 `provider/model` 键、裸模型 id、子串与正则；
 - 宿主文本与已被替换或自定义的系统提示词如何组合：替换还是追加，以及它在块顺序中的位置；

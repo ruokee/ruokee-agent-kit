@@ -95,7 +95,7 @@ This decision retains online confirmation, immutable root snapshots, native life
 
 Deliver remote directly in smart-cache, without a QoL multi-session interim release. Remove QoL's remote implementation, its settings consumption, and its public status entry. Keep no shim or runtime cross-component dependency. Preserve valid consumer-visible assertions and every unrelated QoL behavior.
 
-The component [Spec](../../../../spec/omp-smart-context.md) states this contract's acceptance criteria.
+The [Remote Spec](../../../../spec/omp-smart-context/remote.md) states this contract's acceptance criteria.
 
 The user moves the settings; runtime code neither reads QoL settings as a fallback nor edits user configuration or migrates an installation. The move preserves the old effective Provider and mode, and enables the new repair only when the old effective QoL master `enabled` and `compactionCacheEnabled` were both valid and enabled. A default or an invalid setting must not turn a previously inactive repair on. Old remote keys become unknown QoL keys that can make the whole component reject its configuration, so the move and the restart happen before the changed source is loaded.
 

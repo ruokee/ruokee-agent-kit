@@ -8,6 +8,7 @@ import { observeConstruction } from "./construction.ts";
 import { installModelPromptsModule } from "./model-prompts.ts";
 import { installUsageCompensationModule, usageStatusFromRegistry } from "./usage-compensation.ts";
 import { PACKAGE_NAME, PACKAGE_VERSION } from "./version.ts";
+import { installPinModule } from "./pin/extension.ts";
 
 const SNAPSHOTS = Symbol.for("ruokee.omp-smart-context.settings");
 const globals = globalThis as typeof globalThis & { [key: symbol]: unknown };
@@ -83,6 +84,7 @@ export default function extension(pi: ExtensionAPI): void {
   let modulesInstalled = false;
   let usage: ModuleState = { status: "pending" };
   let prompts: ModuleState = { status: "pending" };
+  let pin: ModuleState = { status: "pending" };
   let mode = "unknown";
   const report = (ctx: ExtensionContext, key: string): void => {
     if (reported.has(key)) return;
@@ -129,6 +131,12 @@ export default function extension(pi: ExtensionAPI): void {
         prompts = { status: "incompatible", reason: "registration-error" };
         report(ctx, "modelPrompts:registration-error");
       }
+      try {
+        pin = installPinModule(pi, settings.pin, ctx);
+      } catch {
+        pin = { status: "incompatible", reason: "registration-error" };
+        report(ctx, "pin:registration-error");
+      }
     } finally {
       construction.release();
     }
@@ -161,6 +169,7 @@ export default function extension(pi: ExtensionAPI): void {
             : `omp-smart-context ${PACKAGE_VERSION} remote=unavailable reason=not-activated handoff=unavailable reason=not-activated`,
           describeModule("compactionUsage", usageStatusFromRegistry(usage)),
           describeModule("modelPrompts", prompts),
+          describeModule("pin", pin),
         ].join("\n"),
         "info",
       );

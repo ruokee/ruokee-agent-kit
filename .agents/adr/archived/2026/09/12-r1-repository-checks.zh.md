@@ -25,7 +25,7 @@ Reversed by: [仓库检查](../../../decision/2026/09/12-repository-checks.zh.md
 | 2 | [projects/omp-status-bar/package.json](../../../../../projects/omp-status-bar/package.json) | 先执行 `pnpm --dir projects/omp-status-bar run typecheck`，再执行 `pnpm --dir projects/omp-status-bar run test` |
 | 3 | `projects/omp-system-prompt/package.json` | 先执行 `pnpm --dir projects/omp-system-prompt run typecheck`，再执行 `pnpm --dir projects/omp-system-prompt run test` |
 | 4 | `projects/omp-codex-web-access/package.json` | 先执行 `pnpm --dir projects/omp-codex-web-access run typecheck`，再执行 `pnpm --dir projects/omp-codex-web-access run test` |
-| 5 | [projects/omp-context-pin/package.json](../../../../../projects/omp-context-pin/package.json) | 先执行 `pnpm --dir projects/omp-context-pin run typecheck`，再执行 `pnpm --dir projects/omp-context-pin run test` |
+| 5 | `projects/omp-context-pin/package.json` | 先执行 `pnpm --dir projects/omp-context-pin run typecheck`，再执行 `pnpm --dir projects/omp-context-pin run test` |
 | 6 | [projects/omp-qol/package.json](../../../../../projects/omp-qol/package.json) | 先执行 `pnpm --dir projects/omp-qol run typecheck`，再执行 `pnpm --dir projects/omp-qol run test` |
 | 7 | [projects/tk/adapter-tests/common.test.ts](../../../../../projects/tk/adapter-tests/common.test.ts) | `bun test projects/tk/adapter-tests` |
 | 8 | [scripts/skills.sh](../../../../../scripts/skills.sh) | 通过 `pnpm check:skills` 执行 `sh scripts/tests/skills.sh` |

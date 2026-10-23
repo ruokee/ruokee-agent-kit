@@ -26,7 +26,7 @@ Responses 与 Chat Completions 的系统提示词和 reasoning 表达不同。Re
 
 Handoff 对齐是 [smart-context](./12-smart-cache.zh.md) 的一项能力，拥有自己的开关、状态、计数和验收，不新增安装、包、设置读取器或扩展入口。
 
-唯一 Handoff 设置为原生 boolean `handoffCacheEnabled`，默认 `false`。它只启用本能力，与 remote 设置一起读取为同一激活快照，变更后重启 OMP。关闭时所有请求保持原生。不新增 Provider 清单、模式或第二配置源。remote 的 `compactionCacheEnabled`、`compactionCacheProvider` 与 `compactionCacheMode` 不变。Handoff 依靠同会话、模型、API、提示词和工具归属保护参照，组件文档声明验证范围和缺口。
+唯一 Handoff 设置为原生布尔值 `handoffCacheEnabled`，默认 `false`。它只启用本能力，与远端设置一起读取为同一激活快照，变更后重启 OMP。关闭时所有请求保持原生。不新增提供方清单、模式或第二配置源。远端使用 `compactionCacheEnabled`、`compactionCacheProviderFilter` 与 `compactionCacheMode`。Handoff 依靠同会话、模型、API、提示词和工具归属保护参照，维护证据记录验证范围和缺口。
 
 ### 请求归属
 
@@ -92,7 +92,7 @@ Chat Completions 还原工具选择可能使模型返回工具调用而不是文
 
 把用户级和项目级的既有开关迁入 smart-context，移除旧包入口并重启，不叠加包装或转移活跃参照。运行时不回退读取旧命名空间，不自动迁移用户设置。
 
-[组件 Spec](../../../../spec/omp-smart-context.zh.md) 使用仓库检查，以及实际宿主库的本地受控请求验收集成。覆盖两种 API 的正例与拒绝、独立 remote 设置、一条请求最多一次改写、handler 不重复执行和只读状态。真实模型调用和完整 CLI/TUI 矩阵不是集成门槛。历史试验与安装证据保留原归属及条件，Provider 收益声明需要可比真实测量。
+[Handoff Spec](../../../../spec/omp-smart-context/handoff.zh.md) 使用仓库检查，以及实际宿主库的本地受控请求验收集成。覆盖两种 API 的正例与拒绝、独立远端设置、一条请求最多一次改写、处理器不重复执行和只读状态。真实模型调用和完整 CLI/TUI 矩阵不是集成门槛。历史试验与安装证据保留原归属及条件，提供方收益声明需要可比真实测量。
 
 本后继替代归档中的包归属、状态入口和集成门槛。全部协议、生命周期、原生策略、失败及替换规则继续有效。
 

@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { parseSettings } from "../src/settings.ts";
 
 const handoffDisabled = { ok: true, settings: { enabled: false } } as const;
-const remoteDisabled = { ok: true, settings: { enabled: false, provider: "", mode: "hooks" } } as const;
+const remoteDisabled = { ok: true, settings: { enabled: false, providerFilter: "", mode: "hooks" } } as const;
 
 test("invalid explicit configuration never silently enables a repair or echoes private values", () => {
   const root = {
@@ -10,22 +10,34 @@ test("invalid explicit configuration never silently enables a repair or echoes p
     handoff: { ok: false, reason: "settings-root-invalid" },
     compactionUsage: { ok: false, reason: "settings-root-invalid" },
     modelPrompts: { ok: false, reason: "settings-root-invalid" },
+    pin: { ok: false, reason: "settings-root-invalid" },
   } as const;
   for (const input of [null, [], 0, false, "private-root"]) expect(parseSettings(input)).toEqual(root);
-  expect(parseSettings({ "private-dynamic-key": "private-value" })).toEqual({
-    remote: { ok: false, reason: "settings-unknown-key" },
-    handoff: { ok: false, reason: "settings-unknown-key" },
-    compactionUsage: { ok: false, reason: "settings-unknown-key" },
-    modelPrompts: { ok: false, reason: "settings-unknown-key" },
-  });
+  for (const input of [
+    { "private-dynamic-key": "private-value" },
+    {
+      compactionCacheProvider: "old-provider",
+      compactionCacheProviderFilter: "synthetic-provider",
+      compactionCacheEnabled: true,
+      handoffCacheEnabled: true,
+      pinEnabled: true,
+    },
+  ])
+    expect(parseSettings(input)).toEqual({
+      remote: { ok: false, reason: "settings-unknown-key" },
+      handoff: { ok: false, reason: "settings-unknown-key" },
+      compactionUsage: { ok: false, reason: "settings-unknown-key" },
+      modelPrompts: { ok: false, reason: "settings-unknown-key" },
+      pin: { ok: false, reason: "settings-unknown-key" },
+    });
 });
 
 test("a remote field failure leaves the handoff switch usable", () => {
   const cases = [
     [{ compactionCacheEnabled: null }, "compactionCacheEnabled=type"],
     [{ compactionCacheEnabled: "true" }, "compactionCacheEnabled=type"],
-    [{ compactionCacheProvider: null }, "compactionCacheProvider=type"],
-    [{ compactionCacheProvider: [] }, "compactionCacheProvider=type"],
+    [{ compactionCacheProviderFilter: null }, "compactionCacheProviderFilter=type"],
+    [{ compactionCacheProviderFilter: [] }, "compactionCacheProviderFilter=type"],
     [{ compactionCacheMode: null }, "compactionCacheMode=enum"],
     [{ compactionCacheMode: "private-invalid-mode" }, "compactionCacheMode=enum"],
   ] as const;
@@ -44,22 +56,22 @@ test("a handoff switch failure leaves remote alignment settings usable", () => {
   }
 });
 
-test("provider selection and mode cannot override an explicit disabled switch", () => {
+test("provider filtering and mode cannot override an explicit disabled switch", () => {
   for (const mode of ["standard", "hooks"] as const)
     expect(
       parseSettings({
         compactionCacheEnabled: false,
-        compactionCacheProvider: "synthetic-provider",
+        compactionCacheProviderFilter: "synthetic-provider",
         compactionCacheMode: mode,
       }).remote,
-    ).toEqual({ ok: true, settings: { enabled: false, provider: "synthetic-provider", mode } });
+    ).toEqual({ ok: true, settings: { enabled: false, providerFilter: "synthetic-provider", mode } });
 });
 
 test("each capability reports its own switch without enabling the other", () => {
-  const settings = parseSettings({ compactionCacheEnabled: true, compactionCacheProvider: "synthetic-provider" });
+  const settings = parseSettings({ compactionCacheEnabled: true, compactionCacheProviderFilter: "synthetic-provider" });
   expect(settings.remote).toEqual({
     ok: true,
-    settings: { enabled: true, provider: "synthetic-provider", mode: "hooks" },
+    settings: { enabled: true, providerFilter: "synthetic-provider", mode: "hooks" },
   });
   expect(settings.handoff).toEqual(handoffDisabled);
   expect(parseSettings({ handoffCacheEnabled: true })).toEqual({
@@ -67,6 +79,7 @@ test("each capability reports its own switch without enabling the other", () => 
     handoff: { ok: true, settings: { enabled: true } },
     compactionUsage: { ok: true, settings: { enabled: true } },
     modelPrompts: { ok: true, settings: { enabled: false } },
+    pin: { ok: true, settings: { enabled: false } },
   });
 });
 
@@ -80,5 +93,9 @@ test("migrated switches fail locally and retain independent defaults", () => {
     expect(prompts.modelPrompts).toEqual({ ok: false, reason: "modelPromptsEnabled=type" });
     expect(prompts.compactionUsage).toEqual({ ok: true, settings: { enabled: true } });
     expect(prompts.handoff).toEqual(handoffDisabled);
+    const pin = parseSettings({ pinEnabled: value, modelPromptsEnabled: true });
+    expect(pin.pin).toEqual({ ok: false, reason: "pinEnabled=type" });
+    expect(pin.compactionUsage).toEqual({ ok: true, settings: { enabled: true } });
+    expect(pin.modelPrompts).toEqual({ ok: true, settings: { enabled: true } });
   }
 });

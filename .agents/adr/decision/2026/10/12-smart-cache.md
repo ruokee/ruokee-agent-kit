@@ -20,7 +20,7 @@ Maintain `@ruokee/omp-smart-context` at `projects/omp-smart-context`, with one n
 
 ### Capability ownership
 
-Each capability owns its behavior, native switch, defaults, runtime state, reasons, counters where applicable, and acceptance in its own decision. The [README](../../../../../projects/omp-smart-context/README.md) and [component Spec](../../../../spec/omp-smart-context.md) own the delivered inventory and detailed reference. Adding or removing a capability without changing a common invariant does not reverse this package decision. Do not ship placeholder settings, modes, or interfaces, or introduce a general module framework.
+Each capability owns its behavior, native switch, defaults, runtime state, reasons, counters where applicable, and acceptance in its own decision. The [main Spec](../../../../spec/omp-smart-context/README.md) owns the capability inventory and common requirements; its topic Specs own detailed contracts and acceptance. The [README](../../../../../projects/omp-smart-context/README.md) provides the user entry. Adding or removing a capability without changing a common invariant does not reverse this package decision. Do not ship placeholder settings, modes, or interfaces, or introduce a general module framework.
 
 The shared coordinator belongs only to [request alignment](./22-request-alignment.md). Journals, usage accounting, and model-rule state keep their own owners. Shared packaging does not merge protocol rules, payload shapes, reason codes, or benefit evidence. A module-local failure or unavailable interface leaves unrelated valid capabilities working.
 
@@ -34,7 +34,7 @@ Unknown keys, a non-object settings root, or a settings-reader failure reject th
 
 `/smart-context` is the package's read-only status command. It starts no model turn and reports each delivered capability independently, including its state, reasons, and applicable bounded counters. Capability-owned commands retain their own contracts.
 
-Component documentation owns detailed settings and commands, applicability, side effects, native-off behavior, fixed source baselines, versions actually exercised, and native replacement conditions in both languages. Label source inspection, controlled integration, real CLI coverage, client alignment, native adoption, and Provider measurements separately.
+Component documentation explains settings, commands, applicability, side effects, and native-off behavior in both languages. Specs own requirements and native replacement conditions. Maintenance evidence owns fixed source baselines and versions actually exercised, distinguishing source inspection, controlled integration, real CLI coverage, client alignment, native adoption, and Provider measurements.
 
 ### Host maintenance
 

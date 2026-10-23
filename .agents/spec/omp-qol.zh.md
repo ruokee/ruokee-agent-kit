@@ -64,7 +64,7 @@ Error: Upstream provider closed the connection before the response completed: st
 
 ## 不变量
 
-- 全部无关设置保留键名、默认值、范围及校验。远端对齐、压缩用量和模型规则归属 `omp-smart-context`。`compactionCacheEnabled`、`compactionCacheProvider`、`compactionCacheMode`、`compactionUsageEnabled`、`modelPromptsEnabled` 均不存在，并按未知键拒绝；不保留运行时兼容路径。QoL 不安装或停止迁出模块。
+- 全部无关设置保留键名、默认值、范围及校验。远端对齐、压缩用量和模型规则归属 `omp-smart-context`。`compactionCacheEnabled`、`compactionCacheProvider`、`compactionCacheMode`、`compactionUsageEnabled`、`modelPromptsEnabled` 均不存在，并按未知键拒绝；不保留运行时兼容路径。QoL 不再负责迁出模块的安装和停止。
 - `waitMessagesSeconds` 和 `waitProcessSeconds` 在受支持的宿主上不起作用，中英文文档和 manifest 的设置说明写明这一点。
 - 续等只服务独立的 `wait` 入口。入口缺失、属于他方或无法识别时，保留原生行为并报告有界的原因。
 - 压缩期限补丁保留所有权检查：拒绝与带有 `Symbol.for("ruokee.omp.compaction-timeout.patched")` 标记的补丁共存，后续的同类激活也不会接管已有的所有者。

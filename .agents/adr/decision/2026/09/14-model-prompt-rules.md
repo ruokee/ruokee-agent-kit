@@ -30,7 +30,7 @@ The component declares a direct pi-utils peer; host peers stay unrestricted, and
 
 The append step reads the current profile's user agent `model-prompts` directory and the project's `.omp/model-prompts` on every covered turn. Read only direct, non-hidden, lowercase `.md` regular files. Preserve case-sensitive `exact`, `model`, `contains`, and `regex` matching, OR semantics within a file, and one append per matching file. Validate and remove frontmatter and remove a leading BOM; preserve the body byte-for-byte, including line endings.
 
-Return a new array containing every incoming block in its original order followed by one block per matching file. Do not modify incoming blocks or wrap, trim, re-render, or rewrite host content. User-directory bodies precede project-directory bodies, filename order applies within a directory, and asynchronous reads cannot change the result. The README's [model prompt rules](../../../../../projects/omp-smart-context/README.md#model-prompt-rules) section owns the detailed file and matching contract.
+Return a new array containing every incoming block in its original order followed by one block per matching file. Do not modify incoming blocks or wrap, trim, re-render, or rewrite host content. User-directory bodies precede project-directory bodies, filename order applies within a directory, and asynchronous reads cannot change the result. The [model prompt rules Spec](../../../../spec/omp-smart-context/model-prompts.md) owns the detailed file and matching contract.
 
 When nothing matches, the step returns nothing and leaves the turn input untouched. The system-prompt channel is the only channel.
 
@@ -46,7 +46,7 @@ Rule documents in a project directory turn repository content into system-prompt
 
 ### Upstream recheck
 
-The component documents the re-check it needs when the host provides model-scoped instructions itself, through upstream [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) or an equivalent capability:
+The [model prompt rules Spec](../../../../spec/omp-smart-context/model-prompts.md) owns the recheck when the host provides model-scoped instructions itself, through upstream [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) or an equivalent capability:
 
 - which matching dimensions the host covers, such as exact `provider/model` keys, bare model ids, substrings, and regular expressions;
 - how host text composes with a replaced or customized system prompt: replacement or append, and its position in the block order;

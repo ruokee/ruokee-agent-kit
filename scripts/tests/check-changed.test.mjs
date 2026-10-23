@@ -287,8 +287,9 @@ test("context cutover selects both component checks and deduplicates shared path
   ]);
 });
 
-test("deleted smart-cache paths require complete fallback", () => {
+test("deleted context package paths require complete fallback", () => {
   assert.equal(selectChecks(["projects/omp-smart-cache/src/runtime.ts"]).full, true);
+  assert.equal(selectChecks(["projects/omp-context-pin/src/extension.ts"]).full, true);
 });
 
 test("tk packaging trees select Rust and adapters, installation docs select Skill checks", () => {

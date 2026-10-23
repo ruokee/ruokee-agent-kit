@@ -235,14 +235,14 @@ function initial(reason: string, state: Status["state"] = "awaiting-reference"):
     retained: 0,
   };
 }
-/** Remote alignment needs a selected Provider and the Responses V2 request shape. */
+/** Filter repair eligibility without changing the session model or native routing. */
 function remoteTarget(state: State, model: Model | undefined): boolean {
   const settings = state.selection.remote.settings;
   return (
     !!settings &&
     settings.enabled &&
     model !== undefined &&
-    model.provider === settings.provider &&
+    model.provider === settings.providerFilter &&
     model.api === "openai-responses"
   );
 }
@@ -287,7 +287,7 @@ function endpoints(model: Model): [string, string] {
 function remoteSelection(result: RemoteResult): RemoteSelection {
   if (!result.ok) return { active: false, reason: result.reason, state: "unavailable" };
   if (!result.settings.enabled) return { active: false, reason: "disabled", state: "disabled" };
-  if (!result.settings.provider) return { active: false, reason: "provider-not-selected", state: "unavailable" };
+  if (!result.settings.providerFilter) return { active: false, reason: "provider-filter-empty", state: "unavailable" };
   return { active: true, reason: "reference-not-sent", state: "awaiting-reference", settings: result.settings };
 }
 function handoffSelection(result: ToggleResult): HandoffSelection {

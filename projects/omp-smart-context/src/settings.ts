@@ -1,7 +1,7 @@
 export type Mode = "standard" | "hooks";
 export interface RemoteSettings {
   readonly enabled: boolean;
-  readonly provider: string;
+  readonly providerFilter: string;
   readonly mode: Mode;
 }
 export type RemoteResult =
@@ -16,6 +16,7 @@ export interface AlignmentSettings {
 export interface Settings extends AlignmentSettings {
   readonly compactionUsage: ToggleResult;
   readonly modelPrompts: ToggleResult;
+  readonly pin: ToggleResult;
 }
 export interface ModuleState {
   readonly status: "pending" | "enabled" | "disabled" | "invalid" | "incompatible";
@@ -25,11 +26,12 @@ export interface ModuleState {
 
 const KEYS: Record<string, true> = {
   compactionCacheEnabled: true,
-  compactionCacheProvider: true,
+  compactionCacheProviderFilter: true,
   compactionCacheMode: true,
   handoffCacheEnabled: true,
   compactionUsageEnabled: true,
   modelPromptsEnabled: true,
+  pinEnabled: true,
 };
 
 export function rejectedSettings(reason: string): Settings {
@@ -38,6 +40,7 @@ export function rejectedSettings(reason: string): Settings {
     handoff: { ok: false, reason },
     compactionUsage: { ok: false, reason },
     modelPrompts: { ok: false, reason },
+    pin: { ok: false, reason },
   };
 }
 
@@ -54,20 +57,21 @@ export function parseSettings(raw: unknown): Settings {
   const values = raw as Record<string, unknown>;
   if (Object.keys(values).some((key) => !Object.hasOwn(KEYS, key))) return rejectedSettings("settings-unknown-key");
   const enabled = values.compactionCacheEnabled ?? false,
-    provider = values.compactionCacheProvider ?? "",
+    providerFilter = values.compactionCacheProviderFilter ?? "",
     mode = values.compactionCacheMode ?? "hooks";
   const remote: RemoteResult =
     values.compactionCacheEnabled === null || typeof enabled !== "boolean"
       ? { ok: false, reason: "compactionCacheEnabled=type" }
-      : values.compactionCacheProvider === null || typeof provider !== "string"
-        ? { ok: false, reason: "compactionCacheProvider=type" }
+      : values.compactionCacheProviderFilter === null || typeof providerFilter !== "string"
+        ? { ok: false, reason: "compactionCacheProviderFilter=type" }
         : values.compactionCacheMode === null || (mode !== "standard" && mode !== "hooks")
           ? { ok: false, reason: "compactionCacheMode=enum" }
-          : { ok: true, settings: { enabled, provider, mode } };
+          : { ok: true, settings: { enabled, providerFilter, mode } };
   return {
     remote,
     handoff: toggle(values, "handoffCacheEnabled", false),
     compactionUsage: toggle(values, "compactionUsageEnabled", true),
     modelPrompts: toggle(values, "modelPromptsEnabled", false),
+    pin: toggle(values, "pinEnabled", false),
   };
 }

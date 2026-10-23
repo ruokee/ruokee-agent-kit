@@ -95,7 +95,7 @@ OMP 保留准备、触发、投机启动与等待、取消、认证及传输重�
 
 正式 remote 直接交付到 smart-cache，不发布 QoL 多会话过渡版。移除 QoL 的 remote 实现、设置消费及公共状态入口，不保留 shim 或跨组件运行时依赖。保留有效消费者行为断言与全部无关 QoL 行为。
 
-本合同的验收标准由组件 [Spec](../../../../spec/omp-smart-context.zh.md) 表达。
+本合同的验收标准见 [Remote Spec](../../../../spec/omp-smart-context/remote.zh.md)。
 
 设置由用户迁移；运行时代码不回退读取 QoL 设置，也不编辑用户配置或迁移安装。迁移保留旧的有效 Provider 与模式，且只有旧有效 QoL 总开关 `enabled` 和 `compactionCacheEnabled` 均合法且启用时，才启用新修复。默认值或非法设置不得开启原本未生效的修复。旧 remote 键会成为 QoL 未知键，可能使整个组件拒绝配置，因此迁移与重启在加载变更源码之前完成。
 
