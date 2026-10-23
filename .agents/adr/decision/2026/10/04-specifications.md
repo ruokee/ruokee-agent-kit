@@ -69,3 +69,9 @@ Keep full maintenance rules in the spec README and use a Skill only for steps. T
 Readers have a complete current requirement set independent of the original implementation. Component users keep independently usable guidance. The Skill owns the maintenance method and the non-spec index owns navigation and local supplements.
 
 Required behavior appears in specifications and user references for different purposes. A change reaching only one can produce conflicting instructions or acceptance, so affected documents must change together. A stale spec, omitted decision change, or historical rule treated as current authority can direct implementation toward the wrong target. Actual maintenance must establish correct loading, source use, requirement preservation, and document results; formatting cannot prove semantic agreement or successful Skill behavior.
+
+## Changes
+
+### 2026-10-23 Source scope
+
+Read the record types that the current [ADR mechanism](../08/22-adr-mechanism.md) retains. Its removal of the proposal type leaves no active ADR proposals to seek; the source-reading requirement does not independently require that type. Continue reading confirmed requirements, effective decisions and their changes, project supplements, and necessary sources. Task discussions may establish approval or a proposed target, but do not approve requirements by themselves. Complete, implementation-independent specifications remain the target.

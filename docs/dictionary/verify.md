@@ -14,7 +14,7 @@ Independence means the verifier did not implement the candidate. A fresh context
 
 ## Example
 
-A verifier checked a bilingual proposal, ran the documentation checks, and reported `passed` while the merge gate remained outstanding.
+A verifier checked a bilingual decision, ran the documentation checks, and reported `passed` while the merge gate remained outstanding.
 
 ## Avoid
 

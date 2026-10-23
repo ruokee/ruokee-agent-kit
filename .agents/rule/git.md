@@ -11,7 +11,7 @@ The [repository spec](../spec/repository.md) states the properties these rules s
 - Use the main working directory only for a serial explanatory Markdown or ADR task that is clean, has no parallel work, and has confirmed exclusive use.
 - Do not qualify a runtime template for that exception. Qualify an explanatory document consumed by tests only together with its consumer checks.
 - Create and switch to the short-lived branch before editing. Stop editing in the shared directory and preserve the work in an independent worktree before continuing when the scope grows beyond explanatory Markdown or exclusive use is lost.
-- For authorized multi-unit development, a later unit may branch from a verified, committed predecessor containing its dependencies before that predecessor merges. Freeze the predecessor and record each unit's branch, base, candidate, and verification scope. This exception changes the development base, not proposal approval, archival authority, or integration permission. Integrate units through separate squash merges in dependency order.
+- For authorized multi-unit development, a later unit may branch from a verified, committed predecessor containing its dependencies before that predecessor merges. Freeze the predecessor and record each unit's branch, base, candidate, and verification scope. This exception changes the development base, not decision approval, archival authority, or integration permission. Integrate units through separate squash merges in dependency order.
 - Run `git worktree remove` in the teardown step after the branch has been merged into `main`. The merge authorization covers this cleanup.
 
 ## Commits

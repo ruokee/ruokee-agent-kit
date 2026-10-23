@@ -14,7 +14,7 @@ Request alignment, compaction usage, and model prompt rules belong to smart-cont
 
 The original four adjustments are: a `wait` that keeps waiting to a total deadline, a bounded continuation after an eligible model error, an opt-in extension of the remote compaction deadline, and a process-wide wrapper that keeps a resumed process's first request in the provider's native history form. A native `wait` returns when its window ends while the background work it watches is still running, so the model must ask again and each such return costs a turn. A turn that ends with an upstream error stays settled even when the error is transient, because the native retry budget was exhausted or the error fell outside it. A remote compaction request is cut off at a fixed request deadline, and the compaction falls back instead of finishing. A resumed process otherwise re-encodes the history it replays, and the wrapper keeps that first request in the native replay form. Each adjustment selects the implementation a given host needs.
 
-The wait module used to serve two builtin entries: the `hub` tool and the standalone `wait` tool. Under [maintaining host components against a shared OMP floor](./28-host-maintenance.md), the OMP-facing components share the maintenance lower bound OMP 18.5.0, so no maintained host still offers `hub`, and the `hub` path is removed.
+The wait module used to serve two builtin entries: the `hub` tool and the standalone `wait` tool. Under [maintaining host components against a shared OMP floor](../../../archived/2026/09/28-r2-host-maintenance.md), the OMP-facing components share the maintenance lower bound OMP 18.5.0, so no maintained host still offers `hub`, and the `hub` path is removed.
 
 ## Analysis
 

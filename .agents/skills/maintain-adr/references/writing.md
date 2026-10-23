@@ -4,9 +4,9 @@ Write for a reader with only the finished record and its accessible sources. An 
 
 ## Open with the choice
 
-`Motivation` opens both document types. Its first paragraph is one short sentence stating the action to perform or choice to adopt. Write that action itself, not what the record does; it must be understandable without the title, links, or later text. Following paragraphs give the concrete problem, background, reasons, and evidence. A wanted capability need not be framed as a defect. A reversal proposal states the proposed change; a successor decision states its complete choice.
+`Motivation` opens a decision. Its first paragraph is one short sentence stating the action to perform or choice to adopt. Write that action itself, not what the record does; it must be understandable without the title, links, or later text. Following paragraphs give the concrete problem, background, reasons, and evidence. A wanted capability need not be framed as a defect. A successor decision states its complete choice.
 
-An optional `Analysis` immediately follows `Motivation`, before `Proposal` or `Decision`. Omit it without substantive analysis. Include only observations, evidence, constraints, reasoning, and uncertainty that affect the choice. Do not copy research notes or an implementation plan, or repeat the motivation and alternatives.
+An optional `Analysis` immediately follows `Motivation`, before `Decision`. Omit it without substantive analysis. Include only observations, evidence, constraints, reasoning, and uncertainty that affect the choice. Do not copy research notes or an implementation plan, or repeat the motivation and alternatives.
 
 ## Preserve the necessary contract
 
@@ -28,7 +28,7 @@ Defensive rules address the actual operation and harm. Validation, repair, lifec
 
 Review alternatives and risk-like statements wherever they appear, including `Consequences`. First establish that an alternative genuinely entered the choice or that a risk has a credible cause. Then ask what material tradeoff, harm, or boundary a reader would miss if it were removed. The first check alone does not establish lasting decision value.
 
-Locate the supporting requirement, analysis, proposal, or historical evidence. An entry's own claim that an option was considered or rejected is not evidence. Keep review evidence in work materials; the ADR records the choice and necessary reasons, not a discussion transcript or a claim that this checklist was followed.
+Locate the supporting requirement, analysis, discussion, or historical evidence. An entry's own claim that an option was considered or rejected is not evidence. Keep review evidence in work materials; the ADR records the choice and necessary reasons, not a discussion transcript or a claim that this checklist was followed.
 
 Remove unsupported, misclassified, or immaterial entries instead of making them sound plausible or moving them elsewhere. Preserve unique binding clauses and necessary reasons in their proper place. Combine repeated causes and consequences without losing conditions. Do not use entry counts, deletion ratios, or word-count targets as quality measures.
 
@@ -44,9 +44,9 @@ Facts, requirements, acceptance criteria, restatements of the selected approach,
 
 An option genuinely viable before a later constraint or feasibility finding can still explain an important choice. Preserve that reason without reproducing exploration or treating every rejected implementation idea as a separate alternative. If none qualifies, the section contains only `None` or the prescribed equivalent.
 
-## Risks
+## Material consequences
 
-Start the required proposal section with `None`; add only credible ways the proposal could cause material harm. No number of risks is required.
+Include only credible ways a choice could cause material harm when stating risks in `Consequences`. No separate risk section or fixed number of risks is required.
 
 Name the relevant condition or omission, causal mechanism, and harmful outcome that matters to this choice. Preserve material residual risks, compatibility losses, continuing costs, and technical uncertainty affecting adoption. An omission can qualify when it creates a decision-specific, consequential failure path; do not exclude it merely because implementation is involved.
 
@@ -54,4 +54,4 @@ Facts, requirements, invariants, acceptance criteria, tasks, repeated behavior d
 
 `Behavior must remain consistent` is a constraint. Separately maintained authorities that drift and produce conflicting behavior describe a failure mechanism. Removing a revision check can let an older draft overwrite a newer body, a concrete cost. A handler that disables speculative task startup imposes an execution cost under its registration conditions. Keep such causal conditions rather than adding generic maintenance warnings to every ADR.
 
-If none qualifies, the section contains only `None` or the project's prescribed equivalent. An empty section is a completed judgment, not missing content.
+Omit risk claims that fail these criteria. Consequences may instead state the supported benefits or accepted costs of the choice.

@@ -36,7 +36,7 @@ The [repository spec](../spec/repository.md) states the language, pairing, and l
 
 ## Decisions
 
-- Before creating, repairing, updating, reversing, rejecting, archiving, or reviewing an ADR, or when project work affects a durable choice, load [maintain-adr](../skills/maintain-adr/SKILL.md) and read the [ADR project supplements](../adr/README.md). The Skill owns the main maintenance method; the supplements own project language, Git, and authority policy.
+- Before creating, repairing, updating, reversing, archiving, or reviewing an ADR, or when project work affects a durable choice, load [maintain-adr](../skills/maintain-adr/SKILL.md) and read the [ADR project supplements](../adr/README.md). The Skill owns the main maintenance method; the supplements own project language, Git, and authority policy.
 
 ## Specs
 

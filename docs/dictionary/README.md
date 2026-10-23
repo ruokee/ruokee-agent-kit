@@ -94,11 +94,7 @@ The single document layer that owns a normative statement, so the same rule is n
 
 **[ADR](./adr.md)**（ADR）
 
-A bilingual record under `.agents/adr/` of a durable repository decision's rationale and contract, as a proposal or a decision.
-
-**[proposal](./adr.md#proposal)**（提案）
-
-An ADR that describes a change for review before implementation and before any resulting decision is created or reversed.
+A bilingual record under `.agents/adr/` of a durable repository decision's rationale and contract, retained as a current decision or a replaced decision's archive.
 
 **[decision](./adr.md#decision)**（决定）
 
@@ -110,11 +106,11 @@ Add non-conflicting content to a current decision under `Changes` without archiv
 
 **[reverse decision](./adr.md#reverse-decision)**（反转决定）
 
-Create a complete successor from an old decision's still-effective rules and an accepted proposal naming the conflict; the old version is archived.
+Create a complete successor from an old decision's still-effective rules and an approved choice identifying the conflict; the old version is archived.
 
 **[archived version](./adr.md#archived-version)**（归档版本）
 
-A replaced decision kept under `.agents/adr/archived/` with its identity date and revision number.
+A decision that took effect and was later replaced, kept under `.agents/adr/archived/` with its identity date and revision number.
 
 ## Workflow
 

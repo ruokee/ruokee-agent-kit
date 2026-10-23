@@ -2,7 +2,7 @@
 name: maintain-spec
 description: Maintain or review long-lived component and repository specifications. Load before creating, changing, removing, or reviewing a spec, and when feature work changes a long-lived target, boundary, or acceptance condition. Not for ordinary reading or forming a task Goal.
 metadata:
-  version: "1.0.1"
+  version: "1.0.2"
 ---
 
 # Maintain specifications
@@ -13,7 +13,7 @@ Maintain the complete current requirements for one component or repository area.
 
 1. Resolve the request, subject, working location, and write permission. A review or analysis request stays read-only. Loading this Skill grants no editing, lifecycle, or Git permission.
 2. Read the project's specification supplements and applicable documentation rules. In this repository, start with [specification supplements](../../spec/README.md). Project supplements define locations, language policy, and working procedures; apply their explicit overrides to the method below. Absence of an override leaves the default method in effect.
-3. Read the affected current specs, relevant current decisions including their dated `Changes`, active proposals, and necessary component documentation, design, and implementation. Check relevant sources beyond the existing links to find omitted requirements. These are the author's evidence, not dependencies for the spec reader. A proposal or an existing implementation does not approve a requirement. Archived decisions explain history, not the current target.
+3. Read the affected current specs, confirmed requirements, relevant current decisions including their dated `Changes`, and necessary component documentation, design, and implementation. Read task discussions when needed to establish approval or a proposed target. Check relevant sources beyond the existing links to find omitted requirements. These are the author's evidence, not dependencies for the spec reader. A suggested choice or an existing implementation does not approve a requirement. Archived decisions explain history, not the current target.
 4. Use confirmed task requirements where they apply to the long-lived subject. A task Goal belongs to its task workflow. Do not create, interview for, revise, rename, or save it through this Skill. A historical task file named `spec.md` does not change that boundary.
 
 Read only the documents relevant to the change. When a historical identity or relationship needs explanation, inspect that history without adopting it as the current target. Report a missing necessary source or an unresolved authority conflict; do not invent a requirement to fill it.

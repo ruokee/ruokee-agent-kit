@@ -2,7 +2,7 @@
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
-Reverses: [Host maintenance](../../../archived/2026/09/28-r1-host-maintenance.md)
+Reverses: [Host maintenance](../../../archived/2026/09/28-r2-host-maintenance.md)
 
 English | [中文](./28-host-maintenance.zh.md)
 
@@ -13,6 +13,8 @@ Maintain every OMP-facing component against one shared maintenance lower bound, 
 First-party components load code into a host process and must keep working as that host upgrades. Maintenance responsibility, implementation selection, and verification evidence need distinct meanings rather than a single version range, so these components follow common rules: a component declares its maintenance lower bound in its own documentation, its host peer declarations keep naming the host packages without carrying that bound, an update preserves the results a maintained older host had, verification follows the actual behavioral change, and a bound is raised only through a decision. The rules require no common implementation.
 
 The OMP-facing components are `omp-qol`, `omp-smart-context`, `omp-status-bar`, and the OMP adapter of `tk`. Raising their bounds one component at a time, and only when a component could no longer serve both hosts, left them on bounds between 18.1.8 and 18.2.8 while development and real-host checks had moved to 18.4.x and 18.5.x. Each component kept code for the hosts at the bottom of that range, and two features had stopped working on current hosts: the default-block route of `omp-system-prompt` and the speculation band indicator of `omp-status-bar`. The OMP-facing components trade support for those older hosts for a smaller maintained surface and one baseline they are developed and verified against.
+
+The [predecessor](../../../archived/2026/09/28-r2-host-maintenance.md#bound-changes) required a formal proposal for each bound raise. Under the [ADR mechanism](../08/22-adr-mechanism.md), tasks hold the evidence and approval while the adopted decision preserves the public contract. This changes the record location, not the conditions for a raise or the evidence about lost support.
 
 ## Analysis
 
@@ -98,11 +100,11 @@ A test environment that cannot run because it depends on newer host internals do
 
 ### Bound changes
 
-The shared OMP bound moves for every OMP-facing component together, and each raise is its own decision. A proposal names the current and proposed bound, the evidence, the realistic alternatives, and the host support users lose, and the change updates every OMP-facing component's declaration, implementation, tests, and any migration note.
+The shared OMP bound moves for every OMP-facing component together, and each raise is its own decision. The task records the current and proposed bound, the evidence, the realistic alternatives, and the host support users lose. The approved choice forms a formal decision preserving those reasons and support losses, and the change updates every OMP-facing component's declaration, implementation, tests, and any migration note.
 
-A component for another host keeps its bound by default. A raise becomes possible when the component genuinely cannot serve both host versions, or when serving both would need a large rewrite while a substantially smaller change raises the bound; a proposal then names the component, the current and proposed bounds, the conflict or the rewrite with its comparison, the realistic alternatives, the evidence, and the host support users lose. One such component's raise does not move another component's bound.
+A component for another host keeps its bound by default. A raise becomes possible when the component genuinely cannot serve both host versions, or when serving both would need a large rewrite while a substantially smaller change raises the bound. The task records the component, the current and proposed bounds, the conflict or the rewrite with its comparison, the realistic alternatives, the evidence, and the host support users lose. The adopted decision preserves this basis. One such component's raise does not move another component's bound.
 
-Maintenance effort is the work the maintenance promise already implies, so it is not an additional cost and never a risk. The maintainer decides each raise, and an approval recorded outside the decisions does not replace the ADR. Raising a bound does not restore a capability a host release removed.
+Maintenance effort is the work the maintenance promise already implies, so it is not an additional cost and never a risk. The maintainer decides each raise. Approval and pending implementation may be tracked in the task, but approval outside the decisions does not replace the public ADR; the formal decision is integrated with the implemented raise. Raising a bound does not restore a capability a host release removed.
 
 ### Component contracts
 
@@ -118,11 +120,11 @@ Raising the OMP-facing components to 18.5.0 removes three behaviors that still w
 
 ### Per-component OMP bounds
 
-This was the rule before this decision. It keeps hosts down to each component's earlier bound wherever the code still serves them, but it leaves the six components on different bounds below the development host, and the components keep maintaining the default-block route and the speculation band estimate, which work only on older hosts.
+This was the rule before the shared bound. It keeps hosts down to each component's earlier bound wherever the code still serves them, but it leaves the six components on different bounds below the development host, and the components keep maintaining the default-block route and the speculation band estimate, which work only on older hosts.
 
 ## Consequences
 
 - Removing numeric gates lets previously rejected hosts reach loading and execution. If capability and behavior checks miss a real incompatibility, the component fails during use rather than at installation.
 - Multiple implementations kept for different maintained hosts may evolve separately during later maintenance, causing configuration meanings or failure behavior on older maintained hosts to diverge from the same feature's contract.
 - A user who keeps an OMP release below 18.5.0 and updates a component loses the removed behavior without a warning: the system prompt strategy stops applying on a host before 18.3.0 unless the user selects the template, the total-deadline wait stops applying on a `hub` host, and the speculation band indicator becomes a static glyph on a host before 18.4.0.
-- The shared OMP bound moves only through a decision for all OMP-facing components, so a component that could drop an older host earlier waits for the next shared raise, and every raise needs a decision and review that covers all six components.
+- The shared OMP bound moves only through a decision for all OMP-facing components, so a component that could drop an older host earlier waits for the next shared raise, and every raise needs a decision and review that covers all OMP-facing components.

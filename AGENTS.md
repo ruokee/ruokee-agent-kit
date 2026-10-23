@@ -10,7 +10,7 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 - `./docs/`: Repository-wide user and development documentation, such as installation, maintenance, and terminology reference.
 - `./scripts/`: Repository-wide installation, maintenance, and check scripts; component-specific scripts stay with their component.
 - `./.agents/`: Internal maintenance Skills, decisions, specifications, and rules for repository development.
-    - `adr/`: Durable choices and their reasons, including proposals and decisions.
+    - `adr/`: Current durable decisions and the historical decisions they replaced, with their reasons and contracts.
     - `spec/`: Goals, boundaries, and acceptance criteria for components or repository areas.
     - `rule/`: Working rules organized by activity, governing actions, order, and permissions.
     - `skills/`: English project-internal maintenance Skills, not public installation sources.
@@ -35,7 +35,7 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 - Keep documentation in sync with the code it describes. Update affected documents in the same change.
 - Write a file name and each heading as a short imperative sentence, a short phrase, or a noun unless an additional requirement calls for another form. Keep one subject, and add a second one or list its parts only when an additional requirement calls for it.
 - Specs define long-lived component or repository targets under `./.agents/spec`. Before maintaining or reviewing one, or when feature work changes its goals, boundaries, or acceptance, load [maintain-spec](./.agents/skills/maintain-spec/SKILL.md) and read the [project supplements](./.agents/spec/README.md).
-- ADRs record durable choices under `./.agents/adr`. Before creating, repairing, updating, reversing, rejecting, archiving, or reviewing one, or when project work affects a durable choice, load [maintain-adr](./.agents/skills/maintain-adr/SKILL.md) and read the [project supplements](./.agents/adr/README.md). Loading either Skill grants no write or lifecycle permission and does not transfer task Goal ownership.
+- ADRs record durable choices under `./.agents/adr`. Before creating, repairing, updating, reversing, archiving, or reviewing one, or when project work affects a durable choice, load [maintain-adr](./.agents/skills/maintain-adr/SKILL.md) and read the [project supplements](./.agents/adr/README.md). Loading either Skill grants no write or lifecycle permission and does not transfer task Goal ownership.
 - Rules define repository working rules and live in `./.agents/rule`. Read the [rule layer's rules](./.agents/rule/README.md) when editing rules.
 - Use the [repository dictionary](./docs/dictionary/README.md) for shared terms, and read the [terminology rules](./.agents/rule/terminology.md) when adding or changing one.
 
@@ -57,7 +57,7 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 
 ### Planning
 
-- Search the relevant ADR proposals and decisions, specs, and rules before planning changes to a component's or repository area's goals, boundaries, or acceptance criteria.
+- Search the relevant current ADR decisions and their changes, specs, rules, and confirmed task requirements before planning changes to a component's or repository area's goals, boundaries, or acceptance criteria.
 - Limit changes to the requested capability or fix. Do not prebuild for hypothetical requirements.
 
 ### Validation

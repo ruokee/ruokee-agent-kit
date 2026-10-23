@@ -2,7 +2,7 @@
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
-Reverses: [tk documentation](../../../archived/2026/08/29-r3-tk-documentation.md)
+Reverses: [tk documentation](../../../archived/2026/08/29-r4-tk-documentation.md)
 
 English | [中文](./29-tk-documentation.zh.md)
 
@@ -20,7 +20,9 @@ The [Agent behavior specification](../../../../spec/tk-agent.md) states the requ
 
 The [archived documentation decision](../../../archived/2026/08/29-r1-tk-documentation.md) fixes the Chinese form of `scratchpad` as `临时记事区`, which conflicts with `草稿纸` as the pattern's Chinese name.
 
-An [earlier decision](../../../archived/2026/08/29-r2-tk-documentation.md) required each of the four Skill trees to keep its own complete pattern reference. The shared source per language avoids duplicated edits and remains the distribution choice. The [direct predecessor](../../../archived/2026/08/29-r3-tk-documentation.md) assigned required behavior and acceptance exclusively to component pages. That ownership leaves a specification incomplete without those pages. Specifications therefore contain the complete requirements, while component guidance, design, and validation retain their distinct purposes.
+An [earlier decision](../../../archived/2026/08/29-r2-tk-documentation.md) required each of the four Skill trees to keep its own complete pattern reference. The shared source per language avoids duplicated edits and remains the distribution choice. A [later version](../../../archived/2026/08/29-r3-tk-documentation.md) assigned required behavior and acceptance exclusively to component pages. That ownership leaves a specification incomplete without those pages. Specifications therefore contain the complete requirements, while component guidance, design, and validation retain their distinct purposes.
+
+The [direct predecessor](../../../archived/2026/08/29-r4-tk-documentation.md#adr-lifecycle) required separate proposal and decision formats. The [ADR mechanism](./22-adr-mechanism.md) uses tasks for discussion and approval and retains only current and replaced decisions. tk documentation follows that mechanism without changing the task runtime or material patterns.
 
 ## Decision
 
@@ -127,7 +129,9 @@ Public documentation covers tools and CLI modes, English and Chinese selection t
 
 ### ADR lifecycle
 
-ADR proposals and decisions use separate repository formats and directories. English and Chinese pairs remain semantically aligned, and the maintainer controls proposal approval, rejection, and decision archival. Current records live under `decision/`, and ADR files carry no `Status` field.
+ADRs use the decision format. Current decisions live under `decision/`, and decisions that took effect and were replaced live under `archived/`. English and Chinese pairs remain semantically aligned. The maintainer controls adoption of durable choices and archival; completing design, implementation, or validation grants neither authority automatically. ADR files carry no `Status` field.
+
+Tasks hold discussion, approval, and execution arrangements without adding tk states or commands. A formal decision preserves the public reasons and contract independently, including material rejected alternatives. Unadopted drafts are not archived decisions. Decisions requiring implementation are integrated with it; document-only choices may be integrated independently.
 
 ### Maintenance
 

@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
 Archived: 2026-10-04
-Reversed by: [Host maintenance](../../../decision/2026/09/28-host-maintenance.md)
+Reversed by: [Host maintenance](./28-r2-host-maintenance.md)
 
 English | [中文](./28-r1-host-maintenance.zh.md)
 

@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [ADR mechanism](./22-r5-adr-mechanism.md)
 Archived: 2026-10-22
-Reversed by: [ADR mechanism](../../../decision/2026/08/22-adr-mechanism.md)
+Reversed by: [ADR mechanism](./22-r7-adr-mechanism.md)
 
 English | [中文](./22-r6-adr-mechanism.zh.md)
 

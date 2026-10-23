@@ -36,7 +36,7 @@
 
 ## 决定
 
-- 创建、修复、更新、反转、拒绝、归档或审查 ADR，以及项目工作影响持久选择时，先加载 [maintain-adr](../skills/maintain-adr/SKILL.md) 并读取 [ADR 项目补充](../adr/README.zh.md)。Skill 持有主要维护方法，补充持有项目语言、Git 和权限政策。
+- 创建、修复、更新、反转、归档或审查 ADR，以及项目工作影响持久选择时，先加载 [maintain-adr](../skills/maintain-adr/SKILL.md) 并读取 [ADR 项目补充](../adr/README.zh.md)。Skill 持有主要维护方法，补充持有项目语言、Git 和权限政策。
 
 ## 规格
 

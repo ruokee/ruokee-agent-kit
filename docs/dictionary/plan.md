@@ -18,7 +18,7 @@ A labeled, independently assessable result inside a Plan, such as U01. Labels ar
 
 ## Example
 
-A feature Plan starts with a proposal unit and continues with implementation, rule integration, and the final candidate.
+A feature Plan covers implementation, the affected decisions and rules, and verification of the final candidate.
 
 ## Avoid
 

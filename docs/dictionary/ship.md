@@ -12,7 +12,7 @@ Ship checks that the accepted scope is complete, Verify covers the current candi
 
 ## Example
 
-A direct delivery request accepted a proposal, authorized the local squash merge into `main`, and left push unauthorized.
+A direct delivery request accepted an implementation candidate, authorized the local squash merge into `main`, and left push unauthorized.
 
 ## Avoid
 

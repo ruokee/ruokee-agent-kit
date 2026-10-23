@@ -5,7 +5,7 @@ English | [中文](./development.zh.md)
 ## Planning
 
 - Read the documentation that covers the capability or area you are about to change before analyzing requirements or starting development.
-- Search the [specifications](../spec/README.md), the [ADR proposals and decisions](../adr/README.md), and the rule pages for the area before planning a requirement, and reuse what they already state.
+- Search the [specifications](../spec/README.md), [current ADR decisions and their changes](../adr/README.md), confirmed task requirements, and rule pages for the area before planning a requirement, and reuse what they already state.
 - As far as possible, read the rule pages that apply to the work, and check the work against them before reporting it done.
 - Limit changes to the requested capability. Do not prebuild structure or capability for hypothetical Skills, hosts, or requirements.
 

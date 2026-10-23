@@ -14,7 +14,7 @@ Have `@ruokee/omp-system-prompt` apply its strategy only to a host render of the
 
 The extension maintains its own policy text in OMP's instruction block; QoL independently provides model rules. It used to support two routes: the host rendering the component's template, and a conversion that recognized the host's default block and rebuilt it from the component's template. The conversion recognized only the identity lines OMP used before 18.3.0. On 18.3.0 and later it found no main block, reported a failure on every turn, and left the host prompt unchanged, so users who selected no template got no strategy text and one diagnostic per session.
 
-The OMP-facing components now share the maintenance lower bound OMP 18.5.0 under [Maintain host components against a shared OMP floor](../../../decision/2026/09/28-host-maintenance.md), so no maintained host still uses the conversion. The template route covers the job on every maintained host, and a turn without the component's template is a session the component does not serve rather than a failure.
+The OMP-facing components now share the maintenance lower bound OMP 18.5.0 under [Maintain host components against a shared OMP floor](./28-r2-host-maintenance.md), so no maintained host still uses the conversion. The template route covers the job on every maintained host, and a turn without the component's template is a session the component does not serve rather than a failure.
 
 ## Analysis
 

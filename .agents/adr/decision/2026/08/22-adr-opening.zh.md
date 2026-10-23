@@ -22,7 +22,7 @@ Decision writer: OMP GPT-5.6 Sol
 
 `Motivation` 记录为什么要考虑这项决定。内容可以说明已经观察到的问题、需求、希望获得的能力或其他具体变更理由。名称变得中性，不代表可以含糊地说明理由。
 
-[记录格式](../../../../skills/maintain-adr/references/records.md)与[编写规则](../../../../skills/maintain-adr/references/writing.md)使用该标题，[项目语言补充](../../../README.zh.md#语言)规定中文对应名称。动机可以包含问题、需求和希望增加的内容。当前的 [ADR 机制决定](./22-adr-mechanism.zh.md)将该标题同时用于提案和决定。
+[记录格式](../../../../skills/maintain-adr/references/records.md)与[编写规则](../../../../skills/maintain-adr/references/writing.md)使用该标题，[项目语言补充](../../../README.zh.md#语言)规定中文对应名称。动机可以包含问题、需求和希望增加的内容。[早期 ADR 机制](../../../archived/2026/08/22-r7-adr-mechanism.zh.md)将该标题同时用于提案和决定。
 
 所有当前提案和决定模板都以 `动机` 开头。Git 历史修订可以保留对旧 `问题` 标题的引用。
 
@@ -47,3 +47,7 @@ Decision writer: OMP GPT-5.6 Sol
 ### 2026-09-29 单句开头
 
 [机制更新](../../../archived/2026/08/22-r3-adr-mechanism.zh.md#2026-09-29-单句开头)对这一规则作出细化。`动机` 的第一段只写一句简短的话，直接说明要做的事情，而不是写这份记录做了什么；具体问题、背景、理由与证据放在后续段落。
+
+### 2026-10-23 记录范围
+
+开头规则适用于 [ADR 机制](./22-adr-mechanism.zh.md)保留的决定格式。上文对两种模板的引用描述当时采用的记录类型，不要求保留提案类型。历史提案保留原有开头。`动机` 的含义和单句开头要求不变。

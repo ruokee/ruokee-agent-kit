@@ -57,7 +57,9 @@ See the [glossary](./GLOSSARY.md) for fixed translations.
 
 ADRs use Harness terminology. Installation-related ADR filenames, titles, and links use Harness rather than host naming aliases.
 
-ADR proposals live under `proposal/` or `rejected/`; decisions live under `decision/` or `archived/`. ADR files do not contain a `Status` field. Maintainers control proposal approval, rejection, and decision archival; completing design, implementation, or validation does not change lifecycle state automatically.
+ADRs use the decision format. Current decisions live under `decision/`; decisions that took effect and were later replaced live under `archived/`. Unadopted drafts are not archived decisions. ADR files do not contain a `Status` field. Maintainers control adoption of durable choices and decision archival; completing design, implementation, or validation grants neither authority automatically.
+
+Tasks hold discussion, approval, and pending execution without new runtime states or commands. Formal decisions preserve their necessary public reasons and material rejected alternatives independently of task materials. Decisions requiring implementation are integrated with it; document-only choices may be integrated independently.
 
 English and Chinese ADR pairs remain semantically consistent within the same change.
 
