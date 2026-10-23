@@ -25,17 +25,26 @@ Before creating, changing, removing, or reviewing a spec, or when feature work c
 
 ### tk
 
-All five topics together specify tk:
+All six topics together specify tk:
 
 - Product scope: [English](./tk.md), [中文](./tk.zh.md).
-- Persistent data, discovery, lifecycle, and maintenance: [English](./tk-data.md), [中文](./tk-data.zh.md).
+- Persistent data, discovery, lifecycle, and shared writes: [English](./tk-data.md), [中文](./tk-data.zh.md).
+- Migration, rename, integrity checking, and cleanup: [English](./tk-maintenance.md), [中文](./tk-maintenance.zh.md).
 - CLI, logical operations, results, and transport: [English](./tk-interface.md), [中文](./tk-interface.zh.md).
 - Distribution and Harness integration: [English](./tk-distribution.md), [中文](./tk-distribution.zh.md).
 - Agent behavior and material patterns: [English](./tk-agent.md), [中文](./tk-agent.zh.md).
 
 ### OMP QoL
 
-The complete QoL specification: [English](./omp-qol.md), [中文](./omp-qol.zh.md).
+All seven topics together specify QoL:
+
+- Component scope, shared configuration, and status: [English](./omp-qol.md), [中文](./omp-qol.zh.md).
+- Continued waiting: [English](./omp-qol-waiting.md), [中文](./omp-qol-waiting.zh.md).
+- Main-session error recovery: [English](./omp-qol-recovery.md), [中文](./omp-qol-recovery.zh.md).
+- Compaction deadline: [English](./omp-qol-compaction.md), [中文](./omp-qol-compaction.zh.md).
+- Native-history replay: [English](./omp-qol-replay.md), [中文](./omp-qol-replay.zh.md).
+- Task arguments: [English](./omp-qol-task-arguments.md), [中文](./omp-qol-task-arguments.zh.md).
+- Reply copying: [English](./omp-qol-copy.md), [中文](./omp-qol-copy.zh.md).
 
 ### OMP Smart Context
 

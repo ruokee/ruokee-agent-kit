@@ -2,7 +2,7 @@
 
 ## Goals
 
-Define tk's persistent Task data, discovery, lifecycle, writes, and maintenance behavior. This area applies equally to CLI, MCP, and native operations. Ordinary project files remain authoritative and readable without a service.
+Define tk's persistent Task data, discovery, lifecycle, and shared write requirements. These requirements apply equally to CLI, MCP, and native operations, including maintenance. Ordinary project files remain authoritative and readable without a service.
 
 ## Public surface
 
@@ -110,43 +110,11 @@ A single-file write produces a complete atomic replacement. The last complete re
 
 While a multi-target operation has an active producer, other project writes fail with `operation_in_progress`. If the producer exits, writes remain blocked until GC clears its abandoned activity state. Read, search, and diagnostic-only checks remain available. Single-file updates do not establish this project-wide activity state.
 
-### Migration
-
-Schema migration uses only formally released forward transformations, one version at a time, and retains support for migrating each released version. It preserves body bytes, preflights all selected carriers, skips carriers already at the target version, and commits in deterministic order. Unknown versions, missing transformations, and downgrades are rejected. No rollback or resume state is supplied.
-
-Representation switching covers every discovered Task in a project. After full preflight, it commits Tasks in deterministic order and configuration last. It preserves names and body bytes, adds no WAL entry, and reports partial progress if interrupted.
-
-### Rename
-
-Rename changes only the selected Task's managed name and applicable generated suffix. It preserves ID, date, sequence, body, status, and all other metadata. Non-generated child directories do not move. Closed Tasks are eligible and remain closed.
-
-A full UUID, exact directory, or exact carrier can locate a repairable Task whose string name is invalid, empty, or too wide, or whose recognizable generated suffix is defective. A missing name, wrong field type, damaged identity, unsupported schema, or unrelated invalid metadata is not repaired by rename.
-
-No change requires exact equality of the saved name and applicable path to the normalized target. Formatting equivalence alone is insufficient. The plan is checked exactly again before commit; a changed source produces `stale_rename_plan`. If a directory move succeeds and metadata writing fails, the result reports partial completion. A readable intermediate state still requires retry to reach the exact target.
-
-Rename reports Markdown references to the old path without rewriting them. Under `track`, scanning covers working-tree Markdown, including untracked files and excluding files deleted from the worktree even if still indexed. Under `ignore` and `none`, it covers Task-root Markdown. Both body representations participate; frontmatter, WAL, and temporary content do not. Required read failures fail scanning. The bounds are 100,000 directories and depth below 256; exceeding either gives `reference_scan_limit_exceeded`.
-
-A valid dry-run succeeds even when references exist. Execution that moves a path with old references fails before its first write with `broken_reference_conflict`, category `conflict`, exit status `3`. Details include `old_path`, normalized `new_name`, absolute `target_path`, and all reference paths and lines. `--ignore-brokenlinks` permits the move but leaves all reference files byte-for-byte unchanged and still reports them. Metadata-only and no-op results report references without applying the path-move gate.
-
-### Integrity checking
-
-`check` is read-only. It diagnoses managed metadata, representation, identity, parentage, names, relations, lifecycle, WAL, and reserved temporary-storage errors without repairing them. It reads complete regular WAL files without a fixed total-history limit. Ordinary material links retain the discovery behavior above.
-
-A complete check with blocking diagnostics returns `check_failed`, exit `3`. A required I/O failure, cancellation, or resource-limit failure makes the check incomplete: return `check_incomplete`, exit `4`, and stop rather than presenting an apparently complete diagnostic set. A complete valid project exits `0`.
-
-### Garbage collection
-
-GC removes only temporary content proven to have been created by tk whose producer has exited. It preserves and reports active-producer content, symlinks, escaping paths, unknown cleanup formats, and content whose ownership cannot be established reliably. It does not parse or migrate legacy development cleanup formats.
-
-GC does not modify Task data, WAL, project configuration, or canonical Harness targets. It does not resume, roll back, or complete a domain operation. A deletion error stops the operation and reports deleted and undeleted paths. Dry-run reports the same eligible cleanup without deletion.
-
 ## Acceptance criteria
 
 - Both representations reject malformed managed data and retain body bytes, immutable identity fields, valid saved name formatting, and relation semantics on supported writes.
-- Names and suffixes independently accept 32 columns and reject 33, including separators. Explicit rename reaches the exact target; child retry ignores edited body and added ordinary spaces without merging distinct normalized requests.
+- Names and suffixes independently accept 32 columns and reject 33, including separators. Child retry ignores edited body and added ordinary spaces without merging distinct normalized requests.
 - Direct children, configured-directory children, and children inside ordinary materials retain nearest-valid-parent relationships. Numbering remains monotonic after creation-directory changes and reports exhaustion at `99`.
 - Public read, search, and check retain real Task identity and parentage around ordinary symlinks, including dangling, unreadable, external, and cyclic targets, without changing link paths or target bytes. Managed-storage counterexamples still fail.
 - Lifecycle and combined-update rejection preserve metadata and WAL. Force-close bypasses only active descendant and dependency checks.
 - Each multi-target commit failure reports the actual completed and remaining targets. WAL failure does not roll back committed metadata; abandoned activity blocks writes until GC while reads remain available.
-- Migration and representation changes preserve body and name bytes and report partial results. Rename reference gating, explicit override, dry-run, exact recheck, and metadata-only behavior follow the defined contracts.
-- Integrity checks distinguish complete-invalid from incomplete reads and never disguise partial discovery as a complete result. GC leaves domain data and unproven temporary ownership untouched.

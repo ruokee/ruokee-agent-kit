@@ -8,7 +8,7 @@ Provide Task discovery, search, reading, creation, relationships, lifecycle chan
 
 Provide English and Chinese tools Skills and CLI Skills. Install, update, switch, and remove Harness integrations and standalone CLI Skills offline, using the distribution carried by the running executable.
 
-The complete tk specification set comprises this product specification and the data, interface, distribution, and Agent behavior specifications. Those areas define requirements, not a required internal module layout.
+The complete tk specification set comprises this product specification and the data, maintenance, interface, distribution, and Agent behavior specifications. Those areas define requirements, not a required internal module layout.
 
 ## Out of scope
 
@@ -49,7 +49,7 @@ The runtime and native/component contract version checks are separate compatibil
 
 ## Acceptance criteria
 
-A conforming implementation must satisfy the data, interface, distribution, and Agent behavior requirements together:
+A conforming implementation must satisfy the data, maintenance, interface, distribution, and Agent behavior requirements together:
 
 - The same project data yields the same domain behavior through CLI, MCP, and native tools, including rejected writes and non-fatal WAL warnings.
 - Both metadata representations preserve Task identity and body bytes across supported metadata operations and representation changes.

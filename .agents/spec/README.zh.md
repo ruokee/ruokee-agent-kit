@@ -25,17 +25,26 @@
 
 ### tk
 
-以下五个主题共同完整说明 tk：
+以下六个主题共同完整说明 tk：
 
 - 产品范围：[English](./tk.md)、[中文](./tk.zh.md)。
-- 持久数据、发现、生命周期和维护：[English](./tk-data.md)、[中文](./tk-data.zh.md)。
+- 持久数据、发现、生命周期和共享写入：[English](./tk-data.md)、[中文](./tk-data.zh.md)。
+- 迁移、改名、完整性检查和清理：[English](./tk-maintenance.md)、[中文](./tk-maintenance.zh.md)。
 - CLI、逻辑操作、结果和传输：[English](./tk-interface.md)、[中文](./tk-interface.zh.md)。
 - 分发和 Harness 集成：[English](./tk-distribution.md)、[中文](./tk-distribution.zh.md)。
 - Agent 行为和材料模式：[English](./tk-agent.md)、[中文](./tk-agent.zh.md)。
 
 ### OMP QoL
 
-完整 QoL 规格：[English](./omp-qol.md)、[中文](./omp-qol.zh.md)。
+以下七个主题共同完整说明 QoL：
+
+- 组件范围、共同配置和状态：[English](./omp-qol.md)、[中文](./omp-qol.zh.md)。
+- 持续等待：[English](./omp-qol-waiting.md)、[中文](./omp-qol-waiting.zh.md)。
+- 主会话错误恢复：[English](./omp-qol-recovery.md)、[中文](./omp-qol-recovery.zh.md)。
+- 压缩期限：[English](./omp-qol-compaction.md)、[中文](./omp-qol-compaction.zh.md)。
+- 原生历史重放：[English](./omp-qol-replay.md)、[中文](./omp-qol-replay.zh.md)。
+- 任务参数：[English](./omp-qol-task-arguments.md)、[中文](./omp-qol-task-arguments.zh.md)。
+- 回复复制：[English](./omp-qol-copy.md)、[中文](./omp-qol-copy.zh.md)。
 
 ### OMP Smart Context
 

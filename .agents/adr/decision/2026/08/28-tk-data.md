@@ -88,4 +88,4 @@ rename still targets a concrete normalized name and applicable path, and returns
 
 ### 2026-10-23 Specification completeness
 
-The [data specification](../../../../spec/tk-data.md) and [interface specification](../../../../spec/tk-interface.md) state the complete required data and operation behavior, including formats, limits, failures, and acceptance. The data model and tool API remain detailed component references for the same contract; design explains its implementation. Their references do not delegate requirements out of the specification set. This applies the [specification decision](../10/04-specifications.md) without changing Task data or operation semantics.
+The [tk specification set](../../../../spec/README.md#tk) states the complete required data and operation behavior, including formats, limits, failures, and acceptance. The data model and tool API remain detailed component references for the same contract; design explains its implementation. Their references do not delegate requirements out of the specification set. This applies the [specification decision](../10/04-specifications.md) without changing Task data or operation semantics.
