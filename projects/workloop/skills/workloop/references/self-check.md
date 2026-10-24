@@ -10,14 +10,16 @@ Provide the owning Task, scope, candidate or material locator, applicable basis,
 
 ## Count inspections
 
-Use the applicable configured limit, or choose a maximum from three to five according to task size and complexity. Preparation materials and each implementation unit have separate counts. First inspection and rechecks share the count. A completed substantive inspection consumes one count; startup or communication failure does not. Revision and independent Verify feedback never reset it.
+Use the applicable configured limit, or choose a maximum from three to five according to task size and complexity. Preparation and each implementation unit have separate counts. Preparation counts are per Clarify round. Each new round starts its own count, and an earlier round's exhausted limit does not block it. The Clarify operation defines when a new round starts. A round declared only to obtain a fresh count remains the same round. Starting a new round does not reset any implementation unit's count.
 
-A current pass ends self-check immediately, including on the first inspection. Otherwise repair actionable findings and rerun affected checks. Request a fresh inspection only while below the limit. Avoid repeated inspections for details without material effect on correctness, consistency, the goal, or actual use.
+Within one Clarify round, the first inspection and rechecks share the count. Within each implementation unit, the first inspection and rechecks share its count. A completed substantive inspection consumes one count; startup or communication failure does not. Material revisions, repairs, rechecks, and independent feedback never reset the applicable count. Session recovery, compaction, or another agent continuing the same round does not reset it either.
 
-At the limit, stop adding inspections, finish actionable repairs, and report unresolved findings and changes not rechecked by self-check. Exhaustion and a pass on an older candidate do not establish a current pass. Required unresolved work still blocks completion.
+A current pass ends self-check immediately, including on the first inspection. Otherwise repair actionable findings and rerun affected checks. Request a fresh inspection only while below the applicable limit. Avoid repeated inspections for details without material effect on correctness, consistency, the goal, or actual use.
+
+At the applicable limit, stop adding inspections, finish actionable repairs, and report unresolved findings and changes not rechecked by self-check. Exhaustion and a pass on an older candidate do not establish a current pass. Required unresolved work still blocks completion.
 
 ## Preserve the result
 
-Save the verdict, candidate, completed count and limit, findings, author disposition, repairs, and unrechecked changes in the calling operation's record. Preserve failed rounds. Keep the current count, limit, and pending inspection in recoverable session state.
+Save the verdict, candidate, completed count and limit, findings, author disposition, repairs, and unrechecked changes in the calling operation's record. Preserve failed rounds. Keep the current Clarify round's or implementation unit's count, limit, and pending inspection in recoverable session state.
 
 A formed Plan receives preparation self-check by default. Preparation's independent Verify starts only on user request, not on exhaustion of self-check. Each implementation unit needs both self-check and independent Verify. Independent Verify has no self-check round limit; neither check replaces the other.

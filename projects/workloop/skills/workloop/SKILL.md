@@ -2,7 +2,7 @@
 name: workloop
 description: Use when the user requests workloop goal clarification, design, planning, execution, independent verification, project-defined delivery, supervision, initialization, or continuation of a workloop Task.
 metadata:
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 # workloop
