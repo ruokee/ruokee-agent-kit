@@ -10,7 +10,7 @@ English | [中文](./20-omp-qol.zh.md)
 
 Maintain `@ruokee/omp-qol` with its independently switchable behavior adjustments.
 
-Request alignment, compaction usage, and model prompt rules belong to smart-context. QoL retains standalone waits, bounded error recovery, the compaction deadline experiment, native history replay, task-parameter cleanup, and copying the last reply.
+QoL owns independently switchable adjustments to OMP behavior; the [complete specification set](../../../../spec/README.md#omp-qol) owns the capability inventory. Request alignment, compaction usage, and model prompt rules belong to smart-context.
 
 The original four adjustments are: a `wait` that keeps waiting to a total deadline, a bounded continuation after an eligible model error, an opt-in extension of the remote compaction deadline, and a process-wide wrapper that keeps a resumed process's first request in the provider's native history form. A native `wait` returns when its window ends while the background work it watches is still running, so the model must ask again and each such return costs a turn. A turn that ends with an upstream error stays settled even when the error is transient, because the native retry budget was exhausted or the error fell outside it. A remote compaction request is cut off at a fixed request deadline, and the compaction falls back instead of finishing. A resumed process otherwise re-encodes the history it replays, and the wrapper keeps that first request in the native replay form. Each adjustment selects the implementation a given host needs.
 
@@ -42,7 +42,7 @@ Preserve wait delegation and total deadlines; recovery exclusions and continuati
 
 Preserve the master switch and every unrelated setting, default, range, validation rule, status, failure boundary, and privacy obligation. Native settings remain authoritative. Acceptance for unchanged QoL features retains its own evidence requirements; smart-context's controlled integration gate does not weaken them.
 
-The [usage](../10/13-compaction-usage.md) and [model-rule](./14-model-prompt-rules.md) successors own those complete contracts. Remove their QoL implementations, registration and stop paths, settings parsing and declarations, status sections, and exclusive dependencies. QoL neither reads their old keys nor forwards them to another package.
+The [usage](../10/13-compaction-usage.md) and [model-rule](./14-model-prompt-rules.md) successors own those complete contracts. Their implementation and configuration ownership reside in smart-context, without residual activation or dependencies in QoL. QoL neither reads their old keys nor forwards them to another package.
 
 Users clear `compactionUsageEnabled` and `modelPromptsEnabled` from both user and project QoL settings, preserving all other values. Resolve each scope's former effective master and module switches, then carry `enabled && moduleEnabled` into smart-context. Removed keys retain unknown-key rejection and can reject all QoL configuration. Update extension entries and settings before restarting; do not migrate real user configuration automatically. This replaces only the archived ownership and settings-preservation obligations for the migrated capabilities.
 

@@ -2,33 +2,30 @@
 
 Decision owner: Ruokee
 Decision writer: OMP
+Reverses: [deep-research](../../../archived/2026/09/06-r1-deep-research.zh.md)
 
 [English](./06-deep-research.md) | 中文
 
 ## 动机
 
-把 `deep-research` 作为纯 Skill 分发，英文与中文变体内容对应。
+以纯 Skill 分发完整的双语 `deep-research` 指导，由组件维护内部文件。
 
-`deep-research` 提供结构化、证据优先的研究流程，用于广泛调研和有来源依据的报告；其行为由研究指令定义，不需要 Plugin 运行时。
+研究行为来自指令，不依赖 Plugin 运行时。前驱将每种语言固定为一个文件，使内部组织选择成为公共约束，却没有增加研究能力或安装保证。
 
 ## 决定
 
-以纯 Skill 形式提供 `deep-research`，遵循[语言变体打包决定](../08/20-skill-variants.zh.md)与[组件边界决定](../08/24-component-self-containment.zh.md)。
+按 [Skill 打包](../08/20-skill-variants.zh.md)和[组件边界](../08/24-component-self-containment.zh.md)合同提供 `deep-research`。[英文入口](../../../../../skills/deep-research/SKILL.md)与[中文入口](../../../../../variants/zh/skills/deep-research/SKILL.md)使用同一 `deep-research` 身份、等价描述、对应文件集合和语义等价的指令。任一语言独立安装到正常的 `skills/deep-research/` 宿主路径，不含源码专用前缀。
 
-- 英文指令存放于 [skills/deep-research/SKILL.md](../../../../../skills/deep-research/SKILL.md)，中文翻译存放于 [variants/zh/skills/deep-research/SKILL.md](../../../../../variants/zh/skills/deep-research/SKILL.md)。
-- 两种变体使用相同的 Skill 名称 `deep-research`。任一变体均安装到宿主常规的 `skills/deep-research/` 路径，安装路径不含 `variants/zh/` 前缀。
-- 覆盖问题澄清、研究维度识别、广泛探索、定向研究、证据验证和综合输出。采集来源，区分论断类型，默认产出报告，并记录未解决的问题。使用子 Agent 开展并行研究，并发数量不超过运行环境的上限。研究不设固定时间或 token 上限，完成请求范围内的工作和全部交付物后停止。
-- 每种语言变体由一份包含研究指令的 `SKILL.md` 组成。
-- [英文仓库 README](../../../../../README.md) 与[中文仓库 README](../../../../../README.zh.md) 均在能力索引中列出该 Skill，并分别提供两种语言变体的链接。
+覆盖问题澄清、研究维度、广泛探索、定向研究、证据验证和综合输出。采集来源，区分论断类型，默认产出报告，记录未解决缺口。在环境并发上限内使用子 Agent 并行研究。不设置固定时间或 token 上限，完成请求范围与全部交付物后停止。
+
+每种语言以 `SKILL.md` 作为完整、自包含研究指导的可发现入口。组件负责内部材料组织，不固定文件数。组件包含研究指令，不包含宿主专用包装或 Plugin 运行时。
+
+仓库两种语言的 README 均在能力索引中列出该 Skill 并链接两种语言入口。保持链接有效，执行[仓库检查](./12-repository-checks.zh.md)。
 
 ## 考虑过的替代方案
 
-无
+要求每种语言只有一个指令文件。这使源码形态可预测，但即使研究行为和安装不变，整理参考资料也会成为仓库决定。
 
 ## 结果
 
-任一变体均可独立安装使用。每个组件仅包含自身的研究指令，无需维护宿主专用的包装。
-
-两种变体均使用 `name: deep-research`，`description` 字段含义等价，说明何时使用该 Skill。两者的研究要求保持语义一致。
-
-保持两份仓库 README 中的能力索引链接有效，并通过[仓库检查决定](./12-repository-checks.zh.md)定义的仓库检查。
+每种语言保持独立可安装、可使用。内部组织变化须保留完整研究指导、对应语言文件集合和安装后的引用，不改变公开研究合同。

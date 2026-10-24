@@ -20,11 +20,11 @@ The `tk-cli` and `tk-cli-zh` Skills use only the public `tk` executable. They mu
 
 The Linux runtime remains one regular executable with a Unix execution bit at `$HOME/.local/bin/tk`. Harness components and directly installed CLI Skills verify it but never install, update, remove, wrap, or copy it.
 
-`projects/tk/build.rs` is the only bundle assembler. Cargo produces one deterministic `tar.zst` and one manifest. The `components` collection contains tools selections for four Harnesses and two languages. The separate `cli_skills` collection contains `en` and `zh` entries for the Harness-independent `tk-cli` and `tk-cli-zh` payloads.
+One build assembles a deterministic embedded distribution containing every supported Harness and language combination in tools mode and each language's Harness-independent CLI Skill. [Installation design](../../../../../projects/tk/docs/design/installation.md#embedded-payloads) owns the assembler and archive organization.
 
-Each Harness component entry records Harness, language, Skill identity, `runtime_compat`, payload path, file types, Unix modes, and digests. Each `cli_skills` entry records language, Skill identity, `runtime_compat`, payload path, file types, Unix modes, and digests, with no Harness field. The manifest records runtime version and `source_revision` once at the top level. Component format version 4 owns this schema.
+Component format version `4` records runtime compatibility, selection identity, allowed payload paths, file types, Unix modes, and content digests. Runtime version and source revision describe the distribution as a whole. Tools selections include a Harness identity; standalone CLI selections do not. The [manifest definition](../../../../../projects/tk/docs/design/installation.md#manifest) owns the field layout.
 
-Tools payloads contain `tk` or `tk-zh` plus the selected Harness integration. Harness-independent CLI payloads contain only the selected self-contained Skill. The runtime carries ten payloads. No payload contains a runtime copy, another component's files, review records, Task materials, or product source.
+Tools payloads contain `tk` or `tk-zh` plus the selected Harness integration. Harness-independent CLI payloads contain only the selected self-contained Skill. No payload contains a runtime copy, another component's files, review records, Task materials, or product source.
 
 ### Public lifecycle
 
@@ -46,7 +46,7 @@ None
 
 ## Consequences
 
-The runtime carries ten payloads, so payload changes increase executable size and require rebuilding and redistributing the runtime.
+The runtime carries the complete distribution, so payload additions increase executable size and payload changes require rebuilding and redistributing the runtime.
 
 A CLI install or uninstall without a Harness executable still writes or removes Skill directories, while registration cleanup remains an incomplete item. The next run with a working Harness command completes that cleanup.
 

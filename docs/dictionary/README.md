@@ -102,7 +102,7 @@ An ADR that records a complete current choice, its rationale, alternatives, boun
 
 **[update decision](./adr.md#update-decision)**（更新决定）
 
-Add non-conflicting content to a current decision under `Changes` without archiving it.
+Add non-conflicting content to a current decision without archiving it.
 
 **[reverse decision](./adr.md#reverse-decision)**（反转决定）
 
@@ -228,7 +228,7 @@ A work pattern that lets an agent run unattended and returns only the decisions 
 
 **[grilling](./work-patterns.md#grilling)**（质询）
 
-An interview pattern that asks at most three independent questions per round, with no round limit, records each answer, and closes after a confirmed summary unless the user ends it earlier.
+An interview pattern that resolves requirements and consequential choices through evidence and user answers; the user may end it early.
 
 **[prototyping](./work-patterns.md#prototyping)**（原型验证）
 

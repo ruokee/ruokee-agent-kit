@@ -16,11 +16,11 @@ The [predecessor](../../../archived/2026/08/24-r2-component-self-containment.md)
 
 ## Decision
 
-Every publicly distributed Skill, Extension, Plugin, and Package is a self-contained component. Public Skill roots are `skills/<name>/` and each `variants/<language>/skills/<name>/` tree. Future distributed component categories follow the same rule under their own roots. Each language variant is independently self-contained.
+Every publicly distributed unit is a self-contained component, including each language variant. The same boundary applies to new component categories, regardless of their source layout.
 
 Internal project maintenance Skills under `.agents/skills/` are repository material, not distributed components or an installation source. They may reference the project documents they maintain. This classification does not exempt public components from self-containment or authorize public distribution of internal Skills.
 
-A repository file reference inside a distributed component must resolve within that component's directory. This covers Markdown links, written file paths, imports, package dependencies, and runtime file reads. A component must not link to, import, or read another repository component's files or package, and must not depend on repository support files outside its directory, including `.agents/spec/`, `.agents/rule/`, `.agents/skills/`, and other repository-level material. References such as `../code-quality/...`, `../../docs/...`, `skills/<name>/...`, repository-root-relative paths, and absolute paths do not resolve inside the component and violate this boundary.
+A repository file reference inside a distributed component must resolve within that component's directory. This covers Markdown links, written file paths, imports, package dependencies, and runtime file reads. A component must not link to, import, or read another repository component's files or package, or depend on repository support files outside its directory. A source-root prefix or an absolute path does not make an outside target part of the component.
 
 Component text may name another component, tool, or Skill, declare it as a prerequisite, and instruct its use by name or through a public interface, including loading a Skill such as `skill://grill-me`. A declared prerequisite is not a file or code dependency. The component does not need to bundle the prerequisite, copy its implementation, or provide a fallback. A prerequisite must be stated explicitly rather than implied by a link into another component's files.
 

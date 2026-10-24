@@ -6,7 +6,7 @@ ADR（Architecture Decision Record，架构决策记录）是 `.agents/adr/` 下
 
 ## 机制
 
-任务保存讨论、批准和待执行安排。正式决定保留采纳的选择及必要公开理由，包括重要的被否决替代方案。需要实现的选择，其决定按[项目集成政策](../../.agents/adr/README.zh.md#集成)随实现一起集成；纯文档选择可以独立集成。后续变更要么在 `Changes` 下追加不冲突的内容，要么创建后继决定并归档旧版本。[maintain-adr](../../.agents/skills/maintain-adr/SKILL.md) 持有维护方法。
+任务保存讨论、批准和待执行安排。正式决定保留采纳的选择及必要公开理由，包括重要的被否决替代方案。需要实现的选择，其决定按[项目集成政策](../../.agents/adr/README.zh.md#集成)随实现一起集成；纯文档选择可以独立集成。后续变更要么追加不冲突的内容，要么创建后继决定并归档旧版本。[maintain-adr](../../.agents/skills/maintain-adr/SKILL.md) 持有维护方法。
 
 ## 示例
 
@@ -22,11 +22,11 @@ ADR（Architecture Decision Record，架构决策记录）是 `.agents/adr/` 下
 
 ## 更新决定
 
-更新决定（update decision）在 `Changes` 下向当前决定追加不冲突的内容，不归档该决定。每次更新使用带日期的三级标题。
+更新决定（update decision）向当前决定追加不冲突的内容，不归档该决定。维护 Skill 负责更新格式。
 
 ## 反转决定
 
-反转决定（reverse decision）从旧决定仍然有效的规则和指出冲突的获准选择创建完整后继。被替换的版本按身份日期和下一个修订号归档，实际归档日期写入 `Archived: YYYY-MM-DD`；后继保留规范当前路径。
+反转决定（reverse decision）从旧决定仍然有效的规则和指出冲突的获准选择创建完整后继，归档被替换版本。按维护方法保留决定身份和直接历史关系。
 
 ## 归档版本
 

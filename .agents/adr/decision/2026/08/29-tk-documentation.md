@@ -26,82 +26,31 @@ The [direct predecessor](../../../archived/2026/08/29-r4-tk-documentation.md#adr
 
 ## Decision
 
-### Four usage patterns
+### Usage patterns
 
-Define four built-in usage patterns for ordinary Task materials:
-
-| English name | Chinese name | Default materials |
-| --- | --- | --- |
-| Records | 记录 | `records/YYYY-MM-DD-topic.md` |
-| Deep research | 深度调研 | `research/report.md` and `research/README.md` |
-| Iterative design | 迭代设计 | `revision_<N>/**` |
-| Scratchpad | 草稿纸 | `scratchpad/**` |
-
-A Task may use any combination of the four patterns or none. Formal decisions follow the project's designated mechanism and location.
-
-Patterns govern Agent behavior and ordinary materials. They add no tk metadata, schema fields, `extra` conventions, runtime states, commands, or automatic directory generation.
+Records, Deep research, Iterative design, and Scratchpad organize ordinary Task materials. A Task may combine them or use none. Formal decisions follow the project's designated mechanism and location. Patterns add no tk metadata, schema fields, `extra` conventions, runtime states, commands, or automatic directory generation.
 
 ### Pattern adoption
 
-- Suggest a pattern only after its signal has appeared, and explain the materials it introduces and the maintenance it requires. After the user adopts it, state the choice briefly in the `TASK.md` body and link its existing entry materials. An explicit user request to use a pattern is adoption authorization and needs no further confirmation.
-- Pattern adoption does not replace authorization to create a Task or change its lifecycle. Routine material creation and editing retain their existing permissions. Deleting or moving materials requires the applicable authorization, as does overwriting materials whose ownership or meaning is unclear. Adopting a pattern grants no cleanup permission.
-- Project rules and existing material structures can override the default paths. Create materials for work that has occurred. Do not prebuild empty directories, invent past activity, create future-date records, or migrate existing Tasks merely to match an example.
-- `TASK.md` holds current facts, current decisions, and important entry links. Ordinary materials hold reusable detail. WAL, the Work Activity Log, holds concise durable event summaries appended through tk. Link these sources instead of copying entire documents between them.
+Suggest a pattern only after its signal appears, explaining the materials and maintenance it adds. Explicit user requests authorize adoption without another confirmation. Adoption grants no Task creation, lifecycle, deletion, move, or unclear-overwrite permission. Ordinary material editing retains its existing permissions.
 
-### Records
-
-Suggest Records after substantive investigation, implementation, validation, or decision work has occurred on a second local calendar date. Same-day tasks and plans to continue later do not meet that suggestion signal.
-
-Maintain records only for local dates with substantive activity. Each record captures context, actions, evidence links, and conclusions held at that time. Preserve earlier judgments, put later corrections in subsequent materials, and keep `TASK.md` pointed at current conclusions. Stable designs, reference material, and sources keep their own material files, which records can link. Records do not replace WAL or formal decision records.
-
-### Deep research
-
-Suggest Deep research when the work requires collecting, retaining, or cross-checking external sources, or already has a source list and source materials. Reading one known document or answering an ordinary API usage question does not meet that signal.
-
-Use `research/report.md` for conclusions and `research/README.md` to navigate existing research materials. Add plans, source maps, claim checks, and other supporting material only as needed. Create `research/sources/` only when Task-specific sources need local retention.
-
-Maintain source provenance and access dates, evidence supporting key claims, conflicts between sources, unverified points, and the limits of conclusions. `TASK.md` provides a direct route to the report. A source list alone does not explain what the evidence supports, and unverified inferences must remain distinguishable from facts.
-
-### Iterative design
-
-Suggest Iterative design when two or more major redesigns replace earlier approaches, an earlier design is discarded as a whole, or the main boundaries keep changing. Incremental additions, wording changes, and ordinary review corrections do not call for a new revision.
-
-Keep each revision self-contained under `revision_<N>/`. Its `README.md` explains the background, goals, main design, and material entry points. Create the next revision only for a new major redesign. Edit the current revision for ordinary corrections.
-
-Retain superseded revisions as they stood. `TASK.md` links only the current revision as its design entry point. When a replacement needs explanation, put that explanation in the new revision rather than rewriting the old design to erase the earlier judgment.
-
-### Scratchpad
-
-Suggest Scratchpad when unfinished fragments, notes, outputs, small scripts, or other temporary files need persistent storage. Stable conclusions belong in organized ordinary materials. A brief exchange that needs no retention does not require a scratchpad.
-
-Allow arbitrary files and subdirectories under `scratchpad/`, without a mandatory template, filename, or depth. When useful content stabilizes, organize it into suitable ordinary materials and keep only necessary current conclusions and entry links in `TASK.md`. Distinguish obsolete content from current facts. Deletion and movement follow the applicable authorization rules.
+The [Agent behavior specification](../../../../spec/tk-agent.md#material-patterns) preserves each pattern's signals, counterexamples, defaults, history, evidence, and cleanup requirements. The [pattern reference](../../../../../projects/tk/skills/shared/en/patterns.md) provides the operating guidance. Project conventions may override default paths; create material for actual work, without empty scaffolds, invented history, future-date records, or automatic migration. Task summaries, detailed materials, and WAL retain their separate roles.
 
 ### Contract ownership
 
-The four Skill source directories are [tk](../../../../../projects/tk/skills/tk/SKILL.md), [tk-zh](../../../../../projects/tk/skills/tk-zh/SKILL.md), [tk-cli](../../../../../projects/tk/skills/tk-cli/SKILL.md), and [tk-cli-zh](../../../../../projects/tk/skills/tk-cli-zh/SKILL.md). Together with `projects/tk/skills/shared/en/` and `projects/tk/skills/shared/zh/`, they are the authoritative Skill sources. The shared references live once per language in the shared directory. Each Skill source directory keeps `SKILL.md`, its mode-specific references, and any Agent metadata. Tools and CLI references in the same language have identical content; English and Chinese have equivalent meaning.
+Keep one source per language for references shared by tools and CLI Skills. The component owns its source and assembly layout in [Skill design](../../../../../projects/tk/docs/design/skill.md#installed-skill-identities). Same-language shared references are identical, and languages are semantically equivalent. Assembly rejects collisions between shared and Skill-specific files and Markdown links to missing payload targets.
 
-The tk build copies each shared reference of a language into the `references/` directory of every Skill in that language when it assembles the distributed payloads. A shared file and a Skill-specific file at the same assembled path stop the build. `SKILL.md` links to `./references/<file>.md`, the installed path, so these links resolve in the assembled payload and in every installed Skill; in the source tree, a link to a shared reference does not resolve inside the Skill directory. The build rejects a payload Markdown link whose target is missing.
+Each assembled and installed Skill carries all its language's shared references and references only its own files, under the [self-containment decision](./24-component-self-containment.md). Sources remain within the tk component. Source navigation may require assembly; installed navigation must work independently.
 
-Self-containment applies to the assembled and installed Skills under the [self-contained component decision](./24-component-self-containment.md). Each installed Skill references only files inside itself and carries every shared reference of its language, and the sources stay inside the tk component directory `projects/tk/`.
-
-The [Agent behavior specification](../../../../spec/tk-agent.md) contains complete Agent behavior and acceptance requirements. [Skill guidance](../../../../../projects/tk/docs/design/skill.md) remains independently usable. The [glossary](../../../../../projects/tk/docs/design/GLOSSARY.md) owns the four names and their meanings. The [documentation design](../../../../../projects/tk/docs/design/documentation.md) owns translation maintenance, and [validation](../../../../../projects/tk/docs/design/validation.md) describes validation methods, scenarios, and evidence. These materials, their language counterparts, and the Skill references change together.
+The [Agent behavior specification](../../../../spec/tk-agent.md) contains complete behavior and acceptance. [Skill guidance](../../../../../projects/tk/docs/design/skill.md) is independently usable. The [glossary](../../../../../projects/tk/docs/design/GLOSSARY.md), [documentation design](../../../../../projects/tk/docs/design/documentation.md), and [validation](../../../../../projects/tk/docs/design/validation.md) own terminology, maintenance, and validation methods. Maintain them, their translations, and Skill references together.
 
 ### Public documentation set
 
-Public tk documentation lives under `projects/tk/docs/` and contains:
-
-- English and Chinese user guides;
-- English and Chinese design indexes;
-- paired pages for system architecture, data model, runtime, tool API, CLI reference, Harness integration, installation, Skill behavior, validation, documentation, and the glossary;
-- the component [English README](../../../../../projects/tk/README.md) and [Chinese README](../../../../../projects/tk/README.zh.md), which introduce tk and link to the guides and design pages without duplicating detailed commands or normative contracts;
-- tk entry points in the repository root README and Chinese README, which link to the component entry pages;
-- current English and Chinese tk ADRs under `decision/`.
-
-Review records, revision numbers, Task paths, branch status, implementation logs, and local materials do not appear in public pages.
+The component [README](../../../../../projects/tk/README.md) introduces tk and navigates its complete bilingual guides and design topics without copying detailed contracts. Repository entries link to the component entry. Review records, Task paths, branch state, implementation logs, and local materials stay outside public pages.
 
 ### Topic ownership
 
-The complete [tk specification set](../../../../spec/README.md#tk) owns required behavior and acceptance. Within component documentation, each detailed explanation has one primary topic page. System explains product boundaries and invariants. Data-model explains Task formats and persistence. Runtime explains process and failure behavior. Tool API references logical requests and results. CLI reference lists command spelling and exit behavior. Harness integration explains component forms and adapters. Installation explains component lifecycle. Skill guides Agent behavior and material patterns. Validation holds methods and scenarios. Documentation owns maintenance rules. The glossary owns only project-specific terms and fixed translations.
+The complete [tk specification set](../../../../spec/README.md#tk) owns required behavior and acceptance. Each detailed component explanation has one primary topic page, navigated by the [design index](../../../../../projects/tk/docs/design/README.md). User guidance, implementation design, validation methods, and terminology retain distinct purposes.
 
 Specifications fully state necessary commands, parameters, fields, defaults, limits, failure semantics, and compatibility. User references independently describe the same contract; design holds algorithms and internal mechanisms. Component pages may link to their primary topic explanations, but specifications do not delegate requirements or link repository files. Distributed component documentation does not depend on repository specifications.
 

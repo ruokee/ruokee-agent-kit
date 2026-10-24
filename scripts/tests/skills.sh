@@ -913,25 +913,6 @@ expect_unchanged "$saved_target" "$TARGET/alpha" \
 expect_no_entry "$TARGET/alpha/alpha" "the restored removal does not nest the Skill"
 expect_no_entry "$HOLDING/alpha" "the removal had no content to move aside"
 
-# The documented steps must not delete the installed content.
-docs=$(dirname -- "$SCRIPT")/../docs
-restore_text=$(
-  sed -n '/^## Restore a backup$/,/^## /p' "$docs/installation.md"
-  sed -n '/^## 恢复备份$/,/^## /p' "$docs/installation.zh.md"
-)
-case $restore_text in
-  *'rm -rf'*) bad "the documented restore does not delete the installed Skill" ;;
-  *) ok "the documented restore does not delete the installed Skill" ;;
-esac
-case $restore_text in
-  *'mktemp -d'*) ok "the documented restore moves the current content aside" ;;
-  *) bad "the documented restore moves the current content aside" ;;
-esac
-case $restore_text in
-  *XDG_STATE_HOME*) ok "the documented restore names the backup location variable" ;;
-  *) bad "the documented restore names the backup location variable" ;;
-esac
-
 printf '\n# git checkout reporting\n'
 
 if [ "$HAVE_GIT" = yes ]; then

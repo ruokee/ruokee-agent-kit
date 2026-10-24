@@ -40,7 +40,7 @@ bun install --frozen-lockfile
 ## 开发
 
 ```bash
-bun install
+bun install --frozen-lockfile
 bun run typecheck
 bun test
 ```

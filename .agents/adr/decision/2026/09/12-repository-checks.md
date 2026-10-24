@@ -22,7 +22,7 @@ Affected success is not complete merge validation and grants no merge or push pe
 
 This decision reverses the complete-before-review clause of the previous check decision and preserves its complete coverage, explicit order, baseline, separate dependency trees, visible failure propagation, non-mutating checks, and scenario obligations. The [Markdown formatting decision](./02-markdown-formatting.md) remains in force. This change does not migrate component layouts or introduce a workspace, task-graph dependency, CI platform, coverage threshold, testing framework, model-service invocation, or Harness installation operation.
 
-The check entry points and their ordered targets, the affected-selection mapping and fallback rules, the working-directory exception, environment preparation, and the maintenance obligations live in the [check prerequisites](../../../../../README.md#check-prerequisites), [complete merge validation](../../../../../README.md#complete-merge-validation), the [development rules](../../../../rule/development.md), and the [Git rules](../../../../rule/git.md).
+The [selector](../../../../../scripts/check-changed.mjs) owns ordered check targets and explicit consumer mapping. Component READMEs and their validation guides own exact preparation and check commands. The repository's [check prerequisites](../../../../../README.md#check-prerequisites), [complete merge validation](../../../../../README.md#complete-merge-validation), [development rules](../../../../rule/development.md), and [Git rules](../../../../rule/git.md) own shared entry points, fallback, the working-directory exception, and maintenance obligations.
 
 ## Alternatives considered
 

@@ -6,7 +6,7 @@
 
 ## 机制
 
-独立验证读取任务、计划、需求、实际候选和适用规则。它运行范围要求的检查，把结果与验收条件比较，并报告 `passed`、`changes required` 或 `unable to determine`。它保存自己的报告，不修改候选。
+独立验证按有效要求和证据判断稳定候选，不修改它。`passed` 表示要求结果有充分证据；`changes required` 指出有依据的缺陷或未满足要求；`unable to determine` 表示缺少必要证据或前提。[workloop](../../projects/workloop/README.zh.md) 负责评估方法和报告合同。
 
 独立意味着验证者没有实施该候选。全新上下文避免把实施者的推理当作确认读回。
 

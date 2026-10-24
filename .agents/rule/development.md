@@ -33,20 +33,7 @@ English | [中文](./development.zh.md)
 - Treat automated success as no proof of real-model behavior or interactive UI correctness, and follow the component's own scenario and release validation as well.
 - As far as possible, consult applicable specs, ADRs, and rules when validating or evaluating work, and check the result against them.
 
-The [selector](../../scripts/check-changed.mjs) maintains an explicit mapping from a changed scope to the checks it selects:
-
-- Known explanatory Markdown, including ADRs, specifications, rule pages, root READMEs, public Skills, internal `.agents/skills/` material, and component documentation
-    - Prettier for changed files that still exist, using the repository configuration and ignore rules
-- Registered OMP component non-Markdown files, or Markdown under its `src/` or `test/`
-    - That component's `typecheck` and `test`, plus changed Markdown formatting
-- tk non-Markdown files, or Markdown in its `skills/`, `claude/`, `pi/`, or `omp/` packaging trees
-    - Rust formatting and tests, native adapter tests, and changed Markdown formatting
-- [docs/installation.md](../../docs/installation.md), its Chinese counterpart, or the Skill installation and lifecycle scripts
-    - Skill lifecycle tests, plus changed Markdown formatting
-- Multiple known scopes
-    - Their check union, without duplicate execution
-- Shared toolchain or check inputs, selector changes, unknown paths, or an unreliable baseline or classification
-    - One complete `pnpm check`, without first running partial checks
+The [selector](../../scripts/check-changed.mjs) owns the explicit consumer mapping and ordered check commands. Keep component preparation and exact checks in each component's README or linked validation guide; repository-owned checks remain in the [root instructions](../../README.md#common-commands). The mapping preserves consumer priority, deduplicated unions, and complete fallback without a second inventory in these rules.
 
 ### Merge gate
 

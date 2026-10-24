@@ -6,6 +6,16 @@
 
 以下列表是场景要求，不是覆盖报告。自动检查入口为负责 Rust 和组件生命周期检查的 `cargo test --manifest-path projects/tk/Cargo.toml`，以及负责原生适配器检查的 `bun test projects/tk/adapter-tests`。生命周期测试使用受控 Harness 命令，适配器测试使用受控宿主和运行时。其余协议、已安装 Skill 和真实 Harness 场景单独运行。每项验证结果记录实际候选、宿主版本、输入、观察及未覆盖项；自动命令通过不表示本页全部场景均已运行。
 
+## 自动检查前提
+
+使用带 `rustfmt` 的 Rust、Bun、Git，以及非 root 的 POSIX 环境和生命周期、适配器场景使用的系统文件工具。在仓库根目录单独准备锁定 crate 依赖，不混入检查：
+
+```sh
+cargo fetch --locked --manifest-path projects/tk/Cargo.toml
+```
+
+运行 `cargo fmt --manifest-path projects/tk/Cargo.toml -- --check` 检查 Rust 格式，再运行上文的 Rust 和适配器测试命令。每个检出保留独立的可写依赖及构建输出。这些命令不安装运行时，也不注册 Harness 组件。
+
 ## 仓库边界
 
 验证以下静态事实：

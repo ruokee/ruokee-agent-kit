@@ -25,7 +25,7 @@ Before creating, changing, removing, or reviewing a spec, or when feature work c
 
 ### tk
 
-All six topics together specify tk:
+The following topics together specify tk:
 
 - Product scope: [English](./tk.md), [中文](./tk.zh.md).
 - Persistent data, discovery, lifecycle, and shared writes: [English](./tk-data.md), [中文](./tk-data.zh.md).
@@ -36,7 +36,7 @@ All six topics together specify tk:
 
 ### OMP QoL
 
-All seven topics together specify QoL:
+The following topics together specify QoL:
 
 - Component scope, shared configuration, and status: [English](./omp-qol.md), [中文](./omp-qol.zh.md).
 - Continued waiting: [English](./omp-qol-waiting.md), [中文](./omp-qol-waiting.zh.md).
@@ -48,7 +48,7 @@ All seven topics together specify QoL:
 
 ### OMP Smart Context
 
-All seven topics together specify smart-context:
+The following topics together specify smart-context:
 
 - Main specification, settings, status, and migration: [English](./omp-smart-context/README.md), [中文](./omp-smart-context/README.zh.md).
 - Shared request alignment: [English](./omp-smart-context/request-alignment.md), [中文](./omp-smart-context/request-alignment.zh.md).

@@ -18,7 +18,7 @@ Alignment is optional. A refusal leaves the complete native request unchanged an
 
 Only a confirmed ordinary main-loop dispatch can supply reusable reference content. Its raw source, completed preparation, handler results, and actual outgoing payload must belong to the same dispatch and reach transport unchanged. Title, warming, advisor, and Handoff requests do not establish an ordinary reference. Handoff additionally requires a prepared tool set.
 
-Main sessions, native task children, and Eval children have separate references and counts. Reuse must retain the owning session, persistent and Provider identities, effective model and API, tools, prompt, and dispatch. Equal model names, text, endpoints, cache keys, or timing do not establish session ownership.
+Main sessions, native task children, and Eval children have separate references and counts. Reuse must retain the owning session, persistent and Provider identities, effective model and API, tools, system prompt, thinking state, and dispatch. Equal model names, text, endpoints, cache keys, or timing do not establish session ownership.
 
 Native CLI and SDK session provenance must be established rather than inferred for arbitrary Agent instances. If that provenance becomes unknown or changes, complete-source proof can still justify reuse, but equal lengths or outputs do not justify local independence. Image preparation that depends on history, and later date or cwd reminders, require complete-range proof unless their local dependencies are established.
 

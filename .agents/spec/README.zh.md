@@ -25,7 +25,7 @@
 
 ### tk
 
-以下六个主题共同完整说明 tk：
+以下主题共同完整说明 tk：
 
 - 产品范围：[English](./tk.md)、[中文](./tk.zh.md)。
 - 持久数据、发现、生命周期和共享写入：[English](./tk-data.md)、[中文](./tk-data.zh.md)。
@@ -36,7 +36,7 @@
 
 ### OMP QoL
 
-以下七个主题共同完整说明 QoL：
+以下主题共同完整说明 QoL：
 
 - 组件范围、共同配置和状态：[English](./omp-qol.md)、[中文](./omp-qol.zh.md)。
 - 持续等待：[English](./omp-qol-waiting.md)、[中文](./omp-qol-waiting.zh.md)。
@@ -48,7 +48,7 @@
 
 ### OMP Smart Context
 
-以下七个主题共同完整说明 smart-context：
+以下主题共同完整说明 smart-context：
 
 - 主规格、设置、状态和迁移：[English](./omp-smart-context/README.md)、[中文](./omp-smart-context/README.zh.md)。
 - 共享请求对齐：[English](./omp-smart-context/request-alignment.md)、[中文](./omp-smart-context/request-alignment.zh.md)。

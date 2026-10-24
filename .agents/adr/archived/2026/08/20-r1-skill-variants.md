@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-10-24
-Reversed by: [Skill language variants](../../../decision/2026/08/20-skill-variants.md)
+Reversed by: [Skill language variants](./20-r2-skill-variants.md)
 
 English | [中文](./20-r1-skill-variants.zh.md)
 

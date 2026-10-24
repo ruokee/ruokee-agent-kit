@@ -8,7 +8,7 @@ The authorized delivery of an accepted result, including local commits and integ
 
 ## Mechanism
 
-Ship checks that the accepted scope is complete, Verify covers the current candidate, and the project's readiness gates are satisfied. It prepares or confirms a clean committed candidate containing the current target, runs the required checks, and performs the authorized squash merge. Push, publication, deployment, and installation need their own permissions.
+Ship's outcome and readiness gates are project-defined. It acts only within the delivery request's effective grants; a Verify pass does not supply those grants. The [Git rules](../../.agents/rule/git.md) and [development rules](../../.agents/rule/development.md) own this repository's integration procedure. Push, publication, deployment, and installation retain their own permission boundaries.
 
 ## Example
 

@@ -8,7 +8,7 @@ A durable, project-local unit of work managed by tk, with a material directory a
 
 ## Mechanism
 
-tk stores a Task under `.tk/` with a managed identity, a `TASK.md` for stable goals and boundaries, and a material directory for analysis, plans, decisions, and evidence. A WAL records activity in order. Task status is `planning`, `open`, or `closed`; closing requires the maintainer's current confirmation.
+tk owns a Task's identity and lifecycle. Stable goals and boundaries, detailed materials, and the chronological WAL have distinct roles. Status is `planning`, `open`, or `closed`; closing requires the maintainer's current confirmation. Storage and operations belong to [tk guidance](../../projects/tk/README.md).
 
 A Task is not a single todo item. Use it when work needs to survive steps, sessions, or Agents, or when its state matters across handoffs.
 

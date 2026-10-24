@@ -2,9 +2,9 @@
 
 ## Goals
 
-Provide six independently switchable OMP adjustments in one package: continued job waiting, main-session error recovery, an experimental compaction deadline extension, native-history replay on resume, task argument cleanup, and copying the last assistant reply. Share installation and configuration while exposing each adjustment's effective state, settings, and failure reason.
+Provide independently switchable OMP adjustments in one package: continued job waiting, main-session error recovery, an experimental compaction deadline extension, native-history replay on resume, task argument cleanup, and copying the last assistant reply. Share installation and configuration while exposing each adjustment's effective state, settings, and failure reason.
 
-The complete specification set comprises this component specification and the waiting, error recovery, compaction deadline, native-history replay, task arguments, and reply copying topics. The component-wide configuration, activation, status, isolation, and host requirements apply to all six adjustments; each topic defines its own behavior and acceptance.
+The complete specification set comprises this component specification and the waiting, error recovery, compaction deadline, native-history replay, task arguments, and reply copying topics. The component-wide configuration, activation, status, isolation, and host requirements apply to every adjustment; each topic defines its own behavior and acceptance.
 
 ## Out of scope
 
@@ -31,7 +31,7 @@ Diagnostics name the rejected key and rule, never its value. Report a module rea
 
 ### Status
 
-`/qol` is read-only and starts no model turn. Show package identity and version, activation cwd, the restart refresh policy, settings validity, and all six module states with their effective configuration. Use `pending` before session start and distinguish `enabled`, `disabled`, `invalid`, `incompatible`, and `unavailable`, with bounded reason codes. List rejected keys for partial or total settings rejection without printing their values.
+`/qol` is read-only and starts no model turn. Show package identity and version, activation cwd, the restart refresh policy, settings validity, and every module's state with its effective configuration. Use `pending` before session start and distinguish `enabled`, `disabled`, `invalid`, `incompatible`, and `unavailable`, with bounded reason codes. List rejected keys for partial or total settings rejection without printing their values.
 
 ## Invariants
 

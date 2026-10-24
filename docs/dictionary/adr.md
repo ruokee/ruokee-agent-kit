@@ -8,7 +8,7 @@ An **ADR** (Architecture Decision Record) is a bilingual record under `.agents/a
 
 ## Mechanism
 
-Tasks hold discussion, approval, and pending execution. A formal decision preserves the adopted choice and its necessary public reasons, including material rejected alternatives. For a choice requiring implementation, the decision is integrated with it under the [project integration policy](../../.agents/adr/README.md#integration); a document-only choice may be integrated independently. Later changes either add non-conflicting content under `Changes` or create a successor decision and archive the old version. [maintain-adr](../../.agents/skills/maintain-adr/SKILL.md) owns the maintenance method.
+Tasks hold discussion, approval, and pending execution. A formal decision preserves the adopted choice and its necessary public reasons, including material rejected alternatives. For a choice requiring implementation, the decision is integrated with it under the [project integration policy](../../.agents/adr/README.md#integration); a document-only choice may be integrated independently. Later changes either add non-conflicting content or create a successor decision and archive the old version. [maintain-adr](../../.agents/skills/maintain-adr/SKILL.md) owns the maintenance method.
 
 ## Example
 
@@ -24,11 +24,11 @@ An ADR that records a complete adopted choice, its rationale, alternatives, boun
 
 ## Update decision
 
-Add non-conflicting content to a current decision under `Changes` without archiving it. Each update gets a dated level-three heading.
+Add non-conflicting content to a current decision without archiving it. The maintenance Skill owns the update format.
 
 ## Reverse decision
 
-Create a complete successor from an old decision's still-effective rules and an approved choice identifying the conflict. Archive the replaced version under its identity date with the next revision number, record the actual archival date in `Archived: YYYY-MM-DD`, and keep the successor at the canonical current path.
+Create a complete successor from an old decision's still-effective rules and an approved choice identifying the conflict, archiving the replaced version. Preserve the decision's identity and direct history under the maintenance method.
 
 ## Archived version
 

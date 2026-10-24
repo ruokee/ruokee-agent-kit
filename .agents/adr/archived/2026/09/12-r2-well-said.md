@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [well-said](./12-r1-well-said.md)
 Archived: 2026-10-16
-Reversed by: [well-said](../../../decision/2026/09/12-well-said.md)
+Reversed by: [well-said](./12-r3-well-said.md)
 
 English | [中文](./12-r2-well-said.zh.md)
 
@@ -41,7 +41,7 @@ Do not repeat source attribution, license text, or the version in the Skill body
 
 Use `1.0.0` as the first formal release version. Revision labels used during drafting are not software versions. Later releases follow the repository's version policy. No package manifest, detector, plugin, or runtime dependency is added to the ordinary Skill.
 
-The [first-party capability decision](../../../decision/2026/08/20-first-party-capabilities.md) distinguishes ownership of well-said from authorship of reused material. Preserve most of the source wording, examples, and useful organization in the style section, with necessary integration changes and additions. This version required source documents in each component, which identified the pinned unslop revision `99559f2f52047978602ef365589275831e76af07` and the reuse scope; the [successor](../../../decision/2026/09/12-well-said.md) records them instead. Verify provenance, permission, attribution, and notices before distributing further reused material.
+The [first-party capability decision](../../../decision/2026/08/20-first-party-capabilities.md) distinguishes ownership of well-said from authorship of reused material. Preserve most of the source wording, examples, and useful organization in the style section, with necessary integration changes and additions. This version required source documents in each component, which identified the pinned unslop revision `99559f2f52047978602ef365589275831e76af07` and the reuse scope; the [successor](./12-r3-well-said.md) records them instead. Verify provenance, permission, attribution, and notices before distributing further reused material.
 
 The complete writing guidance stays in one file. Extract substantial, infrequently used supplementary material only when actual content and loading measurements justify it. Ordinary writing must remain supported by the complete rules in `SKILL.md`.
 

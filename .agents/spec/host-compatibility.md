@@ -4,7 +4,7 @@ This specification covers maintenance commitments for components that load code 
 
 ## Goals
 
-Maintain OMP-facing components against the shared floor OMP `18.5.0`: `omp-qol`, `omp-smart-context`, `omp-status-bar`, and tk's OMP adapter in `tools` mode. Maintain tk's Pi adapter in `tools` mode against its separate Pi floor `0.84.4`.
+Maintain components that load code into OMP against the shared floor OMP `18.5.0`. Components that load code into Pi use its separate floor `0.84.4`.
 
 Keep required behavior on maintained hosts as they evolve. Users receive a clear maintenance statement without an installation or runtime version gate.
 
@@ -12,7 +12,7 @@ Keep required behavior on maintained hosts as they evolve. Users receive a clear
 
 - An upper maintenance bound, supported-version allowlist, public support matrix, compatibility manager, or shared compatibility library.
 - Blocking installation, loading, registration, diagnostics, or operation solely because a host is below the maintenance floor. Such a host may work without a maintenance commitment.
-- Host maintenance floors for instructions or configuration without host-process code. Ordinary Skills, tk CLI-mode Skills, tk's Claude Code and Codex MCP configuration, and the workloop instruction distribution have no such floor.
+- Host maintenance floors for instructions or configuration that load no code into a host process.
 
 ## Public surface
 
@@ -35,7 +35,7 @@ The tk runtime compatibility range, driver contract, and generated tool contract
 
 ## Acceptance criteria
 
-- All OMP-facing declarations and specifications agree on `18.5.0`; the tk Pi tools adapter agrees on `0.84.4`. Instruction-only and configuration-only distributions claim no host-code floor.
+- All declarations and specifications for components loading code into OMP agree on `18.5.0`; those loading code into Pi agree on `0.84.4`. Instruction-only and configuration-only distributions claim no host-code floor.
 - A host below the floor is not rejected solely for its version. Host peers remain unrestricted, and maintenance-only upper bounds or allowlists are absent.
 - Maintained-host results survive updates, and missing-capability failures remain local and explicit. Actual exercised host behavior is distinguished from source inspection and declared maintenance scope.
 - Development baselines, required behavior, and user-facing statements remain synchronized when a floor changes.

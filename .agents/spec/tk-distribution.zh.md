@@ -18,7 +18,9 @@
 
 tools 模式支持 Codex、Claude Code、Pi 和 OMP，各有 `en`、`zh`。每项只包含所选 Harness 集成及 tools Skill。Codex 和 Claude Code 使用 MCP，Pi 和 OMP 使用原生工具。Pi 或 OMP 单独配置的外部 MCP 不属于原生组件管理范围。
 
-cli 模式安装普通 `tk-cli` 或 `tk-cli-zh` Skill，不创建注册或 native manifest。tools 模式选择 `tk` 或 `tk-zh`。默认语言是英文。完整分发提供八项 tools 选择和两个独立于 Harness 的 CLI Skill。每项都自包含，不包含其他 Harness 内容、源码、任务材料、审查记录或运行时可执行文件。相同分发输入产生相同的所选文件路径、字节、权限和分发内容。
+cli 模式安装普通 `tk-cli` 或 `tk-cli-zh` Skill，不创建注册或 native manifest。tools 模式选择 `tk` 或 `tk-zh`。默认语言是英文。完整分发提供 tools 模式的全部受支持 Harness 与语言组合，以及各语言独立于 Harness 的 CLI Skill。每项都自包含，不包含其他 Harness 内容、源码、任务材料、审查记录或运行时可执行文件。相同分发输入产生相同的所选文件路径、字节、权限和分发内容。
+
+分发格式 `4` 用语言和 Skill 标识每项选择，只有 tools 选择带 Harness 身份。它声明运行时版本、来源修订、运行时兼容范围、允许的载荷路径、文件类型、Unix 权限和内容摘要。写入前的兼容与完整性检查必须使用这些声明。
 
 安装必须恰选 `--harness codex|claude|pi|omp` 或 `--skill-root <directory>` 之一。Harness 模式默认 `tools`，自定义根安装必须显式 `--mode cli`，拒绝 tools 模式。相对 Skill 根从进程 cwd 解析，不使用组件操作拒绝的全局 `--cwd`。结果以绝对 `skill_root` 报告解析后的根。
 

@@ -18,7 +18,7 @@ Provide complete bilingual targets, durable decisions with traceable history, cl
 ### Repository areas
 
 - `projects/` contains independently maintained extensions, executables, and host packages, including their component documentation and checks.
-- Ordinary public English Skills use `skills/<name>/`; their Chinese variants use `variants/zh/skills/<name>/`. Skills owned by a project component stay under that component's `skills/` directory.
+- Ordinary public English Skills use `skills/<name>/`; their Chinese variants use `variants/zh/skills/<name>/`. A project component owns its Skill sources and language resources within its own boundary and chooses their internal layout while preserving host discovery, installed identities, and complete self-contained distributions.
 - `docs/` contains repository-wide documentation; `scripts/` contains repository-wide installation, maintenance, and checks. Component-specific material stays with its component.
 - `.agents/spec/` contains long-lived specifications. Every project component, ordinary Skill distribution, repository conventions, and host compatibility has a complete specification set. A non-spec index identifies every file in each set and both languages.
 - `.agents/adr/` contains current decisions and decisions that took effect and were later replaced. `.agents/rule/` contains working rules, one bilingual page per activity, without dated filenames or subdirectories. Its index is not a closed list of future activities.

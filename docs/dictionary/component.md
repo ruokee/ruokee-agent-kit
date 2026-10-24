@@ -8,13 +8,13 @@ A first-party capability in this repository, kept in its host-native or build-na
 
 ## Mechanism
 
-Each component is a distributable unit. English Skills live under `skills/<name>/`, Chinese variants under `variants/zh/skills/<name>/`, and extensions, executables, and host packages under `projects/<name>/`. A component ships with the files its host or build system expects, plus its own checks.
+Each component is a distributable unit carrying the files its host or build system expects and its own checks. Internal source organization does not define the component boundary.
 
 Components are self-contained, so each installs and ships without the rest of the repository.
 
 ## Example
 
-`skills/architect/` is a Skill component. `projects/tk/` is an executable and host package. Both have their own directory, documentation, and version.
+`architect` is a Skill component. `tk` is an executable and host package. Both have their own directory, documentation, and version.
 
 ## Avoid
 
@@ -22,7 +22,7 @@ Avoid "module" for a repository capability. A module is a code boundary inside a
 
 ## Language variant
 
-A complete translation of a component with the same file set and scope, maintained beside the English base. A Chinese Skill variant lives under `variants/zh/skills/<name>/` and installs as `<skill root>/<name>/`.
+A complete translation of a component with the same file set and scope, maintained beside the English base. Each selected variant installs as a complete component under its installed identity.
 
 ## Self-contained
 

@@ -2,50 +2,38 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
-Reverses: [Skill language variants](../../../archived/2026/08/20-r1-skill-variants.md)
+Reverses: [Skill language variants](../../../archived/2026/08/20-r2-skill-variants.md)
 
 English | [中文](./20-skill-variants.zh.md)
 
 ## Motivation
 
-Distribute complete, self-contained Skill language variants with component-local file references.
+Distribute complete, self-contained Skill language variants whose internal source layout belongs to their component.
 
-A packaged Skill has to remain self-contained and discoverable by Agent Harnesses without depending on repository packaging details. The source repositories stored a Skill beside Plugin manifests, marketplace metadata, package documentation, and language overlays, and copying that layout would make the Skill depend on those packaging details.
+The predecessor required project-owned Skills to occupy a fixed subdirectory. That couples ordinary source reorganization to repository-wide decisions without protecting an installed interface. Component ownership and host discovery provide the boundary; an internal directory name does not.
 
-Language variants add a second ambiguity. Their source path identifies the selected variant, but installed Skills must keep the path expected by Agent Harnesses. Links that include the source-only variant prefix break after installation.
-
-The [predecessor](../../../archived/2026/08/20-r1-skill-variants.md) allowed cross-Skill file links for related reading. That permission conflicts with [component self-containment](./24-component-self-containment.md): a link to another component can fail when only the selected variant is installed. References by name and use of public interfaces preserve legitimate prerequisites without depending on another component's files.
+Source paths select language material, while installed Skills use the identity and path expected by their host. Source-only prefixes in installed links break that separation. Cross-component file references also fail when only one component is installed.
 
 ## Decision
 
-Store the English base Skill under `skills/<name>/`. Store the Chinese variant under `variants/zh/skills/<name>/`. Keep the corresponding file sets and subject matter aligned in the same change.
+Ordinary public English Skills use `skills/<name>/`, and their same-name Chinese variants use `variants/zh/skills/<name>/`. These roots are the repository installation interface. Keep corresponding file sets, subject matter, observable instructions, and versions aligned in the same change.
 
-A pure Skill contains the material needed to discover, understand, and use that Skill. This may include `SKILL.md`, workflows, references, examples, and a glossary. Do not copy Plugin manifests, marketplace metadata, `meta.toml`, host-specific Agent definitions, Plugin changelogs, or package-level README files into the Skill tree.
+A project owns the sources and language resources of the Skills it distributes. It chooses its internal source layout, keeping those sources within its component. It may give language Skills separate, independently discoverable identities. Each language remains complete and self-contained, with equivalent instructions and versions maintained together. Component documentation owns its source layout and installation details; an internal move does not change an installed identity.
 
-Install a selected language variant at the normal host Skill path, with no `variants/zh/` prefix. Write file links relative to the containing document and keep their targets inside that component. References to repository files through written paths, imports, package dependencies, or runtime reads must also stay within the component; an installed `skills/<name>/...` path does not permit a reference to another component's files.
+A pure Skill contains only material needed to discover, understand, and use it, including its `SKILL.md` entry and any required local guidance. It does not contain Plugin manifests, marketplace metadata, `meta.toml`, host-specific Agent definitions, package changelogs, or package-level README files. The component owns the organization of its supporting material.
 
-Keep each Skill understandable on its own, including its own terms and operating rules. It may name another component, tool, or Skill without declaring a dependency merely for that mention. State actual prerequisites explicitly and use them by name or through their public interfaces, including Skill loading interfaces. These uses do not permit cross-component file references.
+Install the selected language at its normal host Skill path, without source-only layout prefixes. Write file references relative to the containing document and keep their targets inside that distributed component. Written paths, imports, package dependencies, and runtime reads do not permit access to another component or repository support files. An installed path does not grant cross-component access.
+
+Each Skill explains its own domain, terms, and operating rules without loading another Skill to supply that explanation. It may name another component, tool, or Skill without declaring a dependency merely for the mention. State actual prerequisites explicitly and use them by name or public interface, including Skill loading interfaces. Prerequisites do not permit cross-component file references.
+
+Imports preserve body meaning and distinguish path adaptation from editorial changes. Neither language may silently omit an observable capability or required instruction; language-specific explanations may differ where translation requires it.
 
 ## Alternatives considered
 
-None
+Require one project-internal source subdirectory. It makes source locations predictable, but a harmless internal move then changes repository policy. Installed identity, component ownership, and complete language distributions provide the required consistency without that coupling.
 
 ## Consequences
 
-English Skills live under `skills/<name>/`, while Chinese variants live under `variants/zh/skills/<name>/`. A pure Skill tree contains no Plugin manifest, marketplace metadata, package changelog, or host-specific Agent definition.
+A source layout can change without changing public rules, provided installed identities, complete language distributions, and component-local references remain valid. Validation must exercise references after variant selection, not only against the source tree.
 
-Component-local relative links remain usable after installation without the variant source prefix. Source paths and installed paths differ intentionally, and validation must check links as they appear after variant selection rather than only against the repository tree.
-
-Each variant remains complete and reviewable against its counterpart. Language-specific explanations may differ where translation requires it, but neither variant may silently omit an observable capability or required instruction.
-
-Imports preserve body meaning and distinguish path adaptations from editorial changes. Each Skill explains its own domain without loading another Skill to supply that explanation; using a declared prerequisite remains permitted.
-
-## Changes
-
-### 2026-09-02 tk language Skill names
-
-tk uses the independently discoverable Skills `tk`, `tk-zh`, `tk-cli`, and `tk-cli-zh`. They are separate Skill identities rather than same-name language variants, so all four live under `projects/tk/skills/<name>/`. This does not change the same-name variant rule for other Skills.
-
-### 2026-10-22 Project component Skills
-
-Skills included in independently maintained project components live under `projects/<component>/skills/<name>/`. Their layout follows component ownership rather than a list of named exceptions. A component may give its language Skills separate, independently discoverable identities. Each language Skill remains complete and self-contained; equivalent instructions and versions are maintained in the same change. The ordinary Skill layout and same-name variant rule remain unchanged.
+Source and installed paths intentionally differ. Consumers that rely on an undocumented internal source path must follow the component's maintained build or installation interface instead.

@@ -118,4 +118,6 @@ The interface basis is OMP 18.12.3, not a maintenance lower bound:
 - [Command discovery](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/slash-command-internals.md) explains file-command precedence.
 - [Config CLI](https://github.com/can1357/oh-my-pi/blob/v18.12.3/packages/coding-agent/src/cli/config-cli.ts) defines `config path`.
 
+In this interface, native `.omp` resources have priority `100` and package resources `90`. Different same-name Skills keep the higher-precedence bare name and namespace other copies; identical copies deduplicate, while custom Skill directories have their own overrides. Native file commands outrank package file commands. Built-in, extension, and custom handlers precede file commands, which precede Prompt templates. These are versioned interface facts, not a guarantee about equal-priority order or future hosts; inspect the actual discovered source.
+
 For another version, use its current public interfaces. File operations and discovery checks need their own observations; model behavior and user acceptance require separate evidence.

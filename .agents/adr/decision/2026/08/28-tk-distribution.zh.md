@@ -20,11 +20,11 @@ Reverses: [tk 分发](../../../archived/2026/08/28-r3-tk-distribution.zh.md)
 
 Linux 运行时仍是位于 `$HOME/.local/bin/tk`、具有 Unix 执行位的一份常规可执行文件。Harness 组件和直接安装的 CLI Skill 会验证它，但不安装、更新、删除、包装或复制它。
 
-`projects/tk/build.rs` 是唯一 bundle 组装器。Cargo 生成一个确定性 `tar.zst` 和一份清单。`components` 集合包含四个 Harness 与两种语言的 tools 选择。独立的 `cli_skills` 集合包含 `en` 与 `zh` 两项与 Harness 无关的 `tk-cli` 和 `tk-cli-zh` 载荷。
+一次构建组装确定性的内嵌分发，包含 tools 模式的全部受支持 Harness 与语言组合，以及各语言独立于 Harness 的 CLI Skill。[安装设计](../../../../../projects/tk/docs/design/installation.zh.md#内嵌载荷)负责组装器与归档组织。
 
-每个 Harness 组件项记录 Harness、语言、Skill 身份、`runtime_compat`、载荷路径、文件类型、Unix 权限和摘要。每个 `cli_skills` 条目记录语言、Skill 身份、`runtime_compat`、载荷路径、文件类型、Unix 权限和摘要，不含 Harness 字段。清单在顶层只记录一次 runtime version 和 `source_revision`。组件格式版本 4 负责这套 schema。
+组件格式版本 `4` 记录运行时兼容范围、选择身份、允许的载荷路径、文件类型、Unix 权限和内容摘要。运行时版本与来源修订描述整个分发。tools 选择包含 Harness 身份，独立 CLI 选择不含该身份。[清单定义](../../../../../projects/tk/docs/design/installation.zh.md#清单)负责字段布局。
 
-tools 载荷包含 `tk` 或 `tk-zh`，以及所选 Harness 集成。与 Harness 无关的 CLI 载荷只包含所选自包含 Skill。运行时携带十份载荷。载荷不包含 runtime 副本、其他组件文件、评审记录、任务材料或产品源码。
+tools 载荷包含 `tk` 或 `tk-zh`，以及所选 Harness 集成。与 Harness 无关的 CLI 载荷只包含所选自包含 Skill。载荷不包含 runtime 副本、其他组件文件、评审记录、任务材料或产品源码。
 
 ### 公开生命周期
 
@@ -46,7 +46,7 @@ tools 模式保留四个已支持 Harness 的官方组件生命周期。cli 模�
 
 ## 结果
 
-运行时携带十份载荷，因此载荷变更会增加可执行文件体积，并要求重新构建和分发 runtime。
+运行时携带完整分发，因此增加载荷会增加可执行文件体积，载荷变更要求重新构建和分发 runtime。
 
 Harness 可执行文件缺失时，cli 安装或卸载仍会写入或删除 Skill 目录，注册清理则作为未完成项保留。下一次在 Harness 命令可用时运行即可完成该清理。
 

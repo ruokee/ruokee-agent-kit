@@ -89,39 +89,17 @@ pnpm hooks:install
 
 ### 检查前置条件
 
-使用 [package.json](./package.json) 声明的 pnpm 版本、其支持的 Node.js 运行时和 Git。[检查选择规则](./.agents/rule/development.zh.md#检查)定义一次改动会选中哪些检查。开发阶段只准备这些检查需要的环境：
+使用 [package.json](./package.json) 声明的 pnpm 版本、其支持的 Node.js 运行时和 Git，按上文准备根锁定依赖及钩子。开发阶段只准备[检查选择规则](./.agents/rule/development.zh.md#检查)选中检查需要的环境，包括文档消费者；多个范围取并集。
 
-- 说明性 Markdown 或 ADR 格式检查需要上述根锁定依赖和 Git 钩子。
-- 单个 OMP 组件需要根工具链、兼容其锁文件的 Bun，以及该组件目录内的 `bun install --frozen-lockfile`。
-- tk 需要根工具链、包含 `rustfmt` 的 Rust、锁定 crate 依赖、Bun 和原生适配器测试所用系统工具。[tk 用户指南](./projects/tk/docs/guide.zh.md#安装运行时)说明运行时源码构建。
-- Skill 生命周期工作需要根工具链、Git、非 root 的 POSIX shell 环境、`diff` 和测试脚本使用的常见系统文件工具。
-- 完整检查或完整回退需要上述全部环境，包括每个 OMP 组件的锁定依赖树。
+有独立开发环境的组件在[功能列表](#功能列表)链接的 README 或其验证指南中提供精确的锁定准备与检查命令，按这些命令准备并检查。完整验证或完整回退需要[选择器](./scripts/check-changed.mjs)登记的全部环境，不只准备修改的组件。
 
-已知文档消费者追加所需环境，多范围取并集。
-
-完整验证时，安装每个 OMP 组件的锁定依赖：
-
-```bash
-(cd projects/omp-status-bar && bun install --frozen-lockfile)
-(cd projects/omp-qol && bun install --frozen-lockfile)
-(cd projects/omp-smart-context && bun install --frozen-lockfile)
-```
+仓库负责的 Skill 生命周期检查需要非 root 的 POSIX shell 环境、Git、`diff` 及[生命周期脚本](./scripts/tests/skills.sh)使用的系统文件工具。共享 Markdown 和选择器检查使用根工具。依赖安装与检查分开。
 
 ### 完整合并验证
 
 合并前需要在干净、已提交且包含目标 `main` 的最终候选上运行完整 `pnpm check`，并记录结果。[合并门禁规则](./.agents/rule/development.zh.md#合并门禁)说明记录内容和使记录失效的情况；执行已授权的 squash merge 时使用未变化的目标和已验证的 tree。
 
-完整入口执行选择器中的完整检查列表，即 `node scripts/check-changed.mjs --complete`，不收集变更路径。检查顺序如下：
-
-1. Markdown 格式检查、tk Rust 格式检查和 Rust 测试，与 `pnpm check:base` 的序列相同。
-2. [omp-status-bar](./projects/omp-status-bar/package.json) 的 TypeScript 检查和测试。
-3. [omp-qol](./projects/omp-qol/package.json) 的 TypeScript 检查和测试。
-4. [omp-smart-context](./projects/omp-smart-context/package.json) 的 TypeScript 检查和测试。
-5. 通过 `bun test projects/tk/adapter-tests` 执行 tk 原生适配器测试。
-6. 通过 `pnpm check:skills` 执行 `sh scripts/tests/skills.sh`，运行 Skill 生命周期测试。
-7. 通过 `pnpm check:selector` 执行受影响选择器回归测试。
-
-完整入口在执行第一条命令前核对所列的全部工具和本地输入，首次命令失败即停止执行并返回非零状态。
+完整命令执行 `node scripts/check-changed.mjs --complete`，不收集变更路径。[选择器](./scripts/check-changed.mjs)持有有序的完整检查列表与显式消费者映射。执行首条命令前核对全部选中工具和本地输入，首次失败即停止并返回非零状态。检查不安装依赖，也不改写源码。
 
 [仓库检查决定](./.agents/adr/decision/2026/09/12-repository-checks.zh.md)定义完整契约。
 

@@ -18,7 +18,7 @@ Preserve first, subsequent, and process-restored compaction through each session
 
 ## Invariants
 
-The shared request-alignment requirements apply to this capability. Reuse only the same session's confirmed ordinary dispatch and retain its original reference throughout a native operation, including retries. Preserve ordinary and non-target requests, unknown fields, explicit policy differences, and native fallback. Model or tool mismatch, ambiguous identity, missing proof, cancellation, foreign ownership, and missing interfaces preserve the complete native Remote request without blocking, delaying, or dropping it.
+The shared request-alignment requirements govern reference confirmation, operation lifetime, content-reuse proof, and sending. Remote additionally preserves unknown fields, explicit policy differences, and native fallback. Any failed eligibility or proof condition leaves the complete native Remote request unchanged.
 
 ### Source
 
@@ -33,7 +33,7 @@ Both modes align recognized native common content, including valid tool-schema p
 - `standard` accepts recognized native preparation differences.
 - `hooks` additionally reuses proved completed handling results. A complete retained range permits lawful insertion, reordering, restoration, cross-range merging, images, and existing post-payload transformations. Stateful handlers run once.
 
-Complete retained-source proof permits reuse even with duplicate source messages. A local match is insufficient when it contradicts that complete range. Partial reuse requires independently extractable already-sent units with every dependency and processing condition retained. Equal output, length, index, or provenance alone is insufficient.
+A local match cannot override a contradictory complete retained-source range. The shared complete-range and partial-unit proof requirements apply in both modes.
 
 Retain native tool-output rewriting, deleted dependencies, new ordinary/tool/image tails, opaque history, call/result pairing, and trigger boundaries. An indivisible result with changed dependencies leaves the whole request native with `projection-dependency-changed`; unknown provenance or unit boundaries use `projection-unconfirmed`. Both refusals are unaligned and remain in totals. Offer no frozen pure-projection protocol and never rerun a black-box handler.
 

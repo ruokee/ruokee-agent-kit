@@ -40,7 +40,7 @@ Restart OMP afterwards: a running process keeps the extension code it loaded at 
 ## Development
 
 ```bash
-bun install
+bun install --frozen-lockfile
 bun run typecheck
 bun test
 ```

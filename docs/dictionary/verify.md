@@ -8,7 +8,7 @@ An independent check of a candidate against its requirements and evidence, perfo
 
 ## Mechanism
 
-Verify reads the Task, Plan, requirements, the actual candidate, and the applicable rules. It runs the checks the scope requires, compares the result with the acceptance criteria, and reports `passed`, `changes required`, or `unable to determine`. It saves its own report and does not edit the candidate.
+Verify judges a stable candidate against effective requirements and evidence without editing it. `passed` means the required result has sufficient evidence; `changes required` identifies an evidenced defect or unmet requirement; `unable to determine` means necessary evidence or prerequisites are missing. [workloop](../../projects/workloop/README.md) owns the assessment procedure and report contract.
 
 Independence means the verifier did not implement the candidate. A fresh context prevents the implementer's reasoning from being read back as confirmation.
 

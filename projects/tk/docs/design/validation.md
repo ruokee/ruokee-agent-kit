@@ -6,6 +6,16 @@ This page describes validation methods and scenarios for tk's required behavior 
 
 The lists below are scenario requirements, not a coverage report. Automated entry points are `cargo test --manifest-path projects/tk/Cargo.toml` for Rust and component lifecycle checks, and `bun test projects/tk/adapter-tests` for native adapter checks. Lifecycle tests use controlled Harness commands, and adapter tests use controlled hosts and runtimes. Run remaining protocol, installed-Skill, and real-Harness scenarios separately. Record the actual candidate, host version, inputs, observations, and uncovered cases with each validation result; a passing automated command does not establish that every scenario on this page ran.
 
+## Automated prerequisites
+
+Use Rust with `rustfmt`, Bun, Git, and a non-root POSIX environment with the system file tools used by the lifecycle and adapter scenarios. From the repository root, prepare locked crate dependencies separately from checks:
+
+```sh
+cargo fetch --locked --manifest-path projects/tk/Cargo.toml
+```
+
+Run Rust formatting validation with `cargo fmt --manifest-path projects/tk/Cargo.toml -- --check`, followed by the Rust and adapter test commands above. Keep each checkout's writable dependencies and build output independent. These commands do not install the runtime or register Harness components.
+
 ## Repository boundaries
 
 Validate the following static facts:

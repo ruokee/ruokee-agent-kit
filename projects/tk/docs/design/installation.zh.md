@@ -18,7 +18,7 @@ $HOME/.local/bin/tk
 
 ## 内嵌载荷
 
-Cargo 构建八份 Harness tools 载荷，覆盖四个 Harness 和两种语言。构建还会生成两份与 Harness 无关的 CLI Skill 载荷，每种语言一份，并在 `OUT_DIR` 写入一个确定性 `tar.zst` 和一份对应清单。
+Cargo 使用 `build.rs` 作为唯一 bundle 组装器。它为每个受支持 Harness 与语言组合构建 tools 载荷，并为每种语言构建一份独立于 Harness 的 CLI Skill 载荷，在 `OUT_DIR` 写入一个确定性 `tar.zst` 和一份对应清单。
 
 清单把 Harness tools 载荷保存在 `components` 中，由 Harness、语言和 Skill 标识。独立 CLI Skill 载荷保存在 `cli_skills` 中，由语言和 Skill 标识，不含 Harness 字段。运行时通过 `include_bytes!` 嵌入清单和归档。安装只读取这些内嵌产物，不访问网络。
 
@@ -28,9 +28,9 @@ Cargo 构建八份 Harness tools 载荷，覆盖四个 Harness 和两种语言�
 
 清单记录安装所需的静态事实：
 
-- component format version；
-- runtime version 与 `runtime_compat`；
-- `source_revision`；
+- component format version `4`；
+- 顶层只记录一次的 runtime version 和 `source_revision`；
+- 每项选择的 `runtime_compat` 和载荷路径；
 - 每个 Harness tools 组件的 Harness、语言和 Skill 名称；
 - 每个独立 CLI Skill 的语言和 Skill 名称；
 - 归档内允许的相对路径、文件类型、权限和内容摘要。

@@ -25,6 +25,8 @@ The CLI Skills use the public `tk` CLI for every Task operation and contain the 
 
 English and Chinese Skills in the same mode have equivalent semantic coverage. Each of the four installed Skills can be understood without another repository component. In the source tree, reference files that are identical across Skills of one language live once in `skills/shared/<language>/`, and assembly copies them into every Skill of that language.
 
+Each Skill source keeps `SKILL.md`, its mode-specific references, and any Agent metadata. Assembly places shared files in the installed Skill's `references/` directory. Entries link to those installed paths, so shared-reference links need not resolve within a source Skill tree. A shared and mode-specific file at the same assembled path stops the build, as does a payload Markdown link to a missing target. Every installed Skill carries all shared references of its language and resolves its own links.
+
 ## Lifecycle semantics
 
 - `planning` preserves ideas, investigations, or plans that are still taking shape.

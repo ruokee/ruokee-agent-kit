@@ -2,67 +2,58 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
-Reverses: [architect](../../../archived/2026/08/22-r1-architect.md)
+Reverses: [architect](../../../archived/2026/08/22-r2-architect.md)
 
 English | [中文](./22-architect.zh.md)
 
 ## Motivation
 
-Let the Agent load the `architect` Skill when a task shows clear system-level signals, while explicit user invocation remains available.
+Keep architect available for system-level task signals and explicit invocation, with reference organization owned by the component.
 
-A task can clearly require system-level architecture work without naming the `architect` Skill, and requiring the user to remember the Skill name can leave the Agent doing that work without the repository's architecture guidance. The repository provides a first-party `architect` Skill for system-level architecture analysis, design, review, technology selection, and evolution, whose reference navigation, evidence requirements, and output contract help the Agent reason from project facts about boundaries, data and state, quality attributes, failure, scale, and long-term change.
-
-The Agent should load architect when the task supplies clear system-level signals, while explicit user invocation remains available and ordinary engineering or product work stays outside its activation scope.
+A task can require system-level judgment without naming a Skill. Model invocation supplies the architecture guidance in those cases. The predecessor also fixed internal directories, numbering, and source-chapter placement. Those constraints make reference maintenance a repository decision without improving activation, evidence, or output quality.
 
 ## Decision
 
 ### Capability scope
 
-Keep a self-contained English Skill under `skills/architect/` and a complete Chinese variant under `variants/zh/skills/architect/`. Each component covers system-level architecture analysis, design, review, technology selection, and evolution.
+Provide complete, self-contained English and Chinese architect distributions under the ordinary Skill packaging contract. Cover system-level architecture analysis, design, review, technology selection, and evolution: boundaries, data and state ownership, quality attributes, failure, scale, and long-term change.
 
-The Skill handles judgments about system boundaries, data and state ownership, quality attributes, failure, scale, and long-term change. It does not perform concrete implementation, single-module internal design, code-level quality review, product behavior definition, or priority ranking. Project facts come from current code and configuration, product behavior from current product documentation, and priority decisions from the user.
+Do not perform concrete implementation, single-module internal design, code-quality review, product behavior definition, or priority ranking. Current code and configuration supply project facts, product documentation supplies behavior, and the user owns priorities. Loading the Skill grants no implementation authority.
 
-The model supplies the main reasoning ability. References provide architecture knowledge, grounds for judgment, common tradeoffs, and examples without turning architecture work into a fixed sequence of steps. Architecture-decision guidance follows the current project's recording convention.
+The model supplies reasoning; references provide knowledge, grounds for judgment, tradeoffs, examples, and terminology without imposing a fixed sequence. Architecture-decision guidance follows the current project's recording convention.
 
 ### Activation contract
 
-Architect is model-invoked. Neither language variant sets `disable-model-invocation`, and neither component contains an `agents/openai.yaml` policy that blocks implicit invocation.
+Architect is model-invoked. Neither language sets `disable-model-invocation` or uses host Agent policy to block implicit invocation. Positive signals include system-level judgments crossing module, service, or deployment boundaries.
 
-Use architect when a task requires system-level architecture analysis, design, review, technology selection, or evolution. Positive signals include decisions that cross module, service, or deployment boundaries and judgments about system boundaries, data and state ownership, quality attributes, failure, scale, or long-term change.
+Single-module design, implementation, code-quality review, product behavior, priorities, general discussion, and mentions without a system-level request do not trigger model invocation. Explicit user invocation remains supported where the host provides Skill commands, even outside those implicit signals.
 
-Do not activate architect for single-module internal design, concrete implementation, code-level quality review, product behavior, priority ranking, general discussion, or a mention of architecture or the Skill without a request for system-level architecture work.
-
-These signals govern model or implicit invocation. A host that supports Skill commands may still load architect through explicit user invocation even when the underlying request does not meet the model-invocation signals. Loading the Skill does not expand its scope or authorize implementation.
-
-The English and Chinese frontmatter descriptions expose semantically aligned positive and negative signals. The Skill body remains the detailed authority after activation.
+Both frontmatter descriptions present equivalent positive and negative signals; the body is the detailed authority after activation. Public capability indexes classify architect as Agent-invoked. Other Skills retain their own invocation contracts.
 
 ### Knowledge structure
 
-Each language component keeps one reference layout with no `agents/` or `workflow/` directory. Documents within one reference directory use two-digit prefixes for stable navigation; directories are not numbered, and numbering does not require sequential reading.
+The component owns reference paths, filenames, numbering, and navigation. Each language retains complete architecture references and terminology, with equivalent coverage and usable installed links. Navigation is not a sequential-reading requirement.
 
-Chapters 23 through 25 cover constraint expression, output review, and quality validation when AI participates in system-level architecture work, so they belong under `ai/`. Chapter 01 focuses on career and learning motivation, chapter 26 on general collaboration style, and chapters 35 through 40 on AI-native organizations. They are not priorities for this system architecture Skill. Templates and cases may supply examples, but the Skill does not copy them into a separate template catalogue.
+Include constraint expression, output review, and quality validation for AI-assisted system architecture. Career motivation, general collaboration style, and AI-native organization topics are not priorities for this system architecture Skill. Templates and cases may supply examples; do not turn the Skill into a copied template catalogue.
 
 ### Evidence contract
 
-The Skill distinguishes observed project facts, conclusions derived from those facts, unverified assumptions, recommendations, and user decisions. Project facts cite current code, configuration, runtime evidence, or observation windows. Derived estimates show inputs, formulas, and uncertainty. Version-sensitive external claims and numerical case studies use primary sources with dates or versions.
+Distinguish observed project facts, derived conclusions, unverified assumptions, recommendations, and user decisions. Cite current code, configuration, runtime evidence, or observation windows for project facts. Show inputs, formulas, and uncertainty for estimates. Version-sensitive external claims and numerical cases use primary sources with dates or versions.
 
-Outputs present candidate options, tradeoffs, applicability conditions, and assumptions. They translate technical choices into consequences for cost, risk, and time. Analysis and design center on system views and boundaries; the user decides whether implementation proceeds.
+Present options, tradeoffs, applicability, and assumptions, translating choices into cost, risk, and time consequences. Analysis and design center on system views and boundaries; the user decides whether implementation proceeds.
 
 ### Source adaptation
 
-[`awesome-architecture`](https://github.com/study8677/awesome-architecture/tree/7f43e49b95ad9c255418733738fddab4eb0f6a68) is the topic map and source material for the reference coverage. Project evidence, primary technical documentation, and other reliable architecture sources supplement and correct technical judgments. The Skill does not track the upstream directory structure or wording.
+[`awesome-architecture`](https://github.com/study8677/awesome-architecture/tree/7f43e49b95ad9c255418733738fddab4eb0f6a68) supplies the topic map and source coverage. Project evidence, primary documentation, and other reliable architecture sources supplement and correct judgments. Do not track upstream directory structure, wording, or every update.
 
-The published material is independently written around the judgments a model needs during architecture work rather than copied verbatim. Both language versions of `SKILL.md` identify JingWen Fan and the MIT license and link the reviewed upstream revision. References do not track every upstream update.
-
-Keep explanations, derivations, counterexamples, complete cases, and experience-based judgment when they help the model understand why a choice fits. Remove course pacing, reader exercises, and organization that assumes continuous reading.
+Write independently around the judgments a model needs rather than copying the source verbatim. Both language entries identify JingWen Fan, the MIT license, and the reviewed upstream revision. Preserve helpful explanations, derivations, counterexamples, complete cases, and experience-based judgment; exclude course pacing, reader exercises, and organization requiring continuous reading.
 
 ## Alternatives considered
 
-None
+Prescribe reference directories, two-digit prefixes, and source-chapter locations in the ADR. This stabilizes one source layout but couples ordinary navigation changes to public decisions. Component-owned navigation preserves complete coverage without that coupling.
 
 ## Consequences
 
-- Architect can load from system-level task signals and through explicit invocation. Model, host, and language differences can cause activation outside the intended scope. Catalog descriptions narrow the signals; real-host checks record the environment and loading evidence.
-- The public English and Chinese capability indexes classify architect as Agent-invoked. `grill-me` remains user-invoked through its own configuration.
-- Each language component keeps the glossary and reference layout and has no `workflow/` directory. The policy-only `agents/openai.yaml` files are removed.
-- The system-level scope, source and license obligations, evidence requirements, reference navigation, and output contract remain in force. Concrete implementation and product-priority work remain outside the Skill.
+Model, host, and language differences can still cause activation outside the intended scope. Catalog descriptions narrow signals; real-host checks record loading conditions and evidence.
+
+Reference organization may evolve without changing the architecture contract. Self-containment, complete bilingual coverage, source obligations, evidence, and output requirements still constrain that work.

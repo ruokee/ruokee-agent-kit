@@ -16,15 +16,15 @@ New commands or document persistence, manual-compaction replacement, summary fab
 
 ## Invariants
 
-The shared request-alignment requirements apply to Handoff. The actual request kind and confirmed operation ownership determine eligibility; each physical request has at most one writer. Main sessions, native task children, and Eval children remain isolated even when their models and request text are equal.
+The shared request-alignment requirements govern reference ownership, operation lifetime, content-reuse proof, isolation, and sending. Handoff eligibility additionally depends on the actual request kind and confirmed native operation ownership.
 
 ### Reference confirmation
 
-The reference belongs to one confirmed ordinary dispatch with its Provider and persistent session identities, effective model and API, system prompt, thinking state, and tool set. These facts and cancellation status must remain valid through the successful response. A prepared request without tools supplies no reference. Tool definitions must match the host's wire representation, including callable schemas. Invalidated or cancelled work cannot establish a reference.
+The reference's required identity, model, prompt, thinking, tool, and cancellation conditions must remain valid through the successful response. A prepared request without tools supplies no reference. Tool definitions must match the host's wire representation, including callable schemas.
 
-The operation's reference is immutable across newer work, authentication refresh, transport retries, and handler-state changes. Any source used as proof must belong to that same ordinary context dispatch, even while public Agent state is not yet synchronized. Only confirmed final ordinary transport followed by a 2xx response establishes the reference. A newer ordinary dispatch prevents an older response from publishing a reference. Alignment calls never become references.
+Any source used as proof must belong to that same ordinary context dispatch, even while public Agent state is not yet synchronized. Only confirmed final ordinary transport followed by a 2xx response establishes the reference. A newer ordinary dispatch prevents an older response from publishing a reference. Alignment calls never become references.
 
-Unknown native Handoff provenance leaves the request unchanged. Loss of required interception makes Handoff unavailable. Complete operation ownership must remain valid at every physical send; a changed owner permanently revokes the operation even if later values or bodies return to their old values. Payload callbacks are preparation, not sends. Validate the actual final transport request and count every delegation and retry there.
+Unknown native Handoff provenance leaves the request unchanged. Loss of required interception makes Handoff unavailable. Complete operation ownership must remain valid at every physical send; a changed owner permanently revokes the operation even if later values or bodies return to their old values.
 
 ### Common history
 
@@ -44,7 +44,7 @@ For top-level instructions, match the known ordinary system fragments with nativ
 
 Tool definitions must match. Images, new history, call/result pairing, cache keys, and side identity stay native. Nested reasoning, native configuration updates, and `none` are not projected to ordinary values. Keep the host's existing auto-only compatibility retry. Exclude strictly recognized reasoning configuration updates only from common-history comparison, never insert or remove them in outgoing input. Native effective reasoning and generation semantics remain, with differences counted as axes or unprojected.
 
-Missing required proof preserves the whole request. Skip and count an independently unrestorable axis; unrelated fields do not veto proved system projection. The complete candidate must remain valid after payload hooks and be applied as one final-transport replacement. Identical candidates retain their original serialization.
+Missing required proof preserves the whole request. Skip and count an independently unrestorable axis; unrelated fields do not veto proved system projection. The shared final-transport proof and atomic replacement requirements apply to the complete candidate.
 
 ### Anthropic
 

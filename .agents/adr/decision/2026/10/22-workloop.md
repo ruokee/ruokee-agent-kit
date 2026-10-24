@@ -20,7 +20,7 @@ Direct installation gives the selected language Skill and its matching entries o
 
 Maintain workloop under `projects/workloop/` as a first-party instruction component containing Markdown Skills, component documentation, and language-specific OMP Prompt templates. It has no OMP package manifest, Extension, runtime code, build system, or dedicated installer.
 
-English `workloop` and Chinese `workloop-zh` are independently discoverable identities under `projects/workloop/skills/`. Each contains all instructions needed for its complete workflow. Both languages change together, express equivalent capabilities and requirements, and carry the same component version. Do not duplicate them under the repository's ordinary Skill or variant roots.
+English `workloop` and Chinese `workloop-zh` are independently discoverable identities owned by the component. Each contains all instructions needed for its complete workflow. Both languages change together, express equivalent capabilities and requirements, and carry the same component version. Do not duplicate them under the repository's ordinary Skill or variant roots.
 
 Require tk by name and public interface, without importing its implementation or referencing its files. Other tools and Skills become prerequisites only where needed. Installation does not install prerequisites. Task management through GitHub or GitLab Issues or PRs remains deferred, not permanently prohibited; submitting a PR may still be a project's delivery goal.
 
@@ -36,25 +36,21 @@ No new arguments does not erase sufficient current conversation or Task context.
 
 ### Operations
 
-Expose `clarify`, `exec`, `verify`, `ship`, and `supervise`.
+Expose `clarify`, `exec`, `verify`, `ship`, and `supervise`, with complete behavior in the [component specification](../../../../spec/workloop.md) and executable guidance in the [component](../../../../../projects/workloop/README.md).
 
-- `clarify` resolves goals and completion, investigates or diagnoses when needed, and develops necessary design. Once the goal, design, and foreseeable consequential choices are clear, form or revise the separate `plan.md` and self-check in the same operation. Respect discussion-only, design-only, no-plan, pause, and writing restrictions. Infeasible or unnecessary work, or a decision not to continue, may end with a supported conclusion instead of a forced Plan. Apply task-closure rules separately. Preparation never starts implementation or invites the next operation.
-- `exec` implements the requested scope in the current session and coordinates checks. Unless narrowed, continue the remaining Plan from the resolved starting point, usually one unit at a time and several serially. Routine implementation, repair, self-check, independent Verify, and necessary rechecks need no repeated permission. Structured question tools are prohibited; indispensable user-only decisions use ordinary text. `confirm` requests item-by-item confirmation without removing checks or enabling structured questions.
-- `supervise` schedules the scope through independent Workers without implementing their changes. Independent units may use separate Workers. Overall scope and Worker boundaries remain distinct, with the same continuous-progress default and question restriction as Execute. A Worker stops at its assigned boundary while the owner continues the wider authorized Plan.
-- `verify` independently judges preparation materials or an executed candidate against its goal, applicable Skills, project rules, and effective requirements. It remains read-only and distinguishes `passed`, `changes required`, and `unable to determine`. Judgments bind to the actual scope and candidate.
-- `ship` performs project-defined delivery under the request and effective grants. It has no universal bundle of integration, cleanup, installation, deployment, or publication. Report achieved outcome, running or submitted-for-review state, acceptance, and relevant production-release state with evidence. Delivery is distinct from user acceptance and Task closure.
+Clarify resolves goals, necessary investigation and design, consequential choices, and a separate Plan without granting execution. Execute implements in the current session; Supervise schedules independent Workers without implementing. Both continue the authorized Plan unless explicitly narrowed. A Worker stops at its assigned boundary without narrowing the owner's scope.
 
-Check is implicit preparation, not another required entry. Material and design defects return to Clarify; implementation deviations return to Execute. Delivery feedback reopens affected work or an independently owned Task under task rules when it has a separate goal or boundary. Execution or delivery ending never closes a Task automatically.
+Verify independently judges preparation or a frozen implementation candidate, read-only, as `passed`, `changes required`, or `unable to determine`. Ship delivers the project's defined result under effective permission, without a universal integration or publication bundle. Neither verification nor delivery is user acceptance or Task closure.
+
+Check is implicit preparation, not another required entry. Material and design defects return to Clarify; implementation deviations return to Execute. Delivery feedback reopens affected work or an independently owned Task when it has a separate goal or boundary.
 
 ### Materials
 
-Keep materials by responsibility in the owning tk Task. `goal.md` describes results and stopping conditions in natural language without implementation methods. Optional design explains how; diagnosis records the problem, conditions, and supported or uncertain causes without repair proposals. Research summarizes traceable sources; Grill preserves discussion. Optional activities require no empty documents.
+Keep results in their owning tk Task, with a separate `plan.md` for every executable Task, including one-unit work. Plans preserve stable unit labels, completed results, and child ownership. Units deliver complete independently assessable results. Optional activities need no empty material.
 
-Every executable task requires a separate `plan.md`, including a simple or single-unit task. Plans may mix inline units and linked tk subtasks while preserving stable labels and completed results. Subtask details and results stay with their owner; the parent keeps cross-unit decisions and links. Size units for a complete result and independent review, not file or edit counts.
+Separate goal, design, implementation evidence, self-check, independent assessment, and delivery records. Preserve earlier candidate-bound assessments and failures without renaming historical files for uniformity. Executed Markdown is an implementation candidate. The [specification](../../../../spec/workloop.md#materials) defines required material contents; component instructions define their use.
 
-Analysis may maintain ordinary materials and necessary temporary files under its permission, without granting implementation, configuration, Git, or managed-metadata changes. Conversation-only, no-record, no-write, and narrower limits govern saving. Stable results belong in ordinary materials; live routing, role assignments, temporary grants, and pending work belong in session state.
-
-Preparation self-check uses its established record, normally `plan-check.md`, never `material_check.md` or `verification.md`. Requested independent preparation review appends to `material_check.md`; independent Verify of an executed unit appends to `verification.md`. Preserve established record responsibilities without renaming historical files for uniformity. Classify by the object's role, not extension: an executed ADR proposal is an implementation candidate even when entirely Markdown. Preserve prior candidate-bound assessments, including failures, and create no empty report for an unrequested activity.
+Saving follows effective permission and narrower no-write or conversation-only limits. Stable results belong in ordinary materials; live role routes, temporary grants, and pending assignments belong in recoverable session state. Saving materials grants no implementation or lifecycle authority.
 
 ### Checks
 
@@ -68,19 +64,19 @@ Exercise changed behavior and record candidate, scope, conditions, inputs, obser
 
 ### Coordination
 
-Select each role's host, model, reasoning, and location independently from the current explicit request, continuing choice, then external defaults. Preserve exact selectors and aliases. Verify does not inherit the executor's model, and unavailable choices are not silently replaced. Senior exists only after explicit assignment; a default does not activate it. Advice may settle implementation choices and in-scope clarification, not override requirements, expand scope, waive Verify, or grant protected permission.
+Choose each role's host, exact model selector, reasoning, and location independently from explicit requests, continuing choices, then external defaults. Verify does not inherit the executor's model; unavailable choices are not silently replaced. Senior requires explicit assignment and cannot change requirements, expand scope, waive Verify, or grant protected permission.
 
-Use the selected collaboration tool. Herdr is recommended, not required. Preserve role isolation, normal startup at explicit locations, ordinary-message assignments, and candidate freezing. Every assignment resolves current Task, unit, basis, candidate, scope, grants, outcome, and live reply owner. Independent Verify resolves its own basis rather than accepting the implementer's checklist as authority.
+Use isolated roles, normal startup, ordinary assignments, explicit locations, and frozen candidates through the selected collaboration tool. Herdr is recommended, not required. Verify resolves its own basis; the implementer's checklist is evidence, not authority. Reuse suitable Verify and assigned Senior sessions, separate from implementation, and resolve a busy assignment before another. Do not inspect private working-session files, operate another Agent's question dialog, or send unsolicited mid-work messages.
 
-Reuse suitable Verify and assigned Senior sessions apart from implementation. A verifier must not have implemented the target. Finish or recover a busy role's current assignment before sending another. Do not inject assignments through system prompts, operate another Agent's question dialog, send unsolicited mid-work messages, or read working Agents' private session files.
-
-Wait for final results by default, including blocking completion when a collaboration command continues in the background. Do not poll or infer success from lifecycle state. Explicit `nowait` changes only cross-session waiting, not native self-check barriers, scope, checks, or acceptance. Preserve pending assignments and resume on final results. A final reply does not wait on its recipient. Validate sender, scope, candidate, verdict, and saved report; recover saved results after delivery failure and check effects before repeating possibly successful non-idempotent actions.
+Wait for final results by default, including blocking completion after a background return, without polling or inferring a verdict from lifecycle state. Explicit `nowait` changes cross-session waiting only, not native self-check barriers, checks, scope, or permission. Preserve pending assignments and resume on final results. Validate the sender, scope, candidate, verdict, and saved report; recover existing results before repeating possibly completed actions. Final replies do not wait on their recipients.
 
 ### Permissions
 
 Resolve foreseeable requirement choices during Clarify. An execution grant covers ordinary in-scope implementation, repair, local preparation, checks, temporary processes, and project-required candidate preservation. Reuse effective grants; authorized temporary-directory checks remain within their scope. Do not postpone every consequential choice until the end in the name of avoiding repeated approval.
 
 Project-protected proposal approval, archival, integration, push, publication, installation, expense, privileged actions, and Task closure require their own effective grants. Verification is not acceptance, and acceptance grants no unrelated action. Preserve explicit confirmation requests and human checkpoints. Missing permission, a requirement decision, or external state blocks dependent actions only; continue unrelated authorized ready work.
+
+Execute and Supervise prohibit structured question tools, including delegated workarounds. Indispensable user-only decisions use ordinary text while unaffected authorized work continues. `confirm` requests item-by-item confirmation without removing checks or this prohibition.
 
 Under project working rules, verified committed predecessors may supply development dependencies before integration or final user review. Keep their candidates frozen and each unit reviewable against its base. Refresh affected descendants and evidence if a predecessor changes. A branch cannot substitute for a required deployment, service, or published artifact. Preserve unintegrated candidates for ordered delivery rather than merging merely to continue development.
 
@@ -108,7 +104,7 @@ Retire old workloop package resources and owned same-name file commands before d
 
 The [component Spec](../../../../spec/workloop.md) states targets and observable acceptance; Skills and [component documentation](../../../../../projects/workloop/README.md) own operation and usage details. Keep these contracts aligned.
 
-The [Skill layout decision](../08/20-skill-variants.md#changes) keeps component-owned Skills in the project and leaves ordinary same-name variants unchanged. Repository checks format registered component Markdown, including all Markdown in either known language Skill's shared reference directory without per-file registration, and language Prompt paths. This adds no workflow runtime checks. Unknown operations or languages, legacy command paths, non-Markdown files, shared inputs, and mixed unknown changes retain complete-check fallback.
+The [Skill layout decision](../08/20-skill-variants.md) keeps component-owned Skills in the project and leaves ordinary same-name variants unchanged. Repository checks format registered component Markdown, including all Markdown in either known language Skill's shared reference directory without per-file registration, and language Prompt paths. This adds no workflow runtime checks. Unknown operations or languages, legacy command paths, non-Markdown files, shared inputs, and mixed unknown changes retain complete-check fallback.
 
 ## Alternatives considered
 

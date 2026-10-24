@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [well-said](./12-r1-well-said.zh.md)
 Archived: 2026-10-16
-Reversed by: [well-said](../../../decision/2026/09/12-well-said.zh.md)
+Reversed by: [well-said](./12-r3-well-said.zh.md)
 
 [English](./12-r2-well-said.md) | 中文
 
@@ -41,7 +41,7 @@ Skill 正文不重复来源署名、许可文本或版本号。来源说明只�
 
 使用 `1.0.0` 作为正式发布的起始版本。写作过程中的修订编号不充当软件版本。后续发布遵循仓库版本政策。普通 Skill 不增加包 manifest、检测器、plugin 或运行时依赖。
 
-[第一方能力决定](../../../decision/2026/08/20-first-party-capabilities.zh.md)区分 well-said 主体归属和复用材料的作者归属。文风章节大幅保留来源措辞、示例与有效组织，并作必要衔接和补充。本版本要求每个组件保留来源说明，其中记录固定的 unslop 来源版本 `99559f2f52047978602ef365589275831e76af07` 与复用范围；这些记录现由[后继决定](../../../decision/2026/09/12-well-said.zh.md)承载。后续复用其他材料时，须在分发前核实来源、权限、署名和通知。
+[第一方能力决定](../../../decision/2026/08/20-first-party-capabilities.zh.md)区分 well-said 主体归属和复用材料的作者归属。文风章节大幅保留来源措辞、示例与有效组织，并作必要衔接和补充。本版本要求每个组件保留来源说明，其中记录固定的 unslop 来源版本 `99559f2f52047978602ef365589275831e76af07` 与复用范围；这些记录现由[后继决定](./12-r3-well-said.zh.md)承载。后续复用其他材料时，须在分发前核实来源、权限、署名和通知。
 
 完整写作指南保持在一个文件中。只有实际内容与加载测量表明有必要时，才移出篇幅可观的低频补充材料。日常写作仍由 `SKILL.md` 中的完整规则支持。
 

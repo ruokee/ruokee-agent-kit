@@ -118,4 +118,6 @@ ln -s "$component_root/skills/$skill" "$skill_root/$skill"
 - [命令发现](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/slash-command-internals.md)说明文件命令优先级。
 - [配置 CLI](https://github.com/can1357/oh-my-pi/blob/v18.12.3/packages/coding-agent/src/cli/config-cli.ts) 定义 `config path`。
 
+在该接口中，原生 `.omp` 资源优先级为 `100`，包资源为 `90`。内容不同的同名 Skill 中，较高优先级保留裸名称，其他副本获得命名空间身份；相同副本去重，自定义 Skill 目录有自己的覆盖规则。原生文件命令高于包文件命令。内置、扩展和自定义处理器先于文件命令，文件命令先于 Prompt 模板。这些是特定版本的接口事实，不保证相同优先级顺序或未来宿主行为；应核对实际发现来源。
+
 其他版本使用其当前公开接口。文件操作和发现检查各自需要实际观察，模型行为和用户验收需要单独证据。

@@ -8,7 +8,7 @@ An execution basis for a Task that groups work into independently assessable uni
 
 ## Mechanism
 
-A Plan states the intended result, included and excluded scope, requirement and design basis, material dependencies, and the units that produce the result. Each unit names its result, scope, references, dependencies, actions, acceptance evidence, required permissions, boundary, and material directory.
+A Plan connects the intended result to complete, independently assessable work. It makes the execution basis, dependency order, acceptance, and permission boundaries clear. [workloop](../../projects/workloop/README.md) owns its required material and preparation method.
 
 A Plan is not a task list. A list of todos or a tk relationship graph does not supply the references, acceptance, permissions, or dependency order an executor needs.
 

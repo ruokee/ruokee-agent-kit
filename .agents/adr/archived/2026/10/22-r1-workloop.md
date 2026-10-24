@@ -93,7 +93,7 @@ Other Harnesses use the complete Skill and select operations through natural lan
 
 The [component Spec](../../../../spec/workloop.md) states its goals, boundaries, and observable outcomes; the Skills and [component documentation](../../../../../projects/workloop/README.md) own operation and usage details. Keep the Spec aligned with the delivered capability.
 
-The [Skill layout decision](../../../decision/2026/08/20-skill-variants.md#changes) keeps project-owned Skills within their component and preserves the ordinary same-name language-variant rule. Dependencies remain declared by name. Repository checks format the registered component Markdown without adding runtime checks; the package manifest and unregistered inputs retain complete-check fallback.
+The [Skill layout decision](../08/20-r2-skill-variants.md#changes) keeps project-owned Skills within their component and preserves the ordinary same-name language-variant rule. Dependencies remain declared by name. Repository checks format the registered component Markdown without adding runtime checks; the package manifest and unregistered inputs retain complete-check fallback.
 
 ## Alternatives considered
 

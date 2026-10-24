@@ -17,12 +17,12 @@ The [repository spec](../spec/repository.md) states what this repository should 
 
 - Keep each capability in its host-native or build-native format. Do not force Plugins, extensions, executables, or host packages into `./skills/`.
 - Store ordinary public English Skills under `./skills/<name>/` and their Chinese variants under `./variants/zh/skills/<name>/`.
-- Keep Skills included in independently maintained project components under their owning `projects/<component>/skills/` directories, as the [Skill layout decision](../adr/decision/2026/08/20-skill-variants.md#changes) specifies.
+- Keep project-owned Skill sources and language resources within their owning component; let the component organize its internal source layout while preserving discovery, installed identities, and self-contained distributions, as the [Skill layout decision](../adr/decision/2026/08/20-skill-variants.md) specifies.
 - Keep internal project maintenance Skills under `.agents/skills/`. They may reference the project documents they maintain and are not distributable components or public installation sources. Public components remain self-contained.
 - Keep a pure Skill tree to host-discoverable Skill material such as `SKILL.md`, workflows, references, examples, and glossaries. Do not copy Plugin manifests, marketplace metadata, package changelogs, or host-specific Agent definitions into it.
 - Keep every distributable component, including each language variant, self-contained. Its file references must resolve inside that component; do not link to, import, or read another component's files or package, or depend on repository support files.
 - Name other components, tools, or Skills and use their public interfaces when needed. A name alone requires no dependency declaration; state actual prerequisites explicitly rather than implying them through file links.
-- Write a variant's file links relative to the containing document, with targets inside that component and no source-only `variants/zh/` prefix.
+- Write a variant's file links relative to the containing document, with targets inside that component and no source-only layout prefixes.
 - Add a top-level area only when a real component needs it, and do not prebuild empty capability categories.
 
 ## Public content

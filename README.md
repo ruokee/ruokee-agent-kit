@@ -89,39 +89,17 @@ Components that load code into a host process state a maintenance lower bound in
 
 ### Check prerequisites
 
-Use the pnpm version declared in [package.json](./package.json), its supported Node.js runtime, and Git. The [check selection rules](./.agents/rule/development.md#checks) define which checks a change selects. During development, prepare only the environments those checks need:
+Use the pnpm version declared in [package.json](./package.json), its supported Node.js runtime, and Git. Prepare root locked dependencies and hooks as above. During development, prepare only the environments selected by the [check selection rules](./.agents/rule/development.md#checks), including document consumers; multiple scopes use their union.
 
-- Explanatory Markdown or ADR formatting needs the root locked dependencies and Git hooks above.
-- One OMP component needs root tools, Bun compatible with its lockfile, and `bun install --frozen-lockfile` in that component directory.
-- tk needs root tools, Rust with `rustfmt`, locked crate dependencies, Bun, and native adapter test system tools. The [tk guide](./projects/tk/docs/guide.md#install-the-runtime) covers the runtime source build.
-- Skill lifecycle work needs root tools, Git, a non-root POSIX shell environment, `diff`, and the test script's common system file tools.
-- Complete checks or the complete fallback need all of the above, including every OMP component's locked dependency tree.
+For components with their own development environments, follow the exact locked preparation and check commands in the READMEs linked from [Capabilities](#capabilities) or their linked validation guides. Complete validation or complete fallback requires every environment registered by the [selector](./scripts/check-changed.mjs), not just the edited component.
 
-Known document consumers add their required environment, and multiple scopes use their union.
-
-For complete validation, install each OMP component's locked dependencies:
-
-```bash
-(cd projects/omp-status-bar && bun install --frozen-lockfile)
-(cd projects/omp-qol && bun install --frozen-lockfile)
-(cd projects/omp-smart-context && bun install --frozen-lockfile)
-```
+Repository-owned Skill lifecycle checks need a non-root POSIX shell environment, Git, `diff`, and the system file tools used by [the lifecycle script](./scripts/tests/skills.sh). Shared Markdown and selector checks use the root tools. Dependency installation remains separate from checks.
 
 ### Complete merge validation
 
 Merge requires the complete `pnpm check` on the clean, committed final candidate, which must contain target `main`, and the result is recorded. The [merge gate rules](./.agents/rule/development.md#merge-gate) state what that record contains and what invalidates it, and an authorized squash merge uses the unchanged target and the validated tree.
 
-The complete command runs the selector's complete check list, `node scripts/check-changed.mjs --complete`, without collecting changed paths. It retains these checks in order:
-
-1. Markdown formatting, tk Rust formatting, and Rust tests, the sequence `pnpm check:base` runs.
-2. TypeScript checks and tests for [omp-status-bar](./projects/omp-status-bar/package.json).
-3. TypeScript checks and tests for [omp-qol](./projects/omp-qol/package.json).
-4. TypeScript checks and tests for [omp-smart-context](./projects/omp-smart-context/package.json).
-5. tk native adapter tests with `bun test projects/tk/adapter-tests`.
-6. Skill lifecycle tests with `sh scripts/tests/skills.sh` through `pnpm check:skills`.
-7. Affected-selector regression tests through `pnpm check:selector`.
-
-Before the first command, the complete entry point verifies every listed tool and local input, and the first failed command stops the sequence with a nonzero exit status.
+The complete command runs `node scripts/check-changed.mjs --complete` without collecting changed paths. The [selector](./scripts/check-changed.mjs) owns the ordered complete check list and explicit consumer mapping. It verifies all selected tools and local inputs before the first command, stops on the first failure, and returns a nonzero status. Checks do not install dependencies or rewrite sources.
 
 The [repository check decision](./.agents/adr/decision/2026/09/12-repository-checks.md) defines the complete contract.
 

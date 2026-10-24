@@ -8,9 +8,9 @@ A set of instructions that a host discovers and loads, with a `SKILL.md` and sup
 
 ## Mechanism
 
-A Skill is instructions, not code loaded into the host process. The host discovers it at its skill root and loads the instructions when the task matches or the user invokes it. Public English Skills live at `skills/<name>/`; their Chinese variants live at `variants/zh/skills/<name>/` with the same file set and scope. Installation copies the selected variant to `<skill root>/<name>/`.
+A Skill is instructions, not code loaded into the host process. The host discovers it at its skill root and loads the instructions when the task matches or the user invokes it. Language variants preserve the same file set and scope; installation selects a complete variant.
 
-A public Skill may include references, workflows, examples, and a glossary. Its files reference only files inside its own directory. Internal project Skills under `.agents/skills/` may read the project documents they maintain and are not public installation sources; the [repository spec](../../.agents/spec/repository.md) covers them.
+A public Skill may include references, workflows, examples, and a glossary. Its files reference only files inside its own directory. Internal project Skills may read the project documents they maintain and are not public installation sources; the [repository spec](../../.agents/spec/repository.md) covers them.
 
 ## Example
 
@@ -22,7 +22,7 @@ Avoid "plugin" for a Skill. A plugin is a host extension, not an instruction com
 
 ## Skill root
 
-The parent directory that contains installed Skills, each at `<skill root>/<name>/`. The installer copies a Skill there without the source-only `variants/zh/` prefix.
+The parent directory that contains installed Skills, each at `<skill root>/<name>/`. Source-only layout prefixes are not part of the installed identity.
 
 ## User-invoked
 

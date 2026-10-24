@@ -18,7 +18,7 @@ Component lifecycle commands do not install, update, or remove the runtime itsel
 
 ## Embedded payloads
 
-Cargo builds eight Harness tools payloads spanning four Harnesses and two languages. It also builds two Harness-independent CLI Skill payloads, one for each language. The build writes one deterministic `tar.zst` and one matching manifest in `OUT_DIR`.
+Cargo uses `build.rs` as the sole bundle assembler. It builds tools payloads for every supported Harness and language combination and one Harness-independent CLI Skill payload per language, writing one deterministic `tar.zst` and one matching manifest in `OUT_DIR`.
 
 The manifest stores Harness tools payloads under `components`, identified by Harness, language, and Skill. It stores standalone CLI Skill payloads under `cli_skills`, identified by language and Skill with no Harness field. The runtime embeds the manifest and archive through `include_bytes!`. Installation reads only these embedded artifacts and does not access the network.
 
@@ -28,9 +28,9 @@ The modes are `tools` and `cli`, and the languages are `en` and `zh`. CLI mode s
 
 The manifest records the static facts required for installation:
 
-- component format version;
-- runtime version and `runtime_compat`;
-- `source_revision`;
+- component format version `4`;
+- runtime version and `source_revision` once at the top level;
+- `runtime_compat` and payload path for each selection;
 - Harness, language, and Skill name for each Harness tools component;
 - language and Skill name for each standalone CLI Skill;
 - allowed relative paths, file types, permissions, and content digests within the archive.

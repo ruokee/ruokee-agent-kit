@@ -28,7 +28,7 @@ A work pattern that lets an agent run unattended and returns only the decisions 
 
 ## Grilling
 
-An interview pattern that asks at most three independent questions per round, with no round limit, records each answer, and closes after a confirmed summary unless the user ends it earlier.
+An interview pattern that resolves requirements and consequential choices through evidence and user answers. The user may end it early. [grill-me](../../skills/grill-me/SKILL.md) owns question grouping, recording, and finish confirmation.
 
 ## Prototyping
 
