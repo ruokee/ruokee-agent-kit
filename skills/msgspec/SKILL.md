@@ -2,7 +2,7 @@
 name: msgspec
 description: Use when defining Structs, validating data, or handling serialization with msgspec, including fields and options, constraints and typed conversion, encoding and decoding, tagged unions, and custom hooks.
 metadata:
-  version: "1.0.4"
+  version: "1.0.5"
 ---
 
 # msgspec

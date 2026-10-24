@@ -140,7 +140,7 @@ for item in large_dataset:
 
 ## 6. Constraint validation
 
-**Recommended.** Use constraints to ensure data quality, avoiding manual checks in business logic.
+Use `Meta` constraints for field validation during typed decoding or `msgspec.convert`. Direct Struct construction does not check types or `Meta` constraints; it only runs `__post_init__`. Use `__post_init__` for cross-field checks or business rules that `Meta` cannot express.
 
 ```python
 class User(msgspec.Struct):
@@ -217,7 +217,7 @@ class Response(msgspec.Struct):
 - No type safety
 - Harder to use pattern matching
 
-**Common mistake.** Forgetting to add tags to `Union` types prevents proper deserialization.
+**Error.** A union containing multiple Struct types requires every Struct to have a tag. Otherwise, creating the decoder raises `TypeError` before any input is decoded.
 
 ```python
 class Dog(msgspec.Struct):
@@ -230,10 +230,7 @@ class Cat(msgspec.Struct):
 
 type Animal = Dog | Cat
 
-# Cannot distinguish during deserialization
-data = b'{"name":"Fluffy","breed":"Husky"}'
-decoder = msgspec.json.Decoder(type=Animal)
-animal = decoder.decode(data)  # Ambiguous! Could be Dog or Cat
+decoder = msgspec.json.Decoder(type=Animal)  # TypeError: all Struct types must be tagged
 ```
 
 **Fix.** Add tags to make types distinguishable:
@@ -314,96 +311,45 @@ def enc_hook(obj):
 
 ## 9. Error handling
 
-**Recommended.** Use specific error handling for validation errors.
-
-```python
-try:
-    user = msgspec.json.decode(data, type=User)
-except msgspec.ValidationError as e:
-    # Handle validation error specifically
-    print(f"Validation failed: {e}")
-    # e contains detailed information about what failed
-except msgspec.DecodeError as e:
-    # Handle decoding error (malformed JSON, etc.)
-    print(f"Decode failed: {e}")
-```
-
-**Catching too broadly.**
-
-```python
-try:
-    user = msgspec.json.decode(data, type=User)
-except Exception as e:
-    # Too broad; cannot distinguish validation from decoding errors
-    print(f"Something failed: {e}")
-```
+Catch `ValidationError` before its parent `DecodeError` to distinguish invalid field values from malformed input. Avoid a broad `Exception` handler that hides unrelated failures. See the [branching example](./serialization.md#error-handling).
 
 ## 10. Protocol selection
 
-**Recommended.** Choose the right protocol for your use case.
-
-**JSON.** Human-readable and widely supported.
-
-```python
-encoded = msgspec.json.encode(data)
-```
-
-**MessagePack.** Binary and compact.
-
-```python
-encoded = msgspec.msgpack.encode(data)
-```
-
-**YAML.** Human-editable configuration files.
-
-```python
-encoded = msgspec.yaml.encode(data)  # Requires msgspec[yaml]
-```
-
-**TOML.** Configuration files with TOML syntax.
-
-```python
-encoded = msgspec.toml.encode(data)  # Requires msgspec[toml]
-```
-
-**Guidelines.**
-
-- **APIs.** JSON (widest compatibility) or MessagePack (performance)
-- **Configuration.** YAML or TOML
-- **Internal services.** MessagePack (best performance)
-- **Logs.** JSON or JSONL
+Choose by interoperability, editability, record framing, and measured workload needs. See [protocol selection](./serialization.md#protocol-selection) for API, configuration, internal-service, and log guidance.
 
 ## 11. Testing
 
-**Recommended.** Test serialization roundtrips and validation.
+Test typed roundtrips and validation failures, including defaults, nullable fields, and constraint boundaries. Use decoding or `msgspec.convert` to exercise type and `Meta` checks; direct construction is not a substitute. This example requires the development dependency `pytest`.
 
 ```python
+from typing import Annotated
+
 import msgspec
+import pytest
 
-def test_user_serialization():
-    original = User(name="Alice", age=30, email="alice@example.com")
 
-    # Roundtrip test
+class User(msgspec.Struct):
+    name: Annotated[str, msgspec.Meta(min_length=1)]
+    age: Annotated[int, msgspec.Meta(ge=0, le=150)]
+    email: str | None = None
+
+
+def test_user_roundtrip():
+    original = User(name="Alice", age=30)
     encoded = msgspec.json.encode(original)
     decoded = msgspec.json.decode(encoded, type=User)
-
     assert decoded == original
-    assert decoded.name == "Alice"
-    assert decoded.age == 30
+    assert decoded.email is None
+
 
 def test_user_validation():
-    # Test constraint validation
-    import pytest
-
     with pytest.raises(msgspec.ValidationError):
-        msgspec.json.decode('{"name":"","age":30,"email":"alice@example.com"}', type=User)
-
+        msgspec.json.decode(b'{"name":"","age":30}', type=User)
     with pytest.raises(msgspec.ValidationError):
-        msgspec.json.decode('{"name":"Alice","age":200,"email":"alice@example.com"}', type=User)
-
-    with pytest.raises(msgspec.ValidationError):
-        msgspec.json.decode('{"name":"Alice","age":30,"email":"invalid"}', type=User)
+        msgspec.convert({"name": "Alice", "age": 151}, type=User)
 ```
+
+See [validation tests](./validation.md#testing-validation) for more invalid inputs and boundary cases. Test both success and failure when custom hooks or `__post_init__` enforce business invariants.
 
 ## 12. Other recommendations
 
@@ -423,22 +369,35 @@ class User(msgspec.Struct):
     a: bool
 ```
 
-### Document complex structures
+### Optional fields
+
+When a field may be omitted or set to null, use `T | None` or `Optional[T]` with a `None` default. A nullable annotation alone does not make a field optional.
 
 ```python
-class Order(msgspec.Struct):
-    """Represents a customer order.
+class User(msgspec.Struct):
+    name: str
+    email: str | None = None
+    phone: str | None = None
+```
 
-    Fields:
-        order_id: Unique identifier for the order
-        items: List of items in the order
-        total_amount: Total cost in USD
-        status: Current order status
-    """
-    order_id: Annotated[str, msgspec.Meta(description="Order ID")]
-    items: Annotated[list[OrderItem], msgspec.Meta(description="Order items")]
-    total_amount: Annotated[Decimal, msgspec.Meta(description="Total in USD", ge=0)]
-    status: Annotated[OrderStatus, msgspec.Meta(description="Order status")]
+### Document complex structures
+
+Describe field meanings, units, and business constraints. Descriptions document intent; validation requires supported constraints or `__post_init__`.
+
+```python
+class OrderItem(msgspec.Struct):
+    product_id: Annotated[str, msgspec.Meta(
+        description="Product ID in PROD-XXXXXX format"
+    )]
+    quantity: Annotated[int, msgspec.Meta(
+        description="Quantity, greater than zero",
+        gt=0
+    )]
+    discount: Annotated[float, msgspec.Meta(
+        description="Discount rate, 0.0 for no discount, 0.5 for 50% off",
+        ge=0.0,
+        le=1.0
+    )] = 0.0
 ```
 
 ### Use enums for fixed sets
@@ -459,8 +418,9 @@ class Order(msgspec.Struct):
 
 ### Keep structs focused
 
+Group fields that describe one concept and change together. Separate unrelated responsibilities instead of putting profiles, orders, and login history into one Struct.
+
 ```python
-# Good: single responsibility
 class User(msgspec.Struct):
     id: int
     name: str
@@ -470,35 +430,4 @@ class UserProfile(msgspec.Struct):
     user_id: int
     bio: str
     avatar_url: str
-
-# Avoid: too many responsibilities
-class User(msgspec.Struct):
-    id: int
-    name: str
-    email: str
-    bio: str
-    avatar_url: str
-    orders: list[Order]
-    preferences: dict[str, Any]
-    login_history: list[LoginEvent]
-    # ...
 ```
-
-## Summary
-
-The key best practices:
-
-1. **Always use explicit type annotations** for type safety
-2. **Use `field(default_factory=...)` for mutable defaults** to avoid shared state
-3. **Order fields properly** (required first) or use `kw_only=True`
-4. **Use `frozen=True` for immutable data** (configs, constants)
-5. **Reuse encoder/decoder instances** for performance
-6. **Use constraints for validation** instead of manual checks
-7. **Use tagged unions** for discriminated union types
-8. **Only write hooks for non-native types** (Path, ORM objects, etc.)
-9. **Handle errors specifically** (ValidationError vs DecodeError)
-10. **Choose the right protocol** for your use case
-11. **Test serialization roundtrips** and validation
-12. **Keep structs focused** with single responsibility
-
-Following these practices will lead to more maintainable, performant, and reliable code.

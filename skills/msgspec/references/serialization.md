@@ -13,6 +13,13 @@ msgspec supports multiple serialization protocols:
 - **YAML.** Configuration files (requires `msgspec[yaml]`)
 - **TOML.** Configuration files (requires `msgspec[toml]`)
 
+## Protocol selection
+
+- APIs: use JSON for broad interoperability. Consider MessagePack when both peers support it and measurements show a useful size or latency benefit.
+- Configuration: choose YAML or TOML for human-edited files. Install the corresponding optional dependencies.
+- Internal services: MessagePack supports binary exchange. Compare payload size and encode/decode cost on the actual workload before choosing it over JSON.
+- Logs: use JSONL for a sequence of independently readable records, or JSON for one complete document.
+
 ## Basic usage
 
 ### Simple round trip
@@ -36,7 +43,7 @@ decoded = msgspec.json.decode(encoded, type=User)
 
 ### Protocol switching
 
-All protocols use the same API. Change only the module:
+All four protocols provide `encode` and `decode` functions. JSON and MessagePack also provide configurable `Encoder` and `Decoder` classes.
 
 ```python
 # JSON
@@ -130,7 +137,9 @@ with open("users.jsonl", "rb") as f:
 ```python
 encoder = msgspec.json.Encoder(
     enc_hook=custom_encoder,  # Custom type encoding hook
-    order="sorted",           # Sort dict keys: None (default) | "sorted" | "deterministic"
+    decimal_format="number",  # Decimal: "string" (default) or "number"
+    uuid_format="canonical",  # UUID format
+    order="deterministic",    # Sort dict keys and set elements; also None or "sorted"
 )
 ```
 
@@ -141,6 +150,7 @@ decoder = msgspec.json.Decoder(
     type=User,                # Expected type
     dec_hook=custom_decoder,  # Custom type decoding hook
     strict=True,              # Strict validation (default: True)
+    float_hook=handle_floats,  # Parse untyped JSON floats
 )
 ```
 
@@ -194,6 +204,34 @@ with open("users.jsonl", "rb") as file:
         process(user)
 ```
 
+`Decoder.decode` accepts a complete message, and decoding to `list[User]` builds the full list. Splitting one array into arbitrary byte chunks is not incremental parsing. Use a framed format such as JSONL or a parser designed for incremental input when the dataset exceeds available memory. `decode_lines` also returns a full list from an already loaded JSONL buffer; it does not replace the loop above.
+
+## Error handling
+
+Malformed input raises `msgspec.DecodeError`; input that violates the target type or constraints raises `msgspec.ValidationError`. Validation errors describe the expected condition and include a field path where applicable. `ValidationError` is a subclass of `DecodeError`, so catch it first when the two cases need different handling. Do not catch `Exception` merely to hide other failures.
+
+```python
+import msgspec
+
+class User(msgspec.Struct):
+    name: str
+    age: int
+
+for data in (
+    b'{"name":"Alice","age":30}',
+    b'{"name":"Alice","age":"invalid"}',
+    b'{"name":',
+):
+    try:
+        user = msgspec.json.decode(data, type=User)
+    except msgspec.ValidationError as exc:
+        print(f"Validation failed: {exc}")
+    except msgspec.DecodeError as exc:
+        print(f"Decode failed: {exc}")
+    else:
+        print(user)
+```
+
 ## Protocol specific features
 
 ### JSON
@@ -224,13 +262,9 @@ msgspec.toml.encode(data)
 ## Best practices
 
 1. **Reuse encoder/decoder instances** for better performance
-2. **Use appropriate protocol** for your use case:
-    - APIs → JSON or MessagePack
-    - Config files → YAML or TOML
-    - Logs → JSONL
-3. **Use typed decoders** (`Decoder(type=User)`) for automatic validation
-4. **Use JSONL for large datasets** instead of JSON arrays
-5. **Only write hooks for non-native types** (Path, ORM objects, etc.)
+2. **Use typed decoders** (`Decoder(type=User)`) for automatic validation
+3. **Use JSONL for large datasets** instead of JSON arrays
+4. **Only write hooks for non-native types** (Path, ORM objects, etc.)
 
 ## Reference resources
 

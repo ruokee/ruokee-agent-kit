@@ -23,7 +23,7 @@ def print_owing(invoice):
 
 - **A coherent phase.** A block that does one identifiable step of a larger sequence: validate input, compute a total, format output. Pulling each phase out turns a wall of code into a readable summary. This pairs with Split Phase.
 - **A named concept.** A condition or calculation that has a domain meaning worth naming: `is_overdue(invoice)` reads better than the raw date comparison, and the name becomes searchable.
-- **A policy.** Logic that may vary or be reused, such as a scoring rule or retry policy, benefits from being a function you can pass around or swap. See Strategy in `skills/code-quality/references/design-patterns`.
+- **A policy.** Logic that may vary or be reused, such as a scoring rule or retry policy, benefits from being a function you can pass around or swap. See [Strategy](../design-patterns/strategy.md).
 - **Mixed abstraction levels.** When high-level intent and low-level mechanics sit side by side, extracting the mechanics restores a consistent level in the caller.
 
 ## Naming the extracted function

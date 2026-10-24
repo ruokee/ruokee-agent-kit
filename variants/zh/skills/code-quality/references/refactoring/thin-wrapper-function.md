@@ -22,7 +22,7 @@ def fetch_data(url):
 
 当包装函数做了转发之外的真正工作时，它才值得存在：
 
-- **在不稳定实现上提供稳定接口。** 如果被包装的库、API 或内部模块可能变化，包装将该变化本地化到一处。这是适配器（Adapter）的思想，参见 `skills/code-quality/references/design-patterns`，这里一个看起来薄的包装实际上是一个小表面的深层模块。
+- **在不稳定实现上提供稳定接口。** 如果被包装的库、API 或内部模块可能变化，包装将该变化本地化到一处。这是[适配器](../design-patterns/adapter.md)的思想。这里一个看起来薄的包装实际上是一个小表面的深层模块。
 - **测试接缝。** 一个存在以便调用方可以针对 fake 进行测试、或者依赖项可以被注入的函数，即使其主体是琐碎的，也提供了一个替换边界。参见 [`skills/code-quality/references/design-principles/dependency-inversion.md`](../design-principles/dependency-inversion.md)。
 - **横切关注点。** 添加日志、重试、缓存、指标或事务边界的包装函数确实增加了行为。这些是装饰器，不是薄包装。
 - **命名的领域概念。** `requires_tax_review(order)` 包装一个布尔表达式，使规则可搜索并有一个归属。名字*就是*价值。

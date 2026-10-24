@@ -2,7 +2,7 @@
 name: code-quality
 description: Use when evaluating or improving code quality, including maintainability, abstractions, design principles and patterns, refactoring, code smells, test design, and architecture.
 metadata:
-  version: "1.0.5"
+  version: "1.0.6"
 ---
 
 # Code Quality

@@ -26,6 +26,13 @@ uv add msgspec[toml]
 uv add msgspec[yaml,toml]
 ```
 
+## 协议选型
+
+- API：使用 JSON 获得广泛的互操作性。双方都支持 MessagePack，且实测表明体积或延迟收益有价值时，可以选择 MessagePack。
+- 配置：人工编辑的文件可选 YAML 或 TOML，并安装对应的可选依赖。
+- 内部服务：MessagePack 支持二进制交换。选择它代替 JSON 前，比较实际工作负载的消息体积和编解码开销。
+- 日志：一系列可独立读取的记录使用 JSONL，单个完整文档使用 JSON。
+
 ## 基本用法
 
 ```python
@@ -128,7 +135,7 @@ encoder = msgspec.json.Encoder(
     enc_hook=custom_encoder,  # 自定义类型编码钩子
     decimal_format="number",   # Decimal 格式（"string" 或 "number"）
     uuid_format="canonical",   # UUID 格式
-    order="deterministic"      # 确定性排序（字典键排序）
+    order="deterministic"      # 排序字典键和集合元素；还可选 None 或 "sorted"
 )
 ```
 
@@ -141,7 +148,7 @@ decoder = msgspec.json.Decoder(
     type=User,                 # 目标类型
     dec_hook=custom_decoder,   # 自定义类型解码钩子
     strict=True,               # 严格模式
-    float_hook=handle_floats   # 自定义浮点数处理
+    float_hook=handle_floats   # 解析无类型 JSON 浮点数
 )
 ```
 
@@ -190,13 +197,28 @@ with open("users.jsonl", "rb") as f:
 
 ## 错误处理
 
-msgspec 对语法无效的输入抛出 `msgspec.DecodeError`，对不符合目标类型或约束的输入抛出 `msgspec.ValidationError`。异常消息包含错误路径和预期条件。
+语法无效的输入抛出 `msgspec.DecodeError`，不符合目标类型或约束的输入抛出 `msgspec.ValidationError`。验证错误说明预期条件，并在适用时给出字段路径。`ValidationError` 是 `DecodeError` 的子类，两种情况需要不同处理时必须先捕获它。不要仅为隐藏其他故障而捕获 `Exception`。
 
 ```python
-try:
-    user = msgspec.json.decode(b'{"name":"Alice"}', type=User)
-except msgspec.ValidationError as exc:
-    print(f"验证失败：{exc}")
+import msgspec
+
+class User(msgspec.Struct):
+    name: str
+    age: int
+
+for data in (
+    b'{"name":"Alice","age":30}',
+    b'{"name":"Alice","age":"invalid"}',
+    b'{"name":',
+):
+    try:
+        user = msgspec.json.decode(data, type=User)
+    except msgspec.ValidationError as exc:
+        print(f"验证失败：{exc}")
+    except msgspec.DecodeError as exc:
+        print(f"解码失败：{exc}")
+    else:
+        print(user)
 ```
 
 ## 参考资源

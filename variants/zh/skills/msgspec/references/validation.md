@@ -272,7 +272,7 @@ def test_invalid_user(payload):
         msgspec.json.decode(payload, type=User)
 ```
 
-将往返测试与这些负例一起执行，避免测试只证明有效数据可以编码，却没有证明无效输入会被拒绝。完整往返示例见[测试建议](./best-practices.md#9-测试)。
+将往返测试与这些负例一起执行，避免测试只证明有效数据可以编码，却没有证明无效输入会被拒绝。完整往返示例见[测试建议](./best-practices.md#11-测试)。
 
 ## 最佳实践
 

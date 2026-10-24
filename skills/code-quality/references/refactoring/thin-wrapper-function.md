@@ -20,7 +20,7 @@ This smell shows up heavily in agent-generated code, where the reflex to "remove
 
 A wrapper earns its place when it does real work beyond forwarding:
 
-- **A stable interface over an unstable implementation.** If the wrapped library, API, or internal module is likely to change, the wrapper localizes that change. This is the Adapter idea; see `skills/code-quality/references/design-patterns`. A thin-looking wrapper here is a deep module with a small interface.
+- **A stable interface over an unstable implementation.** If the wrapped library, API, or internal module is likely to change, the wrapper localizes that change. This is the [Adapter](../design-patterns/adapter.md) idea. A thin-looking wrapper here is a deep module with a small interface.
 - **A test seam.** A function that exists so callers can be tested against a fake, or so a dependency can be injected, provides a substitution boundary even if its body is trivial. See [`skills/code-quality/references/design-principles/dependency-inversion.md`](../design-principles/dependency-inversion.md).
 - **A cross-cutting concern.** Wrappers that add logging, retry, caching, metrics, or a transaction boundary do add behavior. These are decorators, not thin wrappers.
 - **A named domain concept.** `requires_tax_review(order)` wrapping a boolean expression makes the rule searchable and gives it one home. The name _is_ the value.
