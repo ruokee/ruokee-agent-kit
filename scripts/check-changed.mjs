@@ -200,9 +200,7 @@ export function selectChecks(paths) {
       /^projects\/workloop\/(README|docs\/installation)(\.zh)?\.md$/.test(path) ||
       /^projects\/workloop\/skills\/workloop(-zh)?\/(SKILL|setup)\.md$/.test(path) ||
       /^projects\/workloop\/skills\/workloop(-zh)?\/operations\/(clarify|exec|verify|ship|supervise)\.md$/.test(path) ||
-      /^projects\/workloop\/skills\/workloop(-zh)?\/references\/(task|self-check|roles|collaboration|execution)\.md$/.test(
-        path,
-      ) ||
+      (md && /^projects\/workloop\/skills\/workloop(-zh)?\/references\//.test(path)) ||
       /^projects\/workloop\/prompts\/workloop(-zh)?\/wl-(clarify|exec|verify|ship|supervise)\.md$/.test(path)
     ) {
       scopes.add("documentation");

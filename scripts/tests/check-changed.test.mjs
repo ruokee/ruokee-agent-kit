@@ -133,7 +133,7 @@ test("only registered explanatory Markdown is formatting-only", () => {
     assert.equal(selectChecks([path]).full, true, path);
 });
 
-test("workloop registers only its distributed Markdown", () => {
+test("workloop classifies shared reference Markdown without filename registration", () => {
   const operations = ["clarify", "exec", "verify", "ship", "supervise"];
   const paths = [
     "projects/workloop/README.md",
@@ -146,7 +146,7 @@ test("workloop registers only its distributed Markdown", () => {
         "SKILL.md",
         "setup.md",
         ...operations.map((operation) => `operations/${operation}.md`),
-        ...["task", "self-check", "roles", "collaboration", "execution"].map(
+        ...["task", "self-check", "roles", "collaboration", "execution", "new", "nested/guide", "a\nb"].map(
           (reference) => `references/${reference}.md`,
         ),
       ].map((file) => `projects/workloop/skills/${name}/${file}`),
@@ -173,7 +173,8 @@ test("workloop unregistered inputs force complete fallback even in mixed changes
     "prompts/workloop/wl-new.md",
     "prompts/other/wl-exec.md",
     "skills/other/SKILL.md",
-    "skills/workloop/references/new.md",
+    "skills/workloop/references/new.json",
+    "skills/workloop-fr/references/new.md",
     "skills/workloop/operations/new.md",
     "src/prompt.md",
   ]) {

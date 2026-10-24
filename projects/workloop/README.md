@@ -26,7 +26,7 @@ The component has no OMP package manifest, Extension, build step, runtime depend
 - **Ship** performs the delivery defined by the project under the actual request and permissions. It need not mean production release or Task closure.
 - **Supervise** schedules independent Workers instead of implementing itself. It can assign independent units to separate Workers while preserving each unit's review boundary.
 
-Check is preparation's implicit material inspection. Start and End describe workflow positions; they are not additional commands. Goal discussion and Plan completion do not start execution or invite it in the closing reply.
+Check is preparation's implicit material inspection. Goal discussion and Plan completion do not start execution or invite it in the closing reply.
 
 ## Keep materials focused
 
@@ -40,7 +40,7 @@ A formed Plan receives preparation self-check by default. Preparation's independ
 
 Self-check defaults to a selected maximum of three to five inspections, overridable in external guidance. A pass ends early. Preparation and each implementation unit count separately; revisions and Verify feedback do not reset the count. At the limit, stop adding self-checks, finish actionable repairs, and report unrechecked changes. Independent Verify has no self-check limit.
 
-Execution normally needs no repeated confirmation for in-scope implementation, repairs, checks, or independent Verify. It prohibits structured question tools by default; indispensable user-only decisions are raised in ordinary text. `confirm` requests item-by-item confirmation without removing checks or enabling structured questions. `nowait` changes cross-session request waiting, not self-check barriers or permission.
+Execution normally needs no repeated confirmation for in-scope implementation, repairs, checks, or independent Verify. Execute and Supervise prohibit structured question tools; indispensable user-only decisions are raised in ordinary text. `confirm` requests item-by-item confirmation without removing checks or enabling structured questions. `nowait` changes cross-session request waiting, not self-check barriers or permission.
 
 Verification, user acceptance, integration, installation, publication, and Task closure are distinct. Verified dependency candidates can support subsequent development under project rules without integration permission. Changed candidates require affected evidence to be refreshed.
 
@@ -74,3 +74,5 @@ Retain the current activity's Task or configuration scope, basis, candidate wher
 ## Validation scope
 
 The distributed material is instruction text. Directory completeness, internal links, and scenario walkthroughs can be checked without a live Harness. Host discovery, actual Agent behavior, and user outcomes need their own exercised evidence; a file check does not prove them. Keep those claims separate when evaluating a particular installation.
+
+Repository checks treat Markdown in either language Skill's shared reference directory as documentation, without registering each filename. Unknown operations or languages, legacy command paths, non-Markdown files, shared check inputs, and mixed unknown changes retain complete-check fallback.

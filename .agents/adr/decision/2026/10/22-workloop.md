@@ -44,7 +44,7 @@ Expose `clarify`, `exec`, `verify`, `ship`, and `supervise`.
 - `verify` independently judges preparation materials or an executed candidate against its goal, applicable Skills, project rules, and effective requirements. It remains read-only and distinguishes `passed`, `changes required`, and `unable to determine`. Judgments bind to the actual scope and candidate.
 - `ship` performs project-defined delivery under the request and effective grants. It has no universal bundle of integration, cleanup, installation, deployment, or publication. Report achieved outcome, running or submitted-for-review state, acceptance, and relevant production-release state with evidence. Delivery is distinct from user acceptance and Task closure.
 
-Check is implicit preparation, not another required entry. Start and End describe positions, not commands. Material and design defects return to Clarify; implementation deviations return to Execute. Delivery feedback reopens affected work or an independently owned Task under task rules when it has a separate goal or boundary. Execution or delivery ending never closes a Task automatically.
+Check is implicit preparation, not another required entry. Material and design defects return to Clarify; implementation deviations return to Execute. Delivery feedback reopens affected work or an independently owned Task under task rules when it has a separate goal or boundary. Execution or delivery ending never closes a Task automatically.
 
 ### Materials
 
@@ -108,7 +108,7 @@ Retire old workloop package resources and owned same-name file commands before d
 
 The [component Spec](../../../../spec/workloop.md) states targets and observable acceptance; Skills and [component documentation](../../../../../projects/workloop/README.md) own operation and usage details. Keep these contracts aligned.
 
-The [Skill layout decision](../08/20-skill-variants.md#changes) keeps component-owned Skills in the project and leaves ordinary same-name variants unchanged. Repository checks format registered component Markdown, including maintained references and language Prompt paths, without adding workflow runtime checks. Unknown and shared inputs retain complete-check fallback.
+The [Skill layout decision](../08/20-skill-variants.md#changes) keeps component-owned Skills in the project and leaves ordinary same-name variants unchanged. Repository checks format registered component Markdown, including all Markdown in either known language Skill's shared reference directory without per-file registration, and language Prompt paths. This adds no workflow runtime checks. Unknown operations or languages, legacy command paths, non-Markdown files, shared inputs, and mixed unknown changes retain complete-check fallback.
 
 ## Alternatives considered
 
