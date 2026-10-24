@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.5.10",
+  "version": "0.5.11",
   "description": "OMP adjustments for wait deadlines, model-error recovery, native-history replay, compaction deadlines, task argument cleanup, and copying the last reply",
   "license": "MIT",
   "type": "module",
@@ -34,20 +34,6 @@
         "min": 0.05,
         "max": 3600,
         "description": "Default total deadline in seconds for one wait call; an explicit timeout overrides it."
-      },
-      "waitMessagesSeconds": {
-        "type": "number",
-        "default": 1200,
-        "min": 0.05,
-        "max": 3600,
-        "description": "Accepted and validated; no effect on supported hosts, which offer no message-only wait entry."
-      },
-      "waitProcessSeconds": {
-        "type": "number",
-        "default": 1200,
-        "min": 0.05,
-        "max": 3600,
-        "description": "Accepted and validated; no effect on supported hosts, which offer no named-process wait entry."
       },
       "recoveryEnabled": {
         "type": "boolean",
@@ -144,7 +130,6 @@
     }
   },
   "peerDependencies": {
-    "@oh-my-pi/pi-agent-core": "*",
     "@oh-my-pi/pi-ai": "*",
     "@oh-my-pi/pi-coding-agent": "*"
   },

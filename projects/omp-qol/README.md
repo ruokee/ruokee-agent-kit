@@ -37,8 +37,6 @@ Settings are read once per activation. Restart OMP after a change. A running pro
 - `waitEnabled`: default `true`, accepts a boolean. Extend the recognized builtin `wait`.
 - `waitContinueEmptyWindows`: default `true`, accepts a boolean. Continue inside one call on an all-running job snapshot. When off, return the first native window.
 - `waitJobsSeconds`: default `1200`, accepts a number `0.05`–`3600`. Default total deadline of one `wait` call. An explicit `timeout` overrides it.
-- `waitMessagesSeconds`: default `1200`, accepts a number `0.05`–`3600`. Accepted and validated; no effect on supported hosts, which offer no message-only wait entry.
-- `waitProcessSeconds`: default `1200`, accepts a number `0.05`–`3600`. Accepted and validated; no effect on supported hosts, which offer no named-process wait entry. Use the host's `proc://` interface for process control.
 
 ### Recovery
 
@@ -81,7 +79,7 @@ Settings are read once per activation. Restart OMP after a change. A running pro
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.5.10
+@ruokee/omp-qol 0.5.11
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -103,7 +101,7 @@ Each adjustment lists its own limits in [Adjustments](./docs/adjustments.md).
 
 The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound. This section states the maintenance commitment; it is not an installation or runtime requirement. An earlier host may still run the package without gaining a maintenance commitment. The declaration does not promise that later releases keep working, and it does not mean every version at or above the minimum was verified.
 
-The package declares `@oh-my-pi/pi-agent-core`, `@oh-my-pi/pi-ai`, and `@oh-my-pi/pi-coding-agent` as unrestricted host peers (`*`). Those declarations name the host packages the component imports; they carry no maintenance range, no runtime check, and no claim about any host version.
+The package declares `@oh-my-pi/pi-ai` and `@oh-my-pi/pi-coding-agent` as unrestricted host peers (`*`). Those declarations name the host packages the component imports; they carry no maintenance range, no runtime check, and no claim about any host version.
 
 The automated type check and test suite run against OMP `18.5.0`. Source baselines are path-specific: recovery, the compaction deadline, and replay cite `18.2.8`, where those mechanisms were first read; continuing waits cite `18.5.0`; task argument cleanup cites `18.11.3`, where the seance task schema was read; copy cites `18.5.0` for the shortcut registry and clipboard export, with the native action table checked on the installed `18.11.3`.
 
@@ -150,6 +148,12 @@ bun test
 The test suite replaces the host with a small recording host and keeps the package boundaries real: the settings getter from the installed `@oh-my-pi/pi-coding-agent`, the error classifier from the installed `@oh-my-pi/pi-ai`, and `AbortSignal.timeout` and `Map.prototype.set` in both their native and patched form. Each adjustment records the checks its tests cover in [Adjustments](./docs/adjustments.md).
 
 ## Changes
+
+### 0.5.11
+
+Remove `waitMessagesSeconds` and `waitProcessSeconds` from both user and project QoL settings, then restart OMP. These settings had no effect on supported hosts. Either leftover is an unknown key and rejects the whole QoL configuration, leaving every module on native behavior. The component does not edit user configuration. Keep `waitJobsSeconds`, the wait switches, and all unrelated settings.
+
+Host peers no longer include the unused `@oh-my-pi/pi-agent-core`; the locked development baseline remains OMP `18.5.0`.
 
 ### 0.5.10
 

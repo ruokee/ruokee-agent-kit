@@ -40,7 +40,7 @@ When the total deadline aborts an in-flight native call, a native result that st
 
 - `waitEnabled` and `waitContinueEmptyWindows` switch the module and its continuation.
 - `waitJobsSeconds` is the default total deadline of one `wait` call; an explicit `timeout` overrides it.
-- `waitMessagesSeconds` and `waitProcessSeconds` remain accepted and validated, and have no effect on supported hosts, which offer no message-only or named-process wait entry.
+- `waitMessagesSeconds` and `waitProcessSeconds` are retired. Remove them from user and project settings; either leftover rejects the whole QoL configuration as an unknown key. Restart OMP after editing the settings.
 - `/qol` reports the effective default and marks message continuation, named-process waiting, and service continuation as `not-applicable` instead of printing unused configured values.
 
 ### Side effects
@@ -64,6 +64,7 @@ When the total deadline aborts an in-flight native call, a native result that st
 - **Source baseline**: OMP `18.5.0`, using the [wait tool](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/tools/wait.ts), [job control](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/async/job-control.ts), [extension API](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/extensibility/extensions/types.ts), and [proc protocol](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/internal-urls/proc-protocol.ts).
 - **Automated checks**: OMP `18.5.0`, `bun test` and `tsc --noEmit`, with a recording host. They cover the model-visible schema, `{}` delegation across running snapshots, default and explicit deadline selection, the structural continuation rule, terminal outcomes, cancellation, deadline/result races, registration refusals, and the real registered-tool adapter forwarding interruptibility, load mode, strict validation, and approval.
 - **Real OMP CLI**: OMP `18.5.1` with a real model and `waitJobsSeconds` `600`. A `wait` call whose input a scenario control fixed to `{}` returned the `600 s` deadline note while a `900 s` background job was still running. A `wait` call with `timeout` `3600` kept waiting across the 30 minute native window and returned the completed `1920 s` job in one call. Message interruption, steering, and cancellation were not rerun on `18.5.x`.
+- **Real OMP CLI**: QoL `0.5.11` on OMP `18.12.3`, with a real model and isolated settings. An omitted timeout reached the configured `0.25 s` deadline, an explicit `0.5 s` timeout reached that deadline, and a `60 s` wait received the same background job after it completed in `20 s`. Each retired wait key separately rejected all six modules in `/qol`. A new session kept the activation snapshot; restarting read the changed `0.4 s` default and disabled continuation switch. The wait algorithm was unchanged; the earlier long-window evidence retains its original scope.
 
 ## Continuing after a transient model error
 

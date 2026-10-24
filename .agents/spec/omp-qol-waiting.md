@@ -17,10 +17,8 @@ Message-only continuation, named-process waiting, service-only continuation, or 
 | `waitEnabled` | `true` |
 | `waitContinueEmptyWindows` | `true` |
 | `waitJobsSeconds` | `1200` |
-| `waitMessagesSeconds` | `1200` |
-| `waitProcessSeconds` | `1200` |
 
-The three wait settings accept finite numbers from `0.05` through `3600` seconds. `waitMessagesSeconds` and `waitProcessSeconds` remain validated but have no effect on supported hosts.
+`waitJobsSeconds` accepts finite numbers from `0.05` through `3600` seconds.
 
 ### Status
 

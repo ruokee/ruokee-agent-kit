@@ -37,8 +37,6 @@ omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 - `waitEnabled`：默认 `true`，取值 boolean。扩展已识别的内建 `wait`。
 - `waitContinueEmptyWindows`：默认 `true`，取值 boolean。遇到全部任务仍运行的快照时，在同一次调用内继续。关闭时返回第一个原生窗口。
 - `waitJobsSeconds`：默认 `1200`，取值数字 `0.05`–`3600`。单次 `wait` 调用的默认总期限。显式 `timeout` 覆盖它。
-- `waitMessagesSeconds`：默认 `1200`，取值数字 `0.05`–`3600`。照常接受并校验；受支持的宿主没有纯消息等待入口，该项不起作用。
-- `waitProcessSeconds`：默认 `1200`，取值数字 `0.05`–`3600`。照常接受并校验；受支持的宿主没有命名进程等待入口，该项不起作用。进程控制使用宿主的 `proc://` 接口。
 
 ### 恢复
 
@@ -81,7 +79,7 @@ omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 `/qol` 打印当前状态，不做任何修改。它不启动模型轮次，也不读取设置 schema 之外的值。
 
 ```
-@ruokee/omp-qol 0.5.10
+@ruokee/omp-qol 0.5.11
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -103,7 +101,7 @@ copy: enabled — enabled=true shortcut=alt+shift+a
 
 最低维护 OMP 版本为 `18.5.0`，不设置维护版本上限。本小节声明维护责任，不作为安装或运行条件。更早的宿主仍可能运行本包，但不因此获得维护承诺。这一声明不保证后续版本继续可用，也不表示下限及以上的每个版本都已验证。
 
-包的 peer 以无限制的范围 `*` 声明 `@oh-my-pi/pi-agent-core`、`@oh-my-pi/pi-ai` 与 `@oh-my-pi/pi-coding-agent`。该声明只列出组件导入的宿主包，不构成维护范围，不带运行时检查，也不表示任何宿主版本可用。
+包的 peer 以无限制的范围 `*` 声明 `@oh-my-pi/pi-ai` 与 `@oh-my-pi/pi-coding-agent`。该声明只列出组件导入的宿主包，不构成维护范围，不带运行时检查，也不表示任何宿主版本可用。
 
 自动化类型检查与测试套件针对 OMP `18.5.0` 运行。源码基线按路径区分：上游错误后续跑、压缩期限与原生历史重放引用最初阅读这些机制时的 `18.2.8`，持续等待引用 `18.5.0`；任务参数清理引用 `18.11.3`，即读取 seance task schema 的版本；复制引用 `18.5.0` 的快捷键注册表与剪贴板导出，原生动作表则在已安装的 `18.11.3` 上检查。
 
@@ -150,6 +148,12 @@ bun test
 测试套件用一个小型记录宿主替代宿主，同时保留真实的包边界：来自已安装 `@oh-my-pi/pi-coding-agent` 的设置 getter、来自已安装 `@oh-my-pi/pi-ai` 的错误分类器，以及原生与已替换两种状态的 `AbortSignal.timeout` 与 `Map.prototype.set`。各调整项的检查覆盖记录在[调整项](./docs/adjustments.zh.md)。
 
 ## 更新记录
+
+### 0.5.11
+
+从用户级和项目级 QoL 设置中移除 `waitMessagesSeconds` 与 `waitProcessSeconds`，然后重启 OMP。这两个设置在受支持宿主中没有作用。任一遗留键均按未知键拒绝整个 QoL 配置，所有模块保留原生行为。组件不修改用户配置。保留 `waitJobsSeconds`、等待开关及所有无关设置。
+
+宿主 peer 不再包含未使用的 `@oh-my-pi/pi-agent-core`，锁定开发基线仍为 OMP `18.5.0`。
 
 ### 0.5.10
 

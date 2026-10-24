@@ -19,7 +19,7 @@ omp plugin link "$(pwd)" --scope user
 
 OMP reads `omp.extensions` from `package.json` and loads `src/extension.ts`; no manual extension-path setting is required.
 
-The minimum maintained OMP version is `18.5.0`, as declared in the [compatibility section of the component README](../README.md). Automated checks run on OMP 18.5.0, where `bun test` and `tsc --noEmit` pass. Those are package-level runs against installed copies of the host packages, not real host runs. Real TUI validation covers OMP 18.2.3, 18.2.8, 18.4.3, 18.4.4, and 18.5.1.
+The minimum maintained OMP version is `18.5.0`, as declared in the [compatibility section of the component README](../README.md). Automated checks run on OMP 18.5.0, where `bun test` and `tsc --noEmit` pass. Those are package-level runs against installed copies of the host packages, not real host runs. Real TUI validation covers OMP 18.2.3, 18.2.8, 18.4.3, 18.4.4, 18.5.1, and 18.12.3.
 
 ## Configuration
 
@@ -239,5 +239,7 @@ The conversation-only token source was validated on OMP `18.4.4` with the compon
 The static context glyph was validated on OMP `18.5.1` with the component's locked dependencies and a real model, loading only this extension under the existing agent configuration, where `context` uses `absolute` mode ahead of the token metrics and `turn`. Startup rendered `U+F0068 11.8K`, with the glyph dimmed in `#5fafaf` and one space before the reading. After one answered request the row showed `U+F0068 10.3K / Total 10.3K / Cache 0 / I 10.3K / O 5 / Hit 0.0% / Turn 1`, and six frames captured about 350 ms apart rendered byte-identical rows, so the glyph did not blink. Percent mode, live terminal widths, session switching, tree rewinds, interrupts, and subagent cards were not re-run on OMP 18.5.1.
 
 Live terminal widths, session switching, tree rewinds, interrupts, and subagent cards were not re-run on OMP 18.4.3; those checks stand as recorded for OMP 18.2.3 and 18.2.8.
+
+Version `0.4.1` was loaded through its extension entry on OMP `18.12.3` with a real model and an isolated profile. Live widths changed from 120 to 48 to 100 columns; the row stayed below the editor and truncated from the right with an ellipsis. It coexisted with the native status line, title-spinner frames, and a subagent card. Token and context readings changed during requests, and eight successful parent responses produced `Turn 8`, which remained after resume. Two new sessions each showed one row with fresh context; all scenario processes exited normally. Five idle frames taken 350 ms apart had identical status rows. No duplicate row or layout shift appeared. The dependency-declaration change did not alter rendering or timer ownership; earlier tree-rewind and interrupted-request evidence retains its original scope.
 
 This evidence applies to the documented component source. Repeat the real TUI checks after a later source change that can affect rendering or lifecycle behavior.

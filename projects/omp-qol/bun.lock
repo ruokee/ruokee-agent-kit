@@ -12,7 +12,6 @@
         "typescript": "^5.9.3",
       },
       "peerDependencies": {
-        "@oh-my-pi/pi-agent-core": "*",
         "@oh-my-pi/pi-ai": "*",
         "@oh-my-pi/pi-coding-agent": "*",
       },

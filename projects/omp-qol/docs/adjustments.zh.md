@@ -40,7 +40,7 @@
 
 - `waitEnabled` 与 `waitContinueEmptyWindows` 分别开关本模块及其续接。
 - `waitJobsSeconds` 是单次 `wait` 调用的默认总期限；显式 `timeout` 覆盖它。
-- `waitMessagesSeconds` 与 `waitProcessSeconds` 照常接受并校验；受支持的宿主没有纯消息或命名进程等待入口，这两项不起作用。
+- `waitMessagesSeconds` 与 `waitProcessSeconds` 已退休。须从用户级和项目级设置中移除，任一遗留都会按未知键拒绝整个 QoL 配置。修改设置后重启 OMP。
 - `/qol` 报告生效的默认值，并把消息续接、命名进程等待与 service 续接标为 `not-applicable`，不显示没有被读取的配置值。
 
 ### 副作用
@@ -64,6 +64,7 @@
 - **源码基线**：OMP `18.5.0` 的[等待工具](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/tools/wait.ts)、[任务控制](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/async/job-control.ts)、[扩展 API](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/extensibility/extensions/types.ts) 与 [proc 协议](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/internal-urls/proc-protocol.ts)。
 - **自动检查**：OMP `18.5.0`，`bun test` 与 `tsc --noEmit`，使用记录宿主。覆盖模型可见 schema、跨运行快照的 `{}` 委派、缺省与显式期限选择、结构化续接规则、终止结果、取消、期限与结果竞态、注册拒绝，以及真实的已注册工具适配器对可中断性、加载模式、严格校验与审批的转发。
 - **真实 OMP CLI**：OMP `18.5.1` 与真实模型，`waitJobsSeconds` 为 `600`。一次由场景控制把输入固定为 `{}` 的 `wait` 调用在 `900` 秒后台任务仍运行时返回 `600` 秒期限说明。一次 `timeout` 为 `3600` 的 `wait` 调用跨过 30 分钟原生窗口继续等待，在同一次调用内返回已完成的 `1920` 秒任务。消息中断、steer 与取消未在 `18.5.x` 上重跑。
+- **真实 OMP CLI**：QoL `0.5.11` 在 OMP `18.12.3` 上使用真实模型及隔离设置。省略 timeout 时在配置的 `0.25 s` 到期，显式 `0.5 s` 在该期限到期，随后 `60 s` 等待收到同一个运行 `20 s` 后完成的后台任务。两个退休等待键分别使 `/qol` 报告六个模块全部拒绝。新建会话保留激活快照，重启后读取修改后的 `0.4 s` 默认值和关闭的续等开关。等待算法未变，此前长窗口证据保留原范围。
 
 ## 上游错误后续跑
 

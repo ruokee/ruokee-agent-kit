@@ -37,8 +37,6 @@ export const SETTINGS_DEFAULTS = {
   waitEnabled: true,
   waitContinueEmptyWindows: true,
   waitJobsSeconds: 1200,
-  waitMessagesSeconds: 1200,
-  waitProcessSeconds: 1200,
   recoveryEnabled: true,
   recoveryMode: "knownTransient",
   recoveryMaxAttempts: 8,
@@ -55,10 +53,7 @@ export const SETTINGS_DEFAULTS = {
   copyEnabled: true,
 } as const;
 
-/**
- * Settings of the wait module. `waitMessagesSeconds` and `waitProcessSeconds`
- * stay validated manifest keys but have no reader on supported hosts.
- */
+/** Settings of the wait module. */
 export interface WaitSettings {
   enabled: boolean;
   continueEmptyWindows: boolean;
@@ -218,14 +213,6 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     min: WAIT_SECONDS_MIN,
     max: WAIT_SECONDS_MAX,
   });
-  const messagesSeconds = readNumber(raw, "waitMessagesSeconds", "wait", SETTINGS_DEFAULTS.waitMessagesSeconds, {
-    min: WAIT_SECONDS_MIN,
-    max: WAIT_SECONDS_MAX,
-  });
-  const processSeconds = readNumber(raw, "waitProcessSeconds", "wait", SETTINGS_DEFAULTS.waitProcessSeconds, {
-    min: WAIT_SECONDS_MIN,
-    max: WAIT_SECONDS_MAX,
-  });
 
   const recoveryEnabled = readBoolean(raw, "recoveryEnabled", "recovery", SETTINGS_DEFAULTS.recoveryEnabled);
   const recoveryMode = readEnum(raw, "recoveryMode", "recovery", RECOVERY_MODES, SETTINGS_DEFAULTS.recoveryMode);
@@ -290,8 +277,6 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     waitEnabled,
     continueEmptyWindows,
     jobsSeconds,
-    messagesSeconds,
-    processSeconds,
     recoveryEnabled,
     recoveryMode,
     maxAttempts,

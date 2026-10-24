@@ -25,7 +25,7 @@
 
 缺少键时取默认值。显式 null、类型错误、非有限数值、整数项中的小数、越界值或未知枚举只停用所属模块。未知键、非对象设置根、读取设置失败或非法总开关 `enabled` 停用全部模块。拒绝整个设置对象后，不用默认值激活模块。
 
-`compactionCacheEnabled`、`compactionCacheProvider`、`compactionCacheMode`、`compactionUsageEnabled`、`modelPromptsEnabled` 不存在，按未知键拒绝整个配置，不提供兼容别名。迁移要从用户及项目作用域移除这些键，保留无关设置和有效启用结果，并取得单独授权。
+`compactionCacheEnabled`、`compactionCacheProvider`、`compactionCacheMode`、`compactionUsageEnabled`、`modelPromptsEnabled`、`waitMessagesSeconds`、`waitProcessSeconds` 不存在，按未知键拒绝整个配置，不提供兼容别名。迁移要从用户及项目作用域移除这些键，保留无关设置和有效启用结果，并取得单独授权。
 
 诊断只列拒绝的键与规则，不回显值。每项模块原因每次激活通过宿主日志报告一次，有 UI 时也通过 UI 报告。总开关约束全部模块动作；复制快捷键在扩展绑定存续期间仍被占用，即使动作已停用。
 

@@ -67,3 +67,9 @@ Users clear `compactionUsageEnabled` and `modelPromptsEnabled` from both user an
 - The effective settings snapshot is the only gate between an installed patch and a session that did not install it. A field added to the effective configuration without being added to that comparison widens reuse silently, and a session can be kept under a configuration it never chose.
 - After the installing activation exits, the process extends no compaction deadline until it restarts, and the status keeps reporting the released patch. That is the chosen terminal state: releasing the patch without letting a later activation install one costs the adjustment for the rest of that process's life.
 - On a host that still offers the builtin `hub` tool, which is below the maintenance lower bound, the total-deadline wait no longer applies. The module finds no standalone `wait` entry there and leaves native behavior in place with its bounded reason.
+
+## Changes
+
+### 2026-10-24 Retire unused wait settings
+
+Remove `waitMessagesSeconds` and `waitProcessSeconds`: supported hosts offer neither a message-only wait entry nor a named-process wait entry, so these settings have no effect. Keep `waitJobsSeconds`, the wait switches, and the existing wait behavior. Each retired key follows the existing unknown-key rule and rejects the entire QoL configuration. Users remove both keys from user and project settings and restart OMP; the component does not migrate configuration automatically. The setting-preservation obligations for the earlier smart-context migration remain unchanged.

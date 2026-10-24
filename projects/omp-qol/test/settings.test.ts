@@ -23,8 +23,6 @@ describe("settings ranges", () => {
       waitEnabled: false,
       waitContinueEmptyWindows: false,
       waitJobsSeconds: WAIT_SECONDS_MIN,
-      waitMessagesSeconds: WAIT_SECONDS_MAX,
-      waitProcessSeconds: 0.5,
       recoveryEnabled: false,
       recoveryMode: "unclassified",
       recoveryMaxAttempts: 1,
@@ -43,6 +41,7 @@ describe("settings ranges", () => {
     expect(problems).toEqual([]);
     expect(settings.enabled).toBe(false);
     expect(settings.wait.jobsSeconds).toBe(WAIT_SECONDS_MIN);
+    expect(parse({ waitJobsSeconds: WAIT_SECONDS_MAX }).settings.wait.jobsSeconds).toBe(WAIT_SECONDS_MAX);
     expect(settings.recovery.mode).toBe("unclassified");
     expect(settings.compaction.timeoutMs).toBe(COMPACTION_TIMEOUT_MAX_MS);
     expect(settings.compaction.guardMs).toBe(COMPACTION_GUARD_MAX_MS);
@@ -66,9 +65,9 @@ describe("rejected values", () => {
     ["explicit null", { waitJobsSeconds: null }, "waitJobsSeconds=null"],
     ["wrong type", { waitEnabled: "yes" }, "waitEnabled=type"],
     ["non-finite number", { waitJobsSeconds: Number.POSITIVE_INFINITY }, "waitJobsSeconds=finite"],
-    ["NaN", { waitMessagesSeconds: Number.NaN }, "waitMessagesSeconds=finite"],
+    ["NaN", { waitJobsSeconds: Number.NaN }, "waitJobsSeconds=finite"],
     ["fractional integer field", { recoveryMaxAttempts: 2.5 }, "recoveryMaxAttempts=integer"],
-    ["below the range", { waitProcessSeconds: 0.01 }, "waitProcessSeconds=range"],
+    ["below the range", { waitJobsSeconds: 0.01 }, "waitJobsSeconds=range"],
     ["above the range", { waitJobsSeconds: 3600.5 }, "waitJobsSeconds=range"],
     ["unknown enum value", { recoveryMode: "always" }, "recoveryMode=enum"],
     ["enum of the wrong type", { recoveryMode: 3 }, "recoveryMode=type"],
@@ -131,6 +130,8 @@ describe("global faults", () => {
     ["an array root", [], "settings=root"],
     ["a null root", null, "settings=root"],
     ["an unknown key", { waitJobsTimeouts: 5 }, "waitJobsTimeouts=unknown-key"],
+    ["retired message wait key", { waitMessagesSeconds: 1200 }, "waitMessagesSeconds=unknown-key"],
+    ["retired process wait key", { waitProcessSeconds: 1200 }, "waitProcessSeconds=unknown-key"],
     ["retired remote enabled key", { compactionCacheEnabled: true }, "compactionCacheEnabled=unknown-key"],
     ["retired remote provider key", { compactionCacheProvider: "synthetic" }, "compactionCacheProvider=unknown-key"],
     ["retired remote mode key", { compactionCacheMode: "hooks" }, "compactionCacheMode=unknown-key"],

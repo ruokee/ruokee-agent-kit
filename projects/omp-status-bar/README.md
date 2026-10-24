@@ -16,7 +16,7 @@ Third-party extensions add providers through the public contract at `@ruokee/omp
 
 The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound. This section states the maintenance commitment; it is not an installation or runtime requirement. An earlier host may still run the package without gaining a maintenance commitment. The declaration does not promise that later releases keep working, and it does not mean every version at or above the minimum was verified.
 
-The package declares `@oh-my-pi/pi-coding-agent`, `@oh-my-pi/pi-agent-core`, and `@oh-my-pi/pi-tui` as unrestricted host peers (`*`). The declarations are not a maintenance range or a claim about every host version.
+The package declares `@oh-my-pi/pi-coding-agent` and `@oh-my-pi/pi-tui` as unrestricted host peers (`*`). The declarations are not a maintenance range or a claim about every host version.
 
 Automated checks and real TUI validation, the versions they cover, and what they do not cover are recorded in [Usage and configuration](./docs/usage.md).
 

@@ -17,10 +17,8 @@
 | `waitEnabled` | `true` |
 | `waitContinueEmptyWindows` | `true` |
 | `waitJobsSeconds` | `1200` |
-| `waitMessagesSeconds` | `1200` |
-| `waitProcessSeconds` | `1200` |
 
-三个等待时间设置接受 `0.05` 至 `3600` 秒的有限数值。`waitMessagesSeconds` 和 `waitProcessSeconds` 仍校验，但在受支持宿主中不起作用。
+`waitJobsSeconds` 接受 `0.05` 至 `3600` 秒的有限数值。
 
 ### 状态
 
