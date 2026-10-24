@@ -6,7 +6,7 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 
 - `./projects/`: Extensions, executables, and host packages, with source, documentation, and checks organized for their host or build system.
 - `./skills/`: Ordinary English Skills, each with `SKILL.md` and any supporting references and workflows.
-- `./variants/`: Language variants of components, with the same purpose and separate distributable directories. A project component may keep complete language variants in its own directory.
+- `./variants/`: Language variants of components, with the same purpose and separate distributable directories.
 - `./docs/`: Repository-wide user and development documentation, such as installation, maintenance, and terminology reference.
 - `./scripts/`: Repository-wide installation, maintenance, and check scripts; component-specific scripts stay with their component.
 - `./.agents/`: Internal maintenance Skills, decisions, specifications, and rules for repository development.
