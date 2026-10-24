@@ -64,25 +64,29 @@ describe("runAction", () => {
     expect(delivered).toHaveLength(1);
   });
 
-  test("lists entries without bodies and reads one body on request", () => {
-    const { env } = environment();
-    const body = `maple ${"x".repeat(200)}`;
-    runAction(env, { action: "create", content: body }, "call-1");
+  test("lists and reads complete bodies without changing retained state", () => {
+    const { env, journal, delivered } = environment();
+    const bodies = ["maple", "  birch\n\n  grove\t \n", `cedar ${"长文本".repeat(100)}\nend  `];
+    for (const [index, body] of bodies.entries()) {
+      runAction(env, { action: "create", content: body }, `create-${index}`);
+    }
+    const beforeJournal = structuredClone(journal);
+    const beforeDelivery = structuredClone(delivered);
 
-    const listing = runAction(env, { action: "list" }, "call-2");
+    const listing = runAction(env, { action: "list" }, "list");
     expect(listing.ok).toBe(true);
-    // A row shows where the body starts and how large it is, not the body.
-    expect(listing.text).toContain("maple x");
-    expect(listing.text).toContain("UTF-8 bytes");
-    expect(listing.text).not.toContain(body);
+    for (const [index, body] of bodies.entries()) {
+      expect(listing.text).toContain(body);
+      const detail = runAction(env, { action: "get", id: index + 1 }, `get-${index}`);
+      expect(detail.ok).toBe(true);
+      expect(detail.text.endsWith(`\n${body}`)).toBe(true);
+    }
 
-    const detail = runAction(env, { action: "get", id: 1 }, "call-3");
-    expect(detail.ok).toBe(true);
-    expect(detail.text).toContain("maple");
-
-    const missing = runAction(env, { action: "get", id: 9 }, "call-4");
+    const missing = runAction(env, { action: "get", id: 9 }, "missing");
     expect(missing.ok).toBe(false);
     expect(missing.code).toBe("rejected");
+    expect(journal).toEqual(beforeJournal);
+    expect(delivered).toEqual(beforeDelivery);
   });
 
   test("replaces a body without a revision argument", () => {

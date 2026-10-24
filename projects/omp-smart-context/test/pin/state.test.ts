@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { MAX_BRANCH_BYTES, MAX_ENTRY_BYTES, byteLength } from "../../src/pin/limits.ts";
 import { changeText } from "../../src/pin/projection.ts";
 import { PROJECTION_TYPE, RECORD_SCHEMA_VERSION, RECORD_TYPE, type PinRecord } from "../../src/pin/record.ts";
-import { type JournalEntry, planCreate, planDelete, planUpdate, replay, summarize } from "../../src/pin/state.ts";
+import { type JournalEntry, planCreate, planDelete, planUpdate, replay } from "../../src/pin/state.ts";
 
 function record(overrides: Partial<PinRecord> = {}): PinRecord {
   return {
@@ -448,16 +448,6 @@ describe("replay", () => {
     const state = replay([stored(record()), { id: "j-bad", type: "custom", customType: RECORD_TYPE, data: {} }]);
     expect(state.available).toBe(false);
     expect(state.entries).toHaveLength(1);
-  });
-});
-
-describe("summarize", () => {
-  test("reports entry identity, a body start, source, revision and bytes", () => {
-    const state = replay([
-      stored(record({ body: "  maple\n\ngrove  " })),
-      stored(record({ operationId: 2, action: "update", revision: 2, body: "é" })),
-    ]);
-    expect(summarize(state)).toEqual([{ entryId: 1, summary: "é", source: "user", revision: 2, bytes: 2 }]);
   });
 });
 

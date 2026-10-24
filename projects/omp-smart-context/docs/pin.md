@@ -28,7 +28,7 @@ Editing the submitted message makes it ordinary text rather than a Pin operation
 
 `ctx_pin` provides:
 
-- `list`: show all ids, creation sources, revisions, and UTF-8 sizes, without bodies.
+- `list`: read every complete active body with its id, creation source, revision, and UTF-8 size, plus entry count, total active bytes, and branch limit. An empty set reports zero.
 - `get`: supply integer `id` to read one complete body and metadata.
 - `show`: read every complete active body and metadata, with entry count, total bytes, and branch limit. An empty set reports zero.
 - `create`: supply `content` to pin a new body.
@@ -36,6 +36,8 @@ Editing the submitted message makes it ordinary text rather than a Pin operation
 - `delete`: supply integer `id` to unpin an entry.
 
 `content` must be a non-empty string and is kept exactly.
+
+`get`, `list`, and `show` preserve all whitespace, newlines, and long bodies without truncation. Only the interactive selection labels use shortened previews.
 
 Ids are positive session-wide integers, displayed as `#<id>` and never reused. Digit strings are not accepted. Updates and deletes act on the current entry, with no revision parameter. A displayed revision is informative, so an old draft can overwrite a newer body. Updates preserve the original `user` or `agent` creation source.
 
@@ -59,7 +61,7 @@ One body and all active bodies on one branch each have a `16,384` UTF-8 byte lim
 
 An over-limit write changes nothing. A single-entry refusal reports the body size, entry limit, and excess. A branch refusal reports current total bytes, replaced-body bytes or zero for a create, proposed-body bytes, attempted total, limit, and excess. Neither includes active-entry previews.
 
-Review the whole active set before retrying; `list` provides an overview. For an entry-limit refusal, shorten that body. Deleting other entries cannot fix its size. For a branch-limit refusal, delete obsolete entries and update mixed entries to remove obsolete parts, then condense redundant text. Do not repeatedly shorten the proposed body without reviewing the other entries.
+Review the whole active set before retrying; `list` reads every active body. For an entry-limit refusal, shorten that body. Deleting other entries cannot fix its size. For a branch-limit refusal, delete obsolete entries and update mixed entries to remove obsolete parts, then condense redundant text. Do not repeatedly shorten the proposed body without reviewing the other entries.
 
 Preserve still-valid facts, requirements, and required verbatim text. If all content is needed, explain the capacity conflict and condense only without loss; stop the write if it still cannot fit. Reads and deletion remain available over capacity. Metadata, tool history, and old revisions are not bounded by the active-body limit, so a whole request can still be too large.
 

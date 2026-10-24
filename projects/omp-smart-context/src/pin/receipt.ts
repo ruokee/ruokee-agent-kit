@@ -10,9 +10,8 @@
 import { MAX_BRANCH_BYTES_LABEL, MAX_ENTRY_BYTES_LABEL, byteLength } from "./limits.ts";
 import { entryBlock } from "./projection.ts";
 import type { PinRecord } from "./record.ts";
-import type { EntrySummary, MutationError, PinEntryState, PinState, RangeProblem } from "./state.ts";
+import type { MutationError, PinEntryState, PinState, RangeProblem } from "./state.ts";
 import type { OperationOutcome } from "./operations.ts";
-import { summarize } from "./state.ts";
 
 /** Persistence sentence used by both entry points. */
 export const PERSISTENCE_NOTE =
@@ -27,29 +26,6 @@ function size(bytes: number): string {
   return `${bytes} UTF-8 bytes`;
 }
 
-/**
- * Short row for a selection list.
- *
- * The number is what the entry is addressed by later, and the body start is
- * shown beside it, so an entry needs no separate label. An empty body shows the
- * number alone.
- */
-export function entryLabel(row: EntrySummary): string {
-  return `#${row.entryId}${row.summary === "" ? "" : ` ${row.summary}`}`;
-}
-
-/** Full listing with the current branch total. */
-export function listingText(state: PinState): string {
-  if (state.entries.length === 0) {
-    return `No pinned text on this branch (0 of ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes).`;
-  }
-  const rows = summarize(state).map(detailLine);
-  return [
-    `${state.entries.length} pinned ${state.entries.length === 1 ? "entry" : "entries"}, ${size(state.usedBytes)} active of ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes:`,
-    ...rows,
-  ].join("\n");
-}
-
 /** Every active entry with its complete body, for one explicit read. */
 export function showText(state: PinState): string {
   if (state.entries.length === 0) {
@@ -58,11 +34,6 @@ export function showText(state: PinState): string {
   const header = `${state.entries.length} pinned ${state.entries.length === 1 ? "entry" : "entries"}, ${size(state.usedBytes)} active of ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes:`;
   const bodies = state.entries.map((entry) => [`Size: ${size(byteLength(entry.body))}`, entryBlock(entry)].join("\n"));
   return [header, ...bodies].join("\n\n");
-}
-
-function detailLine(row: EntrySummary): string {
-  const name = `#${row.entryId}${row.summary === "" ? "" : ` ${row.summary}`}`;
-  return `- ${name}: revision ${row.revision}, source ${row.source}, ${size(row.bytes)}`;
 }
 
 /** One entry with its body verbatim. */
@@ -118,7 +89,7 @@ export function refusalText(error: MutationError): string {
       `Branch limit: ${MAX_BRANCH_BYTES_LABEL} UTF-8 bytes.`,
       `Current branch: ${capacity.currentBytes} B; ${target}; proposed body: ${capacity.bodyBytes} B.`,
       `This write would hold ${capacity.attemptedBytes} B, exceeding the branch limit by ${capacity.excessBytes} B. Nothing was written.`,
-      "Before retrying, review the whole active pin set; use list for an overview if needed. Delete obsolete entries and remove obsolete parts from entries that still contain useful information, then condense redundant text. Preserve still-valid facts, requirements and required verbatim text.",
+      "Before retrying, review the whole active pin set; use list to read every active body. Delete obsolete entries and remove obsolete parts from entries that still contain useful information, then condense redundant text. Preserve still-valid facts, requirements and required verbatim text.",
       "Moving or splitting text between entries does not reduce active bytes. Do not keep retrying a slightly shorter version of this body without reviewing the other active entries.",
       "If all active content is still needed, preserve it and explain the capacity conflict. Condense without losing information if possible; otherwise stop this write.",
     ].join("\n");

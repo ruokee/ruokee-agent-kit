@@ -17,8 +17,6 @@ import {
   carriedOutcomeText,
   detailText,
   duplicateText,
-  entryLabel,
-  listingText,
   movedBranchText,
   noChangeText,
   refusalText,
@@ -37,7 +35,6 @@ import {
   planDelete,
   planUpdate,
   replay,
-  summarize,
 } from "./state.ts";
 
 /** Host services an operation needs. */
@@ -476,11 +473,11 @@ export function carriedOperationText(operation: CarriedOperation): string {
   return carriedOutcomeText(operation.outcome);
 }
 
-/** List the active entries of the current branch. */
+/** List every active entry with its complete body. */
 export function listPins(env: PinEnvironment): OperationOutcome {
   const loaded = load(env);
   if (!loaded.usable) return rejected(loaded);
-  return { ok: true, code: "ok", text: listingText(loaded.state), state: loaded.state };
+  return { ok: true, code: "ok", text: showText(loaded.state), state: loaded.state };
 }
 
 /** Read every active entry with its complete body. */
@@ -500,14 +497,4 @@ export function readPin(env: PinEnvironment, entryId: number): OperationOutcome 
     return { ok: false, code: "rejected", text: `No active pin entry #${entryId}.`, entryId };
   }
   return { ok: true, code: "ok", text: detailText(entry), entryId: entry.entryId, revision: entry.revision };
-}
-
-/**
- * Rows one entry carries in a listing.
- *
- * The command draws its own list with the host component, so these rows serve
- * the text listings only.
- */
-export function pinChoices(state: PinState): Array<{ entryId: number; label: string }> {
-  return summarize(state).map((row) => ({ entryId: row.entryId, label: entryLabel(row) }));
 }

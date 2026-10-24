@@ -38,3 +38,11 @@ None
 - An older user draft or an Agent editing from an older view can overwrite a newer body. The user confirms a dialog write, but neither path has the revision gate that refused concurrent changes.
 - `show` can return a large body set and consume context. It is an explicit read, not a default action.
 - Existing callers that still send `expectedRevision` may fail if the host rejects unknown fields. The public documentation and schema change together.
+
+## Changes
+
+### 2026-10-24 Complete collection reads
+
+`list` returns the same complete active bodies and metadata as `show`, so a caller reviewing the active set does not need a separate read for each entry. `get` retains its complete single-entry read. All three preserve whitespace, newlines, and long bodies verbatim without changing records, revisions, active usage, or projections. The action set and journal format remain unchanged.
+
+Complete `list` responses consume more context than previews. Width-aware labels remain limited to the interactive selection list; they do not shorten tool results.

@@ -110,19 +110,6 @@ export interface PinState {
   compactionBoundary?: CompactionBoundary;
 }
 
-/** Listing row shared by both entry points. */
-export interface EntrySummary {
-  entryId: number;
-  /** Start of the body, for display only. */
-  summary: string;
-  source: PinSource;
-  revision: number;
-  bytes: number;
-}
-
-/** Longest preview of one body in a listing, in code points. */
-export const MAX_SUMMARY_POINTS = 60;
-
 /**
  * One body as a single display line.
  *
@@ -132,21 +119,6 @@ export const MAX_SUMMARY_POINTS = 60;
  */
 export function foldBody(body: string): string {
   return body.replace(/\s+/gu, " ").trim();
-}
-
-/**
- * Preview of one body in a listing.
- *
- * The folded line is cut after `MAX_SUMMARY_POINTS` code points so a listing
- * stays small and a body is read whole with a `get`, and the cut never splits a
- * surrogate pair. A row the user picks from is drawn by the host component
- * instead, and that one is cut to the width it is drawn at.
- */
-export function entrySummary(body: string): string {
-  const folded = foldBody(body);
-  const points = [...folded];
-  if (points.length <= MAX_SUMMARY_POINTS) return folded;
-  return `${points.slice(0, MAX_SUMMARY_POINTS).join("")}…`;
 }
 
 function totalBytes(entries: readonly PinEntryState[]): number {
@@ -365,17 +337,6 @@ export function findOperationByCall(state: PinState, toolCallId: string): PinRec
     if (record.toolCallId === toolCallId) return record;
   }
   return undefined;
-}
-
-/** Rows for `list`, in creation order. */
-export function summarize(state: PinState): EntrySummary[] {
-  return state.entries.map((entry) => ({
-    entryId: entry.entryId,
-    summary: entrySummary(entry.body),
-    source: entry.source,
-    revision: entry.revision,
-    bytes: byteLength(entry.body),
-  }));
 }
 
 /** Reason a planned operation cannot be accepted. */

@@ -24,7 +24,7 @@ An existing entry offers viewing, editing, unpinning, and returning to the list.
 
 `ctx_pin` has six actions:
 
-- `list`: no action-specific input; return every entry's id, creation source, revision, and UTF-8 size, without bodies.
+- `list`: no action-specific input; return every complete active body with id, creation source, revision, and UTF-8 size, plus entry count, total active bytes, and branch limit. An empty branch states that no body is pinned and reports zero active bytes and the branch limit.
 - `get`: integer `id`; return one complete body and its metadata.
 - `show`: no action-specific input; return every complete active body with id, source, revision, and UTF-8 size, plus entry count, total active bytes, and branch limit. An empty branch states that no body is pinned and reports zero active bytes and the branch limit.
 - `create`: `content`; create a new entry.
@@ -32,6 +32,8 @@ An existing entry offers viewing, editing, unpinning, and returning to the list.
 - `delete`: integer `id`; unpin the current entry.
 
 `content` must be a non-empty string and is kept exactly.
+
+`get`, `list`, and `show` preserve bodies verbatim, including consecutive whitespace, newlines, and text beyond display-preview lengths. A missing `get` id reports that no active entry exists. Reads change no records, revisions, active usage, or projections.
 
 Accept positive integer ids, not digit strings. No implicit upsert, rename-to-create, revision parameter, or revision admission check. Displayed revisions remain informative; an old draft can overwrite a newer body. User-created entries have source `user`, tool-created entries source `agent`; updates preserve creation source.
 
@@ -106,6 +108,7 @@ The host owns session-file creation and flushing. Appending a record is not conf
 
 - Default-off, explicit-off, and invalid settings expose no Pin tool, command, or new projection, preserve records/history, and leave other capabilities working.
 - Six actions, user confirmation, source retention, current-entry updates, retry-before-lookup, complete reads, numbering, refusal details, and unchanged-state behavior match the contract.
+- Single-entry and collection reads preserve short, multiline, whitespace-rich, and long bodies exactly. Collection reads include every active entry and its current metadata, including when the branch is over capacity.
 - The tool description distinguishes proactive pinning, updates, deletion, and correct non-action by information use. Capacity guidance addresses the actual limit without sacrificing valid information or repeating active-entry previews.
 - Pending, cancelled, edited, restored, repeated, and branch-switched user messages apply only when eligible. Agent writes start no turn; accepted retries append nothing and cannot restore stale state.
 - Reset, branch replay, supported V2 records, damage, capacity, and persistence limits remain intact. Final requests after committed compaction carry the latest body verbatim without stale ordering or duplicate projections.

@@ -423,6 +423,7 @@ describe("command registration", () => {
     expect(rows[2]?.startsWith("> #1 first body")).toBe(true);
     // The row is cut, not rearranged: what it shows is the start of the body.
     expect(rows[2]).not.toBe(`> #1 ${body}`);
+    expect(rows[2]?.endsWith("…")).toBe(true);
     expect(rows[3]).toBe("     Close");
     // Every row fits the width it was rendered at.
     for (const line of rows) expect([...line].length).toBeLessThanOrEqual(24);
@@ -460,12 +461,12 @@ describe("command registration", () => {
     const wide = host.ui.listRenders[1] ?? [];
     const entryRow = (rows: string[]) => rows.find((row) => row.includes("a body long enough")) ?? "";
 
-    // The narrow render cuts the body after the columns it was drawn in, and
-    // what it shows is the start of the body.
+    // A narrow row shows the body prefix followed by the truncation marker.
     const narrowRow = entryRow(narrow);
     const narrowBody = narrowRow.slice("  #1 ".length);
     expect(narrowRow.startsWith("  #1 a body long enough")).toBe(true);
-    expect(body.startsWith(narrowBody)).toBe(true);
+    expect(narrowBody.endsWith("…")).toBe(true);
+    expect(body.startsWith(narrowBody.slice(0, -1))).toBe(true);
     expect(narrowBody.length).toBeLessThan(body.length);
     for (const line of narrow) expect(visibleWidth(line)).toBeLessThanOrEqual(32);
     // The next render is drawn at the width the terminal now has, and the same

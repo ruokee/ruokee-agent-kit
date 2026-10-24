@@ -2,6 +2,11 @@
 
 [中文](./CHANGELOG.zh.md)
 
+## 0.1.4
+
+- Return every active Pin body verbatim from `list`, with its metadata and branch usage. Preserve single-entry `get`, full-set `show`, and width-aware interactive labels.
+- Mark truncated interactive Pin labels with an ellipsis while preserving their entry ids.
+
 ## 0.1.3
 
 - Support Anthropic Handoff with native API-key and OAuth transport. Restore proved system prefixes while preserving native generation policy, identity, caching limits, and document adoption.

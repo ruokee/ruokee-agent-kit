@@ -77,7 +77,7 @@ Append system instructions for specified models. Each covered ordinary main or c
 
 ## Pin
 
-Keep selected text in later ordinary requests on the current session branch, including after compaction. Enable Pin to use the `/ctx-pin` user command and `ctx_pin` Agent tool. See the [Pin guide](./docs/pin.md) for confirmation, updates, capacity, resets, and persistence risks.
+Keep selected text in later ordinary requests on the current session branch, including after compaction. Enable Pin to use the `/ctx-pin` user command and `ctx_pin` Agent tool. `get` reads one complete body; `list` and `show` read every active body with metadata, preserving whitespace and long text. See the [Pin guide](./docs/pin.md) for confirmation, updates, capacity, resets, and persistence risks.
 
 ## Status
 

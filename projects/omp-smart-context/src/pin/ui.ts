@@ -108,7 +108,7 @@ class PinList {
     // The host component keeps its own search, which it offers once the list is
     // longer than the rows it shows, and it is handed the width of every render.
     this.#list = new SelectList(rows, maxVisible, getSelectListTheme(), {
-      truncatePrimary: ({ text, maxWidth }) => truncateToWidth(text, maxWidth, Ellipsis.Omit),
+      truncatePrimary: ({ text, maxWidth }) => truncateToWidth(text, maxWidth, Ellipsis.Unicode),
     });
     this.#list.onSelect = (item) => this.#done(choiceOf(item.value));
     this.#list.onCancel = () => this.#done(undefined);
