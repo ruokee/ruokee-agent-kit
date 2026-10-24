@@ -4,13 +4,15 @@
 
 Align native Handoff requests with a confirmed ordinary request from the same session, preserving native document generation, adoption, and continuation.
 
+Target cache alignment across nearly all models that can use native Handoff. The model and protocol set is open to extension; each protocol follows the shared ownership, projection, and native-behavior requirements.
+
 ## Out of scope
 
-APIs other than `openai-completions` and `openai-responses`, new commands or document persistence, manual-compaction replacement, summary fabrication, extra retries, or projecting Responses generation policy to ordinary values.
+New commands or document persistence, manual-compaction replacement, summary fabrication, extra retries, or generation-policy changes outside the permitted projection axes.
 
 ## Public surface
 
-`handoffCacheEnabled` is boolean, default `false`. OMP project settings override user settings, missing keys take defaults, and changes require restart. It has no Provider filter or mode and is independent of Remote settings. Responses Handoff does not require Remote activation, a matching Provider, or any particular Remote mode. V2 remains Remote's responsibility. Unsupported APIs keep native behavior. `/smart-context` reports Handoff's state and counts separately.
+`handoffCacheEnabled` is boolean, default `false`. OMP project settings override user settings, missing keys take defaults, and changes require restart. It has no Provider filter or mode. Handoff does not require Remote activation, a matching Provider, or any particular Remote mode. V2 remains Remote's responsibility. APIs without a supported projection keep native behavior. `/smart-context` reports Handoff's state and counts separately.
 
 ## Invariants
 
@@ -20,7 +22,7 @@ The shared request-alignment requirements apply to Handoff. The actual request k
 
 The reference belongs to one confirmed ordinary dispatch with its Provider and persistent session identities, effective model and API, system prompt, thinking state, and tool set. These facts and cancellation status must remain valid through the successful response. A prepared request without tools supplies no reference. Tool definitions must match the host's wire representation, including callable schemas. Invalidated or cancelled work cannot establish a reference.
 
-The operation's reference is immutable across newer work, authentication refresh, transport retries, and handler-state changes. Responses source must belong to that same ordinary context dispatch, even while public Agent state is not yet synchronized. Only confirmed final ordinary transport followed by a 2xx response establishes the reference. Alignment calls never become references.
+The operation's reference is immutable across newer work, authentication refresh, transport retries, and handler-state changes. Any source used as proof must belong to that same ordinary context dispatch, even while public Agent state is not yet synchronized. Only confirmed final ordinary transport followed by a 2xx response establishes the reference. A newer ordinary dispatch prevents an older response from publishing a reference. Alignment calls never become references.
 
 Unknown native Handoff provenance leaves the request unchanged. Loss of required interception makes Handoff unavailable. Complete operation ownership must remain valid at every physical send; a changed owner permanently revokes the operation even if later values or bodies return to their old values. Payload callbacks are preparation, not sends. Validate the actual final transport request and count every delegation and retry there.
 
@@ -32,17 +34,29 @@ Source comparison excludes only assistant top-level `completedAt` and `contextSn
 
 ### Chat Completions
 
-Restore the ordinary system/developer fragments and `reasoning_effort`. Restore the ordinary `tool_choice` only when the side choice was not explicit. Keep native side instructions and the new history tail. Restoring tool choice can produce a tool call rather than document text; this remains a native generation failure rather than being suppressed or retried by the extension.
+For `openai-completions`, restore the ordinary system/developer fragments and `reasoning_effort`. Restore the ordinary `tool_choice` only when the side choice was not explicit. Keep native side instructions and the new history tail. Restoring tool choice can produce a tool call rather than document text; this remains a native generation failure rather than being suppressed or retried by the extension.
 
 ### Responses
 
-Recognize the system expression in the host's prepared wire format and restore only proved missing system content.
+For `openai-responses`, recognize the system expression in the host's prepared wire format and restore only proved missing system content.
 
 For top-level instructions, match the known ordinary system fragments with native side instructions as a text prefix. Replacing instructions leaves the complete input untouched. For a leading developer expression, known ordinary fragments and common history must identify exactly one side-system boundary. Replace only that leading system, preserving positions of historical developer messages. Both missing complete fragments and a missing suffix within a fragment can be restored.
 
 Tool definitions must match. Images, new history, call/result pairing, cache keys, and side identity stay native. Nested reasoning, native configuration updates, and `none` are not projected to ordinary values. Keep the host's existing auto-only compatibility retry. Exclude strictly recognized reasoning configuration updates only from common-history comparison, never insert or remove them in outgoing input. Native effective reasoning and generation semantics remain, with differences counted as axes or unprojected.
 
 Missing required proof preserves the whole request. Skip and count an independently unrestorable axis; unrelated fields do not veto proved system projection. The complete candidate must remain valid after payload hooks and be applied as one final-transport replacement. Identical candidates retain their original serialization.
+
+### Anthropic
+
+For `anthropic-messages`, support native API-key and OAuth paths. Restore only proved missing system text blocks or a suffix in the last block. Ordinary prepared system content must correspond to the confirmed wire system. Keep the current OAuth side request's billing and identity prefix; final billing bytes must attest that request's complete body through native CCH processing.
+
+Require matching wire tools, a complete raw-source prefix, a strict common wire-history prefix, and a new side tail. Comparison may normalize string/text-block forms and cache markers on known content blocks only. Preserve all other fields, images, tool arguments and results, signatures, and opaque replay. Unknown fields, nested tool arguments named `cache_control`, historical system/control items, and `Continue.` cannot be hidden by normalization. Outgoing messages and tools remain untouched.
+
+Preserve native `tool_choice`, including `none`, thinking, output configuration, context management, metadata, identity, headers, signal, routing, authentication, and retries. Unknown generation-policy shapes keep the whole request native. Do not copy ordinary policy or identity into the side request.
+
+System cache markers follow the proved reference fragments. Do not enable disabled caching, change native TTLs, or move message/tool breakpoints. Accept only proved ephemeral markers with optional `5m` or `1h` TTL, at most four explicit breakpoints, and long TTLs before short TTLs. Top-level automatic caching, unknown marker properties, incompatible TTL policies, or a candidate over the breakpoint limit refuse the whole projection.
+
+Verify the final original bytes before replacing the body. An identical candidate, failed final proof, or unavailable caller-owned fetch proof preserves the original body and serialization. Keep native transport policy and the selected underlying transport. Anthropic-specific interface failures cannot disable Remote or other Handoff protocols.
 
 ### Native behavior
 
@@ -54,8 +68,9 @@ Replace the adaptation only after behavioral verification that a maintained nati
 
 ## Acceptance criteria
 
-- Both APIs restore only their permitted axes, preserve native side instructions and new history, and work independently of Remote settings.
+- Each supported protocol restores only its permitted axes, preserves native side instructions and new history, and works independently of Remote settings.
 - Responses covers both system expressions, historical developer positions, missing fragments and suffixes, image history, callable tools, native reasoning updates, and ordinary state not yet synchronized.
+- Anthropic covers API-key and OAuth, missing fragments and suffixes, cache-marker movement, equivalent text forms, final native CCH bytes, native document adoption, and refusal without partial projection.
 - Bookkeeping-only backfill is accepted; changed content, replay payloads, unknown source fields, and changed final wire history are refused.
 - Navigation, cancellation, tool/model/system/thinking/Provider changes, compaction, and release cannot revive old references or operations. A retry after owner restoration remains native once revoked.
 - Actual sends and retries are counted at transport, later payload options survive, foreign ownership remains intact, and native document adoption or failure remains native.

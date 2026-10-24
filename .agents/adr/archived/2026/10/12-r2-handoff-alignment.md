@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [Previous decision](../../../archived/2026/10/12-r1-handoff-alignment.md)
 Archived: 2026-10-22
-Reversed by: [Handoff alignment](../../../decision/2026/10/12-handoff-alignment.md)
+Reversed by: [Handoff alignment](./12-r3-handoff-alignment.md)
 
 English | [中文](./12-r2-handoff-alignment.zh.md)
 

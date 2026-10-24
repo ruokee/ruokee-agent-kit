@@ -65,7 +65,7 @@ Enable Remote alignment and set its filter to the current model's exact Provider
 
 Handoff requests can omit system instructions present in ordinary requests and use different generation options. These differences can break the shared cached prefix. Handoff alignment restores supported common content and options.
 
-It supports `openai-completions` and `openai-responses` with its own default-off switch. Native generation, cancellation, and fallback remain with OMP. See the [Handoff guide](./docs/handoff.md) for API-specific limits.
+It has its own default-off switch. Native generation, cancellation, and fallback remain with OMP. See the [Handoff guide](./docs/handoff.md#support) for current protocol and authentication support and their limits.
 
 ## Record missing compaction usage
 

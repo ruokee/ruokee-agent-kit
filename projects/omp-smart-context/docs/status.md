@@ -24,6 +24,8 @@ A changed model, tool set, history, branch, or cancellation can invalidate an ea
 - `sending`: whether native transport received the rewritten or original body.
 - `dispatch`, `operation`, `reference`: local counters identifying an ordinary send, an operation, or its ordinary reference. They are not model or Provider identifiers.
 
+For Anthropic, `transport-unconfirmed` preserves a caller-owned fetch; `cache-policy-unconfirmed` leaves an incompatible cache layout unchanged. An Anthropic-specific interface failure does not disable Remote or the other Handoff protocols. A newer ordinary dispatch prevents an older response from restoring its reference.
+
 ## Counters
 
 - `operations`: logical compaction or Handoff operations.

@@ -2,13 +2,13 @@
 
 Decision owner: Ruokee
 Decision writer: OMP
-Reverses: [Handoff 对齐](../../../archived/2026/10/12-r2-handoff-alignment.zh.md)
+Reverses: [Handoff 对齐](../../../archived/2026/10/12-r3-handoff-alignment.zh.md)
 
 [English](./12-handoff-alignment.md) | 中文
 
 ## 动机
 
-把 Handoff 缓存对齐作为 `@ruokee/omp-smart-context` 的独立能力维护。
+把 Handoff 对齐作为 `@ruokee/omp-smart-context` 的独立能力维护。
 
 Handoff 根据实际对话生成交接文档或压缩摘要，其侧请求会重复普通主循环已经发送的系统提示词、工具及历史。重建后的共同前缀不同，会使本可复用的输入失去缓存资格。Responses Handoff 不携带 V2 压缩 trigger，因此需要自己的协议投影，不能由 [remote 对齐](./10-remote-alignment.zh.md)代为处理。[扩展决定](./12-smart-cache.zh.md)记录本包、能力模型和共同维护下限。
 
@@ -20,6 +20,8 @@ Handoff 根据实际对话生成交接文档或压缩摘要，其侧请求会重
 
 Responses 与 Chat Completions 的系统提示词和 reasoning 表达不同。Responses 可以使用顶层 `instructions` 或前置 `developer` 片段，其文档生成使用原生 `none`，并可能携带 reasoning 配置更新。照搬 Chat Completions 的字段还原会改变生成策略，或使 reasoning 状态不一致。客户端投影和原生采用可以分别验证，Provider 收益仍需可比真实请求证明。
 
+Anthropic 同样将系统块与历史分开。其 OAuth 路径增加本次请求独有的 billing 和身份块，并通过原生 CCH 处理完整序列化正文。因此系统恢复需要独立的最终字节证明，不能复制普通请求的认证身份或生成策略。协议差异需要独立的投影规则，不构成 Handoff 覆盖范围的固定边界。本决定替代前一决定的双协议限制，Remote 仍限于符合条件的 Responses V2 请求。
+
 ## 决定
 
 ### 公共配置
@@ -30,7 +32,7 @@ Handoff 对齐是 [smart-context](./12-smart-cache.zh.md) 的一项能力，拥�
 
 ### 请求归属
 
-Handoff 支持 `openai-completions` 和 `openai-responses`，不按 Provider 清单分流。在 Responses 会话中，已证明的原生 Handoff 侧请求交给 Handoff；符合 remote 资格的 V2 请求交给 remote。一条物理请求最多由一项能力改写。其他 API 不属于两项能力范围。
+Handoff 缓存对齐的目标是覆盖几乎所有可使用原生 Handoff 的模型，不以固定模型或协议清单划定边界。资格由已证明的请求归属和协议专有投影规则决定，不按 Provider 清单分流。[Handoff 指南](../../../../../projects/omp-smart-context/docs/handoff.zh.md#支持范围)记录当前支持范围。尚无受支持投影的请求保持原生。符合条件的 V2 请求归 Remote。一条物理请求最多由一项能力改写。
 
 两项开关独立。remote 关闭、Provider 未选中或模式不同时，Handoff 仍能取得自己的合格普通参照。启用 Handoff 不启用 remote。
 
@@ -64,6 +66,16 @@ Handoff 指令、新增历史、原生工具 schema 与调用配对、图片、r
 
 保留 Responses 原生 `none` 及宿主已有的 auto-only 兼容重试，不还原普通 auto。保留侧请求的嵌套 reasoning 与原生配置更新，不单独复制普通 effort 造成状态分离。这些未投影轴独立计数，不宣称它们与普通请求完全相同。
 
+### Anthropic 投影
+
+只恢复有证明的缺失系统文本块或末块后缀。普通准备阶段的 system 必须匹配已确认请求的 system，原始来源及共同请求历史必须分别保持为原生副请求快照和正文的完整前缀。工具定义必须匹配。保留原生 messages、工具调用及结果配对、图片、签名和不透明重放。只有比较视图可规范化已知内容块的缓存标记及等价字符串/text 块表达，不能规范化未知字段或工具参数。
+
+保留原生文档生成的 `none`、thinking、输出及上下文管理配置、metadata、headers、路由、signal、副会话身份、认证和重试。保留本次 OAuth 请求的 billing 和身份前缀，校验其原生最终字节，并用宿主原生 CCH 处理完整候选。不借用普通 billing 字节，不另行实现 hash。
+
+系统缓存标记随已证明的片段处理，不开启已关闭缓存，不改变 TTL，不移动 messages/tools 断点，也不超过原生断点预算。未知形状或不兼容缓存策略使完整请求保持原生。候选相同或最终证明失败时保留原始正文及序列化。
+
+使用选定的原生传输及其 proxy、CA、headers 和调试策略。调用方自有 fetch 的最终变换无法证明时保持不变。Anthropic 专用接口失效不影响 Remote 和其他 Handoff 协议。
+
 ### 失败边界
 
 无参照、证明不足、归属变化、取消、旧 epoch、歧义操作、未知包装基线、包装归属丢失及混装保持原生并报告固定原因。`rejected` 表示没有改写，不表示阻断、延迟或丢弃请求。后置 hook 的非投影选项保持不变。
@@ -82,7 +94,7 @@ Handoff 指令、新增历史、原生工具 schema 与调用配对、图片、r
 
 OMP 负责文档生成、调度、触发、投机、等待、取消、认证与传输重试、模型或方法回退、结果校验、采用、历史提交和续接。本能力不新增入口，不注册 `session_before_compact`，不替换手动压缩，不否决请求，不新增凭据或参照请求，不重跑处理器，不修改设置，不伪造或校验摘要结构，不增加重试。原生空结果、取消和回退保持宿主自身的失败及采用语义，不记作原生成功。
 
-Chat Completions 还原工具选择可能使模型返回工具调用而不是文本，宿主随之得到空文档。本能力不执行该工具或补重试。Responses 保留原生文档生成工具选择。
+Chat Completions 还原工具选择可能使模型返回工具调用而不是文本，宿主随之得到空文档。本能力不执行该工具或补重试。除明确允许的投影维度外，生成策略保持原生。
 
 受维护原生接口在所需路径提供等价结果、配置语义、隔离及失败行为后，以行为验证为依据替换适配，不以上游合入本身为证明。
 
@@ -92,9 +104,7 @@ Chat Completions 还原工具选择可能使模型返回工具调用而不是文
 
 把用户级和项目级的既有开关迁入 smart-context，移除旧包入口并重启，不叠加包装或转移活跃参照。运行时不回退读取旧命名空间，不自动迁移用户设置。
 
-[Handoff Spec](../../../../spec/omp-smart-context/handoff.zh.md) 使用仓库检查，以及实际宿主库的本地受控请求验收集成。覆盖两种 API 的正例与拒绝、独立远端设置、一条请求最多一次改写、处理器不重复执行和只读状态。真实模型调用和完整 CLI/TUI 矩阵不是集成门槛。历史试验与安装证据保留原归属及条件，提供方收益声明需要可比真实测量。
-
-本后继替代归档中的包归属、状态入口和集成门槛。全部协议、生命周期、原生策略、失败及替换规则继续有效。
+[Handoff Spec](../../../../spec/omp-smart-context/handoff.zh.md) 使用仓库检查，以及实际宿主库的本地受控请求验收集成。覆盖各受支持协议的正例、拒绝和认证路径，以及独立远端设置、一条请求最多一次改写、处理器不重复执行和只读状态。真实模型调用和完整 CLI/TUI 矩阵不是集成门槛。历史试验与安装证据保留原归属及条件，提供方收益声明需要可比真实测量。
 
 ## 考虑过的替代方案
 
@@ -105,5 +115,7 @@ Chat Completions 还原工具选择可能使模型返回工具调用而不是文
 两项能力共享协调器会扩大共享改动的回归范围，发布前需分别验证普通、Handoff 和 remote 路径。混装或外部包装可能使适配不可用，保守冲突与重启切换保持原生请求可用。
 
 宿主修改准备、系统表达或发送路径可能使来源证明失败并失去收益。过宽边界则可能恢复旧内容、重复 developer、跨会话复制或改变原生生成策略，因此不可变归属和完整候选证明不能省略。
+
+Anthropic 的最终字节证明依赖原生 HTTP 和 CCH 接口。宿主变化可能停用其投影，同时请求继续按原生发送。维护该接口是覆盖 OAuth 且不改变认证及传输策略所接受的成本。
 
 请求对齐不保证 Provider 缓存驻留、命中率或收益。工具选择、reasoning 状态和服务端策略可能保留缓存差异，受控响应及合成 usage 不能替代真实收益验证。

@@ -1,4 +1,7 @@
 import { expect, test } from "bun:test";
+import { streamSimple } from "@oh-my-pi/pi-ai";
+import { wrapFetchForCch } from "@oh-my-pi/pi-ai/providers/anthropic";
+import type { Context, FetchImpl, SimpleStreamOptions } from "@oh-my-pi/pi-ai";
 import type { AgentSession } from "@oh-my-pi/pi-coding-agent";
 import { AgentRegistry } from "@oh-my-pi/pi-coding-agent/registry/agent-registry";
 import { register, type Registration } from "../src/runtime.ts";
@@ -60,6 +63,7 @@ interface StreamOptions {
 }
 interface SideOptions extends StreamOptions {
   toolChoice?: string;
+  fetch?: FetchImpl;
 }
 interface FakeAgent {
   state: {
@@ -664,3 +668,250 @@ test("Responses Handoff confirms its own ordinary dispatch independently of remo
     }
   }
 });
+
+const ANTHROPIC_MODEL: NativeModel<"anthropic-messages"> = {
+  ...RESPONSES_MODEL,
+  api: "anthropic-messages",
+  id: "anthropic-proof",
+  remoteCompaction: undefined,
+  compat: {} as NativeModel<"anthropic-messages">["compat"],
+};
+type AnthropicBody = Record<string, unknown> & { system: Record<string, unknown>[] };
+
+/** Real Anthropic SSE input, with a controlled provider response rather than a serializer substitute. */
+function anthropicResponse(text: string): Response {
+  const events = [
+    {
+      type: "message_start",
+      message: {
+        id: "controlled",
+        type: "message",
+        role: "assistant",
+        model: "anthropic-proof",
+        content: [],
+        stop_reason: null,
+        stop_sequence: null,
+        usage: { input_tokens: 20, output_tokens: 0 },
+      },
+    },
+    { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } },
+    { type: "content_block_delta", index: 0, delta: { type: "text_delta", text } },
+    { type: "content_block_stop", index: 0 },
+    { type: "message_delta", delta: { stop_reason: "end_turn", stop_sequence: null }, usage: { output_tokens: 4 } },
+    { type: "message_stop" },
+  ];
+  return new Response(events.map((event) => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`).join(""), {
+    headers: { "content-type": "text/event-stream" },
+  });
+}
+
+test("Anthropic validates native API-key and OAuth sends and revokes retries without changing generation", async () => {
+  const originalFetch = globalThis.fetch;
+  for (const oauth of [false, true]) {
+    const wires: { raw: string; body: AnthropicBody; signal: AbortSignal | null | undefined }[] = [];
+    let response: Response;
+    const transport: FetchImpl = async (_input, init) => {
+      const raw = typeof init?.body === "string" ? init.body : new TextDecoder().decode(init?.body as Uint8Array);
+      wires.push({ raw, body: JSON.parse(raw) as AnthropicBody, signal: init?.signal });
+      response = anthropicResponse("Native document");
+      return response;
+    };
+    globalThis.fetch = transport as typeof fetch;
+    const apiKey = oauth ? "sk-ant-oat01-controlled" : "controlled-key";
+    const stream: FakeAgent["streamFn"] = (model, prepared, options) =>
+      streamSimple(model as NativeModel, prepared as Context, {
+        ...(options as SimpleStreamOptions),
+        apiKey,
+        cacheRetention: "short",
+      }).result();
+    const { session, hooks, registration, registry } = activate(handoffOnly, ANTHROPIC_MODEL, stream);
+    try {
+      const source = [{ role: "user" as const, content: "ask", timestamp: 1 }];
+      const ordinary = new AbortController().signal;
+      for (const hook of hooks) hook(ordinary);
+      await session.extensionRunner.emitContext(source, ordinary);
+      session.agent.state.systemPrompt = ["base", "per-turn rule"];
+      const reply = await session.agent.streamFn(
+        ANTHROPIC_MODEL,
+        { systemPrompt: session.agent.state.systemPrompt, messages: source, tools: [TOOL] },
+        { signal: ordinary },
+      );
+      expect(registration.status().handoff.online).toBe("ordinary-send-confirmed");
+      expect(wires[0]!.signal).not.toBe(ordinary);
+      const sourceSnapshot = [...source, reply];
+      session.agent.state.messages = sourceSnapshot;
+      session.isGeneratingHandoff = true;
+      const instruction = { role: "user" as const, content: "handoff focus", attribution: "agent", timestamp: 3 };
+      const signal = new AbortController().signal;
+      await session.convertMessagesToLlm([...sourceSnapshot, instruction], signal);
+      let nativeSide: AnthropicBody | undefined;
+      const options = session.prepareSimpleStreamOptions({
+        signal,
+        toolChoice: "none",
+        onPayload: (value) => {
+          nativeSide = structuredClone(value) as AnthropicBody;
+        },
+      });
+      const context = { systemPrompt: ["base"], messages: [...sourceSnapshot, instruction], tools: [TOOL] } as Context;
+      const send = () =>
+        streamSimple(ANTHROPIC_MODEL, context, {
+          ...(options as SimpleStreamOptions),
+          apiKey,
+          cacheRetention: "short",
+        }).result();
+      expect((await send()).stopReason).toBe("stop");
+      const offset = oauth ? 2 : 0;
+      const candidate = {
+        ...nativeSide,
+        system: [...nativeSide!.system.slice(0, offset), ...wires[0]!.body.system.slice(offset)],
+      };
+      let expected = JSON.stringify(candidate);
+      if (oauth)
+        await wrapFetchForCch(async (_input, init) => {
+          expected = new TextDecoder().decode(init!.body as Uint8Array);
+          return response!;
+        })("https://example.invalid/v1/messages?beta=true", { body: expected });
+      expect(wires[1]!.raw === expected).toBe(true);
+      expect(wires[1]!.body.tool_choice).toEqual({ type: "none" });
+      expect(registration.status().handoff).toEqual(expect.objectContaining({ operations: 1, sends: 1, rewritten: 1 }));
+      const foreignWires: string[] = [];
+      const foreign: FetchImpl = async (_input, init) => {
+        foreignWires.push(
+          typeof init?.body === "string" ? init.body : new TextDecoder().decode(init?.body as Uint8Array),
+        );
+        return anthropicResponse("Caller-owned transport");
+      };
+      const foreignOptions = session.prepareSimpleStreamOptions({
+        signal,
+        toolChoice: "none",
+        fetch: foreign,
+        onPayload: (value) => {
+          nativeSide = structuredClone(value) as AnthropicBody;
+        },
+      });
+      const foreignResult = await streamSimple(ANTHROPIC_MODEL, context, {
+        ...(foreignOptions as SimpleStreamOptions),
+        apiKey,
+        cacheRetention: "short",
+      }).result();
+      let foreignNative = JSON.stringify(nativeSide);
+      if (oauth)
+        await wrapFetchForCch(async (_input, init) => {
+          foreignNative = new TextDecoder().decode(init!.body as Uint8Array);
+          return response!;
+        })("https://example.invalid/v1/messages?beta=true", { body: foreignNative });
+      expect(foreignResult.content).toEqual([{ type: "text", text: "Caller-owned transport" }]);
+      expect(foreignWires).toEqual([foreignNative]);
+      expect(registration.status().handoff.sends).toBe(1);
+      await send();
+      expect(registration.status().handoff.retries).toBe(1);
+      registration.invalidate("native-history-committed");
+      await send();
+      let native = JSON.stringify(nativeSide);
+      if (oauth)
+        await wrapFetchForCch(async (_input, init) => {
+          native = new TextDecoder().decode(init!.body as Uint8Array);
+          return response!;
+        })("https://example.invalid/v1/messages?beta=true", { body: native });
+      expect(wires.at(-1)!.raw === native).toBe(true);
+      expect(registration.status().handoff.candidate).toBe("operation-invalidated");
+      expect(registration.status().handoff.sends).toBe(3);
+      expect(registration.status().remote.state).toBe("disabled");
+    } finally {
+      registration.close();
+      registry.unregister(AGENT);
+      globalThis.fetch = originalFetch;
+    }
+  }
+});
+
+test("a newer Anthropic dispatch prevents a late 2xx from republishing an older reference", async () => {
+  const originalFetch = globalThis.fetch;
+  const entered = Promise.withResolvers<void>();
+  const first = Promise.withResolvers<Response>();
+  let calls = 0;
+  globalThis.fetch = Object.assign(
+    async () => {
+      if (++calls === 1) {
+        entered.resolve();
+        return first.promise;
+      }
+      return anthropicResponse("New ordinary response");
+    },
+    { preconnect: originalFetch.preconnect },
+  );
+  const stream: FakeAgent["streamFn"] = (model, prepared, options) =>
+    streamSimple(model as NativeModel, prepared as Context, {
+      ...(options as SimpleStreamOptions),
+      apiKey: "controlled-key",
+      cacheRetention: "short",
+    }).result();
+  const { session, hooks, registration, registry } = activate(handoffOnly, ANTHROPIC_MODEL, stream);
+  const dispatch = async (text: string) => {
+    const signal = new AbortController().signal;
+    const source = [{ role: "user", content: text, timestamp: 1 }];
+    for (const hook of hooks) hook(signal);
+    await session.extensionRunner.emitContext(source, signal);
+    return session.agent.streamFn(
+      ANTHROPIC_MODEL,
+      { systemPrompt: ["base"], messages: source, tools: [TOOL] },
+      { signal },
+    );
+  };
+  try {
+    const older = dispatch("older");
+    await entered.promise;
+    await dispatch("newer");
+    const confirmed = registration.status().handoff.reference;
+    expect(confirmed).toBeGreaterThan(0);
+    first.resolve(anthropicResponse("Old ordinary response"));
+    await older;
+    expect(registration.status().handoff.reference).toBe(confirmed);
+    expect(registration.status().handoff.online).toBe("ordinary-send-confirmed");
+  } finally {
+    first.resolve(anthropicResponse("Released response"));
+    registration.close();
+    registry.unregister(AGENT);
+    globalThis.fetch = originalFetch;
+  }
+});
+
+for (const kind of ["no-tools", "foreign-fetch"] as const) {
+  test(`Anthropic ordinary ${kind} reports why no reference was confirmed`, async () => {
+    const originalFetch = globalThis.fetch;
+    const transport: FetchImpl = async () => anthropicResponse("Unaligned ordinary response");
+    globalThis.fetch = Object.assign(transport, { preconnect: originalFetch.preconnect });
+    const stream: FakeAgent["streamFn"] = (model, prepared, options) =>
+      streamSimple(model as NativeModel, prepared as Context, {
+        ...(options as SimpleStreamOptions),
+        apiKey: "controlled-key",
+        cacheRetention: "short",
+      }).result();
+    const { session, hooks, registration, registry } = activate(handoffOnly, ANTHROPIC_MODEL, stream);
+    try {
+      const signal = new AbortController().signal;
+      const source = [{ role: "user", content: "ordinary request", timestamp: 1 }];
+      for (const hook of hooks) hook(signal);
+      await session.extensionRunner.emitContext(source, signal);
+      const reply = await session.agent.streamFn(
+        ANTHROPIC_MODEL,
+        { systemPrompt: ["base"], messages: source, tools: kind === "no-tools" ? [] : [TOOL] },
+        { signal, ...(kind === "foreign-fetch" ? { fetch: transport } : {}) },
+      );
+      expect(reply).toEqual(
+        expect.objectContaining({ content: [{ type: "text", text: "Unaligned ordinary response" }] }),
+      );
+      expect(registration.status().handoff).toEqual(
+        expect.objectContaining({
+          reference: 0,
+          state: "awaiting-reference",
+          online: kind === "no-tools" ? "reference-not-sent" : "final-send-unconfirmed",
+        }),
+      );
+    } finally {
+      registration.close();
+      registry.unregister(AGENT);
+      globalThis.fetch = originalFetch;
+    }
+  });
+}

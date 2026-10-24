@@ -65,7 +65,7 @@ OMP 准备 Remote 压缩和普通请求的方式不同。提示词、工具定�
 
 Handoff 请求可能遗漏普通请求已有的系统指令，并使用不同生成选项。这些差异可能破坏共同缓存前缀。Handoff 对齐恢复受支持的共同内容和选项。
 
-支持 `openai-completions` 和 `openai-responses`，使用独立且默认关闭的开关。原生生成、取消和回退仍归 OMP。各 API 限制见 [Handoff 指南](./docs/handoff.zh.md)。
+使用独立且默认关闭的开关。原生生成、取消和回退仍归 OMP。当前协议、认证支持及限制见 [Handoff 指南](./docs/handoff.zh.md#支持范围)。
 
 ## 补齐压缩请求用量记录
 

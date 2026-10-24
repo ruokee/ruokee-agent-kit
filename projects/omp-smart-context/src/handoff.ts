@@ -1,4 +1,5 @@
 import { isDeepStrictEqual as equal } from "node:util";
+import { claudeCodeSystemInstruction } from "@oh-my-pi/pi-ai/providers/claude-code-fingerprint";
 import { object } from "./reuse.ts";
 import { z } from "zod";
 
@@ -59,6 +60,9 @@ export interface ResponsesSource {
 }
 export interface ResponsesProof extends ResponsesSource {
   readonly snapshot: readonly unknown[];
+}
+export interface AnthropicSource extends ResponsesSource {
+  readonly oauth: boolean;
 }
 
 export interface ToolShape {
@@ -218,6 +222,164 @@ export function alignResponses(reference: ResponsesRequest, side: ResponsesReque
   const unprojected =
     Number(!equal(reference.tool_choice, side.tool_choice)) +
     Number(!equal(reference.input.filter(isConfigurationUpdate), side.input.filter(isConfigurationUpdate)));
+  return equal(candidate, side)
+    ? { reason: "already-aligned", axes, unprojected }
+    : { reason: "rewritten", body: candidate, axes, unprojected };
+}
+
+const cacheControl = z.object({ type: z.literal("ephemeral"), ttl: z.enum(["5m", "1h"]).optional() }).strict();
+const anthropicToolChoice = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("none") }).strict(),
+  z.object({ type: z.literal("auto"), disable_parallel_tool_use: z.boolean().optional() }).strict(),
+]);
+const cacheableBlocks: Record<string, true> = {
+  text: true,
+  image: true,
+  document: true,
+  tool_use: true,
+  tool_result: true,
+  server_tool_use: true,
+};
+
+/** Normalize only native content-block cache decorations, never tool inputs or opaque replay data. */
+function anthropicContent(content: unknown): unknown {
+  if (typeof content === "string") return [{ type: "text", text: content }];
+  if (!Array.isArray(content)) return content;
+  return content.map((block: unknown) => {
+    if (!object(block) || cacheableBlocks[String(block.type)] !== true || !Object.hasOwn(block, "cache_control"))
+      return block;
+    const { cache_control: _cache, ...value } = block;
+    return value;
+  });
+}
+
+/** Provider cache order is tools, system, then messages; longer TTLs must precede shorter ones. */
+function anthropicCache(request: ChatRequest): { lifetimes: number[]; system: number[] } | undefined {
+  if (request.cache_control !== undefined) return undefined;
+  const tools = Array.isArray(request.tools) ? request.tools : [];
+  const system = Array.isArray(request.system) ? request.system : [];
+  const blocks: unknown[] = [...tools, ...system];
+  if (Array.isArray(request.messages)) {
+    for (const message of request.messages) {
+      if (!object(message) || !Array.isArray(message.content)) continue;
+      for (const block of message.content) {
+        if (object(block) && block.cache_control !== undefined && cacheableBlocks[String(block.type)] !== true)
+          return undefined;
+        blocks.push(block);
+      }
+    }
+  }
+  const lifetimes: number[] = [],
+    systemLifetimes: number[] = [];
+  for (let index = 0; index < blocks.length; index++) {
+    const block = blocks[index];
+    if (!object(block) || block.cache_control === undefined) continue;
+    const parsed = cacheControl.safeParse(block.cache_control);
+    if (!parsed.success) return undefined;
+    const ttl = parsed.data.ttl === "1h" ? 60 : 5;
+    if (lifetimes.length && ttl > lifetimes[lifetimes.length - 1]!) return undefined;
+    lifetimes.push(ttl);
+    if (index >= tools.length && index < tools.length + system.length) systemLifetimes.push(ttl);
+  }
+  return lifetimes.length <= 4 ? { lifetimes, system: systemLifetimes } : undefined;
+}
+
+/** Preserve native Anthropic generation and history; restore only a proved system prefix. */
+export function alignAnthropic(
+  reference: ChatRequest,
+  side: ChatRequest,
+  proof: ResponsesProof & { readonly oauth: boolean },
+): Alignment {
+  const refused = (reason: string): Alignment => ({ reason, axes: 0, unprojected: 0 });
+  if (
+    !Array.isArray(reference.messages) ||
+    !Array.isArray(side.messages) ||
+    !Array.isArray(reference.system) ||
+    !Array.isArray(side.system)
+  )
+    return refused("unsupported-payload-shape");
+  if (
+    !proof.source.length ||
+    proof.snapshot.length <= proof.source.length ||
+    !proof.source.every((message, index) => sameSource(message, proof.snapshot[index]))
+  )
+    return refused("source-prefix-unconfirmed");
+  if (!equal(reference.tools, side.tools)) return refused("tool-projection-changed");
+  if (!anthropicToolChoice.safeParse(side.tool_choice).success) return refused("generation-policy-conflict");
+  const live = reference.system,
+    pending = side.system;
+  const textBlock = (block: unknown): block is Record<string, unknown> & { text: string } =>
+    object(block) &&
+    block.type === "text" &&
+    typeof block.text === "string" &&
+    Object.keys(block).every((key) => ["type", "text", "cache_control"].includes(key));
+  if (!live.every(textBlock) || !pending.every(textBlock) || !proof.system.length)
+    return refused("system-prefix-unconfirmed");
+  const offset = live.length - proof.system.length;
+  if (offset !== 0 && (offset !== 2 || !proof.oauth)) return refused("system-prefix-unconfirmed");
+  if (offset === 2) {
+    const billing = /^x-anthropic-billing-header: cc_version=[^;]+; cc_entrypoint=cli; cch=00000;$/;
+    if (
+      pending.length < 2 ||
+      !billing.test(live[0]!.text) ||
+      !billing.test(pending[0]!.text) ||
+      live[1]!.text !== claudeCodeSystemInstruction ||
+      pending[1]!.text !== claudeCodeSystemInstruction
+    )
+      return refused("system-prefix-unconfirmed");
+  }
+  if (
+    proof.system.some((text) => text.startsWith("x-anthropic-billing-header:")) ||
+    !equal(
+      live.slice(offset).map((block) => block.text),
+      proof.system,
+    ) ||
+    pending.length > live.length ||
+    !pending
+      .slice(offset)
+      .every((block, index, prefix) =>
+        index === prefix.length - 1 ? proof.system[index]!.startsWith(block.text) : proof.system[index] === block.text,
+      )
+  )
+    return refused("system-prefix-unconfirmed");
+  const sideMessages = side.messages;
+  if (
+    !reference.messages.length ||
+    side.messages.length <= reference.messages.length ||
+    !reference.messages.every((message: unknown, index: number) => {
+      const other: unknown = sideMessages[index];
+      return (
+        object(message) &&
+        object(other) &&
+        equal(
+          { ...message, content: anthropicContent(message.content) },
+          { ...other, content: anthropicContent(other.content) },
+        )
+      );
+    })
+  )
+    return refused("prefix-projection-changed");
+  const liveCache = anthropicCache(reference),
+    sideCache = anthropicCache(side);
+  if (
+    !liveCache?.lifetimes.length ||
+    !sideCache?.lifetimes.length ||
+    !equal(new Set(liveCache.lifetimes), new Set(sideCache.lifetimes)) ||
+    !equal(liveCache.system, sideCache.system) ||
+    pending.some((block, index) => {
+      const before = block.cache_control,
+        after = live[index]?.cache_control;
+      return object(before) && object(after) && (before.ttl ?? "5m") !== (after.ttl ?? "5m");
+    })
+  )
+    return refused("cache-policy-unconfirmed");
+  const candidate = { ...side, system: [...pending.slice(0, offset), ...live.slice(offset)] };
+  if (!anthropicCache(candidate)) return refused("cache-policy-unconfirmed");
+  const axes = Number(!equal(reference.thinking, side.thinking));
+  const unprojected = ["tool_choice", "output_config", "context_management"].reduce(
+    (count, key) => count + Number(!equal(reference[key], side[key])),
+    0,
+  );
   return equal(candidate, side)
     ? { reason: "already-aligned", axes, unprojected }
     : { reason: "rewritten", body: candidate, axes, unprojected };

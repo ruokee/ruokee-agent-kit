@@ -10,11 +10,19 @@ import {
 } from "@oh-my-pi/pi-ai";
 import { convertTools } from "@oh-my-pi/pi-ai/providers/openai-responses";
 import { buildResponsesInput } from "@oh-my-pi/pi-ai/providers/openai-shared";
+import * as nativeAnthropic from "@oh-my-pi/pi-ai/providers/anthropic";
+import * as nativeAnthropicClient from "@oh-my-pi/pi-ai/providers/anthropic-client";
+import { normalizeAnthropicBaseUrl, resolveDirectAnthropicBaseUrl } from "@oh-my-pi/pi-ai/providers/anthropic-state";
+import { coworkFetch } from "@oh-my-pi/pi-ai/providers/cowork-fetch";
+import { transportFetch } from "@oh-my-pi/pi-ai/utils/transport-fetch";
+import type { FetchImpl } from "@oh-my-pi/pi-ai";
+import type { Alignment, AnthropicSource } from "./handoff.ts";
 import type { AgentSession, ExtensionContext, ModelRegistry } from "@oh-my-pi/pi-coding-agent";
 import { AgentRegistry } from "@oh-my-pi/pi-coding-agent/registry/agent-registry";
 import {
   align,
   alignResponses,
+  alignAnthropic,
   initialHandoff,
   type ChatRequest,
   type HandoffStatus,
@@ -31,6 +39,7 @@ const SLOT = Symbol.for("ruokee.omp-smart-context.alignment.coordinator");
 const OLD_QOL = Symbol.for("ruokee.omp-qol.compaction-cache.registry");
 const OLD_CACHE = Symbol.for("ruokee.omp-smart-cache.remote.coordinator");
 const slots = globalThis as typeof globalThis & { [key: symbol]: unknown };
+const nativeAnthropicRequest = nativeAnthropicClient.AnthropicHttpClient?.prototype.request;
 const increment = (value: number): number => Math.min(Number.MAX_SAFE_INTEGER, value + 1);
 const nativeEvalProjection = (message: AgentMessage): boolean =>
   message.role === "custom" &&
@@ -111,6 +120,7 @@ interface HandoffSession {
   readonly enabled: boolean;
   readonly status: HandoffStatus;
   readonly operations: WeakMap<AbortSignal, SideOperation>;
+  generation: number;
   reference?: SideReference;
   unavailable?: string;
 }
@@ -119,6 +129,7 @@ interface SideReference {
   readonly body: ChatRequest;
   readonly owner: Ownership;
   readonly responses?: ResponsesSource;
+  readonly anthropic?: AnthropicSource;
 }
 interface SideOperation {
   readonly id: number;
@@ -143,6 +154,10 @@ interface SidePending {
   readonly persistent: string;
   readonly provider: string;
   readonly signal: AbortSignal;
+  readonly generation: number;
+  anthropic?: ResponsesSource;
+  oauth?: boolean;
+  prepared?: boolean;
   responses?: ResponsesSource;
   sent?: boolean;
   body?: ChatRequest;
@@ -153,6 +168,7 @@ interface Observation {
   readonly state: State;
   readonly epoch: number;
   readonly model: Model;
+  readonly sideGeneration: number;
   readonly raw: AgentMessage[];
   readonly sourceTools: unknown;
   readonly expectedTools: unknown;
@@ -189,6 +205,17 @@ interface RegistryPatch {
 interface Patch {
   readonly owned: () => boolean;
   readonly restore: () => void;
+}
+interface AnthropicRequest {
+  readonly state: State;
+  readonly model: Model;
+  readonly signal: AbortSignal;
+  readonly path: string;
+  readonly oauth: boolean;
+  readonly native: string;
+  readonly body: ChatRequest;
+  readonly pending?: SidePending;
+  readonly operation?: SideOperation;
 }
 /** Host payload and response hooks, named here so this module never publishes a `ReturnType` contract. */
 type PayloadHook = NonNullable<SimpleStreamOptions["onPayload"]>;
@@ -306,6 +333,11 @@ class Coordinator {
   readonly sideRoots = new WeakMap<AbortSignal, SideOperation | null>();
   readonly dispatch = new AsyncLocalStorage<Observation>();
   readonly transport: Patch[] = [];
+  readonly anthropicRequest = new AsyncLocalStorage<AnthropicRequest | undefined>();
+  readonly anthropicDelegate = new AsyncLocalStorage<boolean>();
+  readonly anthropicFetches = new WeakSet<FetchImpl>();
+  anthropicPatch?: Patch;
+  anthropicFailure?: string;
   sequence = 0;
   closed = false;
   retiredConflict = false;
@@ -326,7 +358,7 @@ class Coordinator {
     const wrappedFetch = function (this: unknown, input: string | URL | Request, init?: RequestInit) {
       let outgoing = init;
       try {
-        outgoing = coordinator.inspect(input, init);
+        if (!coordinator.anthropicDelegate.getStore()) outgoing = coordinator.inspect(input, init);
       } catch {
         const inherited = coordinator.dispatch.getStore();
         if (inherited) inherited.state.status.sending = "send-inspection-failed";
@@ -406,10 +438,18 @@ class Coordinator {
       state.handoff.status.state = "unavailable";
       return false;
     }
+    if (state.session.model?.api === "anthropic-messages" && !this.installAnthropic()) {
+      state.handoff.reference = undefined;
+      state.handoff.status.reference = 0;
+      state.handoff.status.online = this.anthropicFailure ?? "anthropic-wrapper-lost";
+      state.handoff.status.state = "unavailable";
+      return false;
+    }
     if (
       state.owned.some((owned) => !owned()) ||
       state.sideOwned.some((owned) => !owned()) ||
-      (state.session.model?.api === "openai-responses" && state.remoteOwned.some((owned) => !owned()))
+      (["openai-responses", "anthropic-messages"].includes(state.session.model?.api ?? "") &&
+        state.remoteOwned.some((owned) => !owned()))
     )
       return this.unavailableSide(state, "session-wrapper-lost");
     if (
@@ -483,6 +523,7 @@ class Coordinator {
       state.manager.getSessionId() !== op.persistent ||
       state.session.sessionId !== op.provider ||
       !modelMatches(op.model, state.session.model) ||
+      op.reference !== state.handoff.reference ||
       !this.sideOwnershipConfirmed(state, op.reference) ||
       !this.validSide(state) ||
       state.session.isSessionTransitioning
@@ -673,6 +714,166 @@ class Coordinator {
     return outgoing;
   }
 
+  /** This optional seam belongs only to Anthropic; losing it cannot disable the other protocols. */
+  installAnthropic(): boolean {
+    if (this.anthropicFailure) return false;
+    if (this.anthropicPatch) {
+      if (this.anthropicPatch.owned()) return true;
+      this.anthropicFailure = "anthropic-wrapper-lost";
+      return false;
+    }
+    const prototype = nativeAnthropicClient.AnthropicHttpClient?.prototype;
+    if (
+      !prototype ||
+      typeof nativeAnthropicRequest !== "function" ||
+      prototype.request !== nativeAnthropicRequest ||
+      typeof nativeAnthropic.buildAnthropicSystemBlocks !== "function" ||
+      typeof nativeAnthropic.wrapFetchForCch !== "function"
+    ) {
+      this.anthropicFailure = "anthropic-interface-unconfirmed";
+      return false;
+    }
+    const coordinator = this;
+    const wrapped: typeof nativeAnthropicRequest = function (
+      this: nativeAnthropicClient.AnthropicHttpClient,
+      method,
+      path,
+      params,
+      options,
+    ) {
+      let frame: AnthropicRequest | undefined;
+      try {
+        const signal = options?.signal;
+        if (signal && method === "POST" && (path === "/v1/messages" || path === "/v1/messages?beta=true")) {
+          const operation = coordinator.sideOwner(signal);
+          const observation = coordinator.dispatch.getStore();
+          const pending =
+            !operation &&
+            operation !== null &&
+            observation?.side?.anthropic &&
+            coordinator.ancestors(signal).includes(observation.side.signal)
+              ? observation.side
+              : undefined;
+          const state = operation?.state ?? pending?.state;
+          const model = operation?.model ?? (pending ? observation?.model : undefined);
+          if (state && model?.api === "anthropic-messages") {
+            const native = JSON.stringify(params);
+            const body: unknown = native === undefined ? undefined : JSON.parse(native);
+            if (typeof native === "string" && object(body))
+              frame = {
+                state,
+                model,
+                signal,
+                path,
+                oauth: path === "/v1/messages?beta=true",
+                native,
+                body,
+                pending,
+                operation: operation ?? undefined,
+              };
+          }
+        }
+      } catch {
+        // A failed observation leaves the complete native request available.
+      }
+      return coordinator.anthropicRequest.run(frame, () =>
+        Reflect.apply(nativeAnthropicRequest, this, [method, path, params, options]),
+      );
+    };
+    try {
+      this.anthropicPatch = patch(prototype, "request", wrapped);
+      return true;
+    } catch {
+      this.anthropicFailure = "anthropic-interface-unconfirmed";
+      return false;
+    }
+  }
+
+  /** Inject below native transport policy, keeping caller-owned fetch implementations untouched. */
+  anthropicOptions(state: State, model: Model, options: SimpleStreamOptions): SimpleStreamOptions {
+    if (options.fetch) {
+      if (!this.anthropicFetches.has(options.fetch)) state.handoff.status.sending = "transport-unconfirmed";
+      return options;
+    }
+    const base = model.provider === "anthropic" ? coworkFetch : globalThis.fetch;
+    const boundary: FetchImpl = (input, init) => this.inspectAnthropic(state, model, base, input, init);
+    if (base.preconnect) boundary.preconnect = base.preconnect;
+    const fetch = transportFetch(model, boundary);
+    this.anthropicFetches.add(fetch);
+    return { ...options, fetch };
+  }
+
+  inspectAnthropic(
+    state: State,
+    model: Model,
+    base: FetchImpl,
+    input: string | URL | Request,
+    init?: RequestInit,
+  ): Promise<Response> {
+    const observed = this.anthropicRequest.getStore();
+    const frame = observed?.state === state && modelMatches(observed.model, model) ? observed : undefined;
+    let delegated = false;
+    let alignment: Alignment = { reason: "final-payload-unconfirmed", axes: 0, unprojected: 0 };
+    const send = (outgoing = init): Promise<Response> => {
+      if (frame?.operation) {
+        if (!this.sideOperationValid(frame.operation) || frame.signal.aborted || init?.signal?.aborted) {
+          outgoing = init;
+          alignment = { reason: "operation-invalidated", axes: 0, unprojected: 0 };
+        }
+        this.sideRecord(frame.operation, alignment.reason, alignment.axes, alignment.unprojected);
+      }
+      delegated = true;
+      return this.anthropicDelegate.run(true, () => base(input, outgoing));
+    };
+    const reject = (reason: string): Promise<Response> => {
+      alignment = { reason, axes: 0, unprojected: 0 };
+      if (frame?.pending) this.sideFailure(frame.pending, reason);
+      return send();
+    };
+    try {
+      if (!frame) return reject("transport-source-unconfirmed");
+      const baseUrl =
+        model.provider === "anthropic"
+          ? resolveDirectAnthropicBaseUrl(model)
+          : normalizeAnthropicBaseUrl(model.baseUrl);
+      if (input instanceof Request || String(input) !== `${baseUrl}${frame.path}` || init?.method !== "POST")
+        return reject("unsupported-transport-shape");
+      if (frame.signal.aborted || init.signal?.aborted || !this.validSide(state))
+        return reject("operation-invalidated");
+      const verified: FetchImpl = (_input, expected) => {
+        if (!equal(expected?.body, init.body)) return reject("final-payload-unconfirmed");
+        if (frame.pending) {
+          const pending = frame.pending;
+          if (pending.failed || !pending.prepared || !this.sidePendingValid(pending))
+            return reject(pending.failed ?? "dispatch-invalidated");
+          if (pending.body && (!equal(pending.body, frame.body) || pending.oauth !== frame.oauth))
+            return reject("payload-retry-changed");
+          pending.body = frame.body;
+          pending.oauth = frame.oauth;
+          pending.sent = true;
+          return send();
+        }
+        const operation = frame.operation;
+        if (!operation?.prepared) return reject("payload-proof-unconfirmed");
+        if (operation.reference.anthropic?.oauth !== frame.oauth) return reject("authentication-shape-changed");
+        alignment = this.sideCandidate(operation, frame.body);
+        if (!alignment.body) return send();
+        const body = JSON.stringify(alignment.body);
+        if (!frame.oauth) return send({ ...init, body });
+        return nativeAnthropic.wrapFetchForCch((_input, candidate) => send({ ...init, body: candidate?.body }))(input, {
+          ...init,
+          body,
+        });
+      };
+      return frame.oauth
+        ? nativeAnthropic.wrapFetchForCch(verified)(input, { ...init, body: frame.native })
+        : verified(input, { ...init, body: frame.native });
+    } catch (error) {
+      if (delegated) throw error;
+      return reject("send-inspection-failed");
+    }
+  }
+
   inspectSide(op: SideOperation, input: string | URL | Request, init?: RequestInit): RequestInit | undefined {
     const url = input instanceof Request ? input.url : String(input);
     const endpoint =
@@ -689,8 +890,14 @@ class Coordinator {
       this.sideRecord(op, "payload-proof-unconfirmed", 0, 0);
       return init;
     }
-    const candidate = this.sideRewrite(op, value);
-    return candidate === value ? init : { ...init, body: JSON.stringify(candidate) };
+    if (!object(value)) {
+      this.sideRecord(op, "unsupported-payload-shape", 0, 0);
+      return init;
+    }
+    const candidate = this.sideCandidate(op, value);
+    const outgoing = candidate.body ? { ...init, body: JSON.stringify(candidate.body) } : init;
+    this.sideRecord(op, candidate.reason, candidate.axes, candidate.unprojected);
+    return outgoing;
   }
 
   record(op: Operation, reason: string, reused: number, retained: number): void {
@@ -740,7 +947,7 @@ class Coordinator {
   }
 
   /** A new ordinary dispatch is pending; only its confirmed 2xx response replaces the session's reference. */
-  sidePending(state: State, signal?: AbortSignal): SidePending | undefined {
+  sidePending(state: State, signal?: AbortSignal, generation = state.handoff.generation): SidePending | undefined {
     const handoff = state.handoff;
     if (!signal) {
       handoff.status.online = "dispatch-signal-unconfirmed";
@@ -763,12 +970,17 @@ class Coordinator {
       persistent: state.manager.getSessionId(),
       provider: state.session.sessionId,
       signal,
+      generation,
     };
   }
   sideCapture(pending: SidePending, returned: unknown, args: unknown[]): void {
     const value = returned ?? args[0];
     if (!object(value)) {
       this.sideFailure(pending, "payload-proof-unconfirmed");
+      return;
+    }
+    if (pending.anthropic) {
+      pending.prepared = true;
       return;
     }
     const captured = pending.responses ? payload(value) : (copy(value) as ChatRequest);
@@ -787,26 +999,36 @@ class Coordinator {
   }
   sideFailure(pending: SidePending, reason: string): void {
     pending.failed = reason;
-    pending.state.handoff.status.online = reason;
+    const state = pending.state;
+    if (pending.generation === state.handoff.generation && pending.epoch === state.epoch)
+      state.handoff.status.online = reason;
   }
   sideConfirm(pending: SidePending, response: unknown): void {
     const handoff = pending.state.handoff;
-    if (pending.failed || pending.body === undefined) return;
+    if (pending.failed) return;
     if (!object(response) || typeof response.status !== "number" || response.status < 200 || response.status >= 300)
       return;
     if (!this.sidePendingValid(pending)) {
       this.sideFailure(pending, "dispatch-invalidated");
       return;
     }
-    if (pending.responses && !pending.sent) {
+    if ((pending.responses || pending.anthropic) && !pending.sent) {
       this.sideFailure(pending, "final-send-unconfirmed");
       return;
     }
+    if (pending.body === undefined) return;
     if (pending.responses ? !body(pending.body) : !Array.isArray(pending.body.messages)) {
       handoff.status.online = "unsupported-payload-shape";
       return;
     }
-    handoff.reference = { id: pending.id, body: pending.body, owner: pending.owner, responses: pending.responses };
+    handoff.reference = {
+      id: pending.id,
+      body: pending.body,
+      owner: pending.owner,
+      responses: pending.responses,
+      anthropic:
+        pending.anthropic && pending.oauth !== undefined ? { ...pending.anthropic, oauth: pending.oauth } : undefined,
+    };
     handoff.status.reference = pending.id;
     handoff.status.online = "ordinary-send-confirmed";
     if (!handoff.unavailable) handoff.status.state = "awaiting-reference";
@@ -815,6 +1037,7 @@ class Coordinator {
     const state = pending.state;
     return (
       pending.epoch === state.epoch &&
+      pending.generation === state.handoff.generation &&
       !pending.signal.aborted &&
       pending.persistent === state.manager.getSessionId() &&
       pending.provider === state.session.sessionId &&
@@ -842,6 +1065,11 @@ class Coordinator {
       !equal(messages.slice(0, -1), state.agent.state.messages)
     )
       return;
+    if (this.sideRoots.has(signal)) {
+      handoff.status.binding = "operation-already-bound";
+      return;
+    }
+    this.sideRoots.set(signal, null);
     const reference = handoff.reference;
     if (!reference) {
       handoff.status.binding = "live-reference-unconfirmed";
@@ -849,10 +1077,6 @@ class Coordinator {
     }
     if (!this.sideOwnershipConfirmed(state, reference)) {
       handoff.status.binding = "reference-owner-changed";
-      return;
-    }
-    if (this.sideRoots.has(signal)) {
-      handoff.status.binding = "operation-already-bound";
       return;
     }
     const operation: SideOperation = {
@@ -864,7 +1088,7 @@ class Coordinator {
       persistent: state.manager.getSessionId(),
       provider: state.session.sessionId,
       reference,
-      snapshot: reference.responses ? copy(messages) : undefined,
+      snapshot: reference.responses || reference.anthropic ? copy(messages) : undefined,
       sends: 0,
     };
     handoff.operations.set(signal, operation);
@@ -872,32 +1096,32 @@ class Coordinator {
     handoff.status.binding = "reference-bound";
   }
   /** Project only the final physical body; callbacks never count a send or publish a rewrite. */
-  sideRewrite(op: SideOperation, value: unknown): unknown {
-    if (!object(value)) {
-      this.sideRecord(op, "unsupported-payload-shape", 0, 0);
-      return value;
-    }
-    const side = value as ChatRequest;
-    if (!this.sideOperationValid(op)) {
-      this.sideRecord(op, op.state.handoff.unavailable ?? "operation-invalidated", 0, 0);
-      return side;
-    }
-    const native = JSON.stringify(side);
+  sideCandidate(op: SideOperation, value: ChatRequest): Alignment {
+    if (!this.sideOperationValid(op))
+      return { reason: op.state.handoff.unavailable ?? "operation-invalidated", axes: 0, unprojected: 0 };
+    const native = JSON.stringify(value);
     const memo = op.memo;
-    if (memo && memo.native === native) {
-      this.sideRecord(op, memo.reason, 0, 0);
-      return memo.reason === "rewritten" ? memo.sent : side;
-    }
-    const alignment =
-      op.model.api === "openai-responses"
-        ? op.reference.responses && op.snapshot
-          ? alignResponses(op.reference.body, side, { ...op.reference.responses, snapshot: op.snapshot })
-          : { reason: "source-proof-unconfirmed", axes: 0, unprojected: 0 }
-        : align(op.reference.body, side);
-    const outgoing = alignment.body ?? side;
-    op.memo = { native, sent: outgoing, reason: alignment.reason };
-    this.sideRecord(op, alignment.reason, alignment.axes, alignment.unprojected);
-    return outgoing;
+    if (memo && memo.native === native)
+      return {
+        reason: memo.reason,
+        body: memo.reason === "rewritten" ? memo.sent : undefined,
+        axes: 0,
+        unprojected: 0,
+      };
+    let alignment: Alignment;
+    if (op.model.api === "anthropic-messages")
+      alignment =
+        op.reference.anthropic && op.snapshot
+          ? alignAnthropic(op.reference.body, value, { ...op.reference.anthropic, snapshot: op.snapshot })
+          : { reason: "source-proof-unconfirmed", axes: 0, unprojected: 0 };
+    else if (op.model.api === "openai-responses")
+      alignment =
+        op.reference.responses && op.snapshot
+          ? alignResponses(op.reference.body, value, { ...op.reference.responses, snapshot: op.snapshot })
+          : { reason: "source-proof-unconfirmed", axes: 0, unprojected: 0 };
+    else alignment = align(op.reference.body, value);
+    op.memo = { native, sent: alignment.body ?? value, reason: alignment.reason };
+    return alignment;
   }
 
   register(
@@ -932,6 +1156,7 @@ class Coordinator {
           ? initialHandoff("reference-not-sent")
           : initialHandoff(selection.handoff.reason, selection.handoff.state),
         operations: new WeakMap(),
+        generation: 0,
       },
       raw: new WeakMap(),
       restores: [],
@@ -978,6 +1203,13 @@ class Coordinator {
       let observation: Observation | undefined;
       try {
         if (signal && pending.delete(signal)) {
+          if (state.handoff.enabled) {
+            state.handoff.generation = increment(state.handoff.generation);
+            state.handoff.reference = undefined;
+            state.handoff.status.reference = 0;
+            state.handoff.status.online = "reference-not-sent";
+            if (!state.handoff.unavailable) state.handoff.status.state = "awaiting-reference";
+          }
           if (state.selection.remote.active) {
             state.reference = undefined;
             state.sourceFailure = undefined;
@@ -987,11 +1219,13 @@ class Coordinator {
             if (!state.unavailable) state.status.state = "awaiting-reference";
           }
           const remote = remoteTarget(state, session.model) && coordinator.valid(state);
-          const side = session.model?.api === "openai-responses" && coordinator.validSide(state);
+          const side =
+            ["openai-responses", "anthropic-messages"].includes(session.model?.api ?? "") &&
+            coordinator.validSide(state);
           if ((remote || side) && !session.isSessionTransitioning) {
             state.persistent = state.manager.getSessionId();
             state.provider = session.sessionId;
-            const model = copy(session.model!) as Model<"openai-responses">;
+            const model = copy(session.model!) as Model;
             let sourceTools: unknown,
               expectedTools: unknown,
               independent = false,
@@ -1003,8 +1237,13 @@ class Coordinator {
                     injectIntent: session.agent.intentTracing,
                     pruneDescriptions: session.agent.pruneToolDescriptions,
                   }) ?? [];
-                sourceTools = copy(convertTools(session.agent.state.tools, model.compat.supportsStrictMode, model));
-                expectedTools = copy(convertTools(normalized, model.compat.supportsStrictMode !== false, model));
+                const responses = model as Model<"openai-responses">;
+                sourceTools = copy(
+                  convertTools(session.agent.state.tools, responses.compat.supportsStrictMode, responses),
+                );
+                expectedTools = copy(
+                  convertTools(normalized, responses.compat.supportsStrictMode !== false, responses),
+                );
                 independent = state.nativeSource && nativeIndependent(session, messages);
               } catch {
                 failed = state.sourceFailure = state.status.online = "source-observation-failed";
@@ -1014,6 +1253,7 @@ class Coordinator {
               id: coordinator.next(),
               state,
               epoch: state.epoch,
+              sideGeneration: state.handoff.generation,
               model,
               raw: copy(messages),
               sourceTools,
@@ -1029,7 +1269,7 @@ class Coordinator {
         }
       } catch {
         if (state.selection.remote.active) state.sourceFailure = state.status.online = "source-observation-failed";
-        if (state.handoff.enabled && session.model?.api === "openai-responses")
+        if (state.handoff.enabled && ["openai-responses", "anthropic-messages"].includes(session.model?.api ?? ""))
           state.handoff.status.online = "source-observation-failed";
       }
       const result: Promise<AgentMessage[]> = Reflect.apply(context, this, [messages, signal]);
@@ -1086,7 +1326,8 @@ class Coordinator {
         };
         return Reflect.apply(stream, this, [model, prepared, { ...options, onPayload, onResponse }]);
       }
-      if (model?.api !== "openai-responses") return Reflect.apply(stream, this, [model, prepared, options]);
+      if (model?.api !== "openai-responses" && model?.api !== "anthropic-messages")
+        return Reflect.apply(stream, this, [model, prepared, options]);
       let observation: Observation | undefined;
       try {
         const matches = new Set(
@@ -1101,21 +1342,27 @@ class Coordinator {
         ) {
           observation = [...matches][0]!;
           if (!session.isGeneratingHandoff && prepared.tools?.length && coordinator.validSide(state)) {
-            const pending = coordinator.sidePending(state, options?.signal);
+            const pending = coordinator.sidePending(state, options?.signal, observation.sideGeneration);
             if (pending) {
-              const responsesModel = model as Model<"openai-responses">;
-              const system = buildResponsesInput({
-                model: responsesModel,
-                context: { systemPrompt: prepared.systemPrompt, messages: [] },
-                systemRole: "developer",
-                strictResponsesPairing: responsesModel.compat.strictResponsesPairing,
-                supportsImageDetailOriginal: responsesModel.compat.supportsImageDetailOriginal === true,
-              }).map((item) => {
-                if (!object(item) || item.role !== "developer" || typeof item.content !== "string")
-                  throw new Error("system-source-unconfirmed");
-                return item.content;
-              });
-              pending.responses = { system, source: observation.raw };
+              if (model.api === "anthropic-messages") {
+                const system =
+                  nativeAnthropic.buildAnthropicSystemBlocks(prepared.systemPrompt)?.map((block) => block.text) ?? [];
+                pending.anthropic = { system, source: observation.raw };
+              } else {
+                const responsesModel = model as Model<"openai-responses">;
+                const system = buildResponsesInput({
+                  model: responsesModel,
+                  context: { systemPrompt: prepared.systemPrompt, messages: [] },
+                  systemRole: "developer",
+                  strictResponsesPairing: responsesModel.compat.strictResponsesPairing,
+                  supportsImageDetailOriginal: responsesModel.compat.supportsImageDetailOriginal === true,
+                }).map((item) => {
+                  if (!object(item) || item.role !== "developer" || typeof item.content !== "string")
+                    throw new Error("system-source-unconfirmed");
+                  return item.content;
+                });
+                pending.responses = { system, source: observation.raw };
+              }
               observation.side = pending;
             }
           }
@@ -1216,8 +1463,13 @@ class Coordinator {
         if (observed.side) coordinator.sideConfirm(observed.side, args[0]);
         return result;
       };
+      const outgoing = { ...options, onPayload, onResponse };
       return coordinator.dispatch.run(observed, () =>
-        Reflect.apply(stream, this, [model, prepared, { ...options, onPayload, onResponse }]),
+        Reflect.apply(stream, this, [
+          model,
+          prepared,
+          model.api === "anthropic-messages" ? coordinator.anthropicOptions(state, model, outgoing) : outgoing,
+        ]),
       );
     };
     const streamPatch = patch(session.agent, "streamFn", wrappedStream);
@@ -1284,7 +1536,10 @@ class Coordinator {
         };
         return returned instanceof Promise ? returned.then(prepared) : prepared(returned);
       };
-      return Reflect.apply(prepare, this, [{ ...options, onPayload }, provider]);
+      const prepared = Reflect.apply(prepare, this, [{ ...options, onPayload }, provider]) as SimpleStreamOptions;
+      return operation.model.api === "anthropic-messages"
+        ? coordinator.anthropicOptions(state, operation.model, prepared)
+        : prepared;
     };
     const preparePatch = patch(session, "prepareSimpleStreamOptions", wrappedPrepare);
     state.restores.push(preparePatch.restore);
@@ -1328,6 +1583,9 @@ class Coordinator {
       this.retiredConflict = this.transport.some((installed) => !installed.owned());
       for (let index = this.transport.length - 1; index >= 0; index--) this.transport[index]!.restore();
       this.transport.length = 0;
+      this.anthropicPatch?.restore();
+      this.anthropicRequest.disable();
+      this.anthropicDelegate.disable();
       this.dispatch.disable();
     }
   }

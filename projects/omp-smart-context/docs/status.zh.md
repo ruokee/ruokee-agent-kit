@@ -24,6 +24,8 @@
 - `sending`：原生传输收到改写正文还是原始正文。
 - `dispatch`、`operation`、`reference`：分别标识普通发送、操作及其普通请求参照的局部计数，不是模型或提供方身份。
 
+Anthropic 的 `transport-unconfirmed` 表示保留调用方 fetch，`cache-policy-unconfirmed` 表示不修改不兼容的缓存布局。Anthropic 专用接口失效不会停用 Remote 或其他 Handoff 协议。新普通发送开始后，旧响应不能恢复其参照。
+
 ## 计数
 
 - `operations`：逻辑压缩或 Handoff 操作数。

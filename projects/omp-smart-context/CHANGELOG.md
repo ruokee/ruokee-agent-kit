@@ -2,6 +2,13 @@
 
 [中文](./CHANGELOG.zh.md)
 
+## 0.1.3
+
+- Support Anthropic Handoff with native API-key and OAuth transport. Restore proved system prefixes while preserving native generation policy, identity, caching limits, and document adoption.
+- Confirm references at final transport and reject stale responses or revoked retries. Keep caller-owned fetch implementations native.
+- Keep reference status tied to the current ordinary dispatch, including no-tool and unverified caller-owned transport cases.
+- Reject conflicting system cache TTLs and unknown tool-choice fields before projecting Anthropic requests.
+
 ## 0.1.2
 
 - Clarify Pin retention guidance so short-lived information is not excluded solely because of its lifetime.

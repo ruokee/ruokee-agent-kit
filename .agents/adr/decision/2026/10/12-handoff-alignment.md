@@ -2,13 +2,13 @@
 
 Decision owner: Ruokee
 Decision writer: OMP
-Reverses: [Handoff alignment](../../../archived/2026/10/12-r2-handoff-alignment.md)
+Reverses: [Handoff alignment](../../../archived/2026/10/12-r3-handoff-alignment.md)
 
 English | [中文](./12-handoff-alignment.zh.md)
 
 ## Motivation
 
-Maintain Handoff cache alignment as an independent capability of `@ruokee/omp-smart-context`.
+Maintain Handoff alignment as an independent capability of `@ruokee/omp-smart-context`.
 
 Handoff generates a handoff document or compaction summary from the live conversation. Its side request repeats system prompts, tools, and history already sent by the ordinary main loop. Rebuilding a different common prefix loses eligibility to reuse that input. Responses Handoff carries no V2 compaction trigger and therefore needs its own protocol projection rather than [remote alignment](./10-remote-alignment.md). The [extension decision](./12-smart-cache.md) records the package, capability model, and shared maintenance floor.
 
@@ -20,6 +20,8 @@ Only a confirmed ordinary dispatch proves content was actually sent. A final sid
 
 Responses and Chat Completions express system prompts and reasoning differently. Responses can use top-level `instructions` or leading `developer` segments. Its document generation uses native `none` and can carry reasoning configuration updates. Copying Chat Completions restoration rules would change generation policy or separate reasoning state. Client projection and native adoption can be verified independently; Provider benefit still requires comparable real requests.
 
+Anthropic also separates system blocks from history. Its OAuth path adds request-local billing and identity blocks and attests the serialized body through native CCH processing. System restoration therefore needs its own final-byte proof, without copying ordinary authentication identity or generation policy. Protocol-specific requirements call for separate projection rules, not a fixed boundary on Handoff coverage. This decision replaces the predecessor's two-protocol restriction; Remote remains limited to eligible Responses V2 requests.
+
 ## Decision
 
 ### Public configuration
@@ -30,7 +32,7 @@ The only Handoff setting is the native boolean `handoffCacheEnabled`, defaulting
 
 ### Request ownership
 
-Handoff supports `openai-completions` and `openai-responses` rather than selecting from a Provider list. In a Responses session, a proved native Handoff side request belongs to Handoff, while an eligible V2 request belongs to remote. At most one capability rewrites a physical request. Other APIs are outside both capabilities.
+Handoff targets cache alignment for nearly all models that can use native Handoff, without a fixed model or protocol boundary. Eligibility depends on proved request ownership and protocol-specific projection rules, not a Provider list. The [Handoff guide](../../../../../projects/omp-smart-context/docs/handoff.md#support) records current support. Requests without a supported projection remain native. Eligible V2 requests belong to Remote. At most one capability rewrites a physical request.
 
 The switches are independent. Handoff still obtains its own eligible ordinary reference when remote is disabled, its Provider is not selected, or its mode differs. Enabling Handoff does not enable remote.
 
@@ -64,6 +66,16 @@ Ordinary raw source must be a complete prefix of the native Handoff snapshot, co
 
 Keep native Responses `none` and the host's existing auto-only compatibility retry; do not restore ordinary auto. Keep side-request nested reasoning and native configuration updates rather than copying one ordinary effort field and separating their state. Count these unprojected axes independently without claiming full equality to the ordinary request.
 
+### Anthropic projection
+
+Restore only proved missing system text blocks or a suffix in the final block. The ordinary prepared system must match the confirmed wire system; raw source and common wire history must remain complete prefixes of the native side snapshot and request. Tool definitions must match. Preserve native messages, tool call/result pairing, images, signatures, and opaque replay. Only the comparison view may normalize known content-block cache markers and equivalent string/text-block forms, never unknown fields or tool arguments.
+
+Keep native document-generation `none`, thinking, output and context-management configuration, metadata, headers, routing, signal, side identity, authentication, and retries. Preserve the current OAuth request's billing and identity prefix. Verify its original final bytes and use the host's native CCH processing for the complete candidate, rather than borrowing ordinary billing bytes or implementing another hash.
+
+System cache markers follow the proved fragments, without enabling disabled caching, changing TTLs, moving message/tool breakpoints, or exceeding the native breakpoint budget. Unknown shapes or incompatible cache policies preserve the whole native request. Identical candidates and failed final proof retain the original body and serialization.
+
+Use the selected native transport with its proxy, CA, headers, and debugging policy. Keep caller-owned fetch implementations unchanged when their final transformation cannot be proved. Anthropic-only interface failure leaves Remote and the other Handoff protocols available.
+
 ### Failure boundary
 
 Missing references, insufficient proof, changed ownership, cancellation, old epochs, ambiguous operations, unknown wrapper baselines, lost wrapper ownership, and mixed versions remain native with fixed reasons. `rejected` means no rewrite, never a blocked, delayed, or dropped request. Later hooks retain their non-projected options.
@@ -82,7 +94,7 @@ The capabilities share the package, coordinator, per-session registration, one w
 
 OMP owns document generation, scheduling, triggering, speculation, waiting, cancellation, authentication and transport retries, model or method fallback, result validation, adoption, history commits, and continuation. This capability adds no entry point, registers no `session_before_compact`, replaces no manual compaction, vetoes no request, adds no credential or reference request, reruns no handler, changes no setting, fabricates or structurally validates no summary, and adds no retry. Native empty results, cancellation, and fallback keep host failure and adoption semantics and never count as native success.
 
-Chat Completions tool-choice restoration can make a model call a tool instead of producing text, leaving the host with an empty document. This capability executes no such tool and adds no retry. Responses keeps native document-generation tool choice.
+Chat Completions tool-choice restoration can make a model call a tool instead of producing text, leaving the host with an empty document. This capability executes no such tool and adds no retry. Generation policy remains native except for the explicitly permitted projection axes.
 
 Replace the adaptation after behavioral verification that a maintained native interface provides equivalent results, configuration semantics, isolation, and failure behavior across required paths. An upstream merge alone is not that proof.
 
@@ -92,9 +104,7 @@ The package replaces and disables the local trial extension after this capabilit
 
 Move the existing switch at both user and project scope to smart-context, remove the old package entry, and restart rather than stack wrappers or transfer live references. No runtime fallback reads the old namespace and no automatic migration changes user settings.
 
-The [Handoff Spec](../../../../spec/omp-smart-context/handoff.md) uses repository checks and local controlled requests through the actual host library for integration acceptance. Cover both APIs' positive projections and refusals, independent remote settings, one rewrite per request, no repeated handler, and read-only status. Real-model calls and a full CLI/TUI matrix are not integration gates. Preserve historical trial and installation evidence with its original owner and conditions; Provider benefit claims require comparable actual measurements.
-
-This successor replaces the archived package ownership, status entry, and integration gate. All protocol, lifecycle, native-policy, failure, and replacement rules remain in force.
+The [Handoff Spec](../../../../spec/omp-smart-context/handoff.md) uses repository checks and local controlled requests through the actual host library for integration acceptance. Cover each supported protocol's positive projections, refusals, and authentication paths, independent remote settings, one rewrite per request, no repeated handler, and read-only status. Real-model calls and a full CLI/TUI matrix are not integration gates. Preserve historical trial and installation evidence with its original owner and conditions; Provider benefit claims require comparable actual measurements.
 
 ## Alternatives considered
 
@@ -105,5 +115,7 @@ None
 Sharing the coordinator widens the regression scope of shared changes. Ordinary, Handoff, and remote paths need separate release verification. Mixed versions or foreign wrappers can make adaptation unavailable; conservative conflict handling and restart-based cutover keep native requests available.
 
 Host changes to preparation, system expression, or transport can invalidate source proof and lose benefit. Overly broad boundaries could restore stale content, duplicate developer messages, copy across sessions, or change generation policy. Immutable ownership and complete-candidate proof remain necessary.
+
+Anthropic's final-byte proof depends on native HTTP and CCH interfaces. Host changes can disable its projection while requests remain native; maintaining that seam is the accepted cost of covering OAuth without changing authentication or transport policy.
 
 Alignment guarantees neither Provider cache residency nor a hit rate or savings. Tool choice, reasoning state, and server policy can retain cache differences. Controlled responses and synthetic usage do not replace real benefit verification.
