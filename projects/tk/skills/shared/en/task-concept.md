@@ -67,7 +67,7 @@ Ordinary materials are not governed by the tk schema and are not added to the Ta
 
 `tk.toml` contains only managed metadata. `TASK.md` contains only the body.
 
-`embed` mode stores managed metadata in strict tk YAML frontmatter at the top of `TASK.md`, followed by the body. Missing, duplicate, or unknown fields, incorrect types, or non-canonical ordering may invalidate the carrier.
+`embed` mode stores managed metadata in strict tk YAML frontmatter at the top of `TASK.md`, followed by the body. Missing, duplicate, or unknown fields or incorrect types may invalidate the carrier. The runtime writes fields in canonical order; reading does not require that order.
 
 The project's `metadata_mode` must match the carriers on disk. Do not convert carriers manually. See [Project storage](./project-storage.md) for project-wide conversion.
 

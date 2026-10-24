@@ -6,8 +6,8 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use rmcp::model::{
-    CallToolRequestParams, CallToolResponse, CallToolResult, Implementation, ListToolsResult,
-    PaginatedRequestParams, ServerCapabilities, ServerInfo, Tool,
+    CacheScope, CallToolRequestParams, CallToolResponse, CallToolResult, Implementation,
+    ListToolsResult, PaginatedRequestParams, ServerCapabilities, ServerInfo, Tool,
 };
 use rmcp::service::{RequestContext, RxJsonRpcMessage, TxJsonRpcMessage};
 use rmcp::transport::Transport;
@@ -15,8 +15,7 @@ use rmcp::{ErrorData as McpError, RoleServer, ServerHandler, ServiceExt};
 use serde::Serialize;
 use serde_json::{Value, json};
 use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufReader};
-use tokio::net::unix::pipe::{Receiver, Sender};
-use tokio::process::Command;
+use tokio::process::{ChildStdin, ChildStdout, Command};
 
 use crate::app::{
     self, AppWarning, CreateRequest, CreateTaskInput, LifecycleOptions, ReadView, SearchRequest,
@@ -181,11 +180,12 @@ pub fn serve() -> ExitCode {
             .as_fd()
             .try_clone_to_owned()
             .map_err(|error| format!("duplicate stdout failed: {error}"))?;
+        // Process stdio adapters keep both pipes and Unix sockets nonblocking.
         let transport = BoundedStdioTransport::new(
-            Receiver::from_owned_fd(stdin)
-                .map_err(|error| format!("open stdin pipe failed: {error}"))?,
-            Sender::from_owned_fd(stdout)
-                .map_err(|error| format!("open stdout pipe failed: {error}"))?,
+            ChildStdout::from_std(stdin.into())
+                .map_err(|error| format!("open stdin failed: {error}"))?,
+            ChildStdin::from_std(stdout.into())
+                .map_err(|error| format!("open stdout failed: {error}"))?,
             MAX_MCP_FRAME_BYTES,
         );
         let service = server
@@ -225,10 +225,9 @@ impl ServerHandler for TkServer {
         _request: Option<PaginatedRequestParams>,
         _context: RequestContext<RoleServer>,
     ) -> std::result::Result<ListToolsResult, McpError> {
-        Ok(ListToolsResult {
-            tools: mcp_tools(),
-            ..Default::default()
-        })
+        Ok(ListToolsResult::with_all_items(mcp_tools())
+            .with_ttl_ms(0)
+            .with_cache_scope(CacheScope::Private))
     }
 
     fn get_tool(&self, name: &str) -> Option<Tool> {

@@ -53,7 +53,9 @@ Shared configuration must be fully parsed before editing. Parse failure preserve
 
 ### Native loading
 
-Before the first tool registration, Pi and OMP verify the fixed runtime file and execution bit, readable version JSON, valid native contract, matching runtime versions, native contract version `3`, exact selected Harness, runtime compatibility `>=0.1,<0.2`, all six tool names and schemas, and required host-specific fields. Compatibility range evaluation belongs to the public runtime, not an independently divergent adapter rule.
+Before the first tool registration, Pi and OMP verify the fixed runtime file and execution bit, readable version JSON, valid native contract envelope, matching runtime versions, native contract version `3`, exact selected Harness, runtime compatibility `>=0.1,<0.2`, all six tool names and descriptions, an object-valued request schema for each tool, and required host-specific fields. Compatibility range evaluation belongs to the public runtime, not an independently divergent adapter rule.
+
+The runtime supplies complete request schemas shared by MCP and native integrations, including fields, required inputs, defaults, and create union semantics. Adapters verify schema objects, not their internal field completeness. An empty properties object is outside the adapter's preflight rejection guarantee.
 
 Preflight failure registers zero tools, emits one bounded diagnostic, and leaves the Harness session running. There is no fallback executable. If registration itself fails partway through, stop subsequent registration and report the error; the already accepted prefix may remain. Do not claim registration rollback.
 
@@ -73,7 +75,7 @@ OMP tools-mode host code has maintenance lower bound `18.5.0`; Pi has `0.84.4`. 
 
 - Both languages of all four tools integrations install, load, and uninstall in real isolated Harness environments. OMP additionally completes one real tool call; Codex, Claude Code, and Pi need no model call after successful loading. Observe actual loading and post-removal state.
 - CLI mode is placed and discovered as an ordinary Skill in each Harness root. Custom-root behavior covers relative and absolute roots, missing parents, language switches, dry-run, exact convergence, no change, and removal while preserving unrelated contents.
-- Missing runtime, non-regular runtime, missing execute bits, invalid version/contract, wrong Harness, incompatible runtime, and incomplete native schemas produce zero registrations and one bounded diagnostic without ending the session. Intermediate registration failure stops at the accepted prefix.
+- Missing runtime, non-regular runtime, missing execute bits, invalid version or contract envelope, wrong Harness, incompatible runtime, missing tools, missing or non-object request schemas, and invalid host-specific fields produce zero registrations and one bounded diagnostic without ending the session. Intermediate registration failure stops at the accepted prefix. The runtime's normal schemas remain complete and consistent with its accepted requests.
 - Mode and language switching remove superseded tk content. Failed registration cleanup preserves tools targets and reports incomplete work without preventing the specified CLI Skill operations.
 - Shared-configuration parse failure preserves original bytes. Clean uninstall removes modified and extra tk-owned contents while preserving unrelated entries and later changes.
 - Corrupt or mismatched distribution content fails before writes. A repeated identical install returns no change; drift is restored to the complete selection. All partial failures and GC effects remain accurately observable.

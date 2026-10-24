@@ -17,14 +17,13 @@ This document defines the six logical tools, their MCP and native names, request
 
 The MCP server uses the `tk` namespace. Protocol tool names do not repeat the namespace.
 
-Rust generates the MCP and native schema from the same request types. A Harness must not add fields, change defaults, or duplicate domain validation.
+The Rust runtime maintains one handwritten JSON schema set shared by MCP and native integrations. Maintainers must keep it synchronized with the request types. A Harness must not add fields, change defaults, or duplicate domain validation.
 
 ## Common context
 
 The following fields appear as required by each tool:
 
 - `cwd`: optional path. Starting point for project discovery; relative values resolve against the runtime process directory.
-- `harness`: optional enum. Diagnostic context; not persisted.
 - Cancellation: a transport signal. Honored before the first write and between multi-target commit points.
 
 actor is not a common context field. It appears only in update, log, and exec rename requests that append to the WAL.
@@ -96,7 +95,7 @@ The runtime does not fabricate domain error results for panics, transport interr
 
 | Category | Typical error codes |
 | --- | --- |
-| `request` | `invalid_request`, `invalid_regex` |
+| `request` | `invalid_request`, `invalid_search_regex` |
 | `context` | `project_not_found`, `path_outside_project` |
 | `environment` | `runtime_not_installed`, `runtime_not_executable`, `process_start_failed` |
 | `configuration` | `invalid_configuration`, `project_not_initialized` |
@@ -192,7 +191,7 @@ update modifies relationships, `extra`, and at most one lifecycle action:
 - Relationships: `depends_on_add/remove`, `related_to_add/remove`.
 - extra: `extra_set`, `extra_remove`, processing top-level keys only.
 - Lifecycle: at most one of `start`, `close`, or `reopen`.
-- Lifecycle parameters: close and reopen require a non-empty `reason` and `user_confirmed=true`; close may use `force`.
+- Lifecycle parameters: `start` is a boolean and takes no reason. `close` and `reopen` are strings containing the required non-empty reason and require `user_confirmed=true`; close may use `force`. There is no separate `reason` field.
 - WAL: optional `actor`, defaulting to the actor of the calling channel.
 
 An empty request or a request with no net result change returns `changed:false`. The runtime automatically appends to the WAL after committing metadata. An append failure is returned as a warning.

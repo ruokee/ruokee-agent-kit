@@ -62,7 +62,7 @@ Only OMP uses `loadMode`. The adapter passes the OMP cancellation signal to the 
 
 Codex and Claude Code use `tk mcp`. Users may configure MCP separately for Pi and OMP, but the native components do not install or manage that external MCP configuration.
 
-The MCP server exposes six protocol tools: `search`, `read`, `create`, `update`, `log`, and `exec`. The schema is generated from Rust request types.
+The MCP server exposes six protocol tools: `search`, `read`, `create`, `update`, `log`, and `exec`. MCP and native integrations share the Rust runtime's handwritten schema declarations. Maintainers keep those declarations synchronized with the request types.
 
 ## Native schema
 
@@ -85,11 +85,13 @@ Before registering the first tool, the extension entry point completes all of th
 4. The native schema can be parsed;
 5. The contract runtime version equals the version JSON's;
 6. The contract's `runtime_compat` equals the range the adapter requires;
-7. All six tool names, request schemas, and Harness-specific fields are complete.
+7. All six tool names, descriptions, request schema objects, and Harness-specific fields are present and valid for the selected host.
 
 Rust evaluates compatibility ranges during component installation.
 
-If the runtime is missing or not executable, the version is incompatible, the manifest or schema is invalid, or a mapping is incorrect, the entry point catches the error, emits one bounded diagnostic, and stops loading. It must not terminate the Harness session.
+The runtime owns the completeness of fields, required inputs, defaults, and unions inside each request schema. Adapters check that each schema is an object; they do not inspect its internal fields or duplicate domain rules. An empty properties object does not fail this object check.
+
+If the fixed runtime, version, native contract envelope, tool set, schema objects, or host-specific fields fail these preflight checks, the entry point catches the error, emits one bounded diagnostic, and stops loading. It must not terminate the Harness session.
 
 If preflight fails, zero tools are registered. If a `registerTool` call fails partway through registration, the adapter stops subsequent registration and reports the error. Any prefix of tools already accepted by the Harness may remain registered. The adapter must not claim rollback guarantees that it cannot provide.
 

@@ -28,6 +28,10 @@ The following commands use short-lived processes:
 
 The MCP server serves exactly one stdio connection. It may retain immutable tool definitions, but it resolves cwd, the project, and the Task again for every call. The runtime does not cache the project graph or create a background index.
 
+On Unix, the MCP entry uses Tokio's nonblocking process-stdio adapters for both pipes and Unix stream sockets. Readiness-based I/O lets cancellation stop the connection without waiting for another input byte; the entry does not require a FIFO descriptor.
+
+Tool-list responses include `ttlMs: 0` and `cacheScope: "private"`. These fields satisfy MCP 2026-07-28 cache metadata requirements without granting a freshness interval or cross-client cache sharing.
+
 Each native tool call from Pi or OMP starts the public `tk` executable. Adapters do not invoke a shell or call hidden subcommands.
 
 ## Request context

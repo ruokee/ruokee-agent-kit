@@ -29,7 +29,7 @@ Use the Harness-provided logical tk tools for routine operations:
 
 - logical operations are `search`, `read`, `create`, `update`, `log`, and `exec`;
 - Pi and OMP usually expose `tk_search`, `tk_read`, `tk_create`, `tk_update`, `tk_log`, and `tk_exec`;
-- Codex and Claude Code use the same operations through MCP, usually as `task.find`, `task.read`, `task.create`, `task.update`, `task.log`, and `task.exec`. The actual prefix depends on the MCP service name, but fields, results, and domain rules do not change;
+- Codex and Claude Code expose the same six logical names through MCP. Use the names exposed by the Harness; the service prefix may vary, but fields, results, and domain rules do not change;
 - use `exec` only for `--version`, `init`, `check`, and `rename`.
 
 Pass the current absolute `cwd` on every call. A complete absolute Task or material path can locate its own project.
@@ -114,7 +114,7 @@ Use `update` to change Task metadata, status, and relationships. Use host file t
 
 Lifecycle rules:
 
-- Every lifecycle transition requires a reason.
+- `start=true` starts a planning Task and takes no reason. `close` and `reopen` each take a non-empty reason as their string value, not as a separate field.
 - `planning` may move to `open` or directly to `closed` when work will not proceed. No other status moves to `planning`.
 - `open` may close to `closed`; `closed` may reopen to `open`.
 - A Task can close normally only after every descendant and dependency is closed. Use `force` only when the user explicitly asks to bypass that check.

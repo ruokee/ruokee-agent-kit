@@ -123,7 +123,7 @@ Use `tk update` to change Task metadata, status, and relationships. Use host fil
 
 Lifecycle rules:
 
-- Every lifecycle transition requires a reason.
+- `--start` starts a planning Task and takes no reason. `--close` and `--reopen` each take a non-empty reason as their argument.
 - `planning` may move to `open` or directly to `closed` when work will not proceed. No other status moves to `planning`.
 - `open` may close to `closed`; `closed` may reopen to `open`.
 - A Task can close normally only after every descendant and dependency is closed. Use `force` only when the user explicitly asks to bypass that check.

@@ -31,7 +31,7 @@ tk [--cwd <path>] [--output <text|json>] <command> ...
 {
   "ok": false,
   "error": {
-    "code": "invalid_args",
+    "code": "invalid_request",
     "category": "request",
     "message": "...",
     "details": {}
@@ -78,6 +78,8 @@ tk search <query>
 | `--limit` | `20` | 范围是 `1..100` |
 
 搜索先确定查询类型，不在一种解释失败后自动改用另一种解释。结果可能为零个、一个或多个候选。需要修改任务时，应先选择唯一目标。
+
+非法正则表达式返回错误码 `invalid_search_regex`。
 
 ## `tk read`
 
@@ -319,7 +321,7 @@ JSON 结果包含：
 
 ```json
 {
-  "runtime_version": "0.1.12",
+  "runtime_version": "0.1.13",
   "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 4

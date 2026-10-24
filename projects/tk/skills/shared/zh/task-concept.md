@@ -67,7 +67,7 @@ WAL 记录已发生的持久事件，例如决定、纠正、可恢复里程碑�
 
 `tk.toml` 只保存受管元数据，`TASK.md` 只保存正文。
 
-`embed` 模式使用 `TASK.md` 顶部严格的 tk YAML frontmatter 保存受管元数据，frontmatter 之后是正文。缺失、重复、未知字段、错误类型或非规范顺序都可能使载体无效。
+`embed` 模式使用 `TASK.md` 顶部严格的 tk YAML frontmatter 保存受管元数据，frontmatter 之后是正文。缺失、重复、未知字段或错误类型可能使载体无效。运行时按规范顺序写入字段，读取不要求该顺序。
 
 项目配置的 `metadata_mode` 必须与磁盘载体一致。不能手工把一种载体改成另一种。项目级转换见[项目存储](./project-storage.md)。
 

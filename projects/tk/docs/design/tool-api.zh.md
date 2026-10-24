@@ -17,14 +17,13 @@
 
 MCP server 使用 `tk` 命名空间。协议内工具名称不重复命名空间。
 
-Rust 从同一组请求类型生成 MCP 和 native schema。Harness 不能增加字段、修改默认值或复制领域验证。
+Rust 运行时维护一组由 MCP 和 native 集成共享的手写 JSON schema。维护者负责使它与请求类型同步。Harness 不能增加字段、修改默认值或复制领域验证。
 
 ## 公共上下文
 
 以下字段按工具需要出现：
 
 - `cwd`：可选路径。项目发现起点；相对值基于运行时进程目录解析。
-- `harness`：可选枚举。诊断上下文，不持久化。
 - 取消：一种传输信号。在首次写入前和多目标提交点之间响应。
 
 actor 不是公共上下文字段。它只出现在会追加 WAL 的 update、log 和 exec rename 请求中。
@@ -96,7 +95,7 @@ cwd 选择顺序是请求显式值、Harness 会话目录、运行时进程目�
 
 | 类别 | 典型错误码 |
 | --- | --- |
-| `request` | `invalid_request`、`invalid_regex` |
+| `request` | `invalid_request`、`invalid_search_regex` |
 | `context` | `project_not_found`、`path_outside_project` |
 | `environment` | `runtime_not_installed`、`runtime_not_executable`、`process_start_failed` |
 | `configuration` | `invalid_configuration`、`project_not_initialized` |
@@ -192,7 +191,7 @@ update 修改关系、`extra` 和至多一个生命周期动作：
 - 关系：`depends_on_add/remove`、`related_to_add/remove`。
 - extra：`extra_set`、`extra_remove`，只处理顶层键。
 - 生命周期：`start`、`close` 或 `reopen` 至多一个。
-- 生命周期参数：close 和 reopen 需要非空 `reason` 和 `user_confirmed=true`；close 可用 `force`。
+- 生命周期参数：`start` 是布尔值，不接收原因。`close` 和 `reopen` 是包含必填非空原因的字符串，并要求 `user_confirmed=true`；close 可用 `force`。没有独立的 `reason` 字段。
 - WAL：可选 `actor`，默认为调用通道的 actor。
 
 空请求或净结果无变化返回 `changed:false`。元数据提交后自动追加 WAL，追加失败以警告返回。

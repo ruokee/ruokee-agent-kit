@@ -4,6 +4,8 @@
 
 本文说明验证 tk 必要行为和实现选择的方法及场景。规格包含完整行为和验收要求，设计解释实现。验证不能因为实现方便而降低其中任何义务。
 
+以下列表是场景要求，不是覆盖报告。自动检查入口为负责 Rust 和组件生命周期检查的 `cargo test --manifest-path projects/tk/Cargo.toml`，以及负责原生适配器检查的 `bun test projects/tk/adapter-tests`。生命周期测试使用受控 Harness 命令，适配器测试使用受控宿主和运行时。其余协议、已安装 Skill 和真实 Harness 场景单独运行。每项验证结果记录实际候选、宿主版本、输入、观察及未覆盖项；自动命令通过不表示本页全部场景均已运行。
+
 ## 仓库边界
 
 验证以下静态事实：
@@ -128,9 +130,9 @@ GC 测试：
 
 ## 接口测试
 
-生成合同测试覆盖六个 MCP 工具和 Pi、OMP native 工具，确认名称、字段、默认值、联合类型和 OMP 专用 `loadMode`。
+将六个 MCP 工具和 Pi、OMP native 工具与公开请求合同比较，检查名称、字段、必填输入、默认值、联合类型和 OMP 专用 `loadMode`。运行时共享的手写 schema 需要与请求类型人工同步。
 
-CLI 测试覆盖：
+运行以下 CLI 场景：
 
 - 命令树、help、version、文本与 JSON 输出；
 - stdout 和 stderr 分离；
@@ -144,14 +146,16 @@ CLI 测试覆盖：
 - 组件命令没有本地 source，并拒绝全局 cwd；
 - 拒绝未知命令和不属于当前合同的选项。
 
-MCP 测试覆盖 initialize、list、六次调用、取消、协议 stdout 和正常关闭。
+通过实际协议入口运行 MCP initialize、list、六种工具调用、取消、协议 stdout 和正常关闭场景。
+
+分别通过管道和 Unix 流式 socket 运行 stdio 场景，检查初始化、工具列举、恰好达到 1 MiB 输入上限的载荷、无效行后的继续处理、输入超限、EOF，以及客户端保持 stdin 打开时的取消。通过 Codex 和 Claude Code 实际启动 stdio 的路径验证加载；直接管道成功不能证明任一宿主加载成功。
 
 ## 适配器
 
-Pi 和 OMP 的单元与进程测试覆盖：
+使用 Pi 和 OMP 的单元、进程及入口场景检查：
 
 - 固定运行时不存在、不是常规文件或没有执行位；
-- version 和 native schema 解码；
+- version 和 native contract 封套解码、完整工具集合、对象类型请求 schema 及宿主专用字段；schema 内部字段完整性由运行时验证，不属于适配器预检；
 - Rust 兼容范围结果，不在 TypeScript 复制 semver；
 - 全部预检失败时注册数为零；
 - registerTool 中途失败后停止，已注册前缀允许保留；

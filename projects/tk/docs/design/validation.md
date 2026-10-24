@@ -4,6 +4,8 @@
 
 This page describes validation methods and scenarios for tk's required behavior and implementation choices. Specifications contain the complete behavior and acceptance requirements; design explains implementation. Validation must not weaken either obligation for implementation convenience.
 
+The lists below are scenario requirements, not a coverage report. Automated entry points are `cargo test --manifest-path projects/tk/Cargo.toml` for Rust and component lifecycle checks, and `bun test projects/tk/adapter-tests` for native adapter checks. Lifecycle tests use controlled Harness commands, and adapter tests use controlled hosts and runtimes. Run remaining protocol, installed-Skill, and real-Harness scenarios separately. Record the actual candidate, host version, inputs, observations, and uncovered cases with each validation result; a passing automated command does not establish that every scenario on this page ran.
+
 ## Repository boundaries
 
 Validate the following static facts:
@@ -128,9 +130,9 @@ GC tests cover:
 
 ## Interface tests
 
-Generated contract tests cover the six MCP tools and Pi and OMP native tools, confirming names, fields, defaults, union types, and the OMP-specific `loadMode`.
+Compare the six MCP tools and Pi and OMP native tools with the public request contract, checking names, fields, required inputs, defaults, union types, and the OMP-specific `loadMode`. The runtime's shared handwritten schemas require manual synchronization with request types.
 
-CLI tests cover:
+Exercise these CLI scenarios:
 
 - Command tree, help, version, and text and JSON output;
 - Separation of stdout and stderr;
@@ -144,14 +146,16 @@ CLI tests cover:
 - Component commands have no local source and reject global cwd;
 - Unknown commands and options outside the current contract are rejected.
 
-MCP tests cover initialize, list, six tool calls, cancellation, protocol stdout, and clean shutdown.
+Exercise MCP initialize, list, six tool calls, cancellation, protocol stdout, and clean shutdown through the actual protocol entry point.
+
+Run stdio scenarios with both pipes and Unix stream sockets. Check initialization and tool listing, a payload exactly at the 1 MiB input limit, invalid-line recovery, oversized input, EOF, and cancellation while the client keeps stdin open. Verify Codex and Claude Code loading through their actual stdio launch paths; direct pipe success does not establish either host's loading behavior.
 
 ## Adapters
 
-Unit and process tests for Pi and OMP cover:
+Use unit, process, and entry-point scenarios for Pi and OMP to check:
 
 - The fixed runtime is missing, is not a regular file, or lacks the execute bit;
-- version and native schema decoding;
+- version and native contract envelope decoding, the complete tool set, object-valued request schemas, and host-specific fields; internal schema field completeness belongs to runtime validation, not adapter preflight;
 - Rust compatibility-range results without duplicating semver logic in TypeScript;
 - Zero registrations when preflight fails;
 - Registration stops after an intermediate registerTool failure, while the already registered prefix may remain;

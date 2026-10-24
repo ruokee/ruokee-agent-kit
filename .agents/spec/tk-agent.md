@@ -46,6 +46,8 @@ Do not log routine reads, command traces, tentative plans, speculation, or dupli
 
 Read the current Task before changing relationships, extra, or lifecycle through update. Before closing, confirm that work actually ended, descendants and dependencies satisfy closing rules, `TASK.md` retains current results and entry points, and necessary decisions and validation results are recorded.
 
+Start uses a boolean in logical requests or `--start` in the CLI, with no reason argument. Close and reopen carry the non-empty reason in their own string field or CLI argument, never in an additional `reason` field.
+
 Close and reopen each require a non-empty reason and explicit current user confirmation. Use force only when explicitly requested. Do not infer closure from session completion or reopen merely to write a log. New work normally uses a related Task; reopen the original only when the user confirms it still belongs to that effort. Rename and eligible repair do not authorize other closed-Task writes.
 
 ### Repair

@@ -38,7 +38,9 @@ In `tools` mode the entry point completes these preflight checks before register
 3. the runtime version document parses and carries a runtime version;
 4. the native tool contract parses, carries contract version `3`, the host's harness name, and the fixed compatibility range;
 5. the contract runtime version equals the version document's;
-6. all six operations, their request schemas, and the OMP-specific fields are present.
+6. all six operation names and descriptions, object-valued request schemas, and the OMP-specific fields are valid.
+
+The runtime owns each request schema's field completeness and its consistency with the request types. The adapter checks that schemas are objects, not that their internal fields are complete; an empty properties object passes that check.
 
 If a check fails, the entry point reports one bounded diagnostic and loads with zero operations registered. It does not terminate the OMP session and does not fall back to another runtime.
 

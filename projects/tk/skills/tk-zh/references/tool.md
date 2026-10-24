@@ -15,15 +15,15 @@
 
 MCP 使用相同逻辑名称并由服务命名空间区分。Harness 不能增加字段、改变默认值或复制领域校验。
 
-`cwd` 选择顺序是请求显式值、Harness 会话目录、运行时进程目录。相对 `cwd` 基于运行时目录解析。`harness` 只用于诊断，不持久化。
+`cwd` 选择顺序是请求显式值、Harness 会话目录、运行时进程目录。相对 `cwd` 基于运行时目录解析。
 
 ## 高频请求
 
-`search` 要求非空 `query`。`regex` 和 `search_body` 默认 `false`；`status` 默认全部；`extra` 顶层使用 `AND`；`limit` 默认 20，范围 `1..100`。
+`search` 要求非空 `query`。`regex` 和 `search_body` 默认 `false`；`status` 默认全部；`extra` 顶层使用 `AND`；`limit` 默认 20，范围 `1..100`。非法正则表达式返回 `invalid_search_regex`。
 
 `read` 默认 `summary`。`minimal` 返回元数据和受管路径，不读取正文或 WAL。`summary` 返回完整任务正文和不含正文的最近 WAL 条目，默认最多 5 条、4000 字节。`detailed` 增加 WAL 正文，默认最多 50 条、16000 字节。显式预算可以在 0 到两种视图共用的上限 50 条、16000 字节之间取值。预算之外的条目会被静默省略。
 
-`create` 使用 `type=task` 或 `type=subtasks`。工具入口的 `user_confirmed` 默认 `false`，必须反映当前授权。`update` 的 `close`、`reopen` 需要非空 `reason` 和当前确认，`force` 只用于 `close`。空更新或净结果无变化返回 `changed=false`。
+`create` 使用 `type=task` 或 `type=subtasks`。工具入口的 `user_confirmed` 默认 `false`，必须反映当前授权。`update` 的 `start` 是布尔值，不接收原因。`close` 和 `reopen` 是字符串，其值就是必填的非空原因，各自还需要当前确认。没有独立的 `reason` 字段。`force` 只用于 `close`。空更新或净结果无变化返回 `changed=false`。
 
 `log` 只向非 `closed` 任务追加一条 WAL，不改元数据。
 

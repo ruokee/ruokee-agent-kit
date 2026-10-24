@@ -279,7 +279,7 @@ Version JSON is:
 
 ```json
 {
-  "runtime_version": "0.1.12",
+  "runtime_version": "0.1.13",
   "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 4

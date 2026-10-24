@@ -29,7 +29,7 @@ tk 运行时负责处理元数据、关系、生命周期、路径和持久化�
 
 - 逻辑操作包括 `search`、`read`、`create`、`update`、`log` 和 `exec`；
 - Pi 和 OMP 的原生工具通常显示为 `tk_search`、`tk_read`、`tk_create`、`tk_update`、`tk_log` 和 `tk_exec`；
-- Codex 和 Claude Code 通过 MCP 使用同一组操作，通常注册为 `task.find`、`task.read`、`task.create`、`task.update`、`task.log` 和 `task.exec`。实际前缀由宿主中的 MCP 服务名称决定，字段、结果和领域规则不变；
+- Codex 和 Claude Code 通过 MCP 暴露相同的六个逻辑名称。使用宿主实际暴露的工具名；服务前缀可能不同，字段、结果和领域规则不变；
 - `exec` 只用于 `--version`、`init`、`check` 和 `rename`。
 
 每次调用传入当前绝对 `cwd`。完整绝对任务路径或材料路径可以定位自己的项目。
@@ -114,7 +114,7 @@ WAL 是工作活动日志（Work Activity Log），用它来保存任务推进�
 
 生命周期：
 
-- 所有生命周期转换都需要填写原因。
+- `start=true` 开始 planning 任务，不接收原因。`close` 和 `reopen` 各自的字符串值就是非空原因，不使用独立字段。
 - `planning` 可以切换为 `open`，或者因为不再推进而直接 `closed`；任务不能从其他状态回到 `planning`。
 - `open` 可以关闭变为 `closed`；`closed` 可以重新打开变为 `open`。
 - 仅当所有子任务和依赖任务都关闭后才能关闭，否则会被 tk 运行时拒绝。仅在用户明确要求时使用 `force` 强行关闭。

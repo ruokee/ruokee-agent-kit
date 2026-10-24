@@ -62,7 +62,7 @@ OMP 通过公开 API 把 search、read、create、update 和 log 设为 essentia
 
 Codex 和 Claude Code 使用 `tk mcp`。Pi 与 OMP 可以由用户另外配置 MCP，但原生组件不安装或管理这份外部 MCP 配置。
 
-MCP server 公开六个协议工具：`search`、`read`、`create`、`update`、`log` 和 `exec`。schema 由 Rust 请求类型生成。
+MCP server 公开六个协议工具：`search`、`read`、`create`、`update`、`log` 和 `exec`。MCP 与 native 集成共享 Rust 运行时的手写 schema 声明，维护者负责使这些声明与请求类型同步。
 
 ## 原生 schema
 
@@ -85,11 +85,13 @@ Pi 和 OMP 使用 `tk schema generate --type native --harness <pi|omp>` 的生�
 4. native schema 可解析；
 5. 合同中的 runtime version 等于 version JSON 的取值；
 6. 合同的 `runtime_compat` 等于适配器要求的范围；
-7. 六个工具名称、请求 schema 和 Harness 专用字段完整。
+7. 六个工具名称、描述、请求 schema 对象和 Harness 专用字段齐备，并符合所选宿主要求。
 
 Rust 在组件安装时判断兼容范围。
 
-运行时缺失、不可执行、版本不兼容、清单无效、schema 无效或映射错误时，入口捕获错误，输出一次有界诊断并结束加载。它不能终止 Harness 会话。
+运行时负责每个请求 schema 内部字段、必填输入、默认值和联合类型的完整性。适配器只检查 schema 是对象，不检查其内部字段，也不复制领域规则。空 properties 对象不会使这项对象检查失败。
+
+固定运行时、版本、native contract 封套、工具集合、schema 对象或宿主专用字段未通过上述预检时，入口捕获错误，输出一次有界诊断并结束加载。它不能终止 Harness 会话。
 
 预检失败时注册工具数为零。某次 `registerTool` 中途失败时停止后续注册并报告错误。Harness 已接受的前缀工具允许保留，不伪造回滚保证。
 

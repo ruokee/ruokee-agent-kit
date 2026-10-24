@@ -123,7 +123,7 @@ WAL 是工作活动日志（Work Activity Log），用它来保存任务推进�
 
 生命周期：
 
-- 所有生命周期转换都需要填写原因。
+- `--start` 开始 planning 任务，不接收原因。`--close` 和 `--reopen` 各自接收一个非空原因作为参数。
 - `planning` 可以切换为 `open`，或者因为不再推进而直接 `closed`；任务不能从其他状态回到 `planning`。
 - `open` 可以关闭变为 `closed`；`closed` 可以重新打开变为 `open`。
 - 仅当所有子任务和依赖任务都关闭后才能关闭，否则会被 tk 运行时拒绝。仅在用户明确要求时使用 `force` 强行关闭。

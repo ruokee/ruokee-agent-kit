@@ -147,6 +147,8 @@ metadata migrate 省略 `--file` 时选择当前项目全部已发现载体。�
 
 schema generate 直接输出六工具合同。类型 `mcp` 拒绝 Harness，`native` 要求 pi 或 omp。MCP 启动单连接 stdio 服务，不接受 cwd、actor 或 output 选项，支持初始化、工具列表、调用、取消和干净退出。
 
+MCP stdio 接受 Unix 管道和流式 socket。客户端保持输入流打开时，取消仍可结束空闲连接。工具列举响应包含 `ttlMs: 0` 和 `cacheScope: "private"`，提供 MCP 2026-07-28 要求的缓存元数据，不授予缓存有效期或共享缓存的许可。
+
 rename 结果包含原始旧名称、存在时的父任务路径、旧路径、规范化新名称、绝对目标路径和每条旧路径 Markdown 引用及行号。dry-run 文本显示 `Old path:`、`New name:`、`Target path:`。每次执行结果显示目标路径，无变化文本显示 `No changes` 和 `Target path:`。非空引用追加 `References to the old path:` 及每个 `path:line`，没有引用时不出现该节。
 
 ### 结果
@@ -170,7 +172,7 @@ text 表达与 JSON 相同的事实，但除前述 rename 标签外，布局不�
 
 | 类别 | 代码 |
 | --- | --- |
-| `request` | `invalid_request`, `invalid_regex` |
+| `request` | `invalid_request`, `invalid_search_regex` |
 | `context` | `project_not_found`, `path_outside_project` |
 | `environment` | `runtime_not_installed`, `runtime_not_executable`, `process_start_failed` |
 | `configuration` | `invalid_configuration`, `project_not_initialized` |

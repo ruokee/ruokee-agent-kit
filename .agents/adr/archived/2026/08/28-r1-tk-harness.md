@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-09-02
-Reversed by: [tk Harness integration](../../../decision/2026/08/28-tk-harness.md)
+Reversed by: [tk Harness integration](./28-r2-tk-harness.md)
 
 English | [中文](./28-r1-tk-harness.zh.md)
 

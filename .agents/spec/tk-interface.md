@@ -147,6 +147,8 @@ Metadata migrate selects every discovered current-project carrier when `--file` 
 
 Schema generation writes the six-tool contract directly. Type `mcp` rejects a Harness; `native` requires pi or omp. MCP starts a single-connection stdio server, accepts no cwd, actor, or output option, and supports initialization, tool listing, calls, cancellation, and clean shutdown.
 
+MCP stdio accepts Unix pipes and stream sockets. Cancellation can end an idle connection while the client keeps its input stream open. Tool-list responses include `ttlMs: 0` and `cacheScope: "private"`, providing the cache metadata required by MCP 2026-07-28 without granting a freshness interval or shared caching.
+
 Rename results include raw old name, resolved parent path when present, old path, normalized new name, absolute target path, and every old-path Markdown reference with its line. Dry-run text shows `Old path:`, `New name:`, and `Target path:`. Every execution result shows the target path; no-op text shows `No changes` and `Target path:`. Non-empty references append `References to the old path:` and every `path:line`; that section is absent when none exist.
 
 ### Results
@@ -170,7 +172,7 @@ Stable error categories and representative codes are:
 
 | Category | Codes |
 | --- | --- |
-| `request` | `invalid_request`, `invalid_regex` |
+| `request` | `invalid_request`, `invalid_search_regex` |
 | `context` | `project_not_found`, `path_outside_project` |
 | `environment` | `runtime_not_installed`, `runtime_not_executable`, `process_start_failed` |
 | `configuration` | `invalid_configuration`, `project_not_initialized` |

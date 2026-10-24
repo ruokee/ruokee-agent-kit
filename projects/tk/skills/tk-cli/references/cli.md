@@ -31,7 +31,7 @@ With `--output json`, ordinary success and expected failure use a common result 
 {
   "ok": false,
   "error": {
-    "code": "invalid_args",
+    "code": "invalid_request",
     "category": "request",
     "message": "...",
     "details": {}
@@ -78,6 +78,8 @@ tk search <query>
 | `--limit` | `20` | Range `1..100` |
 
 Search determines the query type first and does not fall back to another interpretation after one fails. It may return zero, one, or several candidates. Choose one target before modifying a Task.
+
+An invalid regular expression returns error code `invalid_search_regex`.
 
 ## `tk read`
 
@@ -319,7 +321,7 @@ The JSON payload contains:
 
 ```json
 {
-  "runtime_version": "0.1.12",
+  "runtime_version": "0.1.13",
   "cli_contract_version": 3,
   "task_schema_version": 1,
   "component_format_version": 4
