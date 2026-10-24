@@ -6,7 +6,14 @@ workloop 用 Markdown 指引 Agent 的任务工作流：澄清目标、按 Plan 
 
 ## 使用 Skill
 
-选择完整英文 [workloop](./skills/workloop/SKILL.md) 或中文 [workloop-zh](./skills/workloop-zh/SKILL.md) 目录。每套包含入口、全部操作正文、条件 Reference 和初始化说明。通过 Harness 加载所选 Skill，以自然语言请求操作。保留完整目录，不只保留 `SKILL.md`。入口路由到活动，正文仅在需要时加载共享规则。
+选择一套完整语言目录：
+
+| 语言 | Skill 源 | OMP Prompt 源 | 安装名 |
+| --- | --- | --- | --- |
+| 英文 | `skills/workloop/` | `prompts/` | `workloop` |
+| 中文 | `variants-zh/skills/workloop-zh/` | `variants-zh/prompts/` | `workloop-zh` |
+
+每套 Skill 包含入口、全部操作正文、条件 Reference 和初始化说明。通过 Harness 加载所选 Skill，以自然语言请求操作。保留完整目录，不只保留 `SKILL.md`。入口路由到活动，正文仅在需要时加载共享规则。
 
 单独安装 tk，按项目 Task 规则使用其公开接口。协作采用所选受支持的终端工具，推荐 Herdr，但不强制使用。其他 Skill 按各自启用规则用于相关活动，本组件不会安装它们或将其统一设为必需。
 
@@ -14,9 +21,275 @@ workloop 面向新任务，支持自身 Task 的跨会话继续和返工，不�
 
 ## 安装
 
-首次安装、完整替换、切换语言、移除和加载条件见[安装说明](./docs/installation.zh.md)。一次安装一种完整语言 Skill，OMP 另安装对应的 `/wl-clarify`、`/wl-exec`、`/wl-verify`、`/wl-ship`、`/wl-supervise` Prompt 模板。语言由安装的模板固定，不按每次调用输入选择。空输入沿用足够的当前 Task 上下文，不产生空输入段落或重复提问。
+默认安装完整 Skill。OMP 用户可额外安装五个对应 Prompt 模板。一次只安装一种语言。命令块使用“定位 OMP 目录”中设置的变量。组件没有 OMP 包清单、Extension、构建步骤、运行时依赖或专用安装器，仓库普通 Skill 安装器不管理它。单独安装 tk 及所需协作工具。Setup 配置可选工作流默认值，不是安装或普通使用的前置条件。
 
-组件没有 OMP 包清单、Extension、构建步骤、运行时依赖或专用安装器，仓库普通 Skill 安装器不管理它。直装前解除既有 workloop 包，移除自己安装的同名文件命令。创建或更新模板后启动新 OMP 会话，`/reload-plugins` 不重载 Prompt 模板。Setup 可选，不是安装步骤。
+### 解除既有包
+
+直装前，按原管理方式移除已有的 `@ruokee/workloop` 安装。OMP 原生包管理命令如下：
+
+```sh
+omp plugin list
+omp plugin uninstall @ruokee/workloop
+```
+
+只对列表中准备替换的安装运行 uninstall。OMP 18.12.3 会移除注册包和插件状态，不删除链接的来源检出目录，也不移除独立副本或手动安装的命令。直装组件没有包清单，不对它运行 `plugin link`。
+
+定位自己安装在实际用户级或项目级 `commands/` 目录中的 workloop 文件命令。安装模板前，将五个自有文件 `wl-clarify.md`、`wl-exec.md`、`wl-verify.md`、`wl-ship.md`、`wl-supervise.md` 移到发现根之外。同名文件命令先于 Prompt 模板运行，会让旧入口继续生效。不移除无关命令或其他所有者的文件。其他同名处理器冲突应与其所有者解决，不依赖发现顺序。
+
+### 定位 OMP 目录
+
+从包含 `skills/`、`prompts/` 和 `variants-zh/` 的组件根目录运行示例。默认配置下，OMP 使用 `~/.omp/agent/skills/` 和 `~/.omp/agent/prompts/`。环境设置或 profile 改变位置时，通过实际 CLI 解析有效 agent 目录：
+
+```sh
+component_root="$PWD"
+agent_root="${agent_root:-$(omp config path)}"
+skill_root="$agent_root/skills"
+prompt_root="$agent_root/prompts"
+```
+
+检查时可以显式设置 `agent_root` 指向临时根目录。使用与目标 OMP 会话相同的环境和 profile 运行 `config path`。例如命名 profile 使用 `omp --profile work config path`，不要用默认路径替代输出。自定义 Skill 来源和项目资源也可能存在冲突，验证发现时核对报告来源。明确采用项目级安装时，改用该项目实际的 `.omp/skills/` 和 `.omp/prompts/` 根目录。
+
+### 安装 Skill
+
+所选 Skill 目标和另一语言目标必须不存在。未知内容先保留，不直接覆盖。复制前先选择语言。
+
+英文：
+
+```sh
+skill=workloop
+other_skill=workloop-zh
+skill_source=skills/workloop
+prompt_source=prompts
+for name in "$skill" "$other_skill"; do
+  if [ -e "$skill_root/$name" ] || [ -L "$skill_root/$name" ]; then
+    printf '目标已存在：%s\n' "$skill_root/$name" >&2
+    exit 1
+  fi
+done
+mkdir -p "$skill_root"
+cp -R "$component_root/$skill_source" "$skill_root/$skill"
+```
+
+中文：
+
+```sh
+skill=workloop-zh
+other_skill=workloop
+skill_source=variants-zh/skills/workloop-zh
+prompt_source=variants-zh/prompts
+for name in "$skill" "$other_skill"; do
+  if [ -e "$skill_root/$name" ] || [ -L "$skill_root/$name" ]; then
+    printf '目标已存在：%s\n' "$skill_root/$name" >&2
+    exit 1
+  fi
+done
+mkdir -p "$skill_root"
+cp -R "$component_root/$skill_source" "$skill_root/$skill"
+```
+
+复制完整 Skill，包括 `operations/`、`references/` 和 `setup.md`。一个 Skill 根只安装所选语言。
+
+### 添加 OMP Prompt
+
+五个 Prompt 模板可选，且只用于 OMP。安装与所选 Skill 同语言的模板。语言由安装的模板固定，不按每次调用输入选择。
+
+英文：
+
+```sh
+skill=workloop
+skill_source=skills/workloop
+prompt_source=prompts
+for operation in clarify exec verify ship supervise; do
+  if [ -e "$prompt_root/wl-$operation.md" ] || [ -L "$prompt_root/wl-$operation.md" ]; then
+    printf '目标已存在：%s\n' "$prompt_root/wl-$operation.md" >&2
+    exit 1
+  fi
+done
+mkdir -p "$prompt_root"
+for operation in clarify exec verify ship supervise; do
+  cp "$component_root/$prompt_source/wl-$operation.md" "$prompt_root/"
+done
+```
+
+中文：
+
+```sh
+skill=workloop-zh
+skill_source=variants-zh/skills/workloop-zh
+prompt_source=variants-zh/prompts
+for operation in clarify exec verify ship supervise; do
+  if [ -e "$prompt_root/wl-$operation.md" ] || [ -L "$prompt_root/wl-$operation.md" ]; then
+    printf '目标已存在：%s\n' "$prompt_root/wl-$operation.md" >&2
+    exit 1
+  fi
+done
+mkdir -p "$prompt_root"
+for operation in clarify exec verify ship supervise; do
+  cp "$component_root/$prompt_source/wl-$operation.md" "$prompt_root/"
+done
+```
+
+只把这五个文件直接复制到 Prompt 根，不复制 `prompts/` 或 `variants-zh/prompts/` 目录。OMP 即使递归扫描，也按 basename 命名模板，两种语言不能同时存在。
+
+安装或更新模板后启动新的 OMP 会话。`/reload-plugins` 刷新插件资源、Skill 和文件命令，不重载 Prompt 模板。在新会话中按名称使用所选 Skill，或使用以下入口：
+
+```text
+/wl-clarify <idea or Task reference>
+/wl-exec <Task reference>
+/wl-verify <Task reference and candidate>
+/wl-ship <Task reference>
+/wl-supervise <Task reference>
+```
+
+当前 Task 和目标明确时可以不传参数。空参数不增加输入标题，沿用足够的当前 Task 上下文；非空输入保留宿主解析后的字符。入口先请求安装的 Skill，再沿该 Skill 自身路由加载操作，不在 Prompt 目录寻找工作流正文。
+
+### 替换安装
+
+取得所需组件版本，核对已安装资源中的本地修改。使用发现根之外的新备份位置。`old_skill` 设为当前安装的身份，`skill` 设为目标身份，`skill_source` 和 `prompt_source` 设为对应语言的来源。两个 Skill 身份变量相同时表示原地更新。下例从英文切换到中文。目标身份与当前身份不同时，目标 Skill 不得已存在。
+
+```sh
+old_skill=workloop
+skill=workloop-zh
+skill_source=variants-zh/skills/workloop-zh
+prompt_source=variants-zh/prompts
+backup_root="${backup_root:?set a new backup directory outside discovery roots}"
+if [ "$old_skill" != "$skill" ] && { [ -e "$skill_root/$skill" ] || [ -L "$skill_root/$skill" ]; }; then
+  printf '目标已存在：%s\n' "$skill_root/$skill" >&2
+  exit 1
+fi
+mkdir -p "$backup_root/skills" "$backup_root/prompts"
+mv "$skill_root/$old_skill" "$backup_root/skills/$old_skill"
+for operation in clarify exec verify ship supervise; do
+  mv "$prompt_root/wl-$operation.md" "$backup_root/prompts/"
+done
+if [ -e "$skill_root/$skill" ] || [ -L "$skill_root/$skill" ]; then
+  printf '目标已存在：%s\n' "$skill_root/$skill" >&2
+  exit 1
+fi
+cp -R "$component_root/$skill_source" "$skill_root/$skill"
+for operation in clarify exec verify ship supervise; do
+  cp "$component_root/$prompt_source/wl-$operation.md" "$prompt_root/"
+done
+```
+
+备份目标必须是新位置，来源资源须属于自己的安装。先移走完整旧目录可避免嵌套复制，并将废弃文件移出发现范围。整体移走五个模板可避免混合语言入口，无关文件保持不变。只安装 Skill 时，省略两次 Prompt 循环。
+
+复制失败时，先恢复保存的完整安装再使用。备份留在发现根之外。替换或切换后启动新 OMP 会话，已有会话可能仍保留旧模板内容或 Skill 正文。
+
+### 移除安装
+
+保存本地修改后，只移除所选 Skill 和这五个模板：
+
+```sh
+skill="${skill:-workloop}"
+rm -r -- "$skill_root/$skill"
+for operation in clarify exec verify ship supervise; do
+  rm -f -- "$prompt_root/wl-$operation.md"
+done
+```
+
+该块默认 `workloop`；移除中文 Skill 时在 shell 中设置 `skill=workloop-zh`，或修改默认值。只安装 Skill 时，Prompt 移除可以省略；`rm -f` 不会因文件不存在而失败。Skill 为符号链接时，改用不带尾部斜杠的 `rm -- "$skill_root/$skill"`，不删除来源。保留共享根目录、无关资源、备份和来源检出目录。启动新 OMP 会话，使发现状态反映移除结果。
+
+### 使用其他 Harness
+
+采用该 Harness 文档说明的 Skill 根目录和加载机制，将对应 `skill_source` 中的完整目录复制到实际 Skill 根。除非宿主明确支持该格式，否则不复制 OMP 模板。不需要专用命令或运行时集成，按名称引用 Skill 并以自然语言请求操作。
+
+英文：
+
+```sh
+component_root="$PWD"
+skill_root="<the Skill root your Harness loads>"
+skill=workloop
+other_skill=workloop-zh
+skill_source=skills/workloop
+prompt_source=prompts
+for name in "$skill" "$other_skill"; do
+  if [ -e "$skill_root/$name" ] || [ -L "$skill_root/$name" ]; then
+    printf '目标已存在：%s\n' "$skill_root/$name" >&2
+    exit 1
+  fi
+done
+mkdir -p "$skill_root"
+cp -R "$component_root/$skill_source" "$skill_root/$skill"
+```
+
+中文：
+
+```sh
+component_root="$PWD"
+skill_root="<the Skill root your Harness loads>"
+skill=workloop-zh
+other_skill=workloop
+skill_source=variants-zh/skills/workloop-zh
+prompt_source=variants-zh/prompts
+for name in "$skill" "$other_skill"; do
+  if [ -e "$skill_root/$name" ] || [ -L "$skill_root/$name" ]; then
+    printf '目标已存在：%s\n' "$skill_root/$name" >&2
+    exit 1
+  fi
+done
+mkdir -p "$skill_root"
+cp -R "$component_root/$skill_source" "$skill_root/$skill"
+```
+
+宿主支持时，可以用目录符号链接替代复制，先移动或移除已有副本。英文：
+
+```sh
+component_root="$PWD"
+skill_root="<the Skill root your Harness loads>"
+skill=workloop
+other_skill=workloop-zh
+skill_source=skills/workloop
+prompt_source=prompts
+for name in "$skill" "$other_skill"; do
+  if [ -e "$skill_root/$name" ] || [ -L "$skill_root/$name" ]; then
+    printf '目标已存在：%s\n' "$skill_root/$name" >&2
+    exit 1
+  fi
+done
+mkdir -p "$skill_root"
+ln -s "$component_root/$skill_source" "$skill_root/$skill"
+```
+
+中文：
+
+```sh
+component_root="$PWD"
+skill_root="<the Skill root your Harness loads>"
+skill=workloop-zh
+other_skill=workloop
+skill_source=variants-zh/skills/workloop-zh
+prompt_source=variants-zh/prompts
+for name in "$skill" "$other_skill"; do
+  if [ -e "$skill_root/$name" ] || [ -L "$skill_root/$name" ]; then
+    printf '目标已存在：%s\n' "$skill_root/$name" >&2
+    exit 1
+  fi
+done
+mkdir -p "$skill_root"
+ln -s "$component_root/$skill_source" "$skill_root/$skill"
+```
+
+来源保持在稳定位置。更新复制的 Skill 时，先将完整旧目录移到发现根之外的新备份，再复制新目录。切换语言先将旧身份移出发现范围。链接安装更新来源；来源移动时只替换链接。移除时只处理安装目录或链接。遵循该 Harness 实际重载或重启要求，不假定 OMP 步骤适用。
+
+### 核对加载
+
+分别核对以下结果：
+
+- 文件放置：一种完整所选 Skill，安装 OMP Prompt 时有五个同语言模板，没有嵌套副本、旧语言或自有同名文件命令冲突。
+- 宿主发现：所需 Skill 身份和命令来源，没有冲突安装抢占入口。
+- 实际加载：新会话从真实安装位置加载所选入口要求的 Skill 和操作。发现结果或版本一致不表示已经加载指令正文或 Agent 行为正确。
+
+接口依据为 OMP 18.12.3，不是维护下界：
+
+- [Prompt 模板](https://omp.sh/docs/prompt-templates)说明发现、参数和会话加载，[18.12.3 实现](https://github.com/can1357/oh-my-pi/blob/v18.12.3/packages/coding-agent/src/config/prompt-templates.ts)定义该版本的发现及展开行为。
+- [包管理](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/plugin-manager-installer-plumbing.md)说明旧包移除。
+- [命令发现](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/slash-command-internals.md)说明文件命令优先级。
+- [配置 CLI](https://github.com/can1357/oh-my-pi/blob/v18.12.3/packages/coding-agent/src/cli/config-cli.ts) 定义 `config path`。
+
+在该接口中，原生 `.omp` 资源优先级为 `100`，包资源为 `90`。内容不同的同名 Skill 中，较高优先级保留裸名称，其他副本获得命名空间身份；相同副本去重，自定义 Skill 目录有自己的覆盖规则。原生文件命令高于包文件命令。内置、扩展和自定义处理器先于文件命令，文件命令先于 Prompt 模板。这些是特定版本的接口事实，不保证相同优先级顺序或未来宿主行为；应核对实际发现来源。
+
+其他版本使用其当前公开接口。文件操作和发现检查各自需要实际观察，模型行为和用户验收需要单独证据。
 
 ## 选择操作
 

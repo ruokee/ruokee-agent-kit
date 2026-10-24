@@ -6,7 +6,14 @@ workloop is a Markdown workflow for Agent tasks: clarify the goal, implement a P
 
 ## Use a Skill
 
-Choose the complete English [workloop](./skills/workloop/SKILL.md) or Chinese [workloop-zh](./skills/workloop-zh/SKILL.md) directory. Each contains an entry, all operation bodies, conditional references, and setup guidance. Load the selected Skill through your Harness and request an operation in natural language. Keep the whole directory, not just `SKILL.md`. The entry routes to the activity; its body loads shared rules only when needed.
+Choose one complete language directory:
+
+| Language | Skill source | OMP Prompt source | Installed as |
+| --- | --- | --- | --- |
+| English | `skills/workloop/` | `prompts/` | `workloop` |
+| Chinese | `variants-zh/skills/workloop-zh/` | `variants-zh/prompts/` | `workloop-zh` |
+
+Each Skill contains an entry, all operation bodies, conditional references, and setup guidance. Load the selected Skill through your Harness and request an operation in natural language. Keep the whole directory, not just `SKILL.md`. The entry routes to the activity; its body loads shared rules only when needed.
 
 Install tk separately and use its public interface under the project's Task rules. Collaboration uses the selected supported terminal tool; Herdr is recommended, not required. Other Skills are used for relevant activities under their own entry rules, not installed or made mandatory by this component.
 
@@ -14,9 +21,275 @@ workloop is for new tasks. It continues and repairs its own Tasks across session
 
 ## Install
 
-Follow [installation](./docs/installation.md) for first installation, full replacement, language switching, removal, and loading conditions. Install one complete language Skill. OMP also receives its matching set of `/wl-clarify`, `/wl-exec`, `/wl-verify`, `/wl-ship`, and `/wl-supervise` Prompt templates. Their language is fixed by the installed set, not selected from each invocation's input. Empty input continues sufficient current Task context without an empty input section or a repeated question.
+The default installation is the complete Skill. OMP users may also install the five matching Prompt templates. Install one language at a time. The command blocks use the variables set under Locate OMP directories. The component has no OMP package manifest, Extension, build step, runtime dependencies, or dedicated installer, and the repository's ordinary Skill installer does not manage it. Install tk and any required collaboration tools separately. Setup configures optional workflow defaults; it is not an installation or ordinary-use prerequisite.
 
-The component has no OMP package manifest, Extension, build step, runtime dependencies, or dedicated installer. The repository's ordinary Skill installer does not manage it. Retire an existing workloop package and owned same-name file commands before direct installation. Start a new OMP session after creating or updating templates; `/reload-plugins` does not reload Prompt templates. Setup is optional, not an installation step.
+### Retire an existing package
+
+Before direct installation, remove an existing `@ruokee/workloop` installation through the manager that installed it. For OMP's native package manager:
+
+```sh
+omp plugin list
+omp plugin uninstall @ruokee/workloop
+```
+
+Run uninstall only for a listed installation you intend to replace. In OMP 18.12.3 it removes the registered package and plugin state, not a linked source checkout. It does not remove standalone copies or manually installed commands. Do not run `plugin link` against the direct-install component; it has no package manifest.
+
+Locate any workloop file commands you installed under the effective user or project `commands/` directory. Move those five owned `wl-clarify.md`, `wl-exec.md`, `wl-verify.md`, `wl-ship.md`, and `wl-supervise.md` files outside discovery roots before installing templates. A same-name file command runs before a Prompt template and would keep the old entry active. Do not remove unrelated commands or another owner's files. Resolve any other same-name handler with its owner rather than relying on discovery order.
+
+### Locate OMP directories
+
+Run the examples from the component root containing `skills/`, `prompts/`, and `variants-zh/`. With default configuration, OMP uses `~/.omp/agent/skills/` and `~/.omp/agent/prompts/`. Resolve the effective agent directory through the actual CLI when environment settings or a profile relocate it:
+
+```sh
+component_root="$PWD"
+agent_root="${agent_root:-$(omp config path)}"
+skill_root="$agent_root/skills"
+prompt_root="$agent_root/prompts"
+```
+
+Set `agent_root` explicitly to use a temporary root in a check. Run `config path` with the same environment and profile as the intended OMP session, for example `omp --profile work config path` for a named profile. Do not substitute the default path for its output. Custom Skill sources and project-local resources may also contain conflicts; inspect the reported source when validating discovery. For a deliberately project-local installation, use the project's actual `.omp/skills/` and `.omp/prompts/` roots instead.
+
+### Install the Skill
+
+The selected Skill destination and the other language destination must be absent. Preserve unknown content instead of overwriting it. Choose the language before copying.
+
+English:
+
+```sh
+skill=workloop
+other_skill=workloop-zh
+skill_source=skills/workloop
+prompt_source=prompts
+for name in "$skill" "$other_skill"; do
+  if [ -e "$skill_root/$name" ] || [ -L "$skill_root/$name" ]; then
+    printf 'target exists: %s\n' "$skill_root/$name" >&2
+    exit 1
+  fi
+done
+mkdir -p "$skill_root"
+cp -R "$component_root/$skill_source" "$skill_root/$skill"
+```
+
+Chinese:
+
+```sh
+skill=workloop-zh
+other_skill=workloop
+skill_source=variants-zh/skills/workloop-zh
+prompt_source=variants-zh/prompts
+for name in "$skill" "$other_skill"; do
+  if [ -e "$skill_root/$name" ] || [ -L "$skill_root/$name" ]; then
+    printf 'target exists: %s\n' "$skill_root/$name" >&2
+    exit 1
+  fi
+done
+mkdir -p "$skill_root"
+cp -R "$component_root/$skill_source" "$skill_root/$skill"
+```
+
+Copy the whole Skill, including `operations/`, `references/`, and `setup.md`. Install only the selected language in a Skill root.
+
+### Add OMP prompts
+
+The five Prompt templates are optional and OMP-specific. Install the set that matches the installed Skill; their language is fixed by the installed set, not selected from each invocation's input.
+
+English:
+
+```sh
+skill=workloop
+skill_source=skills/workloop
+prompt_source=prompts
+for operation in clarify exec verify ship supervise; do
+  if [ -e "$prompt_root/wl-$operation.md" ] || [ -L "$prompt_root/wl-$operation.md" ]; then
+    printf 'target exists: %s\n' "$prompt_root/wl-$operation.md" >&2
+    exit 1
+  fi
+done
+mkdir -p "$prompt_root"
+for operation in clarify exec verify ship supervise; do
+  cp "$component_root/$prompt_source/wl-$operation.md" "$prompt_root/"
+done
+```
+
+Chinese:
+
+```sh
+skill=workloop-zh
+skill_source=variants-zh/skills/workloop-zh
+prompt_source=variants-zh/prompts
+for operation in clarify exec verify ship supervise; do
+  if [ -e "$prompt_root/wl-$operation.md" ] || [ -L "$prompt_root/wl-$operation.md" ]; then
+    printf 'target exists: %s\n' "$prompt_root/wl-$operation.md" >&2
+    exit 1
+  fi
+done
+mkdir -p "$prompt_root"
+for operation in clarify exec verify ship supervise; do
+  cp "$component_root/$prompt_source/wl-$operation.md" "$prompt_root/"
+done
+```
+
+Copy only the five files directly into the Prompt root, not the `prompts/` or `variants-zh/prompts/` directory. OMP names templates by basename even when it scans recursively, so the two language sets must not coexist.
+
+Start a new OMP session after installing or updating templates. `/reload-plugins` refreshes plugin resources, Skills, and file commands, but does not reload Prompt templates. In the new session, use the installed Skill by name or one of these entries:
+
+```text
+/wl-clarify <idea or Task reference>
+/wl-exec <Task reference>
+/wl-verify <Task reference and candidate>
+/wl-ship <Task reference>
+/wl-supervise <Task reference>
+```
+
+Arguments are optional when the current Task and goal are already clear. Empty arguments add no input heading and continue sufficient current Task context; nonempty input preserves the host parser's resulting characters. The entry requests the installed Skill first, then follows that Skill's own routing to the operation. It does not search the Prompt directory for workflow bodies.
+
+### Replace the installation
+
+Obtain the intended component revision and inspect local changes in the installed resources. Use a new backup location outside all discovery roots. Set `old_skill` to the currently installed identity, `skill` to the desired identity, and `skill_source` and `prompt_source` to that language's sources. Use the same identity in both Skill variables to update in place. This example switches from English to Chinese. A different destination Skill must not already exist.
+
+```sh
+old_skill=workloop
+skill=workloop-zh
+skill_source=variants-zh/skills/workloop-zh
+prompt_source=variants-zh/prompts
+backup_root="${backup_root:?set a new backup directory outside discovery roots}"
+if [ "$old_skill" != "$skill" ] && { [ -e "$skill_root/$skill" ] || [ -L "$skill_root/$skill" ]; }; then
+  printf 'target exists: %s\n' "$skill_root/$skill" >&2
+  exit 1
+fi
+mkdir -p "$backup_root/skills" "$backup_root/prompts"
+mv "$skill_root/$old_skill" "$backup_root/skills/$old_skill"
+for operation in clarify exec verify ship supervise; do
+  mv "$prompt_root/wl-$operation.md" "$backup_root/prompts/"
+done
+if [ -e "$skill_root/$skill" ] || [ -L "$skill_root/$skill" ]; then
+  printf 'target exists: %s\n' "$skill_root/$skill" >&2
+  exit 1
+fi
+cp -R "$component_root/$skill_source" "$skill_root/$skill"
+for operation in clarify exec verify ship supervise; do
+  cp "$component_root/$prompt_source/wl-$operation.md" "$prompt_root/"
+done
+```
+
+The backup destinations must be new and the source resources must be your installation. Moving the complete old directory first prevents nested copies and removes obsolete files from discovery. Moving all five templates prevents mixed-language entries. Unrelated files remain untouched. For a Skill-only installation, omit both prompt loops.
+
+If copying fails, restore the saved complete installation before using it. Keep backups outside discovery roots. Start a new OMP session after replacement or switching. Existing sessions may still hold old template content or Skill text.
+
+### Remove the installation
+
+Preserve any local changes, then remove only your selected Skill and these five templates:
+
+```sh
+skill="${skill:-workloop}"
+rm -r -- "$skill_root/$skill"
+for operation in clarify exec verify ship supervise; do
+  rm -f -- "$prompt_root/wl-$operation.md"
+done
+```
+
+The block defaults to `workloop`; set `skill=workloop-zh` in the shell or edit the default to remove the Chinese Skill. The prompt removal is optional for a Skill-only installation; `rm -f` leaves absent files alone. For a Skill symlink, use `rm -- "$skill_root/$skill"` without a trailing slash instead of removing its source. Keep shared roots, unrelated resources, backups, and the source checkout. Start a new OMP session so discovery reflects removal.
+
+### Use another Harness
+
+Use that Harness's documented Skill roots and loading mechanism. Copy the complete selected directory from its `skill_source` to the actual Skill root. Do not copy OMP templates unless the host explicitly supports that format. No dedicated command or runtime integration is required; name the Skill and request an operation in natural language.
+
+English:
+
+```sh
+component_root="$PWD"
+skill_root="<the Skill root your Harness loads>"
+skill=workloop
+other_skill=workloop-zh
+skill_source=skills/workloop
+prompt_source=prompts
+for name in "$skill" "$other_skill"; do
+  if [ -e "$skill_root/$name" ] || [ -L "$skill_root/$name" ]; then
+    printf 'target exists: %s\n' "$skill_root/$name" >&2
+    exit 1
+  fi
+done
+mkdir -p "$skill_root"
+cp -R "$component_root/$skill_source" "$skill_root/$skill"
+```
+
+Chinese:
+
+```sh
+component_root="$PWD"
+skill_root="<the Skill root your Harness loads>"
+skill=workloop-zh
+other_skill=workloop
+skill_source=variants-zh/skills/workloop-zh
+prompt_source=variants-zh/prompts
+for name in "$skill" "$other_skill"; do
+  if [ -e "$skill_root/$name" ] || [ -L "$skill_root/$name" ]; then
+    printf 'target exists: %s\n' "$skill_root/$name" >&2
+    exit 1
+  fi
+done
+mkdir -p "$skill_root"
+cp -R "$component_root/$skill_source" "$skill_root/$skill"
+```
+
+Where supported, a directory symlink may replace the copy. Move or remove an existing copy first. English:
+
+```sh
+component_root="$PWD"
+skill_root="<the Skill root your Harness loads>"
+skill=workloop
+other_skill=workloop-zh
+skill_source=skills/workloop
+prompt_source=prompts
+for name in "$skill" "$other_skill"; do
+  if [ -e "$skill_root/$name" ] || [ -L "$skill_root/$name" ]; then
+    printf 'target exists: %s\n' "$skill_root/$name" >&2
+    exit 1
+  fi
+done
+mkdir -p "$skill_root"
+ln -s "$component_root/$skill_source" "$skill_root/$skill"
+```
+
+Chinese:
+
+```sh
+component_root="$PWD"
+skill_root="<the Skill root your Harness loads>"
+skill=workloop-zh
+other_skill=workloop
+skill_source=variants-zh/skills/workloop-zh
+prompt_source=variants-zh/prompts
+for name in "$skill" "$other_skill"; do
+  if [ -e "$skill_root/$name" ] || [ -L "$skill_root/$name" ]; then
+    printf 'target exists: %s\n' "$skill_root/$name" >&2
+    exit 1
+  fi
+done
+mkdir -p "$skill_root"
+ln -s "$component_root/$skill_source" "$skill_root/$skill"
+```
+
+Keep the source at a stable location. Replace a copied Skill by moving the old complete directory to a fresh backup outside discovery before copying the new one. Switch language by removing the old identity from discovery first. For a linked Skill, update the source or replace only its link if the source moves. Remove only the installed directory or link. Follow that Harness's actual reload or restart requirements rather than assuming OMP's procedure applies.
+
+### Verify loading
+
+Check these separately:
+
+- File placement: one complete selected Skill, five matching templates when OMP prompts are installed, no nested copy, stale language, or owned conflicting file command.
+- Host discovery: the intended Skill identity and command source, with no conflicting installation taking precedence.
+- Actual loading: in a new session, the selected entry loads the intended Skill and operation from their real installed paths. Discovery or a matching version alone does not establish loaded instruction text or correct Agent behavior.
+
+The interface basis is OMP 18.12.3, not a maintenance lower bound:
+
+- [Prompt templates](https://omp.sh/docs/prompt-templates) explains discovery, arguments, and session loading. The [18.12.3 implementation](https://github.com/can1357/oh-my-pi/blob/v18.12.3/packages/coding-agent/src/config/prompt-templates.ts) defines the versioned discovery and expansion behavior.
+- [Package management](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/plugin-manager-installer-plumbing.md) explains old-package removal.
+- [Command discovery](https://github.com/can1357/oh-my-pi/blob/v18.12.3/docs/slash-command-internals.md) explains file-command precedence.
+- [Config CLI](https://github.com/can1357/oh-my-pi/blob/v18.12.3/packages/coding-agent/src/cli/config-cli.ts) defines `config path`.
+
+In this interface, native `.omp` resources have priority `100` and package resources `90`. Different same-name Skills keep the higher-precedence bare name and namespace other copies; identical copies deduplicate, while custom Skill directories have their own overrides. Native file commands outrank package file commands. Built-in, extension, and custom handlers precede file commands, which precede Prompt templates. These are versioned interface facts, not a guarantee about equal-priority order or future hosts; inspect the actual discovered source.
+
+For another version, use its current public interfaces. File operations and discovery checks need their own observations; model behavior and user acceptance require separate evidence.
 
 ## Choose an operation
 

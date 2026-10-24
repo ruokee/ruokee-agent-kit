@@ -197,11 +197,13 @@ export function selectChecks(paths) {
       else if (/^(README(?:\.zh)?\.md$|docs\/)/.test(relative)) scopes.add("documentation");
       else reasons.push(`Unknown tk scope: ${JSON.stringify(path)}`);
     } else if (
-      /^projects\/workloop\/(README|docs\/installation)(\.zh)?\.md$/.test(path) ||
-      /^projects\/workloop\/skills\/workloop(-zh)?\/(SKILL|setup)\.md$/.test(path) ||
-      /^projects\/workloop\/skills\/workloop(-zh)?\/operations\/(clarify|exec|verify|ship|supervise)\.md$/.test(path) ||
-      (md && /^projects\/workloop\/skills\/workloop(-zh)?\/references\//.test(path)) ||
-      /^projects\/workloop\/prompts\/workloop(-zh)?\/wl-(clarify|exec|verify|ship|supervise)\.md$/.test(path)
+      /^projects\/workloop\/README(\.zh)?\.md$/.test(path) ||
+      /^projects\/workloop\/(?:skills\/workloop|variants-zh\/skills\/workloop-zh)\/(SKILL|setup)\.md$/.test(path) ||
+      /^projects\/workloop\/(?:skills\/workloop|variants-zh\/skills\/workloop-zh)\/operations\/(clarify|exec|verify|ship|supervise)\.md$/.test(
+        path,
+      ) ||
+      (md && /^projects\/workloop\/(?:skills\/workloop|variants-zh\/skills\/workloop-zh)\/references\//.test(path)) ||
+      /^projects\/workloop\/(?:prompts|variants-zh\/prompts)\/wl-(clarify|exec|verify|ship|supervise)\.md$/.test(path)
     ) {
       scopes.add("documentation");
     } else if (

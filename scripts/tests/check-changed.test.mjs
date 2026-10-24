@@ -135,22 +135,21 @@ test("only registered explanatory Markdown is formatting-only", () => {
 
 test("workloop classifies shared reference Markdown without filename registration", () => {
   const operations = ["clarify", "exec", "verify", "ship", "supervise"];
+  const files = [
+    "SKILL.md",
+    "setup.md",
+    ...operations.map((operation) => `operations/${operation}.md`),
+    ...["task", "self-check", "roles", "collaboration", "execution", "new", "nested/guide", "a\nb"].map(
+      (reference) => `references/${reference}.md`,
+    ),
+  ];
   const paths = [
     "projects/workloop/README.md",
     "projects/workloop/README.zh.md",
-    "projects/workloop/docs/installation.md",
-    "projects/workloop/docs/installation.zh.md",
-    ...["workloop", "workloop-zh"].flatMap((name) => [
-      ...operations.map((operation) => `projects/workloop/prompts/${name}/wl-${operation}.md`),
-      ...[
-        "SKILL.md",
-        "setup.md",
-        ...operations.map((operation) => `operations/${operation}.md`),
-        ...["task", "self-check", "roles", "collaboration", "execution", "new", "nested/guide", "a\nb"].map(
-          (reference) => `references/${reference}.md`,
-        ),
-      ].map((file) => `projects/workloop/skills/${name}/${file}`),
-    ]),
+    ...files.map((file) => `projects/workloop/skills/workloop/${file}`),
+    ...files.map((file) => `projects/workloop/variants-zh/skills/workloop-zh/${file}`),
+    ...operations.map((operation) => `projects/workloop/prompts/wl-${operation}.md`),
+    ...operations.map((operation) => `projects/workloop/variants-zh/prompts/wl-${operation}.md`),
   ];
   const plan = selectChecks(paths);
   assert.equal(plan.full, false);
@@ -167,14 +166,23 @@ test("workloop unregistered inputs force complete fallback even in mixed changes
     "package.json",
     "README.txt",
     "docs/new.md",
+    "docs/installation.md",
+    "docs/installation.zh.md",
     "commands/wl-new.md",
     "commands/wl-exec.md",
-    "prompts/wl-exec.md",
     "prompts/workloop/wl-new.md",
+    "prompts/workloop/wl-clarify.md",
+    "prompts/workloop-zh/wl-clarify.md",
+    "prompts/wl-new.md",
+    "variants-zh/prompts/wl-new.md",
     "prompts/other/wl-exec.md",
     "skills/other/SKILL.md",
+    "skills/workloop-zh/SKILL.md",
     "skills/workloop/references/new.json",
     "skills/workloop-fr/references/new.md",
+    "skills/workloop/unknown.md",
+    "variants-zh/skills/workloop/SKILL.md",
+    "variants-zh/skills/workloop-zh/unknown.md",
     "skills/workloop/operations/new.md",
     "src/prompt.md",
   ]) {
@@ -193,7 +201,7 @@ test("workloop unregistered inputs force complete fallback even in mixed changes
 
 test("workloop Markdown joins existing consumers without duplicate checks", () => {
   const paths = [
-    "projects/workloop/skills/workloop-zh/operations/exec.md",
+    "projects/workloop/variants-zh/skills/workloop-zh/operations/exec.md",
     "docs/installation.md",
     "projects/omp-qol/src/code.ts",
     "projects/omp-qol/test/code.ts",
@@ -212,7 +220,7 @@ test("removed workloop Markdown keeps rename destinations in classification", ()
       const deleted = selectChecks(collectChanges(cwd).paths);
       assert.equal(deleted.full, false);
       assert.deepEqual(buildCommands(deleted, cwd), []);
-      git(cwd, "mv", "projects/workloop/prompts/workloop/wl-exec.md", "projects/workloop/prompts/workloop/unknown.md");
+      git(cwd, "mv", "projects/workloop/prompts/wl-exec.md", "projects/workloop/prompts/wl-unknown.md");
       const renamed = selectChecks(collectChanges(cwd).paths);
       assert.equal(renamed.full, true);
       assert.deepEqual(
@@ -222,7 +230,7 @@ test("removed workloop Markdown keeps rename destinations in classification", ()
     },
     {
       "projects/workloop/README.md": "# workloop\n",
-      "projects/workloop/prompts/workloop/wl-exec.md": "Execute the requested Task.\n",
+      "projects/workloop/prompts/wl-exec.md": "Execute the requested Task.\n",
     },
   ));
 
