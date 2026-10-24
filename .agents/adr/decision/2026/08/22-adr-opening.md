@@ -24,7 +24,7 @@ The first required body heading in every ADR template is `## Motivation` in Engl
 
 The [record formats](../../../../skills/maintain-adr/references/records.md) and [writing rules](../../../../skills/maintain-adr/references/writing.md) use this heading; [project language supplements](../../../README.md#languages) define its Chinese equivalent. Motivation includes problems, requirements, and desired additions. The [earlier ADR mechanism](../../../archived/2026/08/22-r7-adr-mechanism.md) applied the heading to both proposals and decisions.
 
-Every current proposal and decision template opens with `Motivation`. Historical Git revisions may retain references to the earlier `Problem` heading.
+The current decision format opens with `Motivation`. Historical Git revisions may retain references to the earlier `Problem` heading.
 
 ## Alternatives considered
 
@@ -38,7 +38,7 @@ Repository history contains both opening headings, but every current ADR uses `M
 
 ### 2026-09-02 Motivation scope
 
-The separate proposal and decision templates both keep `Motivation` as their first required body section.
+The separate proposal and decision templates in use at that time both kept `Motivation` as their first required body section.
 
 ### 2026-09-23 Standalone opening
 

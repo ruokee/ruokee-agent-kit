@@ -46,4 +46,4 @@ Repository-level documentation owns comparisons, composition guidance, and compo
 
 ### 2026-09-28 Component maintenance statements
 
-A component's maintenance declaration and the evidence for its host adaptation follow [Adapt first party host components to host upgrades](../../../archived/2026/09/28-r1-host-maintenance.md) and live inside the component, so a component does not depend on a repository ADR, another component, or a repository-level table for either of them. This adds the declaration and its evidence to the material a component carries; it changes no boundary above.
+For components that load code into a host process, [Host maintenance](../09/28-host-maintenance.md) assigns the maintenance declaration and the explanation of each host adaptation to the component's own documentation. That explanation includes the reason, location, selection condition, failure behavior, and verification basis. Tasks retain upgrade evidence and approval; adopted decisions preserve the public reasons and contract. Component documentation remains usable without a repository ADR, another component, or a repository-level table. This division changes no file boundary above.

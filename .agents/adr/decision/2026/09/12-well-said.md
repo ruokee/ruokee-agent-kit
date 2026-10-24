@@ -20,7 +20,7 @@ The record distinguishes Ruokee's authorship of well-said from Lauren Tan's auth
 
 ### Capability scope
 
-Keep `well-said` as an independently authored, model-invoked Skill. Its usage instruction is "Use when outputting anything", including replies, documentation, code comments, and agent communication. Explicit invocation remains supported. Applying writing guidance does not add permission to modify files or executable content.
+Keep `well-said` as an independently authored, model-invoked Skill. Its usage instruction is "Use when outputting anything", including replies, documentation, comments in code and configuration, and agent communication. Explicit invocation remains supported.
 
 Provide complete English and Chinese writing guidance in each component's `SKILL.md`. Organize it around the writing process, style patterns, defensive phrasing, visible writing-session residue, article writing, and author voice. Both variants preserve meaning and the author's actual observations and judgments. Neither version depends on another Skill or repository support files.
 
@@ -42,13 +42,13 @@ The complete writing guidance stays in one file. Extract substantial, infrequent
 
 ### Editing authority
 
-Executable code and configuration are outside its editing scope. Distinguish comments from executable content in mixed files. Preserve quotations, commands, identifiers, original logs, recorded outputs, and other literal material when their purpose or the request requires exact wording.
+Apply writing guidance to prose, including comments in code and configuration. Preserve quotations, commands, identifiers, original logs, recorded outputs, and other literal material when their purpose or the request requires exact wording.
 
-The Skill grants no additional file-editing authority. A review request remains read-only unless editing is authorized. Work within the user's requested files, text, and structure.
+Follow the user's requested files, text, and structure. A review request remains read-only unless editing is authorized.
 
-Keep unslop's explicit prohibitions binding; [skills/well-said/SKILL.md](../../../../../skills/well-said/SKILL.md) holds the punctuation rules, their examples, and the writing rules themselves. Literal-material protection continues to apply.
+Keep unslop's explicit prohibitions binding; [skills/well-said/SKILL.md](../../../../../skills/well-said/SKILL.md) holds the punctuation rules, their examples, and the writing rules themselves.
 
-Allow structural changes within the authorized scope, including reordering paragraphs, merging repetition, and rewriting openings or endings. For a very extensive change, the Agent may ask about a complete rewrite; prior authorization is sufficient, and no arbitrary change-percentage threshold is required. Preserve fixed structures and exact-wording requirements.
+Allow structural changes within the authorized scope, including reordering paragraphs, merging repetition, and rewriting openings or endings. For a very extensive change, the Agent may ask about a complete rewrite; prior authorization is sufficient, and no arbitrary change-percentage threshold is required. Preserve fixed structures.
 
 Review the result against the original information and current request. In particular, do not turn an untested environment into an unsupported environment, an obligation into completed behavior, or a hypothetical design into an existing capability. Preserve concrete unknowns and investigate meaningful contradictions rather than polishing them away.
 

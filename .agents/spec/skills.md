@@ -80,9 +80,9 @@ By default produce a conclusions summary, source list, full report, and unresolv
 
 ### well-said
 
-Apply to any output, including replies, documentation, comments, and inter-Agent messages. Each language delivers complete writing guidance in one `SKILL.md`, with version in `metadata.version` and attribution outside the instruction body. Load the complete guidance before use, reuse it while present, and retrieve missing parts after context loss; a description or excerpt is insufficient. Loading failure leaves the applicable limit explicit rather than claiming missing rules were applied.
+Apply to any output, including replies, documentation, comments in code and configuration, and inter-Agent messages. Each language delivers complete writing guidance in one `SKILL.md`, with version in `metadata.version` and attribution outside the instruction body. Load the complete guidance before use, reuse it while present, and retrieve missing parts after context loss; a description or excerpt is insufficient. Loading failure leaves the applicable limit explicit rather than claiming missing rules were applied.
 
-Write directly for the reader and requested format. Preserve meaning, facts, numbers, scope, conditions, sequence, negation, obligations, attribution, uncertainty, author voice, and required literal text. Commands, identifiers, quotations, and logs remain exact when needed. Editing prose grants no permission to modify executable code or configuration; comments remain distinct from executable content. Clear text may remain unchanged.
+Write directly for the reader and requested format. Follow the user's requested files, text, and structure; a review remains read-only unless editing is authorized. Preserve meaning, facts, numbers, scope, conditions, sequence, negation, obligations, attribution, uncertainty, author voice, and required literal text. Commands, identifiers, quotations, and logs remain exact when needed. Clear text may remain unchanged.
 
 Remove puffery, unsupported attribution, marketing, stock transitions, decorative emphasis, forced lists, unnecessary synonyms, jargon, filler, excessive hedging, and generic conclusions. Prefer concrete verbs, active voice, familiar words, and readable sentence lengths. Avoid em dashes and substitute neither parentheses nor another dash for the same construction. Headings have one short subject and no punctuation except `-`, `.`, or `、`. Use tables for comparable numbers, category labels, or enumerated values rather than prose descriptions. Avoid decorative emojis, curly quotes, unnecessary boldface, and title case.
 
@@ -108,8 +108,8 @@ Exit statuses are `0` for a consistent comparison or completed/unchanged lifecyc
 
 ## Invariants
 
-- Every distributed language component references only its own files. Naming a prerequisite or using its public interface is permitted; importing or reading another repository component or support file is not.
-- Both language variants have the same file set and complete semantic coverage. Links use the installed form without the source-only `variants/zh/` prefix.
+- Every distributed language component references only its own files. Naming another component, tool, or Skill requires no dependency declaration by itself. Actual prerequisites are explicit and may be used by name or through their public interfaces; linking to, importing, or reading another repository component's files or package, or repository support files, is not permitted.
+- Both language variants have the same file set and complete semantic coverage. File links are relative to the containing document, resolve inside that component, and remain usable after installation without the source-only `variants/zh/` prefix.
 - `deep-research` and `well-said` each contain only `SKILL.md`. `grill-me` also carries its explicit invocation policy. `architect` has local references and glossary without a mandatory workflow or Agent-policy directory.
 - Source authorship, applicable licenses, and required attribution remain accurate at repository level or in an appropriate component README or decision. Skill content does not become a third-party mirror merely through cited material.
 - Review and analysis remain read-only for their subjects; separate report permission is preserved. No Skill silently converts analysis into implementation.

@@ -58,7 +58,7 @@ schema 的正常校验会删除可选字段中的 `null` 和字符串 `"null"`�
 
 `agent` 缺失、为空、纯空白、非字符串或为 `seance` 的项保持不变。宿主可能在事件之后解析默认 Agent，扩展无法以与宿主同等的权威得知该默认值。
 
-### 激活与状态
+### 模块状态
 
 只有在会话暴露的 `task` 工具的 `sourceInfo.source` 为 `builtin` 且 schema 暴露 `sourceSession` 时，模块才注册处理器。工具缺失报告 `unavailable` 与 `task-tool-absent`，工具被遮蔽报告 `incompatible` 与 `task-tool-shadowed`，内建 schema 没有 `sourceSession` 报告 `unavailable` 与 `task-tool-without-seance-fields`。OMP 18.5.0 只有普通 `model` 选择器且没有 `sourceSession`，因此模块在那里保持 `unavailable` 且不注册 handler。模块开关关闭报告 `disabled`，总开关关闭也报告 `disabled`。`taskArgsEnabled` 值非法时只停用本模块。
 

@@ -2,16 +2,19 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
+Reverses: [Skill language variants](../../../archived/2026/08/20-r1-skill-variants.md)
 
 English | [中文](./20-skill-variants.zh.md)
 
 ## Motivation
 
-Store each Skill's English base under `skills/<name>/` and its Chinese variant under `variants/zh/skills/<name>/`, and install the selected variant without that prefix.
+Distribute complete, self-contained Skill language variants with component-local file references.
 
 A packaged Skill has to remain self-contained and discoverable by Agent Harnesses without depending on repository packaging details. The source repositories stored a Skill beside Plugin manifests, marketplace metadata, package documentation, and language overlays, and copying that layout would make the Skill depend on those packaging details.
 
 Language variants add a second ambiguity. Their source path identifies the selected variant, but installed Skills must keep the path expected by Agent Harnesses. Links that include the source-only variant prefix break after installation.
+
+The [predecessor](../../../archived/2026/08/20-r1-skill-variants.md) allowed cross-Skill file links for related reading. That permission conflicts with [component self-containment](./24-component-self-containment.md): a link to another component can fail when only the selected variant is installed. References by name and use of public interfaces preserve legitimate prerequisites without depending on another component's files.
 
 ## Decision
 
@@ -19,9 +22,9 @@ Store the English base Skill under `skills/<name>/`. Store the Chinese variant u
 
 A pure Skill contains the material needed to discover, understand, and use that Skill. This may include `SKILL.md`, workflows, references, examples, and a glossary. Do not copy Plugin manifests, marketplace metadata, `meta.toml`, host-specific Agent definitions, Plugin changelogs, or package-level README files into the Skill tree.
 
-Install a selected language variant at the normal host Skill path, with no `variants/zh/` prefix. Links and path examples inside every variant therefore use the installed form `skills/<name>/...` when they refer to another Skill.
+Install a selected language variant at the normal host Skill path, with no `variants/zh/` prefix. Write file links relative to the containing document and keep their targets inside that component. References to repository files through written paths, imports, package dependencies, or runtime reads must also stay within the component; an installed `skills/<name>/...` path does not permit a reference to another component's files.
 
-Keep each Skill understandable on its own. A cross-Skill link may provide related reading, but another Skill must not be required to explain this Skill's own terms or operating rules.
+Keep each Skill understandable on its own, including its own terms and operating rules. It may name another component, tool, or Skill without declaring a dependency merely for that mention. State actual prerequisites explicitly and use them by name or through their public interfaces, including Skill loading interfaces. These uses do not permit cross-component file references.
 
 ## Alternatives considered
 
@@ -31,11 +34,11 @@ None
 
 English Skills live under `skills/<name>/`, while Chinese variants live under `variants/zh/skills/<name>/`. A pure Skill tree contains no Plugin manifest, marketplace metadata, package changelog, or host-specific Agent definition.
 
-Installed-path links omit the variant source prefix. Source paths and installed paths therefore differ intentionally, and validation must check links as they appear after variant selection rather than only against the repository tree.
+Component-local relative links remain usable after installation without the variant source prefix. Source paths and installed paths differ intentionally, and validation must check links as they appear after variant selection rather than only against the repository tree.
 
 Each variant remains complete and reviewable against its counterpart. Language-specific explanations may differ where translation requires it, but neither variant may silently omit an observable capability or required instruction.
 
-Imports preserve body meaning and distinguish path adaptations from editorial changes. Each Skill explains its own domain and remains usable without loading another Skill.
+Imports preserve body meaning and distinguish path adaptations from editorial changes. Each Skill explains its own domain without loading another Skill to supply that explanation; using a declared prerequisite remains permitted.
 
 ## Changes
 

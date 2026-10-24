@@ -58,7 +58,7 @@ A batch call applies the rule to each `tasks[]` item and leaves the batch-level 
 
 An item whose `agent` is missing, empty, whitespace, non-string, or `seance` is left unchanged. The host may resolve a default agent after the event, and the extension cannot know that default with the same authority as the host.
 
-### Activation and status
+### Module status
 
 The module is installed only when the session exposes a `task` tool whose source is `builtin` and whose schema exposes `sourceSession`. A missing tool reports `unavailable` with `task-tool-absent`, a shadowed tool reports `incompatible` with `task-tool-shadowed`, and a built-in schema without `sourceSession` reports `unavailable` with `task-tool-without-seance-fields`. OMP 18.5.0 has the ordinary `model` selector and no `sourceSession`, so the module is unavailable there and registers no handler. The module switch off reports `disabled`, as does the master switch. An invalid `taskArgsEnabled` value disables this module only.
 

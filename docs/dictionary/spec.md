@@ -4,17 +4,13 @@ English | [中文](./spec.zh.md) | [Dictionary](./README.md)
 
 Chinese term: 规格
 
-A complete, implementation-independent statement of a target and its acceptance, as a long-term component or repository spec under `.agents/spec/` or as a Task Spec for one Task.
+A complete, implementation-independent statement of a component or repository area's long-lived target and its acceptance, maintained under `.agents/spec/`.
 
 ## Mechanism
 
 A long-lived spec states the purpose, required capabilities, conditions, observable results, and acceptance completely. After the original implementation and its explanatory material are removed, the spec set still supports rebuilding substantially the same functionality with different internals. It contains no implementation descriptions or repository-file links, including language and decision links. An external index supplies navigation. Bare paths or references to current behavior cannot substitute for requirements.
 
 Authors use confirmed requirements, effective decisions, and relevant sources to establish the target; the spec reader does not need those sources to fill gaps. A spec must not conflict with a current decision. Changes to goals, boundaries, or acceptance update the spec in the same change. ADRs retain the reasons and necessary historical contract; design explains implementation; user documentation remains independently usable.
-
-## Task Spec
-
-The requirement basis for one Task: its problem and intended outcome, observable scenarios, constraints, acceptance conditions, and confirmed non-goals. It may come from the conversation or an existing requirement source and needs no separate file. When saved, it normally lands in `spec.md` in the owning Task's material directory. Design reasoning and unresolved choices stay outside the Task Spec. A Task Spec follows the Task's lifecycle and does not replace a repository or component spec; a required repository spec is incorporated during authorized execution.
 
 ## Example
 

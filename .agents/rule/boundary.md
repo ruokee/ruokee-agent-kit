@@ -20,9 +20,9 @@ The [repository spec](../spec/repository.md) states what this repository should 
 - Keep Skills included in independently maintained project components under their owning `projects/<component>/skills/` directories, as the [Skill layout decision](../adr/decision/2026/08/20-skill-variants.md#changes) specifies.
 - Keep internal project maintenance Skills under `.agents/skills/`. They may reference the project documents they maintain and are not distributable components or public installation sources. Public components remain self-contained.
 - Keep a pure Skill tree to host-discoverable Skill material such as `SKILL.md`, workflows, references, examples, and glossaries. Do not copy Plugin manifests, marketplace metadata, package changelogs, or host-specific Agent definitions into it.
-- Keep every distributable component, including each language variant, self-contained. Its files may reference only files inside that component. A component may name another component, tool, or Skill and declare it as a prerequisite. The component must not link to, import, or read another component's files or package, or depend on repository support files.
-- State a prerequisite explicitly instead of implying it through a link into another component's files.
-- Write links inside a variant for the installed `skills/<name>/` path, without the source-only `variants/zh/` prefix.
+- Keep every distributable component, including each language variant, self-contained. Its file references must resolve inside that component; do not link to, import, or read another component's files or package, or depend on repository support files.
+- Name other components, tools, or Skills and use their public interfaces when needed. A name alone requires no dependency declaration; state actual prerequisites explicitly rather than implying them through file links.
+- Write a variant's file links relative to the containing document, with targets inside that component and no source-only `variants/zh/` prefix.
 - Add a top-level area only when a real component needs it, and do not prebuild empty capability categories.
 
 ## Public content
