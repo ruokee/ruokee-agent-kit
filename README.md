@@ -54,6 +54,10 @@ Skill installation is separate from the development setup below. Follow [Install
 
 Follow each project component's README for its build and installation requirements. Install the tk runtime separately from its Harness components.
 
+## Contribute
+
+See the [contribution guide](./CONTRIBUTING.md) to report a problem, suggest a change, or contribute documentation or code.
+
 ## Development
 
 ### Documentation layers
