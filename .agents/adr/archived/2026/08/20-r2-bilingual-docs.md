@@ -38,7 +38,7 @@ The [English repository README](../../../../../README.md) and [Chinese repositor
 
 Component README pairs introduce the capability and link to its usage and design documentation. Detailed commands, parameters, and normative behavior stay on their owning pages. The tk README pair provides this navigation under the [tk documentation decision](./29-r3-tk-documentation.md).
 
-Do not maintain separate Skill index pages, duplicate language-directory entry pages, or redirect placeholders at replaced paths. Repair affected inbound links and command examples when pages move. Use [document-relative links](../../../decision/2026/08/24-relative-links.md) and preserve [component self-containment](../../../decision/2026/08/24-component-self-containment.md).
+Do not maintain separate Skill index pages, duplicate language-directory entry pages, or redirect placeholders at replaced paths. Repair affected inbound links and command examples when pages move. Use [document-relative links](./24-r1-relative-links.md) and preserve [component self-containment](../../../decision/2026/08/24-component-self-containment.md).
 
 ## Alternatives considered
 

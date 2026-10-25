@@ -29,8 +29,8 @@ The [repository spec](../spec/repository.md) states the language, pairing, and l
 
 ## File links
 
-- Write repository file links relative to the containing document: prefix a destination in the current directory or a descendant directory with `./`, and use as many `../` segments as needed to reach a file outside that tree.
-- Do not use a leading `/`, a repository-root-relative destination, or an absolute GitHub URL for a file in this repository.
+- Use full GitHub URLs to default-branch files for repository file links in templates copied into GitHub Issue or PR bodies, as the [file links decision](../adr/decision/2026/08/24-relative-links.md) specifies.
+- For all other repository file links, use document-relative destinations: prefix the current directory or a descendant with `./`, and use as many `../` segments as needed to leave that tree. Do not use a leading `/`, a repository-root-relative destination, or an absolute GitHub URL.
 - Write the link text for a file from the repository root without a leading `/` when the text names that file.
 - Write `AGENTS.md` as inline code rather than a link when a document mentions it. Its reader is the agent working in this repository, not the reader of the public documentation.
 
