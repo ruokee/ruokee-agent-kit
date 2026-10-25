@@ -38,7 +38,7 @@ Skill 语言变体按 [Skill 打包决定](../../../decision/2026/08/20-skill-va
 
 组件 README 文件对介绍能力并链接使用和设计文档。详细命令、参数和规范性行为仍由其所属页面维护。tk README 文件对按照 [tk 文档决定](./29-r3-tk-documentation.zh.md)提供这类导航。
 
-不维护独立的 Skill 索引页面、重复的语言目录入口页，也不在被取代的路径保留跳转占位文件。页面移动时修复受影响的入站链接和命令示例。使用[文档相对链接](../../../decision/2026/08/24-relative-links.zh.md)，并保留[组件自包含](../../../decision/2026/08/24-component-self-containment.zh.md)要求。
+不维护独立的 Skill 索引页面、重复的语言目录入口页，也不在被取代的路径保留跳转占位文件。页面移动时修复受影响的入站链接和命令示例。使用[文档相对链接](./24-r1-relative-links.zh.md)，并保留[组件自包含](../../../decision/2026/08/24-component-self-containment.zh.md)要求。
 
 ## 考虑过的替代方案
 
