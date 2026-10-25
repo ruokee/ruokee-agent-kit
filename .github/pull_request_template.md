@@ -1,6 +1,6 @@
 # Describe the change
 
-English | [中文](https://github.com/ruokee/ruokee-agent-kit/blob/main/pull_request_template.zh.md)
+English | [中文](https://github.com/ruokee/ruokee-agent-kit/blob/main/.github/pull_request_template.zh.md)
 
 Copy the linked template if you prefer Chinese.
 
