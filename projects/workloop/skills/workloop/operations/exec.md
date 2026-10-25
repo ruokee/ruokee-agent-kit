@@ -4,7 +4,13 @@ Apply the loaded [entry](../SKILL.md). Read [Task ownership](../references/task.
 
 ## Resolve the unit
 
+Resolve the actual execution request and owning Task, then read its current tk status. If it is `planning`, start it through tk's public interface, such as `tk update <task_ref> --start` in the CLI, before checking Plan readiness. Do not wait for implementation to begin. This execution request authorizes starting the owning Task, not changing other Tasks.
+
+Continue an `open` Task without starting it again. A `closed` Task follows tk's separate reopening permission. On recovery or a failed start, reconcile the actual Task state through tk before implementation; never edit managed metadata by hand.
+
 Read the owning Task's goal, mandatory `plan.md`, linked unit details, relevant design and decisions, dependencies, current implementation, acceptance, and execution evidence. A one-unit task still requires a separate Plan. Return missing or unready planning to [Clarify](./clarify.md), without inventing requirements during implementation.
+
+Returning to Clarify because of missing planning or a problem found during execution, verification, or user acceptance leaves the Task `open`. Workflow stages may return to earlier work; tk status never returns to `planning`.
 
 Apply the execution constraints to the selected scope, permission, continuous progress, and question restrictions. When a role is needed, read [role selection](../references/roles.md). For assigned work or cross-session dispatch, read [collaboration](../references/collaboration.md). Use Senior only when explicitly assigned.
 

@@ -299,6 +299,8 @@ ln -s "$component_root/$skill_source" "$skill_root/$skill"
 - **Ship** 按实际请求和许可完成项目定义的交付，不一定表示生产发布或 Task 关闭。
 - **Supervise** 调度独立 Worker，不亲自实现。可向不同 Worker 分派独立单元，保留各单元审阅边界。
 
+实际调用 `/wl-exec` 或直接提出等价 Execute 请求后，先确定所属 Task，将其从 `planning` 启动为 `open`，再检查 Plan 是否就绪。已为 `open` 的 Task 直接继续，不重复启动；`closed` Task 仍需单独的重开许可。因缺失规划，或执行、核验、用户验收发现问题而返回 Clarify 时，Task 保持 `open`，不退回 `planning`。
+
 Check 是前期隐含材料检查。目标讨论和 Plan 完成不启动执行，结尾也不邀请执行。
 
 ## 区分材料

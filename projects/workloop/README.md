@@ -299,6 +299,8 @@ For another version, use its current public interfaces. File operations and disc
 - **Ship** performs the delivery defined by the project under the actual request and permissions. It need not mean production release or Task closure.
 - **Supervise** schedules independent Workers instead of implementing itself. It can assign independent units to separate Workers while preserving each unit's review boundary.
 
+An actual `/wl-exec` or equivalent direct Execute request starts the resolved owning Task from `planning` to `open` before Plan readiness is checked. An `open` Task continues without another start; a `closed` Task still needs separate reopening permission. Returning to Clarify for missing planning or problems found during execution, verification, or user acceptance keeps the Task `open`, never `planning`.
+
 Check is preparation's implicit material inspection. Goal discussion and Plan completion do not start execution or invite it in the closing reply.
 
 ## Keep materials focused
