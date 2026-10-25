@@ -12,20 +12,11 @@ In permissive projects, an Agent may also create a Task for work that clearly de
 
 ## Installed Skill identities
 
-tk provides four independent, self-contained Skills:
+tk provides two independent, self-contained Skills: English `tk-cli` and Chinese `tk-cli-zh`.
 
-| Mode | English | Chinese |
-| --- | --- | --- |
-| tools | `tk` | `tk-zh` |
-| CLI | `tk-cli` | `tk-cli-zh` |
+Both use the public `tk` CLI for every Task operation and contain the complete current command reference. They have equivalent semantic coverage and require no other repository component.
 
-The tools Skills use the Harness's logical operation for search, read, create, update, and log. Their exec operation accepts only version, init, check, and rename. Public CLI use is reserved for supported commands without a logical operation. A missing, refused, or failed logical operation is reported as an integration or transport failure and is not retried through the direct CLI.
-
-The CLI Skills use the public `tk` CLI for every Task operation and contain the complete current command reference they need. They do not compare entry routes or depend on integration discovery.
-
-English and Chinese Skills in the same mode have equivalent semantic coverage. Each of the four installed Skills can be understood without another repository component. In the source tree, reference files that are identical across Skills of one language live once in `skills/shared/<language>/`, and assembly copies them into every Skill of that language.
-
-Each Skill source keeps `SKILL.md`, its mode-specific references, and any Agent metadata. Assembly places shared files in the installed Skill's `references/` directory. Entries link to those installed paths, so shared-reference links need not resolve within a source Skill tree. A shared and mode-specific file at the same assembled path stops the build, as does a payload Markdown link to a missing target. Every installed Skill carries all shared references of its language and resolves its own links.
+Each source tree contains `SKILL.md`, its references, and any Agent metadata. Assembly copies the complete tree. Every source and installed file reference resolves within the same Skill. Missing Markdown targets stop the build.
 
 ## Lifecycle semantics
 

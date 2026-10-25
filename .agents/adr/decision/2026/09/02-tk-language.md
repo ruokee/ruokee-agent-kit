@@ -2,31 +2,23 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
+Reverses: [tk Skill language](../../../archived/2026/09/02-r1-tk-language.md)
 
 English | [中文](./02-tk-language.zh.md)
 
 ## Motivation
 
-Select the Skill language in `tk install`, where `--language` combines with `--mode` to pick one discoverable Skill.
+Select one CLI Skill language through the ordinary installation lifecycle.
 
-A manually installed Chinese Skill sits outside that lifecycle: users must install and switch it separately, and tk cannot report or update the selected language as part of the component state.
-
-Mode and language are independent choices. Their command contract should express both dimensions without requiring users to memorize four Skill names.
+Language selection belongs to install so users can install, switch, and inspect the selected identity through one operation.
 
 ## Decision
 
-`tk install` accepts `--language <en|zh>` and defaults to `en`. Language combines with `--mode <tools|cli>` to select one independently discoverable Skill:
+`tk install` accepts `--language <en|zh>`, defaulting to `en`. English selects `tk-cli`; Chinese selects `tk-cli-zh`. Both live under `projects/tk/skills/` with their independent discovery names, which installation preserves.
 
-| Mode | Language | Skill |
-| --- | --- | --- |
-| `tools` | `en` | `tk` |
-| `tools` | `zh` | `tk-zh` |
-| `cli` | `en` | `tk-cli` |
-| `cli` | `zh` | `tk-cli-zh` |
+The two Skills provide equivalent behavior and each contains its complete references. Harness and custom-root targets use the same selection and default. Install, dry-run, text output, and JSON output report the resolved language and Skill.
 
-All four Skills live under `projects/tk/skills/` using their independent discovery names. Installation places the selected directory at the normal Harness Skill root without rewriting its identity.
-
-English and Chinese Skills in the same mode provide equivalent behavior. Install, dry-run, text output, and JSON output report the resolved language and Skill. [Harness component and custom CLI Skill distribution](../08/28-tk-distribution.md) owns switching and uninstallation behavior.
+Installation replaces the selected identity and removes the other language from the same root. Uninstall takes no language selector, removes both identities, and omits language and Skill from its results. [Distribution](../08/28-tk-distribution.md) owns the bounded lifecycle.
 
 ## Alternatives considered
 
@@ -34,12 +26,4 @@ None
 
 ## Consequences
 
-Each Harness install resolves to one of four Skill identities. Changing language replaces the selected identity through the same install lifecycle that switches modes.
-
-The two language implementations in each mode must remain semantically aligned, but each directory is packaged and discovered independently.
-
-## Changes
-
-### 2026-09-03 Custom root language
-
-Custom-root install uses the same `--language <en|zh>` selection and `en` default. Custom-root uninstall has no language selector and removes both known CLI Skill identities.
+One selected root retains one language after installation. Each language is independently packaged and discovered; maintaining semantic equivalence requires updating both together.

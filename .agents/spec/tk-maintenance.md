@@ -2,7 +2,7 @@
 
 ## Goals
 
-Define schema migration, representation switching, rename, integrity checking, and temporary-content cleanup. These operations use tk's shared data, discovery, and write requirements equally through CLI, MCP, and native interfaces.
+Define schema migration, representation switching, rename, integrity checking, and temporary-content cleanup. These CLI operations follow tk's shared data, discovery, and write requirements.
 
 ## Public surface
 

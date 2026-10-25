@@ -58,6 +58,6 @@ Use `tk rename` with a full UUID, exact Task directory, or exact managed carrier
 
 After repair, run `tk check` and read the Task. Use manual repair only when the damage remains outside the public operation's scope.
 
-## Transport failures
+## Process failures
 
-A process that cannot start, invalid JSON output, a damaged protocol frame, or a killed process may produce no domain error result. Preserve the original failure, inspect current state, do not invent an error code, and do not change invocation modes to bypass the same operation.
+A process that cannot start, invalid JSON output, or a killed process may produce no domain error result. Preserve the original failure, inspect current state, and do not invent an error code.

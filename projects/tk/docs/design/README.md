@@ -14,9 +14,7 @@ The [user guide](../guide.md) covers installation and routine use. The [CLI refe
 
 ## Interfaces
 
-- [Tool API](./tool-api.md) defines the six logical tools, requests, unified results, and stable errors.
-- [CLI reference](./cli-reference.md) defines the complete command tree and public spelling.
-- [Harness integration](./harnesses.md) defines the Codex, Claude Code, Pi, and OMP components, native adapters, and build-time assembly.
+- [CLI reference](./cli-reference.md) defines the complete command tree, requests, results, and stable errors.
 
 ## Installation
 

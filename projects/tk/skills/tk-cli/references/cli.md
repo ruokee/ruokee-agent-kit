@@ -50,7 +50,7 @@ Text output communicates the same facts, but its formatting is not a machine int
 | `0` | Success, including no change and success with non-fatal warnings |
 | `2` | Invalid CLI syntax, option, JSON, range, or request field |
 | `3` | Rejected context, configuration, policy, resolution, managed file, invariant, conflict, or compatibility |
-| `4` | Storage failure, partial commit, protocol startup failure, or internal failure |
+| `4` | Storage failure, partial commit, or internal failure |
 | `5` | A required external executable is missing, non-executable, or cannot start |
 | `130` | Cancellation before the first persistent write |
 
@@ -121,7 +121,7 @@ tk create task <name>
 - `--created-at` preserves a reliable historical creation time. Omit it for ordinary creation.
 - `--depends-on` and `--related-to` are repeatable and accept complete UUIDs for existing Tasks in the same Task root.
 - `--extra` accepts a JSON object.
-- Direct CLI creation represents the current user's request, so `--user-confirmed` defaults to `true`. Other invocation entries must not borrow this default to fabricate confirmation.
+- `--user-confirmed` defaults to `true`. Agents must pass the actual authorization state instead of relying on that default.
 
 The tk runtime automatically writes `# <normalized-name>` as the initial `TASK.md` body when it creates the Task. Write `TASK.md` separately after creation only when the Task needs durable content.
 
@@ -140,7 +140,7 @@ tk create subtask <parent_ref>
 
 Each `--item` is a JSON object with required `name` and optional `status`, `created_at`, relationships, and `extra`. Items do not accept a body; every created subtask starts with the generated normalized-name heading. One request accepts 1 to 50 items.
 
-The runtime preflights the complete batch, then creates in input order. CLI `--user-confirmed` defaults to `true`; other invocation entries must pass the real authorization state. Creating a `planning` subtask requires confirmation.
+The runtime preflights the complete batch, then creates in input order. CLI `--user-confirmed` defaults to `true`. Agents must pass the actual authorization state instead of relying on that default. Creating a `planning` subtask requires confirmation.
 
 See [Subtasks](./subtask.md) for placement, numbering, discovery, and retry rules.
 
@@ -274,26 +274,24 @@ Mode switching does not replace schema migration. See [Project storage](./projec
 
 ## `tk install`
 
-Install a supported Harness component or a standalone CLI Skill:
+Install a CLI Skill into an ordinary Skill root:
 
 ```text
 tk install --harness <codex|claude|pi|omp>
-  [--mode <tools|cli>] [--language <en|zh>]
+  [--language <en|zh>]
   [--dry-run] [--output <text|json>]
 
-tk install --mode cli --skill-root <directory>
+tk install --skill-root <directory>
   [--language <en|zh>] [--dry-run] [--output <text|json>]
 ```
 
 - Exactly one of `--harness` and `--skill-root` is required.
-- Harness mode defaults to `tools`.
-- Custom-root mode must be explicitly `cli`.
 - `--language` defaults to `en`.
 - `--dry-run` returns a plan without writing.
 
-Installation uses only payloads embedded in the current executable. It does not access the network or accept a local archive. Harness install converges the selected component and registration. Custom-root install creates `tk-cli` or `tk-cli-zh` below the supplied parent directory, removes the other CLI target, and preserves every unrelated child.
+Installation uses only payloads embedded in the current executable. It does not access the network or accept a local archive. `--harness` selects an ordinary Skill root: Codex uses `$CODEX_HOME/skills`, defaulting to `~/.codex/skills`; Claude Code uses `~/.claude/skills`; Pi uses `~/.pi/agent/skills`; OMP uses `~/.omp/agent/skills`. A custom root resolves from process cwd. Both targets manage only `tk-cli` and `tk-cli-zh`, writing the selected language and removing the other. They preserve other content and do not read Harness configuration or invoke Harness commands.
 
-The action is `would_install`, `installed`, `updated`, or `no_change`. Results contain exactly one target field, `harness` or the absolute `skill_root`, plus the resolved mode, language, Skill, and changes. Cross-file failures follow the completed and uncompleted contract.
+The action is `would_install`, `installed`, `updated`, or `no_change`. Results contain exactly one target field, `harness` or the absolute `skill_root`, plus the resolved language, Skill, and changes. Cross-file failures follow the completed and uncompleted contract.
 
 ## `tk uninstall`
 
@@ -305,9 +303,9 @@ tk uninstall --skill-root <directory>
   [--dry-run] [--output <text|json>]
 ```
 
-Uninstall takes no mode or language options. Harness uninstall removes the current component, every known residual tk Skill variant for that Harness, and tk registration while preserving unrelated content. Custom-root uninstall removes both `tk-cli` and `tk-cli-zh` while preserving the root and every other child.
+Uninstall takes no language option. It removes both `tk-cli` and `tk-cli-zh` from the selected root, including modified or extra content inside those targets, and preserves the root and every other child.
 
-The action is `would_uninstall`, `uninstalled`, or `no_change`, with planned or actual changes listed. Custom-root results report CLI mode and omit language and Skill.
+The action is `would_uninstall`, `uninstalled`, or `no_change`, with planned or actual changes listed. Results omit language and Skill because both identities are removed.
 
 ## `tk --version`
 
@@ -321,14 +319,14 @@ The JSON payload contains:
 
 ```json
 {
-  "runtime_version": "0.1.13",
-  "cli_contract_version": 3,
+  "runtime_version": "0.1.14",
+  "cli_contract_version": 4,
   "task_schema_version": 1,
-  "component_format_version": 4
+  "component_format_version": 5
 }
 ```
 
-`runtime_version` is the package version of the running executable and changes with releases; the other values are the version of the CLI, MCP, and native tool contracts, the Task schema version, and the component format version. This command does not require a project and exits `0` on success.
+`runtime_version` is the package version of the running executable and changes with releases; the other values are the CLI contract version, Task schema version, and component format version. This command does not require a project and exits `0` on success.
 
 ## `tk --help`
 

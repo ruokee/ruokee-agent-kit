@@ -50,7 +50,7 @@ tk [--cwd <path>] [--output <text|json>] <command> ...
 | `0` | 成功，包括无变化和带非致命警告的成功 |
 | `2` | CLI 语法、选项、JSON、范围或请求字段无效 |
 | `3` | 上下文、配置、策略、解析、受管文件、不变量、冲突或兼容性拒绝 |
-| `4` | 存储失败、部分提交、协议启动失败或内部失败 |
+| `4` | 存储失败、部分提交或内部失败 |
 | `5` | 必需的外部可执行文件缺失、不可执行或无法启动 |
 | `130` | 首次持久化写入前取消 |
 
@@ -121,7 +121,7 @@ tk create task <name>
 - `--created-at` 只用于保留可靠的历史创建时间。普通创建应省略。
 - `--depends-on` 和 `--related-to` 可重复传入，值是同一任务根内已存在任务的完整 UUID。
 - `--extra` 接受 JSON 对象。
-- CLI 直接创建代表当前用户请求，因此 `--user-confirmed` 默认是 `true`。其他调用入口不得借用这个默认值伪造确认。
+- `--user-confirmed` 默认是 `true`。Agent 必须传入真实授权状态，不能依赖该默认值。
 
 tk 运行时在创建任务时自动生成 `# <规范化名称>` 作为初始 `TASK.md` 正文。任务需要持久内容时，只在创建完成后单独写入 `TASK.md`。
 
@@ -140,7 +140,7 @@ tk create subtask <parent_ref>
 
 每个 `--item` 是一个 JSON 对象，包含必填 `name`，以及可选 `status`、`created_at`、关系和 `extra`。item 不接受正文；每个创建的子任务都以生成的规范化名称标题开头。一次请求接受 1 到 50 个条目。
 
-运行时先预检整个批次，再按输入顺序创建。CLI 的 `--user-confirmed` 默认是 `true`；其他调用入口必须传递真实授权状态。创建 `planning` 子任务需要确认。
+运行时先预检整个批次，再按输入顺序创建。CLI 的 `--user-confirmed` 默认是 `true`。Agent 必须传入真实授权状态，不能依赖该默认值。创建 `planning` 子任务需要确认。
 
 创建位置、编号、发现和重试规则见[子任务](./subtask.md)。
 
@@ -274,26 +274,24 @@ tk metadata switch --to <split|embed>
 
 ## `tk install`
 
-安装已支持 Harness 组件或独立 CLI Skill：
+把 CLI Skill 安装到普通 Skill 根目录：
 
 ```text
 tk install --harness <codex|claude|pi|omp>
-  [--mode <tools|cli>] [--language <en|zh>]
+  [--language <en|zh>]
   [--dry-run] [--output <text|json>]
 
-tk install --mode cli --skill-root <directory>
+tk install --skill-root <directory>
   [--language <en|zh>] [--dry-run] [--output <text|json>]
 ```
 
 - `--harness` 与 `--skill-root` 必须且只能提供一个。
-- Harness 模式默认是 `tools`。
-- 自定义根目录模式必须显式使用 `cli`。
 - `--language` 默认是 `en`。
 - `--dry-run` 返回计划，不写入。
 
-安装只使用当前可执行文件中的内嵌载荷，不联网，也不接受本地归档。Harness install 收敛所选组件和注册。自定义根目录 install 在所提供父目录下创建 `tk-cli` 或 `tk-cli-zh`，删除另一个 CLI 目标，并保留其他全部子项。
+安装只使用当前可执行文件中的内嵌载荷，不联网，也不接受本地归档。`--harness` 选择普通 Skill 根目录：Codex 使用 `$CODEX_HOME/skills`，默认为 `~/.codex/skills`；Claude Code 使用 `~/.claude/skills`；Pi 使用 `~/.pi/agent/skills`；OMP 使用 `~/.omp/agent/skills`。自定义根目录按进程 cwd 解析。两种目标都只管理 `tk-cli` 和 `tk-cli-zh`，写入所选语言并删除另一种语言，保留其他内容，不读取 Harness 配置或调用 Harness 命令。
 
-结果动作是 `would_install`、`installed`、`updated` 或 `no_change`。结果必须且只能包含 `harness` 或绝对路径 `skill_root` 中的一个目标字段，并包含最终模式、语言、Skill 和变更。跨文件失败遵循已完成项和未完成项合同。
+结果动作是 `would_install`、`installed`、`updated` 或 `no_change`。结果必须且只能包含 `harness` 或绝对路径 `skill_root` 中的一个目标字段，并包含最终语言、Skill 和变更。跨文件失败遵循已完成项和未完成项合同。
 
 ## `tk uninstall`
 
@@ -305,9 +303,9 @@ tk uninstall --skill-root <directory>
   [--dry-run] [--output <text|json>]
 ```
 
-uninstall 不接受模式或语言选项。Harness uninstall 删除当前组件、该 Harness 下所有已知残留的 tk Skill variant 和 tk 注册，同时保留无关内容。自定义根目录 uninstall 删除 `tk-cli` 和 `tk-cli-zh`，并保留根目录和其他全部子项。
+uninstall 不接受语言选项。它删除所选根目录下的 `tk-cli` 和 `tk-cli-zh`，包括目标内修改或额外的内容，保留根目录和其他全部子项。
 
-结果动作是 `would_uninstall`、`uninstalled` 或 `no_change`，并列出计划或实际变更。自定义根目录结果报告 CLI 模式，但省略语言和 Skill。
+结果动作是 `would_uninstall`、`uninstalled` 或 `no_change`，并列出计划或实际变更。两个身份都会被删除，因此结果省略语言和 Skill。
 
 ## `tk --version`
 
@@ -321,14 +319,14 @@ JSON 结果包含：
 
 ```json
 {
-  "runtime_version": "0.1.13",
-  "cli_contract_version": 3,
+  "runtime_version": "0.1.14",
+  "cli_contract_version": 4,
   "task_schema_version": 1,
-  "component_format_version": 4
+  "component_format_version": 5
 }
 ```
 
-`runtime_version` 是运行中可执行文件的包版本，随发行变化；其余取值分别是 CLI、MCP 和原生工具合同版本、Task schema 版本与组件格式版本。该命令不要求项目，成功时退出 `0`。
+`runtime_version` 是运行中可执行文件的包版本，随发行变化；其余取值分别是 CLI 合同版本、Task schema 版本与组件格式版本。该命令不要求项目，成功时退出 `0`。
 
 ## `tk --help`
 

@@ -9,19 +9,12 @@ This glossary includes only terms that have a special meaning in tk, require fix
 - Task: Chinese form `任务`. A temporary effort within a project that is worth preserving. Creating a Task does not imply a commitment by the user or an Agent to execute or complete it.
 - Harness: Chinese form `Harness`. The software environment around a model that enables it to operate as an Agent, including loops, prompts, context, tools, permissions, and hooks.
 - Skill: Chinese form `Skill`. Agent behavior instructions and reference materials discoverable by a Harness.
-- Plugin: Chinese form `Plugin`. A self-contained component form loaded through a Harness's native Plugin mechanism.
-- Package: Chinese form `Package`. A component form installed and loaded through Pi or OMP's native mechanism.
-- component: Chinese form `组件`. A self-contained tk unit assembled and installed for a Harness.
-- adapter: Chinese form `适配器`. Code that maps native Pi or OMP tool calls to the public tk process interface.
+- component: Chinese form `组件`. A self-contained tk distribution unit.
 - payload: Chinese form `载荷`. The self-contained set of files installed from a component archive.
 - runtime: Chinese form `运行时`. The fixed user-level `tk` executable and its Rust behavior.
 
-## Tool contract
+## CLI contract
 
-- logical tool: Chinese form `逻辑工具`. A transport-independent search, read, create, update, log, or exec operation.
-- protocol tool name: Chinese form `协议工具名称`. A tool name in the MCP namespace.
-- native tool name: Chinese form `原生工具名称`. A `tk_*` tool name registered by Pi or OMP.
-- schema type: Chinese form `schema 类型`. The `mcp` or `native` selection used when generating a tool contract.
 - exact resolution: Chinese form `精确解析`. Resolving a complete reference to exactly one Task without using search ranking.
 - actor: Chinese form `发起者`. WAL call attribution information. It does not represent identity, authorization, or Task assignment.
 - result envelope: Chinese form `统一结果`. A structured result containing `ok`, `data`, `warnings`, or `error`.
@@ -51,7 +44,7 @@ This glossary includes only terms that have a special meaning in tk, require fix
 - activity marker: Chinese form `活动操作标记`. A process marker that blocks other write operations during a multi-target project write.
 - garbage collection: Chinese form `GC`. A maintenance operation that identifies and removes tk temporary content and completed activity markers.
 - runtime compatibility: Chinese form `运行时兼容范围`. The `runtime_compat` declared by a component and evaluated by Rust.
-- clean uninstall: Chinese form `干净卸载`. Restoring a Harness to the state it would have had if tk had never been installed, while preserving all unrelated content.
+- clean uninstall: Chinese form `干净卸载`. Removing both CLI Skills completely from the selected root while preserving the root and all unrelated content.
 
 ## Materials
 

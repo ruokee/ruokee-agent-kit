@@ -1,39 +1,26 @@
-# tk CLI mode
+# tk CLI access
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
-Reverses: [tk CLI mode](../../../archived/2026/09/02-r1-tk-cli-mode.md)
+Reverses: [tk CLI mode](../../../archived/2026/09/02-r2-tk-cli-mode.md)
 
 English | [中文](./02-tk-cli-mode.zh.md)
 
 ## Motivation
 
-Provide tk in a CLI-only form as the `tk-cli` and `tk-cli-zh` Skills.
+Use the public `tk` CLI for every Task operation.
 
-These Skills route every Task operation through the public `tk` CLI. tk keeps Task progress, shared understanding, and supporting materials in ordinary project files.
-
-A Skill that teaches both logical operations and the public CLI gives an Agent two routes for the same Task operation, so route choice can follow earlier calls instead of the installed integration contract.
-
-Some installations also need Task guidance without operation registration or adapter context. A separate Skill identity avoids conditional wording inside the tools Skill.
+One command interface lets people, scripts, and Agents use the same Task behavior. Complete language-specific Skills explain that interface without conditional access instructions.
 
 ## Decision
 
-tk provides a CLI-only mode through the self-contained `tk-cli` and `tk-cli-zh` Skills. Every Task operation in these Skills uses the public `tk` CLI.
+The sole tk access interface is the CLI. `tk-cli` and `tk-cli-zh` are self-contained ordinary Skills with complete current commands, authorization guidance, error handling, and Task material guidance in their respective languages.
 
-CLI-only Skill content contains no logical operation names, discovery instructions, route comparison, tool failure handling, fallback behavior, or assumption that another entry route is absent. Each Skill includes the complete current CLI guidance needed for its own language.
+Installation selects exactly one of `--harness` and `--skill-root`, plus an optional language. A Harness selection only maps to its ordinary Skill root. Both targets write the selected Skill, remove the other language, and preserve the root and every unrelated child. Uninstall removes both CLI Skills.
 
-A CLI-mode Harness install writes `tk-cli` or `tk-cli-zh` to that Harness's user-level ordinary Skill root:
+The fixed `$HOME/.local/bin/tk` executable is an external prerequisite. Lifecycle commands neither read Harness configuration nor invoke host commands. They maintain no installation history or alternate access selection.
 
-- Codex uses `$CODEX_HOME/skills`, which defaults to `~/.codex/skills`.
-- Claude Code uses `~/.claude/skills`.
-- Pi uses `~/.pi/agent/skills`.
-- OMP uses `~/.omp/agent/skills`.
-
-The install creates no Harness registration and installs no native manifest. It removes that Harness's tools targets and any existing tk registration, and removes the other language variant from the same root. A failed registration removal keeps the tools targets and reports the removal as incomplete. A tools install removes both CLI Skill directories from the same root, so one Harness keeps one tk selection.
-
-`--mode cli --skill-root <dir>` keeps writing only `<dir>/tk-cli` or `<dir>/tk-cli-zh` and does not touch Harness targets or registrations. The fixed `$HOME/.local/bin/tk` executable remains an external prerequisite.
-
-[Skill language selection](./02-tk-language.md) owns the two language identities. [Harness component and custom CLI Skill distribution](../08/28-tk-distribution.md) owns installation and packaging.
+[Skill language](./02-tk-language.md) owns the two identities. [Distribution](../08/28-tk-distribution.md) owns packaging and lifecycle; [Harness integration](../08/28-tk-harness.md) owns root mappings and discovery responsibilities.
 
 ## Alternatives considered
 
@@ -41,6 +28,6 @@ None
 
 ## Consequences
 
-CLI-only installations carry less integration content and add no tk operation schemas to the Agent session. The Agent must select CLI subcommands and options itself, and the Harness cannot constrain request structure at the invocation boundary.
+The Agent selects CLI subcommands and options itself. Argument validation occurs in tk, so the Harness does not constrain their structure before invocation.
 
-Ordinary Skill discovery depends on the Harness version and its user-level Skill root. A Harness that does not scan the installed root does not load the Skill, even when the files are present.
+Ordinary Skill discovery depends on the Harness and its root configuration. A Harness that does not scan the installed root does not load the Skill even when its files are present.

@@ -12,7 +12,7 @@ Maintain every OMP-facing component against one shared maintenance lower bound, 
 
 First-party components load code into a host process and must keep working as that host upgrades. Maintenance responsibility, implementation selection, and verification evidence need distinct meanings rather than a single version range, so these components follow common rules: a component declares its maintenance lower bound in its own documentation, its host peer declarations keep naming the host packages without carrying that bound, an update preserves the results a maintained older host had, verification follows the actual behavioral change, and a bound is raised only through a decision. The rules require no common implementation.
 
-The OMP-facing components are `omp-qol`, `omp-smart-context`, `omp-status-bar`, and the OMP adapter of `tk`. Raising their bounds one component at a time, and only when a component could no longer serve both hosts, left them on bounds between 18.1.8 and 18.2.8 while development and real-host checks had moved to 18.4.x and 18.5.x. Each component kept code for the hosts at the bottom of that range, and two features had stopped working on current hosts: the default-block route of `omp-system-prompt` and the speculation band indicator of `omp-status-bar`. The OMP-facing components trade support for those older hosts for a smaller maintained surface and one baseline they are developed and verified against.
+The OMP-facing components are `omp-qol`, `omp-smart-context`, and `omp-status-bar`. Raising bounds one component at a time, and only when a component could no longer serve both hosts, left the maintained host code on bounds between 18.1.8 and 18.2.8 while development and real-host checks had moved to 18.4.x and 18.5.x. Each component kept code for the hosts at the bottom of that range, and two features had stopped working on current hosts: the default-block route of `omp-system-prompt` and the speculation band indicator of `omp-status-bar`. The OMP-facing components trade support for those older hosts for a smaller maintained surface and one baseline they are developed and verified against.
 
 The [predecessor](../../../archived/2026/09/28-r2-host-maintenance.md#bound-changes) required a formal proposal for each bound raise. Under the [ADR mechanism](../08/22-adr-mechanism.md), tasks hold the evidence and approval while the adopted decision preserves the public contract. This changes the record location, not the conditions for a raise or the evidence about lost support.
 
@@ -114,7 +114,7 @@ Raising the OMP-facing components to 18.5.0 removes three behaviors that still w
 - [Maintain the OMP status bar with a static context glyph](./04-omp-status-bar.md) replaces the speculation band estimate that needs `Settings.getGroup`, which hosts before 18.4.0 provide.
 - [Maintain OMP quality of life adjustments on the standalone wait entry](../../../archived/2026/09/20-r7-omp-qol.md) removes the `hub` wait path that served hosts before 18.3.0.
 
-`omp-context-pin`, the `tk` OMP adapter, and the subsequently removed [`omp-codex-web-access`](./06-codex-web-access.md) component removed no behavior that a host from their earlier bound up to 18.5.0 used.
+The other components covered by the shared-bound change removed no behavior that a host from their earlier bound up to 18.5.0 used.
 
 ## Alternatives considered
 

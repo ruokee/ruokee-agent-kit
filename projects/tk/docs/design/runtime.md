@@ -6,14 +6,13 @@
 
 The Rust runtime is divided into layers by responsibility:
 
-- Interface layer: CLI, MCP, generated tool schemas, and text and JSON output.
+- Interface layer: CLI and text and JSON output.
 - Application layer: request orchestration, project and Task resolution, preflight checks, commit ordering, and result aggregation.
 - Domain layer: Task identity, names, lifecycle, relationships, search ranking, and authorization rules.
 - Persistence layer: split/embed decoding and encoding, path safety, atomic replacement, and WAL.
 - Maintenance layer: schema migration, representation switching, rename, check, GC, and component lifecycle.
-- Harness adapters: native tool mappings for Pi and OMP, with load error isolation.
 
-Dependencies flow from the interface layer to the application and domain layers, then to the persistence layer. Harness adapters depend only on generated contracts and public process interfaces, not on private Rust modules.
+Dependencies flow from the CLI to the application and domain layers, then to persistence.
 
 ## Process model
 
@@ -23,28 +22,18 @@ The following commands use short-lived processes:
 - project initialization and checks;
 - schema migration and representation switching;
 - rename and GC;
-- Harness component installation, update, and removal;
-- schema generation and version output.
+- CLI Skill installation, update, and removal;
+- help and version output.
 
-The MCP server serves exactly one stdio connection. It may retain immutable tool definitions, but it resolves cwd, the project, and the Task again for every call. The runtime does not cache the project graph or create a background index.
-
-On Unix, the MCP entry uses Tokio's nonblocking process-stdio adapters for both pipes and Unix stream sockets. Readiness-based I/O lets cancellation stop the connection without waiting for another input byte; the entry does not require a FIFO descriptor.
-
-Tool-list responses include `ttlMs: 0` and `cacheScope: "private"`. These fields satisfy MCP 2026-07-28 cache metadata requirements without granting a freshness interval or cross-client cache sharing.
-
-Each native tool call from Pi or OMP starts the public `tk` executable. Adapters do not invoke a shell or call hidden subcommands.
+Each invocation resolves cwd, the project, and Task state again. The runtime does not cache the project graph or create a background index.
 
 ## Request context
 
-The cwd for a project request is selected in this order:
-
-1. cwd explicitly provided by the request;
-2. the session directory provided by the Harness;
-3. the runtime process directory.
+Project commands use explicit `--cwd` when supplied, otherwise the runtime process directory. Relative values resolve from the process directory.
 
 A complete absolute Task path or material path may locate its own project and does not have to belong to the cwd project.
 
-actor applies only to update, log, and rename requests that append to WAL. Direct CLI calls use `cli` by default. Native adapters prefer available model information and otherwise use the Harness name.
+actor applies only to update, log, and rename requests that append to WAL. It defaults to `cli`; Agents pass their available model or Harness identity explicitly when attribution matters.
 
 Context is never persisted as Task state.
 
@@ -64,7 +53,7 @@ The [data model](./data-model.md#candidate-identification) defines the per-scan 
 
 check, relationship validation, schema migration, and representation switching reuse the discovered graph. The runtime does not claim that project operations use constant memory.
 
-Process stdout, stderr, tool schemas, `tk read` WAL responses, frontmatter, and protocol frames have explicit byte or entry limits. Each subprocess stream and each MCP JSON payload is limited to 1 MiB. Oversized MCP input closes the stdio transport. Oversized MCP output fails the transport instead of emitting a partial frame. `tk check` separately streams complete WAL input without fixed total file, byte, or entry limits.
+Subprocess stdout and stderr each have a 1 MiB limit. `tk read` WAL responses and frontmatter have explicit byte or entry limits. `tk check` streams complete WAL input without fixed total file, byte, or entry limits.
 
 ## Write behavior
 
@@ -88,7 +77,7 @@ Exit codes use the current implementation mapping. 0 means success, and nonzero 
 
 ## Executable checks
 
-On Linux, the fixed runtime and official Harness commands must:
+On Linux, the fixed runtime must:
 
 - exist at the specified path;
 - be regular files;
@@ -96,20 +85,16 @@ On Linux, the fixed runtime and official Harness commands must:
 
 If process startup fails, the runtime preserves the operating system error and classifies it as environment.
 
-## Harness adapters
-
-The extension entry point's preflight checks, failure behavior, and registration and rollback guarantees are defined in [Harness integration](./harnesses.md#adapter-loading). The loading marks for each adapter are defined in its [OMP](./harnesses.md#omp) and [Pi](./harnesses.md#pi) sections.
-
 ## Component assembly
 
-Build-time assembly is defined in [Harness integration](./harnesses.md#assembly-at-build-time), and the embedded artifacts are defined in [Installation](./installation.md#embedded-payloads).
+The [installation design](./installation.md#embedded-payloads) describes build-time assembly and embedded artifacts.
 
 ## Version dimensions
 
 - runtime version: the executable package version.
-- CLI contract version: the version of the CLI, MCP, and native tool contracts.
+- CLI contract version: the version of command arguments and results.
 - Task schema version: the current Task metadata version.
-- component format version: the version of the embedded Harness component and standalone CLI Skill archive format.
+- component format version: the version of the embedded CLI Skill archive format.
 - cleanup manifest version: the version of the minimal cleanup manifest format.
 
 `tk --version --output json` uses `runtime_version`, `cli_contract_version`, `task_schema_version`, and `component_format_version`.

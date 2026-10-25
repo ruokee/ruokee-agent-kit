@@ -22,7 +22,7 @@ OMP's common floor is `18.5.0`; Pi's independent floor is `0.84.4`. There is no 
 
 Host peer declarations name the required packages without narrowing to a maintenance range. OMP-facing components' `@oh-my-pi/*` development dependencies and check baselines are fixed at `18.5.0`. A package may still reject a genuinely missing required capability; it must not manufacture a version allowlist.
 
-The tk runtime compatibility range, driver contract, and generated tool contract are separate from a host maintenance floor. Host-floor policy does not remove their interface compatibility checks.
+The tk runtime compatibility range is independent of host maintenance floors. Host-floor policy does not remove that compatibility check.
 
 ## Invariants
 

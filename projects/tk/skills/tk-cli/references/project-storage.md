@@ -80,7 +80,7 @@ Read operations do not run write-policy checks. Create, update, log, and other w
 | `strict` | Default. An Agent may create a Task only when the user explicitly requests or confirms creation. |
 | `permissive` | An Agent may create an open Task for work that clearly needs durable state across steps or sessions. A user's planning intent alone is still not authorization to create. |
 
-The policy does not restrict a terminal user who invokes the CLI directly and does not let a caller fabricate `user_confirmed`. Subtask creation still follows the current parent and invocation-entry authorization rules.
+The policy does not restrict a terminal user who invokes the CLI directly and does not let a caller fabricate `user_confirmed`. Subtask creation still follows the current parent rules and the caller's actual authorization.
 
 ## Metadata mode
 

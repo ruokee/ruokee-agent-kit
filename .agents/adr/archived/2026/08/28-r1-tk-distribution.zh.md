@@ -9,7 +9,7 @@ Reversed by: [tk 分发](./28-r2-tk-distribution.zh.md)
 
 ## 动机
 
-tk 分发一个用户级运行时，以及 Codex、Claude Code、Pi 和 OMP 每个 Harness 一份自包含组件，并把运行时安装与 Harness 集成分属不同职责。[tk 产品架构](../../../decision/2026/08/21-tk-architecture.zh.md)定义该运行时和这些组件。组件使用运行时前，必须先安装可执行文件。组件安装必须保持确定性、离线、可检查和可撤销，同时不维护第二个安装数据库。
+tk 分发一个用户级运行时，以及 Codex、Claude Code、Pi 和 OMP 每个 Harness 一份自包含组件，并把运行时安装与 Harness 集成分属不同职责。[tk 产品架构](./21-r1-tk-architecture.zh.md)定义该运行时和这些组件。组件使用运行时前，必须先安装可执行文件。组件安装必须保持确定性、离线、可检查和可撤销，同时不维护第二个安装数据库。
 
 各 Harness 的目标位置和官方生命周期 API 不同。分发仍需要为安装、更新、无变化、干净卸载和部分失败定义一套统一结果边界。
 

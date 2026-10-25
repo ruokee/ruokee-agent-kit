@@ -40,7 +40,7 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 
 **General**
 
-- **[tk](./projects/tk/README.md)** is a persistent task management tool for temporary project efforts worth preserving. It provides access through the `tk` CLI, MCP, Pi Packages, and other integrations. `tk` preserves task progress and shared understanding across context compaction, sessions, and Agents.
+- **[tk](./projects/tk/README.md)** is a persistent task management CLI for temporary project efforts worth preserving. English and Chinese Skills guide Agents using the public `tk` commands. `tk` preserves task progress and shared understanding across context compaction, sessions, and Agents.
 
 **OMP**
 
@@ -52,7 +52,7 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 
 Skill installation is separate from the development setup below. Follow [Installing Skills](./docs/installation.md) for ordinary Skills.
 
-Follow each project component's README for its build and installation requirements. Install the tk runtime separately from its Harness components.
+Follow each project component's README for its build and installation requirements. Install the tk runtime separately from its CLI Skill.
 
 ## Contribute
 

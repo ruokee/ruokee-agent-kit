@@ -14,7 +14,7 @@ Define tk's four built-in usage patterns and the ownership and bilingual consist
 
 One shared protocol lets an Agent and a user reach the same understanding of what a pattern adds, what it requires, and which page owns which contract.
 
-The [Skill pattern reference](../../../../../projects/tk/skills/shared/en/patterns.md) and the [Skill design](../../../../../projects/tk/docs/design/skill.md) state the four patterns. The rules of the [archived documentation decision](./29-r1-tk-documentation.md) that govern the public documentation set and its maintenance still apply.
+The [Skill pattern reference](../../../../../projects/tk/skills/tk-cli/references/patterns.md) and the [Skill design](../../../../../projects/tk/docs/design/skill.md) state the four patterns. The rules of the [archived documentation decision](./29-r1-tk-documentation.md) that govern the public documentation set and its maintenance still apply.
 
 ## Analysis
 
@@ -74,7 +74,7 @@ Allow arbitrary files and subdirectories under `scratchpad/`, without a mandator
 
 ### Contract ownership
 
-The four authoritative Skill trees are [tk](../../../../../projects/tk/skills/tk/SKILL.md), [tk-zh](../../../../../projects/tk/skills/tk-zh/SKILL.md), [tk-cli](../../../../../projects/tk/skills/tk-cli/SKILL.md), and [tk-cli-zh](../../../../../projects/tk/skills/tk-cli-zh/SKILL.md). Each is self-contained and keeps its own complete pattern reference. Tools and CLI references in the same language have identical content; English and Chinese have equivalent meaning. Skill files retain references within their own component.
+The four authoritative Skill trees are `projects/tk/skills/tk/`, `projects/tk/skills/tk-zh/`, [tk-cli](../../../../../projects/tk/skills/tk-cli/SKILL.md), and [tk-cli-zh](../../../../../projects/tk/skills/tk-cli-zh/SKILL.md). Each is self-contained and keeps its own complete pattern reference. Tools and CLI references in the same language have identical content; English and Chinese have equivalent meaning. Skill files retain references within their own component.
 
 The [Skill design](../../../../../projects/tk/docs/design/skill.md) owns the Agent behavior contract. The [glossary](../../../../../projects/tk/docs/design/GLOSSARY.md) owns the four names and their meanings. The [documentation design](../../../../../projects/tk/docs/design/documentation.md) owns translation maintenance, and [validation](../../../../../projects/tk/docs/design/validation.md) owns observable acceptance. These contracts, their language counterparts, and the Skill references change together.
 

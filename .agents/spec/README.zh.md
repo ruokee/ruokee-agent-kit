@@ -30,8 +30,8 @@
 - 产品范围：[English](./tk.md)、[中文](./tk.zh.md)。
 - 持久数据、发现、生命周期和共享写入：[English](./tk-data.md)、[中文](./tk-data.zh.md)。
 - 迁移、改名、完整性检查和清理：[English](./tk-maintenance.md)、[中文](./tk-maintenance.zh.md)。
-- CLI、逻辑操作、结果和传输：[English](./tk-interface.md)、[中文](./tk-interface.zh.md)。
-- 分发和 Harness 集成：[English](./tk-distribution.md)、[中文](./tk-distribution.zh.md)。
+- CLI 命令及结果：[English](./tk-interface.md)、[中文](./tk-interface.zh.md)。
+- CLI Skill 分发：[English](./tk-distribution.md)、[中文](./tk-distribution.zh.md)。
 - Agent 行为和材料模式：[English](./tk-agent.md)、[中文](./tk-agent.zh.md)。
 
 ### OMP QoL
@@ -86,7 +86,7 @@
 - [运行时](../adr/decision/2026/08/28-tk-runtime.zh.md)。
 - [任务数据](../adr/decision/2026/08/28-tk-data.zh.md)。
 - [Harness 集成](../adr/decision/2026/08/28-tk-harness.zh.md)。
-- [CLI 模式](../adr/decision/2026/09/02-tk-cli-mode.zh.md)。
+- [CLI 接入](../adr/decision/2026/09/02-tk-cli-mode.zh.md)。
 - [Skill 语言](../adr/decision/2026/09/02-tk-language.zh.md)。
 - [分发](../adr/decision/2026/08/28-tk-distribution.zh.md)。
 - [文档](../adr/decision/2026/08/29-tk-documentation.zh.md)。

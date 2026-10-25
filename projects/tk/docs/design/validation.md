@@ -4,17 +4,17 @@
 
 This page describes validation methods and scenarios for tk's required behavior and implementation choices. Specifications contain the complete behavior and acceptance requirements; design explains implementation. Validation must not weaken either obligation for implementation convenience.
 
-The lists below are scenario requirements, not a coverage report. Automated entry points are `cargo test --manifest-path projects/tk/Cargo.toml` for Rust and component lifecycle checks, and `bun test projects/tk/adapter-tests` for native adapter checks. Lifecycle tests use controlled Harness commands, and adapter tests use controlled hosts and runtimes. Run remaining protocol, installed-Skill, and real-Harness scenarios separately. Record the actual candidate, host version, inputs, observations, and uncovered cases with each validation result; a passing automated command does not establish that every scenario on this page ran.
+The lists below are scenario requirements, not a coverage report. The automated entry point is `cargo test --manifest-path projects/tk/Cargo.toml` for Rust and component lifecycle checks. Lifecycle tests run the candidate CLI against real temporary files with no Harness commands. Run installed-Skill and real-Harness scenarios separately. Record the actual candidate, host version, inputs, observations, and uncovered cases with each validation result.
 
 ## Automated prerequisites
 
-Use Rust with `rustfmt`, Bun, Git, and a non-root POSIX environment with the system file tools used by the lifecycle and adapter scenarios. From the repository root, prepare locked crate dependencies separately from checks:
+Use Rust with `rustfmt`, Git, and a non-root POSIX environment. From the repository root, prepare locked crate dependencies separately from checks:
 
 ```sh
 cargo fetch --locked --manifest-path projects/tk/Cargo.toml
 ```
 
-Run Rust formatting validation with `cargo fmt --manifest-path projects/tk/Cargo.toml -- --check`, followed by the Rust and adapter test commands above. Keep each checkout's writable dependencies and build output independent. These commands do not install the runtime or register Harness components.
+Run Rust formatting validation with `cargo fmt --manifest-path projects/tk/Cargo.toml -- --check`, followed by the Rust test command above. Keep each checkout's writable dependencies and build output independent. These commands do not change the user's runtime or Skill installation.
 
 ## Repository boundaries
 
@@ -23,10 +23,8 @@ Validate the following static facts:
 - One Cargo package produces the `tk` executable;
 - Rust is the only component assembler;
 - Components have exactly one Rust-based assembly path;
-- Eight tools payloads cover the Harness and language selections without referencing other component directories;
-- The two standalone CLI Skill payloads contain only `tk-cli` or `tk-cli-zh` and have no Harness field;
-- The four Skill identities map exactly to tools or CLI mode and English or Chinese;
-- CLI payloads contain no tk operation registration or native manifest, while tools payloads contain the selected Harness integration;
+- The embedded distribution contains exactly two self-contained Skills, `tk-cli` and `tk-cli-zh`, with no Harness field;
+- Each source and installed tree contains all of its references, with equivalent language coverage;
 - Review records and Task materials are not included in product artifacts.
 
 ## Data model tests
@@ -48,7 +46,7 @@ Cover split and embed:
 - Combined relationship and close updates validate candidate dependencies, preserve metadata and WAL on rejection, and retain force-close authorization and relationship checks;
 - One update reuses one discovery graph for relationship references, close or reopen checks, and candidate relationship validation;
 - Strict and permissive creation;
-- create rejects `--body` as an unknown CLI argument and rejects `body` as an unknown field in create requests and child Task items;
+- create rejects `--body` as an unknown CLI argument and rejects `body` as an unknown field in child Task items;
 - The runtime writes an initial body of exactly `# <normalized-name>` for both split and embed creation;
 - subtask retry matches only fields create owns, ignores added ordinary formatting spaces and edited bodies, and keeps distinct normalized requests such as `AI学习` and `AI-学习` separate;
 - Git `track`, `ignore`, and `none` preflight checks only before writes;
@@ -140,8 +138,6 @@ GC tests cover:
 
 ## Interface tests
 
-Compare the six MCP tools and Pi and OMP native tools with the public request contract, checking names, fields, required inputs, defaults, union types, and the OMP-specific `loadMode`. The runtime's shared handwritten schemas require manual synchronization with request types.
-
 Exercise these CLI scenarios:
 
 - Command tree, help, version, and text and JSON output;
@@ -150,70 +146,47 @@ Exercise these CLI scenarios:
 - actor appears only in update, log, and rename;
 - All default statuses for search;
 - init force does not read Task data;
-- Harness install defaults to tools mode and English, accepts all mode and language values, and reports the resolved Skill;
-- Custom-root install requires explicit CLI mode and rejects tools mode;
+- Both target types default to English, accept either language, and report the resolved Skill;
 - Install and uninstall require exactly one of Harness and Skill root;
 - Component commands have no local source and reject global cwd;
 - Unknown commands and options outside the current contract are rejected.
 
-Exercise MCP initialize, list, six tool calls, cancellation, protocol stdout, and clean shutdown through the actual protocol entry point.
-
-Run stdio scenarios with both pipes and Unix stream sockets. Check initialization and tool listing, a payload exactly at the 1 MiB input limit, invalid-line recovery, oversized input, EOF, and cancellation while the client keeps stdin open. Verify Codex and Claude Code loading through their actual stdio launch paths; direct pipe success does not establish either host's loading behavior.
-
-## Adapters
-
-Use unit, process, and entry-point scenarios for Pi and OMP to check:
-
-- The fixed runtime is missing, is not a regular file, or lacks the execute bit;
-- version and native contract envelope decoding, the complete tool set, object-valued request schemas, and host-specific fields; internal schema field completeness belongs to runtime validation, not adapter preflight;
-- Rust compatibility-range results without duplicating semver logic in TypeScript;
-- Zero registrations when preflight fails;
-- Registration stops after an intermediate registerTool failure, while the already registered prefix may remain;
-- The entry point emits exactly one bounded error and exits normally;
-- Pi does not set `loadMode`;
-- OMP essential and discoverable classifications;
-- cwd, actor, cancellation, direct process invocation, and output limits.
-
 ## Component assembly
 
-Repeated builds must produce the same set of eight tools Harness payloads, two standalone CLI Skill payloads, file bytes, `tar.zst` bytes, and manifest. Validate target kind, Harness where applicable, language, Skill identity, paths, permissions, digests, missing items, extra items, and `runtime_compat`.
+Repeated builds must produce the same two CLI Skill payloads, file bytes, `tar.zst` bytes, and manifest. Validate language, Skill identity, paths, permissions, digests, missing items, extra items, and `runtime_compat`.
 
 Validate builds both with and without `TK_SOURCE_REVISION`. Build scripts must not invoke Git or write generated artifacts outside Cargo-managed directories.
 
 ## Installation tests
 
-Isolated tests cover every Harness tools and CLI selection, and both custom-root languages:
+Isolated tests cover every Harness root mapping and a custom root in both languages:
 
 - install, update, selection switching, no_change, and uninstall;
 - Embedded archives with no network or local sources;
-- The resolved `mode`, `language`, and `skill` in text and JSON install results;
-- Official Harness APIs take precedence;
-- Tools-mode registration, and CLI-mode writes to each Harness's ordinary Skill root with no registration or native manifest;
-- A tools install removes both CLI Skill directories, and a CLI install removes the tools targets and the other CLI Skill directory;
-- A failed registration removal keeps the tools targets and reports the removal as incomplete, including when no Harness executable is available;
-- The original file remains unchanged if shared configuration parsing fails;
-- Only tk entries are removed from shared configuration;
-- Uninstall completely removes tools targets, registrations, both CLI Skill directories, and component directories, including modified and extra content;
-- Unrelated Harness content and later modifications are preserved;
+- The resolved target, `language`, and `skill` in text and JSON install results;
+- The fixed runtime is absent, is not a regular file, or lacks execute permission;
+- Installation writes the selected Skill, removes the other language, and requires no Harness executable;
+- Uninstall completely removes both CLI Skill directories, including modified and extra content;
+- The root, other children, and unrelated configuration remain unchanged;
 - Intermediate I/O failures report completed and incomplete items;
 - GC cleans up only temporary component content and does not continue lifecycle operations.
 
-Custom-root tests cover both standalone languages, relative and absolute roots, missing parent creation, complete payload convergence, language switching, dry-run, no_change, and uninstall. They prove that only `tk-cli` and `tk-cli-zh` are managed, unrelated children and the root remain, no Harness executable is required, and results contain `skill_root` instead of `harness`. Custom-root uninstall reports CLI mode and omits language and Skill.
+Custom-root tests also cover relative and absolute roots and missing parent creation. Both target types cover complete payload convergence, language switching, dry-run, and no_change. Results contain exactly one of `skill_root` and `harness`; uninstall omits language and Skill.
 
 ## Real Harness validation
 
 - Codex: real installation, loading, and uninstallation in an isolated environment.
 - Claude Code: real installation, loading, and uninstallation in an isolated environment.
 - Pi: real installation, loading, and uninstallation in an isolated environment.
-- OMP: real installation, loading, one real tool call, and uninstallation in an isolated environment.
+- OMP: real installation, loading, a Task operation through the CLI, and uninstallation in an isolated environment.
 
-Each Harness validates tools-mode installation, loading, and uninstallation for both languages. CLI mode is validated as ordinary Skill placement and discovery in the Harness's Skill root. OMP tools mode additionally performs the real operation call shown above.
+Each Harness validates ordinary Skill placement, discovery, and uninstallation for both languages.
 
 Real tests must observe the Harness's actual loading result and post-uninstallation state. Checking assembled files alone is insufficient.
 
 ## Skill tests
 
-Skill scenarios cover strict/permissive creation, planning/open selection, Task parsing, catchup, WAL, authorization for manual repair, close/reopen, the four material patterns, tools routing without direct CLI retry, and CLI-only command use. The four Skill identities must present the same pattern semantics, and each Skill component stays self-contained.
+Skill scenarios cover strict/permissive creation, planning/open selection, Task parsing, catchup, WAL, authorization for manual repair, close/reopen, the four material patterns, and CLI command use. Both Skill identities must present the same pattern semantics, and each stays self-contained.
 
 Across the four patterns, a suggestion follows a signal that has appeared and explains what the pattern adds and what it requires to maintain; the Agent states the choice in `TASK.md` only after the user adopts it. A counterexample only rules out proactive suggestions; an explicit user request to use a pattern is adoption authorization on its own and is never blocked by one.
 

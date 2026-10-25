@@ -2,7 +2,7 @@
 
 ## Goals
 
-Guide Agents to preserve durable work in tk without inventing task scope, lifecycle authority, or runtime rules. The English and Chinese variants in each mode provide equivalent behavior; each installed Skill is understandable without another component.
+Guide Agents to preserve durable work in tk without inventing task scope, lifecycle authority, or runtime rules. English and Chinese variants provide equivalent behavior; each source and installed Skill is understandable without another component.
 
 ## Public surface
 
@@ -10,9 +10,7 @@ Guide Agents to preserve durable work in tk without inventing task scope, lifecy
 
 Use tk when the user explicitly mentions a Task ID, name, path, branch, or tk operation. In a permissive project, also create or reuse a Task for work that clearly deserves persistence across steps or sessions. Quick questions, ordinary TODOs, minor one-off changes, and casual ideas need no Task merely because tk is available.
 
-Tools Skills use the Harness logical operations for search, read, create, update, and log; exec covers only version, init, check, and rename. Direct public CLI use is reserved for supported commands without a logical operation. A missing, refused, or failed logical operation is an integration or transport failure, not permission to retry through direct CLI.
-
-CLI Skills use the public CLI for every operation and provide the complete command reference they need. They contain no logical-tool names, integration discovery, route comparisons, or fallback instructions.
+Both CLI Skills use the public CLI for every operation and contain the complete command reference they need. Every source and installed file reference resolves within its own Skill.
 
 ### Task selection
 
@@ -46,7 +44,7 @@ Do not log routine reads, command traces, tentative plans, speculation, or dupli
 
 Read the current Task before changing relationships, extra, or lifecycle through update. Before closing, confirm that work actually ended, descendants and dependencies satisfy closing rules, `TASK.md` retains current results and entry points, and necessary decisions and validation results are recorded.
 
-Start uses a boolean in logical requests or `--start` in the CLI, with no reason argument. Close and reopen carry the non-empty reason in their own string field or CLI argument, never in an additional `reason` field.
+Use `tk update <task_ref> --start` without a reason argument. `--close <reason>` and `--reopen <reason>` each carry their own non-empty reason; there is no separate reason option.
 
 Close and reopen each require a non-empty reason and explicit current user confirmation. Use force only when explicitly requested. Do not infer closure from session completion or reopen merely to write a log. New work normally uses a related Task; reopen the original only when the user confirms it still belongs to that effort. Rename and eligible repair do not authorize other closed-Task writes.
 
@@ -74,13 +72,13 @@ Formal decisions use the project's designated mechanism and location; a material
 
 ## Acceptance criteria
 
-Installed-Skill scenarios must demonstrate equivalent English and Chinese behavior in each mode:
+Installed-Skill scenarios must demonstrate equivalent English and Chinese behavior:
 
 - Strict versus permissive creation, real planning intent, names preserving user scope, duplicate avoidance, and same-response creation reporting.
 - Exact versus fuzzy selection, ambiguous candidates, read-only catchup, and continuation only under effective permission.
 - Stable `TASK.md` contents, independent body headings, timely useful WAL, and recovery from a failed append without repeating committed work.
 - Current authorization for close, reopen, force, and manual repair; no implicit closed-Task writes or runtime-rejection bypass.
-- Tools routing without direct-CLI retries and CLI-only routing without tool-discovery dependencies.
+- Task operations use the public CLI and its documented commands, defaults, results, and errors.
 - Each pattern's signal, counterexample, explicit adoption, useful materials, history preservation, and cleanup permissions, with no added runtime fields or empty scaffolding.
 
 Static Markdown or compilation checks do not establish these Agent outcomes. Observe the installed candidate in the Harness scenarios used for Skill validation.

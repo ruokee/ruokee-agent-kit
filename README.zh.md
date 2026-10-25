@@ -40,7 +40,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 
 **通用**
 
-- **[tk](./projects/tk/README.zh.md)**：tk 是一个持久化任务管理工具，管理值得保留的临时项目努力。提供 `tk` CLI、MCP、Pi Package 等方式接入使用。`tk` 可在跨上下文压缩、跨会话以及跨 Agent 保存任务进度和共识。
+- **[tk](./projects/tk/README.zh.md)**：tk 是一个持久化任务管理 CLI，管理值得保留的临时项目努力。英文和中文 Skill 指导 Agent 使用公开 `tk` 命令。`tk` 可在跨上下文压缩、跨会话以及跨 Agent 保存任务进度和共识。
 
 **OMP**
 
@@ -52,7 +52,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 
 Skill 安装与下方的开发环境准备相互独立。普通 Skill 见[安装 Skill](./docs/installation.zh.md)。
 
-以独立项目形式维护的组件，其构建和安装要求见各自的 README。tk 运行时与各 Harness 的接入组件分别安装。
+以独立项目形式维护的组件，其构建和安装要求见各自的 README。tk 运行时与 CLI Skill 分别安装。
 
 ## 参与贡献
 

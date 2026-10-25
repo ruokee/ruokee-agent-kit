@@ -6,19 +6,19 @@ tk is a persistent task management tool. It keeps task progress, shared understa
 
 ## Access
 
-One Rust runtime provides the `tk` CLI, a stdio MCP server, and native tool integrations for Pi and OMP. Harness components support Codex, Claude Code, Pi, and OMP in tools mode. CLI mode installs an ordinary `tk-cli` or `tk-cli-zh` Skill into a Harness's user-level Skill root, and a custom root can receive either Skill directly.
+One Rust runtime provides the `tk` CLI and owns Task rules and persistence. Agents use the self-contained `tk-cli` or `tk-cli-zh` Skill. Install either language into the ordinary Skill root for Codex, Claude Code, Pi, or OMP, or choose a custom root.
 
-The runtime owns Task rules and persistence. Harness components expose those operations without implementing a second set of rules.
+## Deprecated access
+
+MCP and native tools access have been removed. tk supports only the CLI. Users handle their own installation updates.
 
 ## Distribution
 
-The runtime is one executable at the fixed user-level path `$HOME/.local/bin/tk`. Harness components and standalone CLI Skills are separate from it: `tk install` writes them into a Harness or a Skill root, and they follow the runtime's rules.
-
-An installed component comes from the payloads embedded in the executable that installed it, so updating the runtime and updating a component are separate steps. The [user guide](./docs/guide.md) covers both.
+The runtime is one executable at `$HOME/.local/bin/tk`. `tk install` writes one of the two embedded CLI Skills to the selected root. Runtime installation and Skill installation are separate; the [user guide](./docs/guide.md) describes the current installation contract.
 
 ## Documentation
 
 - [User guide](./docs/guide.md): runtime installation, component selection, initialization, and everyday workflows.
 - [CLI reference](./docs/design/cli-reference.md): commands, arguments, and exit behavior.
-- [Design index](./docs/design/README.md): architecture, data model, runtime, tool contracts, Harness integration, installation, Skills, and validation.
+- [Design index](./docs/design/README.md): architecture, data model, runtime, CLI, installation, Skills, and validation.
 - [Validation](./docs/design/validation.md): acceptance criteria and verification requirements.

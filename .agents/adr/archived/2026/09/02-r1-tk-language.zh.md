@@ -1,0 +1,47 @@
+# tk Skill 语言
+
+Decision owner: Ruokee
+Decision writer: OMP GPT-5.6 Sol, Ruokee
+Archived: 2026-10-25
+Reversed by: [tk Skill 语言](../../../decision/2026/09/02-tk-language.zh.md)
+
+[English](./02-r1-tk-language.md) | 中文
+
+## 动机
+
+在 `tk install` 中选择 Skill 语言，由 `--language` 与 `--mode` 共同选定一个可发现的 Skill。
+
+手动安装的中文 Skill 位于该生命周期之外：用户需要单独安装和切换，tk 也无法把所选语言作为组件状态报告或更新。
+
+模式和语言是两个独立选择。命令合同应直接表达这两个维度，不要求用户记住四个 Skill 名称。
+
+## 决定
+
+`tk install` 接受 `--language <en|zh>`，默认 `en`。语言与 `--mode <tools|cli>` 共同选择一个可独立发现的 Skill：
+
+| 模式 | 语言 | Skill |
+| --- | --- | --- |
+| `tools` | `en` | `tk` |
+| `tools` | `zh` | `tk-zh` |
+| `cli` | `en` | `tk-cli` |
+| `cli` | `zh` | `tk-cli-zh` |
+
+四个 Skill 使用各自的独立发现名称，全部位于 `projects/tk/skills/`。安装时把所选目录放入正常 Harness Skill 根目录，不改写其身份。
+
+同一模式的英文与中文 Skill 提供等价行为。install、dry-run、text 输出和 JSON 输出报告最终语言与 Skill。[Harness 组件与自定义根目录 CLI Skill 分发](../08/28-r4-tk-distribution.zh.md)负责切换和卸载行为。
+
+## 考虑过的替代方案
+
+无
+
+## 结果
+
+每项 Harness 安装最终选择四个 Skill 身份之一。切换语言与切换模式使用同一安装生命周期替换所选身份。
+
+同一模式的两个语言实现必须保持语义对应，但每个目录都独立打包和发现。
+
+## 变更
+
+### 2026-09-03 自定义根目录语言
+
+自定义根目录 install 使用相同的 `--language <en|zh>` 选择和 `en` 默认值。自定义根目录 uninstall 没有语言选择项，并删除两个已知 CLI Skill 身份。

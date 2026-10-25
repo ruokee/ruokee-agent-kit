@@ -44,13 +44,6 @@ export const CHECKS = [
     },
   ]),
   {
-    id: "tk:adapters",
-    command: "bun",
-    args: ["test", "projects/tk/adapter-tests"],
-    tools: ["sh"],
-    files: ["projects/tk/adapter-tests/common.test.ts", "projects/tk/adapter/common.ts"],
-  },
-  {
     id: "skills",
     args: ["check:skills"],
     tools: SKILL_TOOLS,
@@ -163,7 +156,6 @@ export function selectChecks(paths) {
     scopes.add("tk");
     ids.add("rust:fmt");
     ids.add("rust:test");
-    ids.add("tk:adapters");
   };
   for (const path of [...new Set(paths)].sort()) {
     const md = path.endsWith(".md");
@@ -193,7 +185,7 @@ export function selectChecks(paths) {
       } else scopes.add("documentation");
     } else if (path.startsWith("projects/tk/")) {
       const relative = path.slice("projects/tk/".length);
-      if (!md || /^(skills|claude|pi|omp)\//.test(relative)) tk();
+      if (!md || relative.startsWith("skills/")) tk();
       else if (/^(README(?:\.zh)?\.md$|docs\/)/.test(relative)) scopes.add("documentation");
       else reasons.push(`Unknown tk scope: ${JSON.stringify(path)}`);
     } else if (

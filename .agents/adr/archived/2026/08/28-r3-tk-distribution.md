@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
 Reverses: [tk distribution](./28-r2-tk-distribution.md)
 Archived: 2026-10-19
-Reversed by: [tk distribution](../../../decision/2026/08/28-tk-distribution.md)
+Reversed by: [tk distribution](./28-r4-tk-distribution.md)
 
 English | [中文](./28-r3-tk-distribution.zh.md)
 

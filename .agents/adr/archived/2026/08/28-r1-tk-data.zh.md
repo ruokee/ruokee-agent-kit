@@ -63,7 +63,7 @@ rename 只更新 Task 本身并报告 Markdown 引用，不自动改写引用。
 
 `check` 验证受管项目状态，不修改内容。必要 I/O 失败会立即停止扫描并报告检查不完整。损坏的 `tk.toml` 只有在 tk 无法表达修复、Agent 已说明具体编辑且用户在当前对话中明确授权后，才允许人工修复。Task 恢复可用后，Agent 再次运行 `check` 并用 WAL 记录修复事件。
 
-完整格式和操作细节见[数据模型](../../../../../projects/tk/docs/design/data-model.zh.md)与[工具 API](../../../../../projects/tk/docs/design/tool-api.zh.md)。
+当时完整格式和操作细节由[数据模型](../../../../../projects/tk/docs/design/data-model.zh.md)和 `projects/tk/docs/design/tool-api.zh.md` 说明。
 
 ## 考虑过的替代方案
 

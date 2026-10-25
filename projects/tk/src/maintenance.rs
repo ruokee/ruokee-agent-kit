@@ -1167,7 +1167,11 @@ mod tests {
             ),
             (
                 "2026/08/31-03--invalid-id",
-                split_metadata(1, Uuid::new_v4(), "invalid-id"),
+                split_metadata(
+                    1,
+                    Uuid::from_u128(0x550e8400_e29b_41d4_a716_446655440000),
+                    "invalid-id",
+                ),
             ),
         ];
         for (directory, metadata) in fixtures {

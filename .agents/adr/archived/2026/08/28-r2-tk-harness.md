@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
 Reverses: [tk Harness integration](./28-r1-tk-harness.md)
 Archived: 2026-10-24
-Reversed by: [tk Harness integration](../../../decision/2026/08/28-tk-harness.md)
+Reversed by: [tk Harness integration](./28-r3-tk-harness.md)
 
 English | [中文](./28-r2-tk-harness.zh.md)
 
@@ -28,7 +28,7 @@ Codex and Claude Code use MCP. Pi and OMP use native extensions. Pi sets no `loa
 
 Before native registration, adapters validate the fixed executable, version output, Rust compatibility result, generated schema, and all six operations. Preflight failure registers zero operations. A later `registerTool` failure stops registration and may leave the prefix already accepted by the Harness API. The adapter emits one bounded diagnostic and does not terminate the Harness session.
 
-The current contract lives in [Harness integration](../../../../../projects/tk/docs/design/harnesses.md), the [tool API](../../../../../projects/tk/docs/design/tool-api.md), and the [tools Skill](../../../../../projects/tk/skills/tk/SKILL.md).
+The contract was documented in `projects/tk/docs/design/harnesses.md`, `projects/tk/docs/design/tool-api.md`, and `projects/tk/skills/tk/SKILL.md`.
 
 ## Alternatives considered
 

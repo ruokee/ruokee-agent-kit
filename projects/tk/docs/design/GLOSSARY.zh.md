@@ -9,19 +9,12 @@
 - Task：中文形式 `任务`。值得持久保存的项目内临时性努力，创建任务不代表用户或 Agent 已承诺执行或完成。
 - Harness：中文形式 `Harness`。围绕模型、使模型能够作为 Agent 运行的软件环境，包括循环、提示、上下文、工具、权限和 hooks。
 - Skill：中文形式 `Skill`。Harness 可发现的 Agent 行为说明和参考材料。
-- Plugin：中文形式 `Plugin`。由 Harness 原生 Plugin 机制加载的自包含组件形式。
-- Package：中文形式 `Package`。Pi 或 OMP 原生安装和加载的组件形式。
-- component：中文形式 `组件`。为一个 Harness 组装和安装的 tk 自包含单元。
-- adapter：中文形式 `适配器`。把 Pi 或 OMP 原生工具调用映射到公开 tk 进程接口的代码。
+- component：中文形式 `组件`。tk 的自包含分发单元。
 - payload：中文形式 `载荷`。组件归档内要安装的自包含文件集合。
 - runtime：中文形式 `运行时`。固定用户级 `tk` 可执行文件及其 Rust 行为。
 
-## 工具合同
+## CLI 合同
 
-- logical tool：中文形式 `逻辑工具`。与传输无关的 search、read、create、update、log 或 exec 操作。
-- protocol tool name：中文形式 `协议工具名称`。MCP 命名空间内的工具名称。
-- native tool name：中文形式 `原生工具名称`。Pi 或 OMP 注册的 `tk_*` 工具名称。
-- schema type：中文形式 `schema 类型`。生成工具合同时选择的 `mcp` 或 `native`。
 - exact resolution：中文形式 `精确解析`。不使用搜索排名，把完整引用解析为恰好一个任务。
 - actor：中文形式 `发起者`。WAL 的调用归因信息，不表示身份、授权或任务分配。
 - result envelope：中文形式 `统一结果`。包含 `ok`、`data`、`warnings` 或 `error` 的结构化结果。
@@ -51,7 +44,7 @@
 - activity marker：中文形式 `活动操作标记`。多目标项目写入期间阻止其他写操作的进程标记。
 - garbage collection：中文形式 `GC`。识别并删除 tk 临时内容和操作进程退出后留下的活动操作标记的维护操作。
 - runtime compatibility：中文形式 `运行时兼容范围`。组件声明并由 Rust 判断的 `runtime_compat`。
-- clean uninstall：中文形式 `干净卸载`。Harness 恢复为从未安装过 tk，同时保留全部无关内容。
+- clean uninstall：中文形式 `干净卸载`。从所选根目录完整删除两种 CLI Skill，保留根目录和全部无关内容。
 
 ## 材料
 

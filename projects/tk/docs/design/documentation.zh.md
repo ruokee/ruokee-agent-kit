@@ -11,7 +11,7 @@
 - 组件[英文 README](../../README.md) 和[中文 README](../../README.zh.md)；
 - 英文和中文用户指南；
 - 英文和中文设计索引；
-- system、data-model、runtime、tool-api、cli-reference、harnesses、installation、skill、validation、documentation 和 GLOSSARY 的英文中文对应页面；
+- system、data-model、runtime、cli-reference、installation、skill、validation、documentation 和 GLOSSARY 的英文中文对应页面；
 - 仓库根 README 和中文 README 中的 tk 入口；
 - 当前英文和中文 tk ADR。
 
@@ -24,10 +24,8 @@
 - system：产品范围、系统组成、任务与 Harness 边界和不变量。
 - data-model：任务 schema、表示、发现、WAL、写入、迁移、rename、清理和检查。
 - runtime：分层、进程、上下文、失败边界和版本维度。
-- tool-api：六个工具、请求、结果和稳定错误。
-- cli-reference：完整命令树、参数、默认值、退出码和示例。
-- harnesses：四个当前 Harness 形式、模式与语言选择、schema、适配器和组装。
-- installation：内嵌组件、安装、更新、干净卸载和兼容性。
+- cli-reference：完整命令树、参数、默认值、结果、稳定错误、退出码和示例。
+- installation：内嵌 Skill、根目录映射、安装、更新、受限卸载和兼容性。
 - skill：Agent 触发、授权、任务导航、WAL 和材料行为。
 - validation：验证必要行为的方法、场景和证据。
 - documentation：文档布局、语言和维护规则。
@@ -39,7 +37,7 @@
 
 公开文档只描述正式发布后的当前命令和行为。
 
-开发阶段曾经出现但从未正式发布的命令、参数、文件、兼容层和设计尝试不写入公开文档，也不专门列出“不再支持”。只有正式发布后的真实行为变化，才按用户迁移需要记录版本差异。
+开发阶段曾经出现但从未正式发布的命令、参数、文件和设计尝试不写入公开文档。历史决定保留当时合同，组件 README 可以保留简短弃用声明，当前参考页面描述受支持的 CLI。
 
 文档陈述最终状态，不叙述修改过程、审查争论或 Agent 工作记录。
 

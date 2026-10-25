@@ -11,7 +11,7 @@ Public documentation includes:
 - The component [English README](../../README.md) and [Chinese README](../../README.zh.md);
 - English and Chinese user guides;
 - English and Chinese design indexes;
-- Paired English and Chinese pages for system, data-model, runtime, tool-api, cli-reference, harnesses, installation, skill, validation, documentation, and GLOSSARY;
+- Paired English and Chinese pages for system, data-model, runtime, cli-reference, installation, skill, validation, documentation, and GLOSSARY;
 - tk entry points in the repository root README and Chinese README;
 - Current English and Chinese tk ADRs.
 
@@ -24,10 +24,8 @@ Review records, revision numbers, Task paths, and local materials do not appear 
 - system: product scope, system components, Task and Harness boundaries, and invariants.
 - data-model: Task schema, representation, discovery, WAL, writes, migration, rename, cleanup, and checks.
 - runtime: layers, processes, context, failure boundaries, and version dimensions.
-- tool-api: the six tools, requests, results, and stable errors.
-- cli-reference: the complete command tree, arguments, defaults, exit codes, and examples.
-- harnesses: the four current Harness forms, mode and language selections, schemas, adapters, and assembly.
-- installation: embedded components, installation, updates, clean uninstall, and compatibility.
+- cli-reference: the complete command tree, arguments, defaults, results, stable errors, exit codes, and examples.
+- installation: embedded Skills, root mappings, installation, updates, bounded uninstall, and compatibility.
 - skill: Agent triggers, authorization, Task navigation, WAL, and material handling.
 - validation: validation methods, scenarios, and evidence for required behavior.
 - documentation: documentation layout, language, and maintenance rules.
@@ -39,7 +37,7 @@ Specifications state complete required behavior and acceptance. User references 
 
 Public documentation describes only the current commands and behavior after official release.
 
-Do not include commands, arguments, files, compatibility layers, or design experiments that appeared during development but were never officially released. Do not list them separately as "no longer supported." Document version differences only for actual behavior changes after official release and only when users need migration guidance.
+Do not include commands, arguments, files, or design experiments that appeared during development but were never officially released. Historical decisions retain their recorded contracts. The component README may carry a brief deprecation statement; current reference pages describe the supported CLI.
 
 Documentation states the final state. It does not describe the change process, review debates, or Agent work records.
 

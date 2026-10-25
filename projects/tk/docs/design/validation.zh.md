@@ -4,17 +4,17 @@
 
 本文说明验证 tk 必要行为和实现选择的方法及场景。规格包含完整行为和验收要求，设计解释实现。验证不能因为实现方便而降低其中任何义务。
 
-以下列表是场景要求，不是覆盖报告。自动检查入口为负责 Rust 和组件生命周期检查的 `cargo test --manifest-path projects/tk/Cargo.toml`，以及负责原生适配器检查的 `bun test projects/tk/adapter-tests`。生命周期测试使用受控 Harness 命令，适配器测试使用受控宿主和运行时。其余协议、已安装 Skill 和真实 Harness 场景单独运行。每项验证结果记录实际候选、宿主版本、输入、观察及未覆盖项；自动命令通过不表示本页全部场景均已运行。
+以下列表是场景要求，不是覆盖报告。自动检查入口为负责 Rust 和组件生命周期检查的 `cargo test --manifest-path projects/tk/Cargo.toml`。生命周期测试用候选 CLI 操作真实临时文件，不使用 Harness 命令。已安装 Skill 和真实 Harness 场景单独运行，每项验证结果记录实际候选、宿主版本、输入、观察及未覆盖项。
 
 ## 自动检查前提
 
-使用带 `rustfmt` 的 Rust、Bun、Git，以及非 root 的 POSIX 环境和生命周期、适配器场景使用的系统文件工具。在仓库根目录单独准备锁定 crate 依赖，不混入检查：
+使用带 `rustfmt` 的 Rust、Git 和非 root 的 POSIX 环境。在仓库根目录单独准备锁定 crate 依赖，不混入检查：
 
 ```sh
 cargo fetch --locked --manifest-path projects/tk/Cargo.toml
 ```
 
-运行 `cargo fmt --manifest-path projects/tk/Cargo.toml -- --check` 检查 Rust 格式，再运行上文的 Rust 和适配器测试命令。每个检出保留独立的可写依赖及构建输出。这些命令不安装运行时，也不注册 Harness 组件。
+运行 `cargo fmt --manifest-path projects/tk/Cargo.toml -- --check` 检查 Rust 格式，再运行上文的 Rust 测试命令。每个检出保留独立的可写依赖及构建输出。这些命令不改变用户的运行时或 Skill 安装。
 
 ## 仓库边界
 
@@ -23,10 +23,8 @@ cargo fetch --locked --manifest-path projects/tk/Cargo.toml
 - 一个 Cargo package 生成 `tk` 可执行文件；
 - Rust 是唯一组件组装器；
 - 组件组装只有一条 Rust 产物路径；
-- 八份 tools 载荷覆盖各 Harness 和语言选择，且不引用其他组件目录；
-- 两份独立 CLI Skill 载荷只包含 `tk-cli` 或 `tk-cli-zh`，不含 Harness 字段；
-- 四个 Skill 身份与 tools 或 CLI 模式、英文或中文准确对应；
-- CLI 载荷不包含 tk 操作注册或原生 manifest，tools 载荷包含所选 Harness 集成；
+- 内嵌分发恰好包含 `tk-cli` 和 `tk-cli-zh` 两个自包含 Skill，不含 Harness 字段；
+- 每棵源码树和安装目录都包含自身全部参考资料，两种语言语义对应；
 - 评审记录和任务材料不进入产品产物。
 
 ## 数据模型测试
@@ -48,7 +46,7 @@ cargo fetch --locked --manifest-path projects/tk/Cargo.toml
 - 关系修改与关闭组合时校验候选依赖，拒绝时保持元数据与 WAL 不变，强制关闭仍执行授权与关系检查；
 - 单次更新的关系引用解析、关闭或重开检查、候选关系校验复用一份发现图；
 - strict 与 permissive 创建；
-- create 把 `--body` 作为未知 CLI 参数拒绝，并在 create 请求与子任务 item 上把 `body` 作为未知字段拒绝；
+- create 把 `--body` 作为未知 CLI 参数拒绝，并在子任务 item 上把 `body` 作为未知字段拒绝；
 - 运行时在 split 和 embed 模式创建任务时写入恰为 `# <规范化名称>` 的初始正文；
 - 子任务重试只匹配 create 拥有的字段，忽略新增普通排版空格和已编辑正文，仍区分 `AI学习` 与 `AI-学习` 等不同规范化请求；
 - Git `track`、`ignore` 和 `none` 只在写入前预检；
@@ -140,8 +138,6 @@ GC 测试：
 
 ## 接口测试
 
-将六个 MCP 工具和 Pi、OMP native 工具与公开请求合同比较，检查名称、字段、必填输入、默认值、联合类型和 OMP 专用 `loadMode`。运行时共享的手写 schema 需要与请求类型人工同步。
-
 运行以下 CLI 场景：
 
 - 命令树、help、version、文本与 JSON 输出；
@@ -150,70 +146,47 @@ GC 测试：
 - actor 只出现在 update、log 和 rename；
 - search 全部默认状态；
 - init force 不读取任务数据；
-- Harness install 默认 tools 模式和英文，接受全部模式与语言值，并报告最终 Skill；
-- 自定义根目录 install 要求显式 CLI 模式，并拒绝 tools 模式；
+- 两种目标都默认英文，接受两种语言，并报告最终 Skill；
 - install 与 uninstall 必须且只能选择 Harness 或 Skill 根目录；
 - 组件命令没有本地 source，并拒绝全局 cwd；
 - 拒绝未知命令和不属于当前合同的选项。
 
-通过实际协议入口运行 MCP initialize、list、六种工具调用、取消、协议 stdout 和正常关闭场景。
-
-分别通过管道和 Unix 流式 socket 运行 stdio 场景，检查初始化、工具列举、恰好达到 1 MiB 输入上限的载荷、无效行后的继续处理、输入超限、EOF，以及客户端保持 stdin 打开时的取消。通过 Codex 和 Claude Code 实际启动 stdio 的路径验证加载；直接管道成功不能证明任一宿主加载成功。
-
-## 适配器
-
-使用 Pi 和 OMP 的单元、进程及入口场景检查：
-
-- 固定运行时不存在、不是常规文件或没有执行位；
-- version 和 native contract 封套解码、完整工具集合、对象类型请求 schema 及宿主专用字段；schema 内部字段完整性由运行时验证，不属于适配器预检；
-- Rust 兼容范围结果，不在 TypeScript 复制 semver；
-- 全部预检失败时注册数为零；
-- registerTool 中途失败后停止，已注册前缀允许保留；
-- 入口只输出一条有界错误并正常结束；
-- Pi 不设置 `loadMode`；
-- OMP 的 essential 和 discoverable 分类；
-- cwd、actor、取消、直接进程调用和输出上限。
-
 ## 组件组装
 
-重复构建必须产生同一组八份 tools Harness 载荷、两份独立 CLI Skill 载荷，以及相同的文件字节、`tar.zst` 字节和清单。验证目标类型、适用时的 Harness、语言、Skill 身份、路径、权限、摘要、缺失项、多余项和 `runtime_compat`。
+重复构建必须产生相同的两个 CLI Skill 载荷、文件字节、`tar.zst` 字节和清单。验证语言、Skill 身份、路径、权限、摘要、缺失项、多余项和 `runtime_compat`。
 
 `TK_SOURCE_REVISION` 有值和无值两种构建均验证。构建脚本不能调用 Git，也不能写出 Cargo 管理目录以外的生成物。
 
 ## 安装测试
 
-隔离测试覆盖每种 Harness tools 与 CLI 选择，以及两种自定义根目录语言：
+隔离测试覆盖每个 Harness 根目录映射及自定义根目录的两种语言：
 
 - install、update、选择切换、no_change 和 uninstall；
 - 内嵌归档，无网络和本地来源；
-- text 和 JSON install 结果中的最终 `mode`、`language` 和 `skill`；
-- 官方 Harness API 优先；
-- tools 模式注册，以及 CLI 模式写入各 Harness 的普通 Skill 根目录且不产生注册或原生 manifest；
-- tools 安装删除两个 CLI Skill 目录，CLI 安装删除 tools 目标和另一个 CLI Skill 目录；
-- 注册移除失败时保留 tools 目标并报告为未完成项，包括 Harness 可执行文件不可用的情况；
-- 共享配置解析失败时原文件不变；
-- 共享配置只删除 tk 项；
-- 卸载完整删除 tools 目标、注册、两个 CLI Skill 目录和组件目录，包括修改和额外内容；
-- 无关 Harness 内容和后续修改保留；
+- text 和 JSON install 结果中的最终目标、`language` 和 `skill`；
+- 固定运行时不存在、不是常规文件或没有执行权限；
+- 安装写入所选 Skill、删除另一种语言，不要求 Harness 可执行文件；
+- 卸载完整删除两个 CLI Skill 目录，包括修改和额外内容；
+- 根目录、其他子项和无关配置保持不变；
 - 中途 I/O 失败报告完成和未完成项；
 - GC 只清理组件临时内容，不继续生命周期操作。
 
-自定义根目录测试覆盖两种独立语言载荷、相对与绝对根目录、创建缺失父目录、完整载荷收敛、语言切换、dry-run、no_change 和 uninstall。测试证明只管理 `tk-cli` 与 `tk-cli-zh`，无关子项和根目录保持不变，不要求 Harness 可执行文件，结果使用 `skill_root` 而不是 `harness`。自定义根目录 uninstall 报告 CLI 模式，并省略语言和 Skill。
+自定义根目录还覆盖相对与绝对路径及缺失父目录创建。两种目标都覆盖完整载荷收敛、语言切换、dry-run 和 no_change。结果恰好包含 `skill_root` 或 `harness` 之一，卸载省略语言和 Skill。
 
 ## 真实 Harness 验证
 
 - Codex：隔离环境真实安装、加载和卸载。
 - Claude Code：隔离环境真实安装、加载和卸载。
 - Pi：隔离环境真实安装、加载和卸载。
-- OMP：隔离环境真实安装、加载、一次真实工具调用和卸载。
+- OMP：隔离环境真实安装、加载、通过 CLI 操作任务和卸载。
 
-每个 Harness 都验证两种语言的 tools 模式安装、加载和卸载。cli 模式验证普通 Skill 在 Harness 的 Skill 根目录中的放置与发现。OMP tools 模式还执行上面列出的真实操作调用。
+每个 Harness 都验证两种语言的普通 Skill 放置、发现和卸载。
 
 真实测试必须观察 Harness 的实际加载结果和卸载后状态，不能只检查组装文件。
 
 ## Skill 测试
 
-Skill 场景覆盖 strict/permissive 创建、planning/open 选择、任务解析、catchup、WAL、人工修复授权、close/reopen、四种材料模式、tools 路由不通过直接 CLI 重试，以及 CLI-only 命令使用。四个 Skill 身份必须呈现相同的模式语义，且每个 Skill 组件保持自包含。
+Skill 场景覆盖 strict/permissive 创建、planning/open 选择、任务解析、catchup、WAL、人工修复授权、close/reopen、四种材料模式和 CLI 命令使用。两个 Skill 身份必须呈现相同的模式语义，且各自保持自包含。
 
 四种模式共通：建议以已经出现的信号为前提，并说明模式会增加什么、需要维护什么；用户采用后才在 `TASK.md` 中声明。反例只排除主动建议；用户明确请求采用某种模式时该请求本身就是授权，不受反例阻拦。
 

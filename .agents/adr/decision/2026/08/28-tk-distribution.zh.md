@@ -2,43 +2,41 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
-Reverses: [tk 分发](../../../archived/2026/08/28-r3-tk-distribution.zh.md)
+Reverses: [tk 分发](../../../archived/2026/08/28-r4-tk-distribution.zh.md)
 
 [English](./28-tk-distribution.md) | 中文
 
 ## 动机
 
-用同一个内嵌 bundle 分发 tk 的 Harness tools 组件与不依赖 Harness 的 CLI Skill，安装、更新与卸载共用一条路径。
+用一个确定性的内嵌 bundle 分发两个自包含 CLI Skill。
 
-组件安装必须保持确定、离线、可检查和可撤销，并且不增加第二个安装数据库。运行时安装和 Harness 集成分别负责不同内容。
-
-`tk-cli` 与 `tk-cli-zh` Skill 只使用公开 `tk` 可执行文件。用户需要把它们安装到项目级或其他 Harness 的 Skill 目录，该目录不属于四个已支持的 Harness 集成。
+离线安装不需要检出目录或安装数据库。同一受限文件操作可以处理已知 Harness 根目录、项目级根目录和其他显式选择的 Skill 目录。
 
 ## 决定
 
 ### 运行时 bundle
 
-Linux 运行时仍是位于 `$HOME/.local/bin/tk`、具有 Unix 执行位的一份常规可执行文件。Harness 组件和直接安装的 CLI Skill 会验证它，但不安装、更新、删除、包装或复制它。
+Linux 运行时是 `$HOME/.local/bin/tk` 下具有 Unix 执行位的常规可执行文件。Skill 生命周期验证该前提，但不安装、更新、删除、包装或复制运行时。
 
-一次构建组装确定性的内嵌分发，包含 tools 模式的全部受支持 Harness 与语言组合，以及各语言独立于 Harness 的 CLI Skill。[安装设计](../../../../../projects/tk/docs/design/installation.zh.md#内嵌载荷)负责组装器与归档组织。
+Rust 将完整的 `tk-cli` 和 `tk-cli-zh` 源码树组装为确定性内嵌产物。各载荷仅包含自身自包含 Skill，不含 Harness 身份、运行时副本、其他组件文件、产品源码、审查记录或任务材料。源码和安装后引用都在同一 Skill 内解析。
 
-组件格式版本 `4` 记录运行时兼容范围、选择身份、允许的载荷路径、文件类型、Unix 权限和内容摘要。运行时版本与来源修订描述整个分发。tools 选择包含 Harness 身份，独立 CLI 选择不含该身份。[清单定义](../../../../../projects/tk/docs/design/installation.zh.md#清单)负责字段布局。
-
-tools 载荷包含 `tk` 或 `tk-zh`，以及所选 Harness 集成。与 Harness 无关的 CLI 载荷只包含所选自包含 Skill。载荷不包含 runtime 副本、其他组件文件、评审记录、任务材料或产品源码。
+组件格式 `5` 记录运行时兼容范围、语言和 Skill 身份、允许的载荷路径、文件类型、Unix 权限及内容摘要。运行时版本和来源修订描述整个分发，[清单定义](../../../../../projects/tk/docs/design/installation.zh.md#清单)负责字段布局。安装只使用内嵌字节，不联网，不使用检出目录或本地归档输入。
 
 ### 公开生命周期
 
-`tk install` 与 `tk uninstall` 的公开 synopsis、标志默认值与互斥规则、绝对根目录报告，以及归档与结果规则见 [CLI 参考](../../../../../projects/tk/docs/design/cli-reference.zh.md)；生命周期语义、目标布局、自定义根目录规则与操作计划见[安装设计](../../../../../projects/tk/docs/design/installation.zh.md)。
+`tk install` 和 `tk uninstall` 必须且只能选择 `--harness` 或 `--skill-root`。Harness 只映射普通 Skill 根目录，自定义相对根目录按进程 cwd 解析。安装默认英文，组件操作拒绝全局 `--cwd`。
 
-Harness cli 安装把 `tk-cli` 或 `tk-cli-zh` 写入 Harness 的用户级普通 Skill 根目录，不产生 Harness 注册。它移除该 Harness 的 tools 目标与已有 tk 注册，并移除另一个语言变体。注册移除失败时保留 tools 目标，并把移除列为未完成项。tools 安装移除两个 CLI Skill 目录。卸载移除 tools 目标、注册、两个 CLI Skill 目录与组件目录。
+两种目标只拥有所选根目录的直接子项 `tk-cli` 和 `tk-cli-zh`。安装先写入完整所选 Skill，再删除另一种语言。所选目标内的内容偏差和额外内容都被替换，内容相同时返回 `no_change`。卸载完整删除两个目标，包括修改和额外内容。两种操作保留根目录和全部其他内容，安装可以创建缺失的父目录。
 
-生命周期计划读取固定目标、已知 tk Skill 目标、tk 注册状态和内嵌字节。它不保存所有权清单、安装历史、先前内容数据库或部分卸载状态。dry-run 与执行共享完整预检。操作先暂存内容，再重验，按确定顺序提交，在错误或取消时停止，并报告完成与未完成项，不自动回滚。
+规划只读取固定运行时、受管目标和内嵌分发，不读取 Harness 配置或调用 Harness 命令，不记录根目录列表、所有权数据库、安装历史、先前内容或续跑状态。任务项目发现、Git 策略和 WAL 不属于 Skill 生命周期。
 
-归档验证在持久写入前拒绝不支持的格式、不兼容的运行时范围、逃逸路径、符号链接、特殊文件、重复项、缺失或多余条目、元数据不匹配和摘要不匹配。安装不使用网络、`curl`、检出目录或本地归档来源。
+dry-run 与执行共享完整预检。不支持的格式、不兼容运行时范围、路径逃逸、符号链接、特殊文件、归档条目重复或缺失或多余、元数据及摘要不匹配都在持久写入前失败。执行先暂存内容、重新验证目标，再按确定顺序提交。错误或取消时停止，报告已完成项、未完成项及原始错误，不自动回滚或产生续跑状态。
 
-### Harness 所有权
+GC 只能删除可证明属于已结束进程的临时内容，不修改规范 Skill 目录或完成生命周期操作。
 
-tools 模式保留四个已支持 Harness 的官方组件生命周期。cli 模式安装普通 Skill，不调用该生命周期。自定义根目录操作不要求 Harness 可执行文件。tk 不保存根目录列表、所有权记录、安装历史或续跑状态。
+### 合同归属
+
+[分发规格](../../../../spec/tk-distribution.zh.md)和[接口规格](../../../../spec/tk-interface.zh.md)完整规定行为、选择、默认值、失败、兼容及验收。[CLI 参考](../../../../../projects/tk/docs/design/cli-reference.zh.md)独立说明用法，[安装设计](../../../../../projects/tk/docs/design/installation.zh.md)解释实现和规划，两者都不替代规格要求。
 
 ## 考虑过的替代方案
 
@@ -46,16 +44,6 @@ tools 模式保留四个已支持 Harness 的官方组件生命周期。cli 模�
 
 ## 结果
 
-运行时携带完整分发，因此增加载荷会增加可执行文件体积，载荷变更要求重新构建和分发 runtime。
+载荷变更要求重新构建和分发可执行文件。安装不需要宿主可执行文件，实际 Skill 发现仍由 Harness 负责。
 
-Harness 可执行文件缺失时，cli 安装或卸载仍会写入或删除 Skill 目录，注册清理则作为未完成项保留。下一次在 Harness 命令可用时运行即可完成该清理。
-
-已支持 Harness 的用户级集成保留现有的 tools 安装和真实加载验证。cli 安装只证明文件已放置；Harness 必须扫描普通 Skill 根目录后，Skill 才可用。
-
-Skill 根目录输入错误时，可能替换或删除其中已有的 `tk-cli` 或 `tk-cli-zh` 目录。dry-run 和完整路径报告会显示计划边界；干净安装和卸载仍会有意把这两个名称完全匹配的子目录视为 tk 所有。
-
-## 变更
-
-### 2026-10-23 规格完整性
-
-[分发规格](../../../../spec/tk-distribution.zh.md)和[接口规格](../../../../spec/tk-interface.zh.md)完整表达生命周期行为、选择、默认值、失败、兼容及验收。CLI 参考独立描述相同用法合同，安装设计解释其实现和操作计划。这些引用不替代规格要求。此分工落实[规格决定](../10/04-specifications.zh.md)，不改变分发或生命周期行为。
+错误根目录可能导致已有 `tk-cli` 或 `tk-cli-zh` 被替换或删除。dry-run 和完整路径报告显示操作边界，但完整替换及卸载仍有意把这两个精确名称的子项视为自有目标。

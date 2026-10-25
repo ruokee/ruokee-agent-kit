@@ -76,7 +76,7 @@ rename 只修改 Task 名称和适用的生成式目录，再追加正常 WAL �
 
 `check` 在不修改内容的前提下校验带标记载体、生成式名称与路径一致性、UUID 和直接子 Task 序号唯一性、关系、WAL、活动操作标记与清理数据。它报告带标记的无效载体和解析出的逻辑父级。必要 I/O 失败或发现上限会停止扫描并报告检查不完整。只有 tk 无法表达修复、Agent 已说明具体编辑且用户在当前对话中明确授权时，才允许人工修复。Task 恢复可用后，Agent 再次运行 `check` 并用 WAL 记录修复事件。
 
-完整格式和操作细节见[数据模型](../../../../../projects/tk/docs/design/data-model.zh.md)与[工具 API](../../../../../projects/tk/docs/design/tool-api.zh.md)。
+当时完整格式和操作细节由[数据模型](../../../../../projects/tk/docs/design/data-model.zh.md)和 `projects/tk/docs/design/tool-api.zh.md` 说明。
 
 ## 考虑过的替代方案
 

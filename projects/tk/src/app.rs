@@ -78,7 +78,7 @@ impl ReadView {
     }
 }
 
-/// Describes the default WAL entry and byte budgets for CLI help and tool schemas.
+/// Describes the default WAL entry and byte budgets for CLI help.
 pub fn wal_budget_defaults() -> (String, String) {
     let (summary, detailed) = (SUMMARY_WAL_LIMITS, MAX_WAL_LIMITS);
     (

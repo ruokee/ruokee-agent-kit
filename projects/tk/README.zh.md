@@ -6,19 +6,19 @@ tk 是一个持久化任务管理工具。它把任务进度、共识和支撑�
 
 ## 接入方式
 
-同一个 Rust 运行时提供 `tk` CLI、stdio MCP 服务器，以及 Pi 和 OMP 原生工具集成。Harness 组件以 tools 模式支持 Codex、Claude Code、Pi 和 OMP。cli 模式把普通 `tk-cli` 或 `tk-cli-zh` Skill 安装到 Harness 的用户级 Skill 根目录，自定义根目录也可以直接接收任一版本。
+同一个 Rust 运行时通过 `tk` CLI 提供任务操作，负责任务规则和持久化。Agent 使用自包含的 `tk-cli` 或 `tk-cli-zh` Skill。两种语言都可以安装到 Codex、Claude Code、Pi、OMP 的普通 Skill 根目录，或自定义根目录。
 
-运行时负责任务规则和持久化。Harness 组件提供操作入口，不实现第二套规则。
+## 弃用说明
+
+MCP 和原生 tools 接入已移除，tk 仅支持 CLI。安装更新由用户自行处理。
 
 ## 分发
 
-运行时是一个可执行文件，固定在用户级路径 `$HOME/.local/bin/tk`。Harness 组件和独立 CLI Skill 与它分离：`tk install` 把它们写入 Harness 或 Skill 根目录，它们沿用运行时的规则。
-
-已安装的组件来自执行安装的可执行文件内嵌的 payload，因此更新运行时与更新组件是两步。[用户指南](./docs/guide.zh.md)同时覆盖这两步。
+运行时是 `$HOME/.local/bin/tk` 下的一个可执行文件。`tk install` 把两种内嵌 CLI Skill 中的一种写入所选根目录。运行时安装和 Skill 安装相互独立，[用户指南](./docs/guide.zh.md)说明当前安装合同。
 
 ## 文档
 
 - [用户指南](./docs/guide.zh.md)：运行时的安装、组件选择、初始化和日常工作流。
 - [CLI 参考](./docs/design/cli-reference.zh.md)：命令、参数和退出行为。
-- [设计索引](./docs/design/README.zh.md)：架构、数据模型、运行时、工具合同、Harness 集成、安装、Skill 和验证。
+- [设计索引](./docs/design/README.zh.md)：架构、数据模型、运行时、CLI、安装、Skill 和验证。
 - [验证](./docs/design/validation.zh.md)：验收标准与验证要求。

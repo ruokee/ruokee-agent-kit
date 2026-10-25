@@ -78,7 +78,7 @@ When modifying embed metadata, the runtime preserves the body byte for byte. Rep
 
 ## Creation body
 
-create accepts no body input. The CLI has no `--body` option, and the create tool request rejects `body` as an unknown field on both the top-level Task and child Task items. When the runtime creates a Task, it automatically writes `# <normalized-name>` as the initial body: alone in `TASK.md` for split, after the managed frontmatter for embed.
+create accepts no body input. The CLI has no `--body` option, and child Task items reject `body` as an unknown field. When the runtime creates a Task, it automatically writes `# <normalized-name>` as the initial body: alone in `TASK.md` for split, after the managed frontmatter for embed.
 
 After creation the caller maintains the body as ordinary content. Neither rename nor subtask retry matching takes body input or matches on it. All other body behavior is unchanged: the runtime reads bodies for search and read output, preserves them byte for byte during metadata changes, and keeps them intact across representation switching.
 
@@ -173,7 +173,7 @@ read, search, and purely diagnostic operations are not rejected because of Git p
 
 When the status filter is omitted or an empty array is passed, search includes `planning`, `open`, and `closed`. Only a non-empty status array narrows the result set. File-system traversal does not stop at a closed parent Task, and results report closed ancestors.
 
-Search ordering and matching are defined by the [tool API](./tool-api.md#search).
+Search ordering and matching are defined by the [CLI reference](./cli-reference.md#tk-search).
 
 ## WAL
 
@@ -214,7 +214,7 @@ Concurrent complete replacements of the same file are resolved by whichever oper
 
 ## Operations over multiple targets
 
-Batch creation, schema migration, representation switching, rename, and Harness component operations follow the same failure boundary:
+Batch creation, schema migration, representation switching, rename, and CLI Skill lifecycle operations follow the same failure boundary:
 
 1. Complete all domain validation before the first write.
 2. Commit each item in deterministic order.

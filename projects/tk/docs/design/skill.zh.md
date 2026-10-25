@@ -12,20 +12,11 @@
 
 ## 安装后的 Skill 身份
 
-tk 提供四个相互独立的自包含 Skill：
+tk 提供两个相互独立的自包含 Skill：英文 `tk-cli` 和中文 `tk-cli-zh`。
 
-| 模式 | 英文 | 中文 |
-| --- | --- | --- |
-| tools | `tk` | `tk-zh` |
-| CLI | `tk-cli` | `tk-cli-zh` |
+两者的全部任务操作都使用公开 `tk` CLI，各自包含完整的现行命令参考。两种语言语义对应，不依赖其他仓库组件。
 
-tools Skill 的 search、read、create、update 和 log 使用 Harness 逻辑操作，exec 只接受 version、init、check 和 rename。公开 CLI 只用于没有逻辑操作的支持命令。逻辑操作缺失、拒绝请求或执行失败时，按集成或传输故障报告，不通过直接 CLI 重试。
-
-CLI Skill 的所有任务操作都使用公开 `tk` CLI，并在自身目录中包含所需的完整现行命令参考。它不比较入口，也不依赖集成发现。
-
-同一模式的英文和中文 Skill 具有对应的语义覆盖。安装后的四个 Skill 均可独立理解，不依赖其他仓库组件。源码中同一语言各 Skill 完全相同的参考文件只在 `skills/shared/<language>/` 保存一份，组装时复制进该语言的每个 Skill。
-
-每个 Skill 源码保留 `SKILL.md`、模式专属参考和必要 Agent 元数据。装配将共享文件放进已安装 Skill 的 `references/` 目录。入口链接这些安装后路径，因此共享参考链接不必在 Skill 源码树内解析。共享文件和模式专属文件落到同一装配路径时，构建停止；载荷 Markdown 链接目标缺失也使构建失败。每个安装后的 Skill 携带本语言全部共享参考，其内部链接均可解析。
+每棵源码树包含 `SKILL.md`、参考资料和必要 Agent 元数据，装配复制完整目录树。源码和安装后的全部文件引用都在同一 Skill 内解析，Markdown 目标缺失会使构建失败。
 
 ## 生命周期含义
 

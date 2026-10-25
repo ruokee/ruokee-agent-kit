@@ -1,10 +1,9 @@
 use crate::error::{ErrorCategory, Result, TkError};
 
 pub const RUNTIME_VERSION: &str = env!("CARGO_PKG_VERSION");
-pub const RUNTIME_COMPAT: &str = ">=0.1,<0.2";
-pub const CLI_CONTRACT_VERSION: u32 = 3;
+pub const CLI_CONTRACT_VERSION: u32 = 4;
 pub const TASK_SCHEMA_VERSION: u32 = 1;
-pub const COMPONENT_FORMAT_VERSION: u32 = 4;
+pub const COMPONENT_FORMAT_VERSION: u32 = 5;
 
 pub fn require_compatible(requirement: &str) -> Result<()> {
     let runtime = Version::parse(RUNTIME_VERSION)?;

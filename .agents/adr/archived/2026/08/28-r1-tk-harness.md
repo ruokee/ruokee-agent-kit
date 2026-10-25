@@ -57,7 +57,7 @@ Each native tool call selects cwd from the explicit request, Harness session dir
 
 Adapters do not implement Task parsing, name normalization, authorization, path resolution, search ranking, migration, GC, installation, or semantic version range parsing. Rust owns those rules.
 
-The authoritative integration details live in [Harness integration](../../../../../projects/tk/docs/design/harnesses.md) and the [tool API](../../../../../projects/tk/docs/design/tool-api.md). Agent behavior lives in the [English Skill](../../../../../projects/tk/skills/tk/SKILL.md), with a complete [Chinese alternative](../../../../../projects/tk/skills/tk-zh/SKILL.md).
+The authoritative integration details were recorded in `projects/tk/docs/design/harnesses.md` and `projects/tk/docs/design/tool-api.md`. Agent behavior was defined by `projects/tk/skills/tk/SKILL.md`, with a complete Chinese alternative at `projects/tk/skills/tk-zh/SKILL.md`.
 
 ## Alternatives considered
 

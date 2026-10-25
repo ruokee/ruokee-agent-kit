@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
 Archived: 2026-10-19
-Reversed by: [tk CLI 模式](../../../decision/2026/09/02-tk-cli-mode.zh.md)
+Reversed by: [tk CLI 模式](./02-r2-tk-cli-mode.zh.md)
 
 [English](./02-r1-tk-cli-mode.md) | 中文
 

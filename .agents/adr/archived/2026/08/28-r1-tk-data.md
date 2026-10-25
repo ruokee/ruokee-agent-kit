@@ -63,7 +63,7 @@ rename updates only the Task itself and reports Markdown references. It does not
 
 `check` validates managed project state without modifying it. A required I/O failure stops the scan and reports it as incomplete. A damaged `tk.toml` may be repaired manually only when tk cannot express the repair, the Agent describes the exact edit, and the user explicitly authorizes it in the current conversation. The Agent then reruns `check` and records the repair in WAL when the Task is usable.
 
-The complete format and operation details live in the [data model](../../../../../projects/tk/docs/design/data-model.md) and [tool API](../../../../../projects/tk/docs/design/tool-api.md).
+The complete format and operation details were documented in the [data model](../../../../../projects/tk/docs/design/data-model.md) and `projects/tk/docs/design/tool-api.md`.
 
 ## Alternatives considered
 

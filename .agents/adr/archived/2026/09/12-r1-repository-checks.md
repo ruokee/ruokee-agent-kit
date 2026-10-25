@@ -27,7 +27,7 @@ A Markdown and Rust check alone cannot detect failures in the TypeScript extensi
 | 4 | `projects/omp-codex-web-access/package.json` | `pnpm --dir projects/omp-codex-web-access run typecheck`, then `pnpm --dir projects/omp-codex-web-access run test` |
 | 5 | `projects/omp-context-pin/package.json` | `pnpm --dir projects/omp-context-pin run typecheck`, then `pnpm --dir projects/omp-context-pin run test` |
 | 6 | [projects/omp-qol/package.json](../../../../../projects/omp-qol/package.json) | `pnpm --dir projects/omp-qol run typecheck`, then `pnpm --dir projects/omp-qol run test` |
-| 7 | [projects/tk/adapter-tests/common.test.ts](../../../../../projects/tk/adapter-tests/common.test.ts) | `bun test projects/tk/adapter-tests` |
+| 7 | `projects/tk/adapter-tests/common.test.ts` | `bun test projects/tk/adapter-tests` |
 | 8 | [scripts/skills.sh](../../../../../scripts/skills.sh) | `sh scripts/tests/skills.sh` through `pnpm check:skills` |
 
 The root package scripts list explicit commands joined with `&&` and reuse component scripts for local checks. Targets are explicit rather than recursively discovered throughout the repository. Adding or changing a component's required automated checks includes updating the root entry point in the same change.

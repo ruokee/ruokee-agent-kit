@@ -2,7 +2,7 @@
 
 [English](./guide.md)
 
-tk 使用普通项目文件保存持久任务，并通过 CLI、MCP 服务器以及 Pi 和 OMP 原生工具执行同一套规则。
+tk 使用普通项目文件保存持久任务，并通过 CLI 提供任务操作。
 
 ## 安装运行时
 
@@ -12,7 +12,7 @@ tk 使用普通项目文件保存持久任务，并通过 CLI、MCP 服务器以
 $HOME/.local/bin/tk
 ```
 
-该路径必须是具有执行位的常规文件。Harness 组件命令不安装、更新或删除运行时。
+该路径必须是具有执行位的常规文件。Skill 安装命令不安装、更新或删除运行时。
 
 运行时通过本地克隆构建获得。请从本地克隆构建可执行文件并放到该路径：
 
@@ -23,7 +23,7 @@ mkdir -p "$HOME/.local/bin"
 install -m 755 projects/tk/target/release/tk "$HOME/.local/bin/tk"
 ```
 
-`tk install` 安装的每个组件都来自执行该命令的可执行文件中内嵌的 payload，因此只有替换该文件之后，更新的组件才可用。请先更新运行时，再用新的可执行文件重新执行 `tk install` 更新组件。
+`tk install` 安装的 Skill 来自运行该命令的可执行文件内嵌的载荷。修改源码或替换运行时不会改变已安装的 Skill 文件。
 
 确认运行时合同：
 
@@ -31,41 +31,41 @@ install -m 755 projects/tk/target/release/tk "$HOME/.local/bin/tk"
 $HOME/.local/bin/tk --output json --version
 ```
 
-## 安装组件
+## 安装 Skill
 
-为支持的 Harness 安装一个选择：
+把一种语言的 Skill 安装到已支持 Harness 的普通 Skill 根目录：
 
 ```sh
 tk install --harness codex
-tk install --harness claude --mode tools --language zh
-tk install --harness pi --mode cli --language en
-tk install --harness omp --mode cli --language zh
+tk install --harness claude --language zh
+tk install --harness pi --language en
+tk install --harness omp --language zh
 ```
 
 [CLI 参考](./design/cli-reference.zh.md#tk-install)持有可取值、默认值和最终 Skill 名称。
 
-tools 模式安装 Harness 集成和所选 Skill。cli 模式只把 `tk-cli` 或 `tk-cli-zh` 写入 Harness 的用户级普通 Skill 根目录，不产生注册，并移除该 Harness 的 tools 目标。再次使用其他选择运行 install 时，tk 替换当前选择，并删除已知的被取代 Skill 目标。
+安装把 `tk-cli` 或 `tk-cli-zh` 写入所选根目录，并删除另一种语言的版本。它只管理这两个直接子项，保留其他全部内容。
 
 把自包含 CLI Skill 安装到其他 Skill 根目录：
 
 ```sh
-tk install --mode cli --skill-root .agents/skills
-tk install --mode cli --skill-root /srv/project/skills --language zh
+tk install --skill-root .agents/skills
+tk install --skill-root /srv/project/skills --language zh
 ```
 
-`--skill-root` 表示父目录。英文创建 `<skill-root>/tk-cli`，中文创建 `<skill-root>/tk-cli-zh`，tk 可以创建缺失的父目录。相对根目录按进程当前工作目录解析。`--harness` 与 `--skill-root` 必须且只能提供一个，自定义根目录 install 必须显式使用 CLI 模式。
+`--skill-root` 表示父目录。英文创建 `<skill-root>/tk-cli`，中文创建 `<skill-root>/tk-cli-zh`，tk 可以创建缺失的父目录。相对根目录按进程当前工作目录解析。`--harness` 与 `--skill-root` 必须且只能提供一个。
 
-自定义根目录 install 不要求 Harness 可执行文件，也不修改 Harness 配置和注册。它只管理所提供根目录正下方的 `tk-cli` 和 `tk-cli-zh`。已支持 Harness 的用户级集成需要完整注册和干净卸载时，应使用 `--harness`。
+两种目标都不要求 Harness 可执行文件，也不读取 Harness 配置。`--harness` 只选择已知的普通 Skill 根目录。
 
 `tk install` 只使用当前可执行文件内嵌载荷，不下载组件，也不接受本地归档。现有安装完全匹配时返回 `no_change`。
 
 使用 `--dry-run` 可以检查运行时、内嵌选择和准确目标边界，不执行写入：
 
 ```sh
-tk install --mode cli --skill-root .agents/skills --language zh --dry-run --output json
+tk install --skill-root .agents/skills --language zh --dry-run --output json
 ```
 
-生命周期和干净卸载规则见[安装](./design/installation.zh.md)。各已支持 Harness 的组件内容见 [Harness 集成](./design/harnesses.zh.md)。
+根目录映射、生命周期和卸载行为见[安装](./design/installation.zh.md)。
 
 ## 初始化项目
 
@@ -91,9 +91,9 @@ tk init --creation-policy permissive --metadata-mode embed
 tk create task "调查启动延迟"
 ```
 
-CLI 创建本身就是用户明确操作，因此 strict 项目把它视为已确认。Agent 通过 MCP 或原生工具创建时，必须传入当前对话中真实的授权状态。
+CLI 直接创建默认视为已确认授权。Agent 必须按当前真实授权传入 `--user-confirmed`，不能依赖该默认值。
 
-create 命令和 create 工具不接受正文输入；生成标题的规则见[创建正文](./design/data-model.zh.md#创建正文)。
+create 命令不接受正文输入；生成标题的规则见[创建正文](./design/data-model.zh.md#创建正文)。
 
 ## 查找任务
 
@@ -188,7 +188,7 @@ tk gc
 
 多目标命令失败时会报告已完成项和未完成项。发起新的完整命令前，先 read 或 check 当前状态。tk 不保留续跑令牌，也不维护自动回滚状态。
 
-## 卸载组件
+## 卸载 Skill
 
 ```sh
 tk uninstall --harness codex
@@ -199,12 +199,10 @@ tk uninstall --harness omp
 tk uninstall --skill-root .agents/skills
 ```
 
-Harness 卸载会删除整个固定 tk 专用目标、两个 CLI Skill 目录和 tk 注册，包括受管目标内的用户修改和额外内容。对于共享配置，它只删除 tk 对应的条目。其他 Harness 内容保持不变。
-
-自定义根目录卸载会删除所提供根目录下的 `tk-cli` 和 `tk-cli-zh`，并保留根目录、`tk`、`tk-zh` 和其他全部子项。
+卸载删除所选根目录下的 `tk-cli` 和 `tk-cli-zh`，包括其中的修改和额外内容。根目录及其他全部子项保持不变。
 
 ## Agent 使用
 
-tk 提供四个可独立发现的 Skill：[tk](../skills/tk/SKILL.md)、[tk-zh](../skills/tk-zh/SKILL.md)、[tk-cli](../skills/tk-cli/SKILL.md) 和 [tk-cli-zh](../skills/tk-cli-zh/SKILL.md)。四者均为自包含目录。Harness tools 模式和语言决定加载哪一个。Harness cli 模式把任一纯 CLI Skill 安装到该 Harness 的普通 Skill 根目录，自定义根目录也可以直接接收任一版本。
+tk 提供两个可独立发现的 Skill：[tk-cli](../skills/tk-cli/SKILL.md) 和 [tk-cli-zh](../skills/tk-cli-zh/SKILL.md)。每个 Skill 都携带完整参考，全部任务操作使用公开 CLI。
 
-[设计索引](./design/README.zh.md)列出当前运行时、数据、工具、Harness、安装、Skill 和验证合同。
+[设计索引](./design/README.zh.md)列出运行时、数据、CLI、安装、Skill 和验证合同。

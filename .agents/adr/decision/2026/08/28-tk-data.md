@@ -30,7 +30,7 @@ Closing and reopening require a non-empty reason and current explicit authorizat
 
 rename performs ordinary renaming and repairs a noncanonical, empty, or over-long string name and a recognizable generated directory whose nonempty suffix disagrees with metadata. It tolerates only those old-state defects, while other commands retain strict discovery.
 
-The complete format and operation details live in the [data model](../../../../../projects/tk/docs/design/data-model.md) and [tool API](../../../../../projects/tk/docs/design/tool-api.md).
+The complete format and operation details live in the [data model](../../../../../projects/tk/docs/design/data-model.md) and [CLI reference](../../../../../projects/tk/docs/design/cli-reference.md).
 
 ## Alternatives considered
 
@@ -64,7 +64,7 @@ Every released schema transition becomes long-lived maintenance code. Supporting
 
 ### 2026-09-05 Creation body input
 
-`TASK.md` remains ordinary Agent-maintained content, so the create interface does not accept body text through `tk create task --body`, the top-level create request, or child Task items. When the runtime creates a Task, it automatically generates `# <normalized-name>` as the initial body: alone in split mode, after the managed frontmatter in embed mode. After creation the caller maintains the body, and rename and subtask retry matching use no body input or matching condition. Callers write `TASK.md` with ordinary file operations after creation. `tk log --body` is unchanged because WAL entries are not Task content. The persisted metadata schema and component format are unchanged.
+`TASK.md` remains ordinary Agent-maintained content, so create accepts no body through `tk create task --body` or child Task items. When the runtime creates a Task, it automatically generates `# <normalized-name>` as the initial body: alone in split mode, after the managed frontmatter in embed mode. After creation the caller maintains the body, and rename and subtask retry matching use no body input or matching condition. Callers write `TASK.md` with ordinary file operations after creation. `tk log --body` is unchanged because WAL entries are not Task content. The persisted metadata schema and component format are unchanged.
 
 ### 2026-09-05 Rename guards against broken references
 
@@ -88,4 +88,4 @@ rename still targets a concrete normalized name and applicable path, and returns
 
 ### 2026-10-23 Specification completeness
 
-The [tk specification set](../../../../spec/README.md#tk) states the complete required data and operation behavior, including formats, limits, failures, and acceptance. The data model and tool API remain detailed component references for the same contract; design explains its implementation. Their references do not delegate requirements out of the specification set. This applies the [specification decision](../10/04-specifications.md) without changing Task data or operation semantics.
+The [tk specification set](../../../../spec/README.md#tk) states the complete required data and operation behavior, including formats, limits, failures, and acceptance. The data model and CLI reference remain detailed component references for the same contract; design explains its implementation. Their references do not delegate requirements out of the specification set. This applies the [specification decision](../10/04-specifications.md) without changing Task data or operation semantics.

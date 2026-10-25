@@ -430,9 +430,8 @@ pub fn begin_project_operation(task_root: &Path) -> Result<CleanupOperation> {
     begin_operation(task_root, task_root.join(".tk-tmp"))
 }
 
-pub fn begin_user_operation(scope: &Path) -> Result<CleanupOperation> {
-    let root = user_temp_root()?;
-    let markers = operation_directories(&root)?;
+pub fn ensure_user_writable(root: &Path) -> Result<()> {
+    let markers = operation_directories(root)?;
     if !markers.is_empty() {
         return Err(TkError::new(
             "operation_in_progress",
@@ -444,6 +443,12 @@ pub fn begin_user_operation(scope: &Path) -> Result<CleanupOperation> {
         )
         .with_details(serde_json::json!({"markers": markers})));
     }
+    Ok(())
+}
+
+pub fn begin_user_operation(scope: &Path) -> Result<CleanupOperation> {
+    let root = user_temp_root()?;
+    ensure_user_writable(&root)?;
     begin_operation(scope, root)
 }
 

@@ -76,7 +76,7 @@ rename changes only the Task name and an applicable generated directory, then ap
 
 `check` validates marked carriers, generated name-path agreement, UUID and direct-child sequence uniqueness, relationships, WAL, activity markers, and cleanup data without modifying content. It reports marked invalid carriers and resolved logical parents. A required I/O failure or discovery limit stops the scan and reports it as incomplete. Manual repair is allowed only when tk cannot express the repair, the Agent describes the exact edit, and the user explicitly authorizes it in the current conversation. The Agent then reruns `check` and records the repair in WAL when the Task is usable.
 
-The complete format and operation details live in the [data model](../../../../../projects/tk/docs/design/data-model.md) and [tool API](../../../../../projects/tk/docs/design/tool-api.md).
+The complete format and operation details were documented in the [data model](../../../../../projects/tk/docs/design/data-model.md) and `projects/tk/docs/design/tool-api.md`.
 
 ## Alternatives considered
 

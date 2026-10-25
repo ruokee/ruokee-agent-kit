@@ -14,7 +14,7 @@ Reversed by: [tk 文档](./29-r3-tk-documentation.zh.md)
 
 这套共同规则让 Agent 和用户对模式会增加什么、需要维护什么，以及每项合同由哪个页面负责，形成一致理解。
 
-[Skill 模式参考](../../../../../projects/tk/skills/shared/zh/patterns.md)与 [Skill 设计](../../../../../projects/tk/docs/design/skill.zh.md)给出四种模式。[已归档的文档维护决定](./29-r1-tk-documentation.zh.md)中覆盖公开文档集合及其维护方式的规则仍然有效。
+[Skill 模式参考](../../../../../projects/tk/skills/tk-cli-zh/references/patterns.md)与 [Skill 设计](../../../../../projects/tk/docs/design/skill.zh.md)给出四种模式。[已归档的文档维护决定](./29-r1-tk-documentation.zh.md)中覆盖公开文档集合及其维护方式的规则仍然有效。
 
 ## 分析
 
@@ -74,7 +74,7 @@ Reversed by: [tk 文档](./29-r3-tk-documentation.zh.md)
 
 ### 合同归属
 
-四个权威 Skill 目录分别是 [tk](../../../../../projects/tk/skills/tk/SKILL.md)、[tk-zh](../../../../../projects/tk/skills/tk-zh/SKILL.md)、[tk-cli](../../../../../projects/tk/skills/tk-cli/SKILL.md) 和 [tk-cli-zh](../../../../../projects/tk/skills/tk-cli-zh/SKILL.md)。每个目录都自包含，并保留完整的模式参考文件。同语言 tools 与 CLI 的参考内容相同，中英文语义对应。Skill 文件的引用留在各自组件内。
+四个权威 Skill 目录分别是 `projects/tk/skills/tk/`、`projects/tk/skills/tk-zh/`、[tk-cli](../../../../../projects/tk/skills/tk-cli/SKILL.md) 和 [tk-cli-zh](../../../../../projects/tk/skills/tk-cli-zh/SKILL.md)。每个目录都自包含，并保留完整的模式参考文件。同语言 tools 与 CLI 的参考内容相同，中英文语义对应。Skill 文件的引用留在各自组件内。
 
 [Skill 设计](../../../../../projects/tk/docs/design/skill.zh.md)负责 Agent 行为合同，[术语表](../../../../../projects/tk/docs/design/GLOSSARY.zh.md)负责四种名称及其含义，[文档设计](../../../../../projects/tk/docs/design/documentation.zh.md)负责译名维护，[验证合同](../../../../../projects/tk/docs/design/validation.zh.md)负责可观察验收。这些合同及其语言对应页与 Skill 参考一并维护。
 

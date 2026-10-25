@@ -27,7 +27,7 @@ Reversed by: [仓库检查](../../../decision/2026/09/12-repository-checks.zh.md
 | 4 | `projects/omp-codex-web-access/package.json` | 先执行 `pnpm --dir projects/omp-codex-web-access run typecheck`，再执行 `pnpm --dir projects/omp-codex-web-access run test` |
 | 5 | `projects/omp-context-pin/package.json` | 先执行 `pnpm --dir projects/omp-context-pin run typecheck`，再执行 `pnpm --dir projects/omp-context-pin run test` |
 | 6 | [projects/omp-qol/package.json](../../../../../projects/omp-qol/package.json) | 先执行 `pnpm --dir projects/omp-qol run typecheck`，再执行 `pnpm --dir projects/omp-qol run test` |
-| 7 | [projects/tk/adapter-tests/common.test.ts](../../../../../projects/tk/adapter-tests/common.test.ts) | `bun test projects/tk/adapter-tests` |
+| 7 | `projects/tk/adapter-tests/common.test.ts` | `bun test projects/tk/adapter-tests` |
 | 8 | [scripts/skills.sh](../../../../../scripts/skills.sh) | 通过 `pnpm check:skills` 执行 `sh scripts/tests/skills.sh` |
 
 根包脚本明确列出命令，通过 `&&` 连接，并复用组件脚本执行局部检查。入口明确选择目标，不递归扫描整个仓库来发现测试。新增或调整组件必需的自动化检查时，同步更新根入口。

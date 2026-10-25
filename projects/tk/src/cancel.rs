@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+#[cfg(test)]
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -8,6 +9,7 @@ static SIGNAL_REQUESTED: AtomicBool = AtomicBool::new(false);
 
 #[derive(Default)]
 struct Invocation {
+    #[cfg(test)]
     request: Option<Arc<AtomicBool>>,
     write_started: bool,
 }
@@ -26,6 +28,7 @@ pub fn requested() -> bool {
     SIGNAL_REQUESTED.load(Ordering::SeqCst)
 }
 
+#[cfg(test)]
 pub fn with_request<T>(request: Arc<AtomicBool>, operation: impl FnOnce() -> T) -> T {
     struct Reset;
 
@@ -84,12 +87,15 @@ pub fn begin_write() -> Result<()> {
     })
 }
 
-fn request_is_cancelled(invocation: &Invocation) -> bool {
-    requested()
-        || invocation
+fn request_is_cancelled(_invocation: &Invocation) -> bool {
+    let cancelled = requested();
+    #[cfg(test)]
+    let cancelled = cancelled
+        || _invocation
             .request
             .as_ref()
-            .is_some_and(|request| request.load(Ordering::SeqCst))
+            .is_some_and(|request| request.load(Ordering::SeqCst));
+    cancelled
 }
 
 fn cancelled_error() -> TkError {

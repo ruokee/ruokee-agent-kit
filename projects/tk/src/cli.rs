@@ -1,22 +1,22 @@
+use std::collections::BTreeSet;
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use clap::{Args, CommandFactory, Parser, Subcommand, ValueEnum};
-use serde::Serialize;
-use serde_json::{Value, json};
+use serde::de::{DeserializeOwned, Error as _, MapAccess, SeqAccess, Visitor};
+use serde::{Deserialize, Deserializer, Serialize};
+use serde_json::{Map, Number, Value, json};
 
 use crate::app::{
     self, CreateRequest, CreateTaskInput, LifecycleOptions, ReadView, SearchRequest, SubtaskInput,
     UpdateRequest,
 };
 use crate::component;
-use crate::contract::{SchemaType, parse_json_object};
 use crate::domain::Status;
 use crate::error::{ErrorCategory, Result, TkError};
 use crate::gc;
 use crate::maintenance;
-use crate::mcp;
 use crate::metadata;
 use crate::migrate;
 use crate::project::{self, CreationPolicy, GitPolicy, InitOptions, MetadataMode};
@@ -73,16 +73,9 @@ enum Commands {
         #[command(subcommand)]
         command: MetadataCommands,
     },
-    /// Generate tool schema documents.
-    Schema {
-        #[command(subcommand)]
-        command: SchemaCommands,
-    },
-    /// Serve the six tk tools over stdio MCP.
-    Mcp,
-    /// Install or update one Harness component or CLI Skill root.
+    /// Install or update a CLI Skill.
     Install(ComponentArgs),
-    /// Remove one Harness component or CLI Skill root.
+    /// Remove CLI Skills from the selected root.
     Uninstall(UninstallArgs),
     /// Initialize project-local Task storage.
     Init(InitArgs),
@@ -128,12 +121,6 @@ enum MetadataCommands {
     Migrate(MetadataMigrateArgs),
     /// Switch the whole project between split and embed.
     Switch(MetadataSwitchArgs),
-}
-
-#[derive(Debug, Subcommand)]
-enum SchemaCommands {
-    /// Generate the six-tool contract for one schema type.
-    Generate(SchemaGenerateArgs),
 }
 
 #[derive(Debug, Args)]
@@ -233,14 +220,6 @@ struct MetadataSwitchArgs {
 }
 
 #[derive(Debug, Args)]
-struct SchemaGenerateArgs {
-    #[arg(long, value_enum)]
-    r#type: CliSchemaType,
-    #[arg(long, value_enum)]
-    harness: Option<CliHarness>,
-}
-
-#[derive(Debug, Args)]
 struct GcArgs {
     #[arg(long)]
     dry_run: bool,
@@ -249,9 +228,7 @@ struct GcArgs {
 #[derive(Debug, Args)]
 struct ComponentArgs {
     #[command(flatten)]
-    target: InstallTargetArgs,
-    #[arg(long, value_enum)]
-    mode: Option<CliMode>,
+    target: TargetArgs,
     #[arg(long, value_enum, default_value_t = CliLanguage::En)]
     language: CliLanguage,
     #[arg(long)]
@@ -260,28 +237,19 @@ struct ComponentArgs {
 
 #[derive(Debug, Args)]
 #[group(required = true, multiple = false)]
-struct InstallTargetArgs {
+struct TargetArgs {
     #[arg(long, value_enum)]
     harness: Option<CliHarness>,
-    #[arg(long, requires = "mode")]
+    #[arg(long)]
     skill_root: Option<PathBuf>,
 }
 
 #[derive(Debug, Args)]
 struct UninstallArgs {
     #[command(flatten)]
-    target: UninstallTargetArgs,
+    target: TargetArgs,
     #[arg(long)]
     dry_run: bool,
-}
-
-#[derive(Debug, Args)]
-#[group(required = true, multiple = false)]
-struct UninstallTargetArgs {
-    #[arg(long, value_enum)]
-    harness: Option<CliHarness>,
-    #[arg(long)]
-    skill_root: Option<PathBuf>,
 }
 
 #[derive(Debug, Args)]
@@ -340,23 +308,11 @@ enum CliMetadataMode {
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
-enum CliSchemaType {
-    Mcp,
-    Native,
-}
-
-#[derive(Debug, Clone, Copy, ValueEnum)]
 enum CliHarness {
     Codex,
     Claude,
     Pi,
     Omp,
-}
-
-#[derive(Debug, Clone, Copy, ValueEnum)]
-enum CliMode {
-    Tools,
-    Cli,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -407,28 +363,6 @@ pub fn run() -> ExitCode {
         println!();
         return ExitCode::SUCCESS;
     };
-    let command = match command {
-        Commands::Mcp => return mcp::serve(),
-        Commands::Schema {
-            command: SchemaCommands::Generate(args),
-        } => {
-            let harness = match validate_schema_harness(args.r#type, args.harness) {
-                Ok(harness) => harness,
-                Err(error) => {
-                    print_error(Output::Text, &error);
-                    return ExitCode::from(2);
-                }
-            };
-            let contract = crate::contract::tool_contract(args.r#type.into(), harness);
-            println!(
-                "{}",
-                serde_json::to_string_pretty(&contract).expect("serializing tool contract")
-            );
-            return ExitCode::SUCCESS;
-        }
-        command => command,
-    };
-
     let cwd = match cli.cwd {
         Some(path) => path,
         None => match std::env::current_dir() {
@@ -483,39 +417,9 @@ fn invalid_explicit_option(cli: &Cli) -> Option<&'static str> {
         return cwd.then_some("--cwd");
     }
     match cli.command.as_ref() {
-        Some(Commands::Mcp) | Some(Commands::Schema { .. }) => {
-            output.then_some("--output").or(cwd.then_some("--cwd"))
-        }
         Some(Commands::Install(_) | Commands::Uninstall(_)) => cwd.then_some("--cwd"),
         None => cwd.then_some("--cwd").or(output.then_some("--output")),
         Some(_) => None,
-    }
-}
-
-fn validate_schema_harness(
-    schema_type: CliSchemaType,
-    harness: Option<CliHarness>,
-) -> Result<Option<crate::contract::NativeHarness>> {
-    match (schema_type, harness) {
-        (CliSchemaType::Mcp, None) => Ok(None),
-        (CliSchemaType::Mcp, Some(_)) => Err(TkError::request(
-            "invalid_schema_harness",
-            "--harness is not accepted with --type mcp",
-        )),
-        (CliSchemaType::Native, Some(CliHarness::Pi)) => {
-            Ok(Some(crate::contract::NativeHarness::Pi))
-        }
-        (CliSchemaType::Native, Some(CliHarness::Omp)) => {
-            Ok(Some(crate::contract::NativeHarness::Omp))
-        }
-        (CliSchemaType::Native, Some(_)) => Err(TkError::request(
-            "invalid_schema_harness",
-            "Native schema generation supports only pi and omp",
-        )),
-        (CliSchemaType::Native, None) => Err(TkError::request(
-            "missing_schema_harness",
-            "--harness is required with --type native",
-        )),
     }
 }
 
@@ -571,9 +475,6 @@ fn execute(command: Commands, cwd: PathBuf) -> Result<CommandOutput> {
         Commands::Install(args) => execute_install(args, cwd),
         Commands::Uninstall(args) => execute_uninstall(args, cwd),
         Commands::Init(args) => execute_init(args, cwd),
-        Commands::Schema { .. } | Commands::Mcp => {
-            unreachable!("long-running or raw-output commands are handled before execution")
-        }
     }
 }
 
@@ -844,29 +745,18 @@ fn execute_gc(args: GcArgs, cwd: &Path) -> Result<CommandOutput> {
     })
 }
 
-fn execute_install(args: ComponentArgs, cwd: &Path) -> Result<CommandOutput> {
-    let result = match (args.target.harness, args.target.skill_root) {
-        (Some(harness), None) => component::install(
-            harness.into(),
-            args.mode.unwrap_or(CliMode::Tools).into(),
-            args.language.into(),
-            args.dry_run,
-        )?,
-        (None, Some(skill_root)) => {
-            if !matches!(args.mode, Some(CliMode::Cli)) {
-                return Err(TkError::request(
-                    "invalid_install_mode",
-                    "--skill-root requires --mode cli",
-                ));
-            }
-            component::install_skill_root(
-                resolve_skill_root(cwd, skill_root),
-                args.language.into(),
-                args.dry_run,
-            )?
+impl TargetArgs {
+    fn resolve(self, cwd: &Path) -> component::Target {
+        match (self.harness, self.skill_root) {
+            (Some(harness), None) => component::Target::Harness(harness.into()),
+            (None, Some(root)) => component::Target::SkillRoot(resolve_skill_root(cwd, root)),
+            _ => unreachable!("clap requires exactly one installation target"),
         }
-        _ => unreachable!("clap requires exactly one install target"),
-    };
+    }
+}
+
+fn execute_install(args: ComponentArgs, cwd: &Path) -> Result<CommandOutput> {
+    let result = component::install(args.target.resolve(cwd), args.language.into(), args.dry_run)?;
     Ok(CommandOutput {
         text: serde_json::to_string_pretty(&result).expect("serializing install result"),
         data: serde_json::to_value(result).expect("serializing install result"),
@@ -875,13 +765,7 @@ fn execute_install(args: ComponentArgs, cwd: &Path) -> Result<CommandOutput> {
 }
 
 fn execute_uninstall(args: UninstallArgs, cwd: &Path) -> Result<CommandOutput> {
-    let result = match (args.target.harness, args.target.skill_root) {
-        (Some(harness), None) => component::uninstall(harness.into(), args.dry_run)?,
-        (None, Some(skill_root)) => {
-            component::uninstall_skill_root(resolve_skill_root(cwd, skill_root), args.dry_run)?
-        }
-        _ => unreachable!("clap requires exactly one uninstall target"),
-    };
+    let result = component::uninstall(args.target.resolve(cwd), args.dry_run)?;
     Ok(CommandOutput {
         text: serde_json::to_string_pretty(&result).expect("serializing uninstall result"),
         data: serde_json::to_value(result).expect("serializing uninstall result"),
@@ -1042,12 +926,109 @@ impl From<CliMetadataMode> for MetadataMode {
     }
 }
 
-impl From<CliSchemaType> for SchemaType {
-    fn from(value: CliSchemaType) -> Self {
-        match value {
-            CliSchemaType::Mcp => Self::Mcp,
-            CliSchemaType::Native => Self::Native,
+pub fn parse_json_object<T: DeserializeOwned>(input: &str) -> Result<T> {
+    let value = parse_json_value(input)?;
+    if !matches!(value, Value::Object(_)) {
+        return Err(TkError::request(
+            "invalid_json_object",
+            "Expected a JSON object",
+        ));
+    }
+    serde_json::from_value(value)
+        .map_err(|error| TkError::request("invalid_json_object", error.to_string()))
+}
+
+pub fn parse_json_value(input: &str) -> Result<Value> {
+    let value: StrictValue = serde_json::from_str(input)
+        .map_err(|error| TkError::request("invalid_json", error.to_string()))?;
+    Ok(value.0)
+}
+
+struct StrictValue(Value);
+
+impl<'de> Deserialize<'de> for StrictValue {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_any(StrictValueVisitor)
+    }
+}
+
+struct StrictValueVisitor;
+
+impl<'de> Visitor<'de> for StrictValueVisitor {
+    type Value = StrictValue;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("a JSON value without duplicate object keys")
+    }
+
+    fn visit_bool<E>(self, value: bool) -> std::result::Result<Self::Value, E> {
+        Ok(StrictValue(Value::Bool(value)))
+    }
+
+    fn visit_i64<E>(self, value: i64) -> std::result::Result<Self::Value, E> {
+        Ok(StrictValue(Value::Number(Number::from(value))))
+    }
+
+    fn visit_u64<E>(self, value: u64) -> std::result::Result<Self::Value, E> {
+        Ok(StrictValue(Value::Number(Number::from(value))))
+    }
+
+    fn visit_f64<E>(self, value: f64) -> std::result::Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        Number::from_f64(value)
+            .map(Value::Number)
+            .map(StrictValue)
+            .ok_or_else(|| E::custom("non-finite JSON number"))
+    }
+
+    fn visit_str<E>(self, value: &str) -> std::result::Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        Ok(StrictValue(Value::String(value.to_owned())))
+    }
+
+    fn visit_string<E>(self, value: String) -> std::result::Result<Self::Value, E> {
+        Ok(StrictValue(Value::String(value)))
+    }
+
+    fn visit_none<E>(self) -> std::result::Result<Self::Value, E> {
+        Ok(StrictValue(Value::Null))
+    }
+
+    fn visit_unit<E>(self) -> std::result::Result<Self::Value, E> {
+        Ok(StrictValue(Value::Null))
+    }
+
+    fn visit_seq<A>(self, mut sequence: A) -> std::result::Result<Self::Value, A::Error>
+    where
+        A: SeqAccess<'de>,
+    {
+        let mut values = Vec::new();
+        while let Some(value) = sequence.next_element::<StrictValue>()? {
+            values.push(value.0);
         }
+        Ok(StrictValue(Value::Array(values)))
+    }
+
+    fn visit_map<A>(self, mut mapping: A) -> std::result::Result<Self::Value, A::Error>
+    where
+        A: MapAccess<'de>,
+    {
+        let mut keys = BTreeSet::new();
+        let mut values = Map::new();
+        while let Some(key) = mapping.next_key::<String>()? {
+            if !keys.insert(key.clone()) {
+                return Err(A::Error::custom(format!("duplicate object key: {key}")));
+            }
+            values.insert(key, mapping.next_value::<StrictValue>()?.0);
+        }
+        Ok(StrictValue(Value::Object(values)))
     }
 }
 
@@ -1058,15 +1039,6 @@ impl From<CliHarness> for component::Harness {
             CliHarness::Claude => Self::Claude,
             CliHarness::Pi => Self::Pi,
             CliHarness::Omp => Self::Omp,
-        }
-    }
-}
-
-impl From<CliMode> for component::Mode {
-    fn from(value: CliMode) -> Self {
-        match value {
-            CliMode::Tools => Self::Tools,
-            CliMode::Cli => Self::Cli,
         }
     }
 }
@@ -1113,8 +1085,18 @@ impl From<CliReadView> for ReadView {
 mod tests {
     use super::*;
     use clap::error::ErrorKind;
+    use std::collections::BTreeMap;
     use uuid::Uuid;
 
+    #[test]
+    fn rejects_duplicate_keys_at_any_depth() {
+        assert!(parse_json_object::<BTreeMap<String, Value>>(r#"{"a":{"x":1,"x":2}}"#).is_err());
+    }
+
+    #[test]
+    fn rejects_non_object_input() {
+        assert!(parse_json_object::<BTreeMap<String, Value>>("[]").is_err());
+    }
     #[test]
     fn accepts_version_with_json_output() {
         let cli = Cli::try_parse_from(["tk", "--version", "--output", "json"]).unwrap();
@@ -1222,59 +1204,6 @@ mod tests {
     }
 
     #[test]
-    fn harness_install_keeps_default_selection() {
-        let cli = Cli::try_parse_from(["tk", "install", "--harness", "codex"]).unwrap();
-        let Some(Commands::Install(args)) = cli.command else {
-            panic!("expected install command");
-        };
-        assert!(matches!(args.target.harness, Some(CliHarness::Codex)));
-        assert!(args.mode.is_none());
-        assert!(matches!(args.language, CliLanguage::En));
-    }
-
-    #[test]
-    fn parses_explicit_install_selection() {
-        let cli = Cli::try_parse_from([
-            "tk",
-            "install",
-            "--harness",
-            "omp",
-            "--mode",
-            "cli",
-            "--language",
-            "zh",
-        ])
-        .unwrap();
-        let Some(Commands::Install(args)) = cli.command else {
-            panic!("expected install command");
-        };
-        assert!(matches!(args.target.harness, Some(CliHarness::Omp)));
-        assert!(matches!(args.mode, Some(CliMode::Cli)));
-        assert!(matches!(args.language, CliLanguage::Zh));
-    }
-
-    #[test]
-    fn parses_custom_skill_root() {
-        let cli = Cli::try_parse_from([
-            "tk",
-            "install",
-            "--skill-root",
-            ".agents/skills",
-            "--mode",
-            "cli",
-        ])
-        .unwrap();
-        let Some(Commands::Install(args)) = cli.command else {
-            panic!("expected install command");
-        };
-        assert_eq!(
-            args.target.skill_root,
-            Some(PathBuf::from(".agents/skills"))
-        );
-        assert!(matches!(args.mode, Some(CliMode::Cli)));
-    }
-
-    #[test]
     fn install_and_uninstall_require_exactly_one_target() {
         assert!(Cli::try_parse_from(["tk", "install"]).is_err());
         assert!(
@@ -1285,8 +1214,6 @@ mod tests {
                 "codex",
                 "--skill-root",
                 "skills",
-                "--mode",
-                "cli",
             ])
             .is_err()
         );
@@ -1302,11 +1229,6 @@ mod tests {
             ])
             .is_err()
         );
-    }
-
-    #[test]
-    fn custom_install_requires_explicit_mode() {
-        assert!(Cli::try_parse_from(["tk", "install", "--skill-root", "skills"]).is_err());
     }
 
     fn rename_result_fixture(

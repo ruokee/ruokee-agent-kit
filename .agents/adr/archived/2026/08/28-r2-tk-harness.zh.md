@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol, Ruokee
 Reverses: [tk Harness 集成](./28-r1-tk-harness.zh.md)
 Archived: 2026-10-24
-Reversed by: [tk Harness 集成](../../../decision/2026/08/28-tk-harness.zh.md)
+Reversed by: [tk Harness 集成](./28-r3-tk-harness.zh.md)
 
 [English](./28-r2-tk-harness.md) | 中文
 
@@ -28,7 +28,7 @@ Codex 和 Claude Code 使用 MCP。Pi 和 OMP 使用原生 extension。Pi 不设
 
 原生注册前，适配器验证固定可执行文件、version 输出、Rust 兼容性结果、生成 schema 和全部六项操作。预检失败时注册数为零。后续 `registerTool` 失败会停止注册，并可能保留 Harness API 已经接受的前缀。适配器只输出一条有界诊断，不终止 Harness 会话。
 
-当前合同见 [Harness 集成](../../../../../projects/tk/docs/design/harnesses.zh.md)、[工具 API](../../../../../projects/tk/docs/design/tool-api.zh.md) 和 [tools Skill](../../../../../projects/tk/skills/tk-zh/SKILL.md)。
+当时合同由 `projects/tk/docs/design/harnesses.zh.md`、`projects/tk/docs/design/tool-api.zh.md` 和 `projects/tk/skills/tk-zh/SKILL.md` 说明。
 
 ## 考虑过的替代方案
 

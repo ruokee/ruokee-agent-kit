@@ -2,7 +2,7 @@
 
 ## Goals
 
-Define tk's persistent Task data, discovery, lifecycle, and shared write requirements. These requirements apply equally to CLI, MCP, and native operations, including maintenance. Ordinary project files remain authoritative and readable without a service.
+Define tk's persistent Task data, discovery, lifecycle, and shared write requirements. These requirements apply to all CLI operations, including maintenance. Ordinary project files remain authoritative and readable without a service.
 
 ## Public surface
 

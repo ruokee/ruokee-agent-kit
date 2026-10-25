@@ -1,0 +1,92 @@
+# tk runtime
+
+Decision owner: Ruokee
+Decision writer: OMP GPT-5.6 Sol
+Archived: 2026-10-25
+Reversed by: [tk runtime](../../../decision/2026/08/28-tk-runtime.md)
+
+English | [中文](./28-r1-tk-runtime.zh.md)
+
+## Motivation
+
+Keep Task behavior in one tk runtime, behind a single command boundary shared by the human CLI, stdio MCP, and native Harness tools.
+
+One runtime must own request orchestration, domain rules, persistence, output, cancellation, and resource limits so that the human CLI, stdio MCP, and native Harness tools exposed by the [tk product architecture](./21-r1-tk-architecture.md) do not become separate implementations of the same Task behavior.
+
+The runtime also needs a stable command boundary for scripts and adapters. It must report expected failures structurally without hiding transport failures, operating-system errors, or partial commits.
+
+## Decision
+
+### Runtime implementation
+
+tk is implemented as one Rust Cargo package under `projects/tk/` and produces one executable named `tk`. The public Linux runtime path is `$HOME/.local/bin/tk`.
+
+The runtime separates interface, application, domain, persistence, and maintenance responsibilities. Interfaces depend on public application and domain contracts. Harness adapters consume generated schemas and public process behavior rather than private Rust modules.
+
+Most commands use a short-lived process. The MCP server serves one stdio connection and resolves cwd, project, and Task state again for every request. The runtime has no background process, project graph cache, or resident index.
+
+### CLI contract
+
+The public command tree, the `--actor` scope, the JSON result envelope and stable error fields, and the exit-code mapping live in the [CLI reference](../../../../../projects/tk/docs/design/cli-reference.md).
+
+### Request context
+
+A request selects cwd from an explicit value, then the Harness session directory, then the runtime process directory. A complete absolute Task path or material path may locate its own project independently of cwd.
+
+actor is WAL attribution, not identity, authorization, or task assignment. Direct CLI writes default to `cli`. Context values are not persisted as Task state.
+
+Project discovery and Git policy are separate. Reads, searches, and diagnostics locate and inspect a project without Git policy rejection. A persistent write runs the shared Git check immediately before its first write.
+
+### Resource boundaries
+
+The runtime bounds search candidates, process stdout and stderr, generated schemas, WAL reads, and protocol frames. Each subprocess stream and MCP JSON payload is limited to 1 MiB. Oversized MCP input closes the transport, and oversized output fails instead of emitting a partial frame.
+
+Search processes candidates incrementally and keeps at most the best 100. Operations that require complete project knowledge, including checks, relationship graphs, migration, and representation switching, may use memory proportional to the number of Tasks.
+
+A single-file write observes cancellation before atomic replacement. Once replacement starts, it finishes that replacement before returning. Multi-target commands observe cancellation between commit points. Cancellation before the first write leaves no persistent change. Cancellation after a commit point reports the same completed and uncompleted boundary as an I/O failure.
+
+### Runtime contracts
+
+Expected domain and environment failures use the public result envelope. Panics, killed processes, malformed transport output, and broken protocol connections remain transport or internal failures. The runtime does not fabricate a domain result for them.
+
+A WAL append failure is a warning after metadata commit. A required I/O failure during `check` reports an incomplete scan. A partial commit includes completed targets, uncompleted targets, and the original error.
+
+The runtime publishes separate runtime, CLI contract, Task schema, component format, and cleanup manifest versions. `tk --version --output json` reports the runtime, CLI contract, Task schema, and component format versions needed by callers.
+
+The complete command syntax lives in the [CLI reference](../../../../../projects/tk/docs/design/cli-reference.md). Runtime layering, resource limits, cancellation, and failure behavior live in the [runtime design](../../../../../projects/tk/docs/design/runtime.md).
+
+## Alternatives considered
+
+None
+
+## Consequences
+
+Every interface shares one executable and one error model. Runtime changes can affect CLI, MCP, and native calls together, so generated contracts and compatibility checks must fail closed when they diverge.
+
+Short-lived processes reread canonical state on every call. This avoids cache invalidation and stale project graphs at the cost of process startup and repeated bounded discovery.
+
+The CLI is a public compatibility boundary. Command names, argument ownership, JSON fields, error codes, and version output require coordinated changes across runtime, adapters, Skills, documentation, and validation.
+
+## Changes
+
+### 2026-09-05 Creation body input
+
+The create interface owns no body input. `tk create task` rejects `--body` as an unknown argument, and create tool requests and child Task items reject `body` as an unknown field. When the runtime creates a Task, it automatically writes `# <normalized-name>` as the initial body. The CLI contract version rises to 2.
+
+### 2026-09-05 Rename guards against broken references
+
+`tk rename` gains `--ignore-brokenlinks`. An execution that would move the Task path stops with a conflict error and exit status 3 before the first persistent write when references to the old path exist. The flag permits that move without touching the reference files. Dry-run reports the plan and references without writing. CLI and `tk_exec rename` use the same rule, and the CLI contract version stays at 2.
+
+### 2026-09-05 WAL access
+
+`tk read` now uses `minimal`, `summary`, and `detailed`, with `summary` as the default. `minimal` reads neither Task body nor WAL. `summary` returns the complete Task body and recent WAL entries without bodies, defaulting to 5 entries and 4000 bytes. `detailed` adds WAL bodies and defaults to 50 entries and 16000 bytes. Explicit budgets may range from 0 to the shared maximum of 50 entries and 16000 bytes. The runtime measures compact JSON UTF-8 bytes after selecting the returned fields and silently omits entries outside the budgets without a truncation field, warning, or diagnostic. Complete history remains available through the daily WAL files rather than pagination or a full-history read mode.
+
+`tk check` uses a separate streaming WAL inspector. It reads every regular daily WAL file and every entry without fixed total file, byte, or entry limits. Required I/O failures identify the failed path, cancellation makes the check incomplete, and valid WAL size alone never produces `wal_truncated`. The CLI contract version rises to 3, and generated schemas plus OMP and Pi adapters reject version 2 contracts.
+
+### 2026-09-08 Rename restores name repair
+
+`tk rename` and `tk_exec rename` accept the existing exact reference forms for an eligible Task whose old string name or recognizable generated suffix needs repair. They retain the same command arguments, result shape, reference protection, validation outside the repair scope, and CLI contract version.
+
+### 2026-10-23 Specification completeness
+
+The [interface specification](../../../../spec/tk-interface.md) fully states the public commands, fields, defaults, result and failure semantics, limits, and compatibility. The CLI reference remains independently usable and describes the same contract. Runtime design explains implementation choices rather than supplying requirements missing from the specification. This applies the [specification decision](../../../decision/2026/10/04-specifications.md) without changing runtime behavior or contract versions.

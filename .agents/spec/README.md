@@ -30,8 +30,8 @@ The following topics together specify tk:
 - Product scope: [English](./tk.md), [中文](./tk.zh.md).
 - Persistent data, discovery, lifecycle, and shared writes: [English](./tk-data.md), [中文](./tk-data.zh.md).
 - Migration, rename, integrity checking, and cleanup: [English](./tk-maintenance.md), [中文](./tk-maintenance.zh.md).
-- CLI, logical operations, results, and transport: [English](./tk-interface.md), [中文](./tk-interface.zh.md).
-- Distribution and Harness integration: [English](./tk-distribution.md), [中文](./tk-distribution.zh.md).
+- CLI commands and results: [English](./tk-interface.md), [中文](./tk-interface.zh.md).
+- CLI Skill distribution: [English](./tk-distribution.md), [中文](./tk-distribution.zh.md).
 - Agent behavior and material patterns: [English](./tk-agent.md), [中文](./tk-agent.zh.md).
 
 ### OMP QoL
@@ -86,7 +86,7 @@ The complete instruction-workflow specification: [English](./workloop.md), [中�
 - [Runtime](../adr/decision/2026/08/28-tk-runtime.md).
 - [Task data](../adr/decision/2026/08/28-tk-data.md).
 - [Harness integration](../adr/decision/2026/08/28-tk-harness.md).
-- [CLI mode](../adr/decision/2026/09/02-tk-cli-mode.md).
+- [CLI access](../adr/decision/2026/09/02-tk-cli-mode.md).
 - [Skill language](../adr/decision/2026/09/02-tk-language.md).
 - [Distribution](../adr/decision/2026/08/28-tk-distribution.md).
 - [Documentation](../adr/decision/2026/08/29-tk-documentation.md).

@@ -28,7 +28,7 @@ const ids = (paths) => selectChecks(paths).ids;
 const noPreflight = () => {};
 const success = () => ({ status: 0 });
 const quiet = () => {};
-const tkIds = ["rust:fmt", "rust:test", "tk:adapters"];
+const tkIds = ["rust:fmt", "rust:test"];
 
 function write(cwd, path, text = "# Example\n") {
   const file = join(cwd, path);
@@ -309,8 +309,8 @@ test("deleted context package paths require complete fallback", () => {
   assert.equal(selectChecks(["projects/omp-context-pin/src/extension.ts"]).full, true);
 });
 
-test("tk packaging trees select Rust and adapters, installation docs select Skill checks", () => {
-  for (const path of ["src/main.rs", "skills/tk/SKILL.md", "claude/README.md", "pi/README.zh.md", "omp/README.md"])
+test("tk packaging trees select Rust, installation docs select Skill checks", () => {
+  for (const path of ["src/main.rs", "build.rs", "skills/tk-cli/SKILL.md", "skills/tk-cli-zh/references/cli.md"])
     assert.deepEqual(ids([`projects/tk/${path}`]), tkIds, path);
   for (const path of [
     "docs/installation.md",
@@ -347,7 +347,7 @@ test("multi-scope union deduplicates in complete-check order", () => {
     "projects/omp-qol/src/a.ts",
     "projects/omp-status-bar/src/b.ts",
     "projects/tk/src/a.rs",
-    "projects/tk/skills/tk/SKILL.md",
+    "projects/tk/skills/tk-cli/SKILL.md",
     "scripts/skills.sh",
     "projects/omp-qol/test/a.ts",
   ]);
@@ -358,7 +358,6 @@ test("multi-scope union deduplicates in complete-check order", () => {
     "omp-status-bar:test",
     "omp-qol:typecheck",
     "omp-qol:test",
-    "tk:adapters",
     "skills",
   ]);
 });
@@ -402,12 +401,12 @@ test("cross-component rename and deleted input preserve old consumers", () =>
       git(cwd, "switch", "-qc", "feature");
       mkdirSync(join(cwd, "projects/omp-qol/test"), { recursive: true });
       git(cwd, "mv", "projects/omp-status-bar/src/prompt.md", "projects/omp-qol/test/moved.md");
-      git(cwd, "rm", "projects/tk/skills/tk/SKILL.md");
+      git(cwd, "rm", "projects/tk/skills/tk-cli/SKILL.md");
       const changes = collectChanges(cwd);
       assert.deepEqual(changes.paths, [
         "projects/omp-qol/test/moved.md",
         "projects/omp-status-bar/src/prompt.md",
-        "projects/tk/skills/tk/SKILL.md",
+        "projects/tk/skills/tk-cli/SKILL.md",
       ]);
       const commands = buildCommands(selectChecks(changes.paths), cwd);
       assert.deepEqual(commands[0].args.slice(6), ["./projects/omp-qol/test/moved.md"]);
@@ -420,11 +419,10 @@ test("cross-component rename and deleted input preserve old consumers", () =>
           "omp-status-bar:test",
           "omp-qol:typecheck",
           "omp-qol:test",
-          "tk:adapters",
         ],
       );
     },
-    { "projects/omp-status-bar/src/prompt.md": "# Rename\n", "projects/tk/skills/tk/SKILL.md": "# Delete\n" },
+    { "projects/omp-status-bar/src/prompt.md": "# Rename\n", "projects/tk/skills/tk-cli/SKILL.md": "# Delete\n" },
   ));
 
 test("unusual real Git filenames remain independent literal argv entries", () =>

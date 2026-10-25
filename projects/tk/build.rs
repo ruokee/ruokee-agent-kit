@@ -7,10 +7,8 @@ use std::path::{Component, Path, PathBuf};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
-const COMPONENT_FORMAT_VERSION: u32 = 4;
-const DRIVER_CONTRACT_VERSION: u32 = 1;
+const COMPONENT_FORMAT_VERSION: u32 = 5;
 const RUNTIME_COMPAT: &str = ">=0.1,<0.2";
-const HARNESSES: [&str; 4] = ["codex", "claude", "pi", "omp"];
 const LANGUAGES: [&str; 2] = ["en", "zh"];
 
 #[derive(Clone)]
@@ -27,26 +25,20 @@ fn main() {
 
 fn assemble() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rerun-if-env-changed=TK_SOURCE_REVISION");
-    for path in ["skills", "adapter", "claude", "pi", "omp"] {
-        println!("cargo:rerun-if-changed={path}");
-    }
+    println!("cargo:rerun-if-changed=skills");
 
     let project = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").expect("manifest directory"));
     let out = PathBuf::from(env::var_os("OUT_DIR").expect("build output directory"));
     let mut payloads: BTreeMap<String, BTreeMap<String, SourceFile>> = BTreeMap::new();
 
-    for harness in HARNESSES {
-        for language in LANGUAGES {
-            let component = component_id(harness, language);
-            let files = assemble_payload(&project, harness, language)?;
-            validate_payload(&component, &files, &project)?;
-            payloads.insert(component, files);
-        }
-    }
     for language in LANGUAGES {
         let id = cli_skill_id(language);
         let mut files = BTreeMap::new();
-        collect_skill(&project, "cli", language, Path::new(""), &mut files)?;
+        collect_tree(
+            &project.join("skills").join(skill_name(language)),
+            Path::new(""),
+            &mut files,
+        )?;
         validate_payload(&id, &files, &project)?;
         payloads.insert(id, files);
     }
@@ -55,25 +47,6 @@ fn assemble() -> Result<(), Box<dyn std::error::Error>> {
     let archive_sha256 = digest(&archive);
     fs::write(out.join("tk-components.tar.zst"), &archive)?;
 
-    let mut components = BTreeMap::new();
-    for harness in HARNESSES {
-        for language in LANGUAGES {
-            let component = component_id(harness, language);
-            let files = payloads.get(&component).expect("known component payload");
-            let records = file_records(files);
-            components.insert(
-                component.clone(),
-                json!({
-                    "harness": harness,
-                    "language": language,
-                    "skill": skill_name("tools", language),
-                    "runtime_compat": RUNTIME_COMPAT,
-                    "payload": format!("payloads/{component}"),
-                    "files": records,
-                }),
-            );
-        }
-    }
     let mut cli_skills = BTreeMap::new();
     for language in LANGUAGES {
         let id = cli_skill_id(language);
@@ -82,7 +55,7 @@ fn assemble() -> Result<(), Box<dyn std::error::Error>> {
             language,
             json!({
                 "language": language,
-                "skill": skill_name("cli", language),
+                "skill": skill_name(language),
                 "runtime_compat": RUNTIME_COMPAT,
                 "payload": format!("payloads/{id}"),
                 "files": file_records(files),
@@ -100,8 +73,6 @@ fn assemble() -> Result<(), Box<dyn std::error::Error>> {
         "runtime_version": runtime_version,
         "source_revision": source_revision,
         "archive_sha256": archive_sha256,
-        "driver_contract_version": DRIVER_CONTRACT_VERSION,
-        "components": components,
         "cli_skills": cli_skills,
     });
     let mut manifest_bytes = serde_json::to_vec_pretty(&manifest)?;
@@ -110,21 +81,15 @@ fn assemble() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn component_id(harness: &str, language: &str) -> String {
-    format!("{harness}/{language}")
-}
-
 fn cli_skill_id(language: &str) -> String {
     format!("cli-skills/{language}")
 }
 
-fn skill_name(mode: &str, language: &str) -> &'static str {
-    match (mode, language) {
-        ("tools", "en") => "tk",
-        ("tools", "zh") => "tk-zh",
-        ("cli", "en") => "tk-cli",
-        ("cli", "zh") => "tk-cli-zh",
-        _ => unreachable!("known component selection"),
+fn skill_name(language: &str) -> &'static str {
+    match language {
+        "en" => "tk-cli",
+        "zh" => "tk-cli-zh",
+        _ => unreachable!("known language"),
     }
 }
 
@@ -141,46 +106,6 @@ fn file_records(files: &BTreeMap<String, SourceFile>) -> BTreeMap<String, Value>
             )
         })
         .collect()
-}
-
-fn assemble_payload(
-    project: &Path,
-    harness: &str,
-    language: &str,
-) -> Result<BTreeMap<String, SourceFile>, Box<dyn std::error::Error>> {
-    let mut files = BTreeMap::new();
-    if harness != "codex" {
-        collect_tree(&project.join(harness), Path::new(""), &mut files)?;
-        if harness == "pi" || harness == "omp" {
-            collect_file(&project.join("adapter/common.ts"), "common.ts", &mut files)?;
-        }
-    }
-
-    let prefix = if harness == "codex" {
-        PathBuf::new()
-    } else {
-        PathBuf::from("skills").join(skill_name("tools", language))
-    };
-    collect_skill(project, "tools", language, &prefix, &mut files)?;
-    Ok(files)
-}
-
-/// Collects one Skill tree plus the reference files that every Skill of the
-/// same language shares from `skills/shared/<language>/`.
-fn collect_skill(
-    project: &Path,
-    mode: &str,
-    language: &str,
-    prefix: &Path,
-    files: &mut BTreeMap<String, SourceFile>,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let skills = project.join("skills");
-    collect_tree(&skills.join(skill_name(mode, language)), prefix, files)?;
-    collect_tree(
-        &skills.join("shared").join(language),
-        &prefix.join("references"),
-        files,
-    )
 }
 
 fn collect_tree(
