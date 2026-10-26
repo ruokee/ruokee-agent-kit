@@ -6,6 +6,8 @@ Hold only capabilities Ruokee authors and maintains, together with the first-par
 
 Provide complete bilingual targets, durable decisions with traceable history, clear working rules, and shared terminology. Contributors and Agents must be able to distinguish required results, implementation choices, operating instructions, and execution evidence.
 
+Give community participants clear behavior standards, a private reporting channel, and response arrangements that match the maintainer's actual responsibilities.
+
 ## Out of scope
 
 - Third-party capabilities, forks, upstream mirrors, empty capability categories, or structure for hypothetical requirements. A first-party capability may cite, quote, or adapt licensed third-party material without making that capability the subject of maintenance.
@@ -33,6 +35,29 @@ Spec bodies contain no repository-file links, including language links, links to
 ADRs preserve durable choices, reasons, material alternatives, consequences, and necessary historical contracts. Design explains implementation. User documentation independently explains installation and use of the same confirmed contract. Validation material preserves methods and evidence. Rules govern contributor actions, order, permissions, and prohibitions. Repository README pages introduce capabilities and development; Agent instructions carry navigation and the frequently needed rules. Repeating a target in a user guide must not create a conflicting authority.
 
 The repository dictionary defines canonical shared English terms, Chinese equivalents, and meanings for repository development. Component glossaries remain self-contained and semantically aligned. Commands, fields, file names, and third-party proper names retain their original spelling. New terms or changed meanings need maintainer confirmation; intentional aliases are explicit.
+
+### Community conduct
+
+The repository publishes complete English and Chinese adaptations of Contributor Covenant 3.0 as root-level `CODE_OF_CONDUCT.md` and `CODE_OF_CONDUCT.zh.md`. English is the default GitHub entry. Both versions have reciprocal language links, and each language's README and contribution guide lead to its policy and private reporting instructions.
+
+The policy pledges a welcoming, safe, equitable community that respects everyone's dignity, rights, and contributions regardless of race, ethnicity, caste, color, age, physical characteristics, neurodiversity, disability, sex or gender, gender identity or expression, sexual orientation, language, philosophy or religion, national or social origin, socio-economic position, education, or other status. Good-faith participants who follow the policy have equal participation privileges. Participants recognize that culture, background, and language can affect how words and actions are understood.
+
+Encouraged behaviors include respecting the community's purpose and activities, kindness and honesty, respect for different viewpoints and experiences, responsibility for actions and contributions, constructive feedback, repairing harm, and supporting community well-being. Restrictions cover harassment after expressed boundaries or requests to stop, character attacks, stereotyping or discrimination based on immutable identities or traits, inappropriate sexualization, unauthorized sharing or use of private information, violence or other harm, and other threats to community well-being. Instances, threats, and promotion of these behaviors violate the policy. Misleading identity or evasion through impersonation, missing source credit, promotional content outside community norms, and irresponsible presentation of restricted content are also restricted. Disagreement or technical criticism alone is not necessarily a violation; treatment of others during it can be.
+
+Ruokee receives and handles conduct reports privately at `ruokee@foxmail.com`, through a visible `mailto:ruokee@foxmail.com` link. Reports do not belong in public Issues or pull requests. Reporting instructions ask what happened, where and when, for relevant links or records, and whether conduct is ongoing, with only relevant personal information. Reports are handled privately; details shared with involved parties are limited to understanding and addressing the incident. Ruokee reviews the information, may seek clarification, and determines the response according to circumstances and severity. No fixed response or resolution deadline is promised.
+
+Ruokee may edit or remove violating content and restrict participation in project-managed spaces. Responses are proportionate to behavior and impact, aiming to stop harm and restore constructive participation where possible. The guidelines provide:
+
+- A private written warning that explains the violation and asks the person to stop; acknowledging responsibility, clarifying expectations, or apologizing privately may help repair harm.
+- Restrictions on specific activities or interactions for a stated period when a warning is insufficient or conduct is more serious.
+- Suspension from project-managed spaces for a stated period after serious or repeated violations, with conditions for returning.
+- Permanent exclusion when other measures fail to stop repeated violations or a violation is so severe that continued participation is unsafe.
+
+Serious violations may skip earlier steps. Where feasible, affected people receive the reason for restrictions without unnecessary disclosure of private report information. There is no separate conduct committee, independent appeals body, or designated alternative recipient. Reports involving Ruokee are received by Ruokee and cannot receive independent review within the project.
+
+The policy covers maintainers, contributors, and other participants in the repository, Issues, pull requests, and other spaces explicitly managed by the project. It also applies to official project representation, including official accounts and appointed representatives. Software use or contribution alone does not confer representative status.
+
+Attribution identifies Contributor Covenant 3.0, the Organization for Ethical Source, Mozilla's enforcement-ladder work, and the adaptation of reporting, responses, and scope for a single maintainer. The adapted text retains CC BY-SA 4.0 licensing, with source, license, FAQ, and translation links. Other repository content remains MIT-licensed; the README distinguishes the policy's license.
 
 ### Maintenance Skills
 
@@ -85,3 +110,5 @@ For a choice requiring implementation, the formal decision is integrated with th
 - New decisions use approved choices and completed implementation when needed; pending choices stay in tasks. Same-day and later reversals preserve stable current paths, continuous per-decision revisions, actual event dates, and accurate direct predecessors. Historical records still explain their original choices. Empty alternatives are valid, and unsupported alternatives or risk claims are absent.
 - Invalid commit types or scopes are rejected. Changed-path selection preserves the specified unions, deletion inputs, consumer precedence, and complete fallback. Internal Skill and rule Markdown remain known documentation inputs.
 - Final candidates meet the complete-check identity conditions. Current decisions, rules, Skills, indexes, dictionary entries, and required language versions agree without weakening existing component behavior.
+- Both language entry paths reach complete conduct standards and the confirmed private reporting address. Reporting ownership, privacy, response options, scope, and the lack of independent review match across languages and public entry points.
+- GitHub recognizes the published default-branch conduct file. The policy preserves source attribution and CC BY-SA 4.0 without changing the license of other repository content.
