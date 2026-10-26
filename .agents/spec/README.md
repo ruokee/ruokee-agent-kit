@@ -73,6 +73,7 @@ The complete instruction-workflow specification: [English](./workloop.md), [ф╕нц
 - [Specifications](../adr/decision/2026/10/04-specifications.md).
 - [Repository rules](../adr/decision/2026/10/12-repository-rules.md).
 - [Repository dictionary](../adr/decision/2026/10/17-repository-dictionary.md).
+- [Community conduct](../adr/decision/2026/10/26-community-conduct.md).
 - [First-party capabilities](../adr/decision/2026/08/20-first-party-capabilities.md).
 - [Component self-containment](../adr/decision/2026/08/24-component-self-containment.md).
 - [Bilingual documentation](../adr/decision/2026/08/20-bilingual-docs.md) and [relative links](../adr/decision/2026/08/24-relative-links.md).

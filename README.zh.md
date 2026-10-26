@@ -58,6 +58,8 @@ Skill 安装与下方的开发环境准备相互独立。普通 Skill 见[安装
 
 报告问题、提出建议或贡献文档与代码，请阅读[贡献指南](./CONTRIBUTING.zh.md)。
 
+参与项目交流须遵守[社区行为准则](./CODE_OF_CONDUCT.zh.md)。行为问题请通过准则中的私密渠道报告。
+
 ## 开发
 
 ### 文档分层
@@ -137,4 +139,4 @@ pnpm exec prettier --check [files]
 
 ## 许可证
 
-Ruokee Agent Kit 使用 [MIT License](./LICENSE)。
+Ruokee Agent Kit 使用 [MIT License](./LICENSE)，但[社区行为准则](./CODE_OF_CONDUCT.zh.md#来源)除外。准则改编自 Contributor Covenant 3.0，以 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) 授权。

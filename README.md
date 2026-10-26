@@ -58,6 +58,8 @@ Follow each project component's README for its build and installation requiremen
 
 See the [contribution guide](./CONTRIBUTING.md) to report a problem, suggest a change, or contribute documentation or code.
 
+Follow the [Code of Conduct](./CODE_OF_CONDUCT.md) in project spaces. Use its private reporting channel for conduct concerns.
+
 ## Development
 
 ### Documentation layers
@@ -137,4 +139,4 @@ pnpm exec prettier --check [files]
 
 ## License
 
-Ruokee Agent Kit is licensed under the [MIT License](./LICENSE).
+Ruokee Agent Kit is licensed under the [MIT License](./LICENSE), except for the [Code of Conduct](./CODE_OF_CONDUCT.md#attribution), which is adapted from Contributor Covenant 3.0 and licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
