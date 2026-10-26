@@ -14,7 +14,7 @@ Name the exact candidate. Use the project's commit/tree or equivalent identity a
 
 ## Assess
 
-For preparation, compare goal, design, Plan, and linked details with current requirements. Check contradictions, lost conditions, unsupported additions, infeasible dependencies, unresolved choices, and foreseeable blockers. Preserve material responsibilities and confirmed limits. Do not turn review into environment preflight or implementation.
+For preparation, compare goal, design, Plan, and linked details with current requirements. Check contradictions, lost conditions, unsupported additions, infeasible dependencies, unresolved choices, and foreseeable blockers. Compare confirmed scope and subtasks with the parent Plan, including required Clarify steps, their results, blockers, and continuation. A subtask recorded elsewhere but omitted from the Plan is a coverage defect; explicit pending clarification is not an implementation-ready contract. Preserve material responsibilities and confirmed limits. Do not turn review into environment preflight or implementation.
 
 For implementation, inspect the complete relevant change and consumers against the goal, Plan acceptance, applicable Skills, and project rules. Trace needed behavior and relevant failure or boundary cases. Check permission, documentation, dependency bases, self-check history, repairs, and completeness rather than accepting placeholders or partial substitutes.
 

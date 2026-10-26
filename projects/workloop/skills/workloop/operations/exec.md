@@ -8,7 +8,7 @@ Resolve the actual execution request and owning Task, then read its current tk s
 
 Continue an `open` Task without starting it again. A `closed` Task follows tk's separate reopening permission. On recovery or a failed start, reconcile the actual Task state through tk before implementation; never edit managed metadata by hand.
 
-Read the owning Task's goal, mandatory `plan.md`, linked unit details, relevant design and decisions, dependencies, current implementation, acceptance, and execution evidence. A one-unit task still requires a separate Plan. Return missing or unready planning to [Clarify](./clarify.md), without inventing requirements during implementation.
+Read the owning Task's goal, mandatory `plan.md`, linked unit details, relevant design and decisions, dependencies, current implementation, acceptance, and execution evidence. A one-unit task still requires a separate Plan. Return only the scope affected by missing or unready planning to [Clarify](./clarify.md), without inventing requirements during implementation. Apply the shared execution constraints to mixed readiness in a parent Plan.
 
 Returning to Clarify because of missing planning or a problem found during execution, verification, or user acceptance leaves the Task `open`. Workflow stages may return to earlier work; tk status never returns to `planning`.
 

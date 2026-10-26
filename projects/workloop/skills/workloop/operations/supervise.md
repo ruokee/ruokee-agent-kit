@@ -4,7 +4,7 @@ Apply the loaded [entry](../SKILL.md), then read [Task ownership](../references/
 
 ## Resolve the Plan
 
-Read the owning Task's goal, mandatory `plan.md`, linked unit details, dependencies, effective decisions, candidates, reports, and project rules. Return incomplete preparation to [Clarify](./clarify.md), not an under-specified Worker.
+Read the owning Task's goal, mandatory `plan.md`, linked unit details, dependencies, effective decisions, candidates, reports, and project rules. Return only the scope affected by incomplete preparation to [Clarify](./clarify.md), not an under-specified Worker. Apply the shared execution constraints to mixed readiness in a parent Plan.
 
 Apply execution constraints to the selected scheduling scope, continuous progress, permissions, and prohibition on structured questions. A Worker's scope is not the overall Plan scope. Supervision activates no Senior and grants no integration. Resolve Worker, checker, Verify, and an explicitly assigned Senior independently under the role rules.
 

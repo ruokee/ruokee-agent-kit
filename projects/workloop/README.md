@@ -293,7 +293,7 @@ For another version, use its current public interfaces. File operations and disc
 
 ## Choose an operation
 
-- **Clarify** resolves goals, performs necessary research or diagnosis, develops design, and forms or revises `plan.md` in the same operation once the goal, necessary design, and consequential choices are settled. Explicit discussion-only, design-only, no-plan, pause, and writing restrictions remain effective. Preparation does not start implementation.
+- **Clarify** resolves goals, performs necessary research or diagnosis, develops design, and forms or revises `plan.md` in the same operation. Resolve the goal, necessary design, and consequential choices before making a unit executable; keep required subtask clarification in the parent Plan. Explicit discussion-only, design-only, no-plan, pause, and writing restrictions remain effective. Preparation does not start implementation.
 - **Execute** implements in the current session and coordinates self-check and independent Verify. Without a narrower limit, it continues the remaining Plan, usually one unit at a time and several serially.
 - **Verify** independently evaluates specified materials or an implementation candidate without editing it. Each report names its candidate, evidence, verdict, and limits.
 - **Ship** performs the delivery defined by the project under the actual request and permissions. It need not mean production release or Task closure.
@@ -308,6 +308,23 @@ Check is preparation's implicit material inspection. Goal discussion and Plan co
 The owning tk Task holds the materials. `goal.md` states the desired result and stopping conditions without implementation methods. Optional `design.md` explains the approach. Optional diagnosis records the problem and supported causes without repair recommendations. Research summarizes sources; Grill preserves discussion.
 
 Every task entering Execute needs an independent `plan.md`, even a single-unit change. It can expand units inline or link to tk subtasks. Execution records preserve candidates and checks. Preparation self-check normally uses `plan-check.md`; requested independent preparation review appends to `material_check.md`; independent Verify of an executed candidate appends to `verification.md`. An executed Markdown-only unit is still an implementation candidate. Preserve prior assessments and failures. Optional activities need no empty files or role matrix.
+
+The parent Plan covers every confirmed subtask, including work that still needs clarification or is blocked. Keep its goal, owner, current step, dependencies or blockers, and material links in the parent; detailed contracts and evidence stay with the child. For separate child preparation, name the Clarify step, inputs, expected goal, necessary design and Plan materials, completion conditions, and continuation. Link existing materials rather than creating empty child Plans. A Task index alone is insufficient.
+
+For example, a parent Plan may include this entry while an unrelated unit is ready for implementation:
+
+```text
+U02 Support policy
+Goal: publish the supported scope and contact route.
+Owner and materials: the policy subtask, linked through its existing Task and design.
+Current step: Clarify the policy using the draft options and maintainer decisions.
+Blocker: the maintainer must choose the supported scope and contact route.
+Preparation result: confirmed goal, necessary design, and an executable child Plan.
+Continuation: read those results and update U02's next step, dependencies, and links
+before implementing the policy under the applicable permission.
+```
+
+Recording the questions does not complete preparation, and preparation does not complete U02's final result. Keep stable labels, completed results, and valid evidence when updating the Plan. Execute and Supervise continue unrelated authorized ready work without dropping unresolved scope or assigning it as implementation. Preparation checks detect omitted subtask work, even when it is not ready to implement.
 
 ## Understand checks
 

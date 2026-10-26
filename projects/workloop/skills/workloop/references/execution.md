@@ -6,6 +6,8 @@ Read when entering Execute or Supervise, or when Clarify forms a Plan and resolv
 
 A named unit or subset limits the assignment. Otherwise start at the current or first unfinished dependency-ready unit and continue the remaining Plan. A session usually handles one unit at a time and may complete several serially. Quoted controls, examples, and negations do not alter scope or permission.
 
+Distinguish the Plan's full scope from implementation readiness. Keep pending subtask clarification and blocked work visible in the parent Plan. Route required preparation to Clarify under the effective scope and permissions, not to an implementation Worker. Read the resulting child materials and update the parent's next step, dependencies, and links before implementing that work. Continue unrelated authorized ready units; neither preparation completion nor finishing those units completes the unresolved scope.
+
 Implementation, repair, self-check, independent Verify, and necessary rechecks continue without routine intermediate confirmation. Neither `auto` nor `noask` is required. `confirm` requests item-by-item confirmation without removing required checks. Preserve any explicit human checkpoint.
 
 During Execute and Supervise, do not call structured question tools such as `ask`, including through wrappers or other Agents. Read available facts and make authorized choices. Raise an indispensable user-only decision in ordinary text while continuing unaffected ready work. An explicit `noask` also prohibits structured questions; preserve that meaning during recovery.
