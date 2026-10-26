@@ -4,6 +4,8 @@ English | [中文](./CONTRIBUTING.zh.md)
 
 Contributions can improve documentation, translations, problem reproductions, and the capabilities maintained here. Keep changes within the project's [first-party scope](./.agents/rule/boundary.md#first-party-scope).
 
+Follow the [Code of Conduct](./CODE_OF_CONDUCT.md) when participating. Report conduct concerns through its [private reporting channel](./CODE_OF_CONDUCT.md#reporting), not in public Issues or pull requests.
+
 ## Report a problem
 
 Search the [Issues](https://github.com/ruokee/ruokee-agent-kit/issues) for an existing report before opening one. Include the affected component, relevant component and Harness versions, steps to reproduce, expected behavior, actual behavior, and useful logs or examples. If you cannot tell which component is responsible, describe what you observed.

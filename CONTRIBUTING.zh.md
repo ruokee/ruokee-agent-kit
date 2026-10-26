@@ -4,6 +4,8 @@
 
 你可以改进文档、翻译、问题复现，以及本仓库维护的能力。改动应符合项目的[第一方范围](./.agents/rule/boundary.zh.md#第一方范围)。
 
+参与时须遵守[社区行为准则](./CODE_OF_CONDUCT.zh.md)。行为问题通过准则中的[私密渠道](./CODE_OF_CONDUCT.zh.md#报告问题)报告，不在公开 Issue 或 PR 中举报。
+
 ## 报告问题
 
 提交前先在 [Issues](https://github.com/ruokee/ruokee-agent-kit/issues) 中搜索已有报告。说明受影响组件、相关组件与 Harness 版本、复现步骤、预期行为、实际行为，以及有帮助的日志或示例。如果无法判断由哪个组件引起，描述观察到的现象即可。
