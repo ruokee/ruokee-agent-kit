@@ -23,7 +23,7 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 
 - Keep only components authored by the maintainer in this repository. Do not add third-party capabilities, forks, or upstream mirrors.
 - Keep every distributable component self-contained. Its files may reference only files inside it. Naming another component, tool, or Skill, or declaring one as a prerequisite, is not a file reference. Declare a prerequisite explicitly.
-- Avoid tracking local directories, sensitive information, credentials, private hostnames, internal service URLs, or the device's model, provider, or channel configuration.
+- Do not track local directories, sensitive information, credentials, private hostnames, internal service URLs, or the device's model, provider, or channel configuration.
 - Commit a component's `X.Y.Z` version update together with the functional change it ships. Increment `Z` by default; the maintainer decides changes to `X` or `Y`.
 - Version the combined changes delivered by a branch's final squash merge, not individual commits or revisions. An unpublished first addition keeps its initial version, `0.1.0` by default.
 

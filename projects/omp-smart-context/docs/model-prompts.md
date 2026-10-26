@@ -62,3 +62,7 @@ Use `/smart-context` to check whether the capability is enabled. Setting changes
 ## Trust
 
 Enabled project rules become system instructions. No project-trust gate or security isolation is added. JavaScript regular expressions have no sandbox or execution timeout. Bodies have no size limit; large rules consume prompt space, and slow directories delay turn preparation. Keep personal rules in the user directory and inspect project rules before enabling them.
+
+## Verification
+
+Component checks cover the matching keys with positive and negative cases, alternative semantics within one file, rule validation and BOM handling, body fidelity for LF and CRLF, ordering across both directories regardless of read completion order, missing directories, and the non-accumulation of appended blocks across turns.

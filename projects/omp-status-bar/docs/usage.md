@@ -217,6 +217,12 @@ Builtin providers expose no `refreshMs` option; the fixed cadence is internal an
 - After shutdown the host rejects new timers, new publishes, and late callbacks.
 - A shutdown racing an unfinished start wins: no remount, no publish.
 
+## Automated checks
+
+Behavioral tests cover configuration parsing and per-entry degradation, fragment sanitization and invalid-fragment isolation, ordered composition and width truncation, the `context` fragment with its glyph, the answered-request counting rule with its display states and its session behavior, registration from a separately loaded extension without shared module identity, cleanup without residual timers or widgets, and the target version's built-in Composer shapes and statusline presets with an extension-registered shape, all through the same widget path.
+
+Keep observations and version-specific limits in this guide.
+
 ## Release gate
 
 The automated suite runs headless and cannot prove terminal layout. Before a release is tagged, start a real OMP TUI session on the target OMP version with this extension enabled and confirm:

@@ -25,7 +25,7 @@ The [spec maintenance Skill](../skills/maintain-spec/SKILL.md) and [ADR maintena
 ## Writing a rule
 
 - State one constraint per rule in the imperative, and add at most one short sentence that explains it.
-- Trace a rule to a spec invariant, a current decision, or the maintainer's explicit decision. A rule without that source is allowed when it is the current practice, and it must not conflict with a spec or a current decision.
+- As far as possible, trace a rule to a spec invariant, a current decision, or the maintainer's explicit decision. A rule without that source is allowed when it is the current practice, and it must not conflict with a spec or a current decision.
 - Keep a rule's original condition, exception, strength, and permission. A rule stated as "as far as possible" keeps that strength, and a prohibition keeps its exception.
 - Cite a rule by its file path and section heading. Do not number rules.
 - Keep long rationale, rule numbers, and inventories out of this layer. Link the decision or the spec that owns the reason instead.

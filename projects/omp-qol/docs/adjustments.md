@@ -14,6 +14,8 @@ Each adjustment ends with a version and verification note that separates three t
 - **Automated checks** — the OMP version the type check and the test suite ran with, and what those tests actually exercise. A test that replaces the host does not prove host behavior.
 - **Real OMP CLI** — the OMP version, model, and scenario of an interactive run. Items that have no such run are marked **not verified**; they are not inferred from the peer range, from reading the source, or from another adjustment passing.
 
+Record each adjustment's real CLI or TUI observations in its verification section. Mark every unrun scenario as unverified, including exact-error reproduction, real shortcut delivery, and clipboard writing.
+
 ## Continuing waits
 
 ### Native behavior
@@ -128,6 +130,8 @@ The continuation text is fixed and states that an upstream error ended the previ
 - The adjustment becomes unnecessary when the host offers a setting that continues a turn after an eligible error, or when a stop hook can be registered with its own retry budget.
 
 ### Verification
+
+Reproducing the exact error prose in a new real session is not a development prerequisite.
 
 - **Source baseline**: OMP `18.2.8` at `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`. Sources listed above.
 - **Automated checks**: OMP `18.5.0`, `bun test` and `tsc --noEmit`, with a recording host. They cover the classification matrix for both modes, the interruption mark with and without a status or a verdict, the statusless condition, the exclusions and the terminal status rule winning over the mark, the continuation of a marked turn, exclusion precedence, the chain and backoff arithmetic, duplicate events for one turn, consecutive runs that each fail on their first turn, a run starting while a delay is pending, a cancelled delay, session switching, the attempt cap across runs, the chain ending on a normal settle pass and on an unrecoverable error, a cancelled pass, the handled-turn marker surviving that end, the fixed continuation text, and no continuation when switches or settings keep recovery inactive. The error classifier is the installed `@oh-my-pi/pi-ai` code, not a stub.

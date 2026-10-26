@@ -46,5 +46,7 @@ The accepted costs and limits are:
 
 ## Acceptance criteria
 
-- Compaction checks cover interval boundaries, unchanged native errors, same-signal fallback, cancellation, guard expiry, overlapping operations, matching and conflicting activations, owner exit, foreign ownership, default-off behavior, and process-wide effects.
+- With the experiment enabled and a window open, timeouts in the configured interval are extended process-wide, including unrelated callers and other sessions. Inputs outside the interval or window retain native behavior, including native errors; the default-off state changes no timeout.
+- Repeated notifications and fallback methods with the same signal keep one window without renewing its guard. Cancellation and guard expiry close that window; overlapping operations stop the experiment.
+- Matching later activations neither acquire ownership nor open windows. Conflicting activations and owner exit stop the experiment; unknown or foreign ownership is not overwritten, and released resources belong only to this component.
 - A real remote compaction longer than the native deadline completes successfully, and model requests remain usable afterwards. Host upgrades revalidate this behavior; changing a maintenance declaration does not replace that evidence.

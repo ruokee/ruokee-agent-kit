@@ -43,5 +43,6 @@ The minimum maintained OMP version is `18.5.0`, without an upper maintenance bou
 
 ## Acceptance criteria
 
-- Check all settings defaults, type and range failures, module-local rejection, whole-object rejection, retired keys, restart semantics, and truthful read-only `/qol` output.
-- Record each adjustment's real CLI or TUI evidence in its validation material, separating source inspection, automated checks, and actual runtime observations. Mark unrun scenarios, including exact-error reproduction or real key delivery and clipboard writing, as unverified rather than inferring success.
+- Absent settings use their declared defaults. Module-setting type and range errors disable only the owning module; invalid master or root settings and unknown or retired keys reject the whole configuration without activating defaults.
+- Setting changes leave the current activation snapshot unchanged and take effect after restart.
+- `/qol` reports the effective settings, module states, and rejection reasons without exposing rejected values or starting a model turn.

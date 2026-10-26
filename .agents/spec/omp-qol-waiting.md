@@ -38,4 +38,7 @@ On a deadline without a terminal result, return the last certain all-running win
 
 ## Acceptance criteria
 
-Waiting covers explicit and default deadlines, the all-running continuation condition, every terminal outcome, caller cancellation, native-result races, unrelated errors, and refusal to replace an unrecognized entry. Background work continues after a wait deadline.
+- Each call uses its explicit timeout or the configured default as its total deadline. Background work continues after that deadline.
+- With continuation enabled, only a nonempty all-running native job window continues within the call. Other native outcomes return immediately; disabling continuation returns the first native window.
+- Caller cancellation retains its reason. A native result arriving despite the deadline is returned unchanged, and unrelated errors propagate unchanged.
+- An unrecognized entry is not replaced, and every exit releases call-owned waiting resources.

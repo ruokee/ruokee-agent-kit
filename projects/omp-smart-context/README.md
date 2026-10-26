@@ -97,6 +97,8 @@ bun run typecheck
 bun test
 ```
 
+Record the candidate, host version, inputs, observations, and limits in validation material. Keep historical evidence under its original owner and conditions. Distinguish source inspection, controlled integration, real-host behavior, and Provider measurements.
+
 ## License
 
 MIT.

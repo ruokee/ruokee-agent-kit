@@ -88,4 +88,3 @@ The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound.
 - After committed compaction, an ordinary continuation carries the latest Pin bodies verbatim, without an older revision placed after a newer body. Reading status produces no model request.
 - Migration preserves opt-in intent, unrelated settings, supported records, and QoL's remaining behavior. The extension does not rewrite real user configuration or journals.
 - Package declarations, paired documentation, specifications, and current decisions agree.
-- Validation material records the candidate, host version, inputs, observations, and limits. Historical evidence retains its original owner and conditions. Source inspection, controlled integration, real-host behavior, and Provider measurements remain distinct evidence.

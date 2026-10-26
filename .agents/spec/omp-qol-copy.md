@@ -30,4 +30,6 @@ While busy, warn and leave the clipboard unchanged. With no copyable reply, warn
 
 ## Acceptance criteria
 
-Copy checks cover last-message selection, joining and trimming, empty aborted messages, non-text exclusion, no fallback, disabled and busy states, no-text and clipboard errors, early key availability, and the actual key in `/qol`.
+- When enabled and idle, the shortcut passes the joined and trimmed text of the last assistant message to the host clipboard helper after skipping empty aborted messages. Non-text blocks are excluded; a last message with no copyable text does not fall back to an earlier reply.
+- Disabled or busy handlers and replies without text leave the clipboard unchanged. Busy and no-text cases warn; a thrown clipboard error is reported once without retry or copied-body disclosure.
+- `alt+shift+a` is available when the interactive host reads extension shortcuts, remains claimed for the binding's lifetime, and appears as the actual key in `/qol`.

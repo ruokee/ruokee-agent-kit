@@ -57,7 +57,7 @@ The outcome decides whether the local capability stays, covers only what the hos
 
 ### Verification
 
-Component checks cover the matching keys with positive and negative cases, alternative semantics within one file, rule validation and BOM handling, body fidelity for LF and CRLF, ordering across both directories regardless of read completion order, missing directories, and the non-accumulation of appended blocks across turns.
+The [model prompt guide](../../../../../projects/omp-smart-context/docs/model-prompts.md#verification) defines component check coverage.
 
 Controlled runs through actual prompt assembly and serialization record the candidate, locked host library, effective fixture models, and final requests. A handler return value alone is not Provider-facing evidence. Verify that appended bodies reach the request once without frontmatter, model changes re-match, host blocks and dynamic content survive, and consecutive turns or prompt rebuilds do not accumulate text. Real-model calls and a full CLI/TUI matrix are not integration gates. Preserve historical runs with their actual owner and conditions.
 

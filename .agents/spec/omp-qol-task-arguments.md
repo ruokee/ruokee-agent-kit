@@ -28,4 +28,6 @@ The accepted cost is disabling speculative task launch and experimental read spe
 
 ## Acceptance criteria
 
-Task cleanup covers flat and batch calls, seance preservation, every excluded agent shape, absent target fields, malformed task shapes, one increment per changed call, builtin/schema guards, model-only schemas, missing or shadowed tools, and switches. Persisted current arguments reflect the result.
+- Eligible flat and batch calls lose only each qualifying item's own `sourceSession` and `model`. Seance items, excluded agent shapes, absent target fields, non-object entries, batch-level fields, and unrelated arguments remain unchanged.
+- A changed call increments the counter once, regardless of the number of changed items. Displayed, executed, and persisted current arguments contain the same cleanup result; calls invalid for another reason still fail natively.
+- Disabled cleanup, missing or shadowed tools, and schemas without `sourceSession` leave native arguments and behavior unchanged. A model-only schema retains its ordinary selector and speculative launch.

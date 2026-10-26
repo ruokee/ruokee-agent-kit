@@ -26,4 +26,5 @@ Replay assumes the endpoint accepts the stored native items. Rejection can fail 
 
 ## Acceptance criteria
 
-Replay checks cover eligible resumed native history, unaffected protocols, sharing, release, and truthful counters.
+- After resume, the first eligible `openai-responses` request retains stored native history, including replayable thinking signatures, without rebuilding or altering session files. Other protocols remain unchanged.
+- Enabled activations share the process-wide effect and rewrite count. Release affects only recognizable owned state, preserves foreign replacements, and leaves `/qol` reporting the live state and count.

@@ -57,7 +57,7 @@ The root `AGENTS.md` keeps repository positioning, per-activity navigation, and 
 
 The layer has no spec of its own: the repository spec carries the rule layer's goals, boundaries, and acceptance, because the area this layer describes is the repository itself. A rule that holds on one machine only, that names the device's model, provider, endpoint, or absolute path, or that carries a personal working preference stays out of the layer and out of tracked files. The same applies to a working convention that exists only outside Git, such as how task state and task materials are kept. Component-internal rules stay with the component: the instructions in a `SKILL.md` are the product delivered to a host, not a repository rule. The first delivery also covers repository working rules that already applied and had no owning document, so its source is the repository's publishable working rules rather than a file list.
 
-Record the disposition of every source item and compare moved rules against their source text, preserving conditions, exceptions, permissions, and unrelated spec requirements. Selector regression tests cover the new rule paths and retain the complete-check fallback for shared inputs and unknown paths.
+Moving rules into this layer preserves their conditions, exceptions, permissions, and unrelated spec requirements. The [development rules](../../../../rule/development.md#checks) retain the complete-check fallback for shared inputs and unknown paths and own the selector regression-check obligations.
 
 ### Reading the rules
 

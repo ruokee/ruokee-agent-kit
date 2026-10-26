@@ -59,4 +59,6 @@ This is a new continuation turn, not byte-for-byte replay of the failed request.
 ## Acceptance criteria
 
 - A real maintained OMP CLI session demonstrates eligible stream-error continuation with default recovery settings, in the same main session and without an intervening user message. Native retries or an enabled status alone do not establish it. The same fault with recovery disabled produces no QoL continuation. A real TUI shows the attempt and delay; cancellation prevents continuation.
-- Behavioral recovery checks cover the reported error's real host fields, both modes, marked and unmarked statusless errors, exclusion precedence, independent caps, backoff, cross-run chains, duplicate events, invalidated delays, switches, notifications, unchanged errors, and fixed context. Reproducing the exact error prose in a new real session is not a development prerequisite.
+- Both modes decide eligibility from the error's host fields, with exclusions and terminal statuses taking precedence. Marked and unmarked statusless errors follow their mode's eligibility without matching error prose.
+- Continuations obey the independent caps and configured backoff across runs in one chain. Duplicate events add no delay or continuation, and a later independent chain receives a fresh budget.
+- Disabled recovery and invalidated delays produce no continuation. Enabled notifications report the attempt and delay; continuation preserves the original error and uses only the fixed context above.

@@ -40,6 +40,9 @@ The [repository spec](../spec/repository.md) states the language, pairing, and l
 
 ## Specs
 
-- Before maintaining or reviewing a long-lived spec, or changing a component's or repository area's goals, boundaries, or acceptance, load [maintain-spec](../skills/maintain-spec/SKILL.md), read the [project supplements](../spec/README.md) and affected specs, and update them with the change. The Skill does not maintain task Goals. Loading either maintenance Skill does not expand write permission.
+- Before maintaining or reviewing a long-lived spec, or changing a component's or repository area's goals, boundaries, or acceptance, load [maintain-spec](../skills/maintain-spec/SKILL.md) and read the [project supplements](../spec/README.md) and affected specs. The Skill does not maintain task Goals. Loading either maintenance Skill does not expand write permission.
+- Update affected specs with changes to a component's or repository area's goals or functionality. Changes to boundaries or acceptance outcomes are target changes.
+- Keep existing specs for minor adjustments and routine maintenance that change neither goals nor functionality.
+- If an unchanged target still needs a spec edit, identify and repair the wording or content-boundary defect that requires it.
 - Update the affected spec in the same change as the decision it follows.
 - State the complete confirmed requirements in the spec without implementation descriptions or repository-file links. Keep navigation outside the spec body; do not delegate requirements through paths or references.
