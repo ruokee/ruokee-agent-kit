@@ -7,7 +7,7 @@ about: 报告组件或文档中的问题。
 
 [English](https://github.com/ruokee/ruokee-agent-kit/issues/new?template=bug_report.md) | 中文
 
-不要在公开 Issue 中发布凭据或敏感漏洞细节。
+不要在公开 Issue 中发布凭据或敏感漏洞细节。疑似漏洞请按[安全策略](https://github.com/ruokee/ruokee-agent-kit/blob/main/SECURITY.zh.md#报告漏洞)私密报告。
 
 ## 背景
 

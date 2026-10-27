@@ -7,7 +7,7 @@ about: Report a problem with a component or documentation.
 
 English | [中文](https://github.com/ruokee/ruokee-agent-kit/issues/new?template=bug_report.zh.md)
 
-Do not post credentials or sensitive vulnerability details in a public Issue.
+Do not post credentials or sensitive vulnerability details in a public Issue. Report suspected vulnerabilities privately using the [security policy](https://github.com/ruokee/ruokee-agent-kit/blob/main/SECURITY.md#report-a-vulnerability).
 
 ## Context
 

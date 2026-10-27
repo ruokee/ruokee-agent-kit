@@ -8,7 +8,9 @@
 
 ## 报告问题
 
-提交前先在 [Issues](https://github.com/ruokee/ruokee-agent-kit/issues) 中搜索已有报告。说明受影响组件、相关组件与 Harness 版本、复现步骤、预期行为、实际行为，以及有帮助的日志或示例。如果无法判断由哪个组件引起，描述观察到的现象即可。
+疑似漏洞请通过[安全策略](./SECURITY.zh.md#报告漏洞)中的私密渠道报告，不要使用公开 Issue 或 PR。
+
+普通非安全问题在提交前先到 [Issues](https://github.com/ruokee/ruokee-agent-kit/issues) 中搜索已有报告。说明受影响组件、相关组件与 Harness 版本、复现步骤、预期行为、实际行为，以及有帮助的日志或示例。如果无法判断由哪个组件引起，描述观察到的现象即可。
 
 ## 提出建议
 
