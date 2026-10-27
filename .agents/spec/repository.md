@@ -8,6 +8,8 @@ Provide complete bilingual targets, durable decisions with traceable history, cl
 
 Give community participants clear behavior standards, a private reporting channel, and response arrangements that match the maintainer's actual responsibilities.
 
+Provide a usable private vulnerability reporting channel with clear ownership, repair scope, and disclosure expectations.
+
 ## Out of scope
 
 - Third-party capabilities, forks, upstream mirrors, empty capability categories, or structure for hypothetical requirements. A first-party capability may cite, quote, or adapt licensed third-party material without making that capability the subject of maintenance.
@@ -58,6 +60,18 @@ Serious violations may skip earlier steps. Where feasible, affected people recei
 The policy covers maintainers, contributors, and other participants in the repository, Issues, pull requests, and other spaces explicitly managed by the project. It also applies to official project representation, including official accounts and appointed representatives. Software use or contribution alone does not confer representative status.
 
 Attribution identifies Contributor Covenant 3.0, the Organization for Ethical Source, Mozilla's enforcement-ladder work, and the adaptation of reporting, responses, and scope for a single maintainer. The adapted text retains CC BY-SA 4.0 licensing, with source, license, FAQ, and translation links. Other repository content remains MIT-licensed; the README distinguishes the policy's license.
+
+### Vulnerability reporting
+
+The repository publishes root-level `SECURITY.md` and `SECURITY.zh.md` with equivalent complete policies and reciprocal language links. English is the default GitHub security policy. Each language's README, contribution guide, and Issue templates lead to its policy and private reporting instructions. Ordinary problems and conduct concerns retain their separate channels.
+
+GitHub private vulnerability reporting is enabled for the repository. Reports use `https://github.com/ruokee/ruokee-agent-kit/security/advisories/new` and the platform's default form. Ruokee follows report notifications, receives and assesses reports, and coordinates their handling. Further communication stays in the same private report. Ruokee may request more information, accept a report and collaborate on a fix, or explain why it is not accepted. Undisclosed details do not belong in public Issues or pull requests. No fixed response or fix deadline is promised.
+
+The policy covers first-party code, scripts, and Skills maintained in the repository. Reporting instructions ask for the affected component or file, version or commit, relevant operating system, runtime or host information, reproduction steps or a small example, and observed security impact and affected people. Examples and logs exclude credentials and unrelated personal information. Reporters need not establish ownership first. Problems originating solely in a host product belong with its maintainers; unclear ownership may be assessed from the report. An unwanted model response alone does not establish a repository vulnerability, but concrete security impact caused by repository Skills can be reported.
+
+Security fixes target the current contents of `main`. Older-version reports are accepted, but historical-version backports are not promised. Users update to a version or commit containing the fix. Component host maintenance lower bounds are unchanged by this repair scope.
+
+Ruokee coordinates disclosure with the reporter case by case, usually after a fix or mitigation is available. Urgent risks may require another schedule discussed with the reporter. There is no fixed disclosure period or requirement for indefinite confidentiality.
 
 ### Maintenance Skills
 
@@ -112,3 +126,5 @@ For a choice requiring implementation, the formal decision is integrated with th
 - Final candidates meet the complete-check identity conditions. Current decisions, rules, Skills, indexes, dictionary entries, and required language versions agree without weakening existing component behavior.
 - Both language entry paths reach complete conduct standards and the confirmed private reporting address. Reporting ownership, privacy, response options, scope, and the lack of independent review match across languages and public entry points.
 - GitHub recognizes the published default-branch conduct file. The policy preserves source attribution and CC BY-SA 4.0 without changing the license of other repository content.
+- Both language paths reach the complete security policy and a usable GitHub private reporting entry. Reporting ownership, subsequent communication, scope, main-based repair policy, and disclosure expectations agree across languages and entry points.
+- GitHub displays the published default-branch security policy, private reporting is enabled, and Ruokee can access private reports and has an active repository notification subscription covering security alerts. Entry checks do not require submitting a test report.
