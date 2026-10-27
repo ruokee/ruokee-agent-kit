@@ -8,7 +8,9 @@ Follow the [Code of Conduct](./CODE_OF_CONDUCT.md) when participating. Report co
 
 ## Report a problem
 
-Search the [Issues](https://github.com/ruokee/ruokee-agent-kit/issues) for an existing report before opening one. Include the affected component, relevant component and Harness versions, steps to reproduce, expected behavior, actual behavior, and useful logs or examples. If you cannot tell which component is responsible, describe what you observed.
+For suspected vulnerabilities, use the private reporting channel in the [security policy](./SECURITY.md#report-a-vulnerability), not public Issues or pull requests.
+
+For non-security problems, search the [Issues](https://github.com/ruokee/ruokee-agent-kit/issues) for an existing report before opening one. Include the affected component, relevant component and Harness versions, steps to reproduce, expected behavior, actual behavior, and useful logs or examples. If you cannot tell which component is responsible, describe what you observed.
 
 ## Suggest a change
 

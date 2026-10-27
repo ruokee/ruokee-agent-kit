@@ -7,7 +7,7 @@ about: 说明实际问题及希望改动支持的结果。
 
 [English](https://github.com/ruokee/ruokee-agent-kit/issues/new?template=feature_request.md) | 中文
 
-不要在公开 Issue 中发布凭据或敏感漏洞细节。
+不要在公开 Issue 中发布凭据或敏感漏洞细节。疑似漏洞请按[安全策略](https://github.com/ruokee/ruokee-agent-kit/blob/main/SECURITY.zh.md#报告漏洞)私密报告。
 
 ## 问题
 

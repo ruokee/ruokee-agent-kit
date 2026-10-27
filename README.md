@@ -58,6 +58,8 @@ Follow each project component's README for its build and installation requiremen
 
 See the [contribution guide](./CONTRIBUTING.md) to report a problem, suggest a change, or contribute documentation or code.
 
+For suspected vulnerabilities, follow the [security policy](./SECURITY.md#report-a-vulnerability) and report privately rather than in public Issues or pull requests.
+
 Follow the [Code of Conduct](./CODE_OF_CONDUCT.md) in project spaces. Use its private reporting channel for conduct concerns.
 
 ## Development

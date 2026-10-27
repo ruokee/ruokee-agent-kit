@@ -74,6 +74,7 @@
 - [仓库规则](../adr/decision/2026/10/12-repository-rules.zh.md)。
 - [仓库词典](../adr/decision/2026/10/17-repository-dictionary.zh.md)。
 - [社区行为规范](../adr/decision/2026/10/26-community-conduct.zh.md)。
+- [漏洞报告](../adr/decision/2026/10/27-vulnerability-reporting.zh.md)。
 - [第一方能力](../adr/decision/2026/08/20-first-party-capabilities.zh.md)。
 - [组件自包含](../adr/decision/2026/08/24-component-self-containment.zh.md)。
 - [双语文档](../adr/decision/2026/08/20-bilingual-docs.zh.md)和[相对链接](../adr/decision/2026/08/24-relative-links.zh.md)。
