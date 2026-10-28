@@ -131,7 +131,7 @@ WAL 是工作活动日志（Work Activity Log），用它来保存任务推进�
 
 关系：
 
-- `depends_on` 表示关闭前必须完成的依赖任务。
+- `depends_on` 表示关闭前必须完成的依赖任务。目标为 `closed` 时，该依赖满足关闭前置。保留关系作为顺序记录。只有当这段顺序本身不再适用时才移除关系，不因目标关闭而移除。
 - `related_to` 表示关联任务。
 - 复杂图约束参见 [任务概念](./references/task-concept.md)。
 

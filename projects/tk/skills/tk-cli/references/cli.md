@@ -319,7 +319,7 @@ The JSON payload contains:
 
 ```json
 {
-  "runtime_version": "0.1.14",
+  "runtime_version": "0.1.15",
   "cli_contract_version": 4,
   "task_schema_version": 1,
   "component_format_version": 5

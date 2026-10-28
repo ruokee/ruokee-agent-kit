@@ -131,7 +131,7 @@ Lifecycle rules:
 
 Relationships:
 
-- `depends_on` identifies Tasks that must finish before this Task can close.
+- `depends_on` identifies Tasks that must finish before this Task can close. A `closed` target satisfies this dependency's closing prerequisite. Keep the relation as a record of the ordering. Remove it only when that ordering no longer applies, not because the target closed.
 - `related_to` identifies related Tasks.
 - See [Task concepts](./references/task-concept.md) for graph constraints.
 

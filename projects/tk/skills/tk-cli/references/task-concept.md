@@ -146,6 +146,8 @@ The runtime writes close and reopen events to WAL. Do not append a duplicate man
 
 `depends_on` means the target Task must end first. It is directed and cannot form a cycle. All dependency targets must be `closed` before the Task can close.
 
+A `closed` target satisfies this dependency's closing prerequisite. Keep the relation as a record of the ordering. Remove it only when that ordering no longer applies, not because the target closed.
+
 ### Related Tasks
 
 `related_to` records an association only. It is not automatically symmetric. Adding A to B does not modify B.
