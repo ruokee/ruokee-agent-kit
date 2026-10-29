@@ -14,7 +14,7 @@ When configuring roles, read [role selection](./references/roles.md). Record the
 
 If requested, record separate self-check maxima for preparation materials and implementation units. Without a configured maximum, the executor chooses three to five. A maximum limits inspections, not a minimum to complete. The [self-check policy](./references/self-check.md) owns counting, early pass, and exhaustion; do not copy that algorithm into external settings or start a check during Setup.
 
-Record the chosen collaboration tool and project-specific conventions when requested. Recommend Herdr if a choice is needed; tmux or another supported mechanism is valid. The [collaboration contract](./references/collaboration.md) owns session use, waiting, and result recovery. Do not duplicate it in settings. Do not launch roles, install tools, or probe the environment to establish defaults.
+Record the chosen collaboration tool and project-specific conventions when requested. Leave the collaboration tool choice to the user or project; Tern, Herdr, and tmux are examples, not a preference. The [collaboration contract](./references/collaboration.md) owns session use, waiting, and result recovery. Do not duplicate it in settings. Do not launch roles, install tools, or probe the environment to establish defaults.
 
 ## Record project conventions
 

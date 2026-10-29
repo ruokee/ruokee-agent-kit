@@ -15,7 +15,7 @@ Choose one complete language directory:
 
 Each Skill contains an entry, all operation bodies, conditional references, and setup guidance. Load the selected Skill through your Harness and request an operation in natural language. Keep the whole directory, not just `SKILL.md`. The entry routes to the activity; its body loads shared rules only when needed.
 
-Install tk separately and use its public interface under the project's Task rules. Collaboration uses the selected supported terminal tool; Herdr is recommended, not required. Other Skills are used for relevant activities under their own entry rules, not installed or made mandatory by this component.
+Install tk separately and use its public interface under the project's Task rules. Collaboration uses the terminal multiplexer selected by the user or project, for example Tern, Herdr, or tmux; the listed tools are examples, and this component carries no built-in preference. Other Skills are used for relevant activities under their own entry rules, not installed or made mandatory by this component.
 
 workloop is for new tasks. It continues and repairs its own Tasks across sessions but does not migrate old workflow entries or material names.
 

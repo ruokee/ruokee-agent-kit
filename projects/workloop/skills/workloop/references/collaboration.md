@@ -4,7 +4,7 @@ Read before the first cross-session assignment or receipt, including self-check,
 
 ## Establish the route
 
-Use the selected tool's supported interface and instructions. Herdr is recommended, not required; tmux or another terminal mechanism is valid. Start normally at an explicit working location, discover live identities, and send assignments as ordinary messages, never injected system prompts. Do not operate another Agent's question dialog.
+The user or project selects the terminal multiplexer, for example Tern, Herdr, or tmux; the listed tools are examples, not a preference. Use the selected tool's supported interface and instructions, and load that tool's own Skill or runtime conditions when it has them; do not load another tool's Skill or check its environment merely because it is listed. Start normally at an explicit working location, discover live identities, and send assignments as ordinary messages, never injected system prompts. Do not operate another Agent's question dialog.
 
 An assignment identifies its owning Task, unit, basis, exact scope, candidate or dependency base, grants and restrictions, required outcome, report destination, stopping point, and live reply owner. Do not assume shared conversation history. For independent Verify, provide the Task, unit or material scope, candidate location, and reply owner; let the verifier resolve its basis instead of supplying an implementer's review checklist.
 

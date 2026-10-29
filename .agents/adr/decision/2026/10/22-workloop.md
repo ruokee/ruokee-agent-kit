@@ -129,3 +129,7 @@ The component specification completely states required operation behavior, permi
 ### 2026-10-25 Clarify-round preparation counts
 
 Preparation self-check counts are per Clarify round. A later round starts a fresh count after the previous round returns; within a round, material revisions, repairs, rechecks, and independent preparation feedback share the count and do not reset it. Session recovery or another agent continuing the same round does not reset it. Starting a new round does not reset any implementation unit's count. The Clarify operation owns the round boundary and its record; the self-check reference owns counting. This clarifies an undefined boundary and does not change the independent Verify limit or the implementation-unit count rule.
+
+### 2026-10-29 Tool-neutral collaboration
+
+The user or project selects the collaboration terminal, for example Tern, Herdr, or tmux. The listed tools are examples, not a built-in preference; use the selected tool's supported interface and instructions, and do not make another tool's specific runtime conditions a collaboration prerequisite. This entry replaces the Herdr recommendation in the coordination section above; role isolation, identity location, normal startup, ordinary assignments, candidate freezing, and final-result delivery requirements remain unchanged.
