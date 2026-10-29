@@ -37,6 +37,8 @@ Anthropic 的 `transport-unconfirmed` 表示保留调用方 fetch，`cache-polic
 - `reused`、`retained`：最近一次 Remote 发送的复用和保留计数，不是累计总数。
 - `axes`、`unprojected`：Handoff 已恢复或保留原生值的修复维度。
 
+每次重试都增加 `sends`，并增加 `aligned` 或 `rejected` 之一；改写后的重试还增加 `rewritten`。`operations` 只在操作首次物理发送时增加。
+
 计数有上限。对齐成功说明发送了什么请求，与 OMP 是否采用压缩结果、提供方是否报告缓存命中是不同结果。
 
 ## 其他能力

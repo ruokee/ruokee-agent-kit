@@ -2,15 +2,17 @@
 
 Decision owner: Ruokee
 Decision writer: OMP gpt-6-astra
-Reverses: [smart-cache](../../../archived/2026/10/12-r1-smart-cache.md)
+Reverses: [Request alignment](../../../archived/2026/10/22-r1-request-alignment.md)
 
 English | [中文](./22-request-alignment.zh.md)
 
 ## Motivation
 
-Maintain request-alignment coordination separately from the package's other state owners.
+Bind shared request-alignment coordination to native CLI/SDK sessions and their confirmed sends.
 
 The package contains capabilities that do not rewrite the same requests. Applying the alignment coordinator to journals, accounting, or model rules would join unrelated lifecycles. This independent topic extracts the shared mechanism from the archived smart-cache decision while the [package successor](./12-smart-cache.md) retains the component identity.
+
+Factory-time observation misses sessions whose extensions load after construction. Observing registry publication also cannot distinguish native construction from manually published sessions. Runtime session binding supports normal delayed loading without adding a host API or changing startup behavior.
 
 ## Decision
 
@@ -18,7 +20,7 @@ The package contains capabilities that do not rewrite the same requests. Applyin
 
 Use one process coordinator, independent per-session registrations, immutable observations of one confirmed ordinary dispatch, and one owned wrapper per native method. Each alignment capability interprets those facts and proves its own eligibility under its own protocol. At most one capability rewrites a physical request. Refusal or an unavailable interface in one capability leaves unrelated valid capabilities and sessions working.
 
-Preserve factory-time construction observation before session activation. Explicitly bind the actual session, model, dispatch, signal ancestry, epoch, and coordinator generation. Similar text, timing, model names, endpoints, or cache keys do not establish ownership. Every native operation captures an immutable reference, including a missing reference. Retries and late responses cannot upgrade or revive an invalidated operation.
+Bind the current native CLI/SDK session through its extension context, including delayed loading and resumed sessions. This contract covers native preparation, not certification of manually constructed Agent instances or replaced private conversion functions. Explicitly bind the actual session, model, dispatch, signal ancestry, epoch, and coordinator generation. Similar text, timing, model names, endpoints, or cache keys do not establish ownership. Every native operation captures an immutable reference, including a missing reference. Retries and late responses cannot upgrade or revive an invalidated operation.
 
 ### Lifecycle
 
@@ -38,7 +40,7 @@ The [request alignment Spec](../../../../spec/omp-smart-context/request-alignmen
 
 ## Alternatives considered
 
-None
+Retaining factory-time observation would require early loading or additional host provenance interfaces. It would keep ordinary delayed sessions ineligible without improving their actual request reuse. Runtime binding retains session isolation and final-send checks without that prerequisite.
 
 ## Consequences
 

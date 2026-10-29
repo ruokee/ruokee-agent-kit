@@ -2,6 +2,14 @@
 
 [中文](./CHANGELOG.zh.md)
 
+## 0.1.5
+
+- Bind request alignment to active native CLI/SDK sessions and actual sends, including delayed extension loading. Remove factory-time construction observation.
+- Leave preinstalled Handoff method wrappers untouched. Disable only Handoff alignment while Remote remains available.
+- Preserve canonical Eval snapshots on resume and keep unpersisted display snapshots separate from retained history.
+- Support opaque compaction items without ids and known response-stream padding differences while preserving native bytes and options.
+- Count aligned, rewritten, and rejected requests on every physical send, including retries.
+
 ## 0.1.4
 
 - Return every active Pin body verbatim from `list`, with its metadata and branch usage. Preserve single-entry `get`, full-set `show`, and width-aware interactive labels.

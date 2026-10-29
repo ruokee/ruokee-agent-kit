@@ -4,7 +4,6 @@ import { AgentRegistry, type AgentRef } from "@oh-my-pi/pi-coding-agent/registry
 import { register, type Registration, type Snapshot } from "./runtime.ts";
 import { parseSettings, rejectedSettings, type ModuleState, type Settings } from "./settings.ts";
 import { object } from "./reuse.ts";
-import { observeConstruction } from "./construction.ts";
 import { installModelPromptsModule } from "./model-prompts.ts";
 import { installUsageCompensationModule, usageStatusFromRegistry } from "./usage-compensation.ts";
 import { PACKAGE_NAME, PACKAGE_VERSION } from "./version.ts";
@@ -75,7 +74,6 @@ function describeModule(name: string, state: ModuleState): string {
 
 /** Native settings are read once; navigation does not refresh the activation. */
 export default function extension(pi: ExtensionAPI): void {
-  const construction = observeConstruction();
   const runtimeId = crypto.randomUUID();
   const reported = new Set<string>();
   let activationEvent = 0;
@@ -100,45 +98,41 @@ export default function extension(pi: ExtensionAPI): void {
 
   pi.on("session_start", async (_event, ctx) => {
     const event = ++activationEvent;
+    activation ??= settingsSnapshot(ctx.agent.id, ctx.cwd);
+    const settings = await activation;
+    if (event !== activationEvent) return;
+    if (settings.remote.ok) mode = settings.remote.settings.mode;
+    registration ??= register(ctx, settings);
+    if (modulesInstalled) return;
+    modulesInstalled = true;
     try {
-      activation ??= settingsSnapshot(ctx.agent.id, ctx.cwd);
-      const settings = await activation;
-      if (event !== activationEvent) return;
-      if (settings.remote.ok) mode = settings.remote.settings.mode;
-      registration ??= register(ctx, settings, construction);
-      if (modulesInstalled) return;
-      modulesInstalled = true;
-      try {
-        usage = installUsageCompensationModule({
-          pi,
-          ctx,
-          settings: settings.compactionUsage.ok ? settings.compactionUsage.settings : { enabled: false },
-          runtimeId,
-          off: settings.compactionUsage.ok ? undefined : "settings-invalid",
-          report: (key) => report(ctx, key),
-          setStatus: (state) => {
-            usage = state;
-          },
-        });
-        if (!settings.compactionUsage.ok) usage = { status: "invalid", reason: settings.compactionUsage.reason };
-      } catch {
-        usage = { status: "incompatible", reason: "registration-error" };
-        report(ctx, "compactionUsage:registration-error");
-      }
-      try {
-        prompts = installModelPromptsModule(pi, settings.modelPrompts);
-      } catch {
-        prompts = { status: "incompatible", reason: "registration-error" };
-        report(ctx, "modelPrompts:registration-error");
-      }
-      try {
-        pin = installPinModule(pi, settings.pin, ctx);
-      } catch {
-        pin = { status: "incompatible", reason: "registration-error" };
-        report(ctx, "pin:registration-error");
-      }
-    } finally {
-      construction.release();
+      usage = installUsageCompensationModule({
+        pi,
+        ctx,
+        settings: settings.compactionUsage.ok ? settings.compactionUsage.settings : { enabled: false },
+        runtimeId,
+        off: settings.compactionUsage.ok ? undefined : "settings-invalid",
+        report: (key) => report(ctx, key),
+        setStatus: (state) => {
+          usage = state;
+        },
+      });
+      if (!settings.compactionUsage.ok) usage = { status: "invalid", reason: settings.compactionUsage.reason };
+    } catch {
+      usage = { status: "incompatible", reason: "registration-error" };
+      report(ctx, "compactionUsage:registration-error");
+    }
+    try {
+      prompts = installModelPromptsModule(pi, settings.modelPrompts);
+    } catch {
+      prompts = { status: "incompatible", reason: "registration-error" };
+      report(ctx, "modelPrompts:registration-error");
+    }
+    try {
+      pin = installPinModule(pi, settings.pin, ctx);
+    } catch {
+      pin = { status: "incompatible", reason: "registration-error" };
+      report(ctx, "pin:registration-error");
     }
   });
   pi.on("session_before_switch", () => {
@@ -155,7 +149,6 @@ export default function extension(pi: ExtensionAPI): void {
   });
   pi.on("session_shutdown", () => {
     activationEvent++;
-    construction.release();
     registration?.close();
     registration = undefined;
   });

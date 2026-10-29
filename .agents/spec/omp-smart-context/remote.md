@@ -22,13 +22,15 @@ The shared request-alignment requirements govern reference confirmation, operati
 
 ### Source
 
-Only a confirmed native session's hidden, agent-attributed `eval-state-context` may be excluded from canonical-source retention as display-derived content. The ordinary request and original raw messages remain unchanged. Complete canonical retention must otherwise hold. `standard` also requires recognized preparation to match the unfiltered source.
+In native CLI/SDK sessions, a hidden, agent-attributed `eval-state-context` may be excluded from source retention only when it is an unpersisted display snapshot. Snapshots present in canonical history retain their source dependency, including copies rebuilt on resume. The ordinary request and original raw messages remain unchanged. Complete canonical retention must otherwise hold. `standard` also requires recognized preparation to match the unfiltered source.
 
-User messages with identical text, user-attributed custom content, other custom types, and unconfirmed construction retain all source dependencies. Recognition grants no local independence and restores no trimmed output.
+User messages with identical text, user-attributed custom content, visible snapshots, and other custom types retain all source dependencies. Recognition grants no local independence and restores no trimmed output.
 
 ### Reuse modes
 
 Both modes align recognized native common content, including valid tool-schema preparation, reminders, replay semantics, and implicit tool-choice defaults. V2 retains its own output limit or its omission.
+
+Known boolean `stream_options.include_obfuscation` differences do not prevent reuse. Preserve the native Remote request's value or omission; unknown stream-option differences remain unclassified.
 
 - `standard` accepts recognized native preparation differences.
 - `hooks` additionally reuses proved completed handling results. A complete retained range permits lawful insertion, reordering, restoration, cross-range merging, images, and existing post-payload transformations. Stateful handlers run once.
@@ -46,5 +48,5 @@ Replace the adaptation only after behavioral verification that a maintained nati
 - Each enabled mode aligns recognized native cases while off, empty-filter, mismatched-filter, unsupported-model, non-Remote selection, and out-of-scope API cases preserve native decisions and requests.
 - The filter never changes actual model or routing, including successful native Remote with no repair.
 - Complete retention and eligible local reuse preserve ordinary content without rerunning handlers or restoring trimmed data. Unproved dependencies refuse the complete rewrite with the applicable reason.
-- Exact native Eval metadata can be excluded from canonical history without excluding look-alike user or custom messages.
+- Unpersisted hidden Agent Eval snapshots can be treated as display metadata. Canonical journal entries, restored snapshots, look-alike user messages, and other custom messages retain their source dependencies.
 - Actual final transport preserves unknown fields, native limits, new tails, opaque bytes, and independent Handoff behavior.

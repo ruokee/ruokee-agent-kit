@@ -89,6 +89,8 @@ Handoff 请求可能遗漏普通请求已有的系统指令，并使用不同生
 
 宿主 peer `@oh-my-pi/pi-agent-core`、`@oh-my-pi/pi-ai`、`@oh-my-pi/pi-coding-agent`、`@oh-my-pi/pi-tui`、`@oh-my-pi/pi-utils` 使用 `*`，开发依赖锁定在 `18.5.0`。即使请求对齐成功，缓存可用性和计费仍取决于提供方。
 
+请求对齐支持原生 CLI/SDK 主会话、task 和 Eval 子会话，包括扩展延迟加载及进程恢复，绑定活跃会话和实际发送。手工构造 Agent 或替换私有准备函数不在本支持范围内。
+
 ## 开发
 
 ```bash

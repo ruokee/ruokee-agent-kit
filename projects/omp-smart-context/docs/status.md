@@ -37,6 +37,8 @@ For Anthropic, `transport-unconfirmed` preserves a caller-owned fetch; `cache-po
 - `reused`, `retained`: reuse and retention counts for the latest Remote send, not cumulative totals.
 - `axes`, `unprojected`: Handoff repair dimensions restored or left at their native values.
 
+Every retry increments `sends` and exactly one of `aligned` or `rejected`; a rewritten retry also increments `rewritten`. `operations` increases only for the operation's first physical send.
+
 Counters are bounded. Alignment success says what request was sent; it is separate from OMP adopting a compaction result or a Provider reporting a cache hit.
 
 ## Other capabilities

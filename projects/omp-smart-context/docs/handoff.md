@@ -20,6 +20,8 @@ Set `handoffCacheEnabled=true` through [native configuration](../README.md#confi
 
 Send an ordinary prompt before generating a Handoff so the extension has a confirmed request to compare. The ordinary request must include a tool set; a session that never sends tools stays native.
 
+Native CLI/SDK main, task, and Eval sessions use independent references. Eager loading, cached delayed loading, and process restoration follow the same ordinary-send requirement. Manually constructed Agent instances and replaced private preparation functions are outside this support boundary.
+
 Anthropic requires matching native tool definitions and a proved history prefix. Comparison may normalize known content-block cache markers and equivalent string/text-block forms; outgoing messages and tool cache markers are not changed. Disabled caching, incompatible TTLs, excessive cache breakpoints, unknown shapes, or a caller-owned fetch that cannot be proved leave the request native. The extension keeps native transport, authentication, and retries.
 
 ## Read the result

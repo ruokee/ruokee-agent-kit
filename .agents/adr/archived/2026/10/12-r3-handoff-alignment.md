@@ -74,7 +74,7 @@ Install one owned wrapper per method and preserve native arguments, receivers, p
 
 ### Independence
 
-Apply the [shared alignment contract](../../../decision/2026/10/22-request-alignment.md). Other context modules do not join its coordinator.
+Apply the [shared alignment contract](./22-r1-request-alignment.md). Other context modules do not join its coordinator.
 
 The capabilities share the package, coordinator, per-session registration, one wrapper per native method, and immutable observations of the same ordinary dispatch. Each interprets those facts and proves eligibility independently. They share no protocol rules, payload-shape rules, reason codes, or benefit evidence. Handoff does not reuse the remote V2 algorithm; refusal or a missing interface in one leaves the other working.
 

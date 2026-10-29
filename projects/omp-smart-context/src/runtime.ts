@@ -32,7 +32,6 @@ import {
 import { body, nativeV2, object, reuse, type Body, type Reference } from "./reuse.ts";
 import { copy, encode, nativeIndependent, payload, standardResult, units } from "./proof.ts";
 import type { ToggleResult, RemoteResult, RemoteSettings, AlignmentSettings } from "./settings.ts";
-import type { Construction } from "./construction.ts";
 import { PACKAGE_VERSION as VERSION } from "./version.ts";
 
 const SLOT = Symbol.for("ruokee.omp-smart-context.alignment.coordinator");
@@ -41,11 +40,36 @@ const OLD_CACHE = Symbol.for("ruokee.omp-smart-cache.remote.coordinator");
 const slots = globalThis as typeof globalThis & { [key: symbol]: unknown };
 const nativeAnthropicRequest = nativeAnthropicClient.AnthropicHttpClient?.prototype.request;
 const increment = (value: number): number => Math.min(Number.MAX_SAFE_INTEGER, value + 1);
-const nativeEvalProjection = (message: AgentMessage): boolean =>
-  message.role === "custom" &&
-  message.customType === "eval-state-context" &&
-  message.attribution === "agent" &&
-  message.display === false;
+function displayEvalProjection(state: State, messages: AgentMessage[]): Set<number> | undefined {
+  let history: AgentMessage[] | undefined;
+  let projected: Set<number> | undefined;
+  for (let index = 0; index < messages.length; index++) {
+    const message = messages[index]!;
+    if (
+      message.role !== "custom" ||
+      message.customType !== "eval-state-context" ||
+      message.attribution !== "agent" ||
+      message.display !== false
+    )
+      continue;
+    history ??= state.manager.buildSessionContext().messages;
+    // Persisted snapshots remain canonical history, including snapshots rebuilt on resume.
+    if (
+      history.some(
+        (item) =>
+          item.role === "custom" &&
+          item.customType === message.customType &&
+          item.content === message.content &&
+          item.timestamp === message.timestamp &&
+          item.attribution === message.attribution &&
+          item.display === message.display,
+      )
+    )
+      continue;
+    (projected ??= new Set()).add(index);
+  }
+  return projected;
+}
 
 export interface Status {
   state: "disabled" | "unavailable" | "awaiting-reference" | "already-aligned" | "rewritten" | "rejected";
@@ -99,8 +123,6 @@ interface State {
   readonly runner: NonNullable<AgentSession["extensionRunner"]>;
   readonly registry: ModelRegistry;
   readonly selection: Selection;
-  readonly nativeSource: boolean;
-  readonly nativeSide: boolean;
   readonly status: Status;
   readonly handoff: HandoffSession;
   readonly raw: WeakMap<AbortSignal, Observation>;
@@ -173,6 +195,7 @@ interface Observation {
   readonly sourceTools: unknown;
   readonly expectedTools: unknown;
   readonly independent: boolean;
+  readonly evalProjection?: ReadonlySet<number>;
   side?: SidePending;
   hooks?: AgentMessage[];
   prepared?: Pick<Context, "messages">;
@@ -913,13 +936,11 @@ class Coordinator {
     status.sending = reason === "rewritten" ? "rewritten-delegated" : "native-delegated";
     if (reason === "rewritten" || reason === "already-aligned") {
       status.state = reason;
-      if (first) {
-        status.aligned = increment(status.aligned);
-        if (reason === "rewritten") status.rewritten = increment(status.rewritten);
-      }
+      status.aligned = increment(status.aligned);
+      if (reason === "rewritten") status.rewritten = increment(status.rewritten);
     } else {
       status.state = op.state.unavailable ? "unavailable" : "rejected";
-      if (first) status.rejected = increment(status.rejected);
+      status.rejected = increment(status.rejected);
     }
   }
 
@@ -936,13 +957,11 @@ class Coordinator {
     status.sending = reason === "rewritten" ? "rewritten-delegated" : "native-delegated";
     if (reason === "rewritten" || reason === "already-aligned") {
       status.state = reason;
-      if (first) {
-        status.aligned = increment(status.aligned);
-        if (reason === "rewritten") status.rewritten = increment(status.rewritten);
-      }
+      status.aligned = increment(status.aligned);
+      if (reason === "rewritten") status.rewritten = increment(status.rewritten);
     } else {
       status.state = op.state.handoff.unavailable ? "unavailable" : "rejected";
-      if (first) status.rejected = increment(status.rejected);
+      status.rejected = increment(status.rejected);
     }
   }
 
@@ -1124,12 +1143,7 @@ class Coordinator {
     return alignment;
   }
 
-  register(
-    ctx: ExtensionContext,
-    selection: Selection,
-    construction: Construction,
-    session: AgentSession,
-  ): Registration {
+  register(ctx: ExtensionContext, selection: Selection, session: AgentSession): Registration {
     const known = this.states.get(session);
     if (known) {
       if (!equal(known.selection, selection))
@@ -1145,8 +1159,6 @@ class Coordinator {
       runner: session.extensionRunner!,
       registry: ctx.modelRegistry,
       selection,
-      nativeSource: construction.confirms(session),
-      nativeSide: construction.confirmsSide(session),
       status: selection.remote.active
         ? initial("reference-not-sent")
         : initial(selection.remote.reason, selection.remote.state),
@@ -1244,7 +1256,7 @@ class Coordinator {
                 expectedTools = copy(
                   convertTools(normalized, responses.compat.supportsStrictMode !== false, responses),
                 );
-                independent = state.nativeSource && nativeIndependent(session, messages);
+                independent = nativeIndependent(session, messages);
               } catch {
                 failed = state.sourceFailure = state.status.online = "source-observation-failed";
               }
@@ -1256,6 +1268,7 @@ class Coordinator {
               sideGeneration: state.handoff.generation,
               model,
               raw: copy(messages),
+              evalProjection: displayEvalProjection(state, messages),
               sourceTools,
               expectedTools,
               independent,
@@ -1375,12 +1388,11 @@ class Coordinator {
                 model as Model<"openai-responses">,
               ),
             );
-            const projected = state.nativeSource && observation.raw.some(nativeEvalProjection);
+            const projected = observation.evalProjection;
             if (projected && state.selection.remote.settings?.mode === "standard")
               observation.standardSource = copy(encode(model, observation.raw));
-            // Display-derived Eval context is not part of the journal used by native compaction.
             const source = projected
-              ? observation.raw.filter((message) => !nativeEvalProjection(message))
+              ? observation.raw.filter((_message, index) => !projected.has(index))
               : observation.raw;
             observation.source = copy(encode(model, source));
           }
@@ -1424,7 +1436,6 @@ class Coordinator {
             id: observed.id,
             source: observed.source,
             body: sent,
-            localUnconfirmed: !state.nativeSource,
             units: units(
               model,
               observed.raw,
@@ -1506,8 +1517,9 @@ class Coordinator {
       this.unavailableSide(state, "session-interface");
       return;
     }
-    if (!state.nativeSide) {
-      this.unavailableSide(state, "session-construction-unconfirmed");
+    // Native session methods live on the prototype; an instance override belongs to its installer.
+    if (Object.hasOwn(session, "convertMessagesToLlm") || Object.hasOwn(session, "prepareSimpleStreamOptions")) {
+      this.unavailableSide(state, "session-wrapped");
       return;
     }
     const convert = session.convertMessagesToLlm;
@@ -1604,7 +1616,7 @@ function inactive(
     close: () => {},
   };
 }
-export function register(ctx: ExtensionContext, settings: AlignmentSettings, construction: Construction): Registration {
+export function register(ctx: ExtensionContext, settings: AlignmentSettings): Registration {
   const remote = remoteSelection(settings.remote);
   const handoff = handoffSelection(settings.handoff);
   // Only a capability that is active reports a shared conflict as its own state.
@@ -1650,7 +1662,7 @@ export function register(ctx: ExtensionContext, settings: AlignmentSettings, con
       }
       slots[SLOT] = coordinator;
     }
-    return coordinator.register(ctx, { remote, handoff }, construction, session);
+    return coordinator.register(ctx, { remote, handoff }, session);
   } catch {
     return refuse("host-interface");
   }

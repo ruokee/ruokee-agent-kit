@@ -20,7 +20,7 @@ Only a confirmed ordinary main-loop dispatch can supply reusable reference conte
 
 Main sessions, native task children, and Eval children have separate references and counts. Reuse must retain the owning session, persistent and Provider identities, effective model and API, tools, system prompt, thinking state, and dispatch. Equal model names, text, endpoints, cache keys, or timing do not establish session ownership.
 
-Native CLI and SDK session provenance must be established rather than inferred for arbitrary Agent instances. If that provenance becomes unknown or changes, complete-source proof can still justify reuse, but equal lengths or outputs do not justify local independence. Image preparation that depends on history, and later date or cwd reminders, require complete-range proof unless their local dependencies are established.
+Support native CLI and SDK preparation, including extensions loaded after session construction and process-restored sessions. Bind the active session to its extension context and actual dispatch; manually constructed Agent instances and replaced private conversion functions are outside this support contract. Local reuse requires known native preparation conditions and retained dependencies, not equal lengths or outputs. Image preparation that depends on history, and later date or cwd reminders, require complete-range proof unless their local dependencies are established.
 
 ### Operation lifetime
 
@@ -51,6 +51,7 @@ Preserve native arguments, receiver behavior, results, exceptions, cancellation 
 ## Acceptance criteria
 
 - Same-model concurrent sessions remain isolated, including task and Eval children, cancellation, replacement, and resumed activity.
+- Eager, cached delayed loading, and process-restored native CLI/SDK sessions can establish references through fresh ordinary sends without special startup flags or cache removal.
 - Only confirmed ordinary sends establish references. Ordinary and non-target request bodies remain unchanged, and each handler executes once.
 - Invalidation permanently revokes old operations. Fresh ordinary work restores only future eligibility, including continuations with an unchanged run signal.
 - Complete-range and partial-unit cases enforce their distinct proof requirements without restoring trimmed content or interpreting opaque history.

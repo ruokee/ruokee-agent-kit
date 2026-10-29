@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [Remote alignment](../../../archived/2026/10/10-r1-remote-alignment.md)
 Archived: 2026-10-22
-Reversed by: [Smart context](../../../decision/2026/10/12-smart-cache.md), [Request alignment](../../../decision/2026/10/22-request-alignment.md)
+Reversed by: [Smart context](../../../decision/2026/10/12-smart-cache.md), [Request alignment](./22-r1-request-alignment.md)
 
 English | [中文](./12-r1-smart-cache.zh.md)
 

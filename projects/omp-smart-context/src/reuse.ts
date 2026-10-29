@@ -18,7 +18,6 @@ export interface Reference {
   readonly expectedTools: unknown;
   readonly implicitToolChoice: boolean;
   readonly standard: boolean;
-  readonly localUnconfirmed?: boolean;
 }
 export interface Decision {
   readonly reason: string;
@@ -47,6 +46,16 @@ function firstKey(item: Item): unknown {
   return item.output ?? item.call_id ?? item.encrypted_content ?? item.id ?? item.type ?? item.role;
 }
 
+/** Response-stream padding does not change the shared model input; retain the native request's choice. */
+function responseStreamOptions(value: unknown): boolean {
+  return (
+    value === undefined ||
+    (object(value) &&
+      typeof value.include_obfuscation === "boolean" &&
+      Object.keys(value).every((key) => key === "include_obfuscation"))
+  );
+}
+
 /** Native source retention and independently proved sent units precede every replacement. */
 export function reuse(reference: Reference, request: Body, mode: Mode): Decision {
   const fail = (reason: string): Decision => ({
@@ -60,6 +69,7 @@ export function reuse(reference: Reference, request: Body, mode: Mode): Decision
   const live = reference.body;
   for (const key of new Set([...Object.keys(live), ...Object.keys(request)])) {
     if (["input", "tools", "tool_choice", "max_output_tokens"].includes(key)) continue;
+    if (key === "stream_options" && responseStreamOptions(live[key]) && responseStreamOptions(request[key])) continue;
     if (!equal(live[key], request[key])) return fail("unclassified-field-difference");
   }
   for (const limit of [live.max_output_tokens, request.max_output_tokens]) {
@@ -89,8 +99,7 @@ export function reuse(reference: Reference, request: Body, mode: Mode): Decision
     retained = historyLength - reused;
   } else {
     const independent = reference.units.filter((unit) => unit.proof === "native-independent");
-    if (!independent.length)
-      return fail(complete && !reference.localUnconfirmed ? "projection-dependency-changed" : "projection-unconfirmed");
+    if (!independent.length) return fail(complete ? "projection-dependency-changed" : "projection-unconfirmed");
     const positions = new Map<unknown, number[]>();
     for (let index = 0; index < historyLength; index++) {
       const key = firstKey(request.input[index]!);

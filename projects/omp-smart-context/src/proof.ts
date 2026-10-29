@@ -41,7 +41,7 @@ export function encode(model: Model, messages: AgentMessage[], converted = false
       Array.isArray(payload.items)
     ) {
       for (const item of payload.items) {
-        if (!object(item) || item.type !== "compaction" || typeof item.id !== "string") continue;
+        if (!object(item) || item.type !== "compaction") continue;
         opaque.push({
           raw: item,
           encoded: encodeInput([

@@ -12,6 +12,8 @@ The current model must support Remote, and OMP must choose Remote. The filter on
 
 Coverage is non-Codex `openai-responses` V2 in main sessions and native task and Eval children. [Handoff](./handoff.md) uses a separate switch.
 
+Native CLI/SDK sessions can establish a reference after eager loading, cached delayed loading, or process restoration. No special startup flag or cache removal is required. Manually constructed Agent instances and replaced private preparation functions are outside this support boundary.
+
 ## Modes
 
 `compactionCacheMode` accepts:
@@ -20,6 +22,8 @@ Coverage is non-Codex `openai-responses` V2 in main sessions and native task and
 - `hooks`: also reuse completed extension handling when the shared content can be verified. This is the default.
 
 Neither mode reruns context handlers, restores trimmed tool output, changes native output limits, or enables Remote on its own. When extensions transform content in ways that cannot be safely reused, alignment may be refused in either mode.
+
+Unpersisted hidden Agent Eval snapshots are display metadata. Persisted snapshots, including copies rebuilt on resume, remain canonical history, as do user-attributed and other custom messages. Opaque compaction items retain their original bytes even when they have no id. Known `include_obfuscation` differences preserve Remote's own value or omission; unknown stream-option differences leave the request native.
 
 ## Read the result
 

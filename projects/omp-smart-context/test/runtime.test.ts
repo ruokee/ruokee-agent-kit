@@ -86,7 +86,11 @@ interface FakeSession {
   isSessionTransitioning: boolean;
   isGeneratingHandoff: boolean;
   model: Model;
-  sessionManager: { getSessionId(): string; getBranch(): unknown[] };
+  sessionManager: {
+    getSessionId(): string;
+    getBranch(): unknown[];
+    buildSessionContext(): { messages: AgentMessage[] };
+  };
   extensionRunner: { emitContext: (...args: unknown[]) => unknown; hasHandlers: (event: string) => boolean };
   convertMessagesToLlm: (messages: unknown[], signal?: AbortSignal) => unknown;
   prepareSimpleStreamOptions: (options: SideOptions) => SideOptions;
@@ -99,13 +103,22 @@ interface FakeSession {
   fork: () => unknown;
 }
 
+class FakeHandoff {
+  convertMessagesToLlm(messages: unknown[], _signal?: AbortSignal): unknown {
+    return messages;
+  }
+  prepareSimpleStreamOptions(options: SideOptions): SideOptions {
+    return options;
+  }
+}
+
 /**
  * A session shaped like the seams this capability uses. The native stream writes the payload it received and
  * answers 200, which is exactly what the host does, so one dispatch drives capture, confirmation and binding.
  */
 function fakeSession(model: Model = MODEL) {
   const hooks: ((signal?: AbortSignal) => void)[] = [];
-  const session: FakeSession = {
+  const session: FakeSession = Object.assign(new FakeHandoff(), {
     agent: {
       state: {
         messages: [],
@@ -138,10 +151,12 @@ function fakeSession(model: Model = MODEL) {
     isSessionTransitioning: false,
     isGeneratingHandoff: false,
     model,
-    sessionManager: { getSessionId: () => "session-1", getBranch: () => [] },
+    sessionManager: {
+      getSessionId: () => "session-1",
+      getBranch: () => [],
+      buildSessionContext: () => ({ messages: [] }),
+    },
     extensionRunner: { emitContext: (messages: unknown) => Promise.resolve(messages), hasHandlers: () => true },
-    convertMessagesToLlm: (messages: unknown) => messages,
-    prepareSimpleStreamOptions: (options) => options,
     addDisposer: () => {},
     switchSession: () => undefined,
     branch: () => undefined,
@@ -149,7 +164,7 @@ function fakeSession(model: Model = MODEL) {
     freshSession: () => undefined,
     newSession: () => undefined,
     fork: () => undefined,
-  };
+  } satisfies Omit<FakeSession, "convertMessagesToLlm" | "prepareSimpleStreamOptions">);
   return { session, hooks };
 }
 
@@ -157,15 +172,11 @@ function activate(
   settings: AlignmentSettings,
   model: Model = MODEL,
   stream?: FakeAgent["streamFn"],
-  native = true,
-  configure?: (session: FakeSession) => void,
+  beforeRegister?: (session: FakeSession) => void,
 ) {
   const registry = AgentRegistry.global();
   const { session, hooks } = fakeSession(model);
   if (stream) session.agent.streamFn = stream;
-  const convert = session.convertMessagesToLlm;
-  const prepare = session.prepareSimpleStreamOptions;
-  configure?.(session);
   if (!registry.get(AGENT))
     registry.register({ id: AGENT, displayName: AGENT, kind: "main", session: null, status: "idle" });
   registry.attachSession(AGENT, session as unknown as AgentSession);
@@ -181,12 +192,8 @@ function activate(
     cwd: "/tmp",
   };
   Object.assign(session.sessionManager, { getCwd: () => "/tmp" });
-  const registration = register(ctx as unknown as Parameters<typeof register>[0], settings, {
-    confirms: () => native,
-    confirmsSide: () =>
-      native && session.convertMessagesToLlm === convert && session.prepareSimpleStreamOptions === prepare,
-    release: () => {},
-  });
+  beforeRegister?.(session);
+  const registration = register(ctx as unknown as Parameters<typeof register>[0], settings);
   return { session, hooks, registration, registry, modelRegistry: ctx.modelRegistry };
 }
 
@@ -316,7 +323,7 @@ test("handoff candidates count only physical sends and retain the native body af
     expect(wires.at(-1)).toEqual({ messages: native.messages, reasoning_effort: "low" });
     await send();
     expect(registration.status().handoff).toEqual(
-      expect.objectContaining({ operations: 1, sends: 2, retries: 1, aligned: 1 }),
+      expect.objectContaining({ operations: 1, sends: 2, retries: 1, aligned: 2 }),
     );
     session.agent.state.tools = [];
     await send();
@@ -370,20 +377,43 @@ test("late ordinary responses cannot revive invalidated handoff references", asy
   }
 });
 
-test("handoff registration preserves unknown wrappers and refuses an unconfirmed construction", () => {
-  for (const native of [true, false]) {
-    let foreign: FakeSession["convertMessagesToLlm"] | undefined;
-    const { session, registration, registry } = activate(handoffOnly, MODEL, undefined, native, (value) => {
-      foreign = value.convertMessagesToLlm = (messages) => messages;
-    });
+test("preinstalled handoff wrappers remain untouched while remote stays available", () => {
+  for (const name of ["convertMessagesToLlm", "prepareSimpleStreamOptions"] as const) {
+    let foreign!: FakeSession[typeof name];
+    const { session, registration, registry } = activate(
+      { ...remoteOnly, handoff: handoffOnly.handoff },
+      RESPONSES_MODEL,
+      undefined,
+      (session) => {
+        const original = session[name];
+        foreign = function (this: FakeSession, ...args: unknown[]) {
+          return Reflect.apply(original, this, args);
+        };
+        Object.defineProperty(session, name, { value: foreign, configurable: true, writable: true });
+      },
+    );
     try {
+      expect(session[name]).toBe(foreign);
       expect(registration.status().handoff.state).toBe("unavailable");
-      expect(session.convertMessagesToLlm).toBe(foreign!);
+      expect(registration.status().remote.state).toBe("awaiting-reference");
+      registration.close();
+      expect(session[name]).toBe(foreign);
     } finally {
       registration.close();
-      expect(session.convertMessagesToLlm).toBe(foreign!);
       registry.unregister(AGENT);
     }
+  }
+});
+
+test("handoff release preserves a later foreign wrapper", () => {
+  const { session, registration, registry } = activate(handoffOnly);
+  const foreign: FakeSession["convertMessagesToLlm"] = (messages) => messages;
+  session.convertMessagesToLlm = foreign;
+  try {
+    registration.close();
+    expect(session.convertMessagesToLlm).toBe(foreign);
+  } finally {
+    registry.unregister(AGENT);
   }
 });
 
@@ -480,12 +510,13 @@ test("native display-only Eval context is a prepared projection, not a deleted h
     display: false,
     timestamp: 2,
   };
-  const cases: { message: AgentMessage; native: boolean; aligned: boolean }[] = [
-    { message: projection, native: true, aligned: true },
-    { message: projection, native: false, aligned: false },
-    { message: { ...projection, attribution: "user" }, native: true, aligned: false },
-    { message: { ...projection, customType: "other-context" }, native: true, aligned: false },
-    { message: { role: "user", content: projection.content, timestamp: 2 }, native: true, aligned: false },
+  const cases: { message: AgentMessage; persisted: boolean; aligned: boolean }[] = [
+    { message: projection, persisted: false, aligned: true },
+    { message: projection, persisted: true, aligned: false },
+    { message: { ...projection, attribution: "user" }, persisted: false, aligned: false },
+    { message: { ...projection, customType: "other-context" }, persisted: false, aligned: false },
+    { message: { ...projection, display: true }, persisted: false, aligned: false },
+    { message: { role: "user", content: projection.content, timestamp: 2 }, persisted: false, aligned: false },
   ];
   const originalFetch = globalThis.fetch;
   const endpoint = "https://example.invalid/v1/responses";
@@ -530,12 +561,10 @@ test("native display-only Eval context is a prepared projection, not a deleted h
       remote: { ok: true, settings: { enabled: true, providerFilter: "test", mode: scenario.mode } },
       handoff: remoteOnly.handoff,
     };
-    const { session, hooks, registration, registry, modelRegistry } = activate(
-      settings,
-      RESPONSES_MODEL,
-      stream,
-      scenario.native,
-    );
+    const { session, hooks, registration, registry, modelRegistry } = activate(settings, RESPONSES_MODEL, stream);
+    session.sessionManager.buildSessionContext = () => ({
+      messages: structuredClone(scenario.persisted ? raw : history),
+    });
     session.agent.state.tools = [];
     const resolve = async (signal: AbortSignal) => {
       await modelRegistry.resolver(session.model, session.sessionId)({ signal, lastChance: false, error: undefined });

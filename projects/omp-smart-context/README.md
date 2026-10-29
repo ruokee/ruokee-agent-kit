@@ -89,6 +89,8 @@ The minimum maintained OMP version is `18.5.0`, without an upper maintenance bou
 
 Host peers `@oh-my-pi/pi-agent-core`, `@oh-my-pi/pi-ai`, `@oh-my-pi/pi-coding-agent`, `@oh-my-pi/pi-tui`, and `@oh-my-pi/pi-utils` use `*`; development dependencies are locked to `18.5.0`. Provider cache availability and billing remain Provider-dependent, even when request alignment succeeds.
 
+Request alignment supports native CLI/SDK main, task, and Eval sessions, including delayed extension loading and process restoration. It binds the active session and its actual sends. Manually constructed Agent instances and replaced private preparation functions are outside this support boundary.
+
 ## Development
 
 ```bash
