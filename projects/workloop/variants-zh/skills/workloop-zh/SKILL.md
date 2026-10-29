@@ -2,7 +2,7 @@
 name: workloop-zh
 description: 用户请求 workloop 的目标澄清、设计、规划、执行、独立核验、项目交付、监督、初始化，或继续已有 workloop Task 时使用。
 metadata:
-  version: "0.1.5"
+  version: "0.1.6"
 ---
 
 # workloop

@@ -133,3 +133,11 @@ Preparation self-check counts are per Clarify round. A later round starts a fres
 ### 2026-10-29 Tool-neutral collaboration
 
 The user or project selects the collaboration terminal, for example Tern, Herdr, or tmux. The listed tools are examples, not a built-in preference; use the selected tool's supported interface and instructions, and do not make another tool's specific runtime conditions a collaboration prerequisite. This entry replaces the Herdr recommendation in the coordination section above; role isolation, identity location, normal startup, ordinary assignments, candidate freezing, and final-result delivery requirements remain unchanged.
+
+### 2026-10-29 Executable Plans
+
+A `plan.md` contains only resolved executable contracts. Clarify settles goals, necessary design, important choices, unit results, and acceptance for the current scope; unresolved questions, vague scope, and blocked work stay in Clarify materials, normally a wayfinding map in `design.md`. A recorded question stays in Clarify, and a ready subset leaves the remaining unresolved scope in Clarify.
+
+Wayfinding supplies the Clarify map for large or route-dependent work and runs before investigation, using the existing Clarify materials and the Skill entry. Issue trackers, labels, claims, and decision tickets are outside the workflow. Research, prototypes, interviews, and preparation resolve questions under their own permission. Normal product dependencies may remain between units; an unresolved contract stays in Clarify until it is resolved. Execution that finds an invalidating fact returns the question and options to Clarify materials, and completed candidates and valid evidence stay in place.
+
+This governs Skill operations, materials, preparation checks, and observable acceptance. tk identity and lifecycle, self-check counts, role selection, Ship, Setup, Prompt interfaces, and the project's private Plan rules keep their existing contracts.
