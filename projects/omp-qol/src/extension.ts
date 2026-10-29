@@ -48,7 +48,7 @@ import { installTaskArgsModule } from "./task-args.ts";
 import { installWaitModule } from "./wait.ts";
 
 export const PACKAGE_NAME = "@ruokee/omp-qol";
-export const PACKAGE_VERSION = "0.5.11";
+export const PACKAGE_VERSION = "0.5.12";
 export const COMMAND_NAME = "qol";
 
 let activationSequence = 0;

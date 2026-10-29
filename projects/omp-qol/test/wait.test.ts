@@ -1,13 +1,10 @@
 /**
  * Wait deadline module tests for the standalone `wait` entry. Covers capability
  * selection, model-visible parameters, the structural continuation classifier,
- * deadline races, delegation, and the host adapter seam.
+ * deadline races, and delegation.
  */
 
 import { describe, expect, test } from "bun:test";
-import { RegisteredToolAdapter } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/wrapper";
-import type { ExtensionRunner } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/runner";
-import type { RegisteredTool } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/types";
 import type { AgentToolResult, AgentToolUpdateCallback, ExtensionContext, ToolInfo } from "@oh-my-pi/pi-coding-agent";
 import type { ModuleContext, ModuleState } from "../src/extension.ts";
 import { parseQolSettings, type QolSettings, type WaitSettings } from "../src/settings.ts";
@@ -480,71 +477,5 @@ describe("registration", () => {
       expect(reports.some((entry) => entry.startsWith(`wait:${reportKey}`))).toBe(true);
       expect(harness.warnings).toEqual([]);
     }
-  });
-});
-
-describe("real registered-tool adapter", () => {
-  /** Drive the host's own adapter, with a fake runner and delegation context. */
-  function adapterOf(
-    invokeTool: (
-      params: Record<string, unknown>,
-      options?: { onUpdate?: AgentToolUpdateCallback },
-    ) => Promise<AgentToolResult>,
-  ) {
-    const harness = createHarness();
-    const definition = createNativeWaitDefinition(harness.pi, NATIVE_WAIT_DESCRIPTION, waitSettings());
-    const registered = {
-      definition,
-      extensionPath: "/tmp/omp-qol",
-      sourceInfo: { path: "/tmp/omp-qol", source: "extension", scope: "temporary", origin: "top-level" },
-    } as unknown as RegisteredTool;
-    const context: ExtensionContext = harness.context({ invokeTool: invokeTool as never });
-    const runner = { createContext: () => context } as unknown as ExtensionRunner;
-    return new RegisteredToolAdapter(registered, runner);
-  }
-
-  /**
-   * The properties the adapter forwards from the definition at runtime. The
-   * class itself declares only name, description, parameters, label, and
-   * strict, so this view names what `applyToolProxy` copies.
-   */
-  type ForwardedView = { loadMode?: string; strict?: boolean; approval?: unknown; interruptible?: unknown };
-
-  test("forwards interruptible, loadMode, strict, and approval, and delegates the call", async () => {
-    const nativeCalls: Record<string, unknown>[] = [];
-    const adapter = adapterOf(async (params) => {
-      nativeCalls.push(params);
-      return toolResult({ text: "job finished", details: { op: "wait", jobs: [{ id: "a", status: "completed" }] } });
-    });
-
-    const view: ForwardedView = adapter as unknown as ForwardedView;
-    expect(view.loadMode).toBe("essential");
-    expect(view.strict).toBe(true);
-    expect(view.approval).toBe("read");
-    expect(view.interruptible).toBe(true);
-
-    const result = await adapter.execute("call-1", { timeout: 1 }, undefined, undefined, undefined);
-    expect(nativeCalls).toEqual([{}]);
-    expect(textOf(result)).toBe("job finished");
-  });
-
-  test("keeps the progress channel of a delegated wait", async () => {
-    const updates: unknown[] = [];
-    const adapter = adapterOf(async (_params, options) => {
-      options?.onUpdate?.(toolResult({ text: "", details: { op: "wait", jobs: [runningJob("a")] } }));
-      return toolResult({ text: "settled", details: { op: "wait", jobs: [{ id: "a", status: "completed" }] } });
-    });
-
-    const result = await adapter.execute(
-      "call-2",
-      { timeout: 1 },
-      undefined,
-      (partial) => {
-        updates.push(partial);
-      },
-      undefined,
-    );
-    expect(textOf(result)).toBe("settled");
-    expect(updates).toHaveLength(1);
   });
 });

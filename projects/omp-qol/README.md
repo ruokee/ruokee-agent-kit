@@ -79,7 +79,7 @@ Settings are read once per activation. Restart OMP after a change. A running pro
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.5.11
+@ruokee/omp-qol 0.5.12
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -148,6 +148,10 @@ bun test
 The test suite replaces the host with a small recording host and keeps the package boundaries real: the settings getter from the installed `@oh-my-pi/pi-coding-agent`, the error classifier from the installed `@oh-my-pi/pi-ai`, and `AbortSignal.timeout` and `Map.prototype.set` in both their native and patched form. Each adjustment records the checks its tests cover in [Adjustments](./docs/adjustments.md).
 
 ## Changes
+
+### 0.5.12
+
+Preserve native wait handling when the host detects a message or background completion before the tool starts. The replacement declares `handlesToolInterrupt`, so the native wait can consume the wake instead of being skipped. Total deadlines, cancellation, and the maintenance lower bound remain unchanged.
 
 ### 0.5.11
 

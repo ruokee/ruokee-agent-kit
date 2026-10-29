@@ -35,9 +35,9 @@ export type ToolInvoker = (
 ) => Promise<AgentToolResult>;
 
 /**
- * Definition of the parameterized `wait` entry. The host forwards
- * `interruptible` from a registered definition to the agent tool it adapts,
- * but the baseline `ToolDefinition` does not declare the field.
+ * Definition of the parameterized `wait` entry. The host forwards these
+ * interruption capabilities from a registered definition, but the pinned
+ * baseline `ToolDefinition` does not declare them.
  */
 export interface NativeWaitToolDefinition extends ToolDefinition {
   parameters: ToolInfo["parameters"];
@@ -49,6 +49,7 @@ export interface NativeWaitToolDefinition extends ToolDefinition {
     ctx: ExtensionContext,
   ): Promise<AgentToolResult>;
   interruptible?: boolean;
+  handlesToolInterrupt?: boolean;
 }
 
 /** Native `wait` running snapshots may carry only source metadata beside jobs. */
@@ -226,6 +227,7 @@ export function createNativeWaitDefinition(
     strict: true,
     loadMode: "essential",
     interruptible: true,
+    handlesToolInterrupt: true,
     execute: (toolCallId, params, signal, onUpdate, ctx) =>
       executeNativeWait(toolCallId, params, signal, onUpdate, ctx, wait),
   };

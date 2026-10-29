@@ -79,7 +79,7 @@ omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 `/qol` 打印当前状态，不做任何修改。它不启动模型轮次，也不读取设置 schema 之外的值。
 
 ```
-@ruokee/omp-qol 0.5.11
+@ruokee/omp-qol 0.5.12
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -148,6 +148,10 @@ bun test
 测试套件用一个小型记录宿主替代宿主，同时保留真实的包边界：来自已安装 `@oh-my-pi/pi-coding-agent` 的设置 getter、来自已安装 `@oh-my-pi/pi-ai` 的错误分类器，以及原生与已替换两种状态的 `AbortSignal.timeout` 与 `Map.prototype.set`。各调整项的检查覆盖记录在[调整项](./docs/adjustments.zh.md)。
 
 ## 更新记录
+
+### 0.5.12
+
+保留宿主在工具执行前检测到消息或后台完成通知时的原生等待行为。替换定义声明 `handlesToolInterrupt`，让原生 wait 消费唤醒事件，而不是被调度器跳过。总期限、取消规则和维护下限保持不变。
 
 ### 0.5.11
 
