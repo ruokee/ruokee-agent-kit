@@ -361,6 +361,8 @@ class Coordinator {
   readonly anthropicFetches = new WeakSet<FetchImpl>();
   anthropicPatch?: Patch;
   anthropicFailure?: string;
+  fetchInstalled = false;
+  fetchFailure?: string;
   sequence = 0;
   closed = false;
   retiredConflict = false;
@@ -377,26 +379,32 @@ class Coordinator {
       }
       return result;
     };
-    const originalFetch = globalThis.fetch;
-    const wrappedFetch = function (this: unknown, input: string | URL | Request, init?: RequestInit) {
-      let outgoing = init;
-      try {
-        if (!coordinator.anthropicDelegate.getStore()) outgoing = coordinator.inspect(input, init);
-      } catch {
-        const inherited = coordinator.dispatch.getStore();
-        if (inherited) inherited.state.status.sending = "send-inspection-failed";
-      }
-      // Native exceptions and Promise identity remain outside observer containment.
-      return Reflect.apply(originalFetch, this, [input, outgoing]);
-    } as typeof fetch;
-    // Bun's preconnect property remains available without changing its receiver or descriptor.
-    Object.defineProperties(wrappedFetch, Object.getOwnPropertyDescriptors(originalFetch));
+    this.transport.push(patch(AbortSignal, "any", wrappedAny));
+  }
+
+  /** Startup extensions may still wrap fetch before the first model request. */
+  installFetch(): void {
+    if (this.fetchInstalled || this.fetchFailure || this.closed) return;
     try {
-      this.transport.push(patch(AbortSignal, "any", wrappedAny));
+      const coordinator = this;
+      const originalFetch = globalThis.fetch;
+      const wrappedFetch = function (this: unknown, input: string | URL | Request, init?: RequestInit) {
+        let outgoing = init;
+        try {
+          if (!coordinator.anthropicDelegate.getStore()) outgoing = coordinator.inspect(input, init);
+        } catch {
+          const inherited = coordinator.dispatch.getStore();
+          if (inherited) inherited.state.status.sending = "send-inspection-failed";
+        }
+        // Native exceptions and Promise identity remain outside observer containment.
+        return Reflect.apply(originalFetch, this, [input, outgoing]);
+      } as typeof fetch;
+      // Preserve Bun's preconnect property and the captured transport's descriptors.
+      Object.defineProperties(wrappedFetch, Object.getOwnPropertyDescriptors(originalFetch));
       this.transport.push(patch(globalThis, "fetch", wrappedFetch));
-    } catch (error) {
-      for (let index = this.transport.length - 1; index >= 0; index--) this.transport[index]!.restore();
-      throw error;
+      this.fetchInstalled = true;
+    } catch {
+      this.fetchFailure = "host-interface";
     }
   }
 
@@ -435,6 +443,7 @@ class Coordinator {
   }
   valid(state: State): boolean {
     if (!state.active || this.closed || !state.selection.remote.active) return false;
+    if (this.fetchFailure) return this.unavailable(state, this.fetchFailure);
     if (slots[OLD_QOL] !== undefined) return this.unavailable(state, "mixed-qol-owner");
     if (this.transport.some((installed) => !installed.owned()))
       return this.unavailable(state, "transport-wrapper-lost");
@@ -454,6 +463,7 @@ class Coordinator {
   /** Handoff uses its session seams and the coordinator's single final transport boundary. */
   validSide(state: State): boolean {
     if (!state.active || this.closed || !state.handoff.enabled) return false;
+    if (this.fetchFailure) return this.unavailableSide(state, this.fetchFailure);
     if (slots[OLD_QOL] !== undefined) return this.unavailableSide(state, "mixed-qol-owner");
     if (this.transport.some((installed) => !installed.owned()))
       return this.unavailableSide(state, "transport-wrapper-lost");
@@ -592,6 +602,7 @@ class Coordinator {
         try {
           const root = resolveArgs[0]?.signal;
           if (root instanceof AbortSignal) {
+            if (snapshot) coordinator.installFetch();
             let known = coordinator.roots.get(root);
             if (!coordinator.roots.has(root)) {
               const operation = snapshot ? { ...snapshot, id: coordinator.next(), root, sends: 0 } : null;
@@ -1206,6 +1217,7 @@ class Coordinator {
     const pending = new WeakSet<AbortSignal>();
     state.restores.push(
       session.agent.addBeforeModelCallHook((signal) => {
+        this.installFetch();
         if (signal) pending.add(signal);
       }),
     );

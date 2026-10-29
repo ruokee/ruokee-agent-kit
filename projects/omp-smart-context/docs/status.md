@@ -15,6 +15,8 @@ Run `/smart-context` to read capability state without starting a model turn. Rem
 
 A changed model, tool set, history, branch, or cancellation can invalidate an earlier ordinary request. Fresh ordinary work can restore eligibility for future operations; it does not change a compaction already in progress.
 
+The shared fetch observer is installed when the first ordinary model call or session-bound credential resolution starts. Proxy wrappers loaded earlier during startup remain in the transport chain. If another extension replaces the installed observer, `transport-wrapper-lost` permanently disables alignment for the affected registration; a new prompt does not reclaim the wrapper.
+
 ## Alignment fields
 
 - `mode`: Remote's selected `standard` or `hooks` mode.

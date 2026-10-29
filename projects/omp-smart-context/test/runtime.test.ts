@@ -292,7 +292,7 @@ test("a dispatch without a tool set never supplies a reference", async () => {
   registry.unregister(AGENT);
 });
 
-test("handoff candidates count only physical sends and retain the native body after invalidation", async () => {
+test("startup transport composition preserves handoff sends and permanent invalidation", async () => {
   const originalFetch = globalThis.fetch;
   const wires: unknown[] = [];
   const transport = (async (_input: unknown, init?: RequestInit) => {
@@ -300,9 +300,10 @@ test("handoff candidates count only physical sends and retain the native body af
     return new Response("ok");
   }) as typeof fetch;
   Object.defineProperties(transport, Object.getOwnPropertyDescriptors(originalFetch));
-  globalThis.fetch = transport;
   const { session, hooks, registration, registry } = activate(handoffOnly);
   try {
+    globalThis.fetch = transport;
+    expect(registration.status().handoff.state).toBe("awaiting-reference");
     await ordinaryDispatch(session, hooks, new AbortController().signal);
     const signal = new AbortController().signal;
     const instruction = { role: "user", content: "write a handoff document", attribution: "agent" };
@@ -331,6 +332,14 @@ test("handoff candidates count only physical sends and retain the native body af
     session.agent.state.tools = [TOOL];
     await send();
     expect(wires.at(-1)).toEqual(native);
+    const ownedFetch = globalThis.fetch;
+    globalThis.fetch = transport;
+    expect(registration.status().handoff.online).toBe("transport-wrapper-lost");
+    globalThis.fetch = ownedFetch;
+    await ordinaryDispatch(session, hooks, new AbortController().signal);
+    expect(registration.status().handoff.state).toBe("unavailable");
+    registration.close();
+    expect(globalThis.fetch).toBe(transport);
   } finally {
     registration.close();
     registry.unregister(AGENT);

@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-smart-context",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "OMP context capabilities for request alignment, compaction usage, model prompt rules, and optional Pin",
   "license": "MIT",
   "type": "module",

@@ -2,6 +2,11 @@
 
 [中文](./CHANGELOG.zh.md)
 
+## 0.1.7
+
+- Install the shared fetch observer at the first model request, preserving proxy wrappers loaded during deferred startup. Keep signal ancestry observation active from session registration.
+- Preserve permanent invalidation after an installed transport wrapper is replaced, direct Remote compaction without an ordinary reference, and independent session release.
+
 ## 0.1.6
 
 - Set the maintenance lower bound and locked host development dependencies to OMP `18.13.3`, keeping unrestricted host peers.
