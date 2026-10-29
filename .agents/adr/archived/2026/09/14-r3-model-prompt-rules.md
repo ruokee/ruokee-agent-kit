@@ -26,7 +26,7 @@ The self-contained `@ruokee/omp-qol` owns the rules under [Keep components self-
 
 An invalid boolean disables this module only. Unknown settings, a non-object settings root, or a settings read failure reject all modules under the existing QoL contract. `/qol` shows the module's effective state, boolean, and inactive reason without running a model or exposing rule bodies or model identifiers.
 
-The component declares a direct pi-utils peer; host peers stay unrestricted, and its maintenance lower bound is declared in the compatibility section of the component README, which is the authority for that bound. The component is maintained against OMP 18.5.0 under [Maintain host components against a shared OMP floor](../../../decision/2026/09/28-host-maintenance.md), which owns the bound for every OMP-facing component.
+The component declares a direct pi-utils peer; host peers stay unrestricted, and its maintenance lower bound is declared in the compatibility section of the component README, which is the authority for that bound. The component is maintained against OMP 18.5.0 under [Maintain host components against a shared OMP floor](./28-r3-host-maintenance.md), which owns the bound for every OMP-facing component.
 
 ### Rule application
 

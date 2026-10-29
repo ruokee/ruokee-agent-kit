@@ -4,7 +4,7 @@
 
 What each adjustment changes in OMP, why it is needed, where it attaches, what it costs, and which verification exists. The README carries a short index; this document keeps the evidence.
 
-The development dependency baseline is OMP `18.5.0`, tag `v18.5.0` of [`can1357/oh-my-pi`](https://github.com/can1357/oh-my-pi) at commit [`9348320cc4a30a7195d36a1f05a6c11bcb701a17`](https://github.com/can1357/oh-my-pi/tree/9348320cc4a30a7195d36a1f05a6c11bcb701a17). Each adjustment states the source baseline its mechanism was read against. Links carrying commit `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c` point to OMP `18.2.8`.
+The development dependency baseline is OMP `18.13.3`, tag `v18.13.3` of [`can1357/oh-my-pi`](https://github.com/can1357/oh-my-pi) at commit [`413d278a87a69b453efabf8d1fedb9940385e8c6`](https://github.com/can1357/oh-my-pi/tree/413d278a87a69b453efabf8d1fedb9940385e8c6). Each adjustment retains its historical source and verification versions. Links carrying commit `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c` point to OMP `18.2.8`.
 
 ## How a version note reads
 
@@ -218,64 +218,17 @@ The extension replaces `AbortSignal.timeout` with a wrapper that keeps a referen
 
 ## Replaying native history in a resumed session
 
-### Native behavior
+QoL `0.5.13` retires this adjustment. OMP `18.13.3` initializes Responses replay from the model's `connectionBoundNativeHistory` policy and clears it on `close()` ([provider state](https://github.com/can1357/oh-my-pi/blob/413d278a87a69b453efabf8d1fedb9940385e8c6/packages/ai/src/providers/openai-responses.ts#L466-L496)). Ordinary models replay stored native items on their first resumed request. Connection-bound models start cold, and closed states rebuild generic assistant content. The host keeps its native exceptions for cold-replayable reasoning and user-owned compaction history.
 
-An `openai-responses` provider keeps one state object per session and provider. `OpenAIResponsesProviderSessionState` declares `nativeHistoryReplayWarmed` ([`packages/ai/src/providers/openai-responses.ts:204`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-responses.ts#L204)), its factory creates the state with the flag `false` ([`openai-responses.ts:237`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-responses.ts#L237)), and `close()` clears it back to `false` ([`openai-responses.ts:241`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-responses.ts#L241)). The state lives in the session's provider-state map ([`packages/coding-agent/src/session/agent-session.ts:873`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/session/agent-session.ts#L873), handed to the agent at [`agent-session.ts:1782`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/session/agent-session.ts#L1782)), under the key `` `openai-responses:<provider>` `` ([`openai-responses.ts:168`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-responses.ts#L168), built and written at [`openai-responses.ts:256`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-responses.ts#L256) and [`openai-responses.ts:260`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-responses.ts#L260)).
+QoL leaves those decisions and the session history to OMP. It installs no `Map.prototype.set` wrapper, changes no replay flag, and exposes no replay setting or status line. Remove `replayEnabled` from user and project settings and restart OMP; a leftover key rejects the whole QoL configuration under the existing unknown-key rule.
 
-That flag decides how the stored conversation is serialized. One request reads it once ([`openai-responses.ts:1194`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-responses.ts#L1194)) and passes it into the payload builder as `nativeHistory.replay` and `includeThinkingSignatures` ([`openai-responses.ts:1206`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-responses.ts#L1206)). While it is false, the messages the session carries are rebuilt from their generic content instead of their stored native items: same conversation, different items, and no thinking signatures. It turns true after a response that produced replayable assistant items ([`openai-responses.ts:899`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-responses.ts#L899)), so a process that answered at least one request replays from its second request onwards.
+Controlled HTTP verification on official OMP `18.13.3` loaded QoL `0.5.13` into four SDK sessions restored from files. Eight requests covered ordinary and connection-bound first requests, warming after a successful response, independent sessions, and both model types after `close()`. Final HTTP bodies followed the native policy; closing one session left its neighbor unchanged, and original session entries stayed intact. The local endpoint supplies transport evidence, not a provider cache measurement.
 
-The state is per process and never restored. A resumed session therefore reads `false` for every provider, while the process that wrote the session ended with `true` and sent the native items in its last request. Both forms describe the same conversation from the first rebuilt item onwards, so a prompt cache over the previous process's final prompt cannot serve the first request of the resumed one. A session that carries no stored items yet, which is a new session, has nothing to replay and is not affected either way.
+### Historical evidence
 
-### Why it is needed
+The retired wrapper was based on OMP `18.2.8`, whose initial replay flag was always false. A paired real-model run on OMP `18.2.4` reported `17,920` cached and `2,971` uncached input tokens after rebuilding, compared with `19,968` cached and `1,002` uncached after replay. The replayed request retained the previous request's first four items byte for byte, including reasoning. With fewer than about `500` replayable tokens, both arms reported `17,920` cached tokens. These are measurements of the retired implementation on that host, not gains attributed to the native `18.13.3` policy.
 
-The guard is deliberate. It arrived with [`8013be90c9`](https://github.com/can1357/oh-my-pi/commit/8013be90c9) (2026-03-21, "guard resumed OpenAI Responses replay (fixes #488)") so that a resumed session does not replay native items this process never produced. Its cost is the resume itself: the first request of a resumed process is rebuilt even when the previous process's items are exactly what the endpoint expects, and everything the provider had cached beyond the static prefix is written again.
-
-The measured cost of one resume, on a paired run of the same session with and without this adjustment (`omp 18.2.4`, a real model): the rebuilt first request reported `17,920` cached and `2,971` uncached input tokens, the replayed one `19,968` cached and `1,002` uncached. The wire form explains the difference: the replayed request began with the four items of the previous process's last request byte for byte, reasoning item included, while the rebuilt request dropped that item. The session's own next request is warm in both cases.
-
-### Where it attaches
-
-The extension replaces `Map.prototype.set` with a wrapper that keeps a reference to the native function, which is how the host stores the state the flag belongs to.
-
-- The wrapper recognizes the host's own write by two things together: a string key that starts with `openai-responses:` and a value whose `nativeHistoryReplayWarmed` is exactly `false`. It sets that field to `true` on the value it was handed and then calls the native function with the same arguments, so the host's call returns the map it expects.
-- Every other call is forwarded unchanged: keys of other providers (`openai-codex-responses:`, `anthropic-messages:`, `openai-completions:`), keys that are not strings, values that are not objects, and values whose flag is missing, `true`, or not a boolean.
-- The wrapper runs for the whole process, and the store it wraps is the one the session owns. Activation reads settings on `session_start`, which precedes the first provider state creation in the same session; the wrapper's rewrite count is what shows that the host still drives it.
-- Installation is process-wide through a registry held in a global symbol, which records the activation, the package version, the activation cwd, and the number of state writes rewritten.
-- One wrapper serves the process, and its effect does not depend on the session that created a state. A second activation with the module enabled therefore keeps the wrapper and reports the module as `enabled` with the current count instead of owning a second copy; a second activation whose own switch is off, or whose master switch is off, releases the wrapper and reports `disabled`. A release puts the replaced function back only while the installed one is still this module's wrapper.
-- An activation whose settings could not be read, or were rejected, installs nothing and enables nothing, and it stops a recognised wrapper another activation installed under the reason `runtime-conflict`, the way the compaction experiment stops its patch.
-- The module refuses, with a reason reported through the log and `/qol`, when the registry slot holds a layout this version cannot read (`registry-unrecognized`), when another extension replaced the function under it (`patch-overwritten`), and when the runtime did not take the wrapper at all (`install-failed`). A refused install publishes no registry and leaves the function as it found it.
-- The wrapper holds no window, no lease, and no event subscription. It stays installed after the activation that installed it ends, which is what lets a resumed session in a later activation of the same process start on native replay.
-- `/qol` resolves the replay line from the process registry when the command runs and prints the rewrite count, so a wrapper that stops after a session started is reported in every session of the process.
-
-### Settings
-
-`replayEnabled` (on by default); see the README for the default and the accepted values.
-
-### Side effects
-
-- The wrapper is on the path of every `Map` write in the process. It compares a string key against a prefix and reads one field, and forwards everything else; a local benchmark of `2,000,000` string-keyed writes per round, five rounds, measured a median of `150.2` ms native against `154.1` ms wrapped, about 2 ns per call.
-- The value the host handed in is the value that changes, so the host's own state object carries the flag; no copy is made and nothing is written to the session file.
-- What the adjustment assumes: that the native items the previous process stored for this session are replayable by the endpoint that answers the resumed request. That is the assumption the previous process itself ended on, and the guard holds it back from a later process rather than proving it wrong. A session that carries items the endpoint rejects would fail its first request with the flag true, where the native path rebuilds and proceeds. The alternating runs of the paired measurement replayed and rebuilt the same history without a provider error.
-- The first request after a resume is the affected one. Within a process, the second request is replayed either way, and a session with no stored items is unaffected.
-
-### Cancellation
-
-- Cancellation of the adjustment: set `replayEnabled` to `false` and restart OMP, or restart without the extension. The wrapper is not written to disk, and nothing survives the process.
-
-### Limits
-
-- The adjustment covers `openai-responses` provider states only. `openai-codex-responses` keeps its own state key and its own rules ([`packages/ai/src/providers/openai-codex-responses.ts:1067`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-codex-responses.ts#L1067)); Anthropic and completions states are untouched.
-- It depends on three host details: the `openai-responses:` key prefix, the `nativeHistoryReplayWarmed` field, and the state being stored through `Map.prototype.set` on the map the session hands to the provider. A host that renames the key or the field, or that builds the state without a `Map` write, makes the wrapper inert without failing; the rewrite count in `/qol` is the signal. A host upgrade requires re-checking those contracts.
-- The flag is deployment scope in the host's own sense: the account-scoped reset deliberately preserves it ([`openai-responses.ts:312`](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/providers/openai-responses.ts#L312) and the comment above it). The adjustment makes a resumed process use the same decision its own process would have made had it stayed alive.
-- It sets one flag and nothing else. It does not build, filter, or sanitize items; whatever the host replays for a warmed state is what goes out.
-- The gain follows the size of the replayed region. A turn whose replayable items stayed under about `500` tokens resumed with `17,920` cached tokens in both arms, so a short session can show no measurable difference even though the request form still differs.
-- Not verified: the official OpenAI endpoint with `store` and `previous_response_id` chaining, `openai-codex-responses`, a session resumed after `/clear`, an interactive takeover, and a post-compaction rebuild. A state the host rebuilds without a map write is not covered by the wrapper.
-
-### Verification
-
-- **Source baseline**: OMP `18.2.8` at `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`. Sources listed above.
-- **Automated checks**: OMP `18.5.0`, `bun test` and `tsc --noEmit`, with the prototype accessors injected and a recording function standing in for the process's own `set`. They cover the rewrite (a matching key and an unwarmed value, the value that changes, the forwarded call, the count) and the forwarding matrix (other provider prefixes, a number key, a symbol key, values that are not objects, a value whose flag is missing or true), one wrapper per process (a second activation keeps it and reports `enabled` with the count, and writes no second wrapper), the releases (this module's switch off, the master switch off, invalid settings, and the master switch during activation), a stopped wrapper staying callable and inert, `stopForeignNativeReplayPatch` restoring the replaced function and reporting `runtime-conflict` only for another activation, the refusals (`registry-unrecognized`, `patch-overwritten` leaving a foreign function in place, `install-failed` publishing no registry), the `/qol` line for an installed wrapper, a released one, an overwritten one, and a registry this version cannot read, plus the activation path that installs the wrapper for a default settings object and stops it when the settings getter fails.
-- **Real OMP CLI**: OMP `18.5.1` with a real model; `/qol` reported `replay: enabled (rewrites=0)` in new sessions. No session was resumed on `18.5.x`, so the replay rewrite and its cache effect are **not verified** on a supported host. The measurement under "Why it is needed" comes from OMP `18.2.4`.
-- **Upstream history**: the flag and its guard arrived together with `8013be90c9` (2026-03-21). No later commit changing the flag or its read has been located.
+The old automated checks used OMP `18.5.0`. A real OMP `18.5.1` CLI run observed `replay: enabled (rewrites=0)` only in new sessions; it did not measure resumed-session cache use. The retired wrapper did not validate official OpenAI storage and response chaining, Codex Responses, resume after `/clear`, interactive takeover, or post-compaction rebuilding.
 
 ## Task argument cleanup
 
@@ -283,7 +236,7 @@ The extension replaces `Map.prototype.set` with a wrapper that keeps a reference
 
 OMP 18.11.3 exposes `sourceSession` and `model` on every `task` item when the session advertises the `seance` agent. [`validateSeanceFields`](https://github.com/can1357/oh-my-pi/blob/v18.11.3/packages/coding-agent/src/task/seance.ts) rejects any present value when the resolved agent is not `seance`, because it compares against `undefined` rather than checking for a meaningful value. A model that treats optional fields as inputs can send `""`, `/dev/null`, or a model name and fail the whole call before dispatch. The host validates the batch before dispatch; with speculative task launch active, subagents already started from closed items are discarded.
 
-OMP 18.5.0, the component's maintenance floor, has a different task schema: `model` is an ordinary optional selector and `sourceSession` is absent. Deleting `model` on that schema would remove a valid choice, so the module keys on `sourceSession` and stays unavailable when it is absent.
+The task schema depends on whether `seance` is available. Without `sourceSession`, `model` is an ordinary selector and must remain intact. OMP `18.5.0` supplied that shape; the capability check remains relevant on `18.13.3` and is not a version gate.
 
 ### Where it attaches
 
@@ -291,7 +244,7 @@ The module registers a `tool_call` handler for the built-in `task` tool and retu
 
 OMP denies speculative task launch and experimental read speculation when an extension registers a `tool_call` handler. The module therefore makes `task.speculativeLaunch` ineffective while enabled, including for calls without the two fields. It does not change the host setting, and turning the module off restores the native behavior at the next activation.
 
-Before installing the handler, the module reads the built-in task schema. It registers nothing when the schema does not expose `sourceSession`; this is the 18.5.0 shape.
+Before installing the handler, the module reads the built-in task schema. It registers nothing when the schema does not expose `sourceSession`.
 
 ### Settings
 

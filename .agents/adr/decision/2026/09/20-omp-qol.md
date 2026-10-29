@@ -2,7 +2,7 @@
 
 Decision owner: Ruokee
 Decision writer: OMP
-Reverses: [OMP QoL](../../../archived/2026/09/20-r10-omp-qol.md)
+Reverses: [OMP QoL](../../../archived/2026/09/20-r11-omp-qol.md)
 
 English | [中文](./20-omp-qol.zh.md)
 
@@ -12,9 +12,9 @@ Maintain `@ruokee/omp-qol` with its independently switchable behavior adjustment
 
 QoL owns independently switchable adjustments to OMP behavior; the [complete specification set](../../../../spec/README.md#omp-qol) owns the capability inventory. Request alignment, compaction usage, and model prompt rules belong to smart-context.
 
-The original four adjustments are: a `wait` that keeps waiting to a total deadline, a bounded continuation after an eligible model error, an opt-in extension of the remote compaction deadline, and a process-wide wrapper that keeps a resumed process's first request in the provider's native history form. A native `wait` returns when its window ends while the background work it watches is still running, so the model must ask again and each such return costs a turn. A turn that ends with an upstream error stays settled even when the error is transient, because the native retry budget was exhausted or the error fell outside it. A remote compaction request is cut off at a fixed request deadline, and the compaction falls back instead of finishing. A resumed process otherwise re-encodes the history it replays, and the wrapper keeps that first request in the native replay form. Each adjustment selects the implementation a given host needs.
+A native `wait` can return while watched background work is still running, making the model ask again. A turn can end after an upstream error exhausts or falls outside native retries. A remote compaction can hit its fixed request deadline and fall back. QoL retains independently controlled adjustments for those cases, along with task-argument cleanup and reply copying.
 
-The wait module used to serve two builtin entries: the `hub` tool and the standalone `wait` tool. Under [maintaining host components against a shared OMP floor](../../../archived/2026/09/28-r2-host-maintenance.md), the OMP-facing components share the maintenance lower bound OMP 18.5.0, so no maintained host still offers `hub`, and the `hub` path is removed.
+The wait module serves the standalone `wait` entry. The earlier shared-floor transition removed the `hub` path; raising the [common floor to 18.13.3](./28-host-maintenance.md) does not restore it. Responses history replay follows the host's model-specific policy instead of a process-wide QoL override.
 
 ## Analysis
 
@@ -24,13 +24,15 @@ A process-wide compaction patch adds a question about ownership: what happens wh
 
 The recovery case also covers failures the marks miss. A transport interruption that ends a turn while a tool call is still streaming is recorded by the host as `stopDetails.type: "stream_interrupted_after_content"` instead of a classified error, and one observed relay response ended a turn with `1012: websocket closed before terminal event (code 1012)`, which the installed `@oh-my-pi/pi-ai` classified as `0`. The host's own salvage branches for a stream that closed early, stalled, or reset all require a retriable id, so that error stays outside them as well.
 
+OMP 18.13.3 starts ordinary Responses models with native replay enabled and connection-bound models cold. A completed response can warm the state; `close()` makes it cold again. The old global override cannot distinguish a model's intentional cold state from an old host's blanket cold default. Keeping it would force history replay where the host deliberately rebuilds.
+
 This decision defines the first-party `omp-qol` component, the responsibility split it keeps with the host, and the limits its users accept by enabling each adjustment.
 
 ## Decision
 
 One package, `@ruokee/omp-qol`, carries independently switchable modules under the [first-party capability boundary](../08/20-first-party-capabilities.md) and the [self-contained component contract](../08/24-component-self-containment.md): one installation, one configuration entry, and one set of checks, while each module keeps its own switch, availability status, and failure reporting. Configuration stays in OMP plugin settings, with OMP owning values, project overrides, and parsing.
 
-Continuing waits, conservative error recovery, and native history replay are on by default; the compaction deadline experiment is opt-in. Task-parameter cleanup and copying the last reply retain their own contracts. A fault in one module does not disable the others. Installation and migration remain with the user.
+Continuing waits and conservative error recovery are on by default; the compaction deadline experiment is opt-in. Task-parameter cleanup and copying the last reply retain their own contracts. A fault in one module does not disable the others. Installation and migration remain with the user.
 
 The compaction deadline is a default-off experiment with a bounded, process-wide timeout adjustment. Enabling it accepts its boundary: matching timeout calls from unrelated work in the same process are lengthened as well, so it provides neither request isolation nor strict project isolation. The component README compatibility section owns the maintenance-floor declaration, with no upper bound, under the [shared OMP floor](./28-host-maintenance.md). [Smart-context](../10/12-smart-cache.md) owns the migrated context capabilities.
 
@@ -38,7 +40,7 @@ The [component specification set](../../../../spec/README.md#omp-qol) states the
 
 Each adjustment needs its own real-session evidence. Validation of the compaction experiment requires a remote compaction longer than the native deadline to complete with usable model requests afterwards. On host upgrades, re-read the cited source and update the affected documentation; changing the declared maintenance bound does not replace those steps.
 
-Preserve wait delegation and total deadlines; recovery exclusions and continuation bounds; the deadline module's process-wide matching, single-owner windows, matching-activation reuse, and terminal `owner-stopped`; and replay's independent ownership and conditional restoration. Alignment's renewable coordinator never applies to the deadline owner. Replay remains in QoL despite its cache-related behavior.
+Preserve wait delegation and total deadlines; recovery exclusions and continuation bounds; and the deadline module's process-wide matching, single-owner windows, matching-activation reuse, and terminal `owner-stopped`. Alignment's renewable coordinator never applies to the deadline owner.
 
 Preserve the master switch and every unrelated setting, default, range, validation rule, status, failure boundary, and privacy obligation. Native settings remain authoritative. Acceptance for unchanged QoL features retains its own evidence requirements; smart-context's controlled integration gate does not weaken them.
 
@@ -46,12 +48,15 @@ The [usage](../10/13-compaction-usage.md) and [model-rule](./14-model-prompt-rul
 
 Users clear `compactionUsageEnabled` and `modelPromptsEnabled` from both user and project QoL settings, preserving all other values. Resolve each scope's former effective master and module switches, then carry `enabled && moduleEnabled` into smart-context. Removed keys retain unknown-key rejection and can reject all QoL configuration. Update extension entries and settings before restarting; do not migrate real user configuration automatically. This replaces only the archived ownership and settings-preservation obligations for the migrated capabilities.
 
+Retire QoL's native-history replay adjustment. OMP owns replay selection, warming, closing, and reconstruction; QoL neither wraps process-wide map writes nor changes provider replay state. Ordinary models keep native first-request replay, while connection-bound models and closed states follow the host's cold behavior. No replay setting or status line remains. Users remove `replayEnabled` from both user and project settings and restart OMP. A leftover rejects all QoL configuration under the existing unknown-key rule; the component does not edit user configuration. This retirement does not alter the wait, recovery, compaction, task-argument, or copy contracts.
+
 ## Alternatives considered
 
 - **Separate extension packages per adjustment.** Independent releases and independent failures are the gain; configuration, compatibility, migration, and checks spread across one installation per adjustment are the cost, and the adjustments share one host baseline. One package keeps those entry points together.
 - **Replacement of the native compaction flow.** It gives direct control over the request options, but transfers the compaction protocol, history replacement, retry, and fallback paths to this component, including the paths that produce the summaries the session depends on.
 - **Deferral of the compaction adjustment until OMP exposes a request-level interface.** It avoids process-wide effects and keeps maintenance small, but leaves the fixed deadline in place; this decision instead keeps the bounded global mechanism as an explicit, disabled experiment and compares a native interface against it when a host provides one.
 - **Let the next matching activation install a patch after the owner exits.** The process would regain the adjustment without a restart, and the new patch would be owned by an activation that is still alive. It would also make whether the process currently has the adjustment depend on whether another activation shows up later, and the status would have no settled state to report after the owner exits.
+- **Keep forced replay on the new baseline.** This could preserve a connection-bound endpoint's old cache behavior when it accepts the items, but it overrides the host's deliberate reconstruction policy across every session in the process. The component instead accepts that support loss and leaves replay to the host.
 
 ## Consequences
 
@@ -67,6 +72,8 @@ Users clear `compactionUsageEnabled` and `modelPromptsEnabled` from both user an
 - The effective settings snapshot is the only gate between an installed patch and a session that did not install it. A field added to the effective configuration without being added to that comparison widens reuse silently, and a session can be kept under a configuration it never chose.
 - After the installing activation exits, the process extends no compaction deadline until it restarts, and the status keeps reporting the released patch. That is the chosen terminal state: releasing the patch without letting a later activation install one costs the adjustment for the rest of that process's life.
 - On a host that still offers the builtin `hub` tool, which is below the maintenance lower bound, the total-deadline wait no longer applies. The module finds no standalone `wait` entry there and leaves native behavior in place with its bounded reason.
+- A connection-bound model can rebuild the first request after restoration and lose cache reuse over the rebuilt region. QoL no longer forces those native items onto the wire. Ordinary models retain the host's first-request replay; neither path promises provider cache hits.
+- A retained `replayEnabled` key rejects all QoL settings until the user removes it. The explicit migration avoids silently accepting a setting that controls nothing.
 
 ## Changes
 

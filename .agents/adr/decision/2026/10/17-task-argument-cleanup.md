@@ -22,7 +22,7 @@ When advertised, the task schema expands the two optional fields on every item. 
 
 The schema's normal validation removes `null` and the string `"null"` from optional fields. A lenient fallback after a schema failure can preserve raw arguments, so a cleanup rule that ignores values covers both paths.
 
-The field set is also a compatibility marker. OMP 18.5.0, the maintenance floor, has `model` as an ordinary optional selector and no `sourceSession`; OMP 18.11.3 adds both through `seanceTaskSchemaFields`. A module that deleted `model` whenever it saw it would remove a valid selector on the floor. The module therefore probes the built-in schema for `sourceSession` and applies the cleanup only when it is present.
+The field set identifies the schema contract. OMP 18.5.0 had `model` as an ordinary optional selector and no `sourceSession`; OMP 18.11.3 added both through `seanceTaskSchemaFields`. Deleting `model` whenever it appears would remove a valid selector from a schema without seance fields. The module therefore probes the built-in schema for `sourceSession` and applies the cleanup only when it is present.
 
 ### Speculative execution
 
@@ -34,7 +34,7 @@ OMP denies both forms when an extension registers a `tool_call`, `tool_result`, 
 
 ### Fit with the component
 
-`@ruokee/omp-qol` carries independently switchable adjustments under one package, one settings entry, and one check surface. The [OMP QoL decision](../09/20-omp-qol.md) owns that boundary. The [component specification set](../../../../spec/README.md#omp-qol) contains complete required behavior and acceptance. The [component README](../../../../../projects/omp-qol/README.md) provides an independent user reference; component design and validation materials hold mechanics and per-adjustment evidence. The wait module establishes the pattern for declining to act when the session does not expose the expected built-in tool. The component's maintenance floor is OMP 18.5.0, which exposes the `tool_call` input replacement contract used here. On a host that does not expose the seance fields, the module stays unavailable and registers no handler.
+`@ruokee/omp-qol` carries independently switchable adjustments under one package, one settings entry, and one check surface. The [OMP QoL decision](../09/20-omp-qol.md) owns that boundary. The [component specification set](../../../../spec/README.md#omp-qol) contains complete required behavior and acceptance. The [component README](../../../../../projects/omp-qol/README.md) provides an independent user reference; component design and validation materials hold mechanics and per-adjustment evidence. The wait module establishes the pattern for declining to act when the session does not expose the expected built-in tool. The component's maintenance floor is OMP 18.13.3, which exposes the `tool_call` input replacement contract used here. In a session that does not expose the seance fields, the module stays unavailable and registers no handler.
 
 ## Decision
 

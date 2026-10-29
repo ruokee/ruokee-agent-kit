@@ -38,7 +38,7 @@ Component documentation explains settings, commands, applicability, side effects
 
 ### Host maintenance
 
-Apply the [shared OMP maintenance floor](../09/28-host-maintenance.md), currently `18.5.0`. The component README pair owns its declaration, with no upper bound or version whitelist. Lock host development dependencies to the shared floor. Keep host peers unrestricted and add no installation or activation version gate. Only the shared maintenance decision changes the floor for OMP-facing components.
+Apply the [shared OMP maintenance floor](../09/28-host-maintenance.md), currently `18.13.3`. The component README pair owns its declaration, with no upper bound or version whitelist. Lock host development dependencies to the shared floor. Keep host peers unrestricted and add no installation or activation version gate. Only the shared maintenance decision changes the floor for OMP-facing components.
 
 ### Acceptance
 

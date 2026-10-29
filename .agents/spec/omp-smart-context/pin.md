@@ -102,7 +102,7 @@ Unknown, damaged, or invalid records make the affected active range unavailable.
 
 ### Persistence
 
-The host owns session-file creation and flushing. Appending a record is not confirmation of disk persistence. On the maintained 18.5.0 host, writing occurs when explicitly requested, when the file already exists, or after an assistant reply exists; a newly unsaved session can lose pins on exit. A journal the host saves supports cross-process replay; an in-memory-only journal does not. State this risk in the dialog and tool description. Never force a save or claim one without host confirmation.
+The host owns session-file creation and flushing. Appending a record is not confirmation of disk persistence. On the maintained 18.13.3 host, writing occurs when explicitly requested, when the file already exists, or after an assistant reply exists; a newly unsaved session can lose pins on exit. A journal the host saves supports cross-process replay; an in-memory-only journal does not. State this risk in the dialog and tool description. Never force a save or claim one without host confirmation.
 
 ## Acceptance criteria
 

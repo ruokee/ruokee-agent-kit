@@ -15,7 +15,7 @@
  */
 
 /** The modules this package can switch on and off. */
-export const MODULE_IDS = ["wait", "recovery", "compaction", "replay", "taskArgs", "copy"] as const;
+export const MODULE_IDS = ["wait", "recovery", "compaction", "taskArgs", "copy"] as const;
 export type ModuleId = (typeof MODULE_IDS)[number];
 
 /** Recovery eligibility modes. */
@@ -48,7 +48,6 @@ export const SETTINGS_DEFAULTS = {
   compactionTimeoutFloorMs: 300_000,
   compactionWindowGuardMs: 3_600_000,
   compactionTimeoutNotify: true,
-  replayEnabled: true,
   taskArgsEnabled: true,
   copyEnabled: true,
 } as const;
@@ -79,11 +78,6 @@ export interface CompactionSettings {
   notify: boolean;
 }
 
-/** Settings of the native-history replay module. */
-export interface ReplaySettings {
-  enabled: boolean;
-}
-
 /** One validated activation snapshot; modules read their own slice. */
 export interface QolSettings {
   /** Master switch: false keeps every module on native behavior. */
@@ -91,7 +85,6 @@ export interface QolSettings {
   wait: WaitSettings;
   recovery: RecoverySettings;
   compaction: CompactionSettings;
-  replay: ReplaySettings;
   taskArgs: { enabled: boolean };
   copy: { enabled: boolean };
 }
@@ -269,7 +262,6 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     "compaction",
     SETTINGS_DEFAULTS.compactionTimeoutNotify,
   );
-  const replayEnabled = readBoolean(raw, "replayEnabled", "replay", SETTINGS_DEFAULTS.replayEnabled);
   const taskArgsEnabled = readBoolean(raw, "taskArgsEnabled", "taskArgs", SETTINGS_DEFAULTS.taskArgsEnabled);
   const copyEnabled = readBoolean(raw, "copyEnabled", "copy", SETTINGS_DEFAULTS.copyEnabled);
 
@@ -288,7 +280,6 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
     timeoutMs,
     guardMs,
     compactionNotify,
-    replayEnabled,
     taskArgsEnabled,
     copyEnabled,
   ];
@@ -324,9 +315,6 @@ export function parseQolSettings(raw: unknown): SettingsParseResult {
         floorMs: floorMs.ok ? floorMs.value : SETTINGS_DEFAULTS.compactionTimeoutFloorMs,
         guardMs: guardMs.ok ? guardMs.value : SETTINGS_DEFAULTS.compactionWindowGuardMs,
         notify: compactionNotify.ok ? compactionNotify.value : SETTINGS_DEFAULTS.compactionTimeoutNotify,
-      },
-      replay: {
-        enabled: replayEnabled.ok ? replayEnabled.value : SETTINGS_DEFAULTS.replayEnabled,
       },
       taskArgs: {
         enabled: taskArgsEnabled.ok ? taskArgsEnabled.value : SETTINGS_DEFAULTS.taskArgsEnabled,

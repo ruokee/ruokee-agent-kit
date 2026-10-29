@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP
 Reverses: [OMP QoL](../../../archived/2026/09/20-r9-omp-qol.md)
 Archived: 2026-10-23
-Reversed by: [OMP QoL](../../../decision/2026/09/20-omp-qol.md)
+Reversed by: [OMP QoL](./20-r11-omp-qol.md)
 
 English | [中文](./20-r10-omp-qol.zh.md)
 

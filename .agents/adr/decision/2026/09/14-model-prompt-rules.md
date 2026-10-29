@@ -24,7 +24,7 @@ The self-contained `@ruokee/omp-smart-context` owns the rules under the [compone
 
 An invalid boolean disables this module only. Unknown settings, a non-object settings root, or a settings-reader failure reject the package configuration. `/smart-context` shows the module's effective state and inactive reason without running a model or exposing rule bodies or model identifiers.
 
-The component declares a direct pi-utils peer; host peers stay unrestricted, and its maintenance lower bound is declared in the compatibility section of the component README, which is the authority for that bound. The component is maintained against OMP 18.5.0 under [Maintain host components against a shared OMP floor](./28-host-maintenance.md), which owns the bound for every OMP-facing component.
+The component declares a direct pi-utils peer; host peers stay unrestricted, and its maintenance lower bound is declared in the compatibility section of the component README, which is the authority for that bound. The component is maintained against OMP 18.13.3 under [Maintain host components against a shared OMP floor](./28-host-maintenance.md), which owns the bound for every OMP-facing component.
 
 ### Rule application
 

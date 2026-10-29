@@ -78,7 +78,7 @@ OMP owns history, compaction scheduling, preparation, adoption, and continuation
 
 ## Host lower bound
 
-The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound. This is a maintenance commitment, not an installation gate or runtime allowlist, and does not certify all later versions. Host dependencies are unrestricted peers. A missing capability interface disables only the affected capability.
+The minimum maintained OMP version is `18.13.3`, with no upper maintenance bound. This is a maintenance commitment, not an installation gate or runtime allowlist, and does not certify all later versions. Host dependencies are unrestricted peers. A missing capability interface disables only the affected capability.
 
 ## Acceptance criteria
 

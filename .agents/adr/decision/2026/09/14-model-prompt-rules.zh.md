@@ -24,7 +24,7 @@ Reverses: [模型提示词规则](../../../archived/2026/09/14-r3-model-prompt-r
 
 无效 boolean 只停用本模块。未知设置、非对象设置根或设置读取失败拒绝整个包配置。`/smart-context` 显示模块有效状态和停用原因，不运行模型，不暴露规则正文或模型标识。
 
-组件声明直接的 pi-utils peer；宿主 peer 不设限，其维护下限在组件 README 的兼容性小节声明，该小节是这一下限的权威说明。组件在[宿主内组件按共同的 OMP 下限维护](./28-host-maintenance.zh.md)之下按 OMP 18.5.0 维护，该决定持有所有面向 OMP 组件的下限。
+组件声明直接的 pi-utils peer；宿主 peer 不设限，其维护下限在组件 README 的兼容性小节声明，该小节是这一下限的权威说明。组件在[宿主内组件按共同的 OMP 下限维护](./28-host-maintenance.zh.md)之下按 OMP 18.13.3 维护，该决定持有所有面向 OMP 组件的下限。
 
 ### 规则应用
 

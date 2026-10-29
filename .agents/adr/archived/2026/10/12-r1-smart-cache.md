@@ -40,7 +40,7 @@ Component documentation owns the detailed settings and command reference, applic
 
 ### Host maintenance floor
 
-Apply the [shared OMP maintenance floor](../../../decision/2026/09/28-host-maintenance.md), currently `18.5.0`. The component README pair owns its declaration, with no upper bound or version whitelist. Lock host development dependencies to the shared floor; do not narrow host peers or add an installation or activation version gate. The floor moves only through that shared decision, which governs every OMP-facing component.
+Apply the [shared OMP maintenance floor](../09/28-r3-host-maintenance.md), currently `18.5.0`. The component README pair owns its declaration, with no upper bound or version whitelist. Lock host development dependencies to the shared floor; do not narrow host peers or add an installation or activation version gate. The floor moves only through that shared decision, which governs every OMP-facing component.
 
 ### Decision reversal
 

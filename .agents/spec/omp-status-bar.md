@@ -148,7 +148,7 @@ Context timers use the host-managed lifecycle. Shutdown clears them and rejects 
 
 ## Host lower bound
 
-The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound. This is a maintenance commitment, not an installation or runtime gate, and does not certify every later version. An earlier host may run without becoming maintained. Do not retain behavior solely to support earlier hosts. Host dependency declarations do not impose an upper maintenance range.
+The minimum maintained OMP version is `18.13.3`, with no upper maintenance bound. This is a maintenance commitment, not an installation or runtime gate, and does not certify every later version. An earlier host may run without becoming maintained. Do not retain behavior solely to support earlier hosts. Host dependency declarations do not impose an upper maintenance range.
 
 ## Acceptance criteria
 

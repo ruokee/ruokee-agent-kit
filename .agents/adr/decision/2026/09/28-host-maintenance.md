@@ -2,33 +2,27 @@
 
 Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
-Reverses: [Host maintenance](../../../archived/2026/09/28-r2-host-maintenance.md)
+Reverses: [Host maintenance](../../../archived/2026/09/28-r3-host-maintenance.md)
 
 English | [中文](./28-host-maintenance.zh.md)
 
 ## Motivation
 
-Maintain every OMP-facing component against one shared maintenance lower bound, OMP 18.5.0, and keep the rules first-party host components follow across host upgrades.
+Maintain every OMP-facing component against one shared maintenance lower bound, OMP 18.13.3, and preserve the common host-adaptation rules.
 
 First-party components load code into a host process and must keep working as that host upgrades. Maintenance responsibility, implementation selection, and verification evidence need distinct meanings rather than a single version range, so these components follow common rules: a component declares its maintenance lower bound in its own documentation, its host peer declarations keep naming the host packages without carrying that bound, an update preserves the results a maintained older host had, verification follows the actual behavioral change, and a bound is raised only through a decision. The rules require no common implementation.
 
-The OMP-facing components are `omp-qol`, `omp-smart-context`, and `omp-status-bar`. Raising bounds one component at a time, and only when a component could no longer serve both hosts, left the maintained host code on bounds between 18.1.8 and 18.2.8 while development and real-host checks had moved to 18.4.x and 18.5.x. Each component kept code for the hosts at the bottom of that range, and two features had stopped working on current hosts: the default-block route of `omp-system-prompt` and the speculation band indicator of `omp-status-bar`. The OMP-facing components trade support for those older hosts for a smaller maintained surface and one baseline they are developed and verified against.
+The OMP-facing components are `omp-qol`, `omp-smart-context`, and `omp-status-bar`. They move together from 18.5.0 to the official 18.13.3 release. That baseline supports native CLI/SDK request alignment across delayed loading and restoration, native interrupt handling for wait, and model-specific Responses replay. Maintaining a second older host baseline would retain compatibility work that these components no longer need for their selected target.
 
-The [predecessor](../../../archived/2026/09/28-r2-host-maintenance.md#bound-changes) required a formal proposal for each bound raise. Under the [ADR mechanism](../08/22-adr-mechanism.md), tasks hold the evidence and approval while the adopted decision preserves the public contract. This changes the record location, not the conditions for a raise or the evidence about lost support.
+The old source remains available through `compat/omp-18.12.3`. It preserves a repository snapshot, not a long-lived maintenance branch or a backup of host binaries, configuration, or sessions. Its name does not certify that every component was fully exercised on 18.12.3.
 
 ## Analysis
 
 Peer ranges participate in dependency resolution; they are not just maintenance notes. For example, npm installs peer dependencies by default, and unresolved conflicts can cause installation to fail ([npm package.json documentation](https://github.com/npm/cli/blob/latest/docs/lib/content/configuring-npm/package-json.md)). Putting a maintenance lower bound in a peer range can prevent installation on a host that could run the component. The actual result depends on the installation path; npm's behavior is not an observed result for every host.
 
-The choice of 18.5.0 rests on the published OMP sources at the release tags named below:
+OMP 18.13.3 distinguishes ordinary and connection-bound Responses models when initializing [native replay state](https://github.com/can1357/oh-my-pi/blob/v18.13.3/packages/ai/src/providers/openai-responses.ts#L466-L496). A process-wide override of every cold state would also override intentional rebuilding. [QoL's successor](./20-omp-qol.md) separately adopts the native policy and its support loss; raising the common bound alone does not authorize removing a capability.
 
-- The [18.5.0 system prompt](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/prompts/system/system-prompt.md) opens with `RFC 2119 keywords:` and contains the identity line `You are omp's trusted coding assistant.` under `§ Role`. That identity line first appears in 18.3.0. The identity lines the `omp-system-prompt` default-block route recognized come from earlier releases.
-- The 18.5.0 [`Settings`](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/config/settings.ts) class has no `getGroup` method. The method exists through 18.3.x and is gone from 18.4.0, and the status bar has no other public way to read the host's compaction settings.
-- The builtin [`hub` tool](https://github.com/can1357/oh-my-pi/tree/v18.2.11/packages/coding-agent/src/tools/hub) is present at the 18.1.20 and 18.2.11 tags and absent from 18.3.0, where the standalone [`wait` tool](https://github.com/can1357/oh-my-pi/blob/v18.5.0/packages/coding-agent/src/tools/wait.ts) takes its place.
-- From 18.4.1 the host renders the project footer as a `<project-context>` block, and 18.5.0 adds a subagent branch to the critical tail that follows it.
-- The host members `omp-context-pin` checked before activation, the members behind its `getEntries` probe, and the required `timestamp` field on user messages all exist in 18.1.8, so those checks guarded only hosts below its earlier bound.
-
-Nothing in this evidence depends on a host later than 18.5.0.
+The shared baseline follows complete component adaptation, including actual host loading, request transmission, persistence, and terminal behavior. Published source and package-level checks supply different evidence from those runtime observations. Earlier verification retains its original version and scope.
 
 ## Decision
 
@@ -48,7 +42,7 @@ The bound states maintenance responsibility. It does not promise that later host
 
 ### Shared OMP floor
 
-Every component that loads code into OMP declares OMP 18.5.0 as its maintenance lower bound. Instruction-only or configuration-only distribution has no host-code floor; adapters loading code into other hosts retain their hosts' independent declarations.
+Every component that loads code into OMP declares OMP 18.13.3 as its maintenance lower bound. Instruction-only or configuration-only distribution has no host-code floor; adapters loading code into other hosts retain their hosts' independent declarations.
 
 The OMP bound is a shared maintenance baseline: the OMP release the components are developed and verified against. It is chosen for all OMP-facing components together rather than derived for each component from the oldest host it could still serve. Where a component has development dependencies on `@oh-my-pi/*`, they use that release, and test fixtures and real-host checks use its host behavior as their baseline.
 
@@ -108,13 +102,11 @@ Maintenance effort is the work the maintenance promise already implies, so it is
 
 ### Component contracts
 
-Raising the OMP-facing components to 18.5.0 removes three behaviors that still worked on some hosts below it, and complete successor decisions record each affected component contract:
+The 18.13.3 change ends maintenance for OMP 18.5.0 through 18.13.2. Users staying on an older host keep the components at `compat/omp-18.12.3` rather than following the new mainline. The tag fixes source and dependency declarations, carries no backport promise, and does not change the snapshot's own 18.5.0 maintenance declaration.
 
-- [Render the system prompt strategy only from the component template](../../../archived/2026/09/07-r4-omp-system-prompt.md) removes the default-block route that served hosts before 18.3.0.
-- [Maintain the OMP status bar with a static context glyph](./04-omp-status-bar.md) replaces the speculation band estimate that needs `Settings.getGroup`, which hosts before 18.4.0 provide.
-- [Maintain OMP quality of life adjustments on the standalone wait entry](../../../archived/2026/09/20-r7-omp-qol.md) removes the `hub` wait path that served hosts before 18.3.0.
+[QoL](./20-omp-qol.md) retires forced native-history replay and requires removal of `replayEnabled`. [Request alignment](../10/22-request-alignment.md) retains normal CLI/SDK sessions, delayed loading, restoration, and independent Remote and Handoff behavior. The status bar keeps its rendering and provider contract. Pin persistence remains under host control.
 
-The other components covered by the shared-bound change removed no behavior that a host from their earlier bound up to 18.5.0 used.
+The earlier 18.5.0 transition remains effective: the system-prompt default-block route, the `hub` wait path, and the status bar's dynamic speculation-band estimate are not restored. Their historical choices remain in the [predecessor](../../../archived/2026/09/28-r3-host-maintenance.md#component-contracts).
 
 ## Alternatives considered
 
@@ -122,9 +114,14 @@ The other components covered by the shared-bound change removed no behavior that
 
 This was the rule before the shared bound. It keeps hosts down to each component's earlier bound wherever the code still serves them, but it leaves the six components on different bounds below the development host, and the components keep maintaining the default-block route and the speculation band estimate, which work only on older hosts.
 
+### Keep the 18.5.0 floor
+
+Keeping the old floor would preserve maintenance for existing users but require development and adaptation across both the old host behavior and the 18.13.3 target. The selected shared raise keeps an explicit source anchor for those users without retaining two maintained baselines.
+
 ## Consequences
 
 - Removing numeric gates lets previously rejected hosts reach loading and execution. If capability and behavior checks miss a real incompatibility, the component fails during use rather than at installation.
 - Multiple implementations kept for different maintained hosts may evolve separately during later maintenance, causing configuration meanings or failure behavior on older maintained hosts to diverge from the same feature's contract.
 - A user who keeps an OMP release below 18.5.0 and updates a component loses the removed behavior without a warning: the system prompt strategy stops applying on a host before 18.3.0 unless the user selects the template, the total-deadline wait stops applying on a `hub` host, and the speculation band indicator becomes a static glyph on a host before 18.4.0.
 - The shared OMP bound moves only through a decision for all OMP-facing components, so a component that could drop an older host earlier waits for the next shared raise, and every raise needs a decision and review that covers all OMP-facing components.
+- Users on OMP 18.5.0 through 18.13.2 lose maintenance when updating past the source anchor. Unrestricted peers still permit loading, so the old host may fail during use rather than reject installation. Retaining the old snapshot avoids following that unsupported combination but receives no automatic backports.

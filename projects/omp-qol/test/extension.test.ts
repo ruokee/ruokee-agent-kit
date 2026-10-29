@@ -7,16 +7,13 @@
  * Timing is driven by a release gate, not by a sleep.
  */
 
-import { afterEach, describe, expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import type { ExtensionContext, ToolInfo } from "@oh-my-pi/pi-coding-agent";
 import { activate, COMMAND_NAME, PACKAGE_NAME, PACKAGE_VERSION } from "../src/extension.ts";
 import { MODULE_IDS } from "../src/settings.ts";
-import { createHarness, resetNativeReplay, type Harness } from "./host.ts";
+import { createHarness, type Harness } from "./host.ts";
 
 type SessionHandler = (event: unknown, ctx: ExtensionContext) => Promise<void>;
-
-/** Activation installs the process-wide replay wrapper; each case starts fresh. */
-afterEach(resetNativeReplay);
 
 function sessionStartOf(harness: Harness): SessionHandler {
   const handler = harness.handlers.get("session_start")?.[0];
@@ -103,25 +100,6 @@ describe("activation", () => {
     expect(harness.tools).toEqual([]);
   });
 
-  test("installs the replay wrapper and reports it with its rewrite count", async () => {
-    const harness = createHarness();
-    const { read } = gatedReader({});
-    const runtime = activate(harness.pi, read);
-    await sessionStartOf(harness)({}, harness.context());
-
-    const state = { nativeHistoryReplayWarmed: false };
-    new Map<unknown, unknown>().set("openai-responses:example-provider", state);
-    expect(state.nativeHistoryReplayWarmed).toBe(true);
-    expect(runtime.state.modules.replay).toEqual({ status: "enabled", detail: "rewrites=0" });
-
-    const line = runtime
-      .describe()
-      .split("\n")
-      .find((entry) => entry.startsWith("replay: "));
-    expect(line).toContain("enabled (rewrites=1)");
-    expect(line).toContain("enabled=true");
-  });
-
   test("installs task argument cleanup for a built-in task tool", async () => {
     const taskInfo = {
       name: "task",
@@ -142,27 +120,6 @@ describe("activation", () => {
       .split("\n")
       .find((entry) => entry.startsWith("taskArgs: "));
     expect(line).toBe("taskArgs: enabled (rewrites=0) — enabled=true");
-  });
-
-  test("stops the replay wrapper an earlier activation installed when the settings cannot be read", async () => {
-    const first = createHarness();
-    const { read: readFirst } = gatedReader({});
-    activate(first.pi, readFirst);
-    await sessionStartOf(first)({}, first.context());
-    const installed = Map.prototype.set;
-
-    const second = createHarness();
-    const { read: readSecond } = gatedReader(new Error("settings store unavailable"));
-    const runtime = activate(second.pi, readSecond);
-    await sessionStartOf(second)({}, second.context());
-
-    expect(runtime.state.modules.replay).toEqual({ status: "disabled", reason: "settings-reader-failed" });
-    expect(Map.prototype.set).not.toBe(installed);
-    expect(second.warnings.some((warning) => warning.includes("native replay stopped rewriting"))).toBe(true);
-
-    const state = { nativeHistoryReplayWarmed: false };
-    new Map<unknown, unknown>().set("openai-responses:example-provider", state);
-    expect(state.nativeHistoryReplayWarmed).toBe(false);
   });
 
   test("one invalid module leaves the others registerable", async () => {
@@ -209,7 +166,7 @@ describe("the /qol command", () => {
     expect(text).toContain("wait: ");
     expect(text).toContain("recovery: ");
     expect(text).toContain("compaction: ");
-    expect(text).toContain("replay: ");
+    expect(text).not.toContain("replay: ");
     expect(text).toContain("taskArgs: ");
     expect(text).toContain("copy: ");
     expect(text).toContain("shortcut=alt+shift+a");

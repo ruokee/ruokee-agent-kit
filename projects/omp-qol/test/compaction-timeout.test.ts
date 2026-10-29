@@ -25,7 +25,7 @@ import {
   type QolState,
 } from "../src/extension.ts";
 import { parseQolSettings, type QolSettings } from "../src/settings.ts";
-import { createHarness, moduleContext, resetNativeReplay, TEST_RUNTIME_ID, type Harness } from "./host.ts";
+import { createHarness, moduleContext, TEST_RUNTIME_ID, type Harness } from "./host.ts";
 
 const NATIVE_TIMEOUT = AbortSignal.timeout;
 const REGISTRY_KEY = Symbol.for("ruokee.omp-qol.compaction-timeout.registry");
@@ -44,7 +44,6 @@ function resetPatch(): void {
 
 afterEach(() => {
   resetPatch();
-  resetNativeReplay();
   globalSlots()[LEGACY_KEY] = undefined;
 });
 

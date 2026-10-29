@@ -22,7 +22,7 @@ Reverses: [任务参数清理](../../../archived/2026/10/17-r1-task-argument-cle
 
 schema 的正常校验会删除可选字段中的 `null` 和字符串 `"null"`。schema 失败后的宽松回退可能保留原始参数，因此不按字段值判断的清理规则能覆盖两条路径。
 
-字段集合同时是兼容标记。维护下限 OMP 18.5.0 的 task schema 把 `model` 作为普通可选选择器，且没有 `sourceSession`；OMP 18.11.3 通过 `seanceTaskSchemaFields` 同时加入这两个字段。若模块见到 `model` 就删除，会在维护下限上移除合法选择。因此模块探测内建 schema 中的 `sourceSession`，只在字段存在时清理。
+字段集合标识 schema 契约。OMP 18.5.0 的 task schema 把 `model` 作为普通可选选择器，且没有 `sourceSession`；OMP 18.11.3 通过 `seanceTaskSchemaFields` 同时加入这两个字段。若模块见到 `model` 就删除，会从不含 seance 字段的 schema 中移除合法选择。因此模块探测内建 schema 中的 `sourceSession`，只在字段存在时清理。
 
 ### 推测执行
 
@@ -34,7 +34,7 @@ schema 的正常校验会删除可选字段中的 `null` 和字符串 `"null"`�
 
 ### 与组件的契合
 
-`@ruokee/omp-qol` 在一个包、一个设置入口和一套检查下提供可独立开关的调整。[OMP QoL 决定](../09/20-omp-qol.zh.md)负责该边界。[组件规格集合](../../../../spec/README.zh.md#omp-qol)包含完整必要行为和验收。[组件 README](../../../../../projects/omp-qol/README.zh.md) 提供独立用户参考，组件设计和验证材料保存机制及逐项证据。wait 模块已经确立了一种模式：会话没有暴露预期的内建工具时拒绝动作。组件的维护下限是 OMP 18.5.0，该版本提供这里使用的 `tool_call` 输入替换契约。在未暴露 seance 字段的宿主上，模块保持 `unavailable` 且不注册 handler。
+`@ruokee/omp-qol` 在一个包、一个设置入口和一套检查下提供可独立开关的调整。[OMP QoL 决定](../09/20-omp-qol.zh.md)负责该边界。[组件规格集合](../../../../spec/README.zh.md#omp-qol)包含完整必要行为和验收。[组件 README](../../../../../projects/omp-qol/README.zh.md) 提供独立用户参考，组件设计和验证材料保存机制及逐项证据。wait 模块已经确立了一种模式：会话没有暴露预期的内建工具时拒绝动作。组件的维护下限是 OMP 18.13.3，该版本提供这里使用的 `tool_call` 输入替换契约。在未暴露 seance 字段的会话中，模块保持 `unavailable` 且不注册 handler。
 
 ## 决定
 

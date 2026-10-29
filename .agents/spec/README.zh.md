@@ -42,7 +42,6 @@
 - 持续等待：[English](./omp-qol-waiting.md)、[中文](./omp-qol-waiting.zh.md)。
 - 主会话错误恢复：[English](./omp-qol-recovery.md)、[中文](./omp-qol-recovery.zh.md)。
 - 压缩期限：[English](./omp-qol-compaction.md)、[中文](./omp-qol-compaction.zh.md)。
-- 原生历史重放：[English](./omp-qol-replay.md)、[中文](./omp-qol-replay.zh.md)。
 - 任务参数：[English](./omp-qol-task-arguments.md)、[中文](./omp-qol-task-arguments.zh.md)。
 - 回复复制：[English](./omp-qol-copy.md)、[中文](./omp-qol-copy.zh.md)。
 

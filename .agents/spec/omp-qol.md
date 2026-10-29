@@ -2,14 +2,15 @@
 
 ## Goals
 
-Provide independently switchable OMP adjustments in one package: continued job waiting, main-session error recovery, an experimental compaction deadline extension, native-history replay on resume, task argument cleanup, and copying the last assistant reply. Share installation and configuration while exposing each adjustment's effective state, settings, and failure reason.
+Provide independently switchable OMP adjustments in one package: continued job waiting, main-session error recovery, an experimental compaction deadline extension, task argument cleanup, and copying the last assistant reply. Share installation and configuration while exposing each adjustment's effective state, settings, and failure reason.
 
-The complete specification set comprises this component specification and the waiting, error recovery, compaction deadline, native-history replay, task arguments, and reply copying topics. The component-wide configuration, activation, status, isolation, and host requirements apply to every adjustment; each topic defines its own behavior and acceptance.
+The complete specification set comprises this component specification and the waiting, error recovery, compaction deadline, task arguments, and reply copying topics. The component-wide configuration, activation, status, isolation, and host requirements apply to every adjustment; each topic defines its own behavior and acceptance.
 
 ## Out of scope
 
 - Installing or migrating for the user, modifying installed host files or other extensions, or changing unrelated host behavior.
 - Remote request alignment, compaction usage, or model rules. These belong to `omp-smart-context`; QoL neither activates nor stops them.
+- Overriding the host's native-history replay policy or exposing a replay setting or status line. Resume, connection binding, warming, and closing retain native behavior without rewriting stored history.
 
 ## Public surface
 
@@ -25,7 +26,7 @@ All switches and notification fields are booleans. The master switch is:
 
 An absent key takes its default. Explicit null, a wrong type, non-finite number, fraction for an integer field, out-of-range value, or unknown enum disables the owning module only. An unknown key, non-object settings root, settings-read failure, or invalid master `enabled` disables every module. Do not activate defaults after rejecting the settings object.
 
-The absent keys `compactionCacheEnabled`, `compactionCacheProvider`, `compactionCacheMode`, `compactionUsageEnabled`, `modelPromptsEnabled`, `waitMessagesSeconds`, and `waitProcessSeconds` are unknown keys and reject the whole configuration. There are no compatibility aliases. Migration removes those keys from both user and project scopes, preserves unrelated settings and effective enablement, and requires its own authorization.
+The absent keys `compactionCacheEnabled`, `compactionCacheProvider`, `compactionCacheMode`, `compactionUsageEnabled`, `modelPromptsEnabled`, `waitMessagesSeconds`, `waitProcessSeconds`, and `replayEnabled` are unknown keys and reject the whole configuration. There are no compatibility aliases. Migration removes those keys from both user and project scopes, preserves unrelated settings and effective enablement, and requires its own authorization.
 
 Diagnostics name the rejected key and rule, never its value. Report a module reason once per activation through the host log and, when available, UI. The master switch gates all module action; the copy key remains claimed while its extension binding exists even when action is disabled.
 
@@ -39,7 +40,7 @@ Each valid adjustment remains usable when another has a local configuration or a
 
 ## Host lower bound
 
-The minimum maintained OMP version is `18.5.0`, without an upper maintenance bound. This is not an installation or runtime gate, nor proof that every later version works. Earlier hosts may run without being maintained. Host peers remain unrestricted; required host capabilities determine a module's availability. Do not retain paths solely for hosts below the maintenance floor.
+The minimum maintained OMP version is `18.13.3`, without an upper maintenance bound. This is not an installation or runtime gate, nor proof that every later version works. Earlier hosts may run without being maintained. Host peers remain unrestricted; required host capabilities determine a module's availability. Do not retain paths solely for hosts below the maintenance floor.
 
 ## Acceptance criteria
 

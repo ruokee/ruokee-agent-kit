@@ -17,7 +17,7 @@ OMP 18.11.3 interactive mode copies the input prompt and the current input line 
 
 The component gains an adjustment, `copy`, under the [OMP QoL decision](../09/20-omp-qol.md). Its public contract is one native OMP setting, `copyEnabled`, boolean, defaulting to `true`, subordinate to the component's master switch. It is read in the same activation snapshot as every other setting. A change applies at the next OMP start.
 
-The shortcut is fixed at `alt+shift+a`. The module adds no `/copy` command and no configurable key. The installed keyboard action table has no binding for `alt+shift+a`, and the shortcut registry and clipboard helper exist at the component's maintained 18.5.0 floor. The key is part of the public contract. Another extension must not claim it without a new decision.
+The shortcut is fixed at `alt+shift+a`. The module adds no `/copy` command and no configurable key. The installed keyboard action table has no binding for `alt+shift+a`. The shortcut registry and clipboard helper were already available in OMP 18.5.0. The key is part of the public contract. Another extension must not claim it without a new decision.
 
 ### Registration time
 

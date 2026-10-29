@@ -11,11 +11,10 @@ Jobs, messages, processes, turns, and compaction stay with OMP. Every adjustment
 - [Continuing waits](./docs/adjustments.md#continuing-waits): default on. A `wait` call continues across all-running job snapshots to one total deadline, 20 minutes by default, instead of returning each empty native window.
 - [Continuing after a transient model error](./docs/adjustments.md#continuing-after-a-transient-model-error): default on. A turn that ended with an eligible upstream error continues in the same session after 1 s and again with a doubling delay up to 8 s, at most 8 continuation turns per failure chain. Eligible covers classifier-flagged transient and timeout failures, turns the host marked as interrupted mid-stream, and errors carrying neither a status nor a classification.
 - [Extending one compaction deadline](./docs/adjustments.md#extending-one-compaction-deadline): default **off**. Within one compaction window, a matching `AbortSignal.timeout` call gets a longer deadline, so a remote compaction that needs more than the native 5 minutes is not cut off. Process-wide and experimental.
-- [Replaying native history in a resumed session](./docs/adjustments.md#replaying-native-history-in-a-resumed-session): default on. A resumed session's first request replays the native provider items the previous process ended with, instead of rebuilding the conversation from its generic content, so a prompt cache over that form can serve it. Process-wide, one flag, no body rewrite.
 - [Task argument cleanup](./docs/adjustments.md#task-argument-cleanup): default on when the built-in task schema exposes the seance-only `sourceSession` field. Remove it and `model` from non-seance task items before host validation; a schema with only the ordinary `model` selector stays untouched.
 - [Copy the last reply](./docs/adjustments.md#copy-the-last-reply): default on. Press `alt+shift+a` in an interactive session to copy the text blocks of the last assistant reply. Thinking, tool calls, and tool output stay out of the clipboard; a streaming turn or a reply without text leaves it unchanged.
 
-The wait adjustment adds an optional `timeout`; replay chooses the stored native items. Neither changes the model, cache key, or stored history. Recovery starts a turn and wait repeats a call the model already made; provider quota is spent when the model runs. The task argument cleanup rewrites the event input and leaves the task schema unchanged; the host persists the revised arguments in the current assistant message. The copy shortcut only reads the active branch and writes the system clipboard; it adds no session entry and sends no request.
+The wait adjustment adds an optional `timeout` without changing the model, cache key, or stored history. Recovery starts a turn and wait repeats a call the model already made; provider quota is spent when the model runs. The task argument cleanup rewrites the event input and leaves the task schema unchanged; the host persists the revised arguments in the current assistant message. The copy shortcut only reads the active branch and writes the system clipboard; it adds no session entry and sends no request.
 
 ## Configuration
 
@@ -55,10 +54,6 @@ Settings are read once per activation. Restart OMP after a change. A running pro
 - `compactionWindowGuardMs`: default `3600000`, accepts an integer from `compactionTimeoutMs` up to `14400000`. Longest lifetime of one compaction window, counted from the event that opened it.
 - `compactionTimeoutNotify`: default `true`, accepts a boolean. Show a warning line the first time a window rewrites a deadline.
 
-### Replay
-
-- `replayEnabled`: default `true`, accepts a boolean. Install the process-wide wrapper that keeps a resumed session's first request on the provider's native history. On by default; the adjustment is inert for a session that carries no stored items.
-
 ### Task arguments
 
 - `taskArgsEnabled`: default `true`, accepts a boolean. When the built-in task schema exposes the seance-only `sourceSession` field, remove it and `model` from non-seance task items before host validation. The registered handler disables speculative task launch and experimental read speculation. On a schema with only the ordinary `model` selector, the module reports `unavailable` and registers no handler. Restart to apply.
@@ -79,14 +74,13 @@ Settings are read once per activation. Restart OMP after a change. A running pro
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.5.12
+@ruokee/omp-qol 0.5.13
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
 wait: enabled (entry=wait effectiveDefaultSeconds=1200 messageContinuation=not-applicable processWait=not-applicable serviceContinuation=not-applicable) — enabled=true continueEmptyWindows=true
 recovery: enabled — enabled=true mode=knownTransient maxAttempts=8 backoffBaseMs=1000 backoffMaxMs=8000 notify=true
 compaction: disabled (compaction-disabled) — enabled=false timeoutMs=900000 floorMs=300000 windowGuardMs=3600000 notify=true
-replay: enabled (rewrites=0) — enabled=true
 taskArgs: enabled (rewrites=0) — enabled=true
 copy: enabled — enabled=true shortcut=alt+shift+a
 ```
@@ -99,11 +93,11 @@ Each adjustment lists its own limits in [Adjustments](./docs/adjustments.md).
 
 ## Compatibility
 
-The minimum maintained OMP version is `18.5.0`, with no upper maintenance bound. This section states the maintenance commitment; it is not an installation or runtime requirement. An earlier host may still run the package without gaining a maintenance commitment. The declaration does not promise that later releases keep working, and it does not mean every version at or above the minimum was verified.
+The minimum maintained OMP version is `18.13.3`, with no upper maintenance bound. This section states the maintenance commitment; it is not an installation or runtime requirement. An earlier host may still run the package without gaining a maintenance commitment. The declaration does not promise that later releases keep working, and it does not mean every version at or above the minimum was verified.
 
 The package declares `@oh-my-pi/pi-ai` and `@oh-my-pi/pi-coding-agent` as unrestricted host peers (`*`). Those declarations name the host packages the component imports; they carry no maintenance range, no runtime check, and no claim about any host version.
 
-The automated type check and test suite run against OMP `18.5.0`. Source baselines are path-specific: recovery, the compaction deadline, and replay cite `18.2.8`, where those mechanisms were first read; continuing waits cite `18.5.0`; task argument cleanup cites `18.11.3`, where the seance task schema was read; copy cites `18.5.0` for the shortcut registry and clipboard export, with the native action table checked on the installed `18.11.3`.
+The locked development and automated-check baseline is OMP `18.13.3`. Historical source and verification notes in [Adjustments](./docs/adjustments.md) retain the versions they examined.
 
 The checks cover what the modules inspect, and not the entry's own imports or a difference no module looks at, so an unrecognized host change can also alter behavior without disabling the adjustment.
 
@@ -145,9 +139,15 @@ bun run typecheck
 bun test
 ```
 
-The test suite replaces the host with a small recording host and keeps the package boundaries real: the settings getter from the installed `@oh-my-pi/pi-coding-agent`, the error classifier from the installed `@oh-my-pi/pi-ai`, and `AbortSignal.timeout` and `Map.prototype.set` in both their native and patched form. Each adjustment records the checks its tests cover in [Adjustments](./docs/adjustments.md).
+The test suite replaces the host with a small recording host and keeps the package boundaries real: the settings getter from the installed `@oh-my-pi/pi-coding-agent`, the error classifier from the installed `@oh-my-pi/pi-ai`, and `AbortSignal.timeout` in both its native and patched form. Each adjustment records the checks its tests cover in [Adjustments](./docs/adjustments.md).
 
 ## Changes
+
+### 0.5.13
+
+Use OMP `18.13.3` as the maintenance lower bound and locked development baseline. Native-history replay follows the host policy: ordinary models replay on resume, while connection-bound models start cold and closed provider states rebuild history. QoL installs no replay wrapper and `/qol` has no replay line.
+
+Remove `replayEnabled` from both user and project QoL settings, then restart OMP. Either leftover rejects the whole QoL configuration under the unknown-key rule. Keep every unrelated setting; the component does not edit user configuration.
 
 ### 0.5.12
 

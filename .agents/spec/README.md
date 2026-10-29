@@ -42,7 +42,6 @@ The following topics together specify QoL:
 - Continued waiting: [English](./omp-qol-waiting.md), [中文](./omp-qol-waiting.zh.md).
 - Main-session error recovery: [English](./omp-qol-recovery.md), [中文](./omp-qol-recovery.zh.md).
 - Compaction deadline: [English](./omp-qol-compaction.md), [中文](./omp-qol-compaction.zh.md).
-- Native-history replay: [English](./omp-qol-replay.md), [中文](./omp-qol-replay.zh.md).
 - Task arguments: [English](./omp-qol-task-arguments.md), [中文](./omp-qol-task-arguments.zh.md).
 - Reply copying: [English](./omp-qol-copy.md), [中文](./omp-qol-copy.zh.md).
 

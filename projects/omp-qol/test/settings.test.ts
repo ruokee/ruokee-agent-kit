@@ -34,7 +34,6 @@ describe("settings ranges", () => {
       compactionTimeoutMs: COMPACTION_TIMEOUT_MAX_MS,
       compactionWindowGuardMs: COMPACTION_GUARD_MAX_MS,
       compactionTimeoutNotify: false,
-      replayEnabled: false,
       taskArgsEnabled: false,
       copyEnabled: false,
     });
@@ -79,7 +78,6 @@ describe("rejected values", () => {
     ["guard below the timeout", { compactionWindowGuardMs: 800_000 }, "compactionWindowGuardMs=range"],
     ["guard above the maintenance bound", { compactionWindowGuardMs: 14_400_001 }, "compactionWindowGuardMs=range"],
     ["fractional timeout", { compactionTimeoutMs: 900_000.5 }, "compactionTimeoutMs=integer"],
-    ["a non-boolean replay switch", { replayEnabled: "on" }, "replayEnabled=type"],
     ["a non-boolean task arguments switch", { taskArgsEnabled: "on" }, "taskArgsEnabled=type"],
     ["a non-boolean copy switch", { copyEnabled: "on" }, "copyEnabled=type"],
   ];
@@ -132,6 +130,7 @@ describe("global faults", () => {
     ["an unknown key", { waitJobsTimeouts: 5 }, "waitJobsTimeouts=unknown-key"],
     ["retired message wait key", { waitMessagesSeconds: 1200 }, "waitMessagesSeconds=unknown-key"],
     ["retired process wait key", { waitProcessSeconds: 1200 }, "waitProcessSeconds=unknown-key"],
+    ["retired replay key", { replayEnabled: true }, "replayEnabled=unknown-key"],
     ["retired remote enabled key", { compactionCacheEnabled: true }, "compactionCacheEnabled=unknown-key"],
     ["retired remote provider key", { compactionCacheProvider: "synthetic" }, "compactionCacheProvider=unknown-key"],
     ["retired remote mode key", { compactionCacheMode: "hooks" }, "compactionCacheMode=unknown-key"],

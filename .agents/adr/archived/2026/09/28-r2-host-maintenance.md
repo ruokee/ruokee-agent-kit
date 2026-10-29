@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
 Reverses: [Host maintenance](../../../archived/2026/09/28-r1-host-maintenance.md)
 Archived: 2026-10-23
-Reversed by: [Host maintenance](../../../decision/2026/09/28-host-maintenance.md)
+Reversed by: [Host maintenance](./28-r3-host-maintenance.md)
 
 English | [中文](./28-r2-host-maintenance.zh.md)
 

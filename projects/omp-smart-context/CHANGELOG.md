@@ -2,6 +2,11 @@
 
 [中文](./CHANGELOG.zh.md)
 
+## 0.1.6
+
+- Set the maintenance lower bound and locked host development dependencies to OMP `18.13.3`, keeping unrestricted host peers.
+- Confirm Pin journal persistence on that baseline. Unsaved new sessions can lose pins; explicit saving, an existing file, or an assistant reply allows the host to persist them.
+
 ## 0.1.5
 
 - Bind request alignment to active native CLI/SDK sessions and actual sends, including delayed extension loading. Remove factory-time construction observation.

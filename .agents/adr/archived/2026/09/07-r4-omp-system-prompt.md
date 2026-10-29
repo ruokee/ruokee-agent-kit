@@ -68,7 +68,7 @@ The template route is idempotent. A turn whose input already carries the templat
 
 ### Compatibility boundary
 
-The compatibility object is the extension, not the host. The component's maintenance lower bound is the shared OMP bound recorded in [Maintain host components against a shared OMP floor](../../../decision/2026/09/28-host-maintenance.md) and stated in its README. The default host peer dependency stays unrestricted, and the extension reads no host version to decide eligibility, activation, transformation, diagnostics, or fallback. Structural recognition of the turn input remains the compatibility boundary. The component does not vendor host-authored prompt text, and it documents the fixture its automated checks render and the release each observation came from.
+The compatibility object is the extension, not the host. The component's maintenance lower bound is the shared OMP bound recorded in [Maintain host components against a shared OMP floor](./28-r3-host-maintenance.md) and stated in its README. The default host peer dependency stays unrestricted, and the extension reads no host version to decide eligibility, activation, transformation, diagnostics, or fallback. Structural recognition of the turn input remains the compatibility boundary. The component does not vendor host-authored prompt text, and it documents the fixture its automated checks render and the release each observation came from.
 
 ### Preserved rules
 

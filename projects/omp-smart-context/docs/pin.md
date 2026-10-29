@@ -76,7 +76,7 @@ Compaction itself does not unpin text. After a committed compaction, the current
 
 ## Persistence
 
-Pins are stored in the host session journal. Pin can append records but cannot create the session file or force it to disk. On OMP `18.5.0`, the host writes when explicitly requested, when the session file already exists, or after an assistant reply exists. Pins in a new unsaved session can be lost on process exit. The dialog and tool description warn about this limit.
+Pins are stored in the host session journal. Pin can append records but cannot create the session file or force it to disk. On OMP `18.13.3`, the host writes when explicitly requested, when the session file already exists, or after an assistant reply exists. Pins in a new unsaved session can be lost on process exit. The dialog and tool description warn about this limit.
 
 A confirmed user write whose message OMP never consumes does not change pins. A successful operation is not a separate disk-save confirmation. Disabling or removing the capability does not erase journals or historical text.
 

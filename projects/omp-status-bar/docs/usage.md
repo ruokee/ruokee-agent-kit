@@ -19,7 +19,7 @@ omp plugin link "$(pwd)" --scope user
 
 OMP reads `omp.extensions` from `package.json` and loads `src/extension.ts`; no manual extension-path setting is required.
 
-The minimum maintained OMP version is `18.5.0`, as declared in the [compatibility section of the component README](../README.md). Automated checks run on OMP 18.5.0, where `bun test` and `tsc --noEmit` pass. Those are package-level runs against installed copies of the host packages, not real host runs. Real TUI validation covers OMP 18.2.3, 18.2.8, 18.4.3, 18.4.4, 18.5.1, and 18.12.3.
+The minimum maintained OMP version and locked automated-check baseline are `18.13.3`, as declared in the [compatibility section of the component README](../README.md). Package-level checks run against installed host packages; real TUI observations and their exact versions appear under [Release gate](#release-gate).
 
 ## Configuration
 
@@ -247,5 +247,7 @@ The static context glyph was validated on OMP `18.5.1` with the component's lock
 Live terminal widths, session switching, tree rewinds, interrupts, and subagent cards were not re-run on OMP 18.4.3; those checks stand as recorded for OMP 18.2.3 and 18.2.8.
 
 Version `0.4.1` was loaded through its extension entry on OMP `18.12.3` with a real model and an isolated profile. Live widths changed from 120 to 48 to 100 columns; the row stayed below the editor and truncated from the right with an ellipsis. It coexisted with the native status line, title-spinner frames, and a subagent card. Token and context readings changed during requests, and eight successful parent responses produced `Turn 8`, which remained after resume. Two new sessions each showed one row with fresh context; all scenario processes exited normally. Five idle frames taken 350 ms apart had identical status rows. No duplicate row or layout shift appeared. The dependency-declaration change did not alter rendering or timer ownership; earlier tree-rewind and interrupted-request evidence retains its original scope.
+
+Version `0.4.2` was loaded with QoL `0.5.13` and smart-context `0.1.6` on official OMP `18.13.3`, using the real `ds-flash` model and temporary configuration. Tern ran the normal interactive CLI with `PI_TUI_NATIVE=0` to capture the host's terminal-row renderer. The row stayed below the editor, updated token readings during a tool run, and retained `Turn 1` after process restoration. Six successful parent responses reached `Turn 6`; the completed subagent card and native status line remained visible with the row. A live change to 48 columns truncated the row on the right with an ellipsis; widening restored the full readings. Two new sessions each displayed one fresh context row. Five idle frames sampled 350 ms apart were identical, and `/quit` exited normally. Rendering and timer ownership code did not change. Earlier tree-rewind, interruption, and title-spinner evidence retains its original version scope; this run exercised the terminal-row renderer, not Tern's native surface layout.
 
 This evidence applies to the documented component source. Repeat the real TUI checks after a later source change that can affect rendering or lifecycle behavior.
