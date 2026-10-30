@@ -1,6 +1,6 @@
 ---
 name: tk-cli
-description: Load when durable Tasks are needed, such as when the user names tk, a Task, or catchup, supplies a Task ID, name, path, or material path, requests a Task operation, or work in a permissive project clearly needs state across steps or sessions.
+description: Load when durable Tasks are needed, such as when the user names tk, a Task, or catchup, supplies a Task ID, name, path, or material path, requests a Task operation, or work in a permissive project clearly needs state across steps or sessions. Also use for the Task material patterns Records, Deep research, Iterative design, and Scratchpad.
 ---
 
 # tk Task management
@@ -150,6 +150,11 @@ You may edit the `TASK.md` body and ordinary materials. Metadata must be changed
 Prefer spaces between words in headings for readability. This is optional: preserve user-specified wording and meaningful identifiers rather than mechanically replacing `-` or `_`. The runtime-generated initial heading remains valid and does not require an extra post-creation edit.
 
 Read [Usage patterns](./references/patterns.md) when the user explicitly requests a pattern or when signals such as chronological records, work spanning dates, repeated major redesigns, research, or drafts appear.
+
+- [Records](./references/patterns.md#records)
+- [Deep research](./references/patterns.md#deep-research)
+- [Iterative design](./references/patterns.md#iterative-design)
+- [Scratchpad](./references/patterns.md#scratchpad)
 
 ## Extensions
 

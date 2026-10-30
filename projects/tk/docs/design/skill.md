@@ -81,6 +81,8 @@ It does not store step-by-step chat transcripts, command logs, long-form researc
 
 An Agent may edit the `TASK.md` body and ordinary materials. Managed metadata must be changed through tk operations.
 
+An Agent may create or update ordinary text files. Per-file confirmation is unnecessary. Ask before overwriting unclear existing content, deleting or moving materials, writing large or binary artifacts, or crossing the assignment boundary.
+
 Headings are ordinary body content, independent of the managed name and directory. A level-one heading is optional, may differ from both, and is not subject to the name's 32-column display-width limit. Within existing body-edit permissions, edit headings directly without requiring `rename`, metadata changes, or directory moves. Rename does not synchronize body headings, and closed Tasks retain their existing read-only boundary.
 
 Prefer spaces between words in headings for readability. This is optional: preserve user-specified wording and meaningful identifiers rather than mechanically replacing `-` or `_`. The runtime still generates `# <normalized-name>` as the initial body; this preference does not require an extra post-creation write.
@@ -131,6 +133,8 @@ When user input is genuinely required, explain the effect of each choice clearly
 ## Material patterns
 
 Four patterns organize ordinary Task materials. They are optional, and a Task may combine any of them or use none. Project instructions may extend or override their default paths.
+
+The Skill names all four Task material patterns in its discovery description and links each name from its entry to the corresponding section in `references/patterns.md`.
 
 - Records: suggest when substantive investigation, implementation, validation, or decision work has occurred on a second local calendar date. Default materials: `records/YYYY-MM-DD-topic.md`.
 - Deep research: suggest when work needs collecting, retaining, or cross-checking external sources, or a source list and source materials already exist. Default materials: `research/report.md`, `research/README.md`.
