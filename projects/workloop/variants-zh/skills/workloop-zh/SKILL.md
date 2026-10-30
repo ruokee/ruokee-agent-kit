@@ -1,8 +1,8 @@
 ---
 name: workloop-zh
-description: 用户请求 workloop 的目标澄清、设计、规划、执行、独立核验、项目交付、监督、初始化，或继续已有 workloop Task 时使用。
+description: 用户请求 workloop 的目标澄清、设计、规划、执行、独立核验、项目交付、监督、初始化，继续已有 workloop Task，或使用 Clarify 的 wayfinding 路径探索方法进行规划时使用。
 metadata:
-  version: "0.1.6"
+  version: "0.1.7"
 ---
 
 # workloop
@@ -25,6 +25,8 @@ metadata:
 - [交付](./operations/ship.md)：完成项目定义的交付。
 - [监督](./operations/supervise.md)：调度独立 Worker，不亲自实现其工作。
 - [设置](./setup.md)：按请求初始化或更新外部默认，不是安装或普通使用的前置条件。
+
+[wayfinding 路径探索](./references/wayfinding.md) 是 Clarify 用于大型或路线未决规划的方法。先按 Clarify 解析请求和 Task 材料归属，再按其条件加载方法正文。
 
 ## 保留合同
 

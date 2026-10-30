@@ -1,8 +1,8 @@
 ---
 name: workloop
-description: Use when the user requests workloop goal clarification, design, planning, execution, independent verification, project-defined delivery, supervision, initialization, or continuation of a workloop Task.
+description: Use when the user requests workloop goal clarification, design, planning, execution, independent verification, project-defined delivery, supervision, initialization, continuation of a workloop Task, or planning with the wayfinding method in Clarify.
 metadata:
-  version: "0.1.6"
+  version: "0.1.7"
 ---
 
 # workloop
@@ -25,6 +25,8 @@ Follow links from this actual installed directory. Read the selected body in ful
 - [Ship](./operations/ship.md): perform the delivery defined by the project.
 - [Supervise](./operations/supervise.md): schedule independent Workers without implementing their work.
 - [Setup](./setup.md): initialize or update external defaults when requested; it is not a prerequisite to installation or ordinary use.
+
+[Wayfinding](./references/wayfinding.md) supports large or unresolved planning within Clarify. Follow Clarify's request resolution, Task material ownership, and loading conditions before reading the method.
 
 ## Preserve the contract
 

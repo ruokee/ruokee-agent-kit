@@ -305,7 +305,7 @@ Check is preparation's implicit material inspection. Goal discussion and Plan co
 
 ## Plan large work
 
-Clarify reads its wayfinding reference before investigation when the work is larger than one working session or its route still depends on unresolved questions. Small, clear work and ordinary revisions to it skip it. The map normally lives in `design.md` and records the destination and boundary, background, decisions already made with links, areas not yet precisely stated, open questions with their dependencies and completion conditions, and out-of-scope items.
+To request the method directly, ask workloop to use wayfinding for the Task. Clarify reads its [wayfinding reference](./skills/workloop/references/wayfinding.md) before investigation when the work is larger than one working session or its route still depends on unresolved questions. Small, clear work and ordinary revisions to it skip it. The map normally lives in `design.md` and records the destination and boundary, background, decisions already made with links, areas not yet precisely stated, open questions with their dependencies and completion conditions, and out-of-scope items.
 
 Research, prototypes, interviews, and preparation resolve those questions; they grant only their own permission. Continue through the request's scope in dependency order instead of stopping after each decision. Form a Plan only when the current scope has clear goals, necessary design, choices, unit results, and acceptance. A blocker keeps the preparation materials in place; the Plan forms once the contract is complete.
 
