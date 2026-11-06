@@ -33,7 +33,7 @@ If work is infeasible, unnecessary, or the user decides not to continue, save th
 
 ## Form the Plan
 
-When the current planned scope has clear goals, necessary design, material choices, unit results, and acceptance, with every question and vague area affecting the execution contract resolved, form the Plan and self-check in this same Clarify operation. Honor discussion-only, design-only, no-plan, pause, and writing restrictions. Act on the request directly; a routine planning confirmation adds nothing. Implementation needs its own authorization.
+When the current planned scope has clear goals, necessary design, material choices, unit results, and acceptance, with every question and vague area affecting the execution contract resolved, form the Plan and self-check in this same Clarify operation. Honor discussion-only, design-only, no-plan, pause, and writing restrictions. Act on the request directly; a routine planning confirmation adds nothing. Implementation needs execution authority, which may already come from the same complete request.
 
 Read [execution constraints](../references/execution.md) when forming the Plan, arranging dependencies, and resolving permission. Clarify retains its permitted interview method. Resolve choices that can be settled here rather than routinely postponing them. Keep blockers and unresolved questions in Clarify materials, normally the wayfinding map; a Plan contains complete executable contracts only. When a blocker remains, keep the preparation materials; the Plan forms once the contract is complete.
 
@@ -59,4 +59,4 @@ The review request covers in-scope author repairs and necessary rechecks by the 
 
 Save permitted results and preserve earlier failures with their scope and candidate. Return material paths, established result, self-check count and verdict, requested independent outcome, and actual blockers. Keep the current Task, basis, material revision, inspection count and limit, effective restrictions, and next action in recoverable state.
 
-Finish within Clarify and return the Clarify result. Execution starts under a separate request within its own scope and permissions. Preparation and review stay preparation.
+Return the Clarify result through the [entry's continuation rule](../SKILL.md#continue-the-request). A Clarify-only request ends here. If the same request already authorizes subsequent execution, complete the required preparation checks, then hand off to that operation under its scope and permissions. Preparation and review retain their own responsibilities.

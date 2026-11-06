@@ -14,7 +14,7 @@ Returning to Clarify because of missing planning or a problem found during execu
 
 Apply the execution constraints to the selected scope, permission, continuous progress, and question restrictions. When a role is needed, read [role selection](../references/roles.md). For assigned work or cross-session dispatch, read [collaboration](../references/collaboration.md). Use Senior only when explicitly assigned.
 
-Keep the Task, unit, basis and entry location, candidate, scope and grants, explicit restrictions, inspection count and limit, and next action in recoverable state. Keep live routes and pending assignments under the collaboration rules.
+Keep the Task, unit, basis and entry location, candidate, complete request's endpoint, completed and remaining actions, scope and grants, explicit restrictions, inspection count and limit, and next action in recoverable state. Keep live routes and pending assignments under the collaboration rules.
 
 ## Implement
 
@@ -49,3 +49,5 @@ If all remaining work is genuinely blocked, save each blocker, finished candidat
 Save the execution record and link independent reports rather than duplicating them. Return concise per-unit results with Task, unit, location, base, candidate, completed behavior, material paths, exercised evidence, coverage, limits, self-check count and result, independent verdict and report, user-review or advance-approval state, delivery state, and actual remaining requirements.
 
 Execution completion covers the implemented candidate; merge, installation, restart, publication, and Task closure follow their own grants. Keep verified unintegrated candidates available for project-defined delivery.
+
+Return through the [entry's continuation rule](../SKILL.md#continue-the-request) to resolve any later actions already covered by the complete request.

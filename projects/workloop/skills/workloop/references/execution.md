@@ -4,11 +4,13 @@ Read when entering Execute or Supervise, or when Clarify forms a Plan and resolv
 
 ## Resolve scope
 
-A named unit or subset limits the assignment. Otherwise start at the current or first unfinished dependency-ready unit and continue the remaining Plan. A session usually handles one unit at a time and may complete several serially. Scope and permission come from the requested controls; quoted examples and negations are illustrative.
+A named unit or subset limits the assignment. Otherwise start at the current or first unfinished dependency-ready unit and continue the remaining Plan. A session usually handles one unit at a time and may complete several serially. Resolve scope and permission from the complete request; quoted examples and negations are illustrative.
 
 Distinguish real dependencies from unresolved contracts. A resolved Plan may contain later units with resolved contracts that depend on earlier results. Route required clarification to Clarify under the effective scope and permissions. Keep unresolved scope in the Task's goal and Clarify materials; read the resulting decisions and revise the Plan before implementing that work. Continue unrelated authorized ready units; the unresolved scope keeps its own place in the Plan materials.
 
 When execution finds a fact that invalidates a contract, pause the affected work and record the question and options in Clarify materials. Preserve the Plan record, candidates, and still-valid evidence; continue unaffected authorized work with clear contracts. After clarification, revise the affected contract. The Plan keeps its resolved units; the question returns to Clarify.
+
+When the existing request covers clarification and repair, complete that in-scope work and its required checks, then resume the remaining requested actions under the updated contract. A stage change alone needs no new request. Preserve explicit checkpoints and user-only decisions.
 
 Implementation, repair, self-check, independent Verify, and necessary rechecks continue without routine intermediate confirmation. Continuous work is the default; `auto` and `noask` stay optional. `confirm` requests item-by-item confirmation without removing required checks. Preserve any explicit human checkpoint.
 
@@ -16,7 +18,7 @@ During Execute and Supervise, structured question tools such as `ask` stay out o
 
 ## Keep permission separate
 
-An execution request normally authorizes ordinary in-scope implementation, repair, project-local preparation, checks, temporary processes, and local candidate-preservation operations required by the project. Reuse valid grants rather than repeatedly requesting them. Authorized temporary-directory file checks remain within their check scope.
+Resolve each grant from the complete request's goal, actions, scope, delivery endpoint, and explicit limits under applicable rules. Fixed permission keywords are not required. An execution request normally authorizes ordinary in-scope implementation, repair, project-local preparation, checks, temporary processes, and local candidate-preservation operations required by the project. Reuse valid grants rather than repeatedly requesting them. Authorized temporary-directory file checks remain within their check scope.
 
 Execution covers that ordinary in-scope work. Proposal approval, archival, integration, push, publication, local installation, expense, privileged operations, and Task closure follow their own requirements and narrower instructions. User acceptance is separate from verification and covers its own stated scope. Resolve foreseeable consequential requirement choices before implementation rather than postponing every approval until the end.
 

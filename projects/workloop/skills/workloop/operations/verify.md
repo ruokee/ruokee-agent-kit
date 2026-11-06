@@ -46,6 +46,8 @@ No-record and narrower restrictions govern saving. State the limit and point to 
 
 Save the permitted report, then return a final-only result to the live owner as the last action; the owner resumes from it. A direct request returns to the user. Include sender, Task/unit or material scope, candidate, verdict, actionable findings or blocker, and report path.
 
+For standalone Verify, this completes the requested action. The read-only verifier ends its assignment after returning its verdict. In a combined request, the overall owner resumes covered author repairs, rechecks, or later operations through the [entry's continuation rule](../SKILL.md#continue-the-request).
+
 On delivery failure, recover the saved report instead of repeating the assessment. Use the same suitable isolated session for rechecks, resolving each current assignment anew. Honor one-round or report-only limits; otherwise requested preparation review and authorized execution include necessary in-scope rechecks.
 
 Keep target identity, scope, basis, assessment state, report location, and next action recoverable; collaboration owns live routing. A pass covers the judged scope; proposal approval, integration, installation, publication, Task closure, and user acceptance follow their own decisions.

@@ -293,15 +293,17 @@ For another version, use its current public interfaces. File operations and disc
 
 ## Choose an operation
 
-- **Clarify** resolves goals, performs necessary research or diagnosis, develops design, and forms or revises `plan.md` in the same operation. Resolve the goal, necessary design, and consequential choices before making a unit executable; keep unresolved questions and design work in Clarify materials such as `design.md`, and make the Plan contain resolved contracts only. Explicit discussion-only, design-only, no-plan, pause, and writing restrictions remain effective. Implementation starts under a separate request.
+- **Clarify** resolves goals, performs necessary research or diagnosis, develops design, and forms or revises `plan.md` in the same operation. Resolve the goal, necessary design, and consequential choices before making a unit executable; keep unresolved questions and design work in Clarify materials such as `design.md`, and make the Plan contain resolved contracts only. Explicit discussion-only, design-only, no-plan, pause, and writing restrictions remain effective. Execution requires authority from the request, which may already cover subsequent implementation.
 - **Execute** implements in the current session and coordinates self-check and independent Verify. Without a narrower limit, it continues the remaining Plan, usually one unit at a time and several serially.
 - **Verify** independently evaluates specified materials or an implementation candidate without editing it. Each report names its candidate, evidence, verdict, and limits.
 - **Ship** performs the delivery defined by the project under the actual request and permissions. It need not mean production release or Task closure.
 - **Supervise** schedules independent Workers instead of implementing itself. It can assign independent units to separate Workers while preserving each unit's review boundary.
 
+One request can cover one operation or several ordered actions, such as analysis, planning, implementation, and verification. The entry resolves the complete request's scope, grants, endpoint, and explicit checkpoints. After each operation and its required checks, the overall owner continues authorized ready actions to that endpoint. Material or design defects return to Clarify; implementation defects return to Execute. Covered repairs and rechecks resume the remaining request. The independent verifier returns its read-only verdict to the owner. A single-operation request finishes within that operation's duties.
+
 An actual `/wl-exec` or equivalent direct Execute request starts the resolved owning Task from `planning` to `open` before Plan readiness is checked. An `open` Task continues without another start; a `closed` Task still needs separate reopening permission. Returning to Clarify for missing planning or problems found during execution, verification, or user acceptance keeps the Task `open`, never `planning`.
 
-Check is preparation's implicit material inspection. Goal discussion and Plan completion do not start execution or invite it in the closing reply.
+Check is preparation's implicit material inspection. Goal discussion and Plan completion by themselves grant no execution authority. A preparation-only request ends with its result rather than an invitation to execute. A combined request that already authorizes execution continues after preparation and its required checks.
 
 ## Plan large work
 
@@ -367,7 +369,7 @@ Explicit current choices override continuing choices, which override applicable 
 
 ## Recover work
 
-Retain the current activity's Task or configuration scope, basis, candidate where relevant, permissions, restrictions, inspection count when applicable, and next action in recoverable state. Reload a missing entry, operation, or currently required reference from the selected installed Skill. A remembered link is not loaded text. No particular Pin API is required.
+Retain the complete request's endpoint, ordered actions, completed results, remaining actions, and current activity's Task or configuration scope, basis, candidate where relevant, permissions, restrictions, inspection count when applicable, and next action in recoverable state. Reload a missing entry, operation, or currently required reference from the selected installed Skill. A remembered link is not loaded text. No particular Pin API is required.
 
 ## Source attribution
 
