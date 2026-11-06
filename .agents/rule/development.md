@@ -9,6 +9,13 @@ English | [中文](./development.zh.md)
 - As far as possible, read the rule pages that apply to the work, and check the work against them before reporting it done.
 - Limit changes to the requested capability. Do not prebuild structure or capability for hypothetical Skills, hosts, or requirements.
 
+## Authorization
+
+- Resolve authority from the complete request's goal, actions, scope, delivery endpoint, and explicit limits.
+- Treat autonomous delegation as authority for necessary judgment and corresponding ADR maintenance within the requested actions and boundaries. Apply the [ADR authority supplements](../adr/README.md#authority) to adoption and archival.
+- Reuse effective grants for covered actions. Fixed approval keywords are not required.
+- Preserve choices reserved to the maintainer, explicit human checkpoints, and separately protected permissions. Apply each action's own rules to integration, publication, installation, and task closure.
+
 ## Validation
 
 ### Environments

@@ -71,7 +71,7 @@ Append non-conflicting additions under a final `Changes` section with an actual-
 
 ### Reverse a decision
 
-Do not rewrite a current decision to express a conflicting choice. Identify every decision to reverse, its effective clause, the new choice, and why both cannot hold. Record this basis in the task and obtain the approval required by the project. After implementation, combine the accepted choice and every old clause still effective within the decision's scope into a complete successor. Preserve the conflict and reasons in that successor without requiring a separate proposal. Do not copy a component's implementation specification into it.
+Do not rewrite a current decision to express a conflicting choice. Identify every decision to reverse, its effective clause, the new choice, and why both cannot hold. Record this basis in the task and reuse the project's required approval when covered by effective delegation. Obtain any missing approval before the dependent action. After implementation, combine the accepted choice and every old clause still effective within the decision's scope into a complete successor. Preserve the conflict and reasons in that successor without requiring a separate proposal. Do not copy a component's implementation specification into it.
 
 Perform the following in the same change for every required language version:
 

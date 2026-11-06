@@ -31,7 +31,9 @@ Use only `None` in an empty English alternatives section and only `无` in its C
 
 ## Authority
 
-The maintainer owns adoption of durable choices and archival of replaced decisions. Agents may draft and implement within authorized work, but need explicit authority for those decisions. Reuse an effective approval rather than requiring it again. A task status, Plan, review verdict, or completed implementation grants no approval, archival, integration, or task-closure permission.
+The maintainer owns adoption of durable choices and archival of replaced decisions. Resolve delegated authority from the complete request's goal, actions, scope, delivery endpoint, and explicit limits. Autonomous delegation covers necessary in-scope judgment and corresponding ADR maintenance, including adoption and archival needed for those choices. Preserve choices reserved to the maintainer, explicit human checkpoints, and separately protected permissions.
+
+Reuse effective authority for covered actions. Fixed approval keywords are not required. A task status, Plan, review verdict, or completed implementation by itself grants no approval, archival, integration, or task-closure permission.
 
 Use the existing tk task for discussion, approval and its scope, ordinary rejected options, and pending execution. Public collaboration may use an accessible Issue or PR without requiring either platform. Keep the formal decision's necessary reasons and material rejected alternatives publicly understandable without private task records. A durable choice not to adopt an option may itself be a decision. A small or quick change that changes no durable choice needs no ADR.
 

@@ -2,7 +2,7 @@
 name: maintain-adr
 description: Maintain or review ADRs and their adopted mechanism. Load before creating, repairing, updating, reversing, archiving, or reviewing a decision, and when feature work affects a durable decision. Not for ordinary reading, general architecture discussion, or routine changes with no durable choice.
 metadata:
-  version: "1.0.1"
+  version: "1.0.2"
 ---
 
 # Maintain ADRs

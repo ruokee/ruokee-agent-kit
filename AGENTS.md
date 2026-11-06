@@ -34,7 +34,7 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 - Provide English and Chinese project documentation as same-directory `name.md` and `name.zh.md` pairs. Keep translations and reciprocal links aligned, except that Spec bodies keep language navigation in the non-spec index and contain no repository-file links.
 - Keep documentation in sync with the code it describes. Update affected documents in the same change.
 - Write a file name and each heading as a short imperative sentence, a short phrase, or a noun unless an additional requirement calls for another form. Keep one subject, and add a second one or list its parts only when an additional requirement calls for it.
-- Specs define long-lived component or repository targets under `./.agents/spec`. Before maintaining or reviewing one, or when feature work changes its goals, boundaries, or acceptance, load [maintain-spec](./.agents/skills/maintain-spec/SKILL.md) and read the [project supplements](./.agents/spec/README.md).
+- Specs define long-lived component or repository targets under `./.agents/spec`. Before maintaining or reviewing one, or when feature work changes its goals, functionality, boundaries, or acceptance, load [maintain-spec](./.agents/skills/maintain-spec/SKILL.md) and read the [project supplements](./.agents/spec/README.md).
 - ADRs record durable choices under `./.agents/adr`. Before creating, repairing, updating, reversing, archiving, or reviewing one, or when project work affects a durable choice, load [maintain-adr](./.agents/skills/maintain-adr/SKILL.md) and read the [project supplements](./.agents/adr/README.md). Loading either Skill grants no write or lifecycle permission and does not transfer task Goal ownership.
 - Rules define repository working rules and live in `./.agents/rule`. Read the [rule layer's rules](./.agents/rule/README.md) when editing rules.
 - Use the [repository dictionary](./docs/dictionary/README.md) for shared terms, and read the [terminology rules](./.agents/rule/terminology.md) when adding or changing one.
@@ -59,6 +59,7 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 
 - Search the relevant current ADR decisions and their changes, specs, rules, and confirmed task requirements before planning changes to a component's or repository area's goals, boundaries, or acceptance criteria.
 - Limit changes to the requested capability or fix. Do not prebuild for hypothetical requirements.
+- Reuse the authority expressed by the complete request for necessary in-scope judgments and requested actions. Preserve explicit human checkpoints and protected permissions.
 
 ### Validation
 
