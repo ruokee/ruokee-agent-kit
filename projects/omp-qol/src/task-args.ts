@@ -1,22 +1,18 @@
 /**
  * Task argument cleanup module.
  *
- * OMP 18.11.3 exposes the seance-only `sourceSession` and `model` fields on
- * every task item when the session advertises the `seance` agent. Non-seance
- * items carrying either field fail host validation before dispatch. This
- * module removes both fields from items whose event input already names a
- * non-seance agent; it does not infer an agent the host may add later.
- *
- * `sourceSession` is also the schema marker for that contract. OMP 18.5.0 has
- * `model` as an ordinary task selector and no `sourceSession`, so the module
- * stays unavailable there and leaves the selector alone.
+ * Only explicit non-seance items in a schema exposing `sourceSession` are
+ * cleaned. Hosts with `task.perCallModel` own ordinary `model` validation;
+ * older hosts treat both fields as seance-only. Capability presence, rather
+ * than its configured value, selects the cleanup so native rejection stays
+ * visible when ordinary model selection is disabled.
  */
 
+import { lookup } from "@oh-my-pi/pi-coding-agent/config/registry";
 import type { ModuleContext, ModuleState } from "./extension.ts";
 
 export const TASK_TOOL_NAME = "task";
 
-const TARGET_FIELDS = ["sourceSession", "model"] as const;
 const SEANCE_FIELD = "sourceSession";
 
 /** Whether a JSON schema object or any nested schema declares this property. */
@@ -38,9 +34,9 @@ interface CleanItem {
 /**
  * Remove the seance-only fields from one task item when its own `agent` is a
  * non-seance string. Missing, empty, non-string, or seance agents, non-object
- * items, and items without either target field keep their identity.
+ * items, and items without a field to remove keep their identity.
  */
-function cleanItem(item: unknown): CleanItem {
+function cleanItem(item: unknown, perCallModel: boolean): CleanItem {
   if (item === null || typeof item !== "object" || Array.isArray(item)) {
     return { value: item, changed: false };
   }
@@ -48,11 +44,12 @@ function cleanItem(item: unknown): CleanItem {
   const agent = typeof record.agent === "string" ? record.agent.trim() : "";
   if (agent.length === 0 || agent === "seance") return { value: item, changed: false };
 
-  const hasTarget = TARGET_FIELDS.some((field) => Object.hasOwn(record, field));
+  const hasTarget = Object.hasOwn(record, SEANCE_FIELD) || (!perCallModel && Object.hasOwn(record, "model"));
   if (!hasTarget) return { value: item, changed: false };
 
   const next = { ...record };
-  for (const field of TARGET_FIELDS) delete next[field];
+  delete next.sourceSession;
+  if (!perCallModel) delete next.model;
   return { value: next, changed: true };
 }
 
@@ -65,11 +62,14 @@ function cleanItem(item: unknown): CleanItem {
  * function returns `undefined` when nothing changed, and never mutates the
  * input.
  */
-export function sanitizeTaskArgs(input: Record<string, unknown>): Record<string, unknown> | undefined {
+export function sanitizeTaskArgs(
+  input: Record<string, unknown>,
+  perCallModel: boolean,
+): Record<string, unknown> | undefined {
   if (Array.isArray(input.tasks)) {
     let changed = false;
     const tasks = input.tasks.map((item) => {
-      const cleaned = cleanItem(item);
+      const cleaned = cleanItem(item, perCallModel);
       if (!cleaned.changed) return item;
       changed = true;
       return cleaned.value;
@@ -77,7 +77,7 @@ export function sanitizeTaskArgs(input: Record<string, unknown>): Record<string,
     return changed ? { ...input, tasks } : undefined;
   }
 
-  const cleaned = cleanItem(input);
+  const cleaned = cleanItem(input, perCallModel);
   return cleaned.changed ? (cleaned.value as Record<string, unknown>) : undefined;
 }
 
@@ -116,10 +116,11 @@ export function installTaskArgsModule(context: ModuleContext): ModuleState {
     return { status: "unavailable", reason: "task-tool-without-seance-fields" };
   }
 
+  const perCallModel = lookup("task.perCallModel") !== undefined;
   let rewrites = 0;
   pi.on("tool_call", (event) => {
     if (event.toolName !== TASK_TOOL_NAME) return;
-    const next = sanitizeTaskArgs(event.input);
+    const next = sanitizeTaskArgs(event.input, perCallModel);
     if (next === undefined) return;
     rewrites += 1;
     setStatus?.("taskArgs", { status: "enabled", detail: `rewrites=${rewrites}` });

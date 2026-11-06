@@ -77,7 +77,7 @@ describe("sanitizeTaskArgs", () => {
       task: "do it",
       nested: { value: 1 },
     };
-    const next = sanitizeTaskArgs(input);
+    const next = sanitizeTaskArgs(input, false);
 
     expect(next).toEqual({ agent: "worker", task: "do it", nested: { value: 1 } });
     expect(next).not.toBe(input);
@@ -91,7 +91,7 @@ describe("sanitizeTaskArgs", () => {
     const changed = { agent: "worker", sourceSession: "", model: "", task: "changed" };
     const input = { tasks: [seance, untouched, changed], sourceSession: "batch-level" };
 
-    const next = sanitizeTaskArgs(input);
+    const next = sanitizeTaskArgs(input, false);
     const tasks = tasksOf(next);
 
     expect(tasks).toHaveLength(3);
@@ -103,23 +103,23 @@ describe("sanitizeTaskArgs", () => {
   });
 
   test("trims the agent and keeps both fields on seance items", () => {
-    expect(sanitizeTaskArgs({ agent: " seance ", sourceSession: "session", model: "model" })).toBeUndefined();
+    expect(sanitizeTaskArgs({ agent: " seance ", sourceSession: "session", model: "model" }, false)).toBeUndefined();
   });
 
   test("leaves a missing, empty, whitespace, non-string, or null agent unchanged", () => {
     const agents: unknown[] = [undefined, "", "   ", 7, null];
     for (const agent of agents) {
       const input = { agent, sourceSession: "", model: "" };
-      expect(sanitizeTaskArgs(input)).toBeUndefined();
+      expect(sanitizeTaskArgs(input, false)).toBeUndefined();
     }
   });
 
   test("returns undefined when the item has no target field", () => {
-    expect(sanitizeTaskArgs({ agent: "worker", task: "do it" })).toBeUndefined();
+    expect(sanitizeTaskArgs({ agent: "worker", task: "do it" }, false)).toBeUndefined();
   });
 
   test("treats a non-array tasks value as a flat call", () => {
-    expect(sanitizeTaskArgs({ agent: "worker", tasks: "not-an-array", sourceSession: "" })).toEqual({
+    expect(sanitizeTaskArgs({ agent: "worker", tasks: "not-an-array", sourceSession: "" }, false)).toEqual({
       agent: "worker",
       tasks: "not-an-array",
     });
@@ -127,17 +127,55 @@ describe("sanitizeTaskArgs", () => {
 
   test("skips non-object batch items and returns undefined when nothing changed", () => {
     const input = { tasks: [null, "text", { agent: "worker", sourceSession: "", model: "" }] };
-    const next = sanitizeTaskArgs(input);
+    const next = sanitizeTaskArgs(input, false);
     const tasks = tasksOf(next);
     expect(tasks[0]).toBeNull();
     expect(tasks[1]).toBe("text");
     expect(tasks[2]).toEqual({ agent: "worker" });
 
     expect(
-      sanitizeTaskArgs({
-        tasks: [null, "text", { agent: "seance", sourceSession: "session" }, { agent: "worker" }],
-      }),
+      sanitizeTaskArgs(
+        { tasks: [null, "text", { agent: "seance", sourceSession: "session" }, { agent: "worker" }] },
+        false,
+      ),
     ).toBeUndefined();
+  });
+
+  test("leaves model values to capable hosts while removing sourceSession", () => {
+    for (const model of ["@ds-flash", "", null, ["first", "second"]]) {
+      const input = { agent: "worker", sourceSession: "/dev/null", model, task: "do it" };
+      const next = sanitizeTaskArgs(input, true);
+      expect(next).toEqual({ agent: "worker", model, task: "do it" });
+      expect(next?.model).toBe(model);
+      expect(input.sourceSession).toBe("/dev/null");
+    }
+  });
+
+  test("does not rewrite a model-only call on a capable host", () => {
+    const item = { agent: "worker", model: "selected" };
+    expect(sanitizeTaskArgs(item, true)).toBeUndefined();
+    expect(sanitizeTaskArgs({ tasks: [item] }, true)).toBeUndefined();
+  });
+
+  test("preserves seance and excluded items in a capable host batch", () => {
+    const seance = { agent: " seance ", sourceSession: "session", model: "history-model" };
+    const selected = { agent: "worker", model: ["first", "second"] };
+    const excluded = [
+      null,
+      "text",
+      ...[undefined, "", "   ", 7, null].map((agent) => ({ agent, sourceSession: "", model: "" })),
+    ];
+    const changed = { agent: " worker ", sourceSession: "", model: "selected", task: "do it" };
+    const input = { tasks: [seance, selected, ...excluded, changed], sourceSession: "top", model: "top-model" };
+    const next = sanitizeTaskArgs(input, true);
+    const tasks = tasksOf(next);
+    for (let index = 0; index < input.tasks.length - 1; index += 1) {
+      expect(tasks[index]).toBe(input.tasks[index]);
+    }
+    expect(tasks.at(-1)).toEqual({ agent: " worker ", model: "selected", task: "do it" });
+    expect(next?.sourceSession).toBe("top");
+    expect(next?.model).toBe("top-model");
+    expect(input.tasks.at(-1)).toBe(changed);
   });
 });
 

@@ -238,6 +238,8 @@ OMP 18.11.3 在会话声明 `seance` Agent 时，会在每个 `task` 条目上�
 
 task schema 取决于 `seance` 是否可用。没有 `sourceSession` 时，`model` 是普通选择器，必须保留。OMP `18.5.0` 提供过该形态；这一能力检查在 `18.13.3` 仍有意义，不是版本门禁。
 
+OMP `18.14.2` 增加普通任务按调用选模型。在 [`18.16.0`](https://github.com/can1357/oh-my-pi/blob/v18.16.0/packages/coding-agent/src/task/seance.ts) 中，仅 `sourceSession` 仍为 seance 专用。宿主注册 [`task.perCallModel`](https://github.com/can1357/oh-my-pi/blob/v18.16.0/packages/coding-agent/src/task/settings.ts)，负责普通 `model` 值的授权。
+
 ### 介入位置
 
 模块为内建 `task` 工具注册 `tool_call` handler，只在改写发生时返回 `{ input }`。宿主把返回的输入用于显示、持久化与执行。handler 只复制被改动的条目；task schema、描述、审批策略、派发路径与结果渲染保持原生。
@@ -246,13 +248,15 @@ task schema 取决于 `seance` 是否可用。没有 `sourceSession` 时，`mode
 
 安装 handler 前，模块读取内建 task schema。schema 不暴露 `sourceSession` 时不注册任何内容。
 
+schema 符合条件时，激活从宿主的 `config/registry` 读取一次 `lookup("task.perCallModel")`。注册存在时只清理 sourceSession。当前模式不参与判断：`off` 或 `eval` 模式下，原生授权仍须收到 `model`。扩展加载器须把此导入解析到宿主共享 registry，而非独立的开发依赖。
+
 ### 配置
 
 `taskArgsEnabled`（默认开启），取值见 README。总开关也须开启。模块仅在内建 task schema 暴露 `sourceSession` 时生效。
 
 ### 清理规则
 
-扁平调用视为一个条目，`tasks` 数组视为批次。对 `agent` 为字符串、trim 后非空且不等于 `seance` 的条目，删除该条目自身的 `sourceSession` 与 `model`，不论其值。`agent` 缺失、为空、仅空白、非字符串或为 `seance` 的条目保持不变。批次级字段、非对象条目和其他参数保持原值与结构。一个批次改动多个条目仍计一次改写；`/qol` 报告当前激活的改写次数。
+扁平调用视为一个条目，`tasks` 数组视为批次。对 `agent` 为字符串、trim 后非空且不等于 `seance` 的条目，删除其自有的 `sourceSession`。缺少普通按调用选模型能力时，还删除自有的 `model`。被删字段的值不影响清理。保留的 `model` 维持原结构。`agent` 缺失、为空、仅空白、非字符串或为 `seance` 的条目保持不变。批次级字段、非对象条目和其他参数保持原值与结构。一个批次改动多个条目仍计一次改写；`/qol` 报告当前激活的改写次数。具备新能力的宿主中，只带 model 的调用保持计数不变。
 
 ### 可用性
 
@@ -260,9 +264,9 @@ handler 只为暴露 `sourceSession` 的内建 `task` 安装。工具缺失报�
 
 ### 边界
 
-- 模块只从已正确识别的非 seance 条目删除两个字段。它不推断默认 Agent，不修复批次级字段，也不增加模型可见的提示。没有可用 Agent 的调用与批次级字段的调用仍走原生校验。
+- 清理限于宿主定义的 seance 专用字段及明确指定的非 seance 项。没有可用 Agent 的调用和批次级字段保留原生校验。模块不增加模型可见的提示。
 - handler 覆盖注册它的会话内的所有 `task` 调用。注册期间这些调用都失去推测启动，不只是携带字段的调用。这是接受的代价；模块无法为未改写的调用单独启用推测。schema 没有 `sourceSession` 时不注册 handler，因此该成本不适用。若后续宿主接受这些字段或不再暴露它们，handler 的成本仍在，直到关闭或退役。
-- 宿主若在暴露 `sourceSession` 的同时允许普通 Agent 通过 `model` 选择模型，该选择会被删除；当前 18.11.3 的 seance schema 不会这样。只有普通 `model` 选择器的 schema 保持 `unavailable` 且不被改写。宿主改名或改变字段作用域时需要重新评估。
+- 宿主改变字段含义或能力注册时需要重新评估。扩展若读取独立 registry，可能误判具备新能力的宿主并删除普通 `model`。采用新宿主时应验证实际插件加载路径。
 - 多个扩展为同一调用返回 `input` 时，宿主采用最后一个结果；本模块可能覆盖其他改写，也可能被覆盖。
 - 模块不自行新增会话条目，也不改写更早的历史。宿主会把改写后的参数持久化到当前 assistant 消息，后续请求和会话文件会看到它们。它删除参数，因此模型的错误可能只在 `/qol` 计数中留下痕迹。
 
@@ -271,6 +275,8 @@ handler 只为暴露 `sourceSession` 的内建 `task` 安装。工具缺失报�
 - **源码基线**：OMP `18.11.3`，标签 `v18.11.3`，提交 `96894a6147d8cc64b7e00ad3a7d7178fd93b9531`。OMP `18.5.0` 的锁定开发类型显示普通 `model` 选择器且没有 `sourceSession`；该形态由测试夹具覆盖。
 - **自动检查**：OMP `18.5.0` 开发类型，`bun test` 与 `tsc --noEmit`。测试覆盖扁平调用、批次条目、seance 保留、缺失/空/空白/非字符串 Agent、无目标字段、异常 task 形状、改写计数、内建守卫、扁平与批次 seance schema 形态、没有 `sourceSession` 的 model-only schema、停用与不兼容状态，以及关闭开关。
 - **真实 OMP CLI**：OMP `18.11.3`，主模型 `gpt-6-luna`，子代理预设 `ds-flash`。一次批次调用中唯一条目为 `agent: "ds-flash"` 且带 `sourceSession` 与 `model`，清理后派发成功：模型原始输出保留两个字段，宿主保存的 assistant 消息已删除它们，`/qol` 报告 `taskArgs: enabled (rewrites=2)`，子代理返回其输出。推测启动的损失、真实 seance 条目、扁平单调用与多项批次 **未验证**。
+- **QoL `0.5.14` 受控执行**：锁定 OMP `18.13.3` 依赖，运行真实清理函数及已注册事件 handler。旧能力删除两字段；在独立进程注册默认值为 `off` 的 `task.perCallModel` 后保留 `model`。只有 model 的调用保持计数不变，混合批次保留 seance 参数，已有激活保持原能力快照。task 定向测试 19 项通过。
+- **QoL `0.5.14` 真实 CLI**：OMP `18.14.0`，主模型和子代理均使用 `ds-flash`，关闭扩展发现后通过测试观察器加载候选激活。原始普通 task 带两个字段，执行与持久化参数删除两字段。子代理返回 `CHILD_OK`，`/qol` 显示版本 `0.5.14` 及 `taskArgs: enabled (rewrites=1)`。导入的 Settings 类与宿主 API 中的类身份相同；registry 中 `task.batch` 存在、`task.perCallModel` 缺失。`import.meta.resolve` 无法显示内嵌模块路径。目标 `18.16.0` 的加载与原生模型授权在升级时验收。
 
 ### 上游复核
 

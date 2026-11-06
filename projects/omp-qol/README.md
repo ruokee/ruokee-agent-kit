@@ -56,7 +56,7 @@ Settings are read once per activation. Restart OMP after a change. A running pro
 
 ### Task arguments
 
-- `taskArgsEnabled`: default `true`, accepts a boolean. When the built-in task schema exposes the seance-only `sourceSession` field, remove it and `model` from non-seance task items before host validation. The registered handler disables speculative task launch and experimental read speculation. On a schema with only the ordinary `model` selector, the module reports `unavailable` and registers no handler. Restart to apply.
+- `taskArgsEnabled`: default `true`, accepts a boolean. When the built-in task schema exposes `sourceSession`, remove it from explicit non-seance task items before host validation. Hosts exposing `task.perCallModel` keep `model` for native authorization even when selection is off. Older hosts also remove `model`. The registered handler disables speculative task launch and experimental read speculation. On a schema with only the ordinary `model` selector, the module reports `unavailable` and registers no handler. Restart to apply.
 
 ### Copy
 
@@ -74,7 +74,7 @@ Settings are read once per activation. Restart OMP after a change. A running pro
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.5.13
+@ruokee/omp-qol 0.5.14
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -142,6 +142,10 @@ bun test
 The test suite replaces the host with a small recording host and keeps the package boundaries real: the settings getter from the installed `@oh-my-pi/pi-coding-agent`, the error classifier from the installed `@oh-my-pi/pi-ai`, and `AbortSignal.timeout` in both its native and patched form. Each adjustment records the checks its tests cover in [Adjustments](./docs/adjustments.md).
 
 ## Changes
+
+### 0.5.14
+
+Preserve ordinary task `model` on hosts with `task.perCallModel`, including OMP `18.14.2` through `18.16.0`. Native authorization owns the selector in every mode. Cleanup still removes ordinary `sourceSession`; hosts without per-call model support retain two-field cleanup. The maintenance lower bound and locked development baseline remain `18.13.3`.
 
 ### 0.5.13
 

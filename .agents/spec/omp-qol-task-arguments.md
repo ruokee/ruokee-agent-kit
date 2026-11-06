@@ -20,7 +20,9 @@ The `/qol` task arguments line shows the activation's rewritten-call count.
 
 Act before host validation only for the builtin `task` whose schema exposes `sourceSession`. Missing tools report `unavailable`; shadowed tools report `incompatible`. A schema without that field reports `unavailable` with `task-tool-without-seance-fields`, preserving its ordinary `model` selector and speculative launch.
 
-A flat call is one item; a `tasks` array is a batch. For each object whose `agent` is a string that trims nonempty and is not `seance`, remove only that object's own `sourceSession` and `model`, regardless of their values. Preserve missing, empty, whitespace-only, non-string, and `seance` agents, non-object entries, batch-level fields, and all other arguments. Infer no default agent. One changed call increments the counter once, even if several items change; an unchanged call does not increment it.
+A flat call is one item; a `tasks` array is a batch. For each object whose `agent` is a string that trims nonempty and is not `seance`, remove its own `sourceSession`. Hosts without ordinary per-call model support also remove its own `model`. Hosts exposing `task.perCallModel` retain the original `model` value and structure for native authorization, regardless of whether the mode is `off`, `eval`, or `on`. Values of removed fields do not affect cleanup.
+
+Preserve missing, empty, whitespace-only, non-string, and `seance` agents, non-object entries, batch-level fields, and all other arguments. Infer no default agent. One changed call increments the counter once, even if several items change. An unchanged call does not increment it. A capable host's model-only item stays unchanged.
 
 The host displays, executes, and persists the revised current assistant arguments. Later requests and the session file therefore see the cleaned call. Do not rewrite earlier history or add a session entry. Keep the native task schema, description, approvals, dispatch, background lifecycle, and result rendering. Calls invalid for another reason still fail. If multiple extensions revise an input, the host's last revision wins.
 
@@ -28,6 +30,7 @@ The accepted cost is disabling speculative task launch and experimental read spe
 
 ## Acceptance criteria
 
-- Eligible flat and batch calls lose only each qualifying item's own `sourceSession` and `model`. Seance items, excluded agent shapes, absent target fields, non-object entries, batch-level fields, and unrelated arguments remain unchanged.
+- Eligible flat and batch calls lose each qualifying item's own `sourceSession`. Older hosts also remove `model`; hosts with ordinary per-call model support retain it, including when selection is disabled. Seance items, excluded agent shapes, absent target fields, non-object entries, batch-level fields, and unrelated arguments remain unchanged.
+- On capable hosts, model-only calls keep their arguments and rewrite count. Unsupported or unauthorized model choices follow native errors rather than becoming default-model tasks.
 - A changed call increments the counter once, regardless of the number of changed items. Displayed, executed, and persisted current arguments contain the same cleanup result; calls invalid for another reason still fail natively.
 - Disabled cleanup, missing or shadowed tools, and schemas without `sourceSession` leave native arguments and behavior unchanged. A model-only schema retains its ordinary selector and speculative launch.

@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
 Archived: 2026-10-23
-Reversed by: [任务参数清理](../../../decision/2026/10/17-task-argument-cleanup.zh.md)
+Reversed by: [任务参数清理](./17-r2-task-argument-cleanup.zh.md)
 
 [English](./17-r1-task-argument-cleanup.md) | 中文
 

@@ -56,7 +56,7 @@ omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 
 ### 任务参数
 
-- `taskArgsEnabled`：默认 `true`，取值 boolean。内建 task schema 暴露 seance 专用字段 `sourceSession` 时，在宿主校验前从非 seance 任务项删除该字段与 `model`。注册的处理器会关闭推测启动和实验性的推测读取。只有普通 `model` 选择器的 schema 会报告 `unavailable` 且不注册 handler。重启生效。
+- `taskArgsEnabled`：默认 `true`，取值 boolean。内建 task schema 暴露 `sourceSession` 时，在宿主校验前从明确指定的非 seance 任务项删除该字段。暴露 `task.perCallModel` 的宿主保留 `model` 给原生授权处理，选择功能关闭时也适用。旧宿主还删除 `model`。注册的处理器会关闭推测启动和实验性的推测读取。只有普通 `model` 选择器的 schema 会报告 `unavailable` 且不注册 handler。重启生效。
 
 ### 复制
 
@@ -74,7 +74,7 @@ omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 `/qol` 打印当前状态，不做任何修改。它不启动模型轮次，也不读取设置 schema 之外的值。
 
 ```
-@ruokee/omp-qol 0.5.13
+@ruokee/omp-qol 0.5.14
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -142,6 +142,10 @@ bun test
 测试套件用一个小型记录宿主替代宿主，同时保留真实的包边界：来自已安装 `@oh-my-pi/pi-coding-agent` 的设置 getter、来自已安装 `@oh-my-pi/pi-ai` 的错误分类器，以及原生与已替换两种状态的 `AbortSignal.timeout`。各调整项的检查覆盖记录在[调整项](./docs/adjustments.zh.md)。
 
 ## 更新记录
+
+### 0.5.14
+
+在具备 `task.perCallModel` 的宿主上保留普通任务的 `model`，包括 OMP `18.14.2` 至 `18.16.0`。所有模式下都由原生授权处理选择器。清理仍删除普通 `sourceSession`；缺少按调用选模型能力的宿主继续删除两个字段。维护下限与锁定开发基线保持 `18.13.3`。
 
 ### 0.5.13
 

@@ -45,7 +45,7 @@ Standalone plugins and extensions that add or adjust Harness functionality.
 **OMP**
 
 - **[omp-status-bar](./projects/omp-status-bar/README.md)** adds an OMP status bar with extra context information, including current session context usage as a number rather than the native percentage, total tokens, input tokens, cached tokens, output tokens, cache-hit rate, and the number of model requests the session has answered.
-- **[omp-qol](./projects/omp-qol/README.md)** provides independently switchable wait deadlines, bounded model-error recovery, experimental compaction deadlines, native history replay, task argument cleanup, and copying the last reply.
+- **[omp-qol](./projects/omp-qol/README.md)** provides independently switchable wait deadlines, bounded model-error recovery, experimental compaction deadlines, task argument cleanup, and copying the last reply.
 - **[omp-smart-context](./projects/omp-smart-context/README.md)** provides remote and Handoff request alignment, compaction usage accounting, opt-in model prompt rules, and opt-in Pin, with independent switches and state.
 
 ## Install
