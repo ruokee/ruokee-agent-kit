@@ -11,7 +11,7 @@
 - [持续等待](./docs/adjustments.zh.md#持续等待)：默认开启。`wait` 调用在全部任务仍运行的快照之间持续到同一个总期限，默认 20 分钟，而不是每个空的原生窗口都返回。
 - [上游错误后续跑](./docs/adjustments.zh.md#上游错误后续跑)：默认开启。以可续跑的上游错误结束的轮次在同一会话内继续，首次等待 1 秒并按倍增延长至上限 8 秒，每条失败链最多 8 次续跑。可续跑的判据包括：分类器判定为瞬时或超时、宿主标记为流中途中断，以及既无状态也无分类结论的错误。
 - [延长单个压缩期限](./docs/adjustments.zh.md#延长单个压缩期限)：默认**关闭**。在一个压缩窗口内，命中的 `AbortSignal.timeout` 调用获得更长期限，使超过原生 5 分钟的远端压缩不被中断。进程级生效，实验性质。
-- [任务参数清理](./docs/adjustments.zh.md#任务参数清理)：默认开启，仅在内建 task schema 暴露 seance 专用字段 `sourceSession` 时生效。在宿主校验前从非 seance 任务项删除该字段与 `model`；只有普通 `model` 选择器的 schema 保持不变。
+- [任务参数清理](./docs/adjustments.zh.md#任务参数清理)：默认开启，仅在内建 task schema 暴露 `sourceSession` 时生效。从明确指定的非 seance 项删除该字段。task 按调用选模型关闭时忽略 `model`，开启时保留并交原生授权。只有普通 `model` 选择器的 schema 保持不变。
 - [复制最后回复](./docs/adjustments.zh.md#复制最后回复)：默认开启。在交互式会话按 `alt+shift+a`，把最后一条 assistant 回复的文本块写入系统剪贴板。思考、工具调用与工具输出不会进入剪贴板；回复仍在流式输出或没有文本时，剪贴板保持不变。
 
 等待调整新增可选 `timeout`，不改模型、缓存键或已存历史。恢复启动模型轮次，等待重复模型已经发出的调用，模型运行时会消耗服务额度。任务参数清理改写事件输入，不改变 task schema；宿主会把改写后的参数持久化到当前 assistant 消息。复制快捷键只读取活动分支并写入系统剪贴板，不新增会话条目，也不发送请求。
@@ -25,7 +25,7 @@ omp plugin config list @ruokee/omp-qol
 omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 ```
 
-设置每次激活只读取一次。修改后需重启 OMP。运行中的进程沿用启动时读到的值，在同一进程内新开会话也不会重新读取。
+QoL 设置每次激活只读取一次，修改后重启 OMP。运行中的进程保留这些值。同一进程中的新会话使用同一份快照。原生 `task.perCallModel` 许可按每次 task 调用读取。
 
 ### 通用
 
@@ -56,7 +56,7 @@ omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 
 ### 任务参数
 
-- `taskArgsEnabled`：默认 `true`，取值 boolean。内建 task schema 暴露 `sourceSession` 时，在宿主校验前从明确指定的非 seance 任务项删除该字段。暴露 `task.perCallModel` 的宿主保留 `model` 给原生授权处理，选择功能关闭时也适用。旧宿主还删除 `model`。注册的处理器会关闭推测启动和实验性的推测读取。只有普通 `model` 选择器的 schema 会报告 `unavailable` 且不注册 handler。重启生效。
+- `taskArgsEnabled`：默认 `true`，取值 boolean。内建 task schema 暴露 `sourceSession` 时，在宿主校验前从明确指定的非 seance 项删除该字段。普通 task 按调用选模型关闭时，还删除误传的 `model`，包括 `off` 和 `eval`。开启时保留 `model`，交原生校验及授权。旧宿主还删除 `model`。注册的处理器会关闭推测启动和实验性的推测读取。只有普通 `model` 选择器的 schema 会报告 `unavailable` 且不注册 handler。重启生效。
 
 ### 复制
 
@@ -74,7 +74,7 @@ omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 `/qol` 打印当前状态，不做任何修改。它不启动模型轮次，也不读取设置 schema 之外的值。
 
 ```
-@ruokee/omp-qol 0.5.14
+@ruokee/omp-qol 0.5.15
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -142,6 +142,10 @@ bun test
 测试套件用一个小型记录宿主替代宿主，同时保留真实的包边界：来自已安装 `@oh-my-pi/pi-coding-agent` 的设置 getter、来自已安装 `@oh-my-pi/pi-ai` 的错误分类器，以及原生与已替换两种状态的 `AbortSignal.timeout`。各调整项的检查覆盖记录在[调整项](./docs/adjustments.zh.md)。
 
 ## 更新记录
+
+### 0.5.15
+
+按调用选模型关闭时，忽略普通 task 误传的 `model`，包括原生 `off` 和 `eval` 模式。读取调用所属会话的实时许可，宿主提供维护者授权层时一并检查。开启时保留原生校验及授权。旧宿主清理和 seance 行为保持。维护下限与锁定开发基线保持 `18.13.3`。
 
 ### 0.5.14
 

@@ -1,6 +1,6 @@
 {
   "name": "@ruokee/omp-qol",
-  "version": "0.5.14",
+  "version": "0.5.15",
   "description": "OMP adjustments for wait deadlines, model-error recovery, compaction deadlines, task argument cleanup, and copying the last reply",
   "license": "MIT",
   "type": "module",
@@ -115,7 +115,7 @@
       "taskArgsEnabled": {
         "type": "boolean",
         "default": true,
-        "description": "Remove seance-only task fields before host validation. Preserve model when the host supports ordinary per-call selection. On by default; restart to apply."
+        "description": "Remove seance-only task fields before host validation. Ignore ordinary model when task per-call selection is disabled. On by default; restart to apply."
       },
       "copyEnabled": {
         "type": "boolean",

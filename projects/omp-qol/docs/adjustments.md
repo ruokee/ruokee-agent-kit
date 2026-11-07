@@ -248,7 +248,7 @@ OMP denies speculative task launch and experimental read speculation when an ext
 
 Before installing the handler, the module reads the built-in task schema. It registers nothing when the schema does not expose `sourceSession`.
 
-For an eligible schema, activation reads `lookup("task.perCallModel")` from the host's `config/registry` once. Its presence selects sourceSession-only cleanup. Its current mode is irrelevant: native authorization must receive `model` even in `off` or `eval` mode. The extension loader must resolve this import to the host's shared registry rather than a separate development dependency.
+For an eligible schema, activation reads `lookup("task.perCallModel")` from the host's `config/registry` once. Each task call reads its session through `findScopedSettings()`. Its effective mode must be `on` to retain ordinary `model`. Hosts exposing `grantAuthority()` also require `on` in the operator's view. A capable host whose settings cannot be read keeps `model` for native handling. Host imports must resolve to the shared registry and settings scope.
 
 ### Settings
 
@@ -256,7 +256,7 @@ For an eligible schema, activation reads `lookup("task.perCallModel")` from the 
 
 ### Cleanup rule
 
-A flat call is one item; a `tasks` array is a batch. For each item whose `agent` is a string, trims non-empty, and is not `seance`, remove its own `sourceSession`. Without ordinary per-call model capability, also remove its own `model`. The removed values do not affect cleanup. Retained `model` values keep their structure. Items with a missing, empty, whitespace, non-string, or `seance` agent are unchanged. Batch-level fields, non-object items, and every other argument keep their value and structure. A batch that changes several items counts as one rewritten call; `/qol` reports the count for the current activation. Model-only calls on capable hosts keep the count unchanged.
+A flat call is one item; a `tasks` array is a batch. For each item whose `agent` is a string, trims non-empty, and is not `seance`, remove its own `sourceSession`. Also remove its own `model` without ordinary per-call capability or when selection is disabled for task calls, including `off` and `eval`. Removed values do not affect cleanup. Retained `model` values keep their structure. Items with a missing, empty, whitespace, non-string, or `seance` agent are unchanged. Batch-level fields, non-object items, and every other argument keep their value and structure. A batch that changes several items counts as one rewritten call; `/qol` reports the activation's count. Model-only calls count as rewritten when selection is disabled. Enabled selection leaves them unchanged.
 
 ### Availability
 
@@ -264,7 +264,7 @@ The handler is installed only for a built-in `task` whose schema exposes `source
 
 ### Limits
 
-- Cleanup is limited to host-specific seance-only fields on explicitly identified non-seance items. Calls with no usable agent and calls with batch-level fields keep native validation. The module adds no model-visible guidance.
+- Cleanup applies to `sourceSession` and inapplicable `model` on explicitly identified non-seance items. Calls with no usable agent and calls with batch-level fields keep native validation. The module adds no model-visible guidance.
 - The handler covers every `task` call in the session that registers it. While it is registered, every such call loses speculative launch, not only calls that carry the fields. This is the accepted cost; the module cannot enable launch for the calls it leaves untouched. A schema without `sourceSession` registers no handler, so that cost does not apply there. If the host later accepts the fields or stops exposing them, the handler still costs the same until disabled or retired.
 - A host that changes field meanings or capability registration needs a new review. An extension reading a separate registry could misclassify a capable host and remove its ordinary `model` selector. Validate the actual plugin-loading path on a newly adopted host.
 - When several extensions return `input` for one call, the host uses the last result; this module can overwrite or be overwritten by another revision.
@@ -277,6 +277,8 @@ The handler is installed only for a built-in `task` whose schema exposes `source
 - **Real OMP CLI**: OMP `18.11.3` with `gpt-6-luna` and the `ds-flash` preset. A batch call whose only item named `agent: "ds-flash"` and carried `sourceSession` and `model` dispatched successfully after cleanup: the model's raw call kept both fields, the assistant message the host persisted dropped them, `/qol` reported `taskArgs: enabled (rewrites=2)`, and the child returned its output. The loss of speculative launch, a real seance item, a flat single call, and multi-item batches are **not verified**.
 - **QoL `0.5.14` controlled execution**: locked OMP `18.13.3` dependencies, actual sanitizer and installed event handler. Old capability removes both fields; a separately registered `task.perCallModel` with default `off` preserves `model`. Model-only calls leave the count unchanged, mixed batches preserve seance arguments, and an existing activation retains its original capability snapshot. The targeted task suite passes 19 tests.
 - **QoL `0.5.14` real CLI**: OMP `18.14.0`, parent and child using `ds-flash`, candidate activation loaded through a test observer with extension discovery disabled. The raw ordinary task included both fields; execution and persisted arguments removed both. The child returned `CHILD_OK`, and `/qol` displayed version `0.5.14` and `taskArgs: enabled (rewrites=1)`. The imported Settings class matched the host API's class; registry lookup found `task.batch` and no `task.perCallModel`. `import.meta.resolve` could not expose the embedded module path. Target `18.16.0` loading and native model authorization remain upgrade-time checks.
+- **QoL `0.5.15` controlled execution**: locked OMP `18.13.3` dependencies, actual sanitizer and installed handler. Isolated-process checks cover `off`, `eval`, enabled selection, operator grants, runtime mode changes, concurrent settings scopes, unreadable settings, older hosts, and rewrite counting. The targeted suite passes 20 tests; typecheck passes.
+- **QoL `0.5.15` real CLI**: interactive OMP `18.18.0`, parent and children using the `ds-flash` role, extension discovery disabled and one candidate activation loaded. Five raw ordinary calls contained `model: "this-model-does-not-exist"` with the native mode still `off`. Each execution and persisted argument object omitted `model`; native dispatch selected `ds-flash`. Children returned `MODEL_IGNORED_OK`. The actual `/qol` surface showed `0.5.15`, `settings: ok`, and `taskArgs: enabled (rewrites=5)`.
 
 ### Upstream recheck
 

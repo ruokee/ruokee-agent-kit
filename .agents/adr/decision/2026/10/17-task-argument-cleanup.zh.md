@@ -1,18 +1,18 @@
 # 任务参数清理
 
 Decision owner: Ruokee
-Decision writer: OMP GPT-6 Astra
-Reverses: [任务参数清理](../../../archived/2026/10/17-r2-task-argument-cleanup.zh.md)
+Decision writer: OMP GPT-6.1 Sol
+Reverses: [任务参数清理](../../../archived/2026/10/17-r3-task-argument-cleanup.zh.md)
 
 [English](./17-task-argument-cleanup.md) | 中文
 
 ## 动机
 
-按宿主能力清理普通任务中的 seance 专用字段，保留原生的按调用选模型及授权行为。
+按宿主能力及当前 task 的模型选择许可清理普通任务参数。
 
 当会话声明 `seance` Agent 时，OMP 18.11.3 会在每个 `task` 项上暴露这两个字段，不只限于选择 `seance` 的项。[`validateSeanceFields`](https://github.com/can1357/oh-my-pi/blob/v18.11.3/packages/coding-agent/src/task/seance.ts) 在解析出的 Agent 不是 `seance` 时拒绝任何已存在的值，因为它与 `undefined` 比较，而不是判断值是否有意义。把可选字段当成输入参数的模型可能发送 `""`、`/dev/null` 或模型名，使整个调用在派发前失败。一个会话出现过四次这类失败，`sourceSession` 的值为 `""` 和 `/dev/null`，`model` 的值为 `""` 和 `@ds-flash`。省略这两个字段的重试成功。
 
-OMP `18.14.2` 引入普通任务按调用选模型。在 [`18.16.0`](https://github.com/can1357/oh-my-pi/blob/v18.16.0/packages/coding-agent/src/task/seance.ts) 中，普通项仍拒绝 `sourceSession`，`model` 则遵循[原生授权策略](https://github.com/can1357/oh-my-pi/blob/v18.16.0/packages/coding-agent/src/task/model-approval.ts)。无条件删除两个字段会丢弃合法模型选择，并把未授权选择变成默认模型任务。清理应保留宿主的决定权，同时保留旧宿主上的两字段清理。
+OMP `18.14.2` 引入普通任务按调用选模型。在 [`18.16.0`](https://github.com/can1357/oh-my-pi/blob/v18.16.0/packages/coding-agent/src/task/seance.ts) 中，普通项仍拒绝 `sourceSession`，`model` 则遵循[原生授权策略](https://github.com/can1357/oh-my-pi/blob/v18.16.0/packages/coding-agent/src/task/model-approval.ts)。无条件删除 `model` 会丢弃选择功能开启时的合法选择。在 [`18.18.0`](https://github.com/can1357/oh-my-pi/blob/v18.18.0/packages/coding-agent/src/task/settings.ts) 中，默认模式为 `off`，暴露的 schema 仍可能包含 `model`。维护者希望使用 Agent 固定模型时，LLM 仍可能填入这个可选字段。因此，task 模型选择关闭时忽略普通 `model`，开启时保留原生校验。
 
 宿主在派发前校验整批任务。若推测启动生效，已经从已闭合 `tasks[]` 项启动的子 Agent 会被丢弃。上游对误带 seance 专用字段的修复仍在本仓库范围之外。QoL 在扩展接缝处删除这些字段，task schema 和宿主派发路径保持原生。
 
@@ -44,7 +44,7 @@ schema 的正常校验会删除可选字段中的 `null` 和字符串 `"null"`�
 
 可独立开关的 `taskArgs` 调整遵循 [OMP QoL 决定](../09/20-omp-qol.zh.md)。其公开合同是一个原生 OMP 设置键 `taskArgsEnabled`，boolean，默认 `true`，受组件总开关约束。它按既有设置规则被拒绝或报告，并与其他键在同一激活快照中读取，因此改动在下次启动 OMP 时生效。
 
-内建 task schema 暴露 `sourceSession` 时，普通项删除该字段。缺少普通按调用选模型能力的宿主还删除 `model`。具备该能力的宿主收到原始 `model` 并执行原生校验，授权模式为 `off` 或 `eval` 时也保持该规则。`seance` 项保留两个字段，并遵循宿主对非空 `sourceSession` 的要求。只有普通 `model` 选择器的 schema 会让模块报告 `unavailable`，参数保持原样。
+内建 task schema 暴露 `sourceSession` 时，普通项删除该字段。旧宿主或 task 按调用选模型关闭时，还删除 `model`，后者包括 `off` 和 `eval`。开启时把原始 `model` 交原生校验及授权。`seance` 项保留两个字段，并遵循宿主对非空 `sourceSession` 的要求。只有普通 `model` 选择器的 schema 会让模块报告 `unavailable`，参数保持原样。
 
 ### 介入位置
 
@@ -54,7 +54,7 @@ schema 的正常校验会删除可选字段中的 `null` 和字符串 `"null"`�
 
 ### 改写规则
 
-扁平调用视为一个条目，`tasks` 数组视为批次。对 `agent` 为字符串、去除首尾空白后非空且不等于 `seance` 的每个条目，删除其自有的 `sourceSession` 键。仅在宿主缺少普通按调用选模型能力时删除自有的 `model` 键。被删除字段的值不参与判断，空字符串、占位值和非空值一视同仁。保留的 `model` 维持原值与结构。没有待删字段的项保留对象身份，不计为改写调用。
+扁平调用视为一个条目，`tasks` 数组视为批次。对 `agent` 为字符串、去除首尾空白后非空且不等于 `seance` 的每个条目，删除其自有的 `sourceSession` 键。宿主缺少普通按调用选模型能力，或 task 模型选择关闭时，删除自有的 `model` 键。被删除字段的值不参与判断，空字符串、占位值和非空值一视同仁。保留的 `model` 维持原值与结构。没有待删字段的项保留对象身份，不计为改写调用。符合条件的 model-only 调用在选择关闭时计为改写。
 
 批量调用对每个 `tasks[]` 项应用该规则，不改批量顶层的字段。处理器只复制发生改动的对象。其他参数，包括 `task`、`solutionSpace`、`tools`、`context`、`name` 和未知字段，保持值和结构不变。
 
@@ -76,7 +76,7 @@ seance schema 存在时，注册处理器会使该会话的 `task.speculativeLau
 
 schema 守卫依据宿主暴露的 `sourceSession` 字段，而不是版本号。因此它在只有普通 `model` 选择器的 18.5.0 schema 上保持停用，并在后续宿主暴露 seance 字段时生效。
 
-宿主注册的 `task.perCallModel` 标识普通模型能力。每次激活从宿主 registry 读取一次注册是否存在。该设置当前取值不影响清理。宿主独自负责解析选择器、授权模型和报告未获允许的选择。QoL 保持这些设置原值。此方式保持 OMP `18.13.3` 维护下限，无需版本号门禁。
+宿主注册的 `task.perCallModel` 标识普通模型能力。当前许可属于调用所属会话，每次调用读取。宿主区分维护者授权层与有效设置层时，两层都须允许 task 按调用选择模型。其余宿主使用有效模式。`off` 和 `eval` 都会关闭 task 的选择能力。许可变化对后续调用生效。具备能力而设置不可读时，保留 `model` 交原生处理。宿主负责解析选择器及授权保留的模型选择。QoL 保持这些设置原值，保留 OMP `18.13.3` 维护下限，无需版本号门禁。
 
 模块也不让其他原因无效的调用变得有效。其他 schema 失败、审批决定和派发错误保持原生行为。多个扩展为同一调用返回 `input` 时，宿主采用最后一个结果，因此本次改写可能覆盖其他扩展的改写，也可能被后注册的处理器覆盖。
 
@@ -87,7 +87,7 @@ schema 守卫依据宿主暴露的 `sourceSession` 字段，而不是版本号�
 ## 考虑过的替代方案
 
 - **通过扩展工具 API 包装 `task`。** 扩展 API 可以通过 `ctx.invokeTool` 委托同名原生实现，因此不必复刻派发、审批或后台生命周期。它仍需要替换工具定义、schema、描述和原生渲染路径，并随宿主变化保持这些内容同步。`tool_call` 处理器改动更少，且保留原生工具。
-- **按调用选模型关闭时删除 `model`。** 这会吞掉操作者要求的拒绝，并改用默认模型执行。保留字段让宿主在 `off`、`eval` 和 `on` 模式中都拥有完整决定权。
+- **普通能力存在时保留 `model`。** 默认 `off` 模式仍会在派发前拒绝 LLM 误传的字段。沿用维护者配置的 Agent 固定模型需要在执行边界清理已关闭的选择。
 - **始终保留 `model`。** 受维护的旧宿主仍将它保留给 seance，这会重新引发普通任务失败。按能力清理可以保留旧宿主的既有行为。
 
 ## 结果
@@ -95,4 +95,4 @@ schema 守卫依据宿主暴露的 `sourceSession` 字段，而不是版本号�
 - **已接受的推测启动损失。** 只有在未注册生命周期处理器且任务审批为自动允许时，OMP 才会在完整调用结束前启动批量子 Agent。seance schema 存在且模块启用时，每个启用 qol 的会话都会在每次批量 task 调用中失去提前启动，包括不带这两个字段的调用。启用了推测读取的用户也会失去该优化。这会给批量派发增加延迟。schema 没有 `sourceSession` 时不注册 handler，因此该成本不适用。
 - **上游修复后仍付代价。** 如果后续宿主不再向非 seance 项暴露这两个字段但 schema 仍保留 `sourceSession`，处理器在当前进程内仍然注册，推测执行代价会持续到模块被关闭或停用。字段从 schema 消失时，下一激活报告 `unavailable` 且不注册 handler。
 - **输入改写的后写生效。** 多个扩展为同一次调用返回 `input` 时，宿主采用最后一个结果。qol 的改写可能覆盖另一个扩展的改写，也可能被后注册的处理器覆盖。每个处理器看到的都是原始输入。
-- **依赖宿主细节。** 清理依赖输入替换、`sourceSession` schema 标记、内建工具来源和宿主共享的设置 registry。能力标记变化或扩展读取另一份 registry 时，具备新能力的宿主可能误用旧清理，丢弃模型选择器。
+- **依赖宿主细节。** 清理依赖输入替换、`sourceSession` schema 标记、内建工具来源、共享设置 registry 和调用所属会话的设置作用域。标记变化或导入另一份模块实例时，可能删除已开启的选择器，或保留已关闭的选择。

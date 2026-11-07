@@ -2,13 +2,12 @@
  * Task argument cleanup module.
  *
  * Only explicit non-seance items in a schema exposing `sourceSession` are
- * cleaned. Hosts with `task.perCallModel` own ordinary `model` validation;
- * older hosts treat both fields as seance-only. Capability presence, rather
- * than its configured value, selects the cleanup so native rejection stays
- * visible when ordinary model selection is disabled.
+ * cleaned. Ordinary `model` values are ignored when task per-call selection
+ * is disabled. Older hosts remove both fields.
  */
 
 import { lookup } from "@oh-my-pi/pi-coding-agent/config/registry";
+import { findScopedSettings, type Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
 import type { ModuleContext, ModuleState } from "./extension.ts";
 
 export const TASK_TOOL_NAME = "task";
@@ -32,9 +31,9 @@ interface CleanItem {
 }
 
 /**
- * Remove the seance-only fields from one task item when its own `agent` is a
- * non-seance string. Missing, empty, non-string, or seance agents, non-object
- * items, and items without a field to remove keep their identity.
+ * Remove inapplicable fields from one explicit non-seance item. Missing,
+ * empty, non-string, or seance agents, non-object items, and items without a
+ * field to remove keep their identity.
  */
 function cleanItem(item: unknown, perCallModel: boolean): CleanItem {
   if (item === null || typeof item !== "object" || Array.isArray(item)) {
@@ -60,7 +59,7 @@ function cleanItem(item: unknown, perCallModel: boolean): CleanItem {
  * items keep their identity. Any other shape is a flat call and the top-level
  * object is the item. The top-level fields are never touched in a batch. The
  * function returns `undefined` when nothing changed, and never mutates the
- * input.
+ * input. `perCallModel` indicates whether ordinary task selection is allowed.
  */
 export function sanitizeTaskArgs(
   input: Record<string, unknown>,
@@ -116,10 +115,19 @@ export function installTaskArgsModule(context: ModuleContext): ModuleState {
     return { status: "unavailable", reason: "task-tool-without-seance-fields" };
   }
 
-  const perCallModel = lookup("task.perCallModel") !== undefined;
+  const modelSetting = lookup("task.perCallModel");
   let rewrites = 0;
   pi.on("tool_call", (event) => {
     if (event.toolName !== TASK_TOOL_NAME) return;
+    let perCallModel = false;
+    if (modelSetting !== undefined) {
+      const hostSettings = findScopedSettings() as (Settings & { grantAuthority?: () => Settings }) | undefined;
+      perCallModel =
+        hostSettings === undefined ||
+        (modelSetting.get(hostSettings) === "on" &&
+          (typeof hostSettings.grantAuthority !== "function" ||
+            modelSetting.get(hostSettings.grantAuthority()) === "on"));
+    }
     const next = sanitizeTaskArgs(event.input, perCallModel);
     if (next === undefined) return;
     rewrites += 1;

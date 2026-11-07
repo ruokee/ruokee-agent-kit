@@ -272,3 +272,74 @@ describe("installTaskArgsModule", () => {
     expect(installed.harness.handlers.get("tool_call")).toBeUndefined();
   });
 });
+
+test("cleans disabled model choices using each call's settings and grant authority", () => {
+  const result = Bun.spawnSync(
+    [
+      process.execPath,
+      "--eval",
+      `
+import assert from "node:assert/strict";
+import { register } from "@oh-my-pi/pi-coding-agent/config/registry";
+import { Settings, withActiveSettings } from "@oh-my-pi/pi-coding-agent/config/settings";
+import { installTaskArgsModule } from "./src/task-args.ts";
+import { parseQolSettings } from "./src/settings.ts";
+import { createHarness, moduleContext } from "./test/host.ts";
+
+const tool = {
+  name: "task", sourceInfo: { source: "builtin" },
+  parameters: { properties: { sourceSession: {}, model: {} } },
+};
+function install() {
+  const harness = createHarness([tool]);
+  const statuses = [];
+  installTaskArgsModule(moduleContext({
+    pi: harness.pi, ctx: harness.context(), settings: parseQolSettings({}).settings,
+    setStatus: (_, state) => statuses.push(state),
+  }));
+  return { harness, statuses };
+}
+async function call(installed, settings, input = { agent: "ds-flash", model: "wrong" }) {
+  const [result] = await withActiveSettings(settings, () => installed.harness.emit(
+    "tool_call", { toolName: "task", input }, installed.harness.context(),
+  ));
+  return result?.input ?? input;
+}
+const old = install();
+assert.deepEqual(await call(old), { agent: "ds-flash" });
+const mode = register({ id: "task.perCallModel", type: "enum", values: ["off", "eval", "on"], default: "off" });
+const installed = install();
+const scoped = value => Settings.isolated({ "task.perCallModel": value });
+assert.deepEqual(await call(installed), { agent: "ds-flash", model: "wrong" });
+for (const value of ["off", "eval"]) {
+  assert.deepEqual(await call(installed, scoped(value)), { agent: "ds-flash" });
+}
+assert.equal(installed.statuses.at(-1).detail, "rewrites=2");
+assert.deepEqual(await call(installed, scoped("on")), { agent: "ds-flash", model: "wrong" });
+assert.equal(installed.statuses.at(-1).detail, "rewrites=2");
+for (const [effective, authority, retained] of [
+  ["on", "off", false], ["on", "eval", false], ["off", "on", false], ["on", "on", true],
+]) {
+  const settings = scoped(effective);
+  settings.grantAuthority = () => scoped(authority);
+  assert.deepEqual(await call(installed, settings), retained
+    ? { agent: "ds-flash", model: "wrong" } : { agent: "ds-flash" });
+}
+const live = scoped("off");
+assert.deepEqual(await call(installed, live), { agent: "ds-flash" });
+mode.override(live, "on");
+assert.deepEqual(await call(installed, live), { agent: "ds-flash", model: "wrong" });
+mode.override(live, "eval");
+assert.deepEqual(await call(installed, live), { agent: "ds-flash" });
+assert.deepEqual(await Promise.all([
+  call(installed, scoped("on")), call(installed, scoped("off")),
+]), [{ agent: "ds-flash", model: "wrong" }, { agent: "ds-flash" }]);
+assert.equal(installed.statuses.at(-1).detail, "rewrites=8");
+console.log("TASK_MODEL_PERMISSIONS_OK");
+`,
+    ],
+    { cwd: new URL("..", import.meta.url).pathname, stdout: "pipe", stderr: "pipe" },
+  );
+  if (result.exitCode !== 0) throw new Error(new TextDecoder().decode(result.stderr));
+  expect(new TextDecoder().decode(result.stdout).trim()).toBe("TASK_MODEL_PERMISSIONS_OK");
+});

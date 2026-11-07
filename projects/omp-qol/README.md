@@ -11,7 +11,7 @@ Jobs, messages, processes, turns, and compaction stay with OMP. Every adjustment
 - [Continuing waits](./docs/adjustments.md#continuing-waits): default on. A `wait` call continues across all-running job snapshots to one total deadline, 20 minutes by default, instead of returning each empty native window.
 - [Continuing after a transient model error](./docs/adjustments.md#continuing-after-a-transient-model-error): default on. A turn that ended with an eligible upstream error continues in the same session after 1 s and again with a doubling delay up to 8 s, at most 8 continuation turns per failure chain. Eligible covers classifier-flagged transient and timeout failures, turns the host marked as interrupted mid-stream, and errors carrying neither a status nor a classification.
 - [Extending one compaction deadline](./docs/adjustments.md#extending-one-compaction-deadline): default **off**. Within one compaction window, a matching `AbortSignal.timeout` call gets a longer deadline, so a remote compaction that needs more than the native 5 minutes is not cut off. Process-wide and experimental.
-- [Task argument cleanup](./docs/adjustments.md#task-argument-cleanup): default on when the built-in task schema exposes the seance-only `sourceSession` field. Remove it and `model` from non-seance task items before host validation; a schema with only the ordinary `model` selector stays untouched.
+- [Task argument cleanup](./docs/adjustments.md#task-argument-cleanup): default on when the built-in task schema exposes `sourceSession`. Remove it from explicit non-seance items. Ignore `model` when task per-call selection is disabled; retain enabled choices for native authorization. A schema with only the ordinary `model` selector stays untouched.
 - [Copy the last reply](./docs/adjustments.md#copy-the-last-reply): default on. Press `alt+shift+a` in an interactive session to copy the text blocks of the last assistant reply. Thinking, tool calls, and tool output stay out of the clipboard; a streaming turn or a reply without text leaves it unchanged.
 
 The wait adjustment adds an optional `timeout` without changing the model, cache key, or stored history. Recovery starts a turn and wait repeats a call the model already made; provider quota is spent when the model runs. The task argument cleanup rewrites the event input and leaves the task schema unchanged; the host persists the revised arguments in the current assistant message. The copy shortcut only reads the active branch and writes the system clipboard; it adds no session entry and sends no request.
@@ -25,7 +25,7 @@ omp plugin config list @ruokee/omp-qol
 omp plugin config set @ruokee/omp-qol waitJobsSeconds 1800
 ```
 
-Settings are read once per activation. Restart OMP after a change. A running process keeps the values it read at startup, and a new session in that process does not reload them.
+QoL settings are read once per activation. Restart OMP after a change. A running process keeps these values. New sessions in that process use the same snapshot. The native `task.perCallModel` permission is read for each task call.
 
 ### General
 
@@ -56,7 +56,7 @@ Settings are read once per activation. Restart OMP after a change. A running pro
 
 ### Task arguments
 
-- `taskArgsEnabled`: default `true`, accepts a boolean. When the built-in task schema exposes `sourceSession`, remove it from explicit non-seance task items before host validation. Hosts exposing `task.perCallModel` keep `model` for native authorization even when selection is off. Older hosts also remove `model`. The registered handler disables speculative task launch and experimental read speculation. On a schema with only the ordinary `model` selector, the module reports `unavailable` and registers no handler. Restart to apply.
+- `taskArgsEnabled`: default `true`, accepts a boolean. When the built-in task schema exposes `sourceSession`, remove it from explicit non-seance items before host validation. Also remove accidental `model` values when ordinary task model selection is disabled, including `off` and `eval`. Enabled selection retains `model` for native validation and authorization. Older hosts also remove `model`. The registered handler disables speculative task launch and experimental read speculation. On a schema with only the ordinary `model` selector, the module reports `unavailable` and registers no handler. Restart to apply.
 
 ### Copy
 
@@ -74,7 +74,7 @@ Settings are read once per activation. Restart OMP after a change. A running pro
 `/qol` prints the current state and changes nothing. It runs no model turn and reads no value outside the settings schema.
 
 ```
-@ruokee/omp-qol 0.5.14
+@ruokee/omp-qol 0.5.15
 activation cwd: /home/me/project
 refresh: restart OMP; settings are read once per activation
 settings: ok
@@ -142,6 +142,10 @@ bun test
 The test suite replaces the host with a small recording host and keeps the package boundaries real: the settings getter from the installed `@oh-my-pi/pi-coding-agent`, the error classifier from the installed `@oh-my-pi/pi-ai`, and `AbortSignal.timeout` in both its native and patched form. Each adjustment records the checks its tests cover in [Adjustments](./docs/adjustments.md).
 
 ## Changes
+
+### 0.5.15
+
+Ignore accidental ordinary task `model` arguments when per-call selection is disabled, including native `off` and `eval` modes. Read the calling session's live permission, including its operator grant layer where available. Enabled selection retains native validation and authorization. Keep older-host cleanup and seance behavior. The maintenance lower bound and locked development baseline remain `18.13.3`.
 
 ### 0.5.14
 

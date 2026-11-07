@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
 Reverses: [Task argument cleanup](./17-r1-task-argument-cleanup.md)
 Archived: 2026-11-06
-Reversed by: [Task argument cleanup](../../../decision/2026/10/17-task-argument-cleanup.md)
+Reversed by: [Task argument cleanup](./17-r3-task-argument-cleanup.md)
 
 English | [中文](./17-r2-task-argument-cleanup.zh.md)
 
