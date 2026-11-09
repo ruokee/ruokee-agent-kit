@@ -18,7 +18,7 @@ For preparation, compare goal, design, Plan, and linked details with current req
 
 For implementation, inspect the complete relevant change and consumers against the goal, Plan acceptance, applicable Skills, and project rules. Trace needed behavior and relevant failure or boundary cases. Check permission, documentation, dependency bases, self-check history, repairs, and completeness, including placeholders and partial substitutes.
 
-Read execution evidence with its candidate and coverage. Independently exercise changed behavior and run proportionate non-destructive checks where permitted and needed. Inspect a check's behavior before invoking it when it may write or create external effects. Those effects need separate authorization; name any resulting evidence gap.
+Own actual verification, evidence collection, verdicts, and rechecks. Read execution observations with their candidate and coverage, then exercise changed behavior and run proportionate non-destructive checks within permission. A complete Builder-run validation is not required before this assessment. Inspect a check's behavior before invoking it when it may write or create external effects. Those effects need separate authorization; name any resulting evidence gap.
 
 Reuse unchanged evidence with producer, candidate, conditions, inputs, result, and scope stated. An independent rerun requires the verifier to run it. File paths, host discovery, controlled providers, real models, and interactive behavior establish different facts. Keep relevant limits without rejecting sufficient evidence for the actual requested scope.
 
@@ -32,7 +32,7 @@ Use one verdict for the current scope:
 - `changes required`: an evidenced defect or unmet requirement needs correction. Name affected work and required repair evidence.
 - `unable to determine`: necessary information, capability, stable identity, permission, or evidence is missing. State the prerequisite for judgment. The verdict stays open.
 
-A material or design defect returns to [Clarify](./clarify.md); implementation deviation returns to [Execute](./exec.md). The author repairs. Recheck affected work with enough surrounding coverage to detect regression. Independent Verify runs without the self-check inspection limit.
+A material or design defect returns to [Clarify](./clarify.md); implementation deviation returns to [Execute](./exec.md). Send repair feedback to the original Builder. After repair, the same suitable Verifier rechecks affected work with enough surrounding coverage to detect regression. Preserve still-valid evidence rather than restarting the entire assessment for every change. Independent Verify runs without the self-check inspection limit.
 
 ## Save the assessment
 
@@ -40,11 +40,13 @@ Append independent preparation review to `material_check.md`. Append independent
 
 Preserve each prior verdict and candidate, including failed rounds. A new candidate gets a new assessment; prior failures keep their verdicts. Record scope, candidate and relevant base, basis, conditions and inputs, checks and observations, reused evidence, findings, verdict, limits, and missing prerequisites. Link the execution record instead of duplicating it. Keep self-check claims, independent judgment, user acceptance, and delivery status separate.
 
+For each assessment, list the Skills actually loaded for verification, with each name, source location, and purpose. Base this list on actual loading records. For rechecks, distinguish newly loaded Skills from previously loaded guidance reused in the assessment.
+
 No-record and narrower restrictions govern saving. State the limit and point to the permitted destination; a gate requiring a saved report waits for permission and destination.
 
 ## Return
 
-Save the permitted report, then return a final-only result to the live owner as the last action; the owner resumes from it. A direct request returns to the user. Include sender, Task/unit or material scope, candidate, verdict, actionable findings or blocker, and report path.
+Save the permitted report, then return a final-only result to the live owner as the last action; the owner resumes from it. A direct request returns to the user. Include sender, Task/unit or material scope, candidate, verdict, loaded Skills or their report section, actionable findings or blocker, and report path.
 
 For standalone Verify, this completes the requested action. The read-only verifier ends its assignment after returning its verdict. In a combined request, the overall owner resumes covered author repairs, rechecks, or later operations through the [entry's continuation rule](../SKILL.md#continue-the-request).
 

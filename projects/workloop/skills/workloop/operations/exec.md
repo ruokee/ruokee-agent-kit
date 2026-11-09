@@ -1,6 +1,6 @@
 # Execute
 
-Apply the loaded [entry](../SKILL.md). Read [Task ownership](../references/task.md) and [execution constraints](../references/execution.md) before resolving the assignment. Implement in the current session and coordinate checks directly; no Supervisor is required. Follow project working conventions.
+Apply the loaded [entry](../SKILL.md). Read [Task ownership](../references/task.md) and [execution constraints](../references/execution.md) before resolving the assignment. Act as the Builder in the current session: implement, self-check, repair, and coordinate independent Verify. No Supervisor is required. Follow project working conventions.
 
 ## Resolve the unit
 
@@ -20,27 +20,27 @@ Keep the Task, unit, basis and entry location, candidate, complete request's end
 
 Reuse project patterns and complete the requested change. Preserve unrelated work and effective requirements. Prepare only the local environment and temporary processes needed for authorized implementation and checks. Limit changes to the requested work; preflight, hypothetical features, compatibility shims, and unrelated fallback behavior stay out.
 
-Update affected callers, contracts, and documentation together. Exercise changed behavior, run required checks, and repair in-scope failures without weakening acceptance. Record conditions and observations alongside exit status. Follow project candidate-commit rules and preserve a stable candidate for inspection.
+Update affected callers, contracts, and documentation together. Perform debugging needed for implementation and honor project-required author checks or hooks. The Verifier owns actual verification and evidence collection; a complete author-run verification is not a handoff prerequisite. Follow project candidate-commit rules and preserve a stable candidate for inspection.
 
-Save substantive results in the established execution record, normally `execution.md`: unit, branch or change location, dependency base, candidate, completed behavior, inputs, observations, commands and outcomes, coverage, deviations, and remaining limits. Keep failures and repairs traceable. Preserve reconstruction sources rather than treating installed dependencies as evidence. Stop owned temporary processes before authorized cleanup.
+Save substantive results in the established execution record, normally `execution.md`: unit, branch or change location, dependency base, candidate, completed behavior, implementation observations, repairs, deviations, and remaining limits. Link the Verifier's checks and evidence rather than duplicating them. Preserve reconstruction sources rather than treating installed dependencies as evidence. Stop owned temporary processes before authorized cleanup.
 
 Use verified predecessor candidates under the execution constraints. Missing product decisions or required capabilities block dependent actions; delivery waits for the full authorized scope. When a new fact invalidates a contract, pause that work and record the question and options in Clarify materials; continue clear, unaffected authorized work.
 
 ## Self-check
 
-After implementation and exercised checks, read [self-check](../references/self-check.md). Supply this unit's basis, frozen candidate, evidence, and authorized result location. Inspection results go in the execution record or a linked self-check record; `verification.md` holds independent Verify. Apply its fresh-context, cumulative-count, early-pass, and limit rules. The author repairs and reruns affected checks.
+After implementation, read [self-check](../references/self-check.md) and inspect this unit in the current main session. Use its basis, candidate, changed output, and relevant materials. Save the lightweight inspection in the execution record or a linked self-check record; `verification.md` holds independent Verify. Follow the shared count, reset, early-pass, and limit rules. Repair actionable findings.
 
 ## Obtain independent Verify
 
 Each implementation unit needs independent [Verify](./verify.md), even after self-check passes. Under the execution grant, select and launch or reuse a suitable isolated verifier through the role and collaboration references. Supply the Task, current unit, frozen candidate location, and live reply owner. The verifier loads its operation and resolves its basis and report.
 
-Wait and validate the final result under the collaboration rules. On `changes required`, repair in scope, exercise affected behavior, update evidence, freeze the new candidate, and request recheck from the same suitable verifier. Independent feedback keeps self-check counts at their current values. On `unable to determine`, resolve the specific missing prerequisite rather than relabeling the result. Preserve pending requests instead of redispatching them.
+Wait and validate the final result under the collaboration rules. On `changes required`, the original Builder repairs in scope, records the changes, freezes the new candidate, and requests affected rechecks from the same suitable Verifier. The Verifier runs those rechecks and updates evidence. Apply self-check resets under its shared policy when verification completes. On `unable to determine`, resolve the specific missing prerequisite rather than relabeling the result. Preserve pending requests instead of redispatching them.
 
 Complete the authorized repair and recheck cycle without routine intermediate confirmation. Explicit request limits and real human checkpoints still apply.
 
 ## Continue
 
-After a current independent pass, save the unit result and begin the next authorized dependency-ready unit in this execution. Pending user review or predecessor integration leaves the next authorized unit available. A Worker stops at its assigned boundary and returns a final result to the owner, who continues the wider Plan.
+After a current independent pass, save the unit result and begin the next authorized dependency-ready unit in this execution. Pending user review or predecessor integration leaves the next authorized unit available. A delegated Builder stops at its assigned boundary and returns a final result to the owner, who continues the wider Plan.
 
 If all remaining work is genuinely blocked, save each blocker, finished candidate, and exact missing fact, state, or permission. Preserve the full selected scope. When that scope is complete, return its candidates together for user review. Integration and Ship require their own effective permission.
 

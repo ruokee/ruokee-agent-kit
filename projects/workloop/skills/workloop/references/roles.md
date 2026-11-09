@@ -1,6 +1,6 @@
 # Role selection
 
-Read when selecting a checker, verifier, Worker, or explicitly assigned Senior, or when Setup configures role defaults. Read the Senior section only when that role is assigned or its defaults are being configured.
+Read when selecting a Verifier, delegated Builder, or explicitly assigned Senior, or when Setup configures role defaults. Read the Senior section only when that role is assigned or its defaults are being configured. Self-check stays in the main session responsible for the output.
 
 ## Select a role
 

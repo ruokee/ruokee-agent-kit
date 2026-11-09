@@ -2,7 +2,7 @@
 name: workloop
 description: Use when the user requests workloop goal clarification, design, planning, execution, independent verification, project-defined delivery, supervision, initialization, continuation of a workloop Task, or planning with the wayfinding method in Clarify.
 metadata:
-  version: "0.1.8"
+  version: "0.1.9"
 ---
 
 # workloop
@@ -25,14 +25,14 @@ Follow links from this actual installed directory. Read the selected body in ful
 - [Execute](./operations/exec.md): implement in the current session and coordinate checks.
 - [Verify](./operations/verify.md): independently assess preparation materials or an executed candidate.
 - [Ship](./operations/ship.md): perform the delivery defined by the project.
-- [Supervise](./operations/supervise.md): schedule independent Workers without implementing their work.
+- [Supervise](./operations/supervise.md): schedule independent Builders without implementing their work.
 - [Setup](./setup.md): initialize or update external defaults when requested; it is not a prerequisite to installation or ordinary use.
 
 [Wayfinding](./references/wayfinding.md) supports large or unresolved planning within Clarify. Follow Clarify's request resolution, Task material ownership, and loading conditions before reading the method.
 
 ## Continue the request
 
-After an operation completes its duties and required checks, the overall request owner saves the result and resolves the next action against the complete request. For a single-operation request, return that result. For a combined request, load the next authorized, ready operation and continue to the requested endpoint. An operation's local completion is an intermediate result when authorized actions remain. Explicit checkpoints and real blockers stop their dependent actions; continue unaffected authorized work.
+After an operation completes its duties and required checks, the overall request owner saves the result and resolves the next action against the complete request and applicable project conventions. Return when the effective scope ends with this operation. Otherwise load the next authorized ready operation and continue to the requested endpoint, including an already-authorized project-defined continuation. An operation's local completion is an intermediate result when authorized actions remain. Explicit checkpoints and real blockers stop their dependent actions; continue unaffected authorized work.
 
 Route material or design defects to Clarify and implementation defects to Execute under the existing scope and grants. After the covered repair and required rechecks, resume the remaining requested actions. Keep each operation's responsibilities, independent read-only Verify, and candidate freezing. A delegated role returns at its assigned boundary; the overall owner continues the request.
 

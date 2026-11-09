@@ -294,12 +294,14 @@ For another version, use its current public interfaces. File operations and disc
 ## Choose an operation
 
 - **Clarify** resolves goals, performs necessary research or diagnosis, develops design, and forms or revises `plan.md` in the same operation. Resolve the goal, necessary design, and consequential choices before making a unit executable; keep unresolved questions and design work in Clarify materials such as `design.md`, and make the Plan contain resolved contracts only. Explicit discussion-only, design-only, no-plan, pause, and writing restrictions remain effective. Execution requires authority from the request, which may already cover subsequent implementation.
-- **Execute** implements in the current session and coordinates self-check and independent Verify. Without a narrower limit, it continues the remaining Plan, usually one unit at a time and several serially.
-- **Verify** independently evaluates specified materials or an implementation candidate without editing it. Each report names its candidate, evidence, verdict, and limits.
+- **Execute** acts as the Builder in the current session, implementing, lightly self-checking, repairing, and coordinating independent Verify. Without a narrower limit, it continues the remaining Plan, usually one unit at a time and several serially.
+- **Verify** independently evaluates specified materials or an implementation candidate. The Verifier owns actual verification, evidence collection, verdicts, and rechecks. The target stays read-only. Each report names its candidate, evidence, verdict, and limits.
 - **Ship** performs the delivery defined by the project under the actual request and permissions. It need not mean production release or Task closure.
-- **Supervise** schedules independent Workers instead of implementing itself. It can assign independent units to separate Workers while preserving each unit's review boundary.
+- **Supervise** schedules independent Builders. It keeps interdependent work with the same Builder and assigns genuinely independent work separately. Goal, executor, and delivery boundaries may differ.
 
-One request can cover one operation or several ordered actions, such as analysis, planning, implementation, and verification. The entry resolves the complete request's scope, grants, endpoint, and explicit checkpoints. After each operation and its required checks, the overall owner continues authorized ready actions to that endpoint. Material or design defects return to Clarify; implementation defects return to Execute. Covered repairs and rechecks resume the remaining request. The independent verifier returns its read-only verdict to the owner. A single-operation request finishes within that operation's duties.
+One request can cover one operation or several ordered actions, such as analysis, planning, implementation, and verification. The entry resolves the complete request's scope, grants, endpoint, and explicit checkpoints. After each operation and its required checks, the overall owner continues authorized ready actions to that endpoint. Material or design defects return to Clarify; implementation defects return to Execute. Covered repairs and rechecks resume the remaining request. The independent verifier returns its read-only verdict to the owner. Return when the effective scope ends with the current operation.
+
+Applicable project conventions can already authorize continuation to Ship. Execute that action bundle under the project's meaning and effective grants. Keep the project's human checkpoints and protected permissions.
 
 An actual `/wl-exec` or equivalent direct Execute request starts the resolved owning Task from `planning` to `open` before Plan readiness is checked. An `open` Task continues without another start; a `closed` Task still needs separate reopening permission. Returning to Clarify for missing planning or problems found during execution, verification, or user acceptance keeps the Task `open`, never `planning`.
 
@@ -316,6 +318,8 @@ Execution can invalidate a contract when a new fact appears. Pause the affected 
 ## Keep materials focused
 
 The owning tk Task holds the materials. `goal.md` states the desired result and stopping conditions without implementation methods. Optional `design.md` explains the approach. Optional diagnosis records the problem and supported causes without repair recommendations. Research summarizes sources; Grill preserves discussion.
+
+Plans and Task materials carry effective requirements and permissions. Additional Task restrictions come from the user's current input. Materials must not add or tighten authorization or inherit extra restrictions from historical Tasks or the material being changed. Only unanswered choices affecting the execution contract belong among unresolved questions.
 
 Every task entering Execute needs an independent `plan.md`, even a single-unit change. It can expand units inline or link to tk subtasks. Execution records preserve candidates and checks. Preparation self-check normally uses `plan-check.md`; requested independent preparation review appends to `material_check.md`; independent Verify of an executed candidate appends to `verification.md`. An executed Markdown-only unit is still an implementation candidate. Preserve prior assessments and failures. Optional activities need no empty files or role matrix.
 
@@ -338,9 +342,13 @@ The policy preparation completes before the Plan; until then, the policy stays i
 
 A formed Plan receives preparation self-check by default. Preparation's independent Verify starts on user request and includes necessary in-scope author repairs and rechecks unless the user limits it. Implementation requires both quick self-check and independent Verify for each unit.
 
-Self-check defaults to a selected maximum of three to five inspections, overridable in external guidance. A pass ends early. Preparation and each implementation unit count separately. Preparation counts are per Clarify round: a later round starts a fresh count after the previous round returns for a new request, a returned material or design defect, or changed requirements or basis, and an earlier exhausted round does not block it. A round declared only to obtain a fresh count remains the same round. Within a round or an implementation unit, revisions, repairs, and Verify feedback do not reset the count. At the applicable limit, stop adding self-checks, finish actionable repairs, and report unrechecked changes. Independent Verify has no self-check limit.
+The main session responsible for the output performs self-check in its own context. It uses no separate checker or subagent. The limit is five inspections, with separate preparation and implementation-unit counts. When discussion changes or verification completes, the main session SHOULD reset the applicable count and preserve the earlier results. A pass ends early. Later inspections focus on new differences, unresolved findings, and consequential counterexamples. At the limit, finish actionable repairs and report unresolved or unrechecked changes. The [self-check policy](./skills/workloop/references/self-check.md) owns the detailed rules.
 
-Execution normally needs no repeated confirmation for in-scope implementation, repairs, checks, or independent Verify. Execute and Supervise prohibit structured question tools; indispensable user-only decisions are raised in ordinary text. `confirm` requests item-by-item confirmation without removing checks or enabling structured questions. `nowait` changes cross-session request waiting, not self-check barriers or permission.
+The Builder hands a stable candidate to the Verifier after implementation and lightweight self-check. Necessary implementation debugging and project-required author hooks stay with the Builder. Complete Builder-run verification is not a handoff prerequisite. Findings return to the original Builder for repair, then to the same suitable Verifier for affected rechecks with enough surrounding coverage. Preserve still-valid evidence. Independent Verify has no self-check limit.
+
+Each independent assessment records the Skills actually loaded, their source locations, and their purposes in its report. Rechecks distinguish new loads from reused guidance. The final result names the loaded Skills or points to that report section.
+
+Execution normally needs no repeated confirmation for in-scope implementation, repairs, checks, or independent Verify. Execute and Supervise prohibit structured question tools; indispensable user-only decisions are raised in ordinary text. `confirm` requests item-by-item confirmation. Required checks and the structured-question prohibition remain effective. `nowait` changes cross-session request waiting. Scope and permission remain effective.
 
 Verification, user acceptance, integration, installation, publication, and Task closure are distinct. Verified dependency candidates can support subsequent development under project rules without integration permission. Changed candidates require affected evidence to be refreshed.
 
@@ -363,7 +371,7 @@ For Chinese guidance, request `workloop-zh` and express the operation in Chinese
 
 ## Configure defaults
 
-Initialization is optional. Ask to initialize or reconfigure the selected Skill; its short setup link leads to the full instructions. Settings belong in appropriate external guidance such as `AGENTS.md`: independent role models and reasoning, the two self-check limits, collaboration choice, project work conventions, and Ship's intended result. A Senior default model does not activate a Senior.
+Initialization is optional. Ask to initialize or reconfigure the selected Skill; its short setup link leads to the full instructions. Settings belong in appropriate external guidance such as `AGENTS.md`: independent Builder, Verify, and Senior models and reasoning, collaboration choice, project work conventions, and Ship's intended result. Self-check uses the main session and needs no checker default. A Senior default model does not activate a Senior.
 
 Explicit current choices override continuing choices, which override applicable defaults. Preserve exact model selectors and aliases. workloop does not embed machine-specific models or create a user/project configuration hierarchy. Ordinary operations do not perform proactive availability checks; actual errors lead to focused diagnosis.
 

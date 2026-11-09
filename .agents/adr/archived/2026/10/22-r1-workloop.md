@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
 Archived: 2026-10-23
-Reversed by: [workloop](../../../decision/2026/10/22-workloop.md)
+Reversed by: [workloop](./22-r2-workloop.md)
 
 English | [中文](./22-r1-workloop.zh.md)
 

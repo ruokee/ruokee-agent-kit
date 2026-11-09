@@ -1,6 +1,6 @@
 # 角色选择
 
-选择自检者、核验者、Worker 或明确分配的 Senior 时读取；Setup 配置角色默认值时也读取。只有分配 Senior 或配置其默认值时才读取 Senior 节。
+选择 Verifier、被分派的 Builder 或明确分配的 Senior 时读取；Setup 配置角色默认值时也读取。只有分配 Senior 或配置其默认值时才读取 Senior 节。自检由负责产出的主会话完成。
 
 ## 选择角色
 

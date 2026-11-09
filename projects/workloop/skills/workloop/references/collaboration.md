@@ -1,6 +1,6 @@
 # Collaboration
 
-Read before the first cross-session assignment or receipt, including self-check, independent Verify, Worker dispatch, or assigned Senior advice. Single-session Setup and work without collaboration do not need this reference. Select roles through [role selection](./roles.md) when needed.
+Read before the first cross-session assignment or receipt for independent Verify, delegated Builder work, or assigned Senior advice. Main-session self-check and single-session work do not need this reference. Select roles through [role selection](./roles.md) when needed.
 
 ## Establish the route
 
@@ -12,7 +12,7 @@ An assignment identifies its owning Task, unit, basis, exact scope, candidate or
 
 Give shared files or logic one editing owner at a time. Freeze candidates during review. A verifier must not have implemented the target. Keep implementation and verification contexts separate.
 
-Reuse suitable isolated Verify and explicitly assigned Senior sessions across units and rechecks. Finish or recover a busy role's existing assignment before sending another. Create a session only when no suitable one exists or replacement is requested. Self-check instead uses a fresh context for each inspection under its own rules.
+Keep implementation feedback with the original Builder. Reuse suitable isolated Verify and explicitly assigned Senior sessions across units and rechecks. Finish or recover a busy role's existing assignment before sending another. Create a session only when no suitable one exists or replacement is requested.
 
 Do not send unsolicited mid-work messages or inspect a working Agent's private session files. Results are final-only; a bounded Senior consultation is a separate assignment.
 
@@ -20,7 +20,7 @@ Do not send unsolicited mid-work messages or inspect a working Agent's private s
 
 Wait for final results on cross-session work and advice by default. Use the collaboration tool's wait operation. If it continues as a background command, use the host's blocking final-result wait until a result or concrete blocker arrives. Do not poll or infer a verdict from lifecycle state.
 
-Only explicit `nowait` permits dispatch without these cross-session waits. Preserve the pending assignment and resume when its final result arrives, without another routine continue request. `nowait` changes neither native self-check final-result barriers nor scope, required checks, or acceptance. A final reply to an owner does not wait on that owner.
+Only explicit `nowait` permits dispatch without these cross-session waits. Preserve the pending assignment and resume when its final result arrives, without another routine continue request. `nowait` leaves scope, required checks, and acceptance unchanged. A final reply to an owner does not wait on that owner.
 
 Verify the returned sender, Task/unit, candidate, verdict, and saved report before progressing. Missing, stale, truncated, or conflicting evidence needs clarification, not an inferred pass. Recover a saved result after delivery failure before redispatching. Check the effect of a possibly successful non-idempotent action before repeating it.
 

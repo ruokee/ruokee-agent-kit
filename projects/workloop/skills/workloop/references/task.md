@@ -18,9 +18,11 @@ Conversation-only, no-record, no-write, or narrower limits take precedence. If t
 
 Optional activities need no empty files or material-to-role matrix. Saving materials does not grant implementation, configuration, Git operations, or tk lifecycle transitions. Apply those actions' own effective permission.
 
+Materials carry effective requirements and grants. Task-specific additional restrictions come from the user's current input. Plans and other materials must not add or tighten authorization or inherit extra restrictions from historical Tasks or material being changed.
+
 ## Bind evidence
 
-Exercise changed behavior and run proportionate project-required checks. Record the scope, candidate identity, conditions, actual inputs, observations, evidence location, coverage, deviations, and unverified areas. Distinguish source and file checks, controlled providers, host discovery, actual UI or model runs, and user outcomes. Automated success alone does not prove the requested behavior.
+The Verifier exercises changed behavior, runs proportionate project-required checks, and records the scope, candidate identity, conditions, actual inputs, observations, evidence location, coverage, deviations, and unverified areas. The Builder records necessary implementation debugging and lightweight self-check. Distinguish source and file checks, controlled providers, host discovery, actual UI or model runs, and user outcomes. Automated success alone does not prove the requested behavior.
 
 A change invalidates affected evidence. Reuse unchanged evidence only with its author, candidate, conditions, result, and scope stated; do not claim it was independently rerun. Do not add installation, expensive experiments, or success metrics without a requirement and permission.
 

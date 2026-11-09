@@ -20,6 +20,8 @@ During Execute and Supervise, structured question tools such as `ask` stay out o
 
 Resolve each grant from the complete request's goal, actions, scope, delivery endpoint, and explicit limits under applicable rules. Fixed permission keywords are not required. An execution request normally authorizes ordinary in-scope implementation, repair, project-local preparation, checks, temporary processes, and local candidate-preservation operations required by the project. Reuse valid grants rather than repeatedly requesting them. Authorized temporary-directory file checks remain within their check scope.
 
+Apply an authorized action bundle in full under its project meaning, preserving explicit checkpoints and protected permissions. Materials follow the shared Task ownership rules for effective requirements and grants.
+
 Execution covers that ordinary in-scope work. Proposal approval, archival, integration, push, publication, local installation, expense, privileged operations, and Task closure follow their own requirements and narrower instructions. User acceptance is separate from verification and covers its own stated scope. Resolve foreseeable consequential requirement choices before implementation rather than postponing every approval until the end.
 
 Missing permission, an unresolved requirement, or required external state blocks only dependent actions. Continue authorized ready work. Preserve the whole selected scope and report its completed subset as a subset. A material or design defect returns affected work to Clarify, while an implementation deviation is repaired in Execute.
@@ -30,4 +32,4 @@ Where project rules permit, preserve a verified predecessor with local task-owne
 
 A genuinely required deployment, service, or published artifact keeps its actual state; a branch serves development candidates. If a predecessor changes, refresh affected descendants, checks, and Verify evidence. Keep unintegrated candidates available for ordered delivery under its own permission.
 
-A Worker stops at its assigned boundary; the execution owner continues the wider authorized Plan. A Worker's stop and a unit's pass continue the wider Plan without another routine continue instruction.
+A delegated Builder stops at its assigned boundary; the execution owner continues the wider authorized Plan. A Builder's stop and a unit's pass continue the wider Plan without another routine continue instruction. Continue to Ship when the complete request or applicable project convention already authorizes it.
