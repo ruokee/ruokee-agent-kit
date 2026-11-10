@@ -22,6 +22,8 @@ Viewing entries and editing drafts are read only. They do not send a message, ch
 
 A confirmed write sends an ordinary user message containing only the draft body. The write stays pending until OMP consumes that message and the target session, branch, and entry still match. A result reports whether it was accepted, unchanged, or not applied, with the affected entry and reason.
 
+The pending notice appears immediately. OMP reports asynchronous send failures. Pin then drops the rejected submission so that later ordinary messages with the same text remain ordinary prose. Newer submissions remain valid.
+
 Editing the submitted message makes it ordinary text rather than a Pin operation. Quoted drafts, restored messages, and messages submitted by another process are also ordinary text. While a confirmed draft is still pending, repeating its exact text can be treated as that draft. Switching sessions, restarting, or shutting down before application drops pending work. A write refused after consumption does not later apply when capacity or branch state changes.
 
 ## Agent tool

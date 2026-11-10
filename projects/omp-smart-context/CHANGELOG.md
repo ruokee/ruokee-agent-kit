@@ -2,6 +2,10 @@
 
 [中文](./CHANGELOG.zh.md)
 
+## 0.1.8
+
+- Discard rejected Pin user submissions so later ordinary messages with the same text stay ordinary. Preserve immediate pending feedback and newer submissions after a session switch.
+
 ## 0.1.7
 
 - Install the shared fetch observer at the first model request, preserving proxy wrappers loaded during deferred startup. Keep signal ancestry observation active from session registration.

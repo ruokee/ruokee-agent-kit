@@ -275,7 +275,7 @@ export function pinEnvironment(pi: ExtensionAPI, state: RuntimeState, fallback: 
     },
     submit: (request: PinRequest) => {
       const text = submittedText(request);
-      state.submissions.set(request.operationId, {
+      const submission: SubmittedOperation = {
         request,
         text,
         generation: state.branchGeneration,
@@ -283,8 +283,14 @@ export function pinEnvironment(pi: ExtensionAPI, state: RuntimeState, fallback: 
         // it took is what tells the message it runs from one the conversation
         // already held.
         at: Date.now(),
+      };
+      state.submissions.set(request.operationId, submission);
+      // The host reports send failures. Keep the pending receipt synchronous.
+      void Promise.resolve(pi.sendUserMessage(text)).catch(() => {
+        if (state.submissions.get(request.operationId) === submission) {
+          state.submissions.delete(request.operationId);
+        }
       });
-      pi.sendUserMessage(text);
     },
     deliverOutcome: (text: string, operationId: number) => {
       // The result is handed over while the request that consumes the operation

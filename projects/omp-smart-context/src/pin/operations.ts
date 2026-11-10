@@ -61,6 +61,8 @@ export interface PinEnvironment {
    * that text reaches a request, so nothing is written before then. The binding
    * also records the branch the operation was confirmed on, so the request that
    * consumes the message can tell whether the branch changed while it waited.
+   * An asynchronous send rejection drops that submission. The host reports the
+   * failure; this call returns synchronously so the command can report pending.
    */
   submit(request: PinRequest): void;
   /**
