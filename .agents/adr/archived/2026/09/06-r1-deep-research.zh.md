@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP
 Archived: 2026-10-24
-Reversed by: [deep-research](../../../decision/2026/09/06-deep-research.zh.md)
+Reversed by: [deep-research](./06-r2-deep-research.zh.md)
 
 [English](./06-r1-deep-research.md) | 中文
 
@@ -17,7 +17,7 @@ Reversed by: [deep-research](../../../decision/2026/09/06-deep-research.zh.md)
 
 以纯 Skill 形式提供 `deep-research`，遵循[语言变体打包决定](../08/20-r2-skill-variants.zh.md)与[组件边界决定](../../../decision/2026/08/24-component-self-containment.zh.md)。
 
-- 英文指令存放于 [skills/deep-research/SKILL.md](../../../../../skills/deep-research/SKILL.md)，中文翻译存放于 [variants/zh/skills/deep-research/SKILL.md](../../../../../variants/zh/skills/deep-research/SKILL.md)。
+- 英文指令存放于 `skills/deep-research/SKILL.md`，中文翻译存放于 `variants/zh/skills/deep-research/SKILL.md`。
 - 两种变体使用相同的 Skill 名称 `deep-research`。任一变体均安装到宿主常规的 `skills/deep-research/` 路径，安装路径不含 `variants/zh/` 前缀。
 - 覆盖问题澄清、研究维度识别、广泛探索、定向研究、证据验证和综合输出。采集来源，区分论断类型，默认产出报告，并记录未解决的问题。使用子 Agent 开展并行研究，并发数量不超过运行环境的上限。研究不设固定时间或 token 上限，完成请求范围内的工作和全部交付物后停止。
 - 每种语言变体由一份包含研究指令的 `SKILL.md` 组成。

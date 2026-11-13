@@ -1,31 +1,27 @@
 # deep-research
 
 Decision owner: Ruokee
-Decision writer: OMP
-Reverses: [deep-research](../../../archived/2026/09/06-r1-deep-research.md)
+Decision writer: OMP DeepSeek V4.1 Flash
+Reverses: [deep-research](../../../archived/2026/09/06-r2-deep-research.md)
 
 English | [中文](./06-deep-research.zh.md)
 
 ## Motivation
 
-Ship complete bilingual `deep-research` guidance as a pure Skill whose internal files are maintained by the component.
+Remove the deep-research Skill from this repository.
 
-Research behavior comes from instructions, not a Plugin runtime. The predecessor fixed each language to one file, making an internal organization choice a public constraint without adding a research capability or installation guarantee.
+The repository no longer distributes general-purpose research guidance. The packaging, capability-index, and complete-guidance requirements in the replaced decision applied to that distribution, so they no longer impose requirements here.
 
 ## Decision
 
-Provide `deep-research` under the [Skill packaging](../08/20-skill-variants.md) and [component boundary](../08/24-component-self-containment.md) contracts. The [English entry](../../../../../skills/deep-research/SKILL.md) and [Chinese entry](../../../../../variants/zh/skills/deep-research/SKILL.md) use the same `deep-research` identity, equivalent descriptions, corresponding file sets, and semantically equivalent instructions. Either language installs independently at the normal `skills/deep-research/` host path without source-only prefixes.
+The `deep-research` Skill and both language variants are removed from this repository. General-purpose research guidance is maintained in [rstack](https://github.com/ruokee/rstack).
 
-Cover question clarification, research dimensions, broad exploration, targeted research, evidence validation, and synthesis. Capture sources, distinguish claim types, produce reports by default, and record unresolved gaps. Use sub-agents for parallel research within the environment's concurrency limit. Research has no fixed time or token limit; stop when the requested scope and all deliverables are complete.
-
-Each language's `SKILL.md` is the discoverable entry to complete, self-contained research guidance. The component owns its internal material organization without a fixed file count. It contains research instructions, not host-specific packaging or a Plugin runtime.
-
-Both repository README language versions include the Skill in their capability indexes and link both language entries. Keep these links valid and apply the [repository checks](./12-repository-checks.md).
+No component, rule, or check in this repository depends on the Skill. Capability indexes and installation cover only the remaining Skills.
 
 ## Alternatives considered
 
-Require one instruction file per language. This gives a predictable source shape but makes reference organization a repository decision even when research behavior and installation stay unchanged.
+Keep the Skill under a forwarding name. A stub would install as a real component, so users would receive an empty capability and two sources would still need alignment.
 
 ## Consequences
 
-Each language remains independently installable and usable. Internal organization changes preserve complete research guidance, matching language file sets, and installed references without changing the public research contract.
+Users obtain research guidance from rstack. This repository's Skill checks and documentation no longer validate or describe it.

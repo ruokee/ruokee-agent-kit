@@ -41,7 +41,7 @@ $HOME/.omp/agent/skills
 
 ```sh
 sh scripts/skills.sh check --target "$HOME/.omp/agent/skills"
-sh scripts/skills.sh check code-quality --language zh --target "$HOME/.omp/agent/skills"
+sh scripts/skills.sh check msgspec --language zh --target "$HOME/.omp/agent/skills"
 ```
 
 不带 Skill 名称时，`check` 比较该根目录下已安装的每个 Skill，并把其余部分汇总为数量。带名称时，只比较指定 Skill，并报告指定但不存在的 Skill。
@@ -59,7 +59,7 @@ sh scripts/skills.sh check code-quality --language zh --target "$HOME/.omp/agent
 ## 安装 Skill
 
 ```sh
-sh scripts/skills.sh install code-quality --language en --target "$HOME/.omp/agent/skills"
+sh scripts/skills.sh install msgspec --language en --target "$HOME/.omp/agent/skills"
 ```
 
 目标不存在时，`install` 复制完整的 Skill 目录。目标与来源一致时，报告 `no change` 并且不做任何写入。目标存在但内容不同时，它不做修改并停止，同时打印查看差异和替换的命令。
@@ -67,7 +67,7 @@ sh scripts/skills.sh install code-quality --language en --target "$HOME/.omp/age
 替换需要单独授权：
 
 ```sh
-sh scripts/skills.sh install code-quality --language en --target "$HOME/.omp/agent/skills" --replace
+sh scripts/skills.sh install msgspec --language en --target "$HOME/.omp/agent/skills" --replace
 ```
 
 `--replace` 先把当前目标复制到备份目录，再整体替换该目录。只存在于目标中的文件会随之被清除，这正是更新到更新版本所需要的行为。替换不会合并目录。命令会打印备份路径，并指向[恢复备份](#恢复备份)中的还原步骤。
@@ -77,8 +77,8 @@ sh scripts/skills.sh install code-quality --language en --target "$HOME/.omp/age
 ## 卸载
 
 ```sh
-sh scripts/skills.sh uninstall code-quality --target "$HOME/.omp/agent/skills"
-sh scripts/skills.sh uninstall code-quality --target "$HOME/.omp/agent/skills" --yes
+sh scripts/skills.sh uninstall msgspec --target "$HOME/.omp/agent/skills"
+sh scripts/skills.sh uninstall msgspec --target "$HOME/.omp/agent/skills" --yes
 ```
 
 第一条命令只打印准确的目标路径并停止。删除需要 `--yes`，它只确认该目标。
@@ -133,13 +133,13 @@ holding=$(mktemp -d "$backup/restore.XXXXXX") &&
 
 ```sh
 mkdir -p "$HOME/.omp/agent/skills"
-cp -R skills/code-quality "$HOME/.omp/agent/skills/"
+cp -R skills/msgspec "$HOME/.omp/agent/skills/"
 ```
 
 对于会跟随链接的 Skill 根目录，顶层符号链接同样可用：
 
 ```sh
-ln -s "$PWD/skills/code-quality" "$HOME/.omp/agent/skills/code-quality"
+ln -s "$PWD/skills/msgspec" "$HOME/.omp/agent/skills/msgspec"
 ```
 
 链接安装没有独立副本：内容就是检出目录，执行 `git pull` 后随之变化。`check` 会标注链接目标、比较其解析后的内容，并把失效链接视为差异。`uninstall` 只移除链接。

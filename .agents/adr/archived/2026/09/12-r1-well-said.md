@@ -31,7 +31,7 @@ The Skill grants no additional file-editing authority. A review request remains 
 
 ### Content ownership
 
-The English component is [skills/well-said/SKILL.md](../../../../../skills/well-said/SKILL.md); its complete Chinese variant is [variants/zh/skills/well-said/SKILL.md](../../../../../variants/zh/skills/well-said/SKILL.md). Each provides all writing rules, preservation boundaries, and necessary examples in one `SKILL.md`, organized into readable sections.
+The English component is `skills/well-said/SKILL.md`; its complete Chinese variant is `variants/zh/skills/well-said/SKILL.md`. Each provides all writing rules, preservation boundaries, and necessary examples in one `SKILL.md`, organized into readable sections.
 
 Keep the required content complete, including the retained unslop material. Do not prebuild specialist reference files. Consider extracting substantial, infrequently used supplementary material only when the actual content and loading measurements justify it; ordinary writing must remain supported by the complete rules in `SKILL.md`.
 
@@ -43,7 +43,7 @@ Apply the [first-party capability decision](../../../decision/2026/08/20-first-p
 
 The retained unslop wording comes from [Cursor plugins / pstack](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/skills/unslop/SKILL.md), revision `99559f2f52047978602ef365589275831e76af07`, with a local Chinese-jargon category and corresponding renumbering. The source carries the [pstack MIT license](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/LICENSE), copyright Lauren Tan, 2026. Each language component includes the source attribution and full notice in its own `SKILL.md`. Capability ownership and source-use obligations are separate questions; verify provenance, permission, attribution, and notices for any further reused material before distribution.
 
-The [architect Skill](../../../decision/2026/08/22-architect.md#source-adaptation) provides an existing example: it uses an external architecture repository as a topic map and source material while remaining an independently authored Skill. Its choice to rewrite that material is specific to architect; rewriting is not a general prerequisite for first-party status.
+The [architect Skill](../08/22-r3-architect.md#source-adaptation) provides an existing example: it uses an external architecture repository as a topic map and source material while remaining an independently authored Skill. Its choice to rewrite that material is specific to architect; rewriting is not a general prerequisite for first-party status.
 
 The general ownership principle appears in `AGENTS.md` and under `Changes` in the first-party capability decision, which links to this contract. References to or reuse of third-party material within a first-party capability do not themselves import a third-party capability, fork, or mirror. The prohibition on those third-party capabilities and the source attribution and license obligations remain binding.
 

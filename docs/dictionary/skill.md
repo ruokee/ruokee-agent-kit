@@ -14,7 +14,7 @@ A public Skill may include references, workflows, examples, and a glossary. Its 
 
 ## Example
 
-`code-quality` is Agent-invoked; `grill-me` is user-invoked. Both carry their own `SKILL.md` and supporting files.
+`python-engineering` is Agent-invoked; `grill-me` is user-invoked. Both carry their own `SKILL.md` and supporting files.
 
 ## Avoid
 

@@ -18,7 +18,7 @@ I also use Pi, Claude Code, and Codex.
 
 ### Skills
 
-These are the Skills I use in my daily work.
+These are the Skills I use in my daily work. More general-purpose Skills live in [rstack](https://github.com/ruokee/rstack).
 
 **User-invoked**
 
@@ -27,12 +27,8 @@ These are the Skills I use in my daily work.
 
 **Agent-invoked**
 
-- **[architect](./skills/architect/SKILL.md)** covers system-level architecture analysis, design, review, technology selection, and evolution. Use it for system decisions that cross module or service boundaries and need explicit tradeoffs. It provides architecture judgment criteria, common tradeoffs, and examples. [Chinese variant](./variants/zh/skills/architect/SKILL.md)
-- **[code-quality](./skills/code-quality/SKILL.md)** covers code and test quality, design tradeoffs, and refactoring opportunities, with quick reviews, full reviews, and exploratory analysis. [Chinese variant](./variants/zh/skills/code-quality/SKILL.md)
 - **[python-engineering](./skills/python-engineering/SKILL.md)** covers Python project structure, version and dependency policy, typing, testing, standard-library choices, tooling, and Python-specific code review. [Chinese variant](./variants/zh/skills/python-engineering/SKILL.md)
 - **[msgspec](./skills/msgspec/SKILL.md)** covers struct definitions, type validation, serialization, and deserialization with `msgspec`. [Chinese variant](./variants/zh/skills/msgspec/SKILL.md)
-- **[deep-research](./skills/deep-research/SKILL.md)** guides structured, evidence-first research through broad exploration, targeted research, source verification, and synthesis. It includes source collection, claim classification, unresolved-question records, and parallel sub-agent research, producing a report and supporting documents by default. [Chinese variant](./variants/zh/skills/deep-research/SKILL.md)
-- **[well-said](./skills/well-said/SKILL.md)** applies when outputting anything, including replies, documentation, code comments, and agent communication. It covers style patterns, defensive phrasing, writing-session residue, article writing, and author voice. Defensive-phrasing guidance distinguishes wording problems from work that needs completing or redoing. Inspired by [unslop](https://github.com/cursor/plugins/blob/main/pstack/skills/unslop/SKILL.md) by [Lauren Tan](https://github.com/poteto). [Chinese variant](./variants/zh/skills/well-said/SKILL.md)
 
 ### Extensions
 

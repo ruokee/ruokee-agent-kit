@@ -41,7 +41,7 @@ Other Harnesses load Skills from their own paths. A project-level root is the di
 
 ```sh
 sh scripts/skills.sh check --target "$HOME/.omp/agent/skills"
-sh scripts/skills.sh check code-quality --language zh --target "$HOME/.omp/agent/skills"
+sh scripts/skills.sh check msgspec --language zh --target "$HOME/.omp/agent/skills"
 ```
 
 Without Skill names, `check` compares every Skill that is installed under the root and reports the rest as a count. With names, it compares exactly those Skills and reports a named Skill that is not installed.
@@ -59,7 +59,7 @@ It compares the whole directory, so a changed reference file, an added file, and
 ## Install a Skill
 
 ```sh
-sh scripts/skills.sh install code-quality --language en --target "$HOME/.omp/agent/skills"
+sh scripts/skills.sh install msgspec --language en --target "$HOME/.omp/agent/skills"
 ```
 
 When the target does not exist, `install` copies the complete Skill directory. When the target already matches the source, it reports `no change` and writes nothing. When the target exists with different content, it stops without touching it and prints the commands to inspect and replace it.
@@ -67,7 +67,7 @@ When the target does not exist, `install` copies the complete Skill directory. W
 Replacing is a separate authorization:
 
 ```sh
-sh scripts/skills.sh install code-quality --language en --target "$HOME/.omp/agent/skills" --replace
+sh scripts/skills.sh install msgspec --language en --target "$HOME/.omp/agent/skills" --replace
 ```
 
 `--replace` copies the current target into a backup directory, then replaces the whole directory. Files that exist only in the target are removed with it, which is what an update to a newer revision requires. The replacement never merges directories. The command prints the backup path and points to [Restore a backup](#restore-a-backup) for the steps that put the previous content back.
@@ -77,8 +77,8 @@ A failed operation stops with a nonzero status, keeps the previous content or a 
 ## Uninstall
 
 ```sh
-sh scripts/skills.sh uninstall code-quality --target "$HOME/.omp/agent/skills"
-sh scripts/skills.sh uninstall code-quality --target "$HOME/.omp/agent/skills" --yes
+sh scripts/skills.sh uninstall msgspec --target "$HOME/.omp/agent/skills"
+sh scripts/skills.sh uninstall msgspec --target "$HOME/.omp/agent/skills" --yes
 ```
 
 The first command prints the exact target and stops. Removal requires `--yes`, which confirms that target only.
@@ -133,13 +133,13 @@ Copying by hand is the same installation:
 
 ```sh
 mkdir -p "$HOME/.omp/agent/skills"
-cp -R skills/code-quality "$HOME/.omp/agent/skills/"
+cp -R skills/msgspec "$HOME/.omp/agent/skills/"
 ```
 
 A top-level symlink is also valid for a Skill root that follows links:
 
 ```sh
-ln -s "$PWD/skills/code-quality" "$HOME/.omp/agent/skills/code-quality"
+ln -s "$PWD/skills/msgspec" "$HOME/.omp/agent/skills/msgspec"
 ```
 
 A linked Skill has no separate copy: its content is the checkout, so it changes when you pull. `check` reports a linked target, compares the content it resolves to, and treats a broken link as a difference. `uninstall` removes only the link.

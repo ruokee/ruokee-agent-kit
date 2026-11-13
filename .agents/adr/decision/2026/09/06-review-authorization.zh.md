@@ -17,7 +17,7 @@ Decision writer: OMP
 
 审查请求不授权修改被审查文件。已有的任务材料或报告维护授权继续适用。
 
-[code-quality](../../../../../skills/code-quality/SKILL.md) 和 [python-engineering](../../../../../skills/python-engineering/SKILL.md) 的完整审查流程及其入口、停止规则在各自组件内表达这一区分。中英文变体语义一致，遵循[组件自包含决定](../08/24-component-self-containment.zh.md)。
+[python-engineering](../../../../../skills/python-engineering/SKILL.md) 的完整审查流程及其入口、停止规则在该组件内表达这一区分。通用代码审查流程位于 [rstack](https://github.com/ruokee/rstack) 的 `code-quality` Skill。中英文变体语义一致，遵循[组件自包含决定](../08/24-component-self-containment.zh.md)。
 
 ## 考虑过的替代方案
 

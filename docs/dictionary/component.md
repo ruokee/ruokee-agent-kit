@@ -14,7 +14,7 @@ Components are self-contained, so each installs and ships without the rest of th
 
 ## Example
 
-`architect` is a Skill component. `tk` is an executable and host package. Both have their own directory, documentation, and version.
+`msgspec` is a Skill component. `tk` is an executable and host package. Both have their own directory, documentation, and version.
 
 ## Avoid
 

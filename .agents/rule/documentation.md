@@ -25,7 +25,7 @@ The [repository spec](../spec/repository.md) states the language, pairing, and l
 
 ## Cleanup
 
-- Check a page with the [`well-said`](../../skills/well-said/SKILL.md) Skill, and clean what it reports before delivering the page.
+- Check a page with the `wellsaid` Skill from [rstack](https://github.com/ruokee/rstack), and clean what it reports before delivering the page.
 
 ## File links
 

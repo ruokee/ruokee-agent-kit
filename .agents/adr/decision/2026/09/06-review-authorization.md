@@ -17,7 +17,7 @@ A review may report findings, recommendations, risks, and verification methods w
 
 A review request does not authorize changes to the reviewed files. Existing authorization to maintain Task materials or a report remains applicable.
 
-The full-review workflows and their entry and stop rules in [code-quality](../../../../../skills/code-quality/SKILL.md) and [python-engineering](../../../../../skills/python-engineering/SKILL.md) express this boundary within each component. The English and Chinese variants have the same meaning, consistent with [the self-contained component decision](../08/24-component-self-containment.md).
+The full-review workflows and their entry and stop rules in [python-engineering](../../../../../skills/python-engineering/SKILL.md) express this boundary within its component. The general code-review workflows live in the `code-quality` Skill from [rstack](https://github.com/ruokee/rstack). The English and Chinese variants have the same meaning, consistent with [the self-contained component decision](../08/24-component-self-containment.md).
 
 ## Alternatives considered
 

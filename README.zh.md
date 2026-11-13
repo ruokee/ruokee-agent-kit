@@ -18,7 +18,7 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 
 ### Skills
 
-以下是我用于日常工作的 Skill。
+以下是我用于日常工作的 Skill。更多通用 Skill 见 [rstack](https://github.com/ruokee/rstack)。
 
 **由用户触发的**
 
@@ -27,12 +27,8 @@ Ruokee Agent Kit 只收录我为自己开发、也愿意公开维护的能力。
 
 **由 Agent 触发的**
 
-- **[architect](./skills/architect/SKILL.md)**：覆盖系统级架构分析、设计、审查、技术选型与演进。遇到跨越模块或服务边界、需要明确取舍的系统级决策时使用。它提供架构判断依据、常见取舍和例子。 [中文变体](./variants/zh/skills/architect/SKILL.md)
-- **[code-quality](./skills/code-quality/SKILL.md)**：涵盖代码与测试质量、设计取舍和重构机会，支持快速审查、完整审查和探索性分析。 [中文变体](./variants/zh/skills/code-quality/SKILL.md)
 - **[python-engineering](./skills/python-engineering/SKILL.md)**：涵盖 Python 项目结构、版本与依赖策略、类型注解、测试、标准库选择、工具链和 Python 专项代码审查。 [中文变体](./variants/zh/skills/python-engineering/SKILL.md)
 - **[msgspec](./skills/msgspec/SKILL.md)**：使用 `msgspec` 进行结构体定义、类型验证、序列化与反序列化。 [中文变体](./variants/zh/skills/msgspec/SKILL.md)
-- **[deep-research](./skills/deep-research/SKILL.md)**：指导结构化、证据优先的研究，涵盖广泛探索、定向研究、来源验证和综合分析，包括来源采集、论断分类、未解决问题记录和子 Agent 并行研究，默认产出报告及支撑文档。 [中文变体](./variants/zh/skills/deep-research/SKILL.md)
-- **[well-said](./skills/well-said/SKILL.md)**：输出任何内容时使用，包括回复、文档、代码注释和 Agent 交流。涵盖文风模式、防御性表述、编写会话残留、文章写作和作者声音。防御性表述规则区分文字问题与需要补做或返工的工作。受 [Lauren Tan](https://github.com/poteto) 的 [unslop](https://github.com/cursor/plugins/blob/main/pstack/skills/unslop/SKILL.md) 启发。 [中文变体](./variants/zh/skills/well-said/SKILL.md)
 
 ### 扩展
 

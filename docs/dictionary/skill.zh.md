@@ -12,7 +12,7 @@
 
 ## 示例
 
-`code-quality` 是 Agent 调用技能，`grill-me` 是用户调用技能。两者都带有自己的 `SKILL.md` 和辅助文件。
+`python-engineering` 是 Agent 调用技能，`grill-me` 是用户调用技能。两者都带有自己的 `SKILL.md` 和辅助文件。
 
 ## 避免用词
 

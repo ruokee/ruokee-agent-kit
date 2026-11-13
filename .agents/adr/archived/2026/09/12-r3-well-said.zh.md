@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
 Reverses: [well-said](../../../archived/2026/09/12-r2-well-said.zh.md)
 Archived: 2026-10-24
-Reversed by: [well-said](../../../decision/2026/09/12-well-said.zh.md)
+Reversed by: [well-said](./12-r4-well-said.zh.md)
 
 [English](./12-r3-well-said.md) | 中文
 
@@ -48,7 +48,7 @@ Skill 正文不重复来源署名、许可文本或版本号。来源署名由�
 
 遵循用户指定的文件、文本和结构。审阅请求在未获编辑授权时保持只读。
 
-unslop 的明确禁令保持强制性；标点规则、其示例与写作规则本身由 [variants/zh/skills/well-said/SKILL.md](../../../../../variants/zh/skills/well-said/SKILL.md) 持有。
+unslop 的明确禁令保持强制性；标点规则、其示例与写作规则本身由 `variants/zh/skills/well-said/SKILL.md` 持有。
 
 允许在授权范围内调整结构，包括重排段落、合并重复、重写开头和结尾。调整非常广泛时，Agent 可以询问是否整篇重写；已有授权即可执行，不设置人为改动比例门槛。保留固定结构。
 

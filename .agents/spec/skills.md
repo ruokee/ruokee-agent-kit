@@ -18,7 +18,7 @@ Distribute independently understandable, host-discoverable instruction component
 
 English sources use `skills/<name>/`; Chinese sources use `variants/zh/skills/<name>/`. Each directory includes `SKILL.md` with a name, applicability description, and declared version where maintained, plus its required local references, workflows, examples, or glossary. Both variants retain the same Skill identity, file set, scope, and observable instructions. One installed name has one language per Skill root.
 
-`grill-me` is user-invoked. `architect`, `code-quality`, `python-engineering`, `msgspec`, `deep-research`, and `well-said` support Agent invocation from matching work and explicit invocation. The bilingual capability index identifies the same names and invocation modes and provides both language destinations.
+`grill-me` is user-invoked. `python-engineering` and `msgspec` support Agent invocation from matching work and explicit invocation. The bilingual capability index identifies the same names and invocation modes and provides both language destinations.
 
 ### grill-me
 
@@ -38,24 +38,6 @@ Report one rough global readiness percentage, based on overall decision readines
 
 Before finishing, audit assumptions, failure paths, reversibility, support, acceptance, conflicts, and hidden directional defaults. Present a correctable summary of the problem, outcomes, scenarios, boundaries, preferences, chosen direction, evidence, risks, defaults, and unresolved matters. Finish when consequential matters are settled or safely deferred, the user confirms shared understanding, and the finish condition holds. Early termination reports readiness and remaining uncertainty. Do not implement the subject before final confirmation unless the user explicitly requests deciding and acting in parallel; research and authorized records remain allowed.
 
-### architect
-
-Use for system-level analysis, design, review, technology selection, and evolution across module, service, or deployment boundaries. Cover system views, data and state ownership, quality attributes, distributed-system constraints, consistency, resilience, scaling, organization, security boundaries, AI systems and evaluation, technology choices, and long-term change. References supply explanations, derivations, examples, and tradeoffs on demand, not a mandatory sequential course or separate template catalogue.
-
-Single-module internals, concrete implementation, code-level review, product behavior definition, priority ranking, general discussion, and a mention of architecture alone do not activate the Skill. Explicit loading does not expand scope or authorize implementation. Project facts come from current code, configuration, and runtime evidence; product requirements and user priorities remain external decisions.
-
-Distinguish observations, derived conclusions, unverified assumptions, recommendations, and user decisions. Cite project locations, configuration, outputs, or observation windows. Show inputs, formulas, and uncertainty for estimates. Numerical case studies and version-sensitive external capability claims need primary sources with dates or versions. Label heuristics rather than using them as upgrade triggers. Offer real candidates with conditions and tradeoffs, translating technical choices into cost, risk, and time. Analysis and design center on boundaries and views; the user decides whether to implement.
-
-### code-quality
-
-Use for maintainability, abstractions, design principles and patterns, refactoring, code smells, testing, paradigm fit, and architecture quality. Identify the actual concern in correctness, readability, change cost, testability, performance, or delivery cost. Consult relevant guidance only when there is a concrete signal; loading the entry for another purpose does not trigger reading all references.
-
-Fast review is the default for a concrete diff, file, or named set. An unclear or whole-repository target needs narrowing or an explicit full-review request. Return zero to five high-confidence findings, highest impact first, each with severity and confidence, location, observable fact, impact, and smallest sufficient recommendation. Zero findings is valid. Do not escalate automatically.
-
-Full review requires an explicit full, systematic, architecture/design review, or refactoring-assessment request. Establish scope and necessary context before staged reading. Evaluate change cost, tensions between principles, actual variation points, smells, paradigm fit, and behavioral coverage for safe refactoring. Recheck high-severity findings against plausible false positives and downgrade unsupported ones. Group findings by category with fact, impact, judgment, support and counter-evidence, recommendation, and verification; include only material open questions and notes.
-
-Analysis is advisory and recommendation-oriented. Ground the decision in actual code and constraints, compare genuine alternatives, explain the decisive tradeoff, and recommend or ask for the necessary user choice. It is not a findings list. Similar-looking code alone does not prove duplicated knowledge or justify abstraction; patterns need a real variation point. Avoid findings that mechanical formatters or linters already determine. Review and analysis do not authorize code changes, automatic refactors, bulk suppression, or unsafe fixes. Existing report-writing permission remains separate.
-
 ### python-engineering
 
 Use for Python project structure, version and dependency policy, typing, tests, docstrings and API documentation, custom lint, language features, standard-library choices, and tooling. Ground judgments in the actual project version, dependency declarations, configuration, code, callers, and tests. Cover scripts, packages, applications and workspaces; annotations and type boundaries; context managers, exception groups, decorators and pattern matching; resource lifetime; and coherent use of uv, Ruff, ty, mypy, basedpyright, pytest, coverage, pre-commit, and custom lint where relevant.
@@ -69,26 +51,6 @@ Analysis reads the actual mechanism and constraints, presents two or three genui
 Support Struct definitions, fields, defaults, renaming, inheritance, options, supported annotations, validation constraints, tagged unions, typed conversion, custom hooks, and serialization through JSON, MessagePack, YAML, TOML, and JSONL. Include applicable comparisons with Pydantic and dataclasses, troubleshooting, and runnable examples for basic use, tagged unions, and custom conversion. Load only the needed guidance.
 
 Distinguish direct Struct construction from typed decoding or conversion: type and `Meta` constraints apply during decoding and conversion; direct construction runs `__post_init__` without those checks. Preserve the difference between omitted `UNSET` and encoded null `None`. Use hooks only for unsupported native types, check optional YAML/TOML dependencies, and reuse configured encoders and decoders for repeated operations. Performance comparisons name the official method and workload rather than unqualified speed ratios.
-
-### deep-research
-
-Provide evidence-first deep research for broad surveys and source-backed reports. Resolve the question, purpose, depth, and important dimensions; explore broadly before targeted investigation; read important sources in full and follow material leads. Do not let the first sources define the entire investigation or accept one search as sufficient evidence.
-
-Prefer official and primary sources. Secondary sources locate leads or support comparisons. Repeated claims from one evidence chain are not independent confirmation. Separate collection from synthesis, distinguish facts, inferences, judgments, promotional claims, recommendations, and unresolved uncertainty, and avoid definitive conclusions when support is unclear.
-
-By default produce a conclusions summary, source list, full report, and unresolved questions with the retained source material and comparisons needed to support them. Prefer verifiable saved Markdown sources; where full content is unavailable, retain substantive excerpts or summaries, URLs, authors, publication dates, and access dates. Use bounded concurrent subagents for independent research, queue work beyond the environment's limit, and correct errors rather than interrupting normal work for being slow. There is no fixed research time or token cap; stop when the requested scope and deliverables are complete, not merely because more sources exist.
-
-### well-said
-
-Apply to any output, including replies, documentation, comments in code and configuration, and inter-Agent messages. Each language delivers complete writing guidance through its `SKILL.md` entry, with version in `metadata.version` and attribution outside instruction prose. The component owns internal organization without a fixed file count. Load all required guidance before use, not selected portions based on writing signals; reuse it while present and retrieve missing parts after context loss. A description or excerpt is insufficient. Loading failure leaves the applicable limit explicit rather than claiming missing rules were applied.
-
-Write directly for the reader and requested format. Follow the user's requested files, text, and structure; a review remains read-only unless editing is authorized. Preserve meaning, facts, numbers, scope, conditions, sequence, negation, obligations, attribution, uncertainty, author voice, and required literal text. Commands, identifiers, quotations, and logs remain exact when needed. Clear text may remain unchanged.
-
-Remove puffery, unsupported attribution, marketing, stock transitions, decorative emphasis, forced lists, unnecessary synonyms, jargon, filler, excessive hedging, and generic conclusions. Prefer concrete verbs, active voice, familiar words, and readable sentence lengths. Avoid em dashes and substitute neither parentheses nor another dash for the same construction. Headings have one short subject and no punctuation except `-`, `.`, or `、`. Use tables for comparable numbers, category labels, or enumerated values rather than prose descriptions. Avoid decorative emojis, curly quotes, unnecessary boldface, and title case.
-
-Treat disclaimers and accounts of unfinished work as possible work problems: complete or redo required work within permission rather than polishing away the gap. For sound work, state the supported conclusion and remove empty self-justification. Preserve genuine blockers, evidence, important unknowns, risks, permission conditions, and required status reports. Expressions guide judgment, not a banned-word list.
-
-Remove writing-session residue, inaccessible private references, abandoned alternatives, reviewer replies, and temporary control instructions from finished prose. A reader with only the finished material must understand its claims and references. Do not turn untested into unsupported, a requirement into implemented behavior, or a hypothetical design into an existing capability. In articles retain substantive information without inventing experience; omit only premises readers can supply, not facts needed to judge the result. Agent messages preserve the task, basis, scope, actual state, and acceptance needed for action without irrelevant process narration.
 
 ### Installation
 
@@ -117,8 +79,8 @@ Exit statuses are `0` for a consistent comparison or completed/unchanged lifecyc
 
 ## Acceptance criteria
 
-- Each language directory is independently discoverable and complete, with no escaping file reference. Matching and nonmatching requests preserve activation boundaries, especially explicit-only `grill-me` and system-level-only implicit `architect`.
-- Review scenarios can legitimately return zero findings, respect mode limits, preserve read-only scope, and separate evidence from recommendations. Research results provide source-backed conclusions and bounded uncertainty. Writing changes retain facts and author intent while removing actual defects.
+- Each language directory is independently discoverable and complete, with no escaping file reference. Matching and nonmatching requests preserve activation boundaries, especially explicit-only `grill-me`.
+- Review scenarios can legitimately return zero findings, respect mode limits, preserve read-only scope, and separate evidence from recommendations.
 - Grill preserves exact global question numbering and recoverable question text, processes answers before dependent questions, and does not report completion before its finish conditions. Missing recording permission changes storage, not the questioning contract.
 - Install, check, replacement, restoration, and removal preserve complete content, explicit overwrite authority, source protection, neighboring installations, and the specified failure and exit behavior. Matching files do not establish a loaded host revision.
-- Capability indexes, language contents, invocation metadata, and versions agree. When a Skill's accepted contract requires real-host or real-model validation, including invocation behavior for grill-me and architect and discovery, complete loading, and writing compliance for well-said, behavior changes retain that validation obligation. File checks and scenario inspection remain distinct evidence.
+- Capability indexes, language contents, invocation metadata, and versions agree. When a Skill's accepted contract requires real-host or real-model validation, including `grill-me` invocation behavior, behavior changes retain that validation obligation. File checks and scenario inspection remain distinct evidence.

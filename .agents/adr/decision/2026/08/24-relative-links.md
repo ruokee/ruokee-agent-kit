@@ -20,10 +20,10 @@ In templates whose contents are copied into GitHub Issue or PR bodies, use full 
 
 For all other repository file links, write the destination relative to the Markdown document containing it. Destinations in the current directory or a descendant use `./`; paths outside that tree use as many `../` segments as needed. Do not use a leading `/`, a repository-root-relative destination, or an absolute GitHub URL for a file in this repository.
 
-When the link text names the file, write it from the repository root without a leading `/`. For example, an ADR under `.agents/adr/decision/YYYY/MM/` links to the architect Skill as:
+When the link text names the file, write it from the repository root without a leading `/`. For example, an ADR under `.agents/adr/decision/YYYY/MM/` links to the msgspec Skill as:
 
 ```markdown
-[skills/architect/SKILL.md](../../../../../skills/architect/SKILL.md)
+[skills/msgspec/SKILL.md](../../../../../skills/msgspec/SKILL.md)
 ```
 
 The visible path identifies the file from the repository root. The document-relative destination lets the same link navigate on GitHub and in a local editor.

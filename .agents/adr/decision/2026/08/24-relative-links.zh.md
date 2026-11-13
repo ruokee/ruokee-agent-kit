@@ -20,10 +20,10 @@ Reverses: [文件相对链接](../../../archived/2026/08/24-r1-relative-links.zh
 
 其他仓库文件链接的目标均相对于所在 Markdown 文档书写。当前目录或下级目录使用 `./`，向上返回时使用所需数量的 `../`。不使用前导 `/`、仓库根目录相对目标，也不为同一仓库的文件使用 GitHub 绝对 URL。
 
-当链接文字标明文件时，从仓库根目录书写，不加前导 `/`。例如，`.agents/adr/decision/YYYY/MM/` 下的 ADR 这样链接 architect Skill：
+当链接文字标明文件时，从仓库根目录书写，不加前导 `/`。例如，`.agents/adr/decision/YYYY/MM/` 下的 ADR 这样链接 msgspec Skill：
 
 ```markdown
-[skills/architect/SKILL.md](../../../../../skills/architect/SKILL.md)
+[skills/msgspec/SKILL.md](../../../../../skills/msgspec/SKILL.md)
 ```
 
 显示文字从仓库根目录标明文件，相对于当前文档的链接目标则让同一个链接可以在 GitHub 和本地编辑器中跳转。

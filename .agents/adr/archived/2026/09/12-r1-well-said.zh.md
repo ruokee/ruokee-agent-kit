@@ -31,7 +31,7 @@ Skill 不增加文件修改权限。审阅请求在未获编辑授权时保持�
 
 ### 内容归属
 
-英文组件为 [skills/well-said/SKILL.md](../../../../../skills/well-said/SKILL.md)，完整中文变体为 [variants/zh/skills/well-said/SKILL.md](../../../../../variants/zh/skills/well-said/SKILL.md)。每个组件用一份 `SKILL.md` 提供全部写作规则、保护边界和必要示例，并通过清晰章节组织。
+英文组件为 `skills/well-said/SKILL.md`，完整中文变体为 `variants/zh/skills/well-said/SKILL.md`。每个组件用一份 `SKILL.md` 提供全部写作规则、保护边界和必要示例，并通过清晰章节组织。
 
 保持所需内容完整，包括保留的 unslop 材料。不预建专项参考文件。只有实际内容及加载测量表明有必要时，才考虑移出篇幅可观的低频补充材料；日常写作仍须由 `SKILL.md` 中的完整规则支持。
 
@@ -43,7 +43,7 @@ Skill 不增加文件修改权限。审阅请求在未获编辑授权时保持�
 
 保留的 unslop 原文来自 [Cursor plugins / pstack](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/skills/unslop/SKILL.md)，版本为 `99559f2f52047978602ef365589275831e76af07`，另有本地中文黑话类别及对应编号顺延。来源采用 [pstack MIT 许可](https://github.com/cursor/plugins/blob/99559f2f52047978602ef365589275831e76af07/pstack/LICENSE)，版权人为 Lauren Tan，年份为 2026。各语言组件在自己的 `SKILL.md` 中包含来源署名与完整通知。能力主体归属与来源使用义务分别判断；后续复用其他材料时，同样须在分发前核实来源、权限、署名和通知。
 
-[architect Skill](../../../decision/2026/08/22-architect.zh.md#来源改写) 已有相同实践：它使用外部架构仓库作为主题地图和内容来源，同时保持独立编写的 Skill 主体。改写来源材料是 architect 的具体选择，不是取得第一方身份的通用前提。
+[architect Skill](../08/22-r3-architect.zh.md#来源改写) 已有相同实践：它使用外部架构仓库作为主题地图和内容来源，同时保持独立编写的 Skill 主体。改写来源材料是 architect 的具体选择，不是取得第一方身份的通用前提。
 
 通用归属原则记录在 `AGENTS.md` 和第一方能力决定的 `Changes` 下，后者链接到本契约。第一方能力中的第三方材料引用或复用，本身不等于引入第三方能力、fork 或镜像。对这些第三方能力的禁止，以及来源署名与许可义务仍然有效。
 

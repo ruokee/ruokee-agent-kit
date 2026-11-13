@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
 Reverses: [architect](../../../archived/2026/08/22-r1-architect.md)
 Archived: 2026-10-24
-Reversed by: [architect](../../../decision/2026/08/22-architect.md)
+Reversed by: [architect](./22-r3-architect.md)
 
 English | [中文](./22-r2-architect.zh.md)
 

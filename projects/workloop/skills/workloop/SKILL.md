@@ -38,7 +38,7 @@ Route material or design defects to Clarify and implementation defects to Execut
 
 ## Preserve the contract
 
-Use the user's language, applicable project writing rules, and a writing Skill such as well-said when available. Preserve facts, decisions, conditions, negation, attribution, and genuine uncertainty.
+Use the user's language, applicable project writing rules, and a writing Skill such as wellsaid when available. Preserve facts, decisions, conditions, negation, attribution, and genuine uncertainty.
 
 Distinguish confirmed requirements, user-supplied constraints, proposals, observations, and temporary restrictions. Code, generated materials, tests, or completion claims do not establish approval. A motivation adds no acceptance gate. Resolve contradictions against effective decisions; do not silently replace the goal, reduce scope, or remove a capability. Question unnecessary, infeasible, or harmful work with evidence. A deferred capability is not permanently prohibited. Reopen only affected work and preserve completed results.
 

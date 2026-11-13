@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
 Reverses: [well-said](../../../archived/2026/09/12-r2-well-said.md)
 Archived: 2026-10-24
-Reversed by: [well-said](../../../decision/2026/09/12-well-said.md)
+Reversed by: [well-said](./12-r4-well-said.md)
 
 English | [中文](./12-r3-well-said.zh.md)
 
@@ -48,7 +48,7 @@ Apply writing guidance to prose, including comments in code and configuration. P
 
 Follow the user's requested files, text, and structure. A review request remains read-only unless editing is authorized.
 
-Keep unslop's explicit prohibitions binding; [skills/well-said/SKILL.md](../../../../../skills/well-said/SKILL.md) holds the punctuation rules, their examples, and the writing rules themselves.
+Keep unslop's explicit prohibitions binding; `skills/well-said/SKILL.md` holds the punctuation rules, their examples, and the writing rules themselves.
 
 Allow structural changes within the authorized scope, including reordering paragraphs, merging repetition, and rewriting openings or endings. For a very extensive change, the Agent may ask about a complete rewrite; prior authorization is sufficient, and no arbitrary change-percentage threshold is required. Preserve fixed structures.
 

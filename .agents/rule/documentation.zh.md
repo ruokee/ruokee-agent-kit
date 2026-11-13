@@ -25,7 +25,7 @@
 
 ## 清理
 
-- 交付页面前先用 [`well-said`](../../variants/zh/skills/well-said/SKILL.md) Skill 检查，并清理它指出的问题。
+- 交付页面前先用 [rstack](https://github.com/ruokee/rstack) 的 `wellsaid` Skill 检查，并清理它指出的问题。
 
 ## 文件链接
 
