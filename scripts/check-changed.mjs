@@ -205,7 +205,7 @@ export function selectChecks(paths) {
       ids.add("skills");
     } else if (
       md &&
-      (/^(docs|skills|variants\/zh\/skills|\.agents\/(adr|spec|rule|skills))\//.test(path) ||
+      (/^(docs|skills|variants\/zh\/skills|\.agents\/(adr|rule|skills))\//.test(path) ||
         ["README.md", "README.zh.md", "AGENTS.md"].includes(path))
     ) {
       scopes.add("documentation");

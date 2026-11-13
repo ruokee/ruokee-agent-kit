@@ -17,7 +17,7 @@ Decision writer: OMP DeepSeek V4.1 Flash
 
 类型沿用 `config-conventional` 接受的 Conventional Commits 集合，仓库不缩减这份列表；选择一个贴合改动的类型是判断问题。scope 可选：提交信息带 scope 时必须精确等于 `skills`、`extensions`、`adr` 或 `repo` 之一，跨越两个区域的改动不带 scope。
 
-[仓库规格](../../../../spec/repository.zh.md)陈述 scope 集合与 commit-msg 校验，`commitlint.config.mjs` 记录本地规则与预设继承来的约束，[README.md](../../../../../README.md)、[README.zh.md](../../../../../README.zh.md)、`AGENTS.md` 与 [Git 规则](../../../../rule/git.zh.md)陈述提交信息要求。
+`commitlint.config.mjs` 记录 scope 集合与 commit-msg 校验，以及预设继承来的约束，[README.md](../../../../../README.md)、[README.zh.md](../../../../../README.zh.md)、`AGENTS.md` 与 [Git 规则](../../../../rule/git.zh.md)陈述提交信息要求。
 
 ## 考虑过的替代方案
 

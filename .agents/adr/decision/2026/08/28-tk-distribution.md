@@ -36,7 +36,7 @@ GC may remove only proven temporary content from ended processes. It neither mod
 
 ### Contract ownership
 
-The [distribution specification](../../../../spec/tk-distribution.md) and [interface specification](../../../../spec/tk-interface.md) fully state behavior, selection, defaults, failures, compatibility, and acceptance. The [CLI reference](../../../../../projects/tk/docs/design/cli-reference.md) independently explains use; [installation design](../../../../../projects/tk/docs/design/installation.md) explains implementation and planning. Neither replaces specification requirements.
+The [installation design](../../../../../projects/tk/docs/design/installation.md) and [CLI reference](../../../../../projects/tk/docs/design/cli-reference.md) fully state behavior, selection, defaults, failures, compatibility, and acceptance. The CLI reference independently explains use; installation design explains implementation and planning. Together they own the component contract.
 
 ## Alternatives considered
 

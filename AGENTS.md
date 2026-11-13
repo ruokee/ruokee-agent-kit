@@ -9,9 +9,8 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 - `./variants/`: Language variants of components, with the same purpose and separate distributable directories.
 - `./docs/`: Repository-wide user and development documentation, such as installation, maintenance, and terminology reference.
 - `./scripts/`: Repository-wide installation, maintenance, and check scripts; component-specific scripts stay with their component.
-- `./.agents/`: Internal maintenance Skills, decisions, specifications, and rules for repository development.
+- `./.agents/`: Internal maintenance Skills, decisions, and rules for repository development.
     - `adr/`: Current durable decisions and the historical decisions they replaced, with their reasons and contracts.
-    - `spec/`: Goals, boundaries, and acceptance criteria for components or repository areas.
     - `rule/`: Working rules organized by activity, governing actions, order, and permissions.
     - `skills/`: English project-internal maintenance Skills, not public installation sources.
 
@@ -31,11 +30,10 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 
 [Documentation rules](./.agents/rule/documentation.md)
 
-- Provide English and Chinese project documentation as same-directory `name.md` and `name.zh.md` pairs. Keep translations and reciprocal links aligned, except that Spec bodies keep language navigation in the non-spec index and contain no repository-file links.
+- Provide English and Chinese project documentation as same-directory `name.md` and `name.zh.md` pairs. Keep translations and reciprocal links aligned.
 - Keep documentation in sync with the code it describes. Update affected documents in the same change.
 - Write a file name and each heading as a short imperative sentence, a short phrase, or a noun unless an additional requirement calls for another form. Keep one subject, and add a second one or list its parts only when an additional requirement calls for it.
-- Specs define long-lived component or repository targets under `./.agents/spec`. Before maintaining or reviewing one, or when feature work changes its goals, functionality, boundaries, or acceptance, load [maintain-spec](./.agents/skills/maintain-spec/SKILL.md) and read the [project supplements](./.agents/spec/README.md).
-- ADRs record durable choices under `./.agents/adr`. Before creating, repairing, updating, reversing, archiving, or reviewing one, or when project work affects a durable choice, load [maintain-adr](./.agents/skills/maintain-adr/SKILL.md) and read the [project supplements](./.agents/adr/README.md). Loading either Skill grants no write or lifecycle permission and does not transfer task Goal ownership.
+- ADRs record durable choices under `./.agents/adr`. Before creating, repairing, updating, reversing, archiving, or reviewing one, or when project work affects a durable choice, load [maintain-adr](./.agents/skills/maintain-adr/SKILL.md) and read the [project supplements](./.agents/adr/README.md). Loading this Skill grants no write or lifecycle permission and does not transfer task Goal ownership.
 - Rules define repository working rules and live in `./.agents/rule`. Read the [rule layer's rules](./.agents/rule/README.md) when editing rules.
 - Use the [repository dictionary](./docs/dictionary/README.md) for shared terms, and read the [terminology rules](./.agents/rule/terminology.md) when adding or changing one.
 
@@ -57,7 +55,7 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 
 ### Planning
 
-- Search the relevant current ADR decisions and their changes, specs, rules, and confirmed task requirements before planning changes to a component's or repository area's goals, boundaries, or acceptance criteria.
+- Search the relevant current ADR decisions and their changes, confirmed task requirements, and rule pages for the area before planning changes to a component's or repository area's goals, boundaries, or acceptance criteria.
 - Limit changes to the requested capability or fix. Do not prebuild for hypothetical requirements.
 - Reuse the authority expressed by the complete request for necessary in-scope judgments and requested actions. Preserve explicit human checkpoints and protected permissions.
 
@@ -68,4 +66,4 @@ Ruokee Agent Kit provides Agent Skills and extensions.
 - Run `pnpm check:changed` from the repository root during development and before requesting review. It selects checks for changed components. Use targeted `pnpm check:*` commands only when needed.
 - Let missing prerequisites fail the check. Do not skip tests or rewrite hooks to hide the problem.
 - Keep component-specific checks beside their component.
-- Automated success does not establish real runtime behavior or interactive UI correctness. As far as possible, consult applicable specs, ADRs, and rules when validating or evaluating work.
+- Automated success does not establish real runtime behavior or interactive UI correctness. As far as possible, consult applicable ADRs and rules when validating or evaluating work.

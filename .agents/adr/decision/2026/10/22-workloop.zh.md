@@ -40,7 +40,7 @@ tk 是按名称和公开接口使用的必需依赖，不导入实现或引用�
 
 ### 操作
 
-提供 `clarify`、`exec`、`verify`、`ship` 和 `supervise`，完整行为由[组件规格](../../../../spec/workloop.zh.md)承载，可执行指导由[组件](../../../../../projects/workloop/README.zh.md)提供。
+提供 `clarify`、`exec`、`verify`、`ship` 和 `supervise`，完整行为由[组件 README](../../../../../projects/workloop/README.zh.md) 承载，可执行指导由[组件 Skill](../../../../../projects/workloop/skills/workloop/SKILL.md) 提供。
 
 Clarify 明确目标、必要调研与设计、重要选择及独立 Plan。Clarify 不授予执行权。同一完整请求可以已授权后续实现。Execute 由当前会话担任 Builder，Supervise 协调被分派的 Builder。没有明确收窄时，两者连续完成获授权 Plan。被分派的 Builder 在指派边界停止。负责人的总体范围继续有效。
 
@@ -56,7 +56,7 @@ Plan 只包含已明确的执行合同。Clarify 在形成 Plan 前确定当前�
 
 路径探索在调研前为大型或路线未决工作提供 Clarify map，使用现有材料和 Skill 入口。Issue tracker、label、claim 和决定 ticket 不属于工作流。研究、原型、访谈及准备在各自权限内解决问题。已明确单元之间可以保留正常产品依赖。
 
-目标、设计、实施证据、自检、独立评估及交付记录分别负责。保留历史候选评估及失败，不为命名统一迁移旧文件。执行产出的 Markdown 属于实现候选。[规格](../../../../spec/workloop.zh.md#材料)定义材料必要内容，组件指令说明用法。
+目标、设计、实施证据、自检、独立评估及交付记录分别负责。保留历史候选评估及失败，不为命名统一迁移旧文件。执行产出的 Markdown 属于实现候选。[组件 README](../../../../../projects/workloop/README.zh.md#区分材料) 定义材料必要内容，组件指令说明用法。
 
 保存遵循有效许可及更窄的不写入、仅对话限制。稳定结果归普通材料，实时角色路由、临时授权和待完成分派归可恢复会话状态。保存材料不授予实现或生命周期权限。
 
@@ -112,9 +112,9 @@ Setup 经简短条件入口路由提供，不是安装或普通使用前置。�
 
 直装前解除旧 workloop 包资源及自有同名文件命令，保留无关资源。遵循宿主实际模板加载行为，不假定文件命令重载也重载模板。其他 Harness 使用完整 Skill 和自然语言操作，不需要专用集成或 OMP 命令语法。
 
-### 规格
+### 组件文档
 
-[组件 Spec](../../../../spec/workloop.zh.md) 完整定义目标、操作行为、权限、边界及可观察验收。正文不含实现描述或仓库文件链接，非规格索引承载语言、主题和决定导航。Skill 负责可执行指令，[组件文档](../../../../../projects/workloop/README.zh.md)独立说明用法。保持这些合同一致。
+[组件 README](../../../../../projects/workloop/README.zh.md) 完整定义目标、操作行为、权限、边界及可观察验收。Skill 负责可执行指令，README 独立说明用法。保持这些合同一致。
 
 [Skill 布局决定](../08/20-skill-variants.zh.md)将组件 Skill 保留在项目内，普通同名语言变体规则不变。仓库检查格式化已登记组件 Markdown，包括两种已知语言 Skill 的共享 Reference 目录内全部 Markdown 和语言 Prompt 路径，Reference 无需逐文件登记。不增加工作流运行时检查。未知操作或语言、旧命令路径、非 Markdown 文件、共享输入及混合未知变更仍完整回退。
 

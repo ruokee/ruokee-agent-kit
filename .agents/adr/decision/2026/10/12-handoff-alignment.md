@@ -104,7 +104,7 @@ The package replaces and disables the local trial extension after this capabilit
 
 Move the existing switch at both user and project scope to smart-context, remove the old package entry, and restart rather than stack wrappers or transfer live references. No runtime fallback reads the old namespace and no automatic migration changes user settings.
 
-The [Handoff Spec](../../../../spec/omp-smart-context/handoff.md) uses repository checks and local controlled requests through the actual host library for integration acceptance. Cover each supported protocol's positive projections, refusals, and authentication paths, independent remote settings, one rewrite per request, no repeated handler, and read-only status. Real-model calls and a full CLI/TUI matrix are not integration gates. Preserve historical trial and installation evidence with its original owner and conditions; Provider benefit claims require comparable actual measurements.
+The [Handoff guide](../../../../../projects/omp-smart-context/docs/handoff.md) uses repository checks and local controlled requests through the actual host library for integration acceptance. Cover each supported protocol's positive projections, refusals, and authentication paths, independent remote settings, one rewrite per request, no repeated handler, and read-only status. Real-model calls and a full CLI/TUI matrix are not integration gates. Preserve historical trial and installation evidence with its original owner and conditions; Provider benefit claims require comparable actual measurements.
 
 ## Alternatives considered
 

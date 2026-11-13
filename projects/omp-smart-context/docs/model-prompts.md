@@ -51,6 +51,17 @@ Add, edit, delete, or repair a file to change the next covered ordinary turn wit
 
 Each ordinary child matches its own model and keeps its role. Plan-mode children, Handoff, title generation, and classification receive no new injection route. Rules do not refresh on each Provider request, temporary mid-turn model switch, or automatic fallback. A later extension may overwrite appended instructions; installation order is not a precedence guarantee.
 
+## Host-provided rules
+
+When OMP provides model-scoped instructions itself, through upstream [issue #6739](https://github.com/can1357/oh-my-pi/issues/6739) or an equivalent capability, recheck the integration before keeping the local path. Cover:
+
+- which matching dimensions the host supports: exact `provider/model`, bare model id, substring, and regular expression;
+- how host text composes with a replaced or customized system prompt: replacement or append, and its position in block order;
+- when host text refreshes: per turn, per Provider request, on model switch, on temporary switch, and on fallback;
+- how the host discovers rules: directories, user and project precedence, and file order.
+
+The outcome decides whether the local capability stays, covers only what the host leaves out, or is removed, with a matching version change.
+
 ## Errors
 
 Invalid files are skipped as a whole. Errors identify a fixed reason and relative source such as `project/20-rules.md`. One unreadable file affects that file; an unreadable directory affects that directory. Other valid rules continue. Unexpected processing errors preserve incoming instructions, including earlier extensions' additions.

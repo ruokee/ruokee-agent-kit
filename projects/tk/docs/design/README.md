@@ -2,7 +2,7 @@
 
 [简体中文](./README.zh.md)
 
-These pages explain tk's implementation and provide independently usable references to its specified public behavior. They follow the [documentation rules](./documentation.md). Specifications contain the complete requirements and acceptance; component documentation does not require readers to access repository specifications.
+These pages explain tk's implementation and provide independently usable references to its public behavior. They follow the [documentation rules](./documentation.md). The component README and these design pages contain the complete requirements and acceptance; readers do not need documents outside this component.
 
 The [user guide](../guide.md) covers installation and routine use. The [CLI reference](./cli-reference.md) lists command syntax, options, defaults, and exit statuses.
 

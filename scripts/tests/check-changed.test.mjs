@@ -116,7 +116,6 @@ test("only registered explanatory Markdown is formatting-only", () => {
     "README.zh.md",
     "AGENTS.md",
     ".agents/adr/decision/example.md",
-    ".agents/spec/example.md",
     ".agents/rule/example.md",
     "docs/usage.md",
     "skills/example/SKILL.md",
@@ -235,11 +234,7 @@ test("removed workloop Markdown keeps rename destinations in classification", ()
   ));
 
 test("internal Skill Markdown selects only formatting and keeps full-check boundaries", () => {
-  const paths = [
-    ".agents/skills/maintain-spec/SKILL.md",
-    ".agents/skills/maintain-adr/SKILL.md",
-    ".agents/skills/maintain-adr/references/records.md",
-  ];
+  const paths = [".agents/skills/maintain-adr/SKILL.md", ".agents/skills/maintain-adr/references/records.md"];
   repository((cwd) => {
     for (const path of paths) write(cwd, path);
     const plan = selectChecks(paths);
@@ -264,7 +259,6 @@ test("internal Skill Markdown selects only formatting and keeps full-check bound
       ],
     );
     for (const boundary of [
-      ".agents/skills/maintain-spec/example.json",
       ".agents/unknown/example.md",
       "scripts/check-changed.mjs",
       "scripts/tests/check-changed.test.mjs",

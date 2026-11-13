@@ -2,11 +2,11 @@
 
 English | [中文](./terminology.zh.md)
 
-The [repository dictionary](../../docs/dictionary/README.md) defines the shared terms this rule enforces. The [repository spec](../spec/repository.md) owns the documentation properties the rule depends on.
+The [repository dictionary](../../docs/dictionary/README.md) defines the shared terms this rule enforces.
 
 ## Using the dictionary
 
-- Use the dictionary's canonical term and definition in repository documents, specs, rules, decisions, task materials, and discussions about repository work.
+- Use the dictionary's canonical term and definition in repository documents, rules, decisions, task materials, and discussions about repository work.
 - Keep third-party proper names, commands, fields, and file name literals in their original spelling; the canonical term does not rewrite them.
 - Do not introduce a synonym for a recorded concept; record an intentional alias or translation in the entry.
 - Propose a new entry to the maintainer when a recurring concept is not recorded.

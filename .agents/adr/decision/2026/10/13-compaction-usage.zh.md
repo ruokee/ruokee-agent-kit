@@ -48,7 +48,7 @@ Reverses: [压缩用量](../../../archived/2026/10/13-r1-compaction-usage.zh.md)
 
 ### 退出
 
-激活时读取原生 `compactionRequestUsage` 导出，宿主自己记录这些请求时保持停用并报告原因，避免重复条目。[用量 Spec](../../../../spec/omp-smart-context/usage.zh.md#原生替代) 维护需要验证的原生记账与统计行为。PR #15034 合并触发复核，不证明某个已安装宿主正确记账。
+激活时读取原生 `compactionRequestUsage` 导出，宿主自己记录这些请求时保持停用并报告原因，避免重复条目。[用量指南](../../../../../projects/omp-smart-context/docs/usage.zh.md#原生替代)维护需要验证的原生记账与统计行为。PR #15034 合并触发复核，不证明某个已安装宿主正确记账。
 
 已发布的原生行为经验证能替代补偿后，删除模块代码、设置、状态、文档和检查，更新本决定与能力清单，保留历史 journal 条目。不删除请求对齐，也不因本能力退出而反转包级合同。
 

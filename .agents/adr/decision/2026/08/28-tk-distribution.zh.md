@@ -36,7 +36,7 @@ GC 只能删除可证明属于已结束进程的临时内容，不修改规范 S
 
 ### 合同归属
 
-[分发规格](../../../../spec/tk-distribution.zh.md)和[接口规格](../../../../spec/tk-interface.zh.md)完整规定行为、选择、默认值、失败、兼容及验收。[CLI 参考](../../../../../projects/tk/docs/design/cli-reference.zh.md)独立说明用法，[安装设计](../../../../../projects/tk/docs/design/installation.zh.md)解释实现和规划，两者都不替代规格要求。
+[安装设计](../../../../../projects/tk/docs/design/installation.zh.md)和 [CLI 参考](../../../../../projects/tk/docs/design/cli-reference.zh.md)完整规定行为、选择、默认值、失败、兼容及验收。CLI 参考独立说明用法，安装设计解释实现和规划。两者共同拥有组件合同。
 
 ## 考虑过的替代方案
 

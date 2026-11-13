@@ -2,7 +2,7 @@
 
 [English](./git.md) | 中文
 
-[仓库规格](../spec/repository.zh.md)说明这些规则所服务的性质：`main` 是唯一的长期分支，集成通过 squash 合入完成，提交信息遵循固定的格式与 scope 集合。
+这些规则保持 `main` 为唯一长期分支，集成通过 squash 合入完成，并固定提交格式与 scope 集合。
 
 ## 分支
 
@@ -17,7 +17,7 @@
 ## 提交
 
 - 只暂存属于当前任务的文件，每个原子任务分别提交到分支。
-- 提交信息使用英文 Conventional Commits，类型取自标准集合，可选 scope 取自规格声明的集合。
+- 提交信息使用英文 Conventional Commits，类型取自标准集合，可选 scope 取自 [commitlint 配置](../../commitlint.config.mjs)声明的集合。
 - 让 `git commit` 运行质量钩子。钩子修改了任务文件时，先审阅并重新暂存，再重试提交。
 - `git commit --amend` 只用于修改提交信息，不用来增加、删除或替换已提交的改动。
 - 请求审查前提交任务改动，并保持工作树干净。

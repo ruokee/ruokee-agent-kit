@@ -4,7 +4,7 @@ Decision owner: Ruokee
 Decision writer: OMP Claude Opus 5.5
 Reverses: [Specifications](../../../archived/2026/10/04-r1-specifications.md)
 Archived: 2026-10-23
-Reversed by: [Specifications](../../../decision/2026/10/04-specifications.md)
+Reversed by: [Specifications](./04-r3-specifications.md)
 
 English | [中文](./04-r2-specifications.zh.md)
 

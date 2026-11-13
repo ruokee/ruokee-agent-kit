@@ -89,4 +89,4 @@ The create interface owns no body input. `tk create task` rejects `--body` as an
 
 ### 2026-10-23 Specification completeness
 
-The [interface specification](../../../../spec/tk-interface.md) fully states the public commands, fields, defaults, result and failure semantics, limits, and compatibility. The CLI reference remains independently usable and describes the same contract. Runtime design explains implementation choices rather than supplying requirements missing from the specification. This applies the [specification decision](../../../decision/2026/10/04-specifications.md) without changing runtime behavior or contract versions.
+The [interface specification](../../../../spec/tk-interface.md) fully states the public commands, fields, defaults, result and failure semantics, limits, and compatibility. The CLI reference remains independently usable and describes the same contract. Runtime design explains implementation choices rather than supplying requirements missing from the specification. This applies the [specification decision](../../../archived/2026/10/04-r3-specifications.md) without changing runtime behavior or contract versions.

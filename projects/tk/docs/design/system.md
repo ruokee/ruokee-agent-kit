@@ -14,7 +14,7 @@ The system consists of the following parts:
 
 - Rust runtime: owns Task domain rules, persistence, schema migration, project discovery, the CLI, and Skill lifecycle. It does not run Harness sessions or model calls.
 - Skill variants: `tk-cli` and `tk-cli-zh` provide self-contained instructions for activation, authorization, Task use, and material maintenance. They do not enforce runtime invariants or install components.
-- Public documentation: explains implementation and provides independently usable user references to the specified product contract. Specifications contain complete requirements and acceptance. Review history and local Task materials remain separate.
+- Public documentation: explains implementation and provides independently usable user references to the product contract. The component README and design pages contain complete requirements and acceptance. Review history and local Task materials remain separate.
 - ADR: responsible for long-term architectural decisions and their rationale. Not responsible for implementation progress and test logs.
 
 One Cargo package builds one `tk` executable. Each command exits after execution and rereads canonical state on its next invocation.

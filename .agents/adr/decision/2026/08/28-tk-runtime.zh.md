@@ -50,7 +50,7 @@ search 逐项处理候选，最多保留 100 个最佳项。check、关系图、
 
 ### 合同归属
 
-运行时、CLI 合同、任务 schema、组件格式和清理清单分别版本化。`tk --version --output json` 报告前四项。[接口规格](../../../../spec/tk-interface.zh.md)完整规定必要行为、字段、默认值、失败语义、上限及兼容性。公开参考独立可用，[运行时设计](../../../../../projects/tk/docs/design/runtime.zh.md)解释实现，不补全缺失要求。
+运行时、CLI 合同、任务 schema、组件格式和清理清单分别版本化。`tk --version --output json` 报告前四项。[CLI 参考](../../../../../projects/tk/docs/design/cli-reference.zh.md)完整规定必要行为、字段、默认值、失败语义、上限及兼容性。公开参考独立可用，[运行时设计](../../../../../projects/tk/docs/design/runtime.zh.md)解释实现，不补全缺失要求。
 
 ## 考虑过的替代方案
 

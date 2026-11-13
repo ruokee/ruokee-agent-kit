@@ -8,7 +8,7 @@
 
 以 `.agents/adr/` 为 ADR 根目录。Skill 的 `decision/` 目录保存当前决定，`archived/` 保存曾经生效、后来被替代的决定。本 README 文件对留在根目录，两个目录始终使用 `.gitkeep` 保存在 Git 中，即使已有记录。
 
-共享术语见[词典 ADR 页](../../docs/dictionary/adr.zh.md)。命名和链接遵循[文档规则](../rule/documentation.zh.md)，检查遵循[开发规则](../rule/development.zh.md)。长期目标位于 [.agents/spec/](../spec/README.zh.md)，变化影响目标时加载 [maintain-spec](../skills/maintain-spec/SKILL.md)。
+共享术语见[词典 ADR 页](../../docs/dictionary/adr.zh.md)。命名和链接遵循[文档规则](../rule/documentation.zh.md)，检查遵循[开发规则](../rule/development.zh.md)。
 
 ## 语言
 

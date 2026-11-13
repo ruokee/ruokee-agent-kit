@@ -20,7 +20,7 @@ The Skill owns the reusable structure, lifecycle, and writing method. Keeping th
 
 [maintain-adr](../../../../skills/maintain-adr/SKILL.md) owns the main ADR maintenance method, [record rules](../../../../skills/maintain-adr/references/records.md), and [writing rules](../../../../skills/maintain-adr/references/writing.md). It is an English internal project Skill under `.agents/skills/`, not a public installation source. Its references may reach the project documents it maintains. Public component self-containment stays unchanged.
 
-The [ADR README](../../../README.md) owns repository locations, language policy, Git workflow, and maintainer authority. It does not duplicate the complete method. Agents load the Skill before applicable maintenance or review, including feature work that affects a durable choice, then read confirmed requirements, relevant current decisions and their `Changes`, specs, supplements, and necessary component documentation. Ordinary reading and routine changes without a durable choice do not require an ADR. Loading grants no write or lifecycle permission.
+The [ADR README](../../../README.md) owns repository locations, language policy, Git workflow, and maintainer authority. It does not duplicate the complete method. Agents load the Skill before applicable maintenance or review, including feature work that affects a durable choice, then read confirmed requirements, relevant current decisions and their `Changes`, supplements, and necessary component documentation. Ordinary reading and routine changes without a durable choice do not require an ADR. Loading grants no write or lifecycle permission.
 
 ### Records
 
@@ -52,19 +52,19 @@ Non-conflicting additions append actual-date entries under final `Changes`; an i
 
 After implementation, form a complete successor from the accepted choice and all still-effective clauses within the decision's scope. Archive the replaced pair at the next unused revision and write the successor at the canonical path in the same change. Preserve actual event dates and original authors. `Reverses` and `Reversed by` link direct versions: if C replaces B, A's earlier link to B follows B into its archive rather than drifting to C.
 
-Classify citations by meaning, not source directory. Current authority uses the canonical path; a historical choice follows that version. Recompute all affected paths, language links, inbound links, and fragments. Archives freeze after relationship and factual link repairs. Naming and evidenced identity repair do not change promises or unfreeze history. Keep no old-name aliases. A historical spelling remains when it is the cited fact. A changing Skill or spec cannot replace the contract needed to explain a historical choice.
+Classify citations by meaning, not source directory. Current authority uses the canonical path; a historical choice follows that version. Recompute all affected paths, language links, inbound links, and fragments. Archives freeze after relationship and factual link repairs. Naming and evidenced identity repair do not change promises or unfreeze history. Keep no old-name aliases. A historical spelling remains when it is the cited fact. A changing Skill or component document cannot replace the contract needed to explain a historical choice.
 
 ### Project authority
 
 The maintainer owns adoption of durable choices and archival of replaced decisions. Agents execute within effective authorization, reuse existing approval, and keep read-only requests read-only. A plan, task status, review verdict, or completed implementation grants no lifecycle or integration permission. Removing the proposal stage does not add another approval gate.
 
-Follow the [project integration policy](../../../README.md#integration) and Git rules for local candidates, review, and separate integration permission. Authorized dependent development may use a verified unmerged predecessor; this alone approves no choice or archival. Neither document-maintenance Skill owns task Goals or task lifecycle. A target change uses `maintain-spec` when needed; the two Skills are not loaded together unconditionally.
+Follow the [project integration policy](../../../README.md#integration) and Git rules for local candidates, review, and separate integration permission. Authorized dependent development may use a verified unmerged predecessor; this alone approves no choice or archival. This Skill does not own task Goals or task lifecycle.
 
 ### Automation boundary
 
 Keep review, repository search, and Git history. Do not add a classification system, translation sidecar, archive manifest, index, or permanent maintenance script. Add a mechanical check only when repeated maintenance or an observed failure establishes a concrete invariant. Skill discovery and formatting do not establish correct maintenance: actual project sessions must show applicable loading, effective-source reading, and correct document results against confirmed requirements.
 
-Keep Skills, project supplements, documentation rules, the repository spec, dictionary, and affected references aligned. Public distribution and adaptation to other projects or hosts require their own scope; no general framework is prebuilt for them. This mechanism adds no tk state, command, schema, template, or ADR integration interface and no mandatory replacement RFC process.
+Keep Skills, project supplements, documentation rules, dictionary, and affected references aligned. Public distribution and adaptation to other projects or hosts require their own scope; no general framework is prebuilt for them. This mechanism adds no tk state, command, schema, template, or ADR integration interface and no mandatory replacement RFC process.
 
 ## Alternatives considered
 

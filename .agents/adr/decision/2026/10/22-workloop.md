@@ -40,7 +40,7 @@ The entry continues every authorized ready action in the complete request and ap
 
 ### Operations
 
-Expose `clarify`, `exec`, `verify`, `ship`, and `supervise`, with complete behavior in the [component specification](../../../../spec/workloop.md) and executable guidance in the [component](../../../../../projects/workloop/README.md).
+Expose `clarify`, `exec`, `verify`, `ship`, and `supervise`, with complete behavior in the [component README](../../../../../projects/workloop/README.md) and executable guidance in its [Skill](../../../../../projects/workloop/skills/workloop/SKILL.md).
 
 Clarify resolves goals, necessary investigation and design, consequential choices, and a separate Plan. It grants no execution authority. The same complete request may already authorize subsequent implementation. Execute acts as the Builder in the current session; Supervise coordinates delegated Builders. Both continue the authorized Plan unless explicitly narrowed. A delegated Builder stops at its assigned boundary. The owner's overall scope remains effective.
 
@@ -56,7 +56,7 @@ A Plan contains only resolved executable contracts. Clarify settles the current 
 
 Wayfinding supplies the Clarify map for large or route-dependent work before investigation, using existing materials and the Skill entry. Issue trackers, labels, claims, and decision tickets are outside the workflow. Research, prototypes, interviews, and preparation resolve questions under their own permission. Resolved units may retain normal product dependencies.
 
-Separate goal, design, implementation evidence, self-check, independent assessment, and delivery records. Preserve earlier candidate-bound assessments and failures without renaming historical files for uniformity. Executed Markdown is an implementation candidate. The [specification](../../../../spec/workloop.md#materials) defines required material contents; component instructions define their use.
+Separate goal, design, implementation evidence, self-check, independent assessment, and delivery records. Preserve earlier candidate-bound assessments and failures without renaming historical files for uniformity. Executed Markdown is an implementation candidate. The [component README](../../../../../projects/workloop/README.md#keep-materials-focused) defines required material contents; component instructions define their use.
 
 Saving follows effective permission and narrower no-write or conversation-only limits. Stable results belong in ordinary materials; live role routes, temporary grants, and pending assignments belong in recoverable session state. Saving materials grants no implementation or lifecycle authority.
 
@@ -112,9 +112,9 @@ One OMP installation selects one complete language Skill and its matching `/wl-c
 
 Retire old workloop package resources and owned same-name file commands before direct installation; leave unrelated resources intact. Follow the host's real template-loading behavior rather than assuming file-command reload also reloads templates. Other Harnesses use complete Skills and natural-language operations without dedicated integrations or OMP command syntax.
 
-### Specifications
+### Component documentation
 
-The [component Spec](../../../../spec/workloop.md) completely states targets, operation behavior, permissions, boundaries, and observable acceptance. Its body carries no implementation descriptions or repository-file links; the non-spec index carries language, topic, and decision navigation. Skills own executable instructions and [component documentation](../../../../../projects/workloop/README.md) independently explains use. Keep these contracts aligned.
+The [component README](../../../../../projects/workloop/README.md) completely states targets, operation behavior, permissions, boundaries, and observable acceptance. Skills own executable instructions and the README independently explains use. Keep these contracts aligned.
 
 The [Skill layout decision](../08/20-skill-variants.md) keeps component-owned Skills in the project and leaves ordinary same-name variants unchanged. Repository checks format registered component Markdown, including all Markdown in either known language Skill's shared reference directory without per-file registration, and language Prompt paths. This adds no workflow runtime checks. Unknown operations or languages, legacy command paths, non-Markdown files, shared inputs, and mixed unknown changes retain complete-check fallback.
 

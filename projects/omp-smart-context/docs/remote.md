@@ -43,4 +43,12 @@ OMP still controls triggering, preparation, trimming, credentials, retries, fall
 
 Alignment makes the shared request prefix eligible for cache reuse; the Provider determines cache availability and billing. A successful rewrite is not a fixed hit-rate or savings promise.
 
+## Acceptance
+
+Use repository checks plus local controlled runs with the actual candidate and locked host libraries. Cover positive and refusal cases in both modes, independent switches, native request semantics, and read-only status. The shared coordinator must establish a separate per-session reference, at most one rewrite per physical request, no repeated context handler, irreversible operation invalidation, and ownership-conditional release. Real-model calls, measured cache savings, and a full CLI/TUI matrix are not integration gates. Provider benefit claims require comparable repeated measurements with complete denominators.
+
+## Native replacement
+
+Replace this adaptation when a maintained native interface provides equivalent results, configuration semantics, isolation, and failure behavior across the required paths. Require behavioral verification; an upstream PR merge alone does not establish equivalence.
+
 To stop alignment, set `compactionCacheEnabled=false` and restart, or remove the package and restart. Existing in-flight work belongs to the running process.

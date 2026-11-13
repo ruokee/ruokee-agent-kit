@@ -44,4 +44,4 @@ A native registration failure can leave an accepted prefix. This is a Harness AP
 
 ### 2026-10-23 Specification completeness
 
-The complete [tk specification set](../../../../spec/README.md#tk) states the required tool behavior, Harness integration, Agent behavior, and acceptance. Component references and installed Skills remain independently usable and express the same contract; design explains implementation. This applies the [specification decision](../../../decision/2026/10/04-specifications.md) without changing routing, registration, compatibility, or failure behavior.
+The complete [tk specification set](../../../../spec/README.md#tk) states the required tool behavior, Harness integration, Agent behavior, and acceptance. Component references and installed Skills remain independently usable and express the same contract; design explains implementation. This applies the [specification decision](../../../archived/2026/10/04-r3-specifications.md) without changing routing, registration, compatibility, or failure behavior.

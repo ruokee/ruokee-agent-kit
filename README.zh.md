@@ -62,9 +62,9 @@ Skill 安装与下方的开发环境准备相互独立。普通 Skill 见[安装
 
 ### 文档分层
 
-长期仓库决定通过双语 [ADRs](./.agents/adr/README.zh.md) 记录。双语[规格](./.agents/spec/README.zh.md)完整说明组件或仓库领域的目标要求和可观察结果，独立于实现及其说明资料。索引提供语言、主题和决定导航，规格正文不含仓库文件链接。双语[规则层](./.agents/rule/README.zh.md)说明在这个仓库里工作要怎么做：贡献者或 Agent 必须做什么、按什么顺序、持哪项授权，以及什么被禁止。这些工作使用的共享用词由双语[词典](./docs/dictionary/README.zh.md)定义。
+长期仓库决定通过双语 [ADRs](./.agents/adr/README.zh.md) 记录。每个组件的 `README.md` 及其 `docs/` 说明组件的目标、边界、公共面和验收。双语[规则层](./.agents/rule/README.zh.md)说明在这个仓库里工作要怎么做：贡献者或 Agent 必须做什么、按什么顺序、持哪项授权，以及什么被禁止。这些工作使用的共享用词由双语[词典](./docs/dictionary/README.zh.md)定义。
 
-内部 [maintain-spec](./.agents/skills/maintain-spec/SKILL.md) 和 [maintain-adr](./.agents/skills/maintain-adr/SKILL.md) Skill 持有主要维护方法。维护或审查对应文档前加载适用 Skill，也覆盖影响长期目标或持久选择的功能工作。各层 README 保留项目补充和导航。
+内部 [maintain-adr](./.agents/skills/maintain-adr/SKILL.md) Skill 持有 ADR 的主要维护方法。维护或审查决定前加载它，也覆盖影响持久选择的功能工作。ADR README 保留项目补充和导航。
 
 [开发规则](./.agents/rule/development.zh.md)说明规划改动、准备环境、运行检查和合并门禁。
 
@@ -85,7 +85,7 @@ pnpm hooks:install
 
 公开英文 Skill 位于 `skills/<name>/`，中文 variant 位于 `variants/zh/skills/<name>/`。内部英文维护 Skill 位于 `.agents/skills/`，不是公开安装源。Plugin、Extension、可执行程序和 Harness Package 使用对应 Harness 或构建系统预期的布局。
 
-[仓库规格](./.agents/spec/repository.zh.md)持有仓库约定、文档配对和内部维护 Skill，[Skill 规格](./.agents/spec/skills.zh.md)覆盖公开分发的普通 Skill。
+每个组件的 `README.md` 及其 `docs/` 持有组件的目标、边界、公共面和验收。[规则层](./.agents/rule/README.zh.md)和 [ADRs](./.agents/adr/README.zh.md) 覆盖仓库约定与决定。
 
 ### 组件宿主维护
 

@@ -44,4 +44,4 @@ Codex 和 Claude Code 使用 MCP。Pi 和 OMP 使用原生 extension。Pi 不设
 
 ### 2026-10-23 规格完整性
 
-完整的 [tk 规格集合](../../../../spec/README.zh.md#tk)表达必要的工具行为、Harness 集成、Agent 行为和验收。组件参考与已安装 Skill 保持独立可用，表达相同合同，设计解释实现。此分工落实[规格决定](../../../decision/2026/10/04-specifications.zh.md)，不改变路由、注册、兼容或失败行为。
+完整的 [tk 规格集合](../../../../spec/README.zh.md#tk)表达必要的工具行为、Harness 集成、Agent 行为和验收。组件参考与已安装 Skill 保持独立可用，表达相同合同，设计解释实现。此分工落实[规格决定](../../../archived/2026/10/04-r3-specifications.zh.md)，不改变路由、注册、兼容或失败行为。

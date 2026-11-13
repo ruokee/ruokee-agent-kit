@@ -22,7 +22,7 @@ Reverses: [tk Harness 集成](../../../archived/2026/08/28-r3-tk-harness.zh.md)
 
 Rust 负责任务校验、存储、搜索排序、schema 迁移、兼容判断和安装。Skill 说明用法和授权，不重复强制执行。CLI 失败结果、取消和部分完成保留运行时语义。
 
-[安装设计](../../../../../projects/tk/docs/design/installation.zh.md)、[CLI 参考](../../../../../projects/tk/docs/design/cli-reference.zh.md)和 [CLI Skill](../../../../../projects/tk/skills/tk-cli-zh/SKILL.md) 提供独立可用的指导，[tk 规格集合](../../../../spec/README.zh.md#tk)表达完整行为和验收。
+[安装设计](../../../../../projects/tk/docs/design/installation.zh.md)、[CLI 参考](../../../../../projects/tk/docs/design/cli-reference.zh.md)和 [CLI Skill](../../../../../projects/tk/skills/tk-cli-zh/SKILL.md) 提供独立可用的指导，并完整陈述此集成的行为和验收。
 
 ## 考虑过的替代方案
 

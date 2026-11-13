@@ -10,7 +10,7 @@ English | [中文](./20-omp-qol.zh.md)
 
 Maintain `@ruokee/omp-qol` with its independently switchable behavior adjustments.
 
-QoL owns independently switchable adjustments to OMP behavior; the [complete specification set](../../../../spec/README.md#omp-qol) owns the capability inventory. Request alignment, compaction usage, and model prompt rules belong to smart-context.
+QoL owns independently switchable adjustments to OMP behavior; the [component README](../../../../../projects/omp-qol/README.md) owns the capability inventory. Request alignment, compaction usage, and model prompt rules belong to smart-context.
 
 A native `wait` can return while watched background work is still running, making the model ask again. A turn can end after an upstream error exhausts or falls outside native retries. A remote compaction can hit its fixed request deadline and fall back. QoL retains independently controlled adjustments for those cases, along with task-argument cleanup and reply copying.
 
@@ -36,7 +36,7 @@ Continuing waits and conservative error recovery are on by default; the compacti
 
 The compaction deadline is a default-off experiment with a bounded, process-wide timeout adjustment. Enabling it accepts its boundary: matching timeout calls from unrelated work in the same process are lengthened as well, so it provides neither request isolation nor strict project isolation. The component README compatibility section owns the maintenance-floor declaration, with no upper bound, under the [shared OMP floor](./28-host-maintenance.md). [Smart-context](../10/12-smart-cache.md) owns the migrated context capabilities.
 
-The [component specification set](../../../../spec/README.md#omp-qol) states the complete required behavior and acceptance, including setting keys, defaults, ranges, status reporting, eligibility, and externally observable ownership and release conditions. The [component README](../../../../../projects/omp-qol/README.md) remains an independently usable reference. Internal module mechanics and per-adjustment validation evidence belong to component design and validation materials, not the specification.
+The [component README](../../../../../projects/omp-qol/README.md) states the complete required behavior and acceptance, including setting keys, defaults, ranges, status reporting, eligibility, and externally observable ownership and release conditions. It remains an independently usable reference. Internal module mechanics and per-adjustment validation evidence belong to component design and validation materials.
 
 Each adjustment needs its own real-session evidence. Validation of the compaction experiment requires a remote compaction longer than the native deadline to complete with usable model requests afterwards. On host upgrades, re-read the cited source and update the affected documentation; changing the declared maintenance bound does not replace those steps.
 

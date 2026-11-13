@@ -5,7 +5,7 @@ English | [中文](./development.zh.md)
 ## Planning
 
 - Read the documentation that covers the capability or area you are about to change before analyzing requirements or starting development.
-- Search the [specifications](../spec/README.md), [current ADR decisions and their changes](../adr/README.md), confirmed task requirements, and rule pages for the area before planning a requirement, and reuse what they already state.
+- Search the [current ADR decisions and their changes](../adr/README.md), confirmed task requirements, and rule pages for the area before planning a requirement, and reuse what they already state.
 - As far as possible, read the rule pages that apply to the work, and check the work against them before reporting it done.
 - Limit changes to the requested capability. Do not prebuild structure or capability for hypothetical Skills, hosts, or requirements.
 
@@ -38,7 +38,7 @@ English | [中文](./development.zh.md)
 - Keep dependency installation and source formatting out of check commands. Prepare missing dependencies separately under [Environments](#environments) before rerunning checks.
 - Use targeted `pnpm check:*` commands only when needed. `pnpm check:base` covers Markdown and Rust checks, not component checks.
 - Treat automated success as no proof of real-model behavior or interactive UI correctness, and follow the component's own scenario and release validation as well.
-- As far as possible, consult applicable specs, ADRs, and rules when validating or evaluating work, and check the result against them.
+- As far as possible, consult applicable ADRs and rules when validating or evaluating work, and check the result against them.
 
 The [selector](../../scripts/check-changed.mjs) owns the explicit consumer mapping and ordered check commands. Keep component preparation and exact checks in each component's README or linked validation guide; repository-owned checks remain in the [root instructions](../../README.md#common-commands). The mapping preserves consumer priority, deduplicated unions, and complete fallback without a second inventory in these rules.
 

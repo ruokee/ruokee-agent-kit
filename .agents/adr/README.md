@@ -8,7 +8,7 @@ Before creating, repairing, updating, reversing, archiving, or reviewing an ADR,
 
 Use `.agents/adr/` as the ADR root. The Skill's `decision/` directory holds current decisions, and `archived/` holds decisions that took effect and were later replaced. Keep this README pair at the root and both directories in Git with `.gitkeep`, even when they contain records.
 
-Read the [dictionary's ADR page](../../docs/dictionary/adr.md) for shared terms. Use the [documentation rules](../rule/documentation.md) for names and links, and the [development rules](../rule/development.md) for checks. Long-lived targets live under [.agents/spec/](../spec/README.md); load [maintain-spec](../skills/maintain-spec/SKILL.md) when the change affects them.
+Read the [dictionary's ADR page](../../docs/dictionary/adr.md) for shared terms. Use the [documentation rules](../rule/documentation.md) for names and links, and the [development rules](../rule/development.md) for checks.
 
 ## Languages
 

@@ -17,7 +17,7 @@ Repository guidance requires English Conventional Commits messages, and the type
 
 Types keep the Conventional Commits set that `config-conventional` accepts, and the repository does not narrow it; choosing a type that fits the change is a judgment call. Scopes are optional: when a message carries one it must be exactly one of `skills`, `extensions`, `adr`, or `repo`, and a change that spans two areas carries none.
 
-The [repository specification](../../../../spec/repository.md) states the scope set and the commit-msg check, `commitlint.config.mjs` records the local rule and the constraints the preset inherits, and [README.md](../../../../../README.md), [README.zh.md](../../../../../README.zh.md), `AGENTS.md`, and the [Git rules](../../../../rule/git.md) state the message requirements.
+`commitlint.config.mjs` records the scope set and the commit-msg check, together with the constraints the preset inherits. [README.md](../../../../../README.md), [README.zh.md](../../../../../README.zh.md), `AGENTS.md`, and the [Git rules](../../../../rule/git.md) state the message requirements.
 
 ## Alternatives considered
 

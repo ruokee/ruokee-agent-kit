@@ -24,7 +24,7 @@ The component has no distribution channel. Every installation comes from this re
 
 ### Removal
 
-`projects/omp-system-prompt` and its repository content are deleted: the package, its module entry, its template, its checks, its documentation, and its specification. The host owns system prompt assembly entirely.
+`projects/omp-system-prompt` and its repository content are deleted: the package, its module entry, its template, its checks, and its documentation. The host owns system prompt assembly entirely.
 
 The removal adds no compatibility layer, no migration guide, and no replacement component. It publishes, deprecates, and unpublishes no package, because there is no distribution channel. The local plugin installation is removed in the same change, because a linked installation would otherwise point at a deleted directory. Archived decisions and Git history keep their mentions of the component.
 
@@ -49,4 +49,4 @@ None
 
 - The Delivery chapter and the `<project-context>` footer correction stop applying in every session where the extension does not run, which means it is disabled or uninstalled and the process no longer executes its handler. A complete plugin copy that the host still loads keeps producing both. A kept template copy supplies the strategy text alone, because both behaviors belong to the handler rather than to a template render.
 - An installed copy that keeps running does so against a host version its patches were not written for, and its patch can fail without a diagnostic, so a user can believe the strategy text is still applied.
-- The component inventory in the specification layer, the documentation, and the changed-path check configuration describes a smaller set of components, and the specification layer owns that inventory for later readers.
+- The component inventory in the repository documentation and the changed-path check configuration describes a smaller set of components, and the component READMEs own that inventory for later readers.

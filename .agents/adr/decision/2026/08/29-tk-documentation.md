@@ -10,7 +10,7 @@ English | [中文](./29-tk-documentation.zh.md)
 
 Maintain complete bilingual CLI guidance in two self-contained Skill trees and independently usable public documentation.
 
-Each language has one Skill and one maintained copy of its references. Keeping those files together makes source and installed navigation identical. Complete specifications and clear topic ownership let Agents and users obtain the same contract without depending on private work records.
+Each language has one Skill and one maintained copy of its references. Keeping those files together makes source and installed navigation identical. Complete component documentation and clear topic ownership let Agents and users obtain the same contract without depending on private work records.
 
 ## Decision
 
@@ -20,7 +20,7 @@ Records, Deep research, Iterative design, and Scratchpad organize ordinary Task 
 
 Suggest a pattern only after its signal appears and explain the materials and maintenance it adds. An explicit user request authorizes adoption without another confirmation. Adoption grants no Task creation, lifecycle, deletion, move, or unclear-overwrite permission. Ordinary material editing retains its existing permissions.
 
-The [Agent behavior specification](../../../../spec/tk-agent.md#material-patterns) preserves each pattern's signals, counterexamples, defaults, history, evidence, and cleanup requirements. The [pattern reference](../../../../../projects/tk/skills/tk-cli/references/patterns.md) provides operating guidance. Project conventions may override default paths. Create materials for actual work, without empty scaffolds, invented history, future-date records, or automatic rearrangement of existing Tasks. Task summaries, detailed materials, and WAL keep separate roles.
+The [Skill behavior guide](../../../../../projects/tk/docs/design/skill.md#material-patterns) preserves each pattern's signals, counterexamples, defaults, history, evidence, and cleanup requirements. The [pattern reference](../../../../../projects/tk/skills/tk-cli/references/patterns.md) provides operating guidance. Project conventions may override default paths. Create materials for actual work, without empty scaffolds, invented history, future-date records, or automatic rearrangement of existing Tasks. Task summaries, detailed materials, and WAL keep separate roles.
 
 ### Skill source
 
@@ -30,9 +30,9 @@ The two languages provide equivalent behavior. [Skill design](../../../../../pro
 
 ### Contract ownership
 
-The complete [tk specification set](../../../../spec/README.md#tk) owns required behavior and acceptance, including necessary commands, parameters, fields, defaults, limits, failure semantics, and compatibility. Specifications contain no repository-file links and delegate no missing requirements.
+The [component README](../../../../../projects/tk/README.md) and its design and reference pages own required behavior and acceptance, including necessary commands, parameters, fields, defaults, limits, failure semantics, and compatibility. These pages delegate no missing requirements.
 
-Component user references independently describe the same contract. Design explains algorithms and internal mechanisms; validation describes methods and evidence. The [design index](../../../../../projects/tk/docs/design/README.md) navigates one primary explanation per topic. Distributed component documentation does not depend on repository specifications.
+Component user references independently describe the same contract. Design explains algorithms and internal mechanisms; validation describes methods and evidence. The [design index](../../../../../projects/tk/docs/design/README.md) navigates one primary explanation per topic. Distributed component documentation does not depend on files outside the component.
 
 The [component README](../../../../../projects/tk/README.md) introduces tk and links its bilingual guide and design pages without duplicating detailed contracts. Repository entries link to the component entry. Review records, Task paths, branch state, implementation logs, and local materials stay outside public pages.
 
@@ -64,7 +64,7 @@ Tasks hold discussion, approval, and execution arrangements without new runtime 
 
 ### Maintenance
 
-A public behavior change updates complete affected specifications, design and reference pages, guide and CLI examples, both languages, affected Skills, current owning ADRs, and validation methods and scenarios together.
+A public behavior change updates the complete affected requirements, design and reference pages, guide and CLI examples, both languages, affected Skills, current owning ADRs, and validation methods and scenarios together.
 
 Use repository Markdown, link, formatting, and spelling checks with manual bilingual review. Do not add a custom structure or translation checker until repeated maintenance or an observed drift failure establishes a concrete invariant worth automating. The [documentation design](../../../../../projects/tk/docs/design/documentation.md) and [glossary](../../../../../projects/tk/docs/design/GLOSSARY.md) hold the maintenance details.
 
@@ -74,7 +74,7 @@ None
 
 ## Consequences
 
-Readers can determine requirements from the specification set and use component guidance independently. Source and installed Skills share usable internal navigation without maintaining duplicate same-language references.
+Readers can determine requirements from the component README and design pages and use component guidance independently. Source and installed Skills share usable internal navigation without maintaining duplicate same-language references.
 
 Bilingual Skill and public guidance still require coordinated edits. Updating only some files can give Agents different adoption or maintenance rules from those users read. Formatting and Rust checks do not establish semantic equivalence or Agent behavior; manual review and applicable Harness scenarios retain those responsibilities.
 

@@ -2,18 +2,18 @@
 
 English | [中文](./README.zh.md)
 
-Rules state how work is done in this repository: what a contributor or an Agent must do, in what order, with which permission, and what is forbidden. The layer lives in `.agents/rule/`, beside [specifications](../spec/README.md) and [ADRs](../adr/README.md).
+Rules state how work is done in this repository: what a contributor or an Agent must do, in what order, with which permission, and what is forbidden. The layer lives in `.agents/rule/`, beside [ADRs](../adr/README.md).
 
-When a reader needs the reason behind a rule, the rule links the decision that owns it or the spec that owns the property it enforces.
+When a reader needs the reason behind a rule, the rule links the decision that owns it.
 
-The [spec maintenance Skill](../skills/maintain-spec/SKILL.md) and [ADR maintenance Skill](../skills/maintain-adr/SKILL.md) own their main document methods. This layer supplies cross-cutting rules and navigation; the spec and ADR READMEs supply project-specific supplements.
+The [ADR maintenance Skill](../skills/maintain-adr/SKILL.md) owns its main document method. This layer supplies cross-cutting rules and navigation; the ADR README supplies project-specific supplements.
 
 ## Rules by activity
 
 - [boundary.md](./boundary.md) covers first-party scope, content layout, public content, and component versions.
 - [git.md](./git.md) covers branches, working directories, commits, authorizations, merges, and teardown.
 - [development.md](./development.md) covers planning, environments, hooks, checks, and evidence.
-- [documentation.md](./documentation.md) covers documents, specs, decisions, bilingual pairs, naming, cleanup, and file references.
+- [documentation.md](./documentation.md) covers documents, decisions, bilingual pairs, naming, cleanup, and file references.
 - [terminology.md](./terminology.md) covers canonical terms, component glossaries, dictionary entries, and language pairs.
 
 ## File layout
@@ -25,10 +25,10 @@ The [spec maintenance Skill](../skills/maintain-spec/SKILL.md) and [ADR maintena
 ## Writing a rule
 
 - State one constraint per rule in the imperative, and add at most one short sentence that explains it.
-- As far as possible, trace a rule to a spec invariant, a current decision, or the maintainer's explicit decision. A rule without that source is allowed when it is the current practice, and it must not conflict with a spec or a current decision.
+- As far as possible, trace a rule to a current decision or the maintainer's explicit decision. A rule without that source is allowed when it is the current practice, and it must not conflict with a current decision.
 - Keep a rule's original condition, exception, strength, and permission. A rule stated as "as far as possible" keeps that strength, and a prohibition keeps its exception.
 - Cite a rule by its file path and section heading. Do not number rules.
-- Keep long rationale, rule numbers, and inventories out of this layer. Link the decision or the spec that owns the reason instead.
+- Keep long rationale, rule numbers, and inventories out of this layer. Link the decision that owns the reason instead.
 
 ## Editing a rule
 
@@ -39,7 +39,7 @@ The [spec maintenance Skill](../skills/maintain-spec/SKILL.md) and [ADR maintena
 
 ## Reference direction
 
-- Link component files, component documentation, specs, and decisions from a rule.
+- Link component files, component documentation, and decisions from a rule.
 - Keep every path inside `.agents/rule/` out of a distributable component. A component must not link to, name a path in, or depend on this layer, and running, building, or distributing it must not depend on the layer.
 - Treat rules as explanatory documentation. The Markdown checks and the changed-path selector handle them like other Markdown, and the layer adds no checker, classification system, or manifest.
 

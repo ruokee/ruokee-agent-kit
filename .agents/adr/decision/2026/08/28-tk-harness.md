@@ -22,7 +22,7 @@ Both target forms use the same bounded file lifecycle. tk manages only `tk-cli` 
 
 Rust owns Task validation, storage, search ranking, schema migration, compatibility, and installation. Skills explain use and authorization without duplicating enforcement. CLI failure results, cancellation, and partial completion retain their runtime semantics.
 
-The [installation design](../../../../../projects/tk/docs/design/installation.md), [CLI reference](../../../../../projects/tk/docs/design/cli-reference.md), and [CLI Skill](../../../../../projects/tk/skills/tk-cli/SKILL.md) provide independently usable guidance. The [tk specification set](../../../../spec/README.md#tk) states complete behavior and acceptance.
+The [installation design](../../../../../projects/tk/docs/design/installation.md), [CLI reference](../../../../../projects/tk/docs/design/cli-reference.md), and [CLI Skill](../../../../../projects/tk/skills/tk-cli/SKILL.md) provide independently usable guidance and state the complete behavior and acceptance for this integration.
 
 ## Alternatives considered
 

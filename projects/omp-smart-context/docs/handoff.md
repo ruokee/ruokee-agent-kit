@@ -41,4 +41,8 @@ OMP still generates and validates the document, applies manual focus, handles au
 
 Insufficient shared content or changed request ownership leaves the complete request native. Later extension options remain in effect. In Chat Completions, restoring tool choice can let the model return a tool call instead of document text; OMP handles that as a native generation failure. Generation policy remains native except for the supported projection axes listed above.
 
+## Acceptance
+
+Use repository checks plus local controlled requests through the actual host library. Cover each supported protocol's positive projections, refusals, and authentication paths, independent Remote settings, at most one rewrite per request, no repeated handler, and read-only status. Real-model calls and a full CLI/TUI matrix are not integration gates. Provider benefit claims require comparable actual measurements.
+
 To stop alignment, set `handoffCacheEnabled=false` and restart. Disabling Remote does not disable Handoff, and disabling Handoff does not disable Remote.

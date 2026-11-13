@@ -22,7 +22,7 @@ smart-context 包拥有 Pin，不依赖独立 Pin 包或其运行时文件。独
 
 [工具合同](../10/17-context-pin-tool-contract.zh.md)规定六个动作、当前条目写入、查找前重试识别、完整 `show` 和来源标签。读取操作不写入。用户提交保留确认，Agent 变更采用非主动交付。所有工具动作声明审批级别 `read`；Pin 不新增授权或来源准入门禁，也不写用户配置。保留文本不提高指令权限，不恢复撤销的授权，不重启已完成工作。
 
-[Pin Spec](../../../../spec/omp-smart-context/pin.zh.md) 维护用法、记录、编号、重置、持久化、缓存行为和可调整的字节上限。上限约束单条正文及活跃正文总量。拒绝写入不改变状态，超限时仍可读取条目和取消固定。[主 Spec](../../../../spec/omp-smart-context/README.zh.md) 维护共同目标、不变量、宿主下限及组合验收。[Pin 指南](../../../../../projects/omp-smart-context/docs/pin.zh.md) 说明用户操作与限制。
+[Pin 指南](../../../../../projects/omp-smart-context/docs/pin.zh.md)维护用法、记录、编号、重置、持久化、缓存行为和可调整的字节上限。上限约束单条正文及活跃正文总量。拒绝写入不改变状态，超限时仍可读取条目和取消固定。[smart-context README](../../../../../projects/omp-smart-context/README.zh.md) 陈述共同目标、不变量、宿主下限及组合验收。同一指南说明用户操作与限制。
 
 验收采用仓库检查及实际 journal、投影路径的本地受控运行。已提交压缩后的最终请求逐字包含最新有效正文，旧 revision 不能在其后重新生效。组合请求不重复 Pin 投影或模型规则，每条请求最多有一个对齐改写方。受控响应验证这些机制，不验证模型生成摘要的质量、真实 Provider 收益或 TUI 行为。历史证据保留原有条件。
 

@@ -2,7 +2,7 @@
 
 English | [中文](./README.zh.md)
 
-This dictionary is the shared vocabulary for developing this repository. It is authoritative for shared terms: use its canonical term and definition in repository documents, rules, specifications, decisions, task materials, and discussions about repository work.
+This dictionary is the shared vocabulary for developing this repository. It is authoritative for shared terms: use its canonical term and definition in repository documents, rules, decisions, task materials, and discussions about repository work.
 
 Each entry gives the canonical English term, its Chinese term, and a one-sentence definition. A linked term has a page with mechanism, examples, and boundary notes. Terms without a page are defined here.
 
@@ -64,23 +64,19 @@ The full repository check run on the clean, committed final candidate before int
 
 ## Documents and decisions
 
-**[spec](./spec.md)**（规格）
+**invariant**（不变量）
 
-A complete, implementation-independent statement of a component or repository area's long-lived target and its acceptance, maintained under `.agents/spec/`.
+A property a component or repository area requires to remain true across changes, independent of implementation details.
 
-**[invariant](./spec.md#invariant)**（不变量）
-
-A property a spec requires to remain true across changes, independent of implementation details.
-
-**[acceptance criterion](./spec.md#acceptance-criterion)**（验收条件）
+**acceptance criterion**（验收条件）
 
 An observable condition that distinguishes a conforming result from a deviation.
 
-**[public surface](./spec.md#public-surface)**（公共面）
+**public surface**（公共面）
 
 The commands, formats, files, and behaviors that users or other components rely on and that a change must preserve or update.
 
-**[out of scope](./spec.md#out-of-scope)**（范围外）
+**out of scope**（范围外）
 
 Work or content a component or repository area explicitly does not cover.
 

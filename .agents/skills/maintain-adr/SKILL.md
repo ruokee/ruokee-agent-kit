@@ -14,7 +14,7 @@ An ADR records a durable choice, its rationale, and its necessary contract. Main
 1. Resolve the request, working location, affected topic, and current authorization. Review and analysis stay read-only. Loading this Skill grants no editing, approval, archival, merge, or task-lifecycle permission.
 2. Read the project's ADR supplements, terminology, and applicable documentation rules. In this repository, start with [ADR supplements](../../adr/README.md). They define local language, Git, and permission policy. Explicit project overrides govern their stated differences; the remaining method below still applies.
 3. Read [Record rules](./references/records.md) and [Writing rules](./references/writing.md) before maintaining or reviewing an ADR. These files own the default structure, lifecycle, and content rules.
-4. Read confirmed requirements and relevant current decisions, including their `Changes`, before classifying the requirement. Read relevant current specs and necessary component documents. Consult task discussions for approval and rejected options. Read archives or Git history when identity, authorship, direct relationships, or historical rationale require them.
+4. Read confirmed requirements and relevant current decisions, including their `Changes`, before classifying the requirement. Read relevant component documents. Consult task discussions for approval and rejected options. Read archives or Git history when identity, authorship, direct relationships, or historical rationale require them.
 
 A suggested choice, an existing implementation, a task status, or a generated document is not by itself approval. Reuse effective authorization without adding a universal approval sequence. If a necessary source, semantic decision, or protected permission is missing, preserve that gap and finish unaffected authorized work.
 
@@ -36,9 +36,9 @@ Keep discussion, approval, ordinary rejection, and pending execution in the proj
 
 ## Determine the edit set
 
-List the logical records and their required language versions, metadata, lifecycle moves, direct relationships, current-authority and historical citations, project supplements, affected specs, inbound links, and heading fragments. Determine each identity and its next archive revision from actual records, not from today's date or an assumed shared ancestor.
+List the logical records and their required language versions, metadata, lifecycle moves, direct relationships, current-authority and historical citations, project supplements, affected component documents, inbound links, and heading fragments. Determine each identity and its next archive revision from actual records, not from today's date or an assumed shared ancestor.
 
-Load `maintain-spec` when a durable choice changes long-lived targets or acceptance. Do not require both Skills for every operation. A related document does not expand the current write boundary, and neither Skill maintains task Goals.
+A related document does not expand the current write boundary, and this Skill does not maintain task Goals.
 
 ## Maintain the records
 

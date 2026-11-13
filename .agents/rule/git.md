@@ -2,7 +2,7 @@
 
 English | [中文](./git.zh.md)
 
-The [repository spec](../spec/repository.md) states the properties these rules serve: `main` is the only long-lived branch, integration happens through squash merge, and commit messages follow a fixed format and scope set.
+These rules keep `main` as the only long-lived branch, integrate through squash merge, and fix the commit format and scope set.
 
 ## Branches
 
@@ -17,7 +17,7 @@ The [repository spec](../spec/repository.md) states the properties these rules s
 ## Commits
 
 - Stage only the files that belong to the current task, and commit each atomic task to its branch separately.
-- Write commit messages as English Conventional Commits, with the types from the standard set and the optional scope set the spec declares.
+- Write commit messages as English Conventional Commits, with the types from the standard set and the optional scope set the [commitlint configuration](../../commitlint.config.mjs) declares.
 - Let `git commit` run the quality hooks. Review and restage the task files when a hook modifies them, then retry the commit.
 - Use `git commit --amend` only to edit a commit message, and never to add, remove, or replace committed changes.
 - Commit the task changes and leave the working tree clean before requesting review.

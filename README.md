@@ -62,9 +62,9 @@ Follow the [Code of Conduct](./CODE_OF_CONDUCT.md) in project spaces. Use its pr
 
 ### Documentation layers
 
-Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/README.md). Bilingual [specifications](./.agents/spec/README.md) completely state each component's or repository area's required target and observable results, independently of its implementation and explanatory documents. Their index provides language, topic, and decision navigation; spec bodies contain no repository-file links. The bilingual [rule layer](./.agents/rule/README.md) states how work is done here: what a contributor or an Agent must do, in what order, with which permission, and what is forbidden. Shared terms for that work are defined in the bilingual [dictionary](./docs/dictionary/README.md).
+Durable repository decisions are recorded as bilingual [ADRs](./.agents/adr/README.md). Each component's `README.md` and its `docs/` state the component's goals, boundaries, public surface, and acceptance. The bilingual [rule layer](./.agents/rule/README.md) states how work is done here: what a contributor or an Agent must do, in what order, with which permission, and what is forbidden. Shared terms for that work are defined in the bilingual [dictionary](./docs/dictionary/README.md).
 
-The internal [maintain-spec](./.agents/skills/maintain-spec/SKILL.md) and [maintain-adr](./.agents/skills/maintain-adr/SKILL.md) Skills own the main maintenance methods. Load the applicable Skill before maintaining or reviewing those documents, including feature work that affects a long-lived target or durable choice. Their layer READMEs hold project supplements and navigation.
+The internal [maintain-adr](./.agents/skills/maintain-adr/SKILL.md) Skill owns the main ADR maintenance method. Load it before maintaining or reviewing a decision, including feature work that affects a durable choice. The ADR README holds project supplements and navigation.
 
 The [development rules](./.agents/rule/development.md) cover planning a change, preparing environments, running checks, and the merge gate.
 
@@ -85,7 +85,7 @@ The hooks format staged files before each commit and check the commit message. A
 
 Public English Skills live under `skills/<name>/`, and their Chinese variants under `variants/zh/skills/<name>/`. Internal English maintenance Skills live under `.agents/skills/` and are not public installation sources. Plugins, extensions, executables, and Harness packages keep the layout their Harness or build system expects.
 
-The [repository specification](./.agents/spec/repository.md) owns repository conventions, documentation pairs, and internal maintenance Skills. The [Skill specification](./.agents/spec/skills.md) covers publicly distributed ordinary Skills.
+Each component's `README.md` and its `docs/` own the component's goals, boundaries, public surface, and acceptance. The [rule layer](./.agents/rule/README.md) and [ADRs](./.agents/adr/README.md) cover repository conventions and decisions.
 
 ### Component host maintenance
 

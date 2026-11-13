@@ -2,7 +2,7 @@
 
 [简体中文](./validation.zh.md)
 
-This page describes validation methods and scenarios for tk's required behavior and implementation choices. Specifications contain the complete behavior and acceptance requirements; design explains implementation. Validation must not weaken either obligation for implementation convenience.
+This page describes validation methods and scenarios for tk's required behavior and implementation choices. The component README and design pages contain the complete behavior and acceptance requirements; design explains implementation. Validation must not weaken either obligation for implementation convenience.
 
 The lists below are scenario requirements, not a coverage report. The automated entry point is `cargo test --manifest-path projects/tk/Cargo.toml` for Rust and component lifecycle checks. Lifecycle tests run the candidate CLI against real temporary files with no Harness commands. Run installed-Skill and real-Harness scenarios separately. Record the actual candidate, host version, inputs, observations, and uncovered cases with each validation result.
 

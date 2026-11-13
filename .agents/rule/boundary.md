@@ -2,7 +2,7 @@
 
 English | [中文](./boundary.zh.md)
 
-The [repository spec](../spec/repository.md) states what this repository should contain, what it should not, and the form in which its components ship. These rules bind the actions that keep it that way.
+These rules define what this repository contains and the form in which its components ship.
 
 ## First party scope
 

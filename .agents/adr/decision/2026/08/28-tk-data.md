@@ -86,6 +86,6 @@ Creation and explicit rename retain request normalization and space-free generat
 
 rename still targets a concrete normalized name and applicable path, and returns no change only when both match exactly. Formatting correspondence does not replace narrow damaged-name repair, closed-state preservation, target conflicts, reference protection, exact precommit rechecks, or partial-commit reporting. A directory move followed by a metadata failure may leave a valid readable Task, but retry must still complete the requested target. The [data model](../../../../../projects/tk/docs/design/data-model.md#task-names) owns the full rules.
 
-### 2026-10-23 Specification completeness
+### 2026-10-23 Requirement ownership
 
-The [tk specification set](../../../../spec/README.md#tk) states the complete required data and operation behavior, including formats, limits, failures, and acceptance. The data model and CLI reference remain detailed component references for the same contract; design explains its implementation. Their references do not delegate requirements out of the specification set. This applies the [specification decision](../10/04-specifications.md) without changing Task data or operation semantics.
+The [data model](../../../../../projects/tk/docs/design/data-model.md) and [CLI reference](../../../../../projects/tk/docs/design/cli-reference.md) state the complete required data and operation behavior, including formats, limits, failures, and acceptance. Design explains their implementation. These component pages own the requirements, without changing Task data or operation semantics.

@@ -29,11 +29,11 @@ The first batch covers repository and toolchain concepts, review terms, and high
 
 The dictionary is authoritative for shared terms. Component glossaries keep self-contained copies whose meaning must agree with the dictionary; a component may add a scope-specific note that does not contradict the shared definition. The dictionary's ADR page defines ADR terms; the repository maintains no separate ADR glossary.
 
-The [terminology rule](../../../../rule/terminology.md) and its Chinese page state the normative requirements: use the dictionary's canonical term and definition in repository documents, rules, specifications, decisions, task materials, and discussion of repository work; do not introduce a synonym for an entry; keep third-party proper names, commands, fields, and file name literals in their original spelling; an Agent proposes a new entry to the maintainer, and adds or changes a canonical term or definition only after the maintainer confirms it.
+The [terminology rule](../../../../rule/terminology.md) and its Chinese page state the normative requirements: use the dictionary's canonical term and definition in repository documents, rules, decisions, task materials, and discussion of repository work; do not introduce a synonym for an entry; keep third-party proper names, commands, fields, and file name literals in their original spelling; an Agent proposes a new entry to the maintainer, and adds or changes a canonical term or definition only after the maintainer confirms it.
 
 ### Repository integration
 
-The root `AGENTS.md` links the dictionary and the terminology rule. The [rule index](../../../../rule/README.md) lists `terminology.md`. The [repository specification](../../../../spec/repository.md) lists the dictionary and the terminology rule in its public surface. The [README](../../../../../README.md) documentation layers include the dictionary. The [ADR guide](../../../README.md) points ADR terms to the dictionary's ADR page. `.omp/AGENTS.md` inherits the root reference through `@../AGENTS.md`.
+The root `AGENTS.md` links the dictionary and the terminology rule. The [rule index](../../../../rule/README.md) lists `terminology.md`. The [README](../../../../../README.md) documentation layers include the dictionary. The [ADR guide](../../../README.md) points ADR terms to the dictionary's ADR page.
 
 ### Source
 

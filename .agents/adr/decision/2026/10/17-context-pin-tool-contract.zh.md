@@ -27,7 +27,7 @@ Decision writer: OMP DeepSeek V4.1 Flash
 
 既有受支持的 journal 记录保持原样重放；条目 id、操作身份和 revision 不重新编号，也不迁移。
 
-[Pin Spec](../../../../spec/omp-smart-context/pin.zh.md) 维护 smart-context 中 Pin 能力的动作列表与可观察行为合同。[主 Spec](../../../../spec/omp-smart-context/README.zh.md) 说明共同目标和不变量，[Pin 指南](../../../../../projects/omp-smart-context/docs/pin.zh.md) 说明用户操作。[当前 Pin 决定](../09/15-omp-context-pin.zh.md)负责激活边界并继续有效，本工具合同保留其 `read` 审批档位和对组件可调上限的委托。
+[Pin 指南](../../../../../projects/omp-smart-context/docs/pin.zh.md) 维护 smart-context 中 Pin 能力的动作列表与可观察行为合同。[smart-context README](../../../../../projects/omp-smart-context/README.zh.md) 说明共同目标和不变量。[当前 Pin 决定](../09/15-omp-context-pin.zh.md)负责激活边界并继续有效，本工具合同保留其 `read` 审批档位和对组件可调上限的委托。
 
 ## 考虑过的替代方案
 

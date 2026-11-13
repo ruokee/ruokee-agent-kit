@@ -48,7 +48,7 @@ An attempt that consumed no tokens writes nothing, so a cancelled or failed atte
 
 ### Retirement
 
-Read the native `compactionRequestUsage` export on activation and stay inactive with a reason when the host records these requests itself, preventing duplicate entries. The [usage Spec](../../../../spec/omp-smart-context/usage.md#native-replacement) owns the native recording and statistics behavior to verify. Merge of PR #15034 triggers that recheck; it is not proof that a particular installed host records usage correctly.
+Read the native `compactionRequestUsage` export on activation and stay inactive with a reason when the host records these requests itself, preventing duplicate entries. The [usage guide](../../../../../projects/omp-smart-context/docs/usage.md#native-replacement) owns the native recording and statistics behavior to verify. Merge of PR #15034 triggers that recheck; it is not proof that a particular installed host records usage correctly.
 
 Once verified published native behavior replaces compensation, remove this module's code, setting, status, documentation, and checks, update its decision and the capability inventory, and retain historical journal entries. Do not remove request alignment or reverse the package contract solely because this capability retires.
 

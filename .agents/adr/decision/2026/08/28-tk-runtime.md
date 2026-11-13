@@ -50,7 +50,7 @@ Expected domain and environment failures use the public result envelope. Panics,
 
 ### Contract ownership
 
-Runtime, CLI contract, Task schema, component format, and cleanup manifest versions remain separate. `tk --version --output json` reports the first four. The [interface specification](../../../../spec/tk-interface.md) fully states required behavior, fields, defaults, failure semantics, limits, and compatibility. Public references are independently usable; [runtime design](../../../../../projects/tk/docs/design/runtime.md) explains implementation rather than supplying missing requirements.
+Runtime, CLI contract, Task schema, component format, and cleanup manifest versions remain separate. `tk --version --output json` reports the first four. The [CLI reference](../../../../../projects/tk/docs/design/cli-reference.md) fully states required behavior, fields, defaults, failure semantics, limits, and compatibility. Public references are independently usable; [runtime design](../../../../../projects/tk/docs/design/runtime.md) explains implementation rather than supplying missing requirements.
 
 ## Alternatives considered
 

@@ -31,7 +31,7 @@ Review records, revision numbers, Task paths, and local materials do not appear 
 - documentation: documentation layout, language, and maintenance rules.
 - GLOSSARY: project-specific terms and fixed translations.
 
-Specifications state complete required behavior and acceptance. User references remain independently usable and describe the same contract. Design pages explain implementation choices; validation pages describe how to establish conformance. Within the component documentation, keep each detailed explanation on its primary topic page and link to it where that serves the reader. This organization must not omit requirements from specifications or make user documentation depend on repository specification files.
+The component README and design pages state complete required behavior and acceptance. User references remain independently usable and describe the same contract. Design pages explain implementation choices; validation pages describe how to establish conformance. Within the component documentation, keep each detailed explanation on its primary topic page and link to it where that serves the reader. This organization must not omit requirements or make user documentation depend on files outside this component.
 
 ## Wording for the current state
 
@@ -85,7 +85,7 @@ Documentation uses the repository's existing Markdown, link, formatting, and spe
 
 When updating public behavior, the same change must update:
 
-1. The complete affected specifications and the design or reference pages describing the behavior;
+1. The complete affected requirements, and the design or reference pages describing the behavior;
 2. Affected guide, Skill, and CLI examples;
 3. The corresponding Chinese pages;
 4. Every current ADR that describes the contract;
