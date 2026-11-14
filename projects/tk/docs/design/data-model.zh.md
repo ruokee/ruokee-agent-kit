@@ -252,7 +252,7 @@ actor 是单行归因信息，不是身份认证或授权。只有实际追加 W
 2. 为每个任务生成目标载体；
 3. 按确定顺序提交任务；
 4. 最后更新项目配置；
-5. 中途失败时报告已完成和未完成任务，不自动回滚。
+5. 中途失败时报告已完成和未完成的文件或配置步骤，不自动回滚。
 
 切换不追加任务 WAL。
 
@@ -301,15 +301,19 @@ rename 和两个布局命令默认保留引用原文。`--update-references` 显
 
 ## 扫描报告
 
-有效项目中的每次 rename 和布局调用都保存独立报告，包括 dry-run、无变化请求及规划失败。解析、项目定位、取消和报告存储失败返回各自错误。受管变更开始前，报告使用 `create_new` 新建，写入 UTF-8 JSON，并完成 flush 和 sync：
+有效项目中的每次 rename、布局和 metadata 调用都保存独立报告，包括 dry-run、无变化请求及规划失败。CLI 参数解析、项目定位、取消和报告存储失败返回各自错误。受管变更开始前，报告使用 `create_new` 新建，写入 UTF-8 JSON，并完成 flush 和 sync：
 
 ```text
 <task-root>/.tk-tmp/reports/YYYYMMDDTHHMMSS+ZZZZ--<operation>--<UUIDv7>.json
 ```
 
-operation 为 `rename`、`switch-layout` 或 `migrate-layout`。报告是不可变的执行前快照，包含 `report_version=1`、运行身份和本地时间、操作选项、项目根和任务根、源目标布局、扫描根、完整性、诊断、任务映射及引用。任务项包含 `task_id`、`old_path`、`target_path`、`old_name` 和 `new_name`。引用项包含 `kind`、`old_file`、`target_file`、从 1 开始的 `line`、半开区间 `byte_start` 和 `byte_end`、`original`、`replacement`、`old_target` 和 `target`。
+operation 为 `rename`、`switch-layout`、`migrate-layout`、`switch-metadata` 或 `migrate-metadata`。报告是不可变的执行前快照。公共头包含 `report_version=1`、`operation`、`run_id`、本地 `created_at`、`dry_run`、`project_root`、`task_root` 和 `diagnostics`。读取明细时同时使用版本和 operation。布局与 rename 保留源目标布局、扫描根、完整性、任务映射及引用。任务映射包含 `task_id`、`old_path`、`target_path`、`old_name` 和 `new_name`。引用项包含 `kind`、`old_file`、`target_file`、从 1 开始的 `line`、半开区间 `byte_start` 和 `byte_end`、`original`、`replacement`、`old_target` 和 `target`。
 
-记录中的路径全部为绝对路径。原文与建议相同时无需内容替换。`scan_complete=false` 表示扫描不完整。实际执行状态由 [CLI 摘要](./cli-reference.zh.md#路径变更结果)或错误表达。报告用于人工检查，不作为重放输入。
+metadata 报告使用 `plan_complete`。规划失败时保留已知项及诊断，`plan_complete=false`。表示切换记录 `source`、`target` 和 `tasks`；任务项含 `task_id`、绝对 `task_dir` 和按提交次序排列的 `file_changes`，文件变化含 `action`（`create`、`rewrite` 或 `delete`）和 `path`。split→embed 先重写 `TASK.md`，再删除 `tk.toml`；embed→split 先创建 `tk.toml`，再重写 `TASK.md`。`config_change` 记录 `path`、`key`、`before` 和 `after`，同模式请求为 null。配置最后提交，保留稀疏配置的创建、替换和删除语义。
+
+schema 迁移记录 `requested_target`、可为 null 的解析后 `target_version`、绝对 `selected_files` 和 `files`。空选择列表表示全部已发现载体。文件计划含 `task_id`、`path`、`source_version`、`target_version`、`conversions` 和 `changed`，包括已达目标版本的载体。项目定位后的目标解析及载体选择失败也保存报告。当前 schema 为 1。
+
+记录中的路径全部为绝对路径。原文与建议相同时无需内容替换。`scan_complete=false` 表示引用扫描不完整。实际执行状态由 CLI 的[路径摘要](./cli-reference.zh.md#路径变更结果)、[metadata 摘要](./cli-reference.zh.md#metadata-结果)或错误表达。报告用于人工检查，不作为重放输入。
 
 dry-run 只新增报告，任务数据、引用和配置保留原字节。报告写入失败会停止受管变更，并清理本次不完整报告。已有报告保留至用户主动清理。项目写入门禁、check 和 GC 为真实 `.tk-tmp/reports` 目录保留命名空间，并保留其中的内容。用户级操作目录保持原有语义。
 

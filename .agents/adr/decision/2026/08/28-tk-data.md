@@ -101,3 +101,7 @@ rename still targets a concrete normalized name and applicable path, and returns
 ### 2026-10-23 Requirement ownership
 
 The [data model](../../../../../projects/tk/docs/design/data-model.md) and [CLI reference](../../../../../projects/tk/docs/design/cli-reference.md) state the complete required data and operation behavior, including formats, limits, failures, and acceptance. Design explains their implementation. These component pages own the requirements, without changing Task data or operation semantics.
+
+### 2026-11-14 Metadata reports
+
+Representation switching and schema migration save distinct immutable pre-execution reports, including dry-run, no-change requests, and planning failures in a valid project. Report persistence completes before managed changes. File plans describe carrier creation, rewriting, deletion, and schema conversions; configuration remains a separate final step for representation switches. Errors preserve file-level partial completion and unknown outcomes. GC and check preserve reports for manual inspection. Operation-specific details avoid imposing directory-move and reference fields on metadata changes. The [data model](../../../../../projects/tk/docs/design/data-model.md#scan-reports) owns the report format.

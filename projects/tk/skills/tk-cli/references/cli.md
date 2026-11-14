@@ -276,7 +276,7 @@ tk migrate metadata
 - Without `--file`, the command selects every valid managed carrier in the current project.
 - `--file` is repeatable. Each value must be a valid `tk.toml` or embedded `TASK.md` in the current project. Directories, Task IDs, ordinary material paths, and globs are rejected.
 - `--to` selects the target schema version.
-- `--dry-run` returns the plan only.
+- `--dry-run` saves a persistent plan report and returns its summary.
 
 Migration applies only published forward conversions, one version at a time. After complete preflight, it commits in deterministic order. A failure lists completed and uncompleted files. There is no downgrade, automatic rollback, or continuation state.
 
@@ -290,9 +290,19 @@ tk switch metadata --to <split|embed>
   [--cwd <path>] [--output <text|json>]
 ```
 
-The command applies to the whole project and cannot switch only some Tasks. It preflights every Task, commits in deterministic order, and updates project configuration last. A failure lists completed and uncompleted Tasks.
+The command applies to the whole project and cannot switch only some Tasks. It preflights every Task, commits in deterministic order, and updates project configuration last. A failure lists completed and uncompleted file or configuration steps, including partial completion within one Task.
 
 Mode switching does not replace schema migration. See [Project storage](./project-storage.md) for carrier rules and operation order.
+
+## Metadata results
+
+Both commands return the common summary fields `operation`, `run_id`, `dry_run`, `report_path`, `changed`, `committed`, `partial`, `affected_tasks`, and `config_changed`, plus `planned_files` and `completed_files`. File counts include carrier creation, rewriting, and deletion; configuration is separate. `affected_tasks` counts unique Tasks with planned business changes. Already-current carriers and configuration-only changes count zero Tasks. Dry-run completes zero files, and dry-run or no-change results have `committed=false`.
+
+Each valid-project invocation saves a unique immutable pre-execution JSON report under `<task-root>/.tk-tmp/reports`, including dry-run, no-change, and planning failures. Report failure prevents managed writes. GC and check retain reports. The report contains the full plan; success results replace the former `kind`, `source`, `target`, `tasks`, and `files` fields with a summary. Text output includes the report path.
+
+Report headers contain `report_version=1`, `operation`, `run_id`, `created_at`, `dry_run`, project and Task roots, and diagnostics. Metadata reports use `plan_complete`. Switching records source/target modes, Task UUIDs and directories, ordered file actions (`create`, `rewrite`, `delete`), and the final configuration change. Schema migration records `requested_target`, nullable resolved `target_version`, absolute `selected_files`, and file plans with Task UUID, path, versions, conversions, and `changed`. Empty selection means all carriers; unchanged carriers remain in the plan.
+
+Execution errors retain report identity, original errors, actual configuration `before`/`after`/`changed`, and `completed`/`uncompleted` steps with `kind` and absolute `path`. Kinds are `create_file`, `rewrite_file`, `delete_file`, `write_config`, or `cleanup_operation`. Schema execution errors include per-file `committed` and `state` (`planned`, `committed`, `uncommitted`, `unknown`). Unknown results remain explicit. CLI parsing and project-resolution failures retain their own boundaries.
 
 ## `tk install`
 
@@ -341,8 +351,8 @@ The JSON payload contains:
 
 ```json
 {
-  "runtime_version": "0.1.18",
-  "cli_contract_version": 6,
+  "runtime_version": "0.1.19",
+  "cli_contract_version": 7,
   "task_schema_version": 1,
   "component_format_version": 5
 }

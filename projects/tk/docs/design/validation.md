@@ -131,6 +131,10 @@ For both layout operations and rename, cover moved-file outgoing links, incoming
 
 Inspect default, dry-run, no-change, and incomplete reports, plus summary counts and actual report paths. Report storage failure stops managed writes. Project write gates, check, and GC preserve real reports; user-level cleanup semantics stay unchanged. Inject carrier, target, reference, and configuration changes and partial write failures; inspect completed steps, remaining steps, report identity, and configuration state. A partial switch retains source configuration and can replan remaining source directories.
 
+## Metadata reports
+
+Exercise both metadata operations in split and embed, with monthly and daily layouts. Inspect dry-run, same-mode, empty-project, current-schema, invalid-target, invalid-selection, and incomplete-planning reports. Check unique report paths, absolute file plans, Task identity, carrier-file counts, configuration-only changes, and unchanged data bytes during dry-run. Faults within the first Task must report each completed file and remaining file or configuration step. Cover configuration and cleanup failure, cancellation, report storage failure before managed changes, and report retention through check and GC. Schema execution errors retain unknown file states. Published schema 1 covers current-version no-change and error paths; test real adjacent transformations when their official versions exist.
+
 ## Maintenance tests
 
 check tests cover fully valid projects, domain diagnostics, and fail-fast behavior for required I/O. After a required read fails, check must not continue producing an apparently complete diagnostic set.

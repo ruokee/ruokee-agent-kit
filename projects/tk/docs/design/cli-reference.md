@@ -282,7 +282,15 @@ tk switch metadata --to <split|embed>
   [--dry-run] [global-options]
 ```
 
-The command switches every discovered Task in the project. After preflighting all Tasks, it commits them in deterministic order and updates the project configuration last. A failure result lists completed and incomplete Tasks.
+The command switches every discovered Task in the project. After preflighting all Tasks, it commits them in deterministic order and updates the project configuration last. A failure result lists completed and incomplete file or configuration steps, including partial completion within the first Task.
+
+## Metadata results
+
+Both metadata commands return `operation`, `run_id`, `dry_run`, absolute `report_path`, `changed`, `committed`, `partial`, `affected_tasks`, and `config_changed`, with the same result semantics as [path summaries](#path-change-results). They additionally return `planned_files` and `completed_files`, counting carrier files created, rewritten, or deleted. Configuration is counted separately. `affected_tasks` counts unique Tasks with planned business changes. Already-current schema carriers and configuration-only switches count zero Tasks. Dry-run completes zero files. A no-change result has `committed=false`.
+
+Full plans are stored in the [persistent report](./data-model.md#scan-reports). Metadata success results use summaries instead of the former `kind`, `source`, `target`, `tasks`, and `files` result fields. Text output includes counts, actual configuration state, and the report path.
+
+Execution errors retain the original error and report identity. `completed` and `uncompleted` contain `kind` and absolute `path`; kinds are `create_file`, `rewrite_file`, `delete_file`, `write_config`, or `cleanup_operation`. Configuration steps retain sparse configuration semantics. `config` records actual metadata mode `before`, `after`, and `changed`. Schema execution errors also return `files` with versions, conversions, `changed`, `committed`, and `state` (`planned`, `committed`, `uncommitted`, or `unknown`). An unknown write result remains explicit. Only confirmed completions count as completed. Planning errors retain known plans and diagnostics in the report. Parse and project-resolution errors retain their original boundaries.
 
 ## `tk install`
 
@@ -330,8 +338,8 @@ Version JSON is:
 
 ```json
 {
-  "runtime_version": "0.1.18",
-  "cli_contract_version": 6,
+  "runtime_version": "0.1.19",
+  "cli_contract_version": 7,
   "task_schema_version": 1,
   "component_format_version": 5
 }

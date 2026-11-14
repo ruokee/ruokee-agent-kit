@@ -23,7 +23,7 @@ Cargo 的 `build.rs` 收集完整的 `tk-cli` 和 `tk-cli-zh` 源码树，在 `O
 - `cli_skills` 中的 `en` 与 `zh` 项，各自包含 `language`、`skill`、`runtime_compat`、`payload` 和 `files`；
 - 每个文件的内容摘要和 Unix 权限。
 
-`runtime_compat` 为 `>=0.1.18,<0.2`。每项选择具有语言和 Skill 身份，独立于 Harness。设置 `TK_SOURCE_REVISION` 时组装使用该值，否则记录 `package-v<CARGO_PKG_VERSION>`。构建脚本不调用 Git。
+`runtime_compat` 为 `>=0.1.19,<0.2`。每项选择具有语言和 Skill 身份，独立于 Harness。设置 `TK_SOURCE_REVISION` 时组装使用该值，否则记录 `package-v<CARGO_PKG_VERSION>`。构建脚本不调用 Git。
 
 摘要用于检查内嵌归档的完整性，不记录安装所有权，也不决定卸载时保留哪些已修改文件。
 

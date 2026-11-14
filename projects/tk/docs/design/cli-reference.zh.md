@@ -282,7 +282,15 @@ tk switch metadata --to <split|embed>
   [--dry-run] [global-options]
 ```
 
-命令切换项目中的全部已发现任务。全部任务预检后按确定顺序提交，最后更新项目配置。失败结果列出完成和未完成任务。
+命令切换项目中的全部已发现任务。全部任务预检后按确定顺序提交，最后更新项目配置。失败结果列出完成和未完成的文件或配置步骤，包含首个任务内部的部分完成。
+
+## metadata 结果
+
+两个 metadata 命令返回 `operation`、`run_id`、`dry_run`、绝对 `report_path`、`changed`、`committed`、`partial`、`affected_tasks` 和 `config_changed`，结果语义与[路径摘要](#路径变更结果)一致。另外返回 `planned_files` 和 `completed_files`，统计创建、重写或删除的载体文件，配置单独统计。`affected_tasks` 统计计划发生业务变化的唯一任务。已达 schema 目标版本的载体和仅配置切换计为零个任务。dry-run 完成零个文件，无变化时 `committed=false`。
+
+完整计划保存在[持久报告](./data-model.zh.md#扫描报告)中。metadata 成功结果使用摘要，替代原先结果中的 `kind`、`source`、`target`、`tasks` 和 `files` 字段。文本输出包含数量、配置实际状态和报告路径。
+
+执行错误保留原始错误及报告身份。`completed` 和 `uncompleted` 包含 `kind` 和绝对 `path`；kind 为 `create_file`、`rewrite_file`、`delete_file`、`write_config` 或 `cleanup_operation`。配置步骤保留稀疏配置语义。`config` 记录 metadata 模式的实际 `before`、`after` 和 `changed`。schema 执行错误另外返回 `files`，含版本、转换、`changed`、`committed` 和 `state`（`planned`、`committed`、`uncommitted` 或 `unknown`）。写入结果未知时明确保留 unknown。只有确认完成的项计入完成数量。规划错误在报告中保留已知计划及诊断，解析及项目定位错误沿用各自边界。
 
 ## `tk install`
 
@@ -330,8 +338,8 @@ tk <command> <subcommand> --help
 
 ```json
 {
-  "runtime_version": "0.1.18",
-  "cli_contract_version": 6,
+  "runtime_version": "0.1.19",
+  "cli_contract_version": 7,
   "task_schema_version": 1,
   "component_format_version": 5
 }

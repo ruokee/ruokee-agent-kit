@@ -166,6 +166,8 @@ tk switch metadata --to embed --dry-run
 tk switch metadata --to embed
 ```
 
+Both metadata commands save an immutable execution-before report, including dry-run, no-change requests, and planning failures in a valid project. The summary shows the report path and planned/completed carrier-file counts. Inspect the [report and result contract](./design/cli-reference.md#metadata-results) for file-level partial completion and configuration state.
+
 Preview a Task rename and inspect its saved report:
 
 ```sh

@@ -65,3 +65,9 @@ None
 Short-lived calls avoid cache invalidation and stale graphs at the cost of process startup and repeated bounded discovery. A runtime defect can affect every caller.
 
 CLI names, argument ownership, JSON fields, errors, and versions are a public compatibility boundary. Changes require coordinated runtime, Skill, documentation, and validation updates.
+
+## Changes
+
+### 2026-11-14 Metadata reports
+
+`tk switch metadata` and `tk migrate metadata` share persistent report identity, storage, and public summary semantics with path operations. Detailed plans remain operation-specific. Metadata results move full plans into immutable execution-before reports and expose actual file-level completion through summaries and errors. This keeps report inspection consistent while preserving representation and schema migration commit rules. The [CLI contract](../../../../../projects/tk/docs/design/cli-reference.md#metadata-results) owns the fields and compatibility boundary.

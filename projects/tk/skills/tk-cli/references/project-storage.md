@@ -76,7 +76,7 @@ An empty value is valid. A non-empty value must be a safe relative path without 
 | `ignore` | Requires a Git worktree and requires the Task root to be ignored. Use for local Task data. |
 | `none` | Does not require Git or inspect ignore state. This is the default. |
 
-Read operations do not run write-policy checks. Create, update, log, and other managed writes check policy before the first managed change. Auxiliary path-change scan reports are persisted before that check.
+Read operations do not run write-policy checks. Create, update, log, and other managed writes check policy before the first managed change. Auxiliary path-change and metadata reports are persisted before that check.
 
 `track` verifies only that paths are not ignored. It does not run `git add` or commit. `ignore` does not edit `.gitignore`.
 
@@ -185,5 +185,7 @@ Schema migration upgrades formats within the current metadata mode. Mode switchi
 ## Failures over multiple targets
 
 Migration and mode switching complete full preflight before committing in deterministic order. `--dry-run` uses the same planning and validation as execution.
+
+Both commands save immutable pre-execution reports, including dry-run, no-change, and valid-project planning failures. Their summaries link the reports and count actual completion. File plans and error-state fields are defined in [Metadata results](./cli.md#metadata-results). GC and check retain reports.
 
 A commit-stage failure distinguishes `completed`, `uncompleted`, and the original error. Run `tk check` to establish current state, resolve the blocker, and rerun the complete command. The runtime does not roll back automatically or continue after the process exits.

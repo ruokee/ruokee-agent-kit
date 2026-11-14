@@ -746,14 +746,7 @@ fn execute_switch(command: SwitchCommands, cwd: &Path) -> Result<CommandOutput> 
     let (data, text) = match command {
         SwitchCommands::Metadata(args) => {
             let result = metadata::switch(&project, args.to.into(), args.dry_run)?;
-            let text = if result.changed {
-                format!(
-                    "{}: {} -> {} ({} Tasks)",
-                    result.kind, result.source, result.target, result.affected_tasks
-                )
-            } else {
-                "No migration needed".into()
-            };
+            let text = result.text();
             (
                 serde_json::to_value(result).expect("serializing metadata switch result"),
                 text,
@@ -800,14 +793,7 @@ fn execute_migrate(command: MigrateCommands, cwd: &Path) -> Result<CommandOutput
         }
         MigrateCommands::Metadata(args) => {
             let result = migrate::schema(&project, &args.to, &args.files, args.dry_run)?;
-            let text = if result.changed {
-                format!(
-                    "schema migration: {} -> {} ({} Tasks)",
-                    result.source, result.target, result.affected_tasks
-                )
-            } else {
-                "No migration needed".into()
-            };
+            let text = result.text();
             (
                 serde_json::to_value(result).expect("serializing schema migration result"),
                 text,

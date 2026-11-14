@@ -166,6 +166,8 @@ tk switch metadata --to embed --dry-run
 tk switch metadata --to embed
 ```
 
+两个 metadata 命令均保存不可变执行前报告，包括 dry-run、无变化及有效项目中的规划失败。摘要显示报告路径和计划及完成的载体文件数量。文件级部分完成和配置状态见[报告结果合同](./design/cli-reference.zh.md#metadata-结果)。
+
 预览任务重命名并检查保存的报告：
 
 ```sh

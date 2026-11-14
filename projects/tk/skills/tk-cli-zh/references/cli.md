@@ -276,7 +276,7 @@ tk migrate metadata
 - 省略 `--file` 时，选择当前项目中全部有效受管载体。
 - `--file` 可重复传入，但每个值必须是当前项目中的有效 `tk.toml` 或 embed `TASK.md`。目录、任务 ID、普通材料路径和 glob 都不接受。
 - `--to` 指定目标 schema 版本。
-- `--dry-run` 只生成计划。
+- `--dry-run` 保存持久计划报告并返回摘要。
 
 迁移只执行正式发布的逐级前向转换。全量预检通过后按确定顺序提交。失败结果列出已完成和未完成文件，不提供降级、自动回滚或续跑状态。
 
@@ -290,9 +290,19 @@ tk switch metadata --to <split|embed>
   [--cwd <path>] [--output <text|json>]
 ```
 
-该命令作用于整个项目，不支持只切换部分任务。它先预检全部任务，再按确定顺序提交，最后更新项目配置。失败结果列出已完成和未完成任务。
+该命令作用于整个项目，不支持只切换部分任务。它先预检全部任务，再按确定顺序提交，最后更新项目配置。失败结果列出已完成和未完成的文件或配置步骤，包含单个任务内部的部分完成。
 
 模式切换不会替代 schema 迁移。载体规则和操作顺序见[项目存储](./project-storage.md)。
+
+## metadata 结果
+
+两个命令返回公共摘要字段 `operation`、`run_id`、`dry_run`、`report_path`、`changed`、`committed`、`partial`、`affected_tasks` 和 `config_changed`，另含 `planned_files` 和 `completed_files`。文件计数含载体创建、重写和删除，配置单独统计。`affected_tasks` 统计计划发生业务变化的唯一任务。已达目标版本的载体及仅配置变化计为零个任务。dry-run 完成零个文件，dry-run 和无变化结果均为 `committed=false`。
+
+有效项目中的每次调用均在 `<task-root>/.tk-tmp/reports` 保存唯一、不可变的执行前 JSON 报告，包括 dry-run、无变化及规划失败。报告保存失败阻止受管写入。GC 和 check 保留报告。完整计划进入报告，成功结果使用摘要替代原先的 `kind`、`source`、`target`、`tasks` 和 `files` 字段。文本输出包含报告路径。
+
+报告公共头含 `report_version=1`、`operation`、`run_id`、`created_at`、`dry_run`、项目根、任务根和诊断。metadata 报告使用 `plan_complete`。表示切换记录源目标模式、任务 UUID 和目录、按序排列的文件动作 `create`、`rewrite`、`delete`，以及最后的配置变化。schema 迁移记录 `requested_target`、可为 null 的解析后 `target_version`、绝对 `selected_files` 及文件计划，文件计划含任务 UUID、路径、版本、转换和 `changed`。空选择表示全部载体，无变化载体保留在计划中。
+
+执行错误保留报告身份、原始错误、配置实际 `before`、`after`、`changed`，以及含 `kind` 和绝对 `path` 的 `completed`、`uncompleted` 步骤。kind 为 `create_file`、`rewrite_file`、`delete_file`、`write_config` 或 `cleanup_operation`。schema 执行错误含逐文件 `committed` 和 `state`，状态为 `planned`、`committed`、`uncommitted` 或 `unknown`。未知结果明确保留。CLI 参数解析和项目定位失败沿用各自边界。
 
 ## `tk install`
 
@@ -341,8 +351,8 @@ JSON 结果包含：
 
 ```json
 {
-  "runtime_version": "0.1.18",
-  "cli_contract_version": 6,
+  "runtime_version": "0.1.19",
+  "cli_contract_version": 7,
   "task_schema_version": 1,
   "component_format_version": 5
 }

@@ -252,7 +252,7 @@ Representation switching converts the entire project between split and embed:
 2. Generate the target carrier for each Task.
 3. Commit Tasks in deterministic order.
 4. Update project configuration last.
-5. If the operation fails partway through, report completed and incomplete Tasks without automatic rollback.
+5. If the operation fails partway through, report completed and incomplete file or configuration steps without automatic rollback.
 
 Switching does not append Task WAL entries.
 
@@ -301,15 +301,19 @@ One scan prepares all mappings. Each changed file retains one original content s
 
 ## Scan reports
 
-Every rename and layout invocation in a valid project saves an independent report, including dry-run, no-change requests, and planning failures. Parse, project-resolution, cancellation, and report-storage failures use their corresponding errors. Reports use `create_new`, UTF-8 JSON, flush, and sync before managed changes begin:
+Every rename, layout, and metadata invocation in a valid project saves an independent report, including dry-run, no-change requests, and planning failures. CLI parsing, project resolution, cancellation, and report-storage failures use their corresponding errors. Reports use `create_new`, UTF-8 JSON, flush, and sync before managed changes begin:
 
 ```text
 <task-root>/.tk-tmp/reports/YYYYMMDDTHHMMSS+ZZZZ--<operation>--<UUIDv7>.json
 ```
 
-The operations are `rename`, `switch-layout`, and `migrate-layout`. Reports are immutable pre-execution snapshots. They contain `report_version=1`, run identity and local timestamp, operation options, project and Task roots, source and target layouts, scan roots, completeness, diagnostics, Task mappings, and references. Task entries contain `task_id`, `old_path`, `target_path`, `old_name`, and `new_name`. Reference entries contain `kind`, `old_file`, `target_file`, one-based `line`, half-open `byte_start` and `byte_end`, `original`, `replacement`, `old_target`, and `target`.
+The operations are `rename`, `switch-layout`, `migrate-layout`, `switch-metadata`, and `migrate-metadata`. Reports are immutable pre-execution snapshots. Their common header contains `report_version=1`, `operation`, `run_id`, local `created_at`, `dry_run`, `project_root`, `task_root`, and `diagnostics`. Read the operation-specific details using both the version and operation. Layout and rename retain their source and target layouts, scan roots, completeness, Task mappings, and references. Task mappings contain `task_id`, `old_path`, `target_path`, `old_name`, and `new_name`. Reference entries contain `kind`, `old_file`, `target_file`, one-based `line`, half-open `byte_start` and `byte_end`, `original`, `replacement`, `old_target`, and `target`.
 
-All recorded paths are absolute. Equal original and replacement values identify references requiring no edit. `scan_complete=false` marks incomplete scans. Actual execution status belongs to the [CLI summary](./cli-reference.md#path-change-results) or error rather than the report. Reports provide a record for manual inspection. They are not replay input.
+Metadata reports use `plan_complete`. A failed plan retains known entries and diagnostics with `plan_complete=false`. Representation switching records `source`, `target`, and `tasks`; each Task contains `task_id`, absolute `task_dir`, and ordered `file_changes` with `action` (`create`, `rewrite`, or `delete`) and `path`. split→embed rewrites `TASK.md` then deletes `tk.toml`; embed→split creates `tk.toml` then rewrites `TASK.md`. `config_change` records `path`, `key`, `before`, and `after`, or is null for a same-mode request. Configuration commits last and retains sparse-config creation, replacement, and deletion semantics.
+
+Schema migration records `requested_target`, nullable resolved `target_version`, absolute `selected_files`, and `files`. An empty selection means all discovered carriers. File plans contain `task_id`, `path`, `source_version`, `target_version`, `conversions`, and `changed`, including carriers already at the target. Target parsing and carrier selection failures after project resolution also save reports. The current schema is 1.
+
+All recorded paths are absolute. Equal original and replacement values identify references requiring no edit. `scan_complete=false` marks incomplete reference scans. Actual execution status belongs to the CLI [path summary](./cli-reference.md#path-change-results), [metadata summary](./cli-reference.md#metadata-results), or error. Reports provide a record for manual inspection. They are not replay input.
 
 Dry-run adds only its report. Task data, references, and configuration retain their bytes. Report failure stops managed changes and cleans up the incomplete report. Existing reports remain until the user removes them. Project write gates, check, and GC reserve the real `.tk-tmp/reports` directory and preserve its content. User-level operation directories keep their existing semantics.
 
