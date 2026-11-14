@@ -2,7 +2,7 @@
 
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
-Reverses: [tk runtime](../../../archived/2026/08/28-r1-tk-runtime.md)
+Reverses: [tk runtime](../../../archived/2026/08/28-r2-tk-runtime.md)
 
 English | [中文](./28-tk-runtime.zh.md)
 
@@ -24,7 +24,9 @@ The CLI is the sole public interface. Its [reference](../../../../../projects/tk
 
 Creation accepts no body input: `tk create task` rejects `--body`, and child Task items reject `body` as an unknown field. Creation writes `# <normalized-name>` as the initial body; subsequent body editing is ordinary file maintenance.
 
-`tk rename` retains exact references and repairs eligible old string names or recognizable generated suffixes. Validation outside the repair scope remains enforced. A path move with old-path references fails before writing with a conflict and exit status 3. `--ignore-brokenlinks` permits the move without changing reference files. Dry-run reports the complete plan and references without writing.
+`tk rename` retains exact Task references and repairs eligible old string names or recognizable generated suffixes. Validation outside the repair scope remains enforced. rename and `tk layout switch|migrate` share reference scanning, explicit `--update-references`, repeatable `--extend-scan`, persistent JSON reports, and summary output. Reference content is preserved by default. Dry-run saves only the report. No-change requests and planning failures in a valid project also save reports.
+
+`task_layout` selects monthly or daily for ordinary operations, with monthly as the default. Layout switch converts the current root and writes configuration last. Layout migrate adapts selected imported canonical directories and preserves configuration, metadata mode, and schema. The [data decision](./28-tk-data.md) owns the shared layout and reference contract.
 
 ### Request context
 
@@ -32,11 +34,11 @@ Explicit `--cwd` takes precedence over the runtime process directory. A complete
 
 actor applies to update, log, and rename, defaults to `cli`, and provides WAL attribution rather than identity, authorization, or assignment. Agents supply their available model or Harness identity explicitly where attribution matters.
 
-Project discovery is independent of Git policy. Reads, searches, and diagnostics stay available without Git policy rejection. Persistent project writes run the shared Git check immediately before their first write.
+Project discovery is independent of Git policy. Reads, searches, and diagnostics stay available without Git policy rejection. Managed project writes run the shared Git check immediately before their first managed change. Auxiliary scan reports are saved before that check.
 
 ### Resource boundaries
 
-Search processes candidates incrementally and retains at most the best 100. Checks, relationship graphs, schema migration, and representation switching may use memory proportional to the Task count. Subprocess stdout and stderr each have a 1 MiB limit.
+Search processes candidates incrementally and retains at most the best 100. Checks, relationship graphs, schema migration, and representation switching may use memory proportional to the Task count. Layout preflight merges required graphs. Shared reference scanning handles the complete move map together and retains one original content snapshot per pending file. Subprocess stdout and stderr each have a 1 MiB limit.
 
 `tk read` defaults to `summary`. `minimal` reads neither body nor WAL. `summary` returns the complete Task body and recent WAL entries without entry bodies, defaulting to 5 entries and 4000 bytes. `detailed` includes WAL bodies and defaults to 50 entries and 16000 bytes. Explicit budgets range from 0 to 50 entries and 0 to 16000 bytes. Measure compact JSON UTF-8 bytes after view projection, select complete entries from newest to oldest within both budgets, then return them chronologically. Omission adds no truncation field, warning, or diagnostic. Full history is available through daily files, without pagination or a full-history read mode.
 
@@ -44,9 +46,11 @@ Search processes candidates incrementally and retains at most the best 100. Chec
 
 ### Commit boundaries
 
-Single-file writes observe cancellation before atomic replacement and complete any replacement already started. Multi-target operations observe cancellation between commit points. Cancellation before the first write leaves no persistent change; after a commit it reports the same completed and uncompleted boundary as I/O failure.
+Single-file writes observe cancellation before atomic replacement and complete any replacement already started. Multi-target operations observe cancellation between commit points. Cancellation before the first managed write preserves Task data, references, and configuration. An already saved scan report remains available. After a commit, cancellation reports the same completed and uncompleted boundary as I/O failure.
 
 Expected domain and environment failures use the public result envelope. Panics, killed processes, and malformed output remain process or internal failures, not fabricated domain results. A partial commit includes completed targets, uncompleted targets, and the original error, without automatic rollback or continuation state. WAL append failure after metadata commit is a warning.
+
+rename commits movement, references, metadata, and WAL. Layout operations commit directory moves, references, and finally switch configuration; migrate preserves configuration. Input snapshots are checked before managed writes. Reports stay immutable execution-before snapshots in the reserved project `.tk-tmp/reports` directory. Summary and errors carry actual completion, report identity, and configuration state. GC retains project reports and keeps user-level cleanup semantics unchanged.
 
 ### Contract ownership
 

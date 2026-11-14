@@ -1,5 +1,4 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -11,7 +10,9 @@ use crate::app::{AppWarning, TaskReference};
 use crate::domain::normalize_name;
 use crate::error::{ErrorCategory, Result, TkError};
 use crate::path::storage_error;
-use crate::project::{self, GitPolicy, MetadataMode, Project};
+use crate::project::{self, MetadataMode, Project};
+use crate::references::{DirectoryMove, mapped_path};
+use crate::reports::{ScanReport, Step, Summary, TaskChange};
 use crate::task_store::{self, StoredTask};
 use crate::wal;
 
@@ -45,12 +46,6 @@ pub struct CheckResult {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct MarkdownReference {
-    pub path: PathBuf,
-    pub line: usize,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct RenamePlan {
     pub task_id: Uuid,
     pub old_name: String,
@@ -59,17 +54,14 @@ pub struct RenamePlan {
     pub target_path: PathBuf,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_task: Option<PathBuf>,
-    pub references: Vec<MarkdownReference>,
     pub expected_wal: String,
 }
 
 #[derive(Debug, Serialize)]
 pub struct RenameResult {
-    pub changed: bool,
-    pub committed: bool,
-    pub partial: bool,
+    #[serde(flatten)]
+    pub summary: Summary,
     pub task: TaskReference,
-    pub plan: RenamePlan,
     #[serde(skip)]
     pub warnings: Vec<AppWarning>,
 }
@@ -112,155 +104,205 @@ pub fn rename(
     task_ref: &str,
     requested_name: &str,
     dry_run: bool,
-    ignore_brokenlinks: bool,
+    update_references: bool,
+    extra: &[PathBuf],
     actor: &str,
 ) -> Result<RenameResult> {
-    let task = resolve_rename_ref(project, task_ref)?;
-    let plan = build_rename_plan(project, &task, requested_name)?;
-    let metadata_changed = plan.old_name != plan.new_name;
-    let path_changed = plan.old_path != plan.target_path;
-    if !metadata_changed && !path_changed {
+    let mut report = ScanReport::new(
+        project,
+        "rename",
+        project.config.task_layout,
+        dry_run,
+        update_references,
+    );
+    let planning = (|| {
+        let graph = task_store::discover_tasks_for_rename(
+            &project.task_root,
+            project.config.metadata_mode,
+            project.config.task_layout,
+        )?;
+        let index = crate::app::resolve_ref_index_in_graph(project, task_ref, &graph)?;
+        let task = &graph.tasks[index].task;
+        let plan = build_rename_plan(project, task, requested_name, &graph)?;
+        let moves = if plan.old_path != plan.target_path {
+            vec![DirectoryMove {
+                source: plan.old_path.clone(),
+                target: plan.target_path.clone(),
+            }]
+        } else {
+            Vec::new()
+        };
+        let focus: Vec<_> = graph
+            .tasks
+            .iter()
+            .filter(|candidate| candidate.task.directory.starts_with(&task.directory))
+            .map(|candidate| candidate.task.directory.clone())
+            .collect();
+        report.tasks.extend(
+            graph
+                .tasks
+                .iter()
+                .filter(|candidate| candidate.task.directory.starts_with(&task.directory))
+                .map(|candidate| TaskChange {
+                    task_id: candidate.task.metadata.id,
+                    old_path: candidate.task.directory.clone(),
+                    target_path: mapped_path(&candidate.task.directory, &moves).into_owned(),
+                    old_name: candidate.task.metadata.name.clone(),
+                    new_name: if candidate.task.directory == task.directory {
+                        plan.new_name.clone()
+                    } else {
+                        candidate.task.metadata.name.clone()
+                    },
+                }),
+        );
+        let config = config_snapshot(project)?;
+        let carrier_path = metadata_path(&task.directory, project.config.metadata_mode);
+        let carrier = fs::read(&carrier_path)
+            .map_err(|error| storage_error("snapshot_rename_metadata", &carrier_path, error))?;
+        report
+            .scan
+            .collect(project, &graph, &moves, &focus, extra, update_references)?;
+        report.scan_complete = true;
+        Ok((graph, index, plan, moves, focus, config, carrier))
+    })();
+    report.save_planning(planning.as_ref().map(|_| ()).map_err(Clone::clone))?;
+    let (graph, index, plan, moves, focus, config, carrier) =
+        planning.expect("successful saved rename plan");
+    let task = &graph.tasks[index].task;
+    if dry_run || plan.old_name == plan.new_name && moves.is_empty() {
         return Ok(RenameResult {
-            changed: false,
-            committed: false,
-            partial: false,
-            task: task_reference(&task),
-            plan,
+            summary: report.summary(moves.len(), &[], false),
+            task: task_reference(task),
             warnings: Vec::new(),
         });
     }
-    if dry_run {
-        return Ok(RenameResult {
-            changed: true,
-            committed: false,
-            partial: false,
-            task: task_reference(&task),
-            plan,
-            warnings: Vec::new(),
-        });
+    let mut steps: Vec<_> = moves
+        .iter()
+        .map(|item| Step::new("move_directory", &item.target))
+        .collect();
+    if update_references {
+        steps.extend(report.scan.steps(&moves));
     }
-    if path_changed && !plan.references.is_empty() && !ignore_brokenlinks {
-        let mut listing = String::new();
-        for reference in &plan.references {
-            let _ = writeln!(listing, "  {}:{}", reference.path.display(), reference.line);
-        }
-        let listing = listing.trim_end();
-        return Err(TkError::new(
-            "broken_reference_conflict",
-            ErrorCategory::Conflict,
-            format!(
-                "Renaming {} would leave {} reference{} to the old path broken. Rename to {} after updating them, or pass --ignore-brokenlinks to move anyway:\n{}",
-                plan.old_path.display(),
-                plan.references.len(),
-                if plan.references.len() == 1 { "" } else { "s" },
-                plan.target_path.display(),
-                listing
-            ),
-        )
-        .with_details(json!({
-            "old_path": plan.old_path,
-            "new_name": plan.new_name,
-            "target_path": plan.target_path,
-            "references": plan.references,
-        })));
-    }
-
-    project::ensure_mutable(project)?;
-    let operation = crate::gc::begin_project_operation(&project.task_root)?;
-    let (metadata, warnings, _completed) = operation.execute(
-        |_operation| {
-            let current = resolve_rename_ref(project, &task.metadata.id.to_string())?;
-            let rechecked = build_rename_plan(project, &current, requested_name)?;
-            if current.directory != task.directory
-                || current.metadata != task.metadata
-                || rechecked.target_path != plan.target_path
-                || rechecked.references != plan.references
-            {
-                return Err(TkError::new(
-                    "stale_rename_plan",
-                    ErrorCategory::Conflict,
-                    "Rename inputs changed during execution",
-                ));
-            }
-
-            let mut completed = Vec::new();
-            if path_changed {
-                fs::rename(&plan.old_path, &plan.target_path)
-                    .map_err(|error| storage_error("move_task_directory", &plan.old_path, error))?;
-                completed.push(plan.target_path.clone());
-            }
-            let mut metadata = task.metadata.clone();
-            metadata.name = plan.new_name.clone();
-            let carrier = metadata_path(&plan.target_path, project.config.metadata_mode);
-            if let Err(error) = task_store::replace_metadata_for_rename(
-                &plan.target_path,
-                &metadata,
-                project.config.metadata_mode,
-            ) {
-                if completed.is_empty() {
-                    return Err(error);
+    steps.push(Step::new(
+        "rename_metadata",
+        &metadata_path(&plan.target_path, project.config.metadata_mode),
+    ));
+    let mut completed = Vec::new();
+    let result = (|| {
+        project::ensure_mutable(project)?;
+        let operation = crate::gc::begin_project_operation(&project.task_root)?;
+        operation.execute(
+            |_| {
+                let current_graph = task_store::discover_tasks_for_rename(
+                    &project.task_root,
+                    project.config.metadata_mode,
+                    project.config.task_layout,
+                )?;
+                let current_index = crate::app::resolve_ref_index_in_graph(
+                    project,
+                    &task.metadata.id.to_string(),
+                    &current_graph,
+                )?;
+                let current = &current_graph.tasks[current_index].task;
+                let rechecked =
+                    build_rename_plan(project, current, requested_name, &current_graph)?;
+                let carrier_path = metadata_path(&task.directory, project.config.metadata_mode);
+                let current_carrier = fs::read(&carrier_path).map_err(|error| {
+                    storage_error("verify_rename_metadata", &carrier_path, error)
+                })?;
+                if current.directory != task.directory
+                    || current.metadata != task.metadata
+                    || rechecked != plan
+                    || config_snapshot(project)? != config
+                    || current_carrier != carrier
+                {
+                    return Err(TkError::new(
+                        "stale_rename_plan",
+                        ErrorCategory::Conflict,
+                        "Rename inputs changed during execution",
+                    ));
                 }
-                return Err(TkError::partial_commit(
-                    "Task directory moved but its metadata rename did not commit",
-                    json!(completed),
-                    json!([carrier]),
-                    error,
+                report.scan.verify(project, &graph, &moves, &focus, extra)?;
+                crate::cancel::begin_write()?;
+                if !moves.is_empty() {
+                    fs::rename(&plan.old_path, &plan.target_path).map_err(|error| {
+                        storage_error("move_task_directory", &plan.old_path, error)
+                    })?;
+                    completed.push(Step::new("move_directory", &plan.target_path));
+                }
+                if update_references {
+                    report.scan.commit(&moves, &mut completed)?;
+                }
+                crate::cancel::checkpoint()?;
+                let mut metadata = task.metadata.clone();
+                metadata.name = plan.new_name.clone();
+                task_store::replace_metadata_for_rename(
+                    &plan.target_path,
+                    &metadata,
+                    project.config.metadata_mode,
+                )?;
+                completed.push(Step::new(
+                    "rename_metadata",
+                    &metadata_path(&plan.target_path, project.config.metadata_mode),
                 ));
-            }
-            completed.push(carrier);
-
-            let mut warnings = Vec::new();
-            if let Err(error) = wal::append(&plan.target_path, &plan.expected_wal, None, actor) {
-                warnings.push(AppWarning {
-                    code: "wal_append_failed".into(),
-                    message: error.message,
-                    details: error.details,
-                });
-            }
-            Ok((metadata, warnings, completed))
-        },
-        |(_, _, completed), cleanup_path, error| {
-            TkError::partial_commit(
-                "Task rename committed but cleanup failed",
-                json!(completed),
-                json!([cleanup_path]),
-                error,
-            )
-        },
-    )?;
+                let mut warnings = Vec::new();
+                if let Err(error) = wal::append(&plan.target_path, &plan.expected_wal, None, actor)
+                {
+                    warnings.push(AppWarning {
+                        code: "wal_append_failed".into(),
+                        message: error.message,
+                        details: error.details,
+                    });
+                }
+                Ok((metadata, warnings, completed.len()))
+            },
+            |(_, _, count), cleanup_path, error| {
+                TkError::partial_commit(
+                    "Task rename committed but cleanup failed",
+                    json!(&steps[..*count]),
+                    json!([Step::new("cleanup", &cleanup_path)]),
+                    error,
+                )
+            },
+        )
+    })();
+    let (metadata, warnings, _) = result
+        .map_err(|error| report.error(error, &completed, &steps[completed.len()..], false))?;
     Ok(RenameResult {
-        changed: true,
-        committed: true,
-        partial: false,
+        summary: report.summary(moves.len(), &completed, false),
         task: TaskReference {
             id: metadata.id,
             name: metadata.name,
             status: metadata.status,
-            task_dir: plan.target_path.clone(),
+            task_dir: plan.target_path,
         },
-        plan,
         warnings,
     })
 }
 
-fn resolve_rename_ref(project: &Project, task_ref: &str) -> Result<StoredTask> {
-    let graph =
-        task_store::discover_tasks_for_rename(&project.task_root, project.config.metadata_mode)?;
-    crate::app::resolve_ref_in_graph(project, task_ref, graph)
+fn config_snapshot(project: &Project) -> Result<Option<Vec<u8>>> {
+    match fs::read(&project.config_path) {
+        Ok(bytes) => Ok(Some(bytes)),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(storage_error(
+            "snapshot_rename_config",
+            &project.config_path,
+            error,
+        )),
+    }
 }
 
 fn build_rename_plan(
     project: &Project,
     task: &StoredTask,
     requested_name: &str,
+    graph: &task_store::TaskGraph,
 ) -> Result<RenamePlan> {
     let new_name = normalize_name(requested_name)?;
     let mut repaired_metadata = task.metadata.clone();
     repaired_metadata.name = new_name.clone();
     repaired_metadata.validate()?;
-    let graph =
-        task_store::discover_tasks_for_rename(&project.task_root, project.config.metadata_mode)?;
-    crate::app::validate_relation_graph_in_tasks(&graph, &repaired_metadata)?;
+    crate::app::validate_relation_graph_in_tasks(graph, &repaired_metadata)?;
     if graph
         .tasks
         .iter()
@@ -286,7 +328,21 @@ fn build_rename_plan(
         .map(|parent| graph.tasks[parent].task.directory.clone());
     let generated_directory = graph.tasks[task_index].parent.is_none()
         || task_store::generated_child_slug(&task.directory).is_some();
-    let target_path = if generated_directory {
+    let target_path = if parent_task.is_none() {
+        let parsed = task_store::parse_top_level_task_path(
+            &project.task_root,
+            &task.directory,
+            project.config.task_layout,
+        )
+        .expect("discovered top-level Task");
+        task_store::top_level_directory(
+            &project.task_root,
+            project.config.task_layout,
+            parsed.date,
+            parsed.sequence,
+            &new_name,
+        )
+    } else if generated_directory {
         let file_name = task
             .directory
             .file_name()
@@ -298,7 +354,8 @@ fn build_rename_plan(
                     "Task directory name is not UTF-8",
                 )
             })?;
-        let (prefix, _) = file_name.split_once("--").ok_or_else(|| {
+        let separator = "--";
+        let (prefix, _) = file_name.split_once(separator).ok_or_else(|| {
             TkError::new(
                 "invalid_task_path",
                 ErrorCategory::ManagedFile,
@@ -311,7 +368,7 @@ fn build_rename_plan(
         task.directory
             .parent()
             .expect("managed Task has a parent")
-            .join(format!("{prefix}--{new_name}"))
+            .join(format!("{prefix}{separator}{new_name}"))
     } else {
         task.directory.clone()
     };
@@ -322,9 +379,6 @@ fn build_rename_plan(
             format!("Rename target already exists: {}", target_path.display()),
         ));
     }
-    // Strict discovery stops at a damaged name; the repair graph reaches its
-    // descendants so their runtime directories stay out of the reference scan.
-    let references = scan_markdown_references(project, &task.directory, &graph)?;
     Ok(RenamePlan {
         task_id: task.metadata.id,
         old_name: task.metadata.name.clone(),
@@ -332,160 +386,8 @@ fn build_rename_plan(
         old_path: task.directory.clone(),
         target_path,
         parent_task,
-        references,
         expected_wal: format!("Renamed Task from {} to {new_name}.", task.metadata.name),
     })
-}
-
-fn scan_markdown_references(
-    project: &Project,
-    task_directory: &Path,
-    graph: &task_store::TaskGraph,
-) -> Result<Vec<MarkdownReference>> {
-    let relative = task_directory.strip_prefix(&project.root).map_err(|_| {
-        TkError::new(
-            "task_outside_project",
-            ErrorCategory::ManagedFile,
-            "Task path is outside the project",
-        )
-    })?;
-    let needle = relative.to_string_lossy().replace('\\', "/");
-    let embedded_tasks: HashSet<_> = if project.config.metadata_mode == MetadataMode::Embed {
-        graph
-            .tasks
-            .iter()
-            .map(|task| task.task.directory.clone())
-            .collect()
-    } else {
-        HashSet::new()
-    };
-    let runtime_directories = tk_runtime_directories(project, &graph);
-    let paths = match project.config.git_policy {
-        GitPolicy::Track => walk_markdown(&project.root, &runtime_directories)?,
-        GitPolicy::Ignore | GitPolicy::None => {
-            walk_markdown(&project.task_root, &runtime_directories)?
-        }
-    };
-    let mut references = Vec::new();
-    for path in paths {
-        scan_markdown_file(project, &path, &needle, &embedded_tasks, &mut references)?;
-    }
-    references.sort_by(|left, right| left.path.cmp(&right.path).then(left.line.cmp(&right.line)));
-    references.dedup();
-    Ok(references)
-}
-
-fn tk_runtime_directories(project: &Project, graph: &task_store::TaskGraph) -> HashSet<PathBuf> {
-    let mut directories = HashSet::new();
-    directories.insert(project.task_root.join(".tk-tmp"));
-    for directory in graph.tasks.iter().map(|task| &task.task.directory).chain(
-        graph
-            .invalid_candidates
-            .iter()
-            .map(|candidate| &candidate.directory),
-    ) {
-        directories.insert(directory.join("wal"));
-    }
-    directories
-}
-
-const MAX_REFERENCE_SCAN_DEPTH: usize = 256;
-const MAX_REFERENCE_SCAN_DIRECTORIES: usize = 100_000;
-
-fn walk_markdown(root: &Path, runtime_directories: &HashSet<PathBuf>) -> Result<Vec<PathBuf>> {
-    let mut paths = Vec::new();
-    let mut visited = 0usize;
-    let mut pending = vec![(root.to_path_buf(), 0usize)];
-    while let Some((directory, depth)) = pending.pop() {
-        if depth >= MAX_REFERENCE_SCAN_DEPTH {
-            return Err(scan_limit_error(
-                &directory,
-                "depth",
-                MAX_REFERENCE_SCAN_DEPTH,
-            ));
-        }
-        for entry in fs::read_dir(&directory)
-            .map_err(|error| storage_error("scan_markdown_references", &directory, error))?
-        {
-            let entry = entry
-                .map_err(|error| storage_error("scan_markdown_references", &directory, error))?;
-            let file_type = entry.file_type().map_err(|error| {
-                storage_error("inspect_markdown_reference", &entry.path(), error)
-            })?;
-            if file_type.is_symlink() {
-                continue;
-            }
-            let path = entry.path();
-            if file_type.is_dir() {
-                if entry.file_name().to_str() == Some(".git") || runtime_directories.contains(&path)
-                {
-                    continue;
-                }
-                visited += 1;
-                if visited > MAX_REFERENCE_SCAN_DIRECTORIES {
-                    return Err(scan_limit_error(
-                        &path,
-                        "directories",
-                        MAX_REFERENCE_SCAN_DIRECTORIES,
-                    ));
-                }
-                pending.push((path, depth + 1));
-            } else if file_type.is_file()
-                && path.extension().and_then(|value| value.to_str()) == Some("md")
-            {
-                paths.push(path);
-            }
-        }
-    }
-    paths.sort();
-    Ok(paths)
-}
-
-fn scan_limit_error(directory: &Path, dimension: &str, limit: usize) -> TkError {
-    TkError::new(
-        "reference_scan_limit_exceeded",
-        ErrorCategory::Storage,
-        format!("Markdown reference scan exceeded the {dimension} limit of {limit}"),
-    )
-    .with_details(serde_json::json!({"path": directory}))
-}
-
-fn scan_markdown_file(
-    project: &Project,
-    path: &Path,
-    needle: &str,
-    embedded_tasks: &HashSet<PathBuf>,
-    references: &mut Vec<MarkdownReference>,
-) -> Result<()> {
-    let text = fs::read_to_string(path)
-        .map_err(|error| storage_error("read_markdown_reference", path, error))?;
-    let body_start = if project.config.metadata_mode == MetadataMode::Embed
-        && path.file_name().and_then(|value| value.to_str()) == Some("TASK.md")
-        && path
-            .parent()
-            .is_some_and(|directory| embedded_tasks.contains(directory))
-    {
-        embedded_body_line(&text).unwrap_or(0)
-    } else {
-        0
-    };
-    for (index, line) in text.lines().enumerate().skip(body_start) {
-        if line.contains(needle) {
-            references.push(MarkdownReference {
-                path: path.to_path_buf(),
-                line: index + 1,
-            });
-        }
-    }
-    Ok(())
-}
-
-fn embedded_body_line(text: &str) -> Option<usize> {
-    let mut lines = text.lines();
-    if lines.next()? != "---" {
-        return None;
-    }
-    lines.position(|line| line == "---").map(|index| index + 2)
 }
 
 fn inspect_root(project: &Project, diagnostics: &mut Vec<Diagnostic>) -> Result<()> {
@@ -512,7 +414,11 @@ fn inspect_root(project: &Project, diagnostics: &mut Vec<Diagnostic>) -> Result<
     let task_store::TaskGraph {
         tasks: discovered,
         invalid_candidates,
-    } = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    } = task_store::discover_tasks(
+        &project.task_root,
+        project.config.metadata_mode,
+        project.config.task_layout,
+    )?;
     for candidate in invalid_candidates {
         diagnostics.push(error_diagnostic(candidate.error, Some(candidate.directory)));
     }
@@ -523,26 +429,41 @@ fn inspect_root(project: &Project, diagnostics: &mut Vec<Diagnostic>) -> Result<
         ids.entry(task.metadata.id)
             .or_default()
             .push(task.directory.clone());
-        let file_name = task.directory.file_name().and_then(|name| name.to_str());
         let sequence = if candidate.parent.is_none() {
-            file_name.and_then(|name| name.split_once("--").map(|(prefix, _)| prefix))
+            task_store::parse_top_level_task_path(
+                &project.task_root,
+                &task.directory,
+                project.config.task_layout,
+            )
+            .map(|parsed| {
+                (
+                    task.directory
+                        .parent()
+                        .expect("top-level parent")
+                        .to_path_buf(),
+                    format!("{}-{:02}", parsed.date, parsed.sequence),
+                )
+            })
         } else if task_store::generated_child_slug(&task.directory).is_some() {
-            file_name.and_then(|name| name.split_once("--").map(|(prefix, _)| prefix))
+            task.directory
+                .file_name()
+                .and_then(|name| name.to_str())
+                .and_then(|name| name.split_once("--"))
+                .map(|(prefix, _)| {
+                    (
+                        discovered[candidate.parent.expect("child parent")]
+                            .task
+                            .directory
+                            .clone(),
+                        prefix.to_owned(),
+                    )
+                })
         } else {
             None
         };
-        if let Some(sequence) = sequence {
-            let parent = candidate.parent.map_or_else(
-                || {
-                    task.directory
-                        .parent()
-                        .unwrap_or(&project.task_root)
-                        .to_path_buf()
-                },
-                |parent| discovered[parent].task.directory.clone(),
-            );
+        if let Some(key) = sequence {
             sequences
-                .entry((parent, sequence.into()))
+                .entry(key)
                 .or_default()
                 .push(task.directory.clone());
         }
@@ -591,6 +512,9 @@ fn inspect_cleanup_markers(project: &Project, diagnostics: &mut Vec<Diagnostic>)
         let file_type = entry
             .file_type()
             .map_err(|error| storage_error("inspect_temporary_operation", &entry.path(), error))?;
+        if crate::gc::is_report_directory(&root, &entry.path()) {
+            continue;
+        }
         if !file_type.is_dir() || file_type.is_symlink() {
             diagnostics.push(diagnostic(
                 Severity::Warning,
@@ -776,11 +700,10 @@ fn error_diagnostic(error: TkError, path: Option<PathBuf>) -> Diagnostic {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::project::GitPolicy;
 
-    #[test]
-    fn finds_embedded_body_start() {
-        assert_eq!(embedded_body_line("---\nid: x\n---\nbody\n"), Some(3));
-        assert_eq!(embedded_body_line("body\n"), None);
+    fn read_report(result: &RenameResult) -> Value {
+        serde_json::from_slice(&fs::read(&result.summary.report_path).unwrap()).unwrap()
     }
 
     #[test]
@@ -922,7 +845,9 @@ mod tests {
             assert!(result.complete);
             assert!(result.ok, "{mode:?}: {:?}", result.diagnostics);
             assert!(result.diagnostics.is_empty(), "{:?}", result.diagnostics);
-            let graph = task_store::discover_tasks(&project.task_root, mode).unwrap();
+            let graph =
+                task_store::discover_tasks(&project.task_root, mode, project.config.task_layout)
+                    .unwrap();
             assert!(graph.invalid_candidates.is_empty());
             let identities: HashSet<_> = graph
                 .tasks
@@ -1355,12 +1280,12 @@ mod tests {
             "renamed-import",
             false,
             false,
+            &[],
             "test:agent",
         )
         .unwrap();
-        assert_eq!(imported_result.plan.old_path, imported);
-        assert_eq!(imported_result.plan.target_path, imported);
-        assert_eq!(imported_result.plan.parent_task, Some(parent.clone()));
+        assert_eq!(imported_result.task.id, imported_metadata.id);
+        assert_eq!(imported_result.task.task_dir, imported);
         assert_eq!(
             task_store::read_task(&imported, MetadataMode::Split)
                 .unwrap()
@@ -1375,12 +1300,13 @@ mod tests {
             "renamed-generated",
             false,
             false,
+            &[],
             "test:agent",
         )
         .unwrap();
         let generated_target = parent.join("children/01--renamed-generated");
-        assert_eq!(generated_result.plan.target_path, generated_target);
-        assert_eq!(generated_result.plan.parent_task, Some(parent.clone()));
+        assert_eq!(generated_result.task.task_dir, generated_target);
+        assert_eq!(generated_result.task.id, generated_metadata.id);
         assert!(!generated.exists());
         assert_eq!(
             task_store::read_task(&generated_target, MetadataMode::Split)
@@ -1424,7 +1350,7 @@ mod tests {
     }
 
     #[test]
-    fn path_moving_rename_with_references_requires_explicit_override() {
+    fn path_moving_rename_preserves_references_by_default() {
         for (mode, policy) in [
             (MetadataMode::Split, GitPolicy::None),
             (MetadataMode::Embed, GitPolicy::Track),
@@ -1493,44 +1419,26 @@ mod tests {
                 "target",
                 true,
                 false,
+                &[],
                 "test:agent",
             )
             .unwrap();
-            assert!(dry.changed && !dry.committed);
-            assert_eq!(dry.plan.references.len(), 2);
+            assert!(dry.summary.changed && !dry.summary.committed);
+            assert_eq!(dry.summary.reference_count, 2);
             assert!(directory.exists(), "dry-run must not move anything");
 
-            let error = rename(
-                &project,
-                &directory.to_string_lossy(),
-                "target",
-                false,
-                false,
-                "test:agent",
-            )
-            .unwrap_err();
-            assert_eq!(error.code, "broken_reference_conflict");
-            assert!(matches!(error.category, ErrorCategory::Conflict));
-            let details = error.details.as_ref().unwrap();
-            assert_eq!(details["new_name"], "target");
-            assert_eq!(
-                details["target_path"],
-                json!(root.join(".tk/2026/08/31-01--target"))
-            );
-            assert_eq!(details["old_path"], json!(directory));
-            let listed_references = details["references"].as_array().unwrap();
-            assert_eq!(listed_references.len(), 2);
+            let report = read_report(&dry);
+            let listed_references = report["references"].as_array().unwrap();
             for (relative, line) in &references_expected {
                 assert!(
-                    listed_references.iter().any(|reference| {
-                        reference["path"] == json!(root.join(relative))
-                            && reference["line"] == *line
-                    }),
-                    "details list {relative}:{line}"
+                    listed_references
+                        .iter()
+                        .any(
+                            |reference| reference["old_file"] == json!(root.join(relative))
+                                && reference["line"] == *line
+                        )
                 );
             }
-            assert!(directory.exists(), "gate must block before any write");
-            assert!(!root.join(".tk/2026/08/31-01--target").exists());
             assert_eq!(
                 task_store::read_task(&directory, mode)
                     .unwrap()
@@ -1544,27 +1452,24 @@ mod tests {
             );
             assert!(!directory.join("wal").exists());
 
-            let overridden = rename(
+            let result = rename(
                 &project,
                 &directory.to_string_lossy(),
                 "target",
                 false,
-                true,
+                false,
+                &[],
                 "test:agent",
             )
             .unwrap();
-            assert!(overridden.changed && overridden.committed);
-            assert_eq!(overridden.plan.references.len(), 2);
+            assert!(result.summary.changed && result.summary.committed);
+            assert_eq!(result.summary.reference_count, 2);
             for (relative, content) in references_expected
                 .iter()
                 .map(|(relative, _)| *relative)
                 .zip(&reference_contents)
             {
                 let reference_path = root.join(relative);
-                assert!(
-                    reference_path.exists(),
-                    "override must not rewrite reference files"
-                );
                 assert_eq!(
                     fs::read_to_string(&reference_path).unwrap(),
                     *content,
@@ -1589,14 +1494,15 @@ mod tests {
             "New Name!",
             false,
             false,
+            &[],
             "test:agent",
         )
         .unwrap();
-        assert!(result.changed && result.committed);
-        assert!(result.plan.references.is_empty());
-        assert_eq!(result.plan.new_name, "New-Name");
+        assert!(result.summary.changed && result.summary.committed);
+        assert_eq!(result.summary.reference_count, 0);
+        assert_eq!(result.task.name, "New-Name");
         assert_eq!(
-            result.plan.target_path,
+            result.task.task_dir,
             root.join(".tk/2026/08/31-01--New-Name")
         );
         fs::remove_dir_all(root).unwrap();
@@ -1619,10 +1525,14 @@ mod tests {
                 let body = b"# Independent title\n";
                 task_store::create_task_files(&directory, &metadata, body, mode).unwrap();
                 assert!(
-                    task_store::discover_tasks(&project.task_root, mode)
-                        .unwrap()
-                        .invalid_candidates
-                        .is_empty()
+                    task_store::discover_tasks(
+                        &project.task_root,
+                        mode,
+                        project.config.task_layout
+                    )
+                    .unwrap()
+                    .invalid_candidates
+                    .is_empty()
                 );
 
                 let result = rename(
@@ -1631,13 +1541,14 @@ mod tests {
                     requested,
                     false,
                     false,
+                    &[],
                     "test:agent",
                 )
                 .unwrap();
                 let target = project.task_root.join("2026/08/31-01--so-urce");
-                assert!(result.changed && result.committed);
-                assert_eq!(result.plan.old_name, old_name);
-                assert_eq!(result.plan.target_path, target);
+                assert!(result.summary.changed && result.summary.committed);
+                assert_eq!(read_report(&result)["tasks"][0]["old_name"], old_name);
+                assert_eq!(result.task.task_dir, target);
                 assert!(!directory.exists());
                 let changed = task_store::read_task(&target, mode).unwrap().metadata;
                 assert_eq!(changed.id, metadata.id);
@@ -1649,10 +1560,11 @@ mod tests {
                     requested,
                     false,
                     false,
+                    &[],
                     "test:agent",
                 )
                 .unwrap();
-                assert!(!retry.changed && !retry.committed);
+                assert!(!retry.summary.changed && !retry.summary.committed);
                 fs::remove_dir_all(root).unwrap();
             }
         }
@@ -1699,12 +1611,13 @@ mod tests {
                     "repaired",
                     false,
                     false,
+                    &[],
                     "test:agent",
                 )
                 .unwrap();
                 let target = project.task_root.join("2026/08/31-01--repaired");
-                assert!(result.changed && result.committed);
-                assert_eq!(result.plan.old_name, old_name);
+                assert!(result.summary.changed && result.summary.committed);
+                assert_eq!(read_report(&result)["tasks"][0]["old_name"], old_name);
                 assert_eq!(
                     task_store::read_body_bytes(&target, mode).unwrap(),
                     b"source body\n"
@@ -1744,9 +1657,17 @@ mod tests {
             parent.join("TASK.md").to_string_lossy().into_owned(),
             parent_id.to_string(),
         ] {
-            let preview = rename(&project, &task_ref, "parent", true, false, "test:agent").unwrap();
-            assert!(preview.changed && !preview.committed);
-            assert_eq!(preview.plan.parent_task, None);
+            let preview = rename(
+                &project,
+                &task_ref,
+                "parent",
+                true,
+                false,
+                &[],
+                "test:agent",
+            )
+            .unwrap();
+            assert!(preview.summary.changed && !preview.summary.committed);
         }
 
         rename(
@@ -1755,11 +1676,17 @@ mod tests {
             "parent",
             false,
             false,
+            &[],
             "test:agent",
         )
         .unwrap();
         let target = project.task_root.join("2026/08/31-01--parent");
-        let graph = task_store::discover_tasks(&project.task_root, MetadataMode::Embed).unwrap();
+        let graph = task_store::discover_tasks(
+            &project.task_root,
+            MetadataMode::Embed,
+            project.config.task_layout,
+        )
+        .unwrap();
         let child_index = graph
             .task_index(&target.join("children/01--child"))
             .unwrap();
@@ -1795,6 +1722,7 @@ mod tests {
             "repaired",
             true,
             false,
+            &[],
             "test:agent",
         )
         .unwrap_err();
@@ -1810,6 +1738,7 @@ mod tests {
             "repaired",
             true,
             false,
+            &[],
             "test:agent",
         )
         .unwrap_err();
@@ -1837,12 +1766,13 @@ mod tests {
             "source",
             false,
             false,
+            &[],
             "test:agent",
         )
         .unwrap();
         let target = project.task_root.join("2026/08/31-01--source");
-        assert!(path_repair.changed && path_repair.committed);
-        assert_eq!(path_repair.plan.target_path, target);
+        assert!(path_repair.summary.changed && path_repair.summary.committed);
+        assert_eq!(path_repair.task.task_dir, target);
         assert!(!wrong_path.exists());
         assert_eq!(
             task_store::read_task(&target, MetadataMode::Split)
@@ -1890,10 +1820,11 @@ mod tests {
                 "repaired",
                 true,
                 false,
+                &[],
                 "test:agent",
             )
             .unwrap();
-            assert!(preview.changed && !preview.committed);
+            assert!(preview.summary.changed && !preview.summary.committed);
             assert!(directory.exists(), "dry-run must not move anything");
             assert!(
                 fs::read_to_string(&carrier)
@@ -1908,11 +1839,12 @@ mod tests {
                 "repaired",
                 false,
                 false,
+                &[],
                 "test:agent",
             )
             .unwrap();
             let target = project.task_root.join("2026/08/31-01--repaired");
-            assert!(result.changed && result.committed);
+            assert!(result.summary.changed && result.summary.committed);
             assert_eq!(result.task.status, crate::domain::Status::Closed);
             let after = task_store::read_task(&target, mode).unwrap().metadata;
             assert_eq!(after.name, "repaired");
@@ -1949,14 +1881,17 @@ mod tests {
             "source",
             false,
             false,
+            &[],
             "test:agent",
         )
         .unwrap();
         let target = project.task_root.join("2026/08/31-01--source");
-        assert!(result.changed && result.committed);
-        assert_eq!(result.plan.old_path, wrong_path);
-        assert_eq!(result.plan.target_path, target);
-        assert_eq!(result.plan.parent_task, None);
+        assert!(result.summary.changed && result.summary.committed);
+        assert_eq!(
+            read_report(&result)["tasks"][0]["old_path"],
+            json!(wrong_path)
+        );
+        assert_eq!(result.task.task_dir, target);
         assert!(!wrong_path.exists());
         let after = task_store::read_task(&target, MetadataMode::Split)
             .unwrap()
@@ -1980,6 +1915,7 @@ mod tests {
             "repaired",
             false,
             false,
+            &[],
             "test:agent",
         )
         .unwrap_err();
@@ -1999,6 +1935,7 @@ mod tests {
             "repaired",
             false,
             false,
+            &[],
             "test:agent",
         )
         .unwrap_err();
@@ -2036,6 +1973,7 @@ mod tests {
             "source",
             false,
             false,
+            &[],
             "test:agent",
         )
         .unwrap();
@@ -2083,14 +2021,21 @@ mod tests {
             "target",
             true,
             false,
+            &[],
             "test:agent",
         )
         .unwrap();
-        let listed: Vec<_> = preview
-            .plan
-            .references
+        let report = read_report(&preview);
+        let listed: Vec<_> = report["references"]
+            .as_array()
+            .unwrap()
             .iter()
-            .map(|reference| (reference.path.clone(), reference.line))
+            .map(|reference| {
+                (
+                    PathBuf::from(reference["old_file"].as_str().unwrap()),
+                    reference["line"].as_u64().unwrap(),
+                )
+            })
             .collect();
         assert_eq!(listed, vec![(staged, 1), (untracked, 1)]);
         fs::remove_dir_all(root).unwrap();
@@ -2120,30 +2065,38 @@ mod tests {
             "target",
             true,
             false,
+            &[],
             "test:agent",
         )
         .unwrap();
-        let listed: Vec<_> = preview
-            .plan
-            .references
+        let report = read_report(&preview);
+        let listed: Vec<_> = report["references"]
+            .as_array()
+            .unwrap()
             .iter()
-            .map(|item| (item.path.clone(), item.line))
+            .map(|reference| {
+                (
+                    PathBuf::from(reference["old_file"].as_str().unwrap()),
+                    reference["line"].as_u64().unwrap(),
+                )
+            })
             .collect();
-        assert_eq!(listed, vec![(link, 1)]);
+        assert_eq!(listed, vec![(link.clone(), 1)]);
 
-        let error = rename(
+        let result = rename(
             &project,
             &directory.to_string_lossy(),
             "target",
             false,
             false,
+            &[],
             "test:agent",
         )
-        .unwrap_err();
-        assert_eq!(error.code, "broken_reference_conflict");
-        assert!(
-            directory.exists(),
-            "a blocked rename must not move the Task"
+        .unwrap();
+        assert!(result.summary.committed);
+        assert_eq!(
+            fs::read_to_string(&link).unwrap(),
+            "see .tk/2026/08/31-01--source/TASK.md\n"
         );
         fs::remove_dir_all(root).unwrap();
     }
@@ -2168,11 +2121,12 @@ mod tests {
             "target",
             false,
             false,
+            &[],
             "test:agent",
         )
         .unwrap();
-        assert!(result.plan.references.is_empty());
-        assert!(result.changed && result.committed);
+        assert_eq!(result.summary.reference_count, 0);
+        assert!(result.summary.changed && result.summary.committed);
         let target = root.join(".tk/2026/08/31-01--target");
         assert!(target.join("wal/2026-08-31.md").exists());
         fs::remove_dir_all(root).unwrap();
@@ -2210,14 +2164,11 @@ mod tests {
                 "target",
                 true,
                 false,
+                &[],
                 "test:agent",
             )
             .unwrap();
-            assert!(
-                preview.plan.references.is_empty(),
-                "descendant WAL must not count as a reference: {:?}",
-                preview.plan.references
-            );
+            assert_eq!(preview.summary.reference_count, 0);
 
             let result = rename(
                 &project,
@@ -2225,10 +2176,11 @@ mod tests {
                 "target",
                 false,
                 false,
+                &[],
                 "test:agent",
             )
             .unwrap();
-            assert!(result.changed && result.committed);
+            assert!(result.summary.changed && result.summary.committed);
             let target = root.join(".tk/2026/08/31-01--target");
             assert!(target.join("01--child/wal/2026-08-31.md").exists());
             fs::remove_dir_all(root).unwrap();
@@ -2255,9 +2207,6 @@ mod tests {
             .unwrap();
         assert!(status.success());
 
-        let paths = walk_markdown(&root, &HashSet::new()).unwrap();
-        assert!(!paths.contains(&fifo));
-
         let (sender, receiver) = std::sync::mpsc::channel();
         let thread_root = root.clone();
         let thread_directory = directory.clone();
@@ -2269,9 +2218,10 @@ mod tests {
                 "target",
                 true,
                 false,
+                &[],
                 "test:agent",
             )
-            .map(|result| result.committed)
+            .map(|result| result.summary.committed)
             .map_err(|error| error.code);
             sender.send(outcome).unwrap();
         });
@@ -2293,13 +2243,14 @@ mod tests {
         fs::create_dir_all(broken.parent().unwrap()).unwrap();
         fs::write(&broken, [0xff, 0xfe, 0xfd]).unwrap();
 
-        for (dry_run, ignore_brokenlinks) in [(true, false), (false, true)] {
+        for (dry_run, update_references) in [(true, false), (false, true)] {
             let error = rename(
                 &project,
                 &directory.to_string_lossy(),
                 "target",
                 dry_run,
-                ignore_brokenlinks,
+                update_references,
+                &[],
                 "test:agent",
             )
             .unwrap_err();
@@ -2313,12 +2264,24 @@ mod tests {
     #[test]
     fn markdown_scan_rejects_oversized_depth() {
         let root = std::env::temp_dir().join(format!("tk-scan-depth-{}", Uuid::now_v7()));
-        let mut nested = root.join("nested");
-        for _ in 0..MAX_REFERENCE_SCAN_DEPTH {
+        fs::create_dir(&root).unwrap();
+        let project = rename_test_project(&root, MetadataMode::Split, GitPolicy::None);
+        let directory = rename_task_directory(&root, MetadataMode::Split);
+        let mut nested = project.task_root.join("nested");
+        for _ in 0..256 {
             nested = nested.join("n");
         }
         fs::create_dir_all(&nested).unwrap();
-        let error = walk_markdown(&root, &HashSet::new()).unwrap_err();
+        let error = rename(
+            &project,
+            &directory.to_string_lossy(),
+            "target",
+            true,
+            false,
+            &[],
+            "test:agent",
+        )
+        .unwrap_err();
         assert_eq!(error.code, "reference_scan_limit_exceeded");
         fs::remove_dir_all(root).unwrap();
     }
@@ -2358,15 +2321,16 @@ mod tests {
                 "source",
                 false,
                 false,
+                &[],
                 "test:agent",
             )
             .unwrap();
-            assert!(result.changed && result.committed);
+            assert!(result.summary.changed && result.summary.committed);
             assert_eq!(
-                result.plan.target_path, imported,
+                result.task.task_dir, imported,
                 "non-generated child keeps its directory"
             );
-            assert_eq!(result.plan.references.len(), 1);
+            assert_eq!(result.summary.reference_count, 1);
             let after = task_store::read_task(&imported, MetadataMode::Split)
                 .unwrap()
                 .metadata;
@@ -2403,12 +2367,13 @@ mod tests {
             "source",
             false,
             false,
+            &[],
             "test:agent",
         )
         .unwrap();
-        assert!(!result.changed && !result.committed);
-        assert_eq!(result.plan.references.len(), 1);
-        assert_eq!(result.plan.references[0].line, 1);
+        assert!(!result.summary.changed && !result.summary.committed);
+        assert_eq!(result.summary.reference_count, 1);
+        assert_eq!(read_report(&result)["references"][0]["line"], 1);
         assert!(!directory.join("wal").exists());
         assert_eq!(
             fs::read(directory.join("tk.toml")).unwrap(),

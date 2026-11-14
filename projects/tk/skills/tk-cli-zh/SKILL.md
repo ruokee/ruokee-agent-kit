@@ -38,9 +38,11 @@ tk create task <name> [--status <planning|open>] [--created-at <rfc3339>] [--dep
 tk create subtask <parent_ref> --item <json> [--item <json>]... [--user-confirmed <true|false>]
 tk update <task_ref> [--depends-on-add <uuid>]... [--depends-on-remove <uuid>]... [--related-to-add <uuid>]... [--related-to-remove <uuid>]... [--extra-set <json>] [--extra-remove <key>]... [--start | --close <reason> | --reopen <reason>] [--force] [--user-confirmed <true|false>] [--actor <text>]
 tk log <task_ref> --message <text> [--body <markdown>] [--actor <text>]
-tk init [--task-root <path>] [--subtasks-dir <path>] [--git-policy <track|ignore|none>] [--creation-policy <strict|permissive>] [--metadata-mode <split|embed>] [--force]
+tk init [--task-root <path>] [--subtasks-dir <path>] [--git-policy <track|ignore|none>] [--creation-policy <strict|permissive>] [--metadata-mode <split|embed>] [--task-layout <monthly|daily>] [--force]
 tk check
-tk rename <task_ref> <name> [--dry-run] [--ignore-brokenlinks] [--actor <text>]
+tk rename <task_ref> <name> [--dry-run] [--update-references] [--extend-scan <path>]... [--actor <text>]
+tk layout switch --to <monthly|daily> [--dry-run] [--update-references] [--extend-scan <path>]...
+tk layout migrate --task <path> [--task <path>]... [--dry-run] [--update-references] [--extend-scan <path>]...
 ```
 
 如果任务所在位置不是当前运行目录，可以通过 `--cwd` 进行覆盖。典型场景是跨目录提供任务信息。
@@ -168,7 +170,7 @@ Agent 可以创建或更新普通文本文件。无须逐文件确认。用户�
 - 任务身份、路径、元数据、关系或生命周期不清楚时，阅读 [任务概念](./references/task-concept.md)。
 - 创建子任务，或处理创建位置、发现、编号和批量失败时，阅读 [子任务](./references/subtask.md)。
 - 需要恢复任务上下文时，阅读 [跟进任务](./references/catchup.md)。
-- 初始化、项目发现、Git 策略、schema 迁移或元数据模式切换相关时，阅读 [项目存储](./references/project-storage.md)。
-- 遇到错误、部分提交、受管数据损坏、`check`、`rename` 或 GC 时，阅读 [维护](./references/maintenance.md)。
+- 初始化、项目发现、Git 策略、布局切换或导入目录适配、schema 迁移或元数据模式切换相关时，阅读 [项目存储](./references/project-storage.md)。
+- 遇到错误、部分提交、受管数据损坏、`check`、`rename`、布局报告及引用更新或 GC 时，阅读 [维护](./references/maintenance.md)。
 - 判断记录内容、读取较长历史或处理追加警告时，阅读 [WAL](./references/wal.md)。
 - 需要组织长期普通材料时，阅读 [使用模式](./references/patterns.md)。

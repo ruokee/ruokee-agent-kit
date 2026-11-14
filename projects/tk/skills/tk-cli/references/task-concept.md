@@ -8,11 +8,14 @@ Read this file when Task identity, paths, content, relationships, or lifecycle a
 
 A UUIDv7 is the stable Task identity. Names and directories aid recognition and may change through `rename`; they are not identity.
 
-Top-level Tasks normally live at:
+Top-level Tasks use the configured `task_layout`:
 
 ```text
-<task_root>/YYYY/MM/DD-NN--slug/
+monthly: <task_root>/YYYY/MM/DD-NN--slug/
+daily:   <task_root>/YYYY/MM/DD/NN-slug/
 ```
+
+Monthly is the default. Ordinary commands see only the selected layout. Use the layout operations in [Project storage](./project-storage.md#task-layout) to switch or adapt imported directories. Task identity survives layout changes.
 
 New subtasks normally live below the parent's configured `subtasks_dir` and use an `NN--slug` directory name. `subtasks_dir` controls creation placement only. Discovery can recognize Tasks elsewhere below the parent from valid carriers. See [Subtasks](./subtask.md).
 

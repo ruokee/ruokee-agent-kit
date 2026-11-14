@@ -193,6 +193,7 @@ tk init
   [--git-policy <track|ignore|none>]
   [--creation-policy <strict|permissive>]
   [--metadata-mode <split|embed>]
+  [--task-layout <monthly|daily>]
   [--force]
   [--cwd <path>] [--output <text|json>]
 ```
@@ -219,13 +220,32 @@ Rename a Task:
 
 ```text
 tk rename <task_ref> <name>
-  [--dry-run] [--ignore-brokenlinks] [--actor <text>]
+  [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--actor <text>]
   [--cwd <path>] [--output <text|json>]
 ```
 
-`--dry-run` returns a plan without writing and always succeeds, including when references exist. Execution changes only the target Task, moves its directory only when it has a generated path, and reports the resolved parent and Markdown references without rewriting them. Only a saved name and applicable path that exactly match the normalized target return no change. Formatting-compatible names can still produce a directory move. A `closed` Task can be renamed or repaired and keeps its status. `--actor` defaults to `cli`.
+Dry-run saves an immutable scan report and preserves Task data, references, and configuration. Execution changes the saved name and moves generated directories when the slug changes. Exact saved-name and applicable-path matches return no change. Formatting-compatible names can still produce a directory move. Closed Tasks retain their status. `--actor` defaults to `cli`.
 
-When the path move would leave references to the old path, execution stops with exit status 3 before writing anything. The error lists every reference path and line. Pass `--ignore-brokenlinks` to move anyway; the reference files stay unchanged and the result still reports them.
+References keep their content by default. `--update-references` explicitly rewrites supported references. Repeated `--extend-scan` adds Markdown files or directories, resolving relative paths from the project root and accepting external absolute paths. See [Maintenance](./maintenance.md#references) for scan and failure rules.
+
+## Layout
+
+```text
+tk layout switch --to <monthly|daily>
+  [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--cwd <path>] [--output <text|json>]
+
+tk layout migrate --task <path> [--task <path>]...
+  [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--cwd <path>] [--output <text|json>]
+```
+
+switch converts the current layout and validates existing target-layout Tasks together with it. Configuration changes last. Empty roots and already selected layouts are supported.
+
+migrate requires canonical top-level Task directories inside the current Task root. Relative paths resolve from the project root. UUIDs, files, materials, staging directories, and globs are rejected. It adapts selected imported trees to the current layout, deduplicates repeated directories, and preserves configuration, metadata mode, schema, dates, sequence numbers, and slugs. Already adapted selections are no-ops. UUID, sequence, target, carrier, and relationship conflicts fail preflight.
+
+rename and both layout commands return `operation`, `run_id`, `dry_run`, `changed`, `committed`, `partial`, `affected_tasks`, `planned_moves`, `completed_moves`, `reference_count`, `planned_reference_files`, `updated_reference_files`, `config_changed`, and absolute `report_path`. rename additionally returns `task`. Full mappings and references are stored in the report. `changed` describes planned managed changes; `committed` means all required changes succeeded and is false for dry-run and no-change. Counts distinguish physical root moves from affected descendants. Errors carry report identity, configuration state, and partial steps. Reports also persist for dry-run, no-change, and planning failures in a valid project.
 
 ## `tk gc`
 
@@ -239,6 +259,8 @@ tk gc [--dry-run]
 GC removes only tk temporary paths and active-operation markers left by operation processes that have exited. It does not continue, roll back, or finish Tasks, migrations, renames, or component operations.
 
 `--dry-run` lists removable entries without deleting them. An I/O error during deletion stops immediately and lists deleted and undeleted paths.
+
+The project-level real `.tk-tmp/reports` directory is retained. User-level operation directories keep their cleanup rules.
 
 ## `tk metadata migrate`
 
@@ -319,8 +341,8 @@ The JSON payload contains:
 
 ```json
 {
-  "runtime_version": "0.1.16",
-  "cli_contract_version": 4,
+  "runtime_version": "0.1.17",
+  "cli_contract_version": 5,
   "task_schema_version": 1,
   "component_format_version": 5
 }

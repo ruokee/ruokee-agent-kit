@@ -75,13 +75,15 @@ Run init from the project directory:
 tk init
 ```
 
-Defaults use `.tk` as the Task root, strict top-level creation, split metadata, and no Git policy. Supply only values that differ:
+Defaults use `.tk` as the Task root, monthly directories, strict top-level creation, split metadata, and no Git policy. Supply only values that differ:
 
 ```sh
 tk init --creation-policy permissive --metadata-mode embed
 ```
 
 `init --force` rewrites project configuration from explicit values and defaults even when the previous configuration cannot be parsed. It does not inspect or modify Task data.
+
+Use `tk init --task-layout daily` for `YYYY/MM/DD/NN-slug` top-level directories. The default monthly shape is `YYYY/MM/DD-NN--slug`. Ordinary commands manage only the configured layout.
 
 ## Create a Task
 
@@ -164,7 +166,7 @@ tk metadata switch --to embed --dry-run
 tk metadata switch --to embed
 ```
 
-Rename a Task and inspect references without rewriting them:
+Preview a Task rename and inspect its saved report:
 
 ```sh
 tk rename <task_ref> "New name" --dry-run
@@ -173,9 +175,19 @@ tk rename <task_ref> "New name"
 
 Saved names may contain formatting spaces while a generated directory keeps its space-free suffix. Reads and checks preserve that valid spelling; see [Task names](./design/data-model.md#task-names). Explicit rename normalizes the requested name and may move the directory even when the source formatting is already valid.
 
-A rename that moves the Task path stops with exit status 3 when references to the old path exist. Update the reported references and run the rename again. To proceed while accepting broken links, add `--ignore-brokenlinks`.
+rename preserves reference content by default. Add `--update-references` to rewrite known paths. Repeated `--extend-scan <path>` includes Markdown files or directories outside the default scan, including project-external absolute paths. Every call saves a report and prints its path. Dry-run adds only that report.
 
 The same command repairs eligible old string names and recognizable generated suffix mismatches in split and embed. Use a full UUID, exact Task directory, or exact managed carrier; other managed-data validation remains strict. Closed Tasks can be renamed or repaired and keep their status.
+
+Change all top-level directories or adapt explicitly imported Tasks:
+
+```sh
+tk layout switch --to daily --dry-run --update-references
+tk layout switch --to daily --update-references
+tk layout migrate --task tasks/2026/11/14-01--example --update-references
+```
+
+switch moves source directories and saves configuration last. migrate adapts selected canonical directories inside the current Task root to its configured layout and preserves configuration. Both preserve dates, numbering, slugs, metadata, subtrees, and WAL. Conflicts fail preflight. Their [scan reports](./design/data-model.md#scan-reports) retain full mappings and references, including dry-run and no-change requests.
 
 Clean temporary content left by ended tk processes:
 

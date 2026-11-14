@@ -151,8 +151,12 @@ pub fn switch(project: &Project, target: MetadataMode, dry_run: bool) -> Result<
 }
 
 fn build_plan(project: &Project, target: MetadataMode) -> Result<Vec<PlannedTask>> {
-    let tasks =
-        task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?.into_tasks();
+    let tasks = task_store::discover_tasks(
+        &project.task_root,
+        project.config.metadata_mode,
+        project.config.task_layout,
+    )?
+    .into_tasks();
     let mut ids = HashSet::new();
     let mut plans = Vec::with_capacity(tasks.len());
     for task in tasks {

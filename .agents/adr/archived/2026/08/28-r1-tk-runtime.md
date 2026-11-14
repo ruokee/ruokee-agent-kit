@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-5.6 Sol
 Archived: 2026-10-25
-Reversed by: [tk runtime](../../../decision/2026/08/28-tk-runtime.md)
+Reversed by: [tk runtime](./28-r2-tk-runtime.md)
 
 English | [中文](./28-r1-tk-runtime.zh.md)
 

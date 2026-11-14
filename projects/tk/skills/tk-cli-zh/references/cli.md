@@ -193,6 +193,7 @@ tk init
   [--git-policy <track|ignore|none>]
   [--creation-policy <strict|permissive>]
   [--metadata-mode <split|embed>]
+  [--task-layout <monthly|daily>]
   [--force]
   [--cwd <path>] [--output <text|json>]
 ```
@@ -219,13 +220,32 @@ tk check [--cwd <path>] [--output <text|json>]
 
 ```text
 tk rename <task_ref> <name>
-  [--dry-run] [--ignore-brokenlinks] [--actor <text>]
+  [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--actor <text>]
   [--cwd <path>] [--output <text|json>]
 ```
 
-`--dry-run` 返回计划，不写入文件，发现引用时也照常成功。执行只修改目标任务，仅在路径属于生成式路径时移动目录，并报告解析出的父级和 Markdown 引用，不改写引用内容。只有保存名称和适用路径都精确匹配规范化目标时才返回无变化。排版已经兼容的名称仍可能产生目录移动。`closed` 任务同样可以改名或修复，并保持其状态。`--actor` 默认是 `cli`。
+dry-run 保存不可变扫描报告，保留任务数据、引用和配置。执行修改保存名称，slug 改变时移动生成式目录。保存名称及适用路径精确匹配时返回无变化。排版已经兼容的名称仍可能产生目录移动。closed 任务保持状态。`--actor` 默认为 `cli`。
 
-路径移动会留下旧路径引用时，执行在写入任何内容前以退出码 3 停止。错误会列出每个引用的文件路径和行号。传入 `--ignore-brokenlinks` 可以继续移动；引用文件保持原样，结果中仍会报告它们。
+引用默认保留原文。`--update-references` 显式改写支持的引用。可重复的 `--extend-scan` 添加 Markdown 文件或目录，相对路径以项目根为基准，支持项目外绝对路径。扫描和失败规则见[维护](./maintenance.md#引用)。
+
+## 布局
+
+```text
+tk layout switch --to <monthly|daily>
+  [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--cwd <path>] [--output <text|json>]
+
+tk layout migrate --task <path> [--task <path>]...
+  [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--cwd <path>] [--output <text|json>]
+```
+
+switch 转换当前布局，并与已有目标布局任务一起验证。配置最后更新。支持空根和同布局请求。
+
+migrate 必须指定当前任务根内的规范顶层任务目录，相对路径以项目根为基准。UUID、文件、材料、暂存目录和 glob 被拒绝。它将选中的导入子树适配到当前布局，重复目录去重，保留配置、元数据模式、schema、日期、序号和 slug。已经适配的选中项为 no-op。UUID、序号、目标、载体和关系冲突在预检时报错。
+
+rename 和两个布局命令返回 `operation`、`run_id`、`dry_run`、`changed`、`committed`、`partial`、`affected_tasks`、`planned_moves`、`completed_moves`、`reference_count`、`planned_reference_files`、`updated_reference_files`、`config_changed` 及绝对 `report_path`。rename 另含 `task`。完整映射和引用保存在报告中。`changed` 描述计划中的受管变化，`committed` 表示全部必要变化成功，dry-run 和无变化时为 false。计数区分物理根移动和受影响后代。错误携带报告身份、配置状态及部分步骤。dry-run、无变化及有效项目中的规划失败也保存报告。
 
 ## `tk gc`
 
@@ -239,6 +259,8 @@ tk gc [--dry-run]
 GC 只删除已退出操作进程留下的 tk 临时路径和活动操作标记。它不会继续、回滚或完成任务、迁移、重命名或组件操作。
 
 `--dry-run` 列出可清理项但不删除。删除过程中遇到 I/O 错误时立即停止，并列出已经删除和尚未删除的路径。
+
+项目级真实 `.tk-tmp/reports` 目录保留。用户级操作目录保持既有清理规则。
 
 ## `tk metadata migrate`
 
@@ -319,8 +341,8 @@ JSON 结果包含：
 
 ```json
 {
-  "runtime_version": "0.1.16",
-  "cli_contract_version": 4,
+  "runtime_version": "0.1.17",
+  "cli_contract_version": 5,
   "task_schema_version": 1,
   "component_format_version": 5
 }

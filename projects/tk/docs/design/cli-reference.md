@@ -35,6 +35,8 @@ tk log
 tk init
 tk check
 tk rename
+tk layout switch
+tk layout migrate
 tk gc
 tk metadata migrate
 tk metadata switch
@@ -49,7 +51,7 @@ Ordinary JSON success is `{"ok":true,"data":...}`. Expected failure is `{"ok":fa
 
 Mutation results report `changed`, `committed`, affected Task references or paths, and `completed` and `uncompleted` for multi-target operations. `partial_commit` details include completed targets, uncompleted targets, and the original I/O error, without rollback or resume tokens. Panics, killed processes, and malformed output are not fabricated domain failures.
 
-Text conveys the same facts as JSON. Its layout is not a machine contract except for the documented rename labels. Version writes its own JSON payload without an ordinary envelope. Diagnostics use stderr. Non-terminal output contains no color.
+Text conveys the same facts as JSON. Its layout is for people. Programs use the JSON contract. Version writes its own JSON payload without an ordinary envelope. Diagnostics use stderr. Non-terminal output contains no color.
 
 ## Exit statuses
 
@@ -76,7 +78,7 @@ Automation must inspect JSON `error.code` and `error.category` to distinguish sp
 | `resolution` | `task_not_found`, `task_ref_ambiguous`, `duplicate_task_id` |
 | `managed_file` | `invalid_managed_file`, `unsupported_schema`, `representation_mismatch` |
 | `invariant` | `dependency_cycle`, `closed_task_read_only`, `active_descendant`, `active_dependency`, `closed_ancestor` |
-| `conflict` | `target_exists`, `operation_in_progress`, `broken_reference_conflict` |
+| `conflict` | `target_exists`, `rename_target_exists`, `layout_target_exists`, `operation_in_progress`, `stale_rename_plan`, `stale_layout_plan`, `stale_reference_scan` |
 | `storage` | `check_incomplete`, `task_discovery_limit_exceeded`, `reference_scan_limit_exceeded`, `wal_append_failed`, `partial_commit` |
 | `compatibility` | `runtime_incompatible`, `component_incompatible` |
 | `internal` | `internal_error` |
@@ -182,6 +184,7 @@ tk init
   [--git-policy <track|ignore|none>]
   [--creation-policy <strict|permissive>]
   [--metadata-mode <split|embed>]
+  [--task-layout <monthly|daily>]
   [--force] [global-options]
 ```
 
@@ -201,15 +204,53 @@ check does not repair files; the [manual repair procedure](./skill.md#manually-r
 
 ```text
 tk rename <task_ref> <name>
-  [--dry-run] [--ignore-brokenlinks] [--actor <text>]
+  [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--actor <text>]
   [global-options]
 ```
 
-rename modifies only the Task itself, accepts closed Tasks, and keeps their status. It also repairs an invalid, empty, or over-wide string name and a recognizable generated suffix that fails the [Task-name rules](./data-model.md#task-names). Full UUIDs, exact Task directories, and exact managed carriers can locate eligible repair targets even when ordinary discovery rejects the old name. Other metadata, identity, path, lifecycle, policy, and conflict checks remain strict. Generated child and top-level directories move when their slug changes, while non-generated child directories stay in place. Dry-run and execution return the raw old name, resolved parent, and Markdown references without rewriting them. Only a saved name and applicable path that exactly match the normalized target return no change. actor defaults to `cli`.
+rename accepts closed Tasks and keeps their status. It also repairs invalid, empty, or over-wide string names and recognizable generated suffixes that fail the [Task-name rules](./data-model.md#task-names). Full UUIDs, exact Task directories, and exact managed carriers can locate eligible repair targets. Other metadata, identity, path, lifecycle, policy, and conflict checks remain strict. Generated child and top-level directories move when their slug changes. Non-generated child directories stay in place. Only an exact saved name and applicable target path return no change. actor defaults to `cli`.
 
 Formatting correspondence does not complete an explicit rename. For example, renaming saved name `AI 学习` at suffix `AI学习` to `AI 学习` targets name and suffix `AI-学习`. The [rename contract](./data-model.md#rename) also retains exact precommit checks and partial-failure retry behavior.
 
-Dry-run text shows `Old path:`, the normalized name as `New name:`, and the absolute destination as `Target path:`. Every execution result shows the target path, and a no-op result prints `No changes` followed by `Target path:`. When references to the old path exist, the text appends a `References to the old path:` list with every reference as `path:line`; the section is absent when there are none. Dry-run always succeeds after a valid plan is built. An execution that would move the Task path stops with the stable error code `broken_reference_conflict` (category `conflict`, exit status 3) before the first write when references to the old path exist; the error shows the target path and every reference with its line. `--ignore-brokenlinks` lets that move proceed. Reference files stay unchanged, and the result still reports them.
+References keep their content by default. `--update-references` enables the [shared reference update rules](./data-model.md#reference-updates). Repeated `--extend-scan` adds a Markdown file or directory; relative paths resolve from the project root and absolute paths may be outside it. Dry-run saves a scan report and preserves Task data, references, and configuration.
+
+## tk layout switch
+
+```text
+tk layout switch --to <monthly|daily>
+  [--dry-run] [--update-references] [--extend-scan <path>]...
+  [global-options]
+```
+
+Switches the complete current layout and validates its final graph together with existing target-layout Tasks. It preserves source dates, sequence numbers, slugs, metadata, subtrees, and WAL. Existing target Tasks remain in place. Configuration changes last. An empty root can switch; an active-layout request produces a no-change report. Target paths and same-date sequence conflicts fail preflight. Partial failure returns committed steps and keeps the source configuration until its final write.
+
+## tk layout migrate
+
+```text
+tk layout migrate --task <path> [--task <path>]...
+  [--dry-run] [--update-references] [--extend-scan <path>]...
+  [global-options]
+```
+
+At least one canonical monthly or daily top-level Task directory inside the current Task root is required. Relative paths resolve from the project root. UUIDs, managed files, material paths, staging directories, and globs are rejected. Selected trees are merged with the active graph for UUID, sequence, target, carrier, and relationship validation. Repeated directories and already adapted selections are deduplicated. Only layout is adapted; configuration, metadata mode, and schema keep their values. Numbering is preserved and conflicts fail before managed changes.
+
+Both layout commands share rename's reference options and persistent reports. Their [failure behavior](./data-model.md#layout-changes) describes partial-state visibility and replanning.
+
+## Path change results
+
+rename and layout commands return a summary. rename additionally returns `task`:
+
+- `operation`, `run_id`, `dry_run`, and absolute `report_path` identify the scan.
+- `changed` means planned managed changes exist. `committed` means all required managed changes succeeded. No-change and dry-run results use `committed=false`.
+- `partial` is false for success. Partial execution uses the error envelope.
+- `affected_tasks` counts planned directory or name changes, including descendants.
+- `planned_moves` and `completed_moves` count physical root-directory moves.
+- `reference_count` includes known references that need no rewrite.
+- `planned_reference_files` counts files to write when updates are enabled; `updated_reference_files` counts completed replacements.
+- `config_changed` records an actual configuration write and is false in dry-run.
+
+Text output shows Task, directory, and reference-file counts, configuration state, and the report path. Full Task mappings and reference arrays are stored in the [scan report](./data-model.md#scan-reports). A report is saved for dry-run and no-change requests, and for planning failures in a valid project. Errors include `report_path`, `run_id`, and before/after configuration state. Partial commits retain `completed`, `uncompleted`, and the original error; steps distinguish directory moves, reference replacements, metadata rename, and configuration writes. A saved report remains an immutable scan snapshot.
 
 ## `tk gc`
 
@@ -218,6 +259,8 @@ tk gc [--dry-run] [global-options]
 ```
 
 GC removes tk temporary paths and activity markers left by production processes that have exited. It does not resume, roll back, or complete Task, migration, rename, or component operations. If deletion encounters an I/O error, it stops and lists the deleted and undeleted paths.
+
+The project-level real `.tk-tmp/reports` directory is retained. User-level operation directories keep their existing cleanup semantics.
 
 ## `tk metadata migrate`
 
@@ -287,8 +330,8 @@ Version JSON is:
 
 ```json
 {
-  "runtime_version": "0.1.16",
-  "cli_contract_version": 4,
+  "runtime_version": "0.1.17",
+  "cli_contract_version": 5,
   "task_schema_version": 1,
   "component_format_version": 5
 }

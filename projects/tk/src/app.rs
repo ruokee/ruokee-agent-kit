@@ -334,7 +334,11 @@ pub fn search(project: &Project, request: SearchRequest) -> Result<SearchResult>
         ));
     }
     validate_extra(&Value::Object(request.extra.clone().into_iter().collect()))?;
-    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    let graph = task_store::discover_tasks(
+        &project.task_root,
+        project.config.metadata_mode,
+        project.config.task_layout,
+    )?;
     let query = classify_search_query(project, &request, &graph)?;
     let retained = request.limit;
     let mut matches = Vec::with_capacity(retained);
@@ -537,7 +541,11 @@ pub fn update(
     request: UpdateRequest,
     actor: &str,
 ) -> Result<MutationResult> {
-    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    let graph = task_store::discover_tasks(
+        &project.task_root,
+        project.config.metadata_mode,
+        project.config.task_layout,
+    )?;
     let task_index = resolve_ref_index_in_graph(project, task_ref, &graph)?;
     let task = &graph.tasks[task_index].task;
     if task.metadata.status == Status::Closed
@@ -669,7 +677,11 @@ pub fn log(
 }
 
 pub fn resolve_ref(project: &Project, task_ref: &str) -> Result<StoredTask> {
-    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    let graph = task_store::discover_tasks(
+        &project.task_root,
+        project.config.metadata_mode,
+        project.config.task_layout,
+    )?;
     resolve_ref_in_graph(project, task_ref, graph)
 }
 
@@ -682,7 +694,7 @@ pub(crate) fn resolve_ref_in_graph(
     Ok(graph.tasks.swap_remove(index).task)
 }
 
-fn resolve_ref_index_in_graph(
+pub(crate) fn resolve_ref_index_in_graph(
     project: &Project,
     task_ref: &str,
     graph: &task_store::TaskGraph,
@@ -851,7 +863,11 @@ fn create_subtasks(
     }
 
     let base = parent.directory.join(&project.config.subtasks_dir);
-    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    let graph = task_store::discover_tasks(
+        &project.task_root,
+        project.config.metadata_mode,
+        project.config.task_layout,
+    )?;
     let parent_index = graph.task_index(&parent.directory).ok_or_else(|| {
         TkError::new(
             "task_discovery_changed",
@@ -1107,33 +1123,34 @@ fn top_level_path(
     created_at: DateTime<FixedOffset>,
     name: &str,
 ) -> Result<PathBuf> {
-    let year = created_at.format("%Y").to_string();
-    let month = created_at.format("%m").to_string();
-    let day = created_at.format("%d").to_string();
-    let base = project.task_root.join(year).join(month);
-    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
-    let mut maximum = 0;
-    for task in graph.tasks.iter().filter(|task| task.parent.is_none()) {
-        if task.task.directory.parent() != Some(base.as_path()) {
-            continue;
-        }
-        let Some(value) = task
-            .task
-            .directory
-            .file_name()
-            .and_then(|value| value.to_str())
-        else {
-            continue;
-        };
-        if let Some(sequence) = value
-            .strip_prefix(&format!("{day}-"))
-            .and_then(parse_sequence)
-        {
-            maximum = maximum.max(sequence);
-        }
-    }
-    let sequence = next_sequence(maximum, &base)?;
-    Ok(base.join(format!("{day}-{sequence:02}--{name}")))
+    let date = created_at.date_naive();
+    let graph = task_store::discover_tasks(
+        &project.task_root,
+        project.config.metadata_mode,
+        project.config.task_layout,
+    )?;
+    let maximum = graph
+        .tasks
+        .iter()
+        .filter(|task| task.parent.is_none())
+        .filter_map(|task| {
+            let parsed = task_store::parse_top_level_task_path(
+                &project.task_root,
+                &task.task.directory,
+                project.config.task_layout,
+            )?;
+            (parsed.date == date).then_some(u64::from(parsed.sequence))
+        })
+        .max()
+        .unwrap_or(0);
+    let sequence = next_sequence(maximum, &project.task_root)? as u8;
+    Ok(task_store::top_level_directory(
+        &project.task_root,
+        project.config.task_layout,
+        date,
+        sequence,
+        name,
+    ))
 }
 
 fn next_subtask_sequence(graph: &task_store::TaskGraph, parent: usize, base: &Path) -> Result<u64> {
@@ -1369,12 +1386,17 @@ pub(crate) fn validate_relation_graph_in_tasks(
     tasks: &task_store::TaskGraph,
     updated: &Metadata,
 ) -> Result<()> {
-    let mut graph: HashMap<Uuid, Vec<Uuid>> = tasks
+    let mut graph: HashMap<Uuid, &[Uuid]> = tasks
         .tasks
         .iter()
-        .map(|task| (task.task.metadata.id, task.task.metadata.depends_on.clone()))
+        .map(|task| {
+            (
+                task.task.metadata.id,
+                task.task.metadata.depends_on.as_slice(),
+            )
+        })
         .collect();
-    graph.insert(updated.id, updated.depends_on.clone());
+    graph.insert(updated.id, &updated.depends_on);
     for target in updated.depends_on.iter().chain(&updated.related_to) {
         if !graph.contains_key(target) {
             return Err(TkError::invariant(
@@ -1383,10 +1405,43 @@ pub(crate) fn validate_relation_graph_in_tasks(
             ));
         }
     }
+    validate_dependency_cycles(&graph)
+}
 
+pub(crate) fn validate_all_relations(tasks: &task_store::TaskGraph) -> Result<()> {
+    let graph: HashMap<Uuid, &[Uuid]> = tasks
+        .tasks
+        .iter()
+        .map(|task| {
+            (
+                task.task.metadata.id,
+                task.task.metadata.depends_on.as_slice(),
+            )
+        })
+        .collect();
+    for task in &tasks.tasks {
+        for target in task
+            .task
+            .metadata
+            .depends_on
+            .iter()
+            .chain(&task.task.metadata.related_to)
+        {
+            if !graph.contains_key(target) {
+                return Err(TkError::invariant(
+                    "unknown_relation_target",
+                    format!("Relation target does not exist: {target}"),
+                ));
+            }
+        }
+    }
+    validate_dependency_cycles(&graph)
+}
+
+fn validate_dependency_cycles(graph: &HashMap<Uuid, &[Uuid]>) -> Result<()> {
     fn visit(
         id: Uuid,
-        graph: &HashMap<Uuid, Vec<Uuid>>,
+        graph: &HashMap<Uuid, &[Uuid]>,
         visiting: &mut HashSet<Uuid>,
         visited: &mut HashSet<Uuid>,
     ) -> bool {
@@ -1399,7 +1454,7 @@ pub(crate) fn validate_relation_graph_in_tasks(
         let cycle = graph
             .get(&id)
             .into_iter()
-            .flatten()
+            .flat_map(|targets| targets.iter())
             .copied()
             .any(|target| visit(target, graph, visiting, visited));
         visiting.remove(&id);
@@ -1412,7 +1467,7 @@ pub(crate) fn validate_relation_graph_in_tasks(
     if graph
         .keys()
         .copied()
-        .any(|id| visit(id, &graph, &mut visiting, &mut visited))
+        .any(|id| visit(id, graph, &mut visiting, &mut visited))
     {
         return Err(TkError::invariant(
             "dependency_cycle",
@@ -1847,10 +1902,14 @@ mod tests {
             .is_err()
         );
         assert!(
-            task_store::discover_tasks(&project.task_root, project.config.metadata_mode)
-                .unwrap()
-                .tasks
-                .is_empty()
+            task_store::discover_tasks(
+                &project.task_root,
+                project.config.metadata_mode,
+                project.config.task_layout
+            )
+            .unwrap()
+            .tasks
+            .is_empty()
         );
         fs::remove_dir_all(root).unwrap();
     }
@@ -1946,10 +2005,14 @@ mod tests {
         assert!(!retry.committed);
         assert!(retry.created.is_empty());
         assert_eq!(
-            task_store::discover_tasks(&project.task_root, project.config.metadata_mode)
-                .unwrap()
-                .tasks
-                .len(),
+            task_store::discover_tasks(
+                &project.task_root,
+                project.config.metadata_mode,
+                project.config.task_layout
+            )
+            .unwrap()
+            .tasks
+            .len(),
             3
         );
 
@@ -1964,10 +2027,14 @@ mod tests {
         .unwrap();
         assert_eq!(duplicate.created.len(), 1);
         assert_eq!(
-            task_store::discover_tasks(&project.task_root, project.config.metadata_mode)
-                .unwrap()
-                .tasks
-                .len(),
+            task_store::discover_tasks(
+                &project.task_root,
+                project.config.metadata_mode,
+                project.config.task_layout
+            )
+            .unwrap()
+            .tasks
+            .len(),
             4
         );
         fs::remove_dir_all(root).unwrap();
@@ -2023,10 +2090,14 @@ mod tests {
         assert!(!retry.committed);
         assert!(retry.created.is_empty());
         assert_eq!(
-            task_store::discover_tasks(&project.task_root, project.config.metadata_mode)
-                .unwrap()
-                .tasks
-                .len(),
+            task_store::discover_tasks(
+                &project.task_root,
+                project.config.metadata_mode,
+                project.config.task_layout
+            )
+            .unwrap()
+            .tasks
+            .len(),
             2
         );
         assert_eq!(
@@ -2671,8 +2742,12 @@ mod tests {
             )
             .unwrap();
         }
-        let graph =
-            task_store::discover_tasks(&project.task_root, project.config.metadata_mode).unwrap();
+        let graph = task_store::discover_tasks(
+            &project.task_root,
+            project.config.metadata_mode,
+            project.config.task_layout,
+        )
+        .unwrap();
         let parent_index = graph.task_index(&parent.task_dir).unwrap();
         let error = next_subtask_sequence(&graph, parent_index, &subtask_base).unwrap_err();
         assert_eq!(error.code, "task_sequence_exhausted");

@@ -3,7 +3,7 @@
 Decision owner: Ruokee
 Decision writer: OMP GPT-6 Astra
 Archived: 2026-09-10
-Reversed by: [tk Task data](../../../decision/2026/08/28-tk-data.md)
+Reversed by: [tk Task data](./28-r4-tk-data.md)
 Reverses: [tk Task data](./28-r2-tk-data.md)
 
 English | [中文](./28-r3-tk-data.zh.md)

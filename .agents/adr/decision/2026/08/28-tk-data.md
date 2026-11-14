@@ -2,13 +2,13 @@
 
 Decision owner: Ruokee
 Decision writer: OMP DeepSeek V4.1 Flash
-Reverses: [tk Task data](../../../archived/2026/08/28-r3-tk-data.md)
+Reverses: [tk Task data](../../../archived/2026/08/28-r4-tk-data.md)
 
 English | [中文](./28-tk-data.zh.md)
 
 ## Motivation
 
-Define tk's file-backed Task data model and its rules for closed-Task name repair and file system reference reporting.
+Keep file-backed Task identity with configurable date layouts, explicit reference updates, and persistent scan reports.
 
 The [tk product architecture](./21-tk-architecture.md) makes project files the only authoritative Task state, requiring precise rules for carrier discovery, identity, paths, lifecycle, relationships, representations, writes, migration, cleanup, name repair for open and closed Tasks, and filesystem-based reference reporting.
 
@@ -20,6 +20,10 @@ A closed Task needs the same name maintenance as any other Task. Reopening is a 
 
 Reference reporting should describe the files a user actually keeps, not the staging state of the working tree. Enumerating candidates from the Git index misses present untracked Markdown, and an index entry whose file is missing from the working tree fails the whole scan before dry-run or execution can proceed.
 
+Daily directories reduce the number of entries in a monthly directory when a workspace gathers many projects' Tasks. Keeping monthly as the default preserves existing roots. Ordinary discovery needs one configured layout so imported or partially moved directories do not silently become managed Tasks.
+
+Path changes affect both incoming references and links inside moved files. A shared mapping and scan lets rename and layout operations report those effects consistently. Explicit updates leave historical text under caller control, while a persistent report remains available after a preview or failed operation.
+
 ## Decision
 
 UUIDv7 is authoritative identity: paths locate Tasks and names describe them. Relationships remain within one Task root, a Task cannot relate to itself, and `depends_on` cannot form a cycle.
@@ -30,6 +34,16 @@ Closing and reopening require a non-empty reason and current explicit authorizat
 
 rename performs ordinary renaming and repairs a noncanonical, empty, or over-long string name and a recognizable generated directory whose nonempty suffix disagrees with metadata. It tolerates only those old-state defects, while other commands retain strict discovery.
 
+`task_layout` selects monthly `YYYY/MM/DD-NN--slug` or daily `YYYY/MM/DD/NN-slug`, with monthly as the sparse default. Ordinary discovery, creation, reads, search, check, repair, and metadata operations use only the selected layout. Child placement and discovery retain their existing rules.
+
+Layout switch converts the current root in either direction and saves configuration last. Layout migrate adapts explicitly selected canonical top-level directories already imported into the current root and preserves configuration, metadata mode, and schema. Both preserve source dates, sequence numbers, slugs, identity, metadata, subtrees, and WAL. Final-graph validation merges the necessary source, target, or selected trees, deduplicating physical directories before UUID, sequence, carrier, target, and relationship checks. Conflicts preserve existing data.
+
+rename and both layout operations preserve reference content by default. `--update-references` explicitly enables rewriting, and repeatable `--extend-scan` accepts additional Markdown files or directories, including external absolute paths. Shared rules cover Markdown destinations, images, definitions, full Task-root path wikilinks, and path text. Filename-only wikilinks retain their text. Relative links account for the moved source and target; content outside edited path intervals is preserved.
+
+Every valid-project invocation saves a distinct immutable JSON scan report before managed changes, including dry-run, no-change, and planning failure. Reports contain mappings, references, scope, and diagnostics. Summary and errors express actual completion separately. Report storage failure stops managed changes. Reports under `<task_root>/.tk-tmp/reports` remain until the user removes them; operation cleanup and project GC retain this real directory. Reports are auxiliary snapshots rather than recovery plans.
+
+Commit order is directory movement, optional reference replacement, then switch configuration or rename metadata and WAL. migrate preserves configuration. Input snapshots and reference scans are rechecked before managed writes. A partial switch retains source configuration until its final write, so already moved Tasks may temporarily disappear from ordinary views. New calls replan current files and use previous reports to review earlier moves. Automatic rollback remains outside the operation contract.
+
 The complete format and operation details live in the [data model](../../../../../projects/tk/docs/design/data-model.md) and [CLI reference](../../../../../projects/tk/docs/design/cli-reference.md).
 
 ## Alternatives considered
@@ -38,7 +52,7 @@ The complete format and operation details live in the [data model](../../../../.
 
 **Use locks, transactions, or persistent recovery plans.** These mechanisms would add coordination and a second operation state machine. Atomic replacement, complete preflight, explicit partial results, activity markers, and retry from current managed files cover the intended local workflow.
 
-**Rewrite Markdown references during rename.** Automatic editing could change unrelated or intentionally historical text. Reporting references keeps the Task change precise and leaves content decisions to the caller.
+**Rewrite references by default.** Automatic edits can change intentionally historical text. Preserving content by default and offering explicit updates leaves that decision to the caller while using one scan for reporting and rewriting.
 
 **Keep child discovery under `subtasks_dir`.** This narrows scanning and guarantees generated paths, but changing a placement preference can hide valid carriers and make imported children unreachable.
 
@@ -52,9 +66,11 @@ Recursive discovery reads more directories than configured-path discovery. The f
 
 rename can recover eligible names without granting permissive loading to read, search, update, lifecycle, migration, or representation switching. Repair planning must maintain a second validation mode limited to old-name and recognizable-suffix defects. Invalid enclosing candidates can make a descendant ineligible because its parent cannot be established safely.
 
-Closed Tasks keep their lifecycle state while rename repairs their names, so name maintenance no longer depends on reopening. References outside the scanned scope, such as other projects, exported documents, or non-Markdown files, are not reported, so a broken external link can stay unnoticed while the Task itself looks stable.
+Closed Tasks retain their lifecycle state during name repair. References outside the selected scan scope, including non-Markdown files, may remain unnoticed. Explicit extension roots let callers include otherwise external Markdown.
 
-The file system walk sees generated or unrelated Markdown that index enumeration did not. A build artifact that contains the old path string can trigger `broken_reference_conflict` for a legitimate move, and a project whose Markdown tree exceeds the fixed resource limit cannot rename until the tree shrinks.
+The filesystem walk includes generated or unrelated Markdown. Explicit updates can therefore change historical path text that the caller wanted to retain. Callers can inspect the report before enabling updates. Resource limits and required I/O failures remain explicit planning failures.
+
+Partial layout commits can temporarily hide moved Tasks under the source configuration. Reports retain the earlier mapping for inspection, while a new switch plan handles remaining source roots. Persistent reports accumulate until the user cleans them.
 
 Ordinary concurrent writes have last-completing-writer behavior. Multi-target failures can leave valid partial results, and callers must inspect completed and uncompleted lists before retrying. A directory move followed by metadata failure is replanned from current managed files after activity-marker cleanup. No hidden continuation state or automatic rollback exists.
 
@@ -65,10 +81,6 @@ Every released schema transition becomes long-lived maintenance code. Supporting
 ### 2026-09-05 Creation body input
 
 `TASK.md` remains ordinary Agent-maintained content, so create accepts no body through `tk create task --body` or child Task items. When the runtime creates a Task, it automatically generates `# <normalized-name>` as the initial body: alone in split mode, after the managed frontmatter in embed mode. After creation the caller maintains the body, and rename and subtask retry matching use no body input or matching condition. Callers write `TASK.md` with ordinary file operations after creation. `tk log --body` is unchanged because WAL entries are not Task content. The persisted metadata schema and component format are unchanged.
-
-### 2026-09-05 Rename guards against broken references
-
-A rename that would move a Task path stops with a conflict error before the first persistent write when references to the old path exist. The error details carry the old path, the normalized new name, the absolute target path, and every reference path and line. `--ignore-brokenlinks` permits that move without rewriting references. Dry-run reports the plan and references without writing. The scan covers project Markdown, ordinary Markdown under the Task root, and split and embed bodies.
 
 ### 2026-09-05 WAL access
 
@@ -84,7 +96,7 @@ Each saved name and generated suffix independently obeys the 32-terminal-column 
 
 Creation and explicit rename retain request normalization and space-free generated paths. Ordinary reads, checks, updates, and representation switching accept valid formatting without rewriting it. Child creation retries ignore newly added ordinary spaces before applying the existing creation-name comparison, while keeping originally distinct normalized requests distinct.
 
-rename still targets a concrete normalized name and applicable path, and returns no change only when both match exactly. Formatting correspondence does not replace narrow damaged-name repair, closed-state preservation, target conflicts, reference protection, exact precommit rechecks, or partial-commit reporting. A directory move followed by a metadata failure may leave a valid readable Task, but retry must still complete the requested target. The [data model](../../../../../projects/tk/docs/design/data-model.md#task-names) owns the full rules.
+rename still targets a concrete normalized name and applicable path, and returns no change only when both match exactly. Formatting correspondence does not replace narrow damaged-name repair, closed-state preservation, target conflicts, reference scanning and explicit update control, exact precommit rechecks, or partial-commit reporting. A directory move followed by a metadata failure may leave a valid readable Task, but retry must still complete the requested target. The [data model](../../../../../projects/tk/docs/design/data-model.md#task-names) owns the full rules.
 
 ### 2026-10-23 Requirement ownership
 

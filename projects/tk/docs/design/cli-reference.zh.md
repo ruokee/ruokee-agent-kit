@@ -35,6 +35,8 @@ tk log
 tk init
 tk check
 tk rename
+tk layout switch
+tk layout migrate
 tk gc
 tk metadata migrate
 tk metadata switch
@@ -49,7 +51,7 @@ tk --version
 
 修改结果报告 `changed`、`committed`、受影响的任务引用或路径，多目标操作还报告 `completed` 和 `uncompleted`。`partial_commit` 详情包含已完成目标、未完成目标和原始 I/O 错误，不提供回滚或续跑令牌。panic、进程被杀和输出损坏不会被伪造为领域失败。
 
-文本和 JSON 表达相同事实。除已规定的 rename 标签外，文本布局不是机器合同。version 直接写自身 JSON 载荷，不套普通结果结构。诊断写 stderr，非终端输出不含颜色。
+文本和 JSON 表达相同事实。文本布局面向人阅读，程序使用 JSON 合同。version 直接写自身 JSON 载荷，不套普通结果结构。诊断写 stderr，非终端输出不含颜色。
 
 ## 退出状态
 
@@ -76,7 +78,7 @@ tk --version
 | `resolution` | `task_not_found`, `task_ref_ambiguous`, `duplicate_task_id` |
 | `managed_file` | `invalid_managed_file`, `unsupported_schema`, `representation_mismatch` |
 | `invariant` | `dependency_cycle`, `closed_task_read_only`, `active_descendant`, `active_dependency`, `closed_ancestor` |
-| `conflict` | `target_exists`, `operation_in_progress`, `broken_reference_conflict` |
+| `conflict` | `target_exists`, `rename_target_exists`, `layout_target_exists`, `operation_in_progress`, `stale_rename_plan`, `stale_layout_plan`, `stale_reference_scan` |
 | `storage` | `check_incomplete`, `task_discovery_limit_exceeded`, `reference_scan_limit_exceeded`, `wal_append_failed`, `partial_commit` |
 | `compatibility` | `runtime_incompatible`, `component_incompatible` |
 | `internal` | `internal_error` |
@@ -182,6 +184,7 @@ tk init
   [--git-policy <track|ignore|none>]
   [--creation-policy <strict|permissive>]
   [--metadata-mode <split|embed>]
+  [--task-layout <monthly|daily>]
   [--force] [global-options]
 ```
 
@@ -201,15 +204,53 @@ check 不修复文件；人工修复损坏 `tk.toml` 的条件见[人工修复�
 
 ```text
 tk rename <task_ref> <name>
-  [--dry-run] [--ignore-brokenlinks] [--actor <text>]
+  [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--actor <text>]
   [global-options]
 ```
 
-rename 只修改任务本身，closed 任务同样适用且保持其状态。它也修复无效、为空或实际过宽的字符串名称，以及结构可识别但不符合[任务名称规则](./data-model.zh.md#任务名称)的生成式后缀。普通发现因旧名称拒绝目标时，完整 UUID、精确任务目录和精确受管载体仍可定位符合条件的修复对象。其他元数据、身份、路径、生命周期、策略和冲突校验保持严格。生成式子任务和顶层任务的 slug 改变时移动目录，非生成式子任务保持目录不变。dry-run 和执行都返回原始旧名称、解析出的父级和 Markdown 引用，不改写引用。只有保存名称和适用路径都精确匹配规范化目标时才返回无变化。actor 默认为 `cli`。
+rename 接受 closed 任务并保持其状态，也修复无效、为空或实际过宽的字符串名称，以及结构可识别但不符合[任务名称规则](./data-model.zh.md#任务名称)的生成式后缀。完整 UUID、精确任务目录和精确受管载体可以定位符合条件的修复对象。其他元数据、身份、路径、生命周期、策略和冲突校验保持严格。生成式子任务和顶层任务的 slug 改变时移动目录。非生成式子任务保持目录不变。只有保存名称和适用目标路径精确相同时才返回无变化。actor 默认为 `cli`。
 
 排版对应不表示显式 rename 已完成。例如，保存名称为 `AI 学习`、后缀为 `AI学习` 时，rename 为 `AI 学习` 的目标名称和后缀都是 `AI-学习`。[rename 合同](./data-model.zh.md#rename)也保留精确提交前复检和部分失败重试行为。
 
-dry-run 文本显示 `Old path:`、规范化名称 `New name:` 和绝对目标路径 `Target path:`。每个执行结果都显示目标路径，无变化的结果先输出 `No changes` 再输出 `Target path:`。存在旧路径引用时，文本追加 `References to the old path:` 列表，每个引用以 `path:line` 表示；没有引用时不输出该列表。dry-run 在生成合法计划后始终成功。执行会移动任务路径且存在旧路径引用时，在首次写入前以稳定错误码 `broken_reference_conflict`（`conflict` 类别、退出码 3）停止；错误显示目标路径和每个引用及其行号。`--ignore-brokenlinks` 允许此次移动继续进行。引用文件保持原样，结果中仍会报告它们。
+引用默认保留原文。`--update-references` 启用[共用引用更新规则](./data-model.zh.md#引用更新)。可重复的 `--extend-scan` 添加 Markdown 文件或目录，相对路径以项目根为基准，绝对路径可以位于项目之外。dry-run 保存扫描报告，保留任务数据、引用和配置。
+
+## tk layout switch
+
+```text
+tk layout switch --to <monthly|daily>
+  [--dry-run] [--update-references] [--extend-scan <path>]...
+  [global-options]
+```
+
+切换整个当前布局，并与已有目标布局任务一起验证最终任务图。保留源日期、序号、slug、元数据、子树和 WAL。已有目标任务保持原位。配置最后更新。空根可以切换，同布局请求生成无变化报告。目标路径及同日序号冲突在预检时失败。部分失败返回已提交步骤，源配置保留至最终配置写入。
+
+## tk layout migrate
+
+```text
+tk layout migrate --task <path> [--task <path>]...
+  [--dry-run] [--update-references] [--extend-scan <path>]...
+  [global-options]
+```
+
+必须至少指定一个位于当前任务根内的 monthly 或 daily 规范顶层任务目录。相对路径以项目根为基准。UUID、受管文件、材料路径、暂存目录和 glob 被拒绝。选中子树与当前任务图合并后验证 UUID、序号、目标、载体和关系。重复目录和已经适配的选中项会去重。只适配布局，配置、metadata mode 和 schema 保持原值。编号保留，冲突在受管变更前报错。
+
+两个布局命令共用 rename 的引用选项和持久报告。[失败行为](./data-model.zh.md#布局转换)说明部分状态的可见性及重新规划方式。
+
+## 路径变更结果
+
+rename 和布局命令返回摘要，rename 另含 `task`：
+
+- `operation`、`run_id`、`dry_run` 和绝对 `report_path` 标识本次扫描。
+- `changed` 表示存在计划中的受管变化。`committed` 表示全部必要受管变化已成功。无变化和 dry-run 使用 `committed=false`。
+- 成功时 `partial` 为 false。部分执行使用错误 envelope。
+- `affected_tasks` 统计计划中的目录或名称变化，包含后代。
+- `planned_moves` 和 `completed_moves` 统计物理根目录移动。
+- `reference_count` 包含无需改写的已知引用。
+- `planned_reference_files` 统计启用更新时准备写入的文件，`updated_reference_files` 统计已完成替换。
+- `config_changed` 记录实际配置写入，dry-run 中为 false。
+
+文本显示任务、目录和引用文件计数、配置状态及报告路径。完整任务映射和引用数组保存在[扫描报告](./data-model.zh.md#扫描报告)。dry-run、无变化请求及有效项目中的规划失败均保存报告。错误包含 `report_path`、`run_id` 和配置前后状态。部分提交保留 `completed`、`uncompleted` 和原始错误，步骤区分目录移动、引用替换、元数据改名及配置写入。已保存报告始终是不可变的扫描快照。
 
 ## `tk gc`
 
@@ -218,6 +259,8 @@ tk gc [--dry-run] [global-options]
 ```
 
 GC 清理操作进程退出后留下的 tk 临时路径和活动操作标记。它不继续、回滚或完成任务、迁移、rename 或组件操作。遇到删除 I/O 错误时停止并列出已删除和未删除路径。
+
+项目级真实 `.tk-tmp/reports` 目录保留。用户级操作目录保持原有清理语义。
 
 ## `tk metadata migrate`
 
@@ -287,8 +330,8 @@ tk <command> <subcommand> --help
 
 ```json
 {
-  "runtime_version": "0.1.16",
-  "cli_contract_version": 4,
+  "runtime_version": "0.1.17",
+  "cli_contract_version": 5,
   "task_schema_version": 1,
   "component_format_version": 5
 }

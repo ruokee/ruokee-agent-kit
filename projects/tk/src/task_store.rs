@@ -7,7 +7,7 @@ use chrono::NaiveDate;
 use crate::domain::{Metadata, name_matches_slug, validate_name};
 use crate::error::{ErrorCategory, Result, TkError};
 use crate::path::{atomic_write, atomic_write_with, storage_error};
-use crate::project::MetadataMode;
+use crate::project::{MetadataMode, TaskLayout};
 
 const MAX_FRONTMATTER_BYTES: usize = 1024 * 1024;
 const MAX_DISCOVERY_DEPTH: usize = 256;
@@ -229,24 +229,62 @@ fn replace_metadata_with_validation(
     }
 }
 
-pub fn top_level_task_slug<'a>(root: &Path, directory: &'a Path) -> Option<&'a str> {
+#[derive(Debug, Clone, Copy)]
+pub struct TopLevelPath<'a> {
+    pub date: NaiveDate,
+    pub sequence: u8,
+    pub slug: &'a str,
+}
+
+pub fn parse_top_level_task_path<'a>(
+    root: &Path,
+    directory: &'a Path,
+    layout: TaskLayout,
+) -> Option<TopLevelPath<'a>> {
     let relative = directory.strip_prefix(root).ok()?;
-    let parts: Vec<_> = relative
-        .components()
-        .map(|component| match component {
-            std::path::Component::Normal(value) => value.to_str(),
-            _ => None,
-        })
-        .collect::<Option<_>>()?;
-    if parts.len() != 3 || !digits(parts[0], 4) || !digits(parts[1], 2) {
+    let mut parts = relative.iter();
+    let year = parts.next()?.to_str()?;
+    let month = parts.next()?.to_str()?;
+    if !digits(year, 4) || !digits(month, 2) {
         return None;
     }
-    let slug = top_level_slug(parts[2])?;
-    let year = parts[0].parse().ok()?;
-    let month = parts[1].parse().ok()?;
-    let day = parts[2][..2].parse().ok()?;
-    NaiveDate::from_ymd_opt(year, month, day)?;
-    Some(slug)
+    let (day, sequence, slug) = match layout {
+        TaskLayout::Monthly => {
+            let leaf = parts.next()?.to_str()?;
+            let (prefix, slug) = leaf.split_once("--")?;
+            let (day, sequence) = prefix.split_once('-')?;
+            (day, sequence, slug)
+        }
+        TaskLayout::Daily => {
+            let day = parts.next()?.to_str()?;
+            let (sequence, slug) = parts.next()?.to_str()?.split_once('-')?;
+            (day, sequence, slug)
+        }
+    };
+    if parts.next().is_some() || !digits(day, 2) || !digits(sequence, 2) || slug.is_empty() {
+        return None;
+    }
+    Some(TopLevelPath {
+        date: NaiveDate::from_ymd_opt(year.parse().ok()?, month.parse().ok()?, day.parse().ok()?)?,
+        sequence: sequence.parse().ok()?,
+        slug,
+    })
+}
+
+pub fn top_level_directory(
+    root: &Path,
+    layout: TaskLayout,
+    date: NaiveDate,
+    sequence: u8,
+    slug: &str,
+) -> PathBuf {
+    let month = root.join(date.format("%Y/%m").to_string());
+    match layout {
+        TaskLayout::Monthly => month.join(format!("{}-{sequence:02}--{slug}", date.format("%d"))),
+        TaskLayout::Daily => month
+            .join(date.format("%d").to_string())
+            .join(format!("{sequence:02}-{slug}")),
+    }
 }
 
 pub fn generated_child_slug(directory: &Path) -> Option<&str> {
@@ -260,86 +298,81 @@ fn digits(value: &str, length: usize) -> bool {
     value.len() == length && value.bytes().all(|byte| byte.is_ascii_digit())
 }
 
-fn top_level_slug(value: &str) -> Option<&str> {
-    let bytes = value.as_bytes();
-    (bytes.len() > 7
-        && bytes[0..2].iter().all(u8::is_ascii_digit)
-        && bytes[2] == b'-'
-        && bytes[3..5].iter().all(u8::is_ascii_digit)
-        && bytes[5..7] == *b"--")
-        .then(|| &value[7..])
-}
-
 fn child_slug(value: &str) -> Option<&str> {
     let bytes = value.as_bytes();
     (bytes.len() > 4 && bytes[0..2].iter().all(u8::is_ascii_digit) && bytes[2..4] == *b"--")
         .then(|| &value[4..])
 }
 
-pub fn discover_tasks(root: &Path, mode: MetadataMode) -> Result<TaskGraph> {
-    discover_tasks_with_validation(root, mode, MetadataValidation::Strict)
+pub fn discover_tasks(root: &Path, mode: MetadataMode, layout: TaskLayout) -> Result<TaskGraph> {
+    discover_tasks_with_validation(root, mode, layout, MetadataValidation::Strict)
 }
 
-pub(crate) fn discover_tasks_for_rename(root: &Path, mode: MetadataMode) -> Result<TaskGraph> {
-    discover_tasks_with_validation(root, mode, MetadataValidation::RepairName)
+pub(crate) fn discover_tasks_for_rename(
+    root: &Path,
+    mode: MetadataMode,
+    layout: TaskLayout,
+) -> Result<TaskGraph> {
+    discover_tasks_with_validation(root, mode, layout, MetadataValidation::RepairName)
 }
 
 fn discover_tasks_with_validation(
     root: &Path,
     mode: MetadataMode,
+    layout: TaskLayout,
     validation: MetadataValidation,
 ) -> Result<TaskGraph> {
     let mut graph = TaskGraph::default();
     let mut visited = 0;
     for year in bounded_real_directories(root, &mut visited)? {
-        let Some(year_name) = year.file_name().and_then(|value| value.to_str()) else {
+        let Some(year_value) = year
+            .file_name()
+            .and_then(|name| name.to_str())
+            .filter(|name| digits(name, 4))
+            .and_then(|name| name.parse::<i32>().ok())
+        else {
             continue;
         };
-        if !digits(year_name, 4) {
-            continue;
-        }
         for month in bounded_real_directories(&year, &mut visited)? {
-            let Some(month_name) = month.file_name().and_then(|value| value.to_str()) else {
+            let Some(month_value) = month
+                .file_name()
+                .and_then(|name| name.to_str())
+                .filter(|name| digits(name, 2))
+                .and_then(|name| name.parse::<u32>().ok())
+                .filter(|month| (1..=12).contains(month))
+            else {
                 continue;
             };
-            if !digits(month_name, 2)
-                || !month_name
-                    .parse::<u32>()
-                    .is_ok_and(|month| (1..=12).contains(&month))
-            {
-                continue;
-            }
-            for directory in bounded_real_directories(&month, &mut visited)? {
-                let Some(slug) = top_level_task_slug(root, &directory) else {
-                    continue;
-                };
-                if !candidate_marker(&directory, mode)? {
-                    continue;
-                }
-                match read_discovery_candidate(&directory, mode, Some(slug), validation)? {
-                    Ok(task) => {
-                        let parent = graph.tasks.len();
-                        graph.tasks.push(DiscoveredTask { task, parent: None });
-                        visit_descendants(
-                            &directory,
-                            mode,
-                            parent,
-                            0,
-                            &mut visited,
-                            &mut graph,
-                            validation,
-                        )?;
-                    }
-                    Err(error) => {
-                        graph.invalid_candidates.push(InvalidTaskCandidate {
-                            directory: directory.clone(),
-                            error,
-                        });
-                        if validation == MetadataValidation::RepairName {
-                            visit_indeterminate_descendants(
+            for entry in bounded_real_directories(&month, &mut visited)? {
+                match layout {
+                    TaskLayout::Monthly => append_top_level(
+                        root,
+                        &entry,
+                        mode,
+                        layout,
+                        validation,
+                        &mut visited,
+                        &mut graph,
+                    )?,
+                    TaskLayout::Daily => {
+                        if !entry
+                            .file_name()
+                            .and_then(|name| name.to_str())
+                            .filter(|name| digits(name, 2))
+                            .and_then(|name| name.parse::<u32>().ok())
+                            .is_some_and(|day| {
+                                NaiveDate::from_ymd_opt(year_value, month_value, day).is_some()
+                            })
+                        {
+                            continue;
+                        }
+                        for directory in bounded_real_directories(&entry, &mut visited)? {
+                            append_top_level(
+                                root,
                                 &directory,
                                 mode,
-                                0,
+                                layout,
+                                validation,
                                 &mut visited,
                                 &mut graph,
                             )?;
@@ -349,6 +382,72 @@ fn discover_tasks_with_validation(
             }
         }
     }
+    Ok(graph)
+}
+
+fn append_top_level(
+    root: &Path,
+    directory: &Path,
+    mode: MetadataMode,
+    layout: TaskLayout,
+    validation: MetadataValidation,
+    visited: &mut usize,
+    graph: &mut TaskGraph,
+) -> Result<()> {
+    let Some(parsed) = parse_top_level_task_path(root, directory, layout) else {
+        return Ok(());
+    };
+    if !candidate_marker(directory, mode)? {
+        return Ok(());
+    }
+    match read_discovery_candidate(directory, mode, Some(parsed.slug), validation)? {
+        Ok(task) => {
+            let parent = graph.tasks.len();
+            graph.tasks.push(DiscoveredTask { task, parent: None });
+            visit_descendants(directory, mode, parent, 0, visited, graph, validation)?;
+        }
+        Err(error) => {
+            graph.invalid_candidates.push(InvalidTaskCandidate {
+                directory: directory.to_path_buf(),
+                error,
+            });
+            if validation == MetadataValidation::RepairName {
+                visit_indeterminate_descendants(directory, mode, 0, visited, graph)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+pub(crate) fn discover_task_tree(
+    root: &Path,
+    directory: &Path,
+    mode: MetadataMode,
+    layout: TaskLayout,
+) -> Result<TaskGraph> {
+    let parsed = parse_top_level_task_path(root, directory, layout).ok_or_else(|| {
+        TkError::request(
+            "invalid_request",
+            "Expected a canonical top-level Task directory",
+        )
+    })?;
+    let task = read_discovery_candidate(
+        directory,
+        mode,
+        Some(parsed.slug),
+        MetadataValidation::Strict,
+    )??;
+    let mut graph = TaskGraph::default();
+    graph.tasks.push(DiscoveredTask { task, parent: None });
+    visit_descendants(
+        directory,
+        mode,
+        0,
+        0,
+        &mut 0,
+        &mut graph,
+        MetadataValidation::Strict,
+    )?;
     Ok(graph)
 }
 
@@ -902,7 +1001,7 @@ mod tests {
                 child_metadata.name = name.into();
                 replace_metadata(&top, &top_metadata, mode).unwrap();
                 replace_metadata(&child, &child_metadata, mode).unwrap();
-                let graph = discover_tasks(&root, mode).unwrap();
+                let graph = discover_tasks(&root, mode, TaskLayout::Monthly).unwrap();
                 assert!(graph.invalid_candidates.is_empty());
                 assert_eq!(graph.tasks.len(), 2);
                 assert_eq!(graph.tasks[0].task.metadata, top_metadata);
@@ -958,7 +1057,7 @@ mod tests {
                 let root = temp_directory();
                 let directory = root.join(format!("2026/08/28-01--{slug}"));
                 create_task_files(&directory, &named_metadata("AI学习"), b"body\n", mode).unwrap();
-                let graph = discover_tasks(&root, mode).unwrap();
+                let graph = discover_tasks(&root, mode, TaskLayout::Monthly).unwrap();
                 assert!(graph.tasks.is_empty());
                 assert_eq!(graph.invalid_candidates.len(), 1);
                 assert_eq!(graph.invalid_candidates[0].directory, directory);
@@ -1098,7 +1197,7 @@ mod tests {
         )
         .unwrap();
 
-        let graph = discover_tasks(&root, MetadataMode::Split).unwrap();
+        let graph = discover_tasks(&root, MetadataMode::Split, TaskLayout::Monthly).unwrap();
         let paths: Vec<_> = graph
             .tasks
             .iter()
@@ -1122,7 +1221,10 @@ mod tests {
             invalid_codes,
             vec!["task_name_path_mismatch", "missing_managed_file"]
         );
-        assert_eq!(top_level_task_slug(&root, &top), Some("top"));
+        assert_eq!(
+            parse_top_level_task_path(&root, &top, TaskLayout::Monthly).map(|path| path.slug),
+            Some("top")
+        );
         for invalid in [
             "2026/8/28-01--task",
             "2026/08/8-01--task",
@@ -1133,7 +1235,10 @@ mod tests {
             "2026/02/30-01--task",
             "2026/08/28-01--parent/child",
         ] {
-            assert!(top_level_task_slug(&root, &root.join(invalid)).is_none());
+            assert!(
+                parse_top_level_task_path(&root, &root.join(invalid), TaskLayout::Monthly)
+                    .is_none()
+            );
         }
         fs::remove_dir_all(root).unwrap();
     }
@@ -1166,7 +1271,7 @@ mod tests {
         )
         .unwrap();
 
-        let graph = discover_tasks(&root, MetadataMode::Embed).unwrap();
+        let graph = discover_tasks(&root, MetadataMode::Embed, TaskLayout::Monthly).unwrap();
         assert_eq!(graph.tasks.len(), 2);
         assert_eq!(graph.tasks[1].task.directory, child);
         assert_eq!(graph.tasks[1].parent, Some(0));

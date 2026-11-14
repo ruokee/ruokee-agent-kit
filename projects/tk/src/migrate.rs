@@ -189,7 +189,11 @@ fn parse_target(target: &str) -> Result<u32> {
 }
 
 fn select_carriers(project: &Project, selected: &[PathBuf]) -> Result<Vec<PathBuf>> {
-    let graph = task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?;
+    let graph = task_store::discover_tasks(
+        &project.task_root,
+        project.config.metadata_mode,
+        project.config.task_layout,
+    )?;
     let candidates = if selected.is_empty() {
         graph
             .tasks

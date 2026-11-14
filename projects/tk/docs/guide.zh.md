@@ -75,13 +75,15 @@ tk install --skill-root .agents/skills --language zh --dry-run --output json
 tk init
 ```
 
-默认使用 `.tk` 作为任务根目录，顶层创建采用 strict，元数据使用 split，不执行 Git 策略检查。只需传入与默认值不同的选项：
+默认使用 `.tk` 作为任务根目录，顶层目录采用 monthly，顶层创建采用 strict，元数据使用 split，不执行 Git 策略检查。只需传入与默认值不同的选项：
 
 ```sh
 tk init --creation-policy permissive --metadata-mode embed
 ```
 
 旧配置无法解析时，`init --force` 仍会根据本次显式参数和默认值重写项目配置。它不读取或修改任务数据。
+
+使用 `tk init --task-layout daily` 创建 `YYYY/MM/DD/NN-slug` 顶层目录。默认 monthly 形状为 `YYYY/MM/DD-NN--slug`。普通命令只管理配置选中的布局。
 
 ## 创建任务
 
@@ -164,7 +166,7 @@ tk metadata switch --to embed --dry-run
 tk metadata switch --to embed
 ```
 
-重命名任务并查看引用，但不自动改写引用：
+预览任务重命名并检查保存的报告：
 
 ```sh
 tk rename <task_ref> "新名称" --dry-run
@@ -173,9 +175,19 @@ tk rename <task_ref> "新名称"
 
 保存名称可以包含排版空格，生成目录仍保留无空格后缀。读取和检查保留这种合法写法，具体见[任务名称](./design/data-model.zh.md#任务名称)。显式 rename 会规范化请求名称，即使源排版已经合法，也可能移动目录。
 
-移动任务路径的 rename 在存在旧路径引用时以退出码 3 停止。更新报告中的引用后，再重新执行 rename。如果明确接受断链风险并继续移动，加上 `--ignore-brokenlinks`。
+rename 默认保留引用原文。添加 `--update-references` 改写已知路径。可重复的 `--extend-scan <path>` 扩展默认扫描范围，接受 Markdown 文件或目录，支持项目外绝对路径。每次调用保存报告并显示路径。dry-run 只新增该报告。
 
 同一命令也能修复 split 和 embed 中符合范围的旧字符串名称及可识别生成式后缀不一致问题。使用完整 UUID、精确任务目录或精确受管载体；其他受管数据校验保持严格。closed 任务同样可以改名或修复，并保持其状态。
+
+转换全部顶层目录或适配显式导入的任务：
+
+```sh
+tk layout switch --to daily --dry-run --update-references
+tk layout switch --to daily --update-references
+tk layout migrate --task tasks/2026/11/14-01--example --update-references
+```
+
+switch 移动源目录并最后保存配置。migrate 将当前任务根内选中的规范目录适配到配置布局，保留配置。两者保留日期、编号、slug、元数据、子树和 WAL。冲突在预检时报错。[扫描报告](./design/data-model.zh.md#扫描报告)保留完整映射及引用，包括 dry-run 和无变化请求。
 
 清理已结束 tk 进程留下的临时内容：
 

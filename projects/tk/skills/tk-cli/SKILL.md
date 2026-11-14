@@ -38,9 +38,11 @@ tk create task <name> [--status <planning|open>] [--created-at <rfc3339>] [--dep
 tk create subtask <parent_ref> --item <json> [--item <json>]... [--user-confirmed <true|false>]
 tk update <task_ref> [--depends-on-add <uuid>]... [--depends-on-remove <uuid>]... [--related-to-add <uuid>]... [--related-to-remove <uuid>]... [--extra-set <json>] [--extra-remove <key>]... [--start | --close <reason> | --reopen <reason>] [--force] [--user-confirmed <true|false>] [--actor <text>]
 tk log <task_ref> --message <text> [--body <markdown>] [--actor <text>]
-tk init [--task-root <path>] [--subtasks-dir <path>] [--git-policy <track|ignore|none>] [--creation-policy <strict|permissive>] [--metadata-mode <split|embed>] [--force]
+tk init [--task-root <path>] [--subtasks-dir <path>] [--git-policy <track|ignore|none>] [--creation-policy <strict|permissive>] [--metadata-mode <split|embed>] [--task-layout <monthly|daily>] [--force]
 tk check
-tk rename <task_ref> <name> [--dry-run] [--ignore-brokenlinks] [--actor <text>]
+tk rename <task_ref> <name> [--dry-run] [--update-references] [--extend-scan <path>]... [--actor <text>]
+tk layout switch --to <monthly|daily> [--dry-run] [--update-references] [--extend-scan <path>]...
+tk layout migrate --task <path> [--task <path>]... [--dry-run] [--update-references] [--extend-scan <path>]...
 ```
 
 Use `--cwd` when the Task is outside the current runtime directory, such as when the user supplies information from another directory.
@@ -168,7 +170,7 @@ This file covers routine work. Load only the additional reference needed for the
 - Read [Task concepts](./references/task-concept.md) when identity, paths, metadata, relationships, or lifecycle is unclear.
 - Read [Subtasks](./references/subtask.md) for creation placement, discovery, numbering, or batch failures.
 - Read [Catch up](./references/catchup.md) to recover Task context.
-- Read [Project storage](./references/project-storage.md) for initialization, project discovery, Git policy, schema migration, or metadata mode switching.
-- Read [Maintenance](./references/maintenance.md) for errors, partial commits, damaged managed data, `check`, `rename`, or GC.
+- Read [Project storage](./references/project-storage.md) for initialization, project discovery, Git policy, layout switching or imported-directory adaptation, schema migration, or metadata mode switching.
+- Read [Maintenance](./references/maintenance.md) for errors, partial commits, damaged managed data, `check`, `rename`, layout reports and reference updates, or GC.
 - Read [WAL](./references/wal.md) when deciding what to record, reading older history, or handling an append warning.
 - Read [Usage patterns](./references/patterns.md) to organize durable ordinary materials.

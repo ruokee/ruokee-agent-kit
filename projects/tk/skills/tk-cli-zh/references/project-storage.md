@@ -1,6 +1,6 @@
 # 项目存储
 
-初始化项目、解释项目发现或 Git 策略、迁移 schema 或切换元数据模式时阅读本文。任务字段和载体见[任务概念](./task-concept.md)。
+初始化项目、解释项目发现或 Git 策略、切换布局、适配导入目录、迁移 schema 或切换元数据模式时阅读本文。任务字段和载体见[任务概念](./task-concept.md)。
 
 ## 项目标记
 
@@ -25,6 +25,7 @@ subtasks_dir = ""
 git_policy = "none"
 creation_policy = "strict"
 metadata_mode = "split"
+task_layout = "monthly"
 ```
 
 全默认项目通常没有配置文件，`.tk/` 本身就是项目标记。
@@ -42,6 +43,14 @@ task_root = "tasks"
 ```
 
 配置自定义任务根时必须保留配置文件。仅创建 `tasks/` 不足以让项目发现逻辑知道该目录是任务根。
+
+## 任务布局
+
+`task_layout` 选择顶层目录 monthly `YYYY/MM/DD-NN--slug` 或 daily `YYYY/MM/DD/NN-slug`。默认 monthly。普通发现、创建、搜索、读取、修复、check 和元数据操作只使用选中布局。子任务位置保持原样。同日创建取当前最大序号加一，上限 99。
+
+使用 `tk init --task-layout daily` 初始化 daily。使用 `tk layout switch --to daily` 或 `--to monthly` 转换当前根。已有目标布局任务参与最终图验证并保持原位。源日期、序号、slug、元数据、子树和 WAL 保留。配置最后更新。
+
+将规范顶层目录导入当前任务根后，使用可重复选择的 `tk layout migrate --task <path>`。它适配布局，保留配置、元数据模式和 schema。重复及已经适配的目录会去重。目标、同日序号、UUID、载体和关系冲突停止预检。引用选项、持久报告及部分状态处理见[维护](./maintenance.md)。
 
 ## 子任务目录
 
@@ -67,7 +76,7 @@ subtasks_dir = "children"
 | `ignore` | 要求项目位于 Git 工作树中，且任务根必须被 Git 忽略。适合保留本地任务数据的项目。 |
 | `none` | 不要求 Git，也不检查忽略状态。默认值。 |
 
-读取命令不执行写入策略检查。创建、更新、日志等写操作会在首次持久化前检查策略。
+读取命令不执行写入策略检查。创建、更新、日志等受管写操作在首次受管变化前检查策略。路径变更的辅助扫描报告在策略检查前保存。
 
 `track` 只验证路径未被忽略，不等于自动执行 `git add` 或提交。`ignore` 也不会替项目修改 `.gitignore`。
 

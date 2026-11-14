@@ -8,11 +8,14 @@
 
 UUIDv7 是任务的稳定身份。名称和目录用于识别，可以通过 `rename` 改变，不是身份。
 
-顶层任务默认位于：
+顶层任务使用配置选中的 `task_layout`：
 
 ```text
-<task_root>/YYYY/MM/DD-NN--slug/
+monthly: <task_root>/YYYY/MM/DD-NN--slug/
+daily:   <task_root>/YYYY/MM/DD/NN-slug/
 ```
+
+默认 monthly。普通命令只看到选中布局。切换或适配导入目录使用[项目存储](./project-storage.md#任务布局)中的布局操作。布局转换保留任务身份。
 
 新子任务默认位于父任务目录下配置的 `subtasks_dir`，并使用 `NN--slug` 目录名。`subtasks_dir` 只控制创建位置；发现会根据有效载体识别父任务目录内其他位置的子任务。详细规则见[子任务](./subtask.md)。
 

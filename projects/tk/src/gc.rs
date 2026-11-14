@@ -174,7 +174,17 @@ pub fn run(cwd: Option<&Path>, dry_run: bool) -> Result<GcResult> {
     let mut warnings = Vec::new();
     let mut deletion_plan = Vec::new();
     for root in &roots {
-        inspect_temporary_root(root, &mut entries, &mut warnings, &mut deletion_plan)?;
+        let report_directory = project_root
+            .as_ref()
+            .filter(|project| root == &project.join(".tk-tmp"))
+            .map(|_| root.join(crate::reports::DIRECTORY));
+        inspect_temporary_root(
+            root,
+            report_directory.as_deref(),
+            &mut entries,
+            &mut warnings,
+            &mut deletion_plan,
+        )?;
     }
     let changed = !deletion_plan.is_empty();
     if !dry_run && changed {
@@ -203,6 +213,7 @@ pub fn run(cwd: Option<&Path>, dry_run: bool) -> Result<GcResult> {
 
 fn inspect_temporary_root(
     root: &Path,
+    report_directory: Option<&Path>,
     entries: &mut Vec<GcEntry>,
     warnings: &mut Vec<String>,
     deletion_plan: &mut Vec<DeletionStep>,
@@ -225,6 +236,12 @@ fn inspect_temporary_root(
         let path = child.path();
         let metadata = fs::symlink_metadata(&path)
             .map_err(|error| storage_error("inspect_temporary_operation", &path, error))?;
+        if report_directory == Some(path.as_path())
+            && metadata.is_dir()
+            && !metadata.file_type().is_symlink()
+        {
+            continue;
+        }
         if metadata.file_type().is_symlink() || !metadata.is_dir() {
             record_unknown_entry(&path, entries, warnings);
             continue;
@@ -410,7 +427,10 @@ fn remove_deletion_step(step: &DeletionStep) -> Result<()> {
 
 pub fn ensure_project_writable(task_root: &Path) -> Result<()> {
     let root = task_root.join(".tk-tmp");
-    let markers = operation_directories(&root)?;
+    let markers = operation_directories(&root)?
+        .into_iter()
+        .filter(|path| !is_report_directory(&root, path))
+        .collect::<Vec<_>>();
     if markers.is_empty() {
         return Ok(());
     }
@@ -594,6 +614,12 @@ pub(crate) fn operation_directories(root: &Path) -> Result<Vec<PathBuf>> {
     }
     directories.sort();
     Ok(directories)
+}
+
+pub(crate) fn is_report_directory(root: &Path, path: &Path) -> bool {
+    path == root.join(crate::reports::DIRECTORY)
+        && fs::symlink_metadata(path)
+            .is_ok_and(|metadata| metadata.is_dir() && !metadata.file_type().is_symlink())
 }
 
 /// Whether a cleanup manifest is recognizable as this format: it declares the current
@@ -970,7 +996,7 @@ mod tests {
         let mut entries = Vec::new();
         let mut warnings = Vec::new();
         let mut plan = Vec::new();
-        inspect_temporary_root(&root, &mut entries, &mut warnings, &mut plan).unwrap();
+        inspect_temporary_root(&root, None, &mut entries, &mut warnings, &mut plan).unwrap();
         assert!(plan.is_empty());
         assert!(
             entries
@@ -1010,7 +1036,7 @@ mod tests {
         let mut entries = Vec::new();
         let mut warnings = Vec::new();
         let mut plan = Vec::new();
-        inspect_temporary_root(&root, &mut entries, &mut warnings, &mut plan).unwrap();
+        inspect_temporary_root(&root, None, &mut entries, &mut warnings, &mut plan).unwrap();
         let error = execute_deletion_plan(&plan, &mut entries, |_step| {
             Err(TkError::new(
                 "injected_remove_failure",

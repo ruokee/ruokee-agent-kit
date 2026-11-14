@@ -20,17 +20,33 @@ A complete scan that finds problems returns `check_failed`. If a required direct
 
 ## Rename
 
-Run every rename with `--dry-run` first. Confirm the raw old name, normalized new name, resolved parent, target path, conflicts, and reported Markdown references. rename can repair an invalid, empty, or over-wide string name and a recognizable generated suffix that fails the name rules. Valid formatting differences described in [Task concepts](./task-concept.md) need no repair. Explicit rename still reaches its concrete normalized name and applicable path, even when the source formatting is valid. The runtime changes only the Task's own name, its generated directory when applicable, and metadata. It does not rewrite references in ordinary materials.
+Run rename with `--dry-run` first and open `report_path`. Confirm the raw old name, normalized new name, Task mapping, and references. rename repairs eligible invalid, empty, or over-wide string names and recognizable generated suffix defects. Valid formatting differences in [Task concepts](./task-concept.md) need no repair. Explicit rename reaches its normalized name and applicable path even when source formatting is valid.
 
-A path-moving rename that finds references to the old path stops with exit status 3 before the first write. One option is to update the reported references and run the rename again. To proceed while accepting broken links, pass `--ignore-brokenlinks`; the reference files stay unchanged, and the result still reports them.
+References keep their content by default. Use `--update-references` for explicit rewriting and `--extend-scan` for additional Markdown files or directories.
 
 A requested name and its applicable generated path that already match return no change. Do not bypass a target conflict, damage outside rename's name-repair scope, or a failed reference scan with an alias, copied directory, or direct metadata edit.
 
 A commit-stage failure may leave only part of the name, generated directory, or WAL update complete. Run `check` immediately, then decide from current managed state whether to rerun rename or enter manual repair.
 
+## References
+
+rename and layout commands scan the current Task root by default. Under `git_policy=track`, they scan project Markdown and other known Task roots. WAL, `.git`, and `.tk-tmp` are excluded. Symbolic links retain the existing skip rules. Required I/O failures and resource limits stop planning explicitly. Embed scans cover body content only.
+
+Explicit updates cover Markdown links, images, definitions, full-path wikilinks containing the real Task-root path, and complete path text. Labels, titles, aliases, query, fragments, and bytes outside edited intervals are preserved. Filename-only wikilinks keep their text. Relative links use the moved source file's new parent and the moved target's new location. Subtree-local links retain their original text when it still resolves correctly.
+
+Open the immutable JSON report under `<task_root>/.tk-tmp/reports` for full Task mappings, references, scan scope, and diagnostics. Dry-run, no-change, and planning failures in a valid project also save reports. `scan_complete=false` identifies an interrupted or failed scan. Report storage failure stops managed writes. Reports are scan snapshots, not execution logs or replay plans.
+
+## Layout failure
+
+Use `completed`, `uncompleted`, `original_error`, `report_path`, and configuration state from the error. Layout commits directory moves, optional reference replacements, and finally switch configuration. migrate preserves configuration. rename commits movement, references, metadata, and WAL in that order. Pending references, carriers, targets, and configuration are rechecked before managed writes.
+
+A partial switch retains the source layout configuration until the final configuration write. Already moved Tasks may temporarily disappear from ordinary reads. Resolve the reported blocker and run a new plan for the remaining source directories. Use the previous report to review references for earlier moves. Each call saves a new report. The runtime does not roll back automatically.
+
 ## GC
 
 GC removes only tk temporary paths, minimal cleanup manifests, and active-operation markers left by operation processes that have exited. It does not recover, continue, roll back, or finish Tasks, migrations, metadata mode switches, renames, or component operations.
+
+The project-level real `.tk-tmp/reports` directory is retained. User-level component temporary directories keep their existing cleanup semantics.
 
 Use `--dry-run` for unfamiliar residue. Preserve and report an item when an operation process is still active, process identity cannot prove it ended, or the path does not satisfy the cleanup contract.
 

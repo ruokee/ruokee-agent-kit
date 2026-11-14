@@ -12,6 +12,7 @@ subtasks_dir = ""
 git_policy = "none"
 creation_policy = "strict"
 metadata_mode = "split"
+task_layout = "monthly"
 ```
 
 Default values are not written to the configuration file. The file may be absent when all defaults apply.
@@ -21,20 +22,24 @@ Default values are not written to the configuration file. The file may be absent
 - `git_policy` is `track`, `ignore`, or `none`.
 - `creation_policy` is `strict` or `permissive`.
 - `metadata_mode` is `split` or `embed` and applies to the entire project.
+- `task_layout` is `monthly` or `daily` and selects the ordinary top-level discovery layout. It defaults to `monthly`.
 
 `init --force` may ignore an unparseable existing project configuration and write a new sparse configuration using the explicit arguments from the current invocation plus defaults. It does not read, migrate, move, delete, or rewrite Task data, and it does not process an individual Task's `tk.toml`.
 
 ## Task directories
 
-Top-level Tasks use this layout:
+Top-level Tasks use the configured layout:
 
 ```text
-<task-root>/YYYY/MM/DD-NN--slug/
+monthly: <task-root>/YYYY/MM/DD-NN--slug/
+daily:   <task-root>/YYYY/MM/DD/NN-slug/
 ```
 
 New child Tasks use a stable `NN--slug` directory directly below the parent or below its configured `subtasks_dir`. Existing child Tasks may be stored deeper below ordinary material directories. The nearest enclosing valid Task defines parenthood, so directory topology still represents parent-child relationships without storing `parent` in metadata.
 
 The Task root has no persistent index or cache. Discovery builds one in-memory graph from the file system on demand, and every project-wide caller uses that graph.
+
+Both layouts allocate a two-digit sequence per calendar date, continuing after the largest discovered sequence without filling gaps. Sequence `99` prevents further creation on that date. Layout changes preserve the date, sequence, original slug, UUID, metadata, subtree, and WAL.
 
 ## Metadata schema
 
@@ -80,11 +85,11 @@ When modifying embed metadata, the runtime preserves the body byte for byte. Rep
 
 create accepts no body input. The CLI has no `--body` option, and child Task items reject `body` as an unknown field. When the runtime creates a Task, it automatically writes `# <normalized-name>` as the initial body: alone in `TASK.md` for split, after the managed frontmatter for embed.
 
-After creation the caller maintains the body as ordinary content. Neither rename nor subtask retry matching takes body input or matches on it. All other body behavior is unchanged: the runtime reads bodies for search and read output, preserves them byte for byte during metadata changes, and keeps them intact across representation switching.
+After creation the caller maintains the body as ordinary content. Neither rename nor subtask retry matching takes body input or matches on it. Metadata changes preserve body bytes. Explicit reference updates can change reference paths in the body. Representation switching preserves the body.
 
 ## Candidate identification
 
-Top-level Task discovery requires the canonical `YYYY/MM/DD-NN--slug` topology, including fixed sequence widths, the `--` separator, a valid calendar date, a non-empty slug, and a metadata name corresponding to the slug under the [Task-name rules](#task-names). After discovering a valid top-level Task, the runtime recursively scans real descendant directories. Ordinary material directories remain traversable because a child Task may be below them.
+Ordinary top-level discovery accepts only the configured monthly or daily topology. Both require fixed numeric widths, a valid calendar date, a two-digit sequence, a non-empty slug, and a metadata name corresponding to the slug under the [Task-name rules](#task-names). Layout operations can read the other topology during dedicated preflight. After discovering a valid top-level Task, the runtime recursively scans real descendant directories, including ordinary material directories.
 
 A descendant directory first needs an intentional marker for the project's `metadata_mode`:
 
@@ -103,7 +108,7 @@ Traversal order is deterministic. One scan accepts at most 100,000 real director
 
 ## Task identity
 
-UUIDv7 is the authoritative identity. Paths are locators and may change through rename. Names describe Tasks.
+UUIDv7 is the authoritative identity. Paths are locators and may change through rename or layout operations. Names describe Tasks.
 
 ## Task names
 
@@ -150,18 +155,18 @@ Git projects are located using the Git root and project configuration.
 
 For an exact path outside Git, use the Task directory structure:
 
-1. Starting from a Task, managed file, or material path, search upward for an ancestor matching `DD-NN--slug`.
-2. Its parent must match `MM`, and the next parent must match `YYYY`.
+1. Starting from a Task, managed file, or material path, search upward for a canonical monthly or daily top-level ancestor.
+2. Validate its date directories and sequence topology.
 3. The parent of `YYYY` is the candidate Task root.
 4. Inspect at most two additional ancestor directories to match project configuration against the Task root.
-5. Load the carrier-based graph and require the exact path to be inside a discovered Task.
+5. Load the configured-layout carrier graph and require the exact path to be inside a discovered Task.
 6. If the project cannot be confirmed within two levels, fail without continuing to the file-system root.
 
 For an ordinary context directory, use bounded nearest-project discovery. An exact absolute discovered Task path, managed carrier, or material path first locates its owning project, allowing a caller in project A's cwd to read an absolute reference in project B.
 
 ## Git policy
 
-Git policy is checked only before persistent writes:
+Git policy is checked before managed Task or configuration writes. Auxiliary scan report creation is independent of this check:
 
 - `track` requires managed Task files not to be ignored.
 - `ignore` requires the Task root to be ignored.
@@ -214,7 +219,7 @@ Concurrent complete replacements of the same file are resolved by whichever oper
 
 ## Operations over multiple targets
 
-Batch creation, schema migration, representation switching, rename, and CLI Skill lifecycle operations follow the same failure boundary:
+Batch creation, schema migration, representation switching, layout operations, rename, and CLI Skill lifecycle operations follow the same failure boundary for managed changes:
 
 1. Complete all domain validation before the first write.
 2. Commit each item in deterministic order.
@@ -251,6 +256,14 @@ Representation switching converts the entire project between split and embed:
 
 Switching does not append Task WAL entries.
 
+## Layout changes
+
+`tk layout switch --to <monthly|daily>` merges the complete source graph with existing target-layout Tasks during preflight. It validates carriers, names, UUID uniqueness, date sequences, and relationships, moves source top-level directories in source-path order, and writes the target configuration last. Existing target Tasks stay in place. Switching an empty root updates configuration; selecting the active layout produces a no-change report.
+
+`tk layout migrate --task <path>...` adapts explicitly selected canonical top-level directories already inside the current Task root to the configured layout. Relative paths resolve from the project root. Repeated selections and selected Tasks already at the target are deduplicated by physical directory. Preflight merges selected subtrees with the active graph before checking UUIDs, sequences, targets, and relationships. Configuration, metadata representation, and schema keep their existing values.
+
+Both operations preserve source numbering and slugs. Existing targets or duplicate same-date sequences stop planning. A partial switch keeps the old configuration until every required move and reference update succeeds. Some moved Tasks may then be hidden from ordinary discovery. A later switch replans against both layouts and processes remaining source directories. Earlier path mappings remain available in the earlier report for manual reference repair.
+
 ## rename
 
 rename applies request normalization and a concrete target even when the saved name and generated suffix already correspond under formatting comparison. It also repairs an invalid, empty, or over-wide string name, or a recognizable generated suffix that fails the [Task-name rules](#task-names):
@@ -258,17 +271,47 @@ rename applies request normalization and a concrete target even when the saved n
 1. Resolve one eligible candidate by full UUID, exact Task directory, or exact managed carrier. Repairable candidates participate in UUID uniqueness and parent ownership; indeterminate ancestry is rejected.
 2. Normalize the new name and validate the complete metadata with that replacement. Missing or incorrectly typed names, damaged identity, unsupported schema, invalid relationships or `extra`, unsafe paths, and unrecognizable generated structures remain errors.
 3. Keep a non-generated child directory unchanged. Otherwise preserve the date and sequence and compute the new slug path.
-4. Verify that any moved target does not exist and Git policy allows the write.
-5. Scan Markdown references and return the raw old name, resolved parent, old path, target path, and reference list.
-6. Move a generated directory without overwriting. Skip this step for a non-generated child.
-7. Update metadata while preserving the body, the status, and all fields except `name`.
-8. Append WAL.
+4. Verify that any moved target does not exist.
+5. Scan references and persist the scan report.
+6. Check project writability and Git policy, then recheck inputs.
+7. Move a generated directory without overwriting. Skip this step for a non-generated child.
+8. Apply reference updates when explicitly requested.
+9. Update metadata while preserving status and all fields except `name`. Preserve the current body, including any reference edits.
+10. Append WAL.
 
 Only exact equality of the saved name and applicable target path returns no change. Renaming name `AI 学习` at suffix `AI学习` to `AI 学习` targets name and suffix `AI-学习`. Renaming name `AI-学习` at suffix `AI_学习` to the same name still moves the directory.
 
-Before committing, compare the current path, complete metadata, target, and references exactly with the plan. Formatting equivalence never suppresses `stale_rename_plan`. If directory movement succeeds but metadata replacement fails, return the original partial-commit error and completed and incomplete items. A readable intermediate state does not complete the rename; the same request replans and finishes the exact target.
+Before committing, compare the current path, complete metadata, carrier bytes, configuration, target, and references exactly with the plan. Formatting equivalence never suppresses `stale_rename_plan`. A failure after a committed step returns completed and incomplete steps with the original error and report path. A readable intermediate state still requires the same request to replan and finish its exact target.
 
-The runtime does not automatically rewrite references. With `git_policy=track`, it scans Markdown across the project from the file system, independent of Git staging state. With `ignore` or `none`, it scans regular Markdown under `task_root`. Task bodies in both split and embed are included. Managed frontmatter, WAL, and temporary content are excluded. A scan that exceeds its depth or directory limit fails with `reference_scan_limit_exceeded`.
+## Reference updates
+
+rename and both layout commands preserve reference content by default. `--update-references` explicitly enables rewriting. Repeated `--extend-scan <path>` accepts Markdown files or directories, including absolute paths outside the project. Relative inputs resolve from the project root.
+
+With `git_policy=track`, the default scan covers project Markdown from the file system, independent of Git staging state. With `ignore` or `none`, it covers Markdown under `task_root`. Overlapping inputs are deduplicated and sorted. Symbolic links are skipped; explicitly selected links are rejected. The merged scan accepts at most 100,000 real directories and 256 levels. Required I/O failures and `reference_scan_limit_exceeded` stop planning.
+
+Known Task WAL, `.git`, and the current Task root's `.tk-tmp` are excluded. Embed `TASK.md` scanning starts after managed frontmatter. Imported subtrees and existing target-layout Tasks contribute their known runtime directories.
+
+The scanner handles ordinary Markdown link and image destinations, reference definitions, full Task-root paths in wikilinks, and full Task paths in text or code. Filename-only wikilinks and external URIs stay unchanged. Labels, titles, aliases, fragments, and queries retain their bytes. Destinations support escapes, parentheses, angle brackets, and URL percent encoding. Matching requires a complete path prefix and directory component. A same-named Task-root segment beneath another directory is a different path.
+
+Relative full-path wikilinks resolve from the project root before mapping. Leading parent components therefore retain their effect on the referenced location. Wikilinks match source directories by whole path components. The nearest source ancestor determines the mapping. Characters such as `!` and `:` within a filename belong to that component.
+
+Let F map each moved directory and its descendants to their new paths. For a relative link from file S to target T, the replacement is the relative path from `parent(F(S))` to `F(T)`. This covers moved files linking outward, incoming links, links between moved Tasks, and subtree-local links. Targets use lexical normalization. An already applicable reference keeps its original spelling.
+
+One scan prepares all mappings. Each changed file retains one original content snapshot and sorted non-overlapping UTF-8 byte intervals. Before committing, the runtime rescans the file set and references and compares every pending file's full content. Each file is replaced once at its mapped location using a same-directory atomic temporary file, including extension files on another file system.
+
+## Scan reports
+
+Every rename and layout invocation in a valid project saves an independent report, including dry-run, no-change requests, and planning failures. Parse, project-resolution, cancellation, and report-storage failures use their corresponding errors. Reports use `create_new`, UTF-8 JSON, flush, and sync before managed changes begin:
+
+```text
+<task-root>/.tk-tmp/reports/YYYYMMDDTHHMMSS+ZZZZ--<operation>--<UUIDv7>.json
+```
+
+The operations are `rename`, `switch-layout`, and `migrate-layout`. Reports are immutable pre-execution snapshots. They contain `report_version=1`, run identity and local timestamp, operation options, project and Task roots, source and target layouts, scan roots, completeness, diagnostics, Task mappings, and references. Task entries contain `task_id`, `old_path`, `target_path`, `old_name`, and `new_name`. Reference entries contain `kind`, `old_file`, `target_file`, one-based `line`, half-open `byte_start` and `byte_end`, `original`, `replacement`, `old_target`, and `target`.
+
+All recorded paths are absolute. Equal original and replacement values identify references requiring no edit. `scan_complete=false` marks incomplete scans. Actual execution status belongs to the [CLI summary](./cli-reference.md#path-change-results) or error rather than the report. Reports provide a record for manual inspection. They are not replay input.
+
+Dry-run adds only its report. Task data, references, and configuration retain their bytes. Report failure stops managed changes and cleans up the incomplete report. Existing reports remain until the user removes them. Project write gates, check, and GC reserve the real `.tk-tmp/reports` directory and preserve its content. User-level operation directories keep their existing semantics.
 
 ## Minimal cleanup manifest
 
@@ -298,6 +341,7 @@ GC processes only tk temporary content:
 - Path escapes, symlink, unparseable manifests, and content that cannot be proven to belong to tk are preserved and reported.
 - Earlier cleanup formats from development are treated as unknown content and are not parsed or migrated.
 - GC does not continue, complete, or roll back domain operations.
+- Project scan reports in the real `.tk-tmp/reports` directory are retained.
 - GC does not modify Task metadata, bodies, WAL, project configuration, or Harness configuration.
 
 If an I/O error occurs during deletion, GC stops and reports deleted and undeleted paths.

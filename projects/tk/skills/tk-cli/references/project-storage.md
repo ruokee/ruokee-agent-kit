@@ -1,6 +1,6 @@
 # Project storage
 
-Read this file when initializing a project, explaining project discovery or Git policy, migrating a schema, or switching metadata modes. See [Task concepts](./task-concept.md) for Task fields and carriers.
+Read this file when initializing a project, explaining project discovery or Git policy, switching layouts, adapting imported directories, migrating a schema, or switching metadata modes. See [Task concepts](./task-concept.md) for Task fields and carriers.
 
 ## Project markers
 
@@ -25,6 +25,7 @@ subtasks_dir = ""
 git_policy = "none"
 creation_policy = "strict"
 metadata_mode = "split"
+task_layout = "monthly"
 ```
 
 A project using every default normally has no configuration file. The `.tk/` directory is the project marker.
@@ -42,6 +43,14 @@ task_root = "tasks"
 ```
 
 A custom Task root requires the configuration file. Creating `tasks/` alone does not tell discovery that it is the Task root.
+
+## Task layout
+
+`task_layout` selects monthly `YYYY/MM/DD-NN--slug` or daily `YYYY/MM/DD/NN-slug` top-level directories. Monthly is the default. Ordinary discovery, creation, search, reads, repair, check, and metadata operations use the selected layout only. Child placement stays unchanged. Same-day creation uses the current maximum sequence plus one, up to 99.
+
+Use `tk init --task-layout daily` to initialize daily storage. Use `tk layout switch --to daily` or `--to monthly` to convert the current root. Existing target-layout Tasks are merged for final-graph validation and stay in place. Source dates, sequence numbers, slugs, metadata, subtrees, and WAL are preserved. Configuration changes last.
+
+After importing canonical top-level directories into the current Task root, run `tk layout migrate --task <path>` with repeatable selections. It adapts their layout, preserving configuration, metadata mode, and schema. Repeated and already adapted directories are deduplicated. Target, same-date sequence, UUID, carrier, and relationship conflicts stop preflight. Reference options, persistent reports, and partial-state handling are described in [Maintenance](./maintenance.md).
 
 ## Subtasks directory
 
@@ -67,7 +76,7 @@ An empty value is valid. A non-empty value must be a safe relative path without 
 | `ignore` | Requires a Git worktree and requires the Task root to be ignored. Use for local Task data. |
 | `none` | Does not require Git or inspect ignore state. This is the default. |
 
-Read operations do not run write-policy checks. Create, update, log, and other writes check the policy before the first persistent write.
+Read operations do not run write-policy checks. Create, update, log, and other managed writes check policy before the first managed change. Auxiliary path-change scan reports are persisted before that check.
 
 `track` verifies only that paths are not ignored. It does not run `git add` or commit. `ignore` does not edit `.gitignore`.
 

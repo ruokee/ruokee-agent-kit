@@ -109,14 +109,27 @@ Cover name and path updates, unchanged results for repeated identical rename ope
 - Formatting-compatible sources still reach the exact normalized name and applicable path, including separator-only changes and repeated requests for a displayed name;
 - Empty or actually over-wide names and recognizable suffix defects remain repairable; exact precommit rechecks retain `stale_rename_plan`;
 - A real directory move followed by metadata I/O failure reports partial completion, and a readable intermediate state still requires retry to reach the exact target;
-- A metadata-only rename reports references without applying the path-move gate, and a no-op request still reports them;
+- Metadata-only and no-change rename requests still report existing references;
 - A file deleted from the worktree but still present in the Git index does not fail the scan, and untracked files participate;
 - Unreadable reference files fail the command explicitly, and a scan that exceeds its depth or directory limit stops with `reference_scan_limit_exceeded`;
-- References are reported but not modified automatically;
-- Dry-run with references succeeds and returns the complete plan;
-- A path-moving execution with references stops with the stable error code `broken_reference_conflict`, category `conflict`, and exit status 3 before the first write, with `old_path`, normalized `new_name`, absolute `target_path`, and every reference path and line in the details;
-- `--ignore-brokenlinks` lets the move complete, leaves reference files byte for byte unchanged, and keeps the references in the result;
-- A path move without references completes. A non-generated child rename completes without moving its directory, and repeating an identical rename returns no change; neither returns `broken_reference_conflict`.
+- Reference content is preserved by default, including a path-moving rename with references;
+- Dry-run saves a distinct immutable report while preserving Task data, references, and configuration;
+- Explicit updates handle Markdown destinations, images, definitions, full-path wikilinks, and text paths, preserving labels, titles, aliases, fragments, queries, and bytes outside edited intervals;
+- Filename-only wikilinks, external URIs, code delimiters, percent encoding, and complete component boundaries retain their documented semantics;
+- A non-generated child rename keeps its directory; repeating an exact rename returns no change;
+- Embed reference edits and metadata rename both persist, in that order.
+
+## Layout checks
+
+Exercise monthly defaults and explicit daily configuration in split and embed, including same-day maximum sequence allocation, date independence, sequence exhaustion, UUID and exact-path access, and invisibility of the other layout. Preserve child discovery and name-repair coverage.
+
+Exercise both switch directions, empty roots, no-change requests, and already present target-layout Tasks. Compare UUIDs, metadata, original slugs, subtrees, and WAL across moves. Configuration is committed last.
+
+Migrate explicitly selected imported roots, repeated selections, and already adapted roots. Check same-date sequence and target conflicts, duplicate UUIDs, metadata-mode mismatches, and merged relationships. Preserve configuration and existing data on rejection.
+
+For both layout operations and rename, cover moved-file outgoing links, incoming links, links between moved Tasks, and subtree-local links. Include overlapping project-relative extension roots, explicit Markdown files, external absolute paths, required I/O failures, and symbolic-link behavior.
+
+Inspect default, dry-run, no-change, and incomplete reports, plus summary counts and actual report paths. Report storage failure stops managed writes. Project write gates, check, and GC preserve real reports; user-level cleanup semantics stay unchanged. Inject carrier, target, reference, and configuration changes and partial write failures; inspect completed steps, remaining steps, report identity, and configuration state. A partial switch retains source configuration and can replan remaining source directories.
 
 ## Maintenance tests
 
@@ -134,6 +147,7 @@ GC tests cover:
 - Path escapes, symlinks, unknown manifests, and content that cannot be proven to belong to tk are preserved;
 - Legacy cleanup formats from development are neither parsed nor migrated;
 - Task, WAL, project configuration, and Harness configuration are not modified;
+- Project scan reports are retained through GC and ordinary operation cleanup;
 - Deletion errors report deleted and undeleted items.
 
 ## Interface tests

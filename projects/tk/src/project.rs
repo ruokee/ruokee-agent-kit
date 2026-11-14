@@ -30,6 +30,14 @@ pub enum CreationPolicy {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
+pub enum TaskLayout {
+    #[default]
+    Monthly,
+    Daily,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
 pub enum MetadataMode {
     #[default]
     Split,
@@ -66,6 +74,7 @@ macro_rules! impl_text_enum {
 impl_text_enum!(GitPolicy, {"track" => GitPolicy::Track, "ignore" => GitPolicy::Ignore, "none" => GitPolicy::None});
 impl_text_enum!(CreationPolicy, {"strict" => CreationPolicy::Strict, "permissive" => CreationPolicy::Permissive});
 impl_text_enum!(MetadataMode, {"split" => MetadataMode::Split, "embed" => MetadataMode::Embed});
+impl_text_enum!(TaskLayout, {"monthly" => TaskLayout::Monthly, "daily" => TaskLayout::Daily});
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProjectConfig {
@@ -74,6 +83,7 @@ pub struct ProjectConfig {
     pub git_policy: GitPolicy,
     pub creation_policy: CreationPolicy,
     pub metadata_mode: MetadataMode,
+    pub task_layout: TaskLayout,
 }
 
 impl Default for ProjectConfig {
@@ -84,6 +94,7 @@ impl Default for ProjectConfig {
             git_policy: GitPolicy::None,
             creation_policy: CreationPolicy::Strict,
             metadata_mode: MetadataMode::Split,
+            task_layout: TaskLayout::Monthly,
         }
     }
 }
@@ -101,6 +112,8 @@ struct SparseConfig {
     creation_policy: Option<CreationPolicy>,
     #[serde(skip_serializing_if = "Option::is_none")]
     metadata_mode: Option<MetadataMode>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    task_layout: Option<TaskLayout>,
 }
 
 #[derive(Debug)]
@@ -118,6 +131,7 @@ pub struct InitOptions {
     pub git_policy: Option<GitPolicy>,
     pub creation_policy: Option<CreationPolicy>,
     pub metadata_mode: Option<MetadataMode>,
+    pub task_layout: Option<TaskLayout>,
     pub force: bool,
 }
 
@@ -146,6 +160,12 @@ pub fn set_metadata_mode(project: &Project, mode: MetadataMode) -> Result<()> {
     write_config(&project.config_path, &config)
 }
 
+pub fn set_task_layout(project: &Project, layout: TaskLayout) -> Result<()> {
+    let mut config = project.config.clone();
+    config.task_layout = layout;
+    write_config(&project.config_path, &config)
+}
+
 impl ProjectConfig {
     fn from_sparse(sparse: SparseConfig) -> Result<Self> {
         let defaults = Self::default();
@@ -161,6 +181,7 @@ impl ProjectConfig {
             git_policy: sparse.git_policy.unwrap_or(defaults.git_policy),
             creation_policy: sparse.creation_policy.unwrap_or(defaults.creation_policy),
             metadata_mode: sparse.metadata_mode.unwrap_or(defaults.metadata_mode),
+            task_layout: sparse.task_layout.unwrap_or(defaults.task_layout),
         })
     }
 
@@ -176,6 +197,7 @@ impl ProjectConfig {
                 .then_some(self.creation_policy),
             metadata_mode: (self.metadata_mode != defaults.metadata_mode)
                 .then_some(self.metadata_mode),
+            task_layout: (self.task_layout != defaults.task_layout).then_some(self.task_layout),
         }
     }
 }
@@ -226,6 +248,7 @@ pub fn init(cwd: &Path, options: InitOptions) -> Result<InitResult> {
         git_policy: options.git_policy.unwrap_or_default(),
         creation_policy: options.creation_policy.unwrap_or_default(),
         metadata_mode: options.metadata_mode.unwrap_or_default(),
+        task_layout: options.task_layout.unwrap_or_default(),
     };
     let task_root = root.join(&config.task_root);
     validate_task_root(&root, &task_root, false)?;
@@ -471,40 +494,27 @@ fn project_owns_path(
         crate::task_store::discover_tasks_for_rename(
             &project.task_root,
             project.config.metadata_mode,
+            project.config.task_layout,
         )?
     } else {
-        crate::task_store::discover_tasks(&project.task_root, project.config.metadata_mode)?
+        crate::task_store::discover_tasks(
+            &project.task_root,
+            project.config.metadata_mode,
+            project.config.task_layout,
+        )?
     };
     Ok(graph.owning_task_index(path).is_some())
 }
 
 fn task_root_from_top_level(path: &Path) -> Option<&Path> {
-    if !is_top_level_task_directory(path) {
-        return None;
+    for (layout, depth) in [(TaskLayout::Monthly, 3), (TaskLayout::Daily, 4)] {
+        if let Some(root) = path.ancestors().nth(depth)
+            && crate::task_store::parse_top_level_task_path(root, path, layout).is_some()
+        {
+            return Some(root);
+        }
     }
-    let month = path.parent().filter(|value| is_digits(value, 2))?;
-    let year = month.parent().filter(|value| is_digits(value, 4))?;
-    year.parent()
-}
-
-fn is_top_level_task_directory(path: &Path) -> bool {
-    let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
-        return false;
-    };
-    let bytes = name.as_bytes();
-    bytes.len() > 7
-        && bytes[0..2].iter().all(u8::is_ascii_digit)
-        && bytes[2] == b'-'
-        && bytes[3..5].iter().all(u8::is_ascii_digit)
-        && bytes[5..7] == *b"--"
-}
-
-fn is_digits(path: &Path, length: usize) -> bool {
-    path.file_name()
-        .and_then(|value| value.to_str())
-        .is_some_and(|value| {
-            value.len() == length && value.bytes().all(|byte| byte.is_ascii_digit())
-        })
+    None
 }
 
 fn read_config(path: &Path) -> Result<ProjectConfig> {
@@ -530,6 +540,7 @@ fn write_config(path: &Path, config: &ProjectConfig) -> Result<()> {
         && sparse.git_policy.is_none()
         && sparse.creation_policy.is_none()
         && sparse.metadata_mode.is_none()
+        && sparse.task_layout.is_none()
     {
         if path.exists() {
             fs::remove_file(path)

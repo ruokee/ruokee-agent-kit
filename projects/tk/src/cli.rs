@@ -1,5 +1,4 @@
 use std::collections::BTreeSet;
-use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
@@ -19,7 +18,7 @@ use crate::gc;
 use crate::maintenance;
 use crate::metadata;
 use crate::migrate;
-use crate::project::{self, CreationPolicy, GitPolicy, InitOptions, MetadataMode};
+use crate::project::{self, CreationPolicy, GitPolicy, InitOptions, MetadataMode, TaskLayout};
 use crate::version::{CLI_CONTRACT_VERSION, COMPONENT_FORMAT_VERSION, TASK_SCHEMA_VERSION};
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -73,6 +72,11 @@ enum Commands {
         #[command(subcommand)]
         command: MetadataCommands,
     },
+    /// Switch or adapt top-level Task directory layouts.
+    Layout {
+        #[command(subcommand)]
+        command: LayoutCommands,
+    },
     /// Install or update a CLI Skill.
     Install(ComponentArgs),
     /// Remove CLI Skills from the selected root.
@@ -121,6 +125,40 @@ enum MetadataCommands {
     Migrate(MetadataMigrateArgs),
     /// Switch the whole project between split and embed.
     Switch(MetadataSwitchArgs),
+}
+
+#[derive(Debug, Subcommand)]
+enum LayoutCommands {
+    /// Switch the whole project to a directory layout.
+    Switch(LayoutSwitchArgs),
+    /// Adapt selected imported top-level Task directories.
+    Migrate(LayoutMigrateArgs),
+}
+
+#[derive(Debug, Args)]
+struct LayoutSwitchArgs {
+    #[arg(long, value_enum)]
+    to: CliTaskLayout,
+    #[command(flatten)]
+    references: ReferenceArgs,
+}
+
+#[derive(Debug, Args)]
+struct LayoutMigrateArgs {
+    #[arg(long = "task", required = true)]
+    tasks: Vec<PathBuf>,
+    #[command(flatten)]
+    references: ReferenceArgs,
+}
+
+#[derive(Debug, Args)]
+struct ReferenceArgs {
+    #[arg(long)]
+    dry_run: bool,
+    #[arg(long)]
+    update_references: bool,
+    #[arg(long = "extend-scan")]
+    extend_scan: Vec<PathBuf>,
 }
 
 #[derive(Debug, Args)]
@@ -193,10 +231,8 @@ struct LogArgs {
 struct RenameArgs {
     task_ref: String,
     name: String,
-    #[arg(long)]
-    dry_run: bool,
-    #[arg(long = "ignore-brokenlinks")]
-    ignore_brokenlinks: bool,
+    #[command(flatten)]
+    references: ReferenceArgs,
     #[arg(long)]
     actor: Option<String>,
 }
@@ -264,6 +300,8 @@ struct InitArgs {
     creation_policy: Option<CliCreationPolicy>,
     #[arg(long, value_enum)]
     metadata_mode: Option<CliMetadataMode>,
+    #[arg(long, value_enum)]
+    task_layout: Option<CliTaskLayout>,
     #[arg(long)]
     force: bool,
 }
@@ -305,6 +343,12 @@ enum CliCreationPolicy {
 enum CliMetadataMode {
     Split,
     Embed,
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum CliTaskLayout {
+    Monthly,
+    Daily,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -471,6 +515,7 @@ fn execute(command: Commands, cwd: PathBuf) -> Result<CommandOutput> {
         Commands::Check => execute_check(cwd),
         Commands::Rename(args) => execute_rename(args, cwd),
         Commands::Metadata { command } => execute_metadata(command, cwd),
+        Commands::Layout { command } => execute_layout(command, cwd),
         Commands::Gc(args) => execute_gc(args, cwd),
         Commands::Install(args) => execute_install(args, cwd),
         Commands::Uninstall(args) => execute_uninstall(args, cwd),
@@ -683,15 +728,41 @@ fn execute_rename(args: RenameArgs, cwd: &Path) -> Result<CommandOutput> {
         &project,
         &args.task_ref,
         &args.name,
-        args.dry_run,
-        args.ignore_brokenlinks,
+        args.references.dry_run,
+        args.references.update_references,
+        &args.references.extend_scan,
         args.actor.as_deref().unwrap_or("cli"),
     )?;
     let warnings = convert_warnings(std::mem::take(&mut result.warnings));
     Ok(CommandOutput {
         data: serde_json::to_value(&result).expect("serializing rename result"),
-        text: rename_text(args.dry_run, &result),
+        text: result.summary.text(),
         warnings,
+    })
+}
+
+fn execute_layout(command: LayoutCommands, cwd: &Path) -> Result<CommandOutput> {
+    let project = project::discover_unchecked(cwd)?;
+    let result = match command {
+        LayoutCommands::Switch(args) => crate::layout::switch(
+            &project,
+            args.to.into(),
+            args.references.dry_run,
+            args.references.update_references,
+            &args.references.extend_scan,
+        )?,
+        LayoutCommands::Migrate(args) => crate::layout::migrate(
+            &project,
+            &args.tasks,
+            args.references.dry_run,
+            args.references.update_references,
+            &args.references.extend_scan,
+        )?,
+    };
+    Ok(CommandOutput {
+        text: result.text(),
+        data: serde_json::to_value(result).expect("serializing layout summary"),
+        warnings: Vec::new(),
     })
 }
 
@@ -782,6 +853,7 @@ fn execute_init(args: InitArgs, cwd: &Path) -> Result<CommandOutput> {
             git_policy: args.git_policy.map(Into::into),
             creation_policy: args.creation_policy.map(Into::into),
             metadata_mode: args.metadata_mode.map(Into::into),
+            task_layout: args.task_layout.map(Into::into),
             force: args.force,
         },
     )?;
@@ -792,6 +864,7 @@ fn execute_init(args: InitArgs, cwd: &Path) -> Result<CommandOutput> {
             "project_root": result.project.root,
             "task_root": result.project.task_root,
             "metadata_mode": result.project.config.metadata_mode,
+            "task_layout": result.project.config.task_layout,
         }),
         text: format!(
             "Initialized tk project at {}",
@@ -849,40 +922,6 @@ fn print_error(output: Output, error: &TkError) {
     }
 }
 
-fn rename_references_section(plan: &maintenance::RenamePlan) -> String {
-    if plan.references.is_empty() {
-        return String::new();
-    }
-    let mut section = String::from("\nReferences to the old path:\n");
-    for reference in &plan.references {
-        let _ = writeln!(section, "{}:{}", reference.path.display(), reference.line);
-    }
-    section.pop();
-    section
-}
-
-fn rename_text(dry_run: bool, result: &maintenance::RenameResult) -> String {
-    let reference_section = rename_references_section(&result.plan);
-    if dry_run {
-        format!(
-            "Old path: {}\nNew name: {}\nTarget path: {}{reference_section}",
-            result.plan.old_path.display(),
-            result.plan.new_name,
-            result.plan.target_path.display(),
-        )
-    } else if result.changed {
-        format!(
-            "Renamed to {}{reference_section}",
-            result.task.task_dir.display()
-        )
-    } else {
-        format!(
-            "No changes\nTarget path: {}{reference_section}",
-            result.plan.target_path.display()
-        )
-    }
-}
-
 fn print_version(output: Output) {
     match output {
         Output::Text => println!("tk {}", env!("CARGO_PKG_VERSION")),
@@ -922,6 +961,15 @@ impl From<CliMetadataMode> for MetadataMode {
         match value {
             CliMetadataMode::Split => Self::Split,
             CliMetadataMode::Embed => Self::Embed,
+        }
+    }
+}
+
+impl From<CliTaskLayout> for TaskLayout {
+    fn from(value: CliTaskLayout) -> Self {
+        match value {
+            CliTaskLayout::Monthly => Self::Monthly,
+            CliTaskLayout::Daily => Self::Daily,
         }
     }
 }
@@ -1086,7 +1134,6 @@ mod tests {
     use super::*;
     use clap::error::ErrorKind;
     use std::collections::BTreeMap;
-    use uuid::Uuid;
 
     #[test]
     fn rejects_duplicate_keys_at_any_depth() {
@@ -1229,127 +1276,5 @@ mod tests {
             ])
             .is_err()
         );
-    }
-
-    fn rename_result_fixture(
-        changed: bool,
-        committed: bool,
-        references: Vec<(usize, &str)>,
-    ) -> maintenance::RenameResult {
-        let id = Uuid::now_v7();
-        let references = references
-            .into_iter()
-            .map(|(line, path)| maintenance::MarkdownReference {
-                path: PathBuf::from(path),
-                line,
-            })
-            .collect();
-        maintenance::RenameResult {
-            changed,
-            committed,
-            partial: false,
-            task: app::TaskReference {
-                id,
-                name: "target".into(),
-                status: crate::domain::Status::Open,
-                task_dir: PathBuf::from("/tmp/project/.tk/2026/09/05-01--target"),
-            },
-            plan: maintenance::RenamePlan {
-                task_id: id,
-                old_name: "source".into(),
-                new_name: "target".into(),
-                old_path: PathBuf::from("/tmp/project/.tk/2026/09/05-01--source"),
-                target_path: PathBuf::from("/tmp/project/.tk/2026/09/05-01--target"),
-                parent_task: None,
-                references,
-                expected_wal: String::new(),
-            },
-            warnings: Vec::new(),
-        }
-    }
-
-    #[test]
-    fn rename_text_covers_dry_run_changed_noop_and_references() {
-        let with_refs = rename_result_fixture(
-            true,
-            false,
-            vec![
-                (2, "/tmp/project/notes/a.md"),
-                (7, "/tmp/project/notes/b.md"),
-            ],
-        );
-        assert_eq!(
-            rename_text(true, &with_refs),
-            "Old path: /tmp/project/.tk/2026/09/05-01--source\n\
-             New name: target\n\
-             Target path: /tmp/project/.tk/2026/09/05-01--target\n\
-             References to the old path:\n\
-             /tmp/project/notes/a.md:2\n\
-             /tmp/project/notes/b.md:7"
-        );
-        let no_op = rename_result_fixture(
-            false,
-            false,
-            vec![
-                (2, "/tmp/project/notes/a.md"),
-                (7, "/tmp/project/notes/b.md"),
-            ],
-        );
-        assert_eq!(
-            rename_text(false, &no_op),
-            "No changes\nTarget path: /tmp/project/.tk/2026/09/05-01--target\n\
-             References to the old path:\n\
-             /tmp/project/notes/a.md:2\n\
-             /tmp/project/notes/b.md:7"
-        );
-
-        let changed = rename_result_fixture(
-            true,
-            true,
-            vec![
-                (2, "/tmp/project/notes/a.md"),
-                (7, "/tmp/project/notes/b.md"),
-            ],
-        );
-        assert_eq!(
-            rename_text(false, &changed),
-            "Renamed to /tmp/project/.tk/2026/09/05-01--target\n\
-             References to the old path:\n\
-             /tmp/project/notes/a.md:2\n\
-             /tmp/project/notes/b.md:7"
-        );
-
-        let without_refs = rename_result_fixture(true, false, Vec::new());
-        assert_eq!(
-            rename_text(true, &without_refs),
-            "Old path: /tmp/project/.tk/2026/09/05-01--source\n\
-             New name: target\n\
-             Target path: /tmp/project/.tk/2026/09/05-01--target"
-        );
-    }
-
-    #[test]
-    fn rename_accepts_exact_ignore_brokenlinks_spelling() {
-        let cli = Cli::try_parse_from([
-            "tk",
-            "rename",
-            ".tk/2026/09/05-01--source",
-            "target",
-            "--ignore-brokenlinks",
-        ])
-        .unwrap();
-        assert!(matches!(
-            &cli.command,
-            Some(Commands::Rename(args)) if args.ignore_brokenlinks
-        ));
-
-        let misspelled = Cli::try_parse_from([
-            "tk",
-            "rename",
-            ".tk/2026/09/05-01--source",
-            "target",
-            "--ignore-broken-links",
-        ]);
-        assert!(misspelled.is_err());
     }
 }
