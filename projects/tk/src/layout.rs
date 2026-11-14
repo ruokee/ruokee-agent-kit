@@ -30,8 +30,17 @@ pub fn switch(
     dry_run: bool,
     update: bool,
     extra: &[PathBuf],
+    excluded_paths: &[PathBuf],
 ) -> Result<Summary> {
-    run(project, target, None, dry_run, update, extra)
+    run(
+        project,
+        target,
+        None,
+        dry_run,
+        update,
+        extra,
+        excluded_paths,
+    )
 }
 
 pub fn migrate(
@@ -40,6 +49,7 @@ pub fn migrate(
     dry_run: bool,
     update: bool,
     extra: &[PathBuf],
+    excluded_paths: &[PathBuf],
 ) -> Result<Summary> {
     run(
         project,
@@ -48,6 +58,7 @@ pub fn migrate(
         dry_run,
         update,
         extra,
+        excluded_paths,
     )
 }
 
@@ -58,6 +69,7 @@ fn run(
     dry_run: bool,
     update: bool,
     extra: &[PathBuf],
+    excluded_paths: &[PathBuf],
 ) -> Result<Summary> {
     let switch_config = selected.is_none() && target != project.config.task_layout;
     let mut report = ScanReport::new(
@@ -70,6 +82,7 @@ fn run(
         target,
         dry_run,
         update,
+        excluded_paths,
     );
     let planning = build_plan(project, target, selected, &mut report).and_then(|plan| {
         report.scan.collect(
@@ -78,6 +91,7 @@ fn run(
             &plan.moves,
             &plan.focus,
             extra,
+            &report.excluded_paths,
             update,
         )?;
         report.scan_complete = true;
@@ -113,9 +127,14 @@ fn run(
                 for item in &plan.moves {
                     verify_move(project, item)?;
                 }
-                report
-                    .scan
-                    .verify(project, &plan.graph, &plan.moves, &plan.focus, extra)?;
+                report.scan.verify(
+                    project,
+                    &plan.graph,
+                    &plan.moves,
+                    &plan.focus,
+                    extra,
+                    &report.excluded_paths,
+                )?;
                 for item in &plan.moves {
                     crate::cancel::checkpoint()?;
                     verify_move(project, item)?;

@@ -106,6 +106,7 @@ pub fn rename(
     dry_run: bool,
     update_references: bool,
     extra: &[PathBuf],
+    excluded_paths: &[PathBuf],
     actor: &str,
 ) -> Result<RenameResult> {
     let mut report = ScanReport::new(
@@ -114,6 +115,7 @@ pub fn rename(
         project.config.task_layout,
         dry_run,
         update_references,
+        excluded_paths,
     );
     let planning = (|| {
         let graph = task_store::discover_tasks_for_rename(
@@ -159,9 +161,15 @@ pub fn rename(
         let carrier_path = metadata_path(&task.directory, project.config.metadata_mode);
         let carrier = fs::read(&carrier_path)
             .map_err(|error| storage_error("snapshot_rename_metadata", &carrier_path, error))?;
-        report
-            .scan
-            .collect(project, &graph, &moves, &focus, extra, update_references)?;
+        report.scan.collect(
+            project,
+            &graph,
+            &moves,
+            &focus,
+            extra,
+            &report.excluded_paths,
+            update_references,
+        )?;
         report.scan_complete = true;
         Ok((graph, index, plan, moves, focus, config, carrier))
     })();
@@ -222,7 +230,14 @@ pub fn rename(
                         "Rename inputs changed during execution",
                     ));
                 }
-                report.scan.verify(project, &graph, &moves, &focus, extra)?;
+                report.scan.verify(
+                    project,
+                    &graph,
+                    &moves,
+                    &focus,
+                    extra,
+                    &report.excluded_paths,
+                )?;
                 crate::cancel::begin_write()?;
                 if !moves.is_empty() {
                     fs::rename(&plan.old_path, &plan.target_path).map_err(|error| {
@@ -1281,6 +1296,7 @@ mod tests {
             false,
             false,
             &[],
+            &[],
             "test:agent",
         )
         .unwrap();
@@ -1300,6 +1316,7 @@ mod tests {
             "renamed-generated",
             false,
             false,
+            &[],
             &[],
             "test:agent",
         )
@@ -1420,6 +1437,7 @@ mod tests {
                 true,
                 false,
                 &[],
+                &[],
                 "test:agent",
             )
             .unwrap();
@@ -1459,6 +1477,7 @@ mod tests {
                 false,
                 false,
                 &[],
+                &[],
                 "test:agent",
             )
             .unwrap();
@@ -1494,6 +1513,7 @@ mod tests {
             "New Name!",
             false,
             false,
+            &[],
             &[],
             "test:agent",
         )
@@ -1542,6 +1562,7 @@ mod tests {
                     false,
                     false,
                     &[],
+                    &[],
                     "test:agent",
                 )
                 .unwrap();
@@ -1560,6 +1581,7 @@ mod tests {
                     requested,
                     false,
                     false,
+                    &[],
                     &[],
                     "test:agent",
                 )
@@ -1611,6 +1633,7 @@ mod tests {
                     "repaired",
                     false,
                     false,
+                    &[],
                     &[],
                     "test:agent",
                 )
@@ -1664,6 +1687,7 @@ mod tests {
                 true,
                 false,
                 &[],
+                &[],
                 "test:agent",
             )
             .unwrap();
@@ -1676,6 +1700,7 @@ mod tests {
             "parent",
             false,
             false,
+            &[],
             &[],
             "test:agent",
         )
@@ -1723,6 +1748,7 @@ mod tests {
             true,
             false,
             &[],
+            &[],
             "test:agent",
         )
         .unwrap_err();
@@ -1738,6 +1764,7 @@ mod tests {
             "repaired",
             true,
             false,
+            &[],
             &[],
             "test:agent",
         )
@@ -1766,6 +1793,7 @@ mod tests {
             "source",
             false,
             false,
+            &[],
             &[],
             "test:agent",
         )
@@ -1821,6 +1849,7 @@ mod tests {
                 true,
                 false,
                 &[],
+                &[],
                 "test:agent",
             )
             .unwrap();
@@ -1839,6 +1868,7 @@ mod tests {
                 "repaired",
                 false,
                 false,
+                &[],
                 &[],
                 "test:agent",
             )
@@ -1882,6 +1912,7 @@ mod tests {
             false,
             false,
             &[],
+            &[],
             "test:agent",
         )
         .unwrap();
@@ -1916,6 +1947,7 @@ mod tests {
             false,
             false,
             &[],
+            &[],
             "test:agent",
         )
         .unwrap_err();
@@ -1935,6 +1967,7 @@ mod tests {
             "repaired",
             false,
             false,
+            &[],
             &[],
             "test:agent",
         )
@@ -1973,6 +2006,7 @@ mod tests {
             "source",
             false,
             false,
+            &[],
             &[],
             "test:agent",
         )
@@ -2022,6 +2056,7 @@ mod tests {
             true,
             false,
             &[],
+            &[],
             "test:agent",
         )
         .unwrap();
@@ -2066,6 +2101,7 @@ mod tests {
             true,
             false,
             &[],
+            &[],
             "test:agent",
         )
         .unwrap();
@@ -2089,6 +2125,7 @@ mod tests {
             "target",
             false,
             false,
+            &[],
             &[],
             "test:agent",
         )
@@ -2121,6 +2158,7 @@ mod tests {
             "target",
             false,
             false,
+            &[],
             &[],
             "test:agent",
         )
@@ -2165,6 +2203,7 @@ mod tests {
                 true,
                 false,
                 &[],
+                &[],
                 "test:agent",
             )
             .unwrap();
@@ -2176,6 +2215,7 @@ mod tests {
                 "target",
                 false,
                 false,
+                &[],
                 &[],
                 "test:agent",
             )
@@ -2219,6 +2259,7 @@ mod tests {
                 true,
                 false,
                 &[],
+                &[],
                 "test:agent",
             )
             .map(|result| result.summary.committed)
@@ -2251,6 +2292,7 @@ mod tests {
                 dry_run,
                 update_references,
                 &[],
+                &[],
                 "test:agent",
             )
             .unwrap_err();
@@ -2278,6 +2320,7 @@ mod tests {
             "target",
             true,
             false,
+            &[],
             &[],
             "test:agent",
         )
@@ -2321,6 +2364,7 @@ mod tests {
                 "source",
                 false,
                 false,
+                &[],
                 &[],
                 "test:agent",
             )
@@ -2367,6 +2411,7 @@ mod tests {
             "source",
             false,
             false,
+            &[],
             &[],
             "test:agent",
         )

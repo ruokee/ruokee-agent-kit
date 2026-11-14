@@ -221,6 +221,7 @@ tk check [--cwd <path>] [--output <text|json>]
 ```text
 tk rename <task_ref> <name>
   [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--exclude-scan <path>]...
   [--actor <text>]
   [--cwd <path>] [--output <text|json>]
 ```
@@ -229,15 +230,19 @@ dry-run 保存不可变扫描报告，保留任务数据、引用和配置。执
 
 引用默认保留原文。`--update-references` 显式改写支持的引用。可重复的 `--extend-scan` 添加 Markdown 文件或目录，相对路径以项目根为基准，支持项目外绝对路径。扫描和失败规则见[维护](./maintenance.md#引用)。
 
+可重复的 `--exclude-scan <path>` 排除字面文件路径或目录子树，相对路径从项目根解析。排除优先于默认及扩展根，并适用于提交前引用复查。检查报告中的 `excluded_paths` 和其余扫描范围。完整规则见维护参考。
+
 ## 布局
 
 ```text
 tk switch layout --to <monthly|daily>
   [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--exclude-scan <path>]...
   [--cwd <path>] [--output <text|json>]
 
 tk migrate layout --task <path> [--task <path>]...
   [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--exclude-scan <path>]...
   [--cwd <path>] [--output <text|json>]
 ```
 
@@ -351,8 +356,8 @@ JSON 结果包含：
 
 ```json
 {
-  "runtime_version": "0.1.19",
-  "cli_contract_version": 7,
+  "runtime_version": "0.1.20",
+  "cli_contract_version": 8,
   "task_schema_version": 1,
   "component_format_version": 5
 }

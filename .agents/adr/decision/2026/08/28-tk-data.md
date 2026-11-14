@@ -105,3 +105,7 @@ The [data model](../../../../../projects/tk/docs/design/data-model.md) and [CLI 
 ### 2026-11-14 Metadata reports
 
 Representation switching and schema migration save distinct immutable pre-execution reports, including dry-run, no-change requests, and planning failures in a valid project. Report persistence completes before managed changes. File plans describe carrier creation, rewriting, deletion, and schema conversions; configuration remains a separate final step for representation switches. Errors preserve file-level partial completion and unknown outcomes. GC and check preserve reports for manual inspection. Operation-specific details avoid imposing directory-move and reference fields on metadata changes. The [data model](../../../../../projects/tk/docs/design/data-model.md#scan-reports) owns the report format.
+
+### 2026-11-14 Reference exclusions
+
+Path operations accept explicit invocation-scoped reference exclusions so callers can retain the rest of a filesystem scan while omitting selected files or directory subtrees. Exclusions take precedence over default and extension roots in planning and precommit reference rechecks. Reports preserve the declared scope and express completeness within it. Task discovery and managed changes keep their own contracts. Excluded references retain their content and may keep old paths after movement. The [data model](../../../../../projects/tk/docs/design/data-model.md#reference-updates) owns the path and report rules.

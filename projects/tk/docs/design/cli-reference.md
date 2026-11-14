@@ -205,6 +205,7 @@ check does not repair files; the [manual repair procedure](./skill.md#manually-r
 ```text
 tk rename <task_ref> <name>
   [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--exclude-scan <path>]...
   [--actor <text>]
   [global-options]
 ```
@@ -215,11 +216,14 @@ Formatting correspondence does not complete an explicit rename. For example, ren
 
 References keep their content by default. `--update-references` enables the [shared reference update rules](./data-model.md#reference-updates). Repeated `--extend-scan` adds a Markdown file or directory; relative paths resolve from the project root and absolute paths may be outside it. Dry-run saves a scan report and preserves Task data, references, and configuration.
 
+Repeated `--exclude-scan <path>` excludes a literal file or directory subtree from reference scanning and its precommit recheck. Relative paths resolve from the project root. Exclusion takes precedence over default and extension roots. Reports record explicit exclusions in `excluded_paths`; completeness describes the remaining scope. Task discovery and managed changes retain their own rules. The shared reference rules define normalization and failure behavior.
+
 ## tk switch layout
 
 ```text
 tk switch layout --to <monthly|daily>
   [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--exclude-scan <path>]...
   [global-options]
 ```
 
@@ -230,6 +234,7 @@ Switches the complete current layout and validates its final graph together with
 ```text
 tk migrate layout --task <path> [--task <path>]...
   [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--exclude-scan <path>]...
   [global-options]
 ```
 
@@ -338,8 +343,8 @@ Version JSON is:
 
 ```json
 {
-  "runtime_version": "0.1.19",
-  "cli_contract_version": 7,
+  "runtime_version": "0.1.20",
+  "cli_contract_version": 8,
   "task_schema_version": 1,
   "component_format_version": 5
 }

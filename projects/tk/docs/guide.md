@@ -179,6 +179,8 @@ Saved names may contain formatting spaces while a generated directory keeps its 
 
 rename preserves reference content by default. Add `--update-references` to rewrite known paths. Repeated `--extend-scan <path>` includes Markdown files or directories outside the default scan, including project-external absolute paths. Every call saves a report and prints its path. Dry-run adds only that report.
 
+Use repeated `--exclude-scan <path>` to skip literal files or directory subtrees. Relative paths resolve from the project root. Exclusion also overrides extension roots and applies to the precommit reference recheck. Inspect the report's `excluded_paths` with the remaining scan scope before updating references. The same option is available for layout switch and migrate.
+
 The same command repairs eligible old string names and recognizable generated suffix mismatches in split and embed. Use a full UUID, exact Task directory, or exact managed carrier; other managed-data validation remains strict. Closed Tasks can be renamed or repaired and keep their status.
 
 Change all top-level directories or adapt explicitly imported Tasks:

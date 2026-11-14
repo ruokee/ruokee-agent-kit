@@ -221,6 +221,7 @@ Rename a Task:
 ```text
 tk rename <task_ref> <name>
   [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--exclude-scan <path>]...
   [--actor <text>]
   [--cwd <path>] [--output <text|json>]
 ```
@@ -229,15 +230,19 @@ Dry-run saves an immutable scan report and preserves Task data, references, and 
 
 References keep their content by default. `--update-references` explicitly rewrites supported references. Repeated `--extend-scan` adds Markdown files or directories, resolving relative paths from the project root and accepting external absolute paths. See [Maintenance](./maintenance.md#references) for scan and failure rules.
 
+Repeated `--exclude-scan <path>` excludes literal files or directory subtrees, resolving relative paths from the project root. Exclusion overrides default and extension roots and also applies to the precommit reference recheck. Inspect `excluded_paths` in the report with its remaining scan scope. See Maintenance for the complete rules.
+
 ## Layout
 
 ```text
 tk switch layout --to <monthly|daily>
   [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--exclude-scan <path>]...
   [--cwd <path>] [--output <text|json>]
 
 tk migrate layout --task <path> [--task <path>]...
   [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--exclude-scan <path>]...
   [--cwd <path>] [--output <text|json>]
 ```
 
@@ -351,8 +356,8 @@ The JSON payload contains:
 
 ```json
 {
-  "runtime_version": "0.1.19",
-  "cli_contract_version": 7,
+  "runtime_version": "0.1.20",
+  "cli_contract_version": 8,
   "task_schema_version": 1,
   "component_format_version": 5
 }

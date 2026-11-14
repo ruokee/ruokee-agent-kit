@@ -205,6 +205,7 @@ check 不修复文件；人工修复损坏 `tk.toml` 的条件见[人工修复�
 ```text
 tk rename <task_ref> <name>
   [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--exclude-scan <path>]...
   [--actor <text>]
   [global-options]
 ```
@@ -215,11 +216,14 @@ rename 接受 closed 任务并保持其状态，也修复无效、为空或实�
 
 引用默认保留原文。`--update-references` 启用[共用引用更新规则](./data-model.zh.md#引用更新)。可重复的 `--extend-scan` 添加 Markdown 文件或目录，相对路径以项目根为基准，绝对路径可以位于项目之外。dry-run 保存扫描报告，保留任务数据、引用和配置。
 
+可重复的 `--exclude-scan <path>` 从引用扫描及提交前复查中排除字面文件路径或目录子树。相对路径从项目根解析。排除优先于默认及扩展根。报告通过 `excluded_paths` 记录显式排除，完整性对应其余范围。任务发现及受管变更继续遵循各自规则。归一和失败语义见共用引用更新规则。
+
 ## tk switch layout
 
 ```text
 tk switch layout --to <monthly|daily>
   [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--exclude-scan <path>]...
   [global-options]
 ```
 
@@ -230,6 +234,7 @@ tk switch layout --to <monthly|daily>
 ```text
 tk migrate layout --task <path> [--task <path>]...
   [--dry-run] [--update-references] [--extend-scan <path>]...
+  [--exclude-scan <path>]...
   [global-options]
 ```
 
@@ -338,8 +343,8 @@ tk <command> <subcommand> --help
 
 ```json
 {
-  "runtime_version": "0.1.19",
-  "cli_contract_version": 7,
+  "runtime_version": "0.1.20",
+  "cli_contract_version": 8,
   "task_schema_version": 1,
   "component_format_version": 5
 }

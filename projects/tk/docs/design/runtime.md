@@ -31,7 +31,7 @@ Each invocation resolves cwd, the project, and Task state again. The runtime doe
 
 Project commands use explicit `--cwd` when supplied, otherwise the runtime process directory. Relative values resolve from the process directory.
 
-Layout `--task` and path-change `--extend-scan` values resolve from the selected project root.
+Layout `--task` and path-change `--extend-scan` and `--exclude-scan` values resolve from the selected project root.
 
 A complete absolute Task path or material path may locate its own project and does not have to belong to the cwd project.
 

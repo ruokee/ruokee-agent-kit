@@ -71,3 +71,7 @@ CLI names, argument ownership, JSON fields, errors, and versions are a public co
 ### 2026-11-14 Metadata reports
 
 `tk switch metadata` and `tk migrate metadata` share persistent report identity, storage, and public summary semantics with path operations. Detailed plans remain operation-specific. Metadata results move full plans into immutable execution-before reports and expose actual file-level completion through summaries and errors. This keeps report inspection consistent while preserving representation and schema migration commit rules. The [CLI contract](../../../../../projects/tk/docs/design/cli-reference.md#metadata-results) owns the fields and compatibility boundary.
+
+### 2026-11-14 Reference exclusions
+
+rename and both layout commands share repeatable `--exclude-scan` inputs alongside explicit reference updates and extension roots. The runtime resolves the declared exclusions once for planning, precommit reference checks, and immutable reports. The [CLI reference](../../../../../projects/tk/docs/design/cli-reference.md#tk-rename) owns the public argument contract; the data decision owns its reference semantics.

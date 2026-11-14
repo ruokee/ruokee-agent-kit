@@ -129,6 +129,8 @@ Migrate explicitly selected imported roots, repeated selections, and already ada
 
 For both layout operations and rename, cover moved-file outgoing links, incoming links, links between moved Tasks, and subtree-local links. Include overlapping project-relative extension roots, explicit Markdown files, external absolute paths, required I/O failures, and symbolic-link behavior.
 
+For all three consumers, cover repeatable literal file and directory exclusions, project-root-relative normalization, external absolute paths, nonexistent paths, duplicates, parent-child exclusions, and component-prefix lookalikes. Exclusion overrides default and extension roots before target inspection. Use unreadable directories and invalid UTF-8 files to check that excluded references are neither traversed nor read in planning or precommit rechecks. Retained references still update and retained I/O failures still stop planning. Reports record explicit exclusions even on business planning failure, omit the field by default, and interpret completeness over the remaining scope. Include an entirely excluded root and changes confined to excluded paths between planning and commit.
+
 Inspect default, dry-run, no-change, and incomplete reports, plus summary counts and actual report paths. Report storage failure stops managed writes. Project write gates, check, and GC preserve real reports; user-level cleanup semantics stay unchanged. Inject carrier, target, reference, and configuration changes and partial write failures; inspect completed steps, remaining steps, report identity, and configuration state. A partial switch retains source configuration and can replan remaining source directories.
 
 ## Metadata reports

@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::fs::{self, OpenOptions};
 use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
@@ -53,6 +54,8 @@ pub struct ScanReport {
     pub scan_complete: bool,
     pub diagnostics: Vec<TkError>,
     pub tasks: Vec<TaskChange>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub excluded_paths: Vec<PathBuf>,
     #[serde(flatten)]
     pub scan: ReferenceScan,
     #[serde(skip)]
@@ -101,6 +104,7 @@ impl ScanReport {
         target: TaskLayout,
         dry_run: bool,
         update_references: bool,
+        excluded_paths: &[PathBuf],
     ) -> Self {
         let run = Run::new(project, operation, dry_run);
         Self {
@@ -117,6 +121,18 @@ impl ScanReport {
             scan_complete: false,
             diagnostics: Vec::new(),
             tasks: Vec::new(),
+            excluded_paths: excluded_paths
+                .iter()
+                .map(|path| {
+                    if path.is_absolute() {
+                        crate::references::normalize(path)
+                    } else {
+                        crate::references::normalize(&project.root.join(path))
+                    }
+                })
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .collect(),
             scan: ReferenceScan::default(),
             path: run.path,
         }

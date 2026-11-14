@@ -73,6 +73,7 @@ impl ReferenceScan {
         moves: &[DirectoryMove],
         focus: &[PathBuf],
         extra: &[PathBuf],
+        excluded_paths: &[PathBuf],
         keep_content: bool,
     ) -> Result<()> {
         let default = match project.config.git_policy {
@@ -86,6 +87,14 @@ impl ReferenceScan {
             } else {
                 project.root.join(path)
             };
+            let normalized = normalize(&path);
+            let is_excluded = excluded_paths
+                .iter()
+                .any(|root| normalized.starts_with(root));
+            roots.insert(normalized);
+            if is_excluded {
+                continue;
+            }
             for ancestor in path.ancestors() {
                 let metadata = fs::symlink_metadata(ancestor).map_err(|error| {
                     storage_error("inspect_reference_scan_path", ancestor, error)
@@ -100,7 +109,6 @@ impl ReferenceScan {
                     ));
                 }
             }
-            roots.insert(normalize(&path));
         }
         self.scan_roots = roots.into_iter().collect();
         let mut excluded = HashSet::from([project.task_root.join(".tk-tmp")]);
@@ -116,7 +124,7 @@ impl ReferenceScan {
                 .iter()
                 .map(|task| task.directory.join("wal")),
         );
-        self.paths = walk(&self.scan_roots, &excluded)?;
+        self.paths = walk(&self.scan_roots, &excluded, excluded_paths)?;
         let needles = Needles::new(project, moves, focus)?;
         let embedded: HashSet<_> = graph
             .tasks
@@ -248,9 +256,10 @@ impl ReferenceScan {
         moves: &[DirectoryMove],
         focus: &[PathBuf],
         extra: &[PathBuf],
+        excluded_paths: &[PathBuf],
     ) -> Result<()> {
         let mut current = Self::default();
-        current.collect(project, graph, moves, focus, extra, false)?;
+        current.collect(project, graph, moves, focus, extra, excluded_paths, false)?;
         if current.paths != self.paths || current.references != self.references {
             return Err(stale("Reference files or locations changed after scanning"));
         }
@@ -302,7 +311,11 @@ fn stale(message: &str) -> TkError {
     TkError::new("stale_reference_scan", ErrorCategory::Conflict, message)
 }
 
-fn walk(roots: &[PathBuf], excluded: &HashSet<PathBuf>) -> Result<Vec<PathBuf>> {
+fn walk(
+    roots: &[PathBuf],
+    excluded: &HashSet<PathBuf>,
+    excluded_paths: &[PathBuf],
+) -> Result<Vec<PathBuf>> {
     let mut paths = BTreeSet::new();
     let mut visited = HashSet::new();
     let mut pending: Vec<_> = roots
@@ -312,6 +325,7 @@ fn walk(roots: &[PathBuf], excluded: &HashSet<PathBuf>) -> Result<Vec<PathBuf>> 
         .collect();
     while let Some((path, depth)) = pending.pop() {
         if excluded.iter().any(|root| path.starts_with(root))
+            || excluded_paths.iter().any(|root| path.starts_with(root))
             || path.file_name().is_some_and(|name| name == ".git")
         {
             continue;

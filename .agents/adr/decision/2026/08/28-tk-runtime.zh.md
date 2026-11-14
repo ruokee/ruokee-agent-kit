@@ -71,3 +71,7 @@ CLI 名称、参数归属、JSON 字段、错误和版本是公开兼容边界�
 ### 2026-11-14 metadata 报告
 
 `tk switch metadata` 和 `tk migrate metadata` 与路径操作共享持久报告身份、存储和公共摘要语义。详细计划按操作表达。metadata 结果将完整计划存入不可变执行前报告，通过摘要和错误暴露实际的文件级完成情况。这让报告检查方式一致，同时保留表示切换和 schema 迁移的提交规则。[CLI 合同](../../../../../projects/tk/docs/design/cli-reference.zh.md#metadata-结果)规定字段和兼容边界。
+
+### 2026-11-14 引用排除
+
+rename 和两个布局命令共享可重复的 `--exclude-scan` 输入，配合显式引用更新及扩展根使用。运行时一次解析声明的排除范围，用于规划、提交前引用检查和不可变报告。[CLI 参考](../../../../../projects/tk/docs/design/cli-reference.zh.md#tk-rename)规定公开参数合同，数据决定拥有其引用语义。

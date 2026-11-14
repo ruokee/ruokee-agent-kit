@@ -159,6 +159,8 @@ struct ReferenceArgs {
     update_references: bool,
     #[arg(long = "extend-scan")]
     extend_scan: Vec<PathBuf>,
+    #[arg(long = "exclude-scan")]
+    exclude_scan: Vec<PathBuf>,
 }
 
 #[derive(Debug, Args)]
@@ -731,6 +733,7 @@ fn execute_rename(args: RenameArgs, cwd: &Path) -> Result<CommandOutput> {
         args.references.dry_run,
         args.references.update_references,
         &args.references.extend_scan,
+        &args.references.exclude_scan,
         args.actor.as_deref().unwrap_or("cli"),
     )?;
     let warnings = convert_warnings(std::mem::take(&mut result.warnings));
@@ -759,6 +762,7 @@ fn execute_switch(command: SwitchCommands, cwd: &Path) -> Result<CommandOutput> 
                 args.references.dry_run,
                 args.references.update_references,
                 &args.references.extend_scan,
+                &args.references.exclude_scan,
             )?;
             let text = result.text();
             (
@@ -784,6 +788,7 @@ fn execute_migrate(command: MigrateCommands, cwd: &Path) -> Result<CommandOutput
                 args.references.dry_run,
                 args.references.update_references,
                 &args.references.extend_scan,
+                &args.references.exclude_scan,
             )?;
             let text = result.text();
             (

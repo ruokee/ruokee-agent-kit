@@ -32,9 +32,13 @@ A commit-stage failure may leave only part of the name, generated directory, or 
 
 rename and layout commands scan the current Task root by default. Under `git_policy=track`, they scan project Markdown and other known Task roots. WAL, `.git`, and `.tk-tmp` are excluded. Symbolic links retain the existing skip rules. Required I/O failures and resource limits stop planning explicitly. Embed scans cover body content only.
 
+Use repeatable `--exclude-scan <path>` to omit literal files or directory subtrees from reference scanning and its precommit recheck. Relative paths resolve from the project root; absolute paths can cover external extension roots. Paths are lexically normalized, sorted, and deduplicated. Nonexistent and out-of-scope exclusions are allowed. Exclusion matches whole path components and takes precedence over default and extension inputs before inspecting or reading an excluded target. Other inputs retain their existing failure rules. This controls reference scanning only; Task discovery and managed changes retain their own rules. Excluded references keep their content.
+
 Explicit updates cover Markdown links, images, definitions, full-path wikilinks containing the real Task-root path, and complete path text. Labels, titles, aliases, query, fragments, and bytes outside edited intervals are preserved. Filename-only wikilinks keep their text. Relative links use the moved source file's new parent and the moved target's new location. Subtree-local links retain their original text when it still resolves correctly.
 
 Open the immutable JSON report under `<task_root>/.tk-tmp/reports` for full Task mappings, references, scan scope, and diagnostics. Dry-run, no-change, and planning failures in a valid project also save reports. `scan_complete=false` identifies an interrupted or failed scan. Report storage failure stops managed writes. Reports are scan snapshots, not execution logs or replay plans.
+
+With explicit exclusions, `excluded_paths` records their absolute normalized paths, including on business planning failure. Without exclusions, the field is omitted. Read `scan_complete` against `scan_roots` minus built-in and explicit exclusions; an entirely excluded scope can be complete. Inspect that scope before approving a reference update.
 
 ## Layout failure
 
