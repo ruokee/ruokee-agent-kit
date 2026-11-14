@@ -67,15 +67,15 @@ enum Commands {
     Rename(RenameArgs),
     /// Classify and conservatively remove tk temporary operations.
     Gc(GcArgs),
-    /// Maintain Task metadata versions and representations.
-    Metadata {
+    /// Switch a project storage option and convert its Tasks.
+    Switch {
         #[command(subcommand)]
-        command: MetadataCommands,
+        command: SwitchCommands,
     },
-    /// Switch or adapt top-level Task directory layouts.
-    Layout {
+    /// Adapt imported Task layouts or migrate metadata schemas.
+    Migrate {
         #[command(subcommand)]
-        command: LayoutCommands,
+        command: MigrateCommands,
     },
     /// Install or update a CLI Skill.
     Install(ComponentArgs),
@@ -120,19 +120,19 @@ enum CreateCommands {
 }
 
 #[derive(Debug, Subcommand)]
-enum MetadataCommands {
-    /// Migrate selected metadata carriers forward.
-    Migrate(MetadataMigrateArgs),
+enum SwitchCommands {
     /// Switch the whole project between split and embed.
-    Switch(MetadataSwitchArgs),
+    Metadata(MetadataSwitchArgs),
+    /// Switch the whole project to a directory layout.
+    Layout(LayoutSwitchArgs),
 }
 
 #[derive(Debug, Subcommand)]
-enum LayoutCommands {
-    /// Switch the whole project to a directory layout.
-    Switch(LayoutSwitchArgs),
+enum MigrateCommands {
     /// Adapt selected imported top-level Task directories.
-    Migrate(LayoutMigrateArgs),
+    Layout(LayoutMigrateArgs),
+    /// Migrate selected metadata carriers forward.
+    Metadata(MetadataMigrateArgs),
 }
 
 #[derive(Debug, Args)]
@@ -514,8 +514,8 @@ fn execute(command: Commands, cwd: PathBuf) -> Result<CommandOutput> {
         Commands::Log(args) => execute_log(args, cwd),
         Commands::Check => execute_check(cwd),
         Commands::Rename(args) => execute_rename(args, cwd),
-        Commands::Metadata { command } => execute_metadata(command, cwd),
-        Commands::Layout { command } => execute_layout(command, cwd),
+        Commands::Switch { command } => execute_switch(command, cwd),
+        Commands::Migrate { command } => execute_migrate(command, cwd),
         Commands::Gc(args) => execute_gc(args, cwd),
         Commands::Install(args) => execute_install(args, cwd),
         Commands::Uninstall(args) => execute_uninstall(args, cwd),
@@ -741,50 +741,10 @@ fn execute_rename(args: RenameArgs, cwd: &Path) -> Result<CommandOutput> {
     })
 }
 
-fn execute_layout(command: LayoutCommands, cwd: &Path) -> Result<CommandOutput> {
-    let project = project::discover_unchecked(cwd)?;
-    let result = match command {
-        LayoutCommands::Switch(args) => crate::layout::switch(
-            &project,
-            args.to.into(),
-            args.references.dry_run,
-            args.references.update_references,
-            &args.references.extend_scan,
-        )?,
-        LayoutCommands::Migrate(args) => crate::layout::migrate(
-            &project,
-            &args.tasks,
-            args.references.dry_run,
-            args.references.update_references,
-            &args.references.extend_scan,
-        )?,
-    };
-    Ok(CommandOutput {
-        text: result.text(),
-        data: serde_json::to_value(result).expect("serializing layout summary"),
-        warnings: Vec::new(),
-    })
-}
-
-fn execute_metadata(command: MetadataCommands, cwd: &Path) -> Result<CommandOutput> {
+fn execute_switch(command: SwitchCommands, cwd: &Path) -> Result<CommandOutput> {
     let project = project::discover_unchecked(cwd)?;
     let (data, text) = match command {
-        MetadataCommands::Migrate(args) => {
-            let result = migrate::schema(&project, &args.to, &args.files, args.dry_run)?;
-            let text = if result.changed {
-                format!(
-                    "schema migration: {} -> {} ({} Tasks)",
-                    result.source, result.target, result.affected_tasks
-                )
-            } else {
-                "No migration needed".into()
-            };
-            (
-                serde_json::to_value(result).expect("serializing schema migration result"),
-                text,
-            )
-        }
-        MetadataCommands::Switch(args) => {
+        SwitchCommands::Metadata(args) => {
             let result = metadata::switch(&project, args.to.into(), args.dry_run)?;
             let text = if result.changed {
                 format!(
@@ -799,11 +759,65 @@ fn execute_metadata(command: MetadataCommands, cwd: &Path) -> Result<CommandOutp
                 text,
             )
         }
+        SwitchCommands::Layout(args) => {
+            let result = crate::layout::switch(
+                &project,
+                args.to.into(),
+                args.references.dry_run,
+                args.references.update_references,
+                &args.references.extend_scan,
+            )?;
+            let text = result.text();
+            (
+                serde_json::to_value(result).expect("serializing layout summary"),
+                text,
+            )
+        }
     };
     Ok(CommandOutput {
         data,
         text,
-        warnings: vec![],
+        warnings: Vec::new(),
+    })
+}
+
+fn execute_migrate(command: MigrateCommands, cwd: &Path) -> Result<CommandOutput> {
+    let project = project::discover_unchecked(cwd)?;
+    let (data, text) = match command {
+        MigrateCommands::Layout(args) => {
+            let result = crate::layout::migrate(
+                &project,
+                &args.tasks,
+                args.references.dry_run,
+                args.references.update_references,
+                &args.references.extend_scan,
+            )?;
+            let text = result.text();
+            (
+                serde_json::to_value(result).expect("serializing layout summary"),
+                text,
+            )
+        }
+        MigrateCommands::Metadata(args) => {
+            let result = migrate::schema(&project, &args.to, &args.files, args.dry_run)?;
+            let text = if result.changed {
+                format!(
+                    "schema migration: {} -> {} ({} Tasks)",
+                    result.source, result.target, result.affected_tasks
+                )
+            } else {
+                "No migration needed".into()
+            };
+            (
+                serde_json::to_value(result).expect("serializing schema migration result"),
+                text,
+            )
+        }
+    };
+    Ok(CommandOutput {
+        data,
+        text,
+        warnings: Vec::new(),
     })
 }
 

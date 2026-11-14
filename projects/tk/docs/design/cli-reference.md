@@ -35,11 +35,11 @@ tk log
 tk init
 tk check
 tk rename
-tk layout switch
-tk layout migrate
+tk switch layout
+tk migrate layout
 tk gc
-tk metadata migrate
-tk metadata switch
+tk migrate metadata
+tk switch metadata
 tk install
 tk uninstall
 tk --version
@@ -215,20 +215,20 @@ Formatting correspondence does not complete an explicit rename. For example, ren
 
 References keep their content by default. `--update-references` enables the [shared reference update rules](./data-model.md#reference-updates). Repeated `--extend-scan` adds a Markdown file or directory; relative paths resolve from the project root and absolute paths may be outside it. Dry-run saves a scan report and preserves Task data, references, and configuration.
 
-## tk layout switch
+## tk switch layout
 
 ```text
-tk layout switch --to <monthly|daily>
+tk switch layout --to <monthly|daily>
   [--dry-run] [--update-references] [--extend-scan <path>]...
   [global-options]
 ```
 
 Switches the complete current layout and validates its final graph together with existing target-layout Tasks. It preserves source dates, sequence numbers, slugs, metadata, subtrees, and WAL. Existing target Tasks remain in place. Configuration changes last. An empty root can switch; an active-layout request produces a no-change report. Target paths and same-date sequence conflicts fail preflight. Partial failure returns committed steps and keeps the source configuration until its final write.
 
-## tk layout migrate
+## tk migrate layout
 
 ```text
-tk layout migrate --task <path> [--task <path>]...
+tk migrate layout --task <path> [--task <path>]...
   [--dry-run] [--update-references] [--extend-scan <path>]...
   [global-options]
 ```
@@ -262,10 +262,10 @@ GC removes tk temporary paths and activity markers left by production processes 
 
 The project-level real `.tk-tmp/reports` directory is retained. User-level operation directories keep their existing cleanup semantics.
 
-## `tk metadata migrate`
+## `tk migrate metadata`
 
 ```text
-tk metadata migrate
+tk migrate metadata
   [--file <path>]...
   [--to <schema-version>] [--dry-run]
   [global-options]
@@ -275,10 +275,10 @@ When no file is specified, the command selects every discovered carrier in the c
 
 Migration only applies officially released forward transformations one version at a time. After preflighting all targets, it commits them in deterministic order. A failure result lists completed and incomplete files. It provides no downgrade, rollback, or resume state.
 
-## `tk metadata switch`
+## `tk switch metadata`
 
 ```text
-tk metadata switch --to <split|embed>
+tk switch metadata --to <split|embed>
   [--dry-run] [global-options]
 ```
 
@@ -330,8 +330,8 @@ Version JSON is:
 
 ```json
 {
-  "runtime_version": "0.1.17",
-  "cli_contract_version": 5,
+  "runtime_version": "0.1.18",
+  "cli_contract_version": 6,
   "task_schema_version": 1,
   "component_format_version": 5
 }

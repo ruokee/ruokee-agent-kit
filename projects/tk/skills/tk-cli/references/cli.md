@@ -232,11 +232,11 @@ References keep their content by default. `--update-references` explicitly rewri
 ## Layout
 
 ```text
-tk layout switch --to <monthly|daily>
+tk switch layout --to <monthly|daily>
   [--dry-run] [--update-references] [--extend-scan <path>]...
   [--cwd <path>] [--output <text|json>]
 
-tk layout migrate --task <path> [--task <path>]...
+tk migrate layout --task <path> [--task <path>]...
   [--dry-run] [--update-references] [--extend-scan <path>]...
   [--cwd <path>] [--output <text|json>]
 ```
@@ -262,12 +262,12 @@ GC removes only tk temporary paths and active-operation markers left by operatio
 
 The project-level real `.tk-tmp/reports` directory is retained. User-level operation directories keep their cleanup rules.
 
-## `tk metadata migrate`
+## `tk migrate metadata`
 
 Migrate Task schemas:
 
 ```text
-tk metadata migrate
+tk migrate metadata
   [--file <path>]...
   [--to <schema-version>] [--dry-run]
   [--cwd <path>] [--output <text|json>]
@@ -280,12 +280,12 @@ tk metadata migrate
 
 Migration applies only published forward conversions, one version at a time. After complete preflight, it commits in deterministic order. A failure lists completed and uncompleted files. There is no downgrade, automatic rollback, or continuation state.
 
-## `tk metadata switch`
+## `tk switch metadata`
 
 Switch project metadata mode:
 
 ```text
-tk metadata switch --to <split|embed>
+tk switch metadata --to <split|embed>
   [--dry-run]
   [--cwd <path>] [--output <text|json>]
 ```
@@ -341,8 +341,8 @@ The JSON payload contains:
 
 ```json
 {
-  "runtime_version": "0.1.17",
-  "cli_contract_version": 5,
+  "runtime_version": "0.1.18",
+  "cli_contract_version": 6,
   "task_schema_version": 1,
   "component_format_version": 5
 }

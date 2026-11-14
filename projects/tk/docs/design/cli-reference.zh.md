@@ -35,11 +35,11 @@ tk log
 tk init
 tk check
 tk rename
-tk layout switch
-tk layout migrate
+tk switch layout
+tk migrate layout
 tk gc
-tk metadata migrate
-tk metadata switch
+tk migrate metadata
+tk switch metadata
 tk install
 tk uninstall
 tk --version
@@ -215,20 +215,20 @@ rename 接受 closed 任务并保持其状态，也修复无效、为空或实�
 
 引用默认保留原文。`--update-references` 启用[共用引用更新规则](./data-model.zh.md#引用更新)。可重复的 `--extend-scan` 添加 Markdown 文件或目录，相对路径以项目根为基准，绝对路径可以位于项目之外。dry-run 保存扫描报告，保留任务数据、引用和配置。
 
-## tk layout switch
+## tk switch layout
 
 ```text
-tk layout switch --to <monthly|daily>
+tk switch layout --to <monthly|daily>
   [--dry-run] [--update-references] [--extend-scan <path>]...
   [global-options]
 ```
 
 切换整个当前布局，并与已有目标布局任务一起验证最终任务图。保留源日期、序号、slug、元数据、子树和 WAL。已有目标任务保持原位。配置最后更新。空根可以切换，同布局请求生成无变化报告。目标路径及同日序号冲突在预检时失败。部分失败返回已提交步骤，源配置保留至最终配置写入。
 
-## tk layout migrate
+## tk migrate layout
 
 ```text
-tk layout migrate --task <path> [--task <path>]...
+tk migrate layout --task <path> [--task <path>]...
   [--dry-run] [--update-references] [--extend-scan <path>]...
   [global-options]
 ```
@@ -262,10 +262,10 @@ GC 清理操作进程退出后留下的 tk 临时路径和活动操作标记。�
 
 项目级真实 `.tk-tmp/reports` 目录保留。用户级操作目录保持原有清理语义。
 
-## `tk metadata migrate`
+## `tk migrate metadata`
 
 ```text
-tk metadata migrate
+tk migrate metadata
   [--file <path>]...
   [--to <schema-version>] [--dry-run]
   [global-options]
@@ -275,10 +275,10 @@ tk metadata migrate
 
 迁移只向前执行正式发布的逐级转换。全部目标预检后按确定顺序提交。失败结果列出完成和未完成文件，不提供降级、回滚或续跑状态。
 
-## `tk metadata switch`
+## `tk switch metadata`
 
 ```text
-tk metadata switch --to <split|embed>
+tk switch metadata --to <split|embed>
   [--dry-run] [global-options]
 ```
 
@@ -330,8 +330,8 @@ tk <command> <subcommand> --help
 
 ```json
 {
-  "runtime_version": "0.1.17",
-  "cli_contract_version": 5,
+  "runtime_version": "0.1.18",
+  "cli_contract_version": 6,
   "task_schema_version": 1,
   "component_format_version": 5
 }

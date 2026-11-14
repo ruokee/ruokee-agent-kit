@@ -48,9 +48,9 @@ task_root = "tasks"
 
 `task_layout` 选择顶层目录 monthly `YYYY/MM/DD-NN--slug` 或 daily `YYYY/MM/DD/NN-slug`。默认 monthly。普通发现、创建、搜索、读取、修复、check 和元数据操作只使用选中布局。子任务位置保持原样。同日创建取当前最大序号加一，上限 99。
 
-使用 `tk init --task-layout daily` 初始化 daily。使用 `tk layout switch --to daily` 或 `--to monthly` 转换当前根。已有目标布局任务参与最终图验证并保持原位。源日期、序号、slug、元数据、子树和 WAL 保留。配置最后更新。
+使用 `tk init --task-layout daily` 初始化 daily。使用 `tk switch layout --to daily` 或 `--to monthly` 转换当前根。已有目标布局任务参与最终图验证并保持原位。源日期、序号、slug、元数据、子树和 WAL 保留。配置最后更新。
 
-将规范顶层目录导入当前任务根后，使用可重复选择的 `tk layout migrate --task <path>`。它适配布局，保留配置、元数据模式和 schema。重复及已经适配的目录会去重。目标、同日序号、UUID、载体和关系冲突停止预检。引用选项、持久报告及部分状态处理见[维护](./maintenance.md)。
+将规范顶层目录导入当前任务根后，使用可重复选择的 `tk migrate layout --task <path>`。它适配布局，保留配置、元数据模式和 schema。重复及已经适配的目录会去重。目标、同日序号、UUID、载体和关系冲突停止预检。引用选项、持久报告及部分状态处理见[维护](./maintenance.md)。
 
 ## 子任务目录
 
@@ -100,7 +100,7 @@ subtasks_dir = "children"
 | `split` | 默认值。受管元数据写入 `tk.toml`，正文写入 `TASK.md`。 |
 | `embed` | 受管元数据写入 `TASK.md` 的 YAML frontmatter，正文紧随其后。 |
 
-同一项目只使用一种模式。不要手工修改配置值来切换模式；使用 `tk metadata switch`，让运行时转换全部任务载体并最后更新配置。
+同一项目只使用一种模式。不要手工修改配置值来切换模式；使用 `tk switch metadata`，让运行时转换全部任务载体并最后更新配置。
 
 ## 默认初始化
 

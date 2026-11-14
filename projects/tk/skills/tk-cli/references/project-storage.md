@@ -48,9 +48,9 @@ A custom Task root requires the configuration file. Creating `tasks/` alone does
 
 `task_layout` selects monthly `YYYY/MM/DD-NN--slug` or daily `YYYY/MM/DD/NN-slug` top-level directories. Monthly is the default. Ordinary discovery, creation, search, reads, repair, check, and metadata operations use the selected layout only. Child placement stays unchanged. Same-day creation uses the current maximum sequence plus one, up to 99.
 
-Use `tk init --task-layout daily` to initialize daily storage. Use `tk layout switch --to daily` or `--to monthly` to convert the current root. Existing target-layout Tasks are merged for final-graph validation and stay in place. Source dates, sequence numbers, slugs, metadata, subtrees, and WAL are preserved. Configuration changes last.
+Use `tk init --task-layout daily` to initialize daily storage. Use `tk switch layout --to daily` or `--to monthly` to convert the current root. Existing target-layout Tasks are merged for final-graph validation and stay in place. Source dates, sequence numbers, slugs, metadata, subtrees, and WAL are preserved. Configuration changes last.
 
-After importing canonical top-level directories into the current Task root, run `tk layout migrate --task <path>` with repeatable selections. It adapts their layout, preserving configuration, metadata mode, and schema. Repeated and already adapted directories are deduplicated. Target, same-date sequence, UUID, carrier, and relationship conflicts stop preflight. Reference options, persistent reports, and partial-state handling are described in [Maintenance](./maintenance.md).
+After importing canonical top-level directories into the current Task root, run `tk migrate layout --task <path>` with repeatable selections. It adapts their layout, preserving configuration, metadata mode, and schema. Repeated and already adapted directories are deduplicated. Target, same-date sequence, UUID, carrier, and relationship conflicts stop preflight. Reference options, persistent reports, and partial-state handling are described in [Maintenance](./maintenance.md).
 
 ## Subtasks directory
 
@@ -100,7 +100,7 @@ The policy does not restrict a terminal user who invokes the CLI directly and do
 | `split` | Default. Managed metadata is stored in `tk.toml`; the body is stored in `TASK.md`. |
 | `embed` | Managed metadata is stored in YAML frontmatter in `TASK.md`, followed by the body. |
 
-A project uses one mode. Do not switch by editing the configuration value manually. Use `tk metadata switch` so the runtime converts every Task carrier before it updates configuration.
+A project uses one mode. Do not switch by editing the configuration value manually. Use `tk switch metadata` so the runtime converts every Task carrier before it updates configuration.
 
 ## Default initialization
 

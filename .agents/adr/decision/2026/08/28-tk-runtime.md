@@ -24,7 +24,7 @@ The CLI is the sole public interface. Its [reference](../../../../../projects/tk
 
 Creation accepts no body input: `tk create task` rejects `--body`, and child Task items reject `body` as an unknown field. Creation writes `# <normalized-name>` as the initial body; subsequent body editing is ordinary file maintenance.
 
-`tk rename` retains exact Task references and repairs eligible old string names or recognizable generated suffixes. Validation outside the repair scope remains enforced. rename and `tk layout switch|migrate` share reference scanning, explicit `--update-references`, repeatable `--extend-scan`, persistent JSON reports, and summary output. Reference content is preserved by default. Dry-run saves only the report. No-change requests and planning failures in a valid project also save reports.
+`tk rename` retains exact Task references and repairs eligible old string names or recognizable generated suffixes. Validation outside the repair scope remains enforced. rename, `tk switch layout`, and `tk migrate layout` share reference scanning, explicit `--update-references`, repeatable `--extend-scan`, persistent JSON reports, and summary output. Reference content is preserved by default. Dry-run saves only the report. No-change requests and planning failures in a valid project also save reports.
 
 `task_layout` selects monthly or daily for ordinary operations, with monthly as the default. Layout switch converts the current root and writes configuration last. Layout migrate adapts selected imported canonical directories and preserves configuration, metadata mode, and schema. The [data decision](./28-tk-data.md) owns the shared layout and reference contract.
 

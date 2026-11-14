@@ -155,15 +155,15 @@ tk check
 Migrate released schema versions forward:
 
 ```sh
-tk metadata migrate --dry-run
-tk metadata migrate
+tk migrate metadata --dry-run
+tk migrate metadata
 ```
 
 Switch the whole project between split and embed representations:
 
 ```sh
-tk metadata switch --to embed --dry-run
-tk metadata switch --to embed
+tk switch metadata --to embed --dry-run
+tk switch metadata --to embed
 ```
 
 Preview a Task rename and inspect its saved report:
@@ -182,9 +182,9 @@ The same command repairs eligible old string names and recognizable generated su
 Change all top-level directories or adapt explicitly imported Tasks:
 
 ```sh
-tk layout switch --to daily --dry-run --update-references
-tk layout switch --to daily --update-references
-tk layout migrate --task tasks/2026/11/14-01--example --update-references
+tk switch layout --to daily --dry-run --update-references
+tk switch layout --to daily --update-references
+tk migrate layout --task tasks/2026/11/14-01--example --update-references
 ```
 
 switch moves source directories and saves configuration last. migrate adapts selected canonical directories inside the current Task root to its configured layout and preserves configuration. Both preserve dates, numbering, slugs, metadata, subtrees, and WAL. Conflicts fail preflight. Their [scan reports](./design/data-model.md#scan-reports) retain full mappings and references, including dry-run and no-change requests.

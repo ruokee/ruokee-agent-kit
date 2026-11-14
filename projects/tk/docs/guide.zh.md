@@ -155,15 +155,15 @@ tk check
 把正式发布的旧 schema 逐级向前迁移：
 
 ```sh
-tk metadata migrate --dry-run
-tk metadata migrate
+tk migrate metadata --dry-run
+tk migrate metadata
 ```
 
 在 split 和 embed 之间切换整个项目：
 
 ```sh
-tk metadata switch --to embed --dry-run
-tk metadata switch --to embed
+tk switch metadata --to embed --dry-run
+tk switch metadata --to embed
 ```
 
 预览任务重命名并检查保存的报告：
@@ -182,9 +182,9 @@ rename 默认保留引用原文。添加 `--update-references` 改写已知路�
 转换全部顶层目录或适配显式导入的任务：
 
 ```sh
-tk layout switch --to daily --dry-run --update-references
-tk layout switch --to daily --update-references
-tk layout migrate --task tasks/2026/11/14-01--example --update-references
+tk switch layout --to daily --dry-run --update-references
+tk switch layout --to daily --update-references
+tk migrate layout --task tasks/2026/11/14-01--example --update-references
 ```
 
 switch 移动源目录并最后保存配置。migrate 将当前任务根内选中的规范目录适配到配置布局，保留配置。两者保留日期、编号、slug、元数据、子树和 WAL。冲突在预检时报错。[扫描报告](./design/data-model.zh.md#扫描报告)保留完整映射及引用，包括 dry-run 和无变化请求。

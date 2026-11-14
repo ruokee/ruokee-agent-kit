@@ -24,7 +24,7 @@ CLI 是唯一公开接口。[参考](../../../../../projects/tk/docs/design/cli-
 
 创建不接受正文输入：`tk create task` 拒绝 `--body`，子任务 item 把 `body` 作为未知字段拒绝。创建写入 `# <规范化名称>` 作为初始正文，后续正文编辑属于普通文件维护。
 
-`tk rename` 保留精确任务引用，并修复符合条件的旧字符串名称或可识别生成式后缀。修复范围外仍执行原有校验。rename 和 `tk layout switch|migrate` 共用引用扫描、显式 `--update-references`、可重复 `--extend-scan`、持久 JSON 报告及摘要输出。默认保留引用原文。dry-run 只保存报告。无变化请求及有效项目中的规划失败也保存报告。
+`tk rename` 保留精确任务引用，并修复符合条件的旧字符串名称或可识别生成式后缀。修复范围外仍执行原有校验。rename、`tk switch layout` 和 `tk migrate layout` 共用引用扫描、显式 `--update-references`、可重复 `--extend-scan`、持久 JSON 报告及摘要输出。默认保留引用原文。dry-run 只保存报告。无变化请求及有效项目中的规划失败也保存报告。
 
 `task_layout` 为普通操作选择 monthly 或 daily，默认 monthly。布局 switch 转换当前根并最后写配置。布局 migrate 适配显式选中的导入规范目录，保留配置、元数据模式和 schema。共享布局和引用合同归[数据决定](./28-tk-data.zh.md)维护。
 

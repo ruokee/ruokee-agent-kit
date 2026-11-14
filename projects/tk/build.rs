@@ -8,7 +8,7 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
 const COMPONENT_FORMAT_VERSION: u32 = 5;
-const RUNTIME_COMPAT: &str = ">=0.1.17,<0.2";
+const RUNTIME_COMPAT: &str = ">=0.1.18,<0.2";
 const LANGUAGES: [&str; 2] = ["en", "zh"];
 
 #[derive(Clone)]

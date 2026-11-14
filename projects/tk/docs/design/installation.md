@@ -23,7 +23,7 @@ The manifest contains:
 - `cli_skills` entries for `en` and `zh`, each with `language`, `skill`, `runtime_compat`, `payload`, and `files`;
 - each file's content digest and Unix mode.
 
-`runtime_compat` is `>=0.1.17,<0.2`. Each selection has a language and Skill identity, independent of a Harness. When `TK_SOURCE_REVISION` is set, assembly uses it; otherwise it records `package-v<CARGO_PKG_VERSION>`. The build script does not invoke Git.
+`runtime_compat` is `>=0.1.18,<0.2`. Each selection has a language and Skill identity, independent of a Harness. When `TK_SOURCE_REVISION` is set, assembly uses it; otherwise it records `package-v<CARGO_PKG_VERSION>`. The build script does not invoke Git.
 
 Digests check the embedded archive's integrity. They do not record installation ownership or decide which modified installed files survive removal.
 

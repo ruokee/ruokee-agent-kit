@@ -232,11 +232,11 @@ dry-run 保存不可变扫描报告，保留任务数据、引用和配置。执
 ## 布局
 
 ```text
-tk layout switch --to <monthly|daily>
+tk switch layout --to <monthly|daily>
   [--dry-run] [--update-references] [--extend-scan <path>]...
   [--cwd <path>] [--output <text|json>]
 
-tk layout migrate --task <path> [--task <path>]...
+tk migrate layout --task <path> [--task <path>]...
   [--dry-run] [--update-references] [--extend-scan <path>]...
   [--cwd <path>] [--output <text|json>]
 ```
@@ -262,12 +262,12 @@ GC 只删除已退出操作进程留下的 tk 临时路径和活动操作标记�
 
 项目级真实 `.tk-tmp/reports` 目录保留。用户级操作目录保持既有清理规则。
 
-## `tk metadata migrate`
+## `tk migrate metadata`
 
 迁移任务 schema：
 
 ```text
-tk metadata migrate
+tk migrate metadata
   [--file <path>]...
   [--to <schema-version>] [--dry-run]
   [--cwd <path>] [--output <text|json>]
@@ -280,12 +280,12 @@ tk metadata migrate
 
 迁移只执行正式发布的逐级前向转换。全量预检通过后按确定顺序提交。失败结果列出已完成和未完成文件，不提供降级、自动回滚或续跑状态。
 
-## `tk metadata switch`
+## `tk switch metadata`
 
 切换项目元数据模式：
 
 ```text
-tk metadata switch --to <split|embed>
+tk switch metadata --to <split|embed>
   [--dry-run]
   [--cwd <path>] [--output <text|json>]
 ```
@@ -341,8 +341,8 @@ JSON 结果包含：
 
 ```json
 {
-  "runtime_version": "0.1.17",
-  "cli_contract_version": 5,
+  "runtime_version": "0.1.18",
+  "cli_contract_version": 6,
   "task_schema_version": 1,
   "component_format_version": 5
 }
